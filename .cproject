@@ -29,6 +29,11 @@
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.debug.55912524" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.debug">
 <option id="gnu.cpp.compiler.option.optimization.level.740853414" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.617989829" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.1154051835" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="../classes"/>
+<listOptionValue builtIn="false" value="../boost_1_53_0"/>
+<listOptionValue builtIn="false" value="../."/>
+</option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.1587132294" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.debug.351995787" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.debug"/>
@@ -43,6 +48,9 @@
 </tool>
 </toolChain>
 </folderInfo>
+<sourceEntries>
+<entry excluding="boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
@@ -711,6 +719,8 @@
 </scannerConfigBuildInfo>
 </storageModule>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837">
 <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -728,16 +738,21 @@
 <folderInfo id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837." name="/" resourcePath="">
 <toolChain id="com.digi.lxnetes.managedbuild.toolChainRelease.2021065781" name="Digi EL Tool Chain" superClass="com.digi.lxnetes.managedbuild.toolChainRelease">
 <targetPlatform id="com.digi.lxnetes.managedbuild.targetPlatform.release.167951857" name="Debug Platform" superClass="com.digi.lxnetes.managedbuild.targetPlatform.release"/>
-<builder buildPath="${workspace_loc:/p44bridged/Release}" id="com.digi.lxnetes.builder.exe.release.160383975" managedBuildOn="true" name="Gnu Make Builder.Release" superClass="com.digi.lxnetes.builder.exe.release"/>
+<builder buildPath="${workspace_loc:/p44bridged/Release}" id="com.digi.lxnetes.builder.exe.release.160383975" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="com.digi.lxnetes.builder.exe.release"/>
 <tool id="com.digi.lxnetes.managedbuild.archiver.base.993090639" name="GCC C Cross-Archiver" superClass="com.digi.lxnetes.managedbuild.archiver.base"/>
 <tool id="com.digi.lxnetes.managedbuild.c.compiler.release.1716932832" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.release">
-<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1831859778" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.debugging.level.1301704598" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1831859778" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+<option id="gnu.c.compiler.option.debugging.level.1301704598" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.release.1529185694" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.release">
-<option id="gnu.cpp.compiler.option.optimization.level.521294615" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-<option id="gnu.cpp.compiler.option.debugging.level.691393519" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.optimization.level.521294615" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.debugging.level.691393519" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.include.paths.565727891" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+<listOptionValue builtIn="false" value="../classes"/>
+<listOptionValue builtIn="false" value="../boost_1_53_0"/>
+<listOptionValue builtIn="false" value="../."/>
+</option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.219824697" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.release.1472974067" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.release"/>
@@ -752,6 +767,9 @@
 </tool>
 </toolChain>
 </folderInfo>
+<sourceEntries>
+<entry excluding="boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+</sourceEntries>
 </configuration>
 </storageModule>
 <storageModule moduleId="scannerConfiguration">
@@ -1420,6 +1438,8 @@
 </scannerConfigBuildInfo>
 </storageModule>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">

@@ -75,6 +75,38 @@
 		<buildCommand>
 			<name>com.digi.lxnetes.managedbuild.managedApplicationInstallBuilder</name>
 			<arguments>
+				<dictionary>
+					<key>group_permissions</key>
+					<value>5</value>
+				</dictionary>
+				<dictionary>
+					<key>install.command</key>
+					<value>install</value>
+				</dictionary>
+				<dictionary>
+					<key>install.createAll</key>
+					<value>-D</value>
+				</dictionary>
+				<dictionary>
+					<key>install.mode</key>
+					<value>-m</value>
+				</dictionary>
+				<dictionary>
+					<key>install_dir</key>
+					<value></value>
+				</dictionary>
+				<dictionary>
+					<key>install_selection</key>
+					<value>false</value>
+				</dictionary>
+				<dictionary>
+					<key>other_permissions</key>
+					<value>5</value>
+				</dictionary>
+				<dictionary>
+					<key>owner_permissions</key>
+					<value>7</value>
+				</dictionary>
 			</arguments>
 		</buildCommand>
 	</buildSpec>
