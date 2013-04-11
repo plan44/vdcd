@@ -15,4 +15,8 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
+#include "logger.h"
+
+
+
 #endif /* P44BRIDGED_COMMON_HPP_ */

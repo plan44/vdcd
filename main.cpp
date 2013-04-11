@@ -26,9 +26,6 @@
 #include "dalicomm.hpp"
 
 
-#define BAUDRATE B9600
-
-#define DEFAULT_PROXYPORT 2101
 #define DEFAULT_CONNECTIONPORT 2101
 
 
@@ -37,6 +34,7 @@ static void usage(char *name)
 {
   fprintf(stderr, "usage:\n");
   fprintf(stderr, "  %s (DALI serialportdevice|DALI proxy ipaddr)\n", name);
+  fprintf(stderr, "    -P port : port to connect to (default: %d)\n", DEFAULT_CONNECTIONPORT);
   fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
 }
 
@@ -93,14 +91,18 @@ int main(int argc, char **argv)
   bool daemonMode = false;
   bool serialMode = false;
   bool verbose = false;
+  int outputport = DEFAULT_CONNECTIONPORT;
 
   int c;
-  while ((c = getopt(argc, argv, "d")) != -1)
+  while ((c = getopt(argc, argv, "dP:")) != -1)
   {
     switch (c) {
       case 'd':
         daemonMode = true;
         verbose = true;
+        break;
+      case 'P':
+        outputport = atoi(optarg);
         break;
       default:
         exit(-1);
@@ -118,81 +120,10 @@ int main(int argc, char **argv)
   unsigned char byte;
 
   // Create DALI communicator
-  DaliCommPtr daliComm(new DaliComm());
+  char *outputname = argv[optind++];
+  DaliCommPtr daliComm(new DaliComm(outputname, outputport));
 
   daliComm->allOn();
-
-
-  /*
-  int outputfd =0;
-  int res;
-  char *outputname = argv[optind++];
-  struct termios oldtio,newtio;
-
-  serialMode = *outputname=='/';
-
-  // check type of output
-  if (serialMode) {
-    // assume it's a serial port
-    outputfd = open(outputname, O_RDWR | O_NOCTTY);
-    if (outputfd <0) {
-      perror(outputname); exit(-1);
-    }
-    tcgetattr(outputfd,&oldtio); // save current port settings
-
-    // see "man termios" for details
-    memset(&newtio, 0, sizeof(newtio));
-    // - baudrate, 8-N-1, no modem control lines (local), reading enabled
-    newtio.c_cflag = BAUDRATE | CRTSCTS | CS8 | CLOCAL | CREAD;
-    // - ignore parity errors
-    newtio.c_iflag = IGNPAR;
-    // - no output control
-    newtio.c_oflag = 0;
-    // - no input control (non-canonical)
-    newtio.c_lflag = 0;
-    // - no inter-char time
-    newtio.c_cc[VTIME]    = 0;   // inter-character timer unused
-    // - receive every single char seperately
-    newtio.c_cc[VMIN]     = 1;   // blocking read until 1 chars received
-    // - set new params
-    tcflush(outputfd, TCIFLUSH);
-    tcsetattr(outputfd,TCSANOW,&newtio);
-  }
-  else {
-    // assume it's an IP address or hostname
-    struct sockaddr_in conn_addr;
-    if ((outputfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-      printf("Error: Could not create socket\n");
-      exit(1);
-    }
-    // prepare IP address
-    memset(&conn_addr, '0', sizeof(conn_addr));
-    conn_addr.sin_family = AF_INET;
-    conn_addr.sin_port = htons(connPort);
-
-    struct hostent *server;
-    server = gethostbyname(outputname);
-    if (server == NULL) {
-      printf("Error: no such host");
-      exit(1);
-    }
-    memcpy((char *)&conn_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
-
-    if ((res = connect(outputfd, (struct sockaddr *)&conn_addr, sizeof(conn_addr))) < 0) {
-      printf("Error: %s\n", strerror(errno));
-      exit(1);
-    }
-  }
-
-  // done
-  if (serialMode) {
-    tcsetattr(outputfd,TCSANOW,&oldtio);
-  }
-
-  // close
-  close(outputfd);
-  */
-
 
 
   // return
