@@ -23,7 +23,7 @@ typedef boost::function<void (SerialOperation *)> SerialOperationCompletedCB;
 typedef boost::shared_ptr<SerialOperation> SerialOperationPtr;
 class SerialOperation
 {
-  SerialOperationDoneCB completedCallback;
+  SerialOperationCompletedCB completedCallback;
 public:
   /// if this flag is set, no operation queued after this operation will execute
   bool inSequence;
@@ -31,7 +31,7 @@ public:
   void setSerialOperationCB(SerialOperationCompletedCB aCallBack) { completedCallback = aCallBack; };
   /// call to initiate operation
   /// @return false if cannot be initiated now and must be retried
-  virtual bool initiate() = { return true; }; // NOP
+  virtual bool initiate() { return true; }; // NOP
   /// call to deliver received bytes
   /// @return number of bytes operation could accept, 0 if none
   virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes) { return 0; };  
@@ -65,7 +65,7 @@ public:
     }
   };
 
-  setTransmitter(SerialOperationTransmitter aTransmitter)
+  void setTransmitter(SerialOperationTransmitter aTransmitter)
   {
     // remember transmitter
     transmitter = aTransmitter;
@@ -97,7 +97,7 @@ class SerialOperationReceive : SerialOperation
 {
   typedef SerialOperation inherited;
 
-  size_t dataSize;
+  size_t expectedBytes;
   uint8_t *dataP;
   size_t dataIndex;
 
@@ -106,8 +106,8 @@ public:
   SerialOperationReceive(size_t aExpectedBytes)
   {
     // allocate buffer
-    dataSize = aExpectedBytes;
-    dataP = (uint8_t *)malloc(dataSize);
+    expectedBytes = aExpectedBytes;
+    dataP = (uint8_t *)malloc(expectedBytes);
     dataIndex = 0;
   };
 
@@ -116,8 +116,8 @@ public:
     // append bytes into buffer
     if (aNumBytes>expectedBytes) aNumBytes = expectedBytes;
     if (aNumBytes>0) {
-      memcpy(&recBuf[recBufIdx], aBytes, aNumBytes);
-      recBufIdx += aNumBytes;
+      memcpy(dataP+dataIndex, aBytes, aNumBytes);
+      dataIndex += aNumBytes;
       expectedBytes -= aNumBytes;
     }
     // return number of bytes actually accepted
@@ -126,7 +126,7 @@ public:
 
   virtual bool hasCompleted()
   {
-    %%%
+    // %%%
   };
 
 };
@@ -144,11 +144,9 @@ public:
 
   /// queue a new operation
   /// @param aOperation the operation to execute
-  queueOperation(SerialOperation *aOperation)
+  void queueOperation(SerialOperationPtr aOperation)
   {
     operationQueue.push_back(aOperation);
-    // check if other operations can now be processed
-    processOperations();
   }
 
   /// deliver bytes to the most recent waiting operation
@@ -156,7 +154,7 @@ public:
   {
     // let operations receive bytes
     size_t acceptedBytes = 0;
-    for (operationQueue_t::iterator pos = operationQueue.begin(); pos<operationQueue.end(); ++pos) {
+    for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
       size_t consumed = (*pos)->acceptBytes(aNumBytes, aBytes);
       aBytes += consumed; // advance pointer
       aNumBytes -= consumed; // count
@@ -177,7 +175,7 @@ public:
   /// process operations now
   void processOperations()
   {
-    for (operationQueue_t::iterator pos = operationQueue.begin(); pos<operationQueue.end(); ++pos) {
+    for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
       
 
     }

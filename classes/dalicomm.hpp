@@ -73,7 +73,7 @@ public:
   /// @param aDali1 DALI byte 1
   /// @param aDali2 DALI byte 2
   /// @param aResultCB callback executed when bridge response arrives
-  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
+  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2);
 
   /// establish the connection to the DALI bridge
   /// @note can be called multiple times, opens connection only if not already open
