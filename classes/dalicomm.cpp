@@ -29,12 +29,15 @@ public:
   bool inSequence;
   /// set callback to execute when operation completes
   void setSerialOperationCB(SerialOperationCompletedCB aCallBack) { completedCallback = aCallBack; };
-  /// call to execute operation
-  /// @return false if execution is not yet complete and must be retried
-  virtual bool execute() = { return true; }; // NOP
+  /// call to initiate operation
+  /// @return false if cannot be initiated now and must be retried
+  virtual bool initiate() = { return true; }; // NOP
   /// call to deliver received bytes
   /// @return number of bytes operation could accept, 0 if none
   virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes) { return 0; };  
+  /// call to check if operation has completed
+  /// @return true if completed
+  virtual bool hasCompleted() { return 0; };
 };
 
 
@@ -120,6 +123,12 @@ public:
     // return number of bytes actually accepted
     return aNumBytes;
   }
+
+  virtual bool hasCompleted()
+  {
+    %%%
+  };
+
 };
 
 
@@ -159,7 +168,7 @@ public:
       // Still bytes left to accept
       // TODO: possibly create "unexpected receive" operation
     }
-    // check if other operations can now be processed
+    // check if some operations might be complete now
     processOperations();
     // return number of accepted bytes
     return acceptedBytes;
@@ -169,12 +178,8 @@ public:
   void processOperations()
   {
     for (operationQueue_t::iterator pos = operationQueue.begin(); pos<operationQueue.end(); ++pos) {
-      size_t consumed = (*pos)->acceptBytes(aNumBytes, aBytes);
-      aBytes += consumed; // advance pointer
-      aNumBytes -= consumed; // count
-      acceptedBytes += consumed;
-      if (aNumBytes<=0)
-        break; // all bytes consumed
+      
+
     }
   }
 
