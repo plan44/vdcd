@@ -120,6 +120,7 @@ int main(int argc, char **argv)
   // Create DALI communicator
   DaliCommPtr daliComm(new DaliComm());
 
+  daliComm->allOn();
 
 
   /*

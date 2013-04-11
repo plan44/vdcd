@@ -25,40 +25,8 @@ public:
   void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
 
   void allOn();
-  void ackAllOn(DaliCommPtr aDaliComm, uint8_t aResp1, uint8_t aResp2);
+  void ackAllOn(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2);
 
 };
 
 #endif /* DALICOMM_H_ */
-
-
-/*
- * Using bind with Boost.Function
-
-class button
-{
-public:
-
-    boost::function<void()> onClick;
-};
-
-class player
-{
-public:
-
-    void play();
-    void stop();
-};
-
-button playButton, stopButton;
-player thePlayer;
-
-void connect()
-{
-    playButton.onClick = boost::bind(&player::play, &thePlayer);
-    stopButton.onClick = boost::bind(&player::stop, &thePlayer);
-}
-
- *
- *
- */
