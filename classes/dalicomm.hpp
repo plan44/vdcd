@@ -15,7 +15,7 @@
 class DaliComm;
 typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 
-typedef boost::function<void (DaliCommPtr aDaliComm, uint8_t aResp1, uint8_t aResp2)> DaliBridgeResultCB;
+typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)> DaliBridgeResultCB;
 
 
 /// A class providing low level access to the DALI bus
