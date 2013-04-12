@@ -22,6 +22,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <netinet/in.h>
 
 #include "dalicomm.hpp"
 
@@ -125,6 +126,55 @@ int main(int argc, char **argv)
 
   daliComm->allOn();
 
+//  // Prepare dSDC API socket
+//  int listenfd = 0;
+//  int servingfd = 0;
+//  struct sockaddr_in serv_addr;
+//  fd_set readfs; // file descriptor set
+//  int    maxrdfd; // maximum file descriptor used
+//
+//  // - open server socket
+//  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+//  memset(&serv_addr, '0', sizeof(serv_addr));
+//
+//  serv_addr.sin_family = AF_INET;
+//  serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+//  serv_addr.sin_port = htons(proxyPort); // port
+//  bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+//  listen(listenfd, 1); // max one connection for now
+//
+//  if (verbose) printf("Listening on port %d for connections\n",proxyPort);
+
+  // Main loop
+  while (true) {
+    // Create bitmap for select call
+    int numFDsToTest = 0; // number of file descriptors to test (max+1 of all used FDs)
+    fd_set readfs; // file descriptor set
+    FD_ZERO(&readfs);
+    // - DALI
+    int daliFD = daliComm->toBeMonitoredFD();
+    if (daliFD>=0) {
+      // DALI FD is active, include it
+      numFDsToTest = MAX(daliFD+1, numFDsToTest);
+      FD_SET(daliFD, &readfs);  // testing for DALI
+    }
+    // - client
+    int clientFD = -1; // none yet
+    if (clientFD>=0) {
+      // TODO: %%% test client for receiving data
+      numFDsToTest = MAX(clientFD+1, numFDsToTest);
+      FD_SET(clientFD, &readfs);  /* set testing for source 1 */
+    }
+    // block until input becomes available
+    select(numFDsToTest, &readfs, NULL, NULL, NULL);
+    if (daliFD>=0 && FD_ISSET(daliFD,&readfs)) {
+      // input DALI available, have it processed
+      daliComm->dataReadyOnMonitoredFD();
+    }
+    if (clientFD>=0 && FD_ISSET(clientFD,&readfs)) {
+      // TODO: input from client available
+    }
+  }
 
   // return
   return 0;

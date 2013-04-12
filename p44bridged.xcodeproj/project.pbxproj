@@ -10,6 +10,7 @@
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
+		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +33,8 @@
 		ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44bridged_common.hpp; sourceTree = "<group>"; };
 		ED6D7BEE1716EAA6005DED18 /* logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logger.cpp; sourceTree = "<group>"; };
 		ED6D7BEF1716EAA6005DED18 /* logger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logger.h; sourceTree = "<group>"; };
+		ED6D7BF617180766005DED18 /* serialqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialqueue.cpp; sourceTree = "<group>"; };
+		ED6D7BF717180766005DED18 /* serialqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = serialqueue.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +73,8 @@
 				ED6D7BEF1716EAA6005DED18 /* logger.h */,
 				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
 				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
+				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
+				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
 			);
 			path = classes;
 			sourceTree = "<group>";
@@ -128,6 +133,7 @@
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
+				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

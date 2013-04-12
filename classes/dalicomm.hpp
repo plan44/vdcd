@@ -12,6 +12,8 @@
 
 #include "p44bridged_common.hpp"
 
+#include "serialqueue.hpp"
+
 // unix I/O and network
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -39,7 +41,7 @@ typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)> DaliBridgeResultCB;
 
 /// A class providing low level access to the DALI bus
-class DaliComm
+class DaliComm : SerialOperationQueue
 {
   // connection to the bridge
   string bridgeConnectionPath;
@@ -62,13 +64,9 @@ public:
   int toBeMonitoredFD();
   /// Must be called from main loop when monitored FD has data to process
   void dataReadyOnMonitoredFD();
-  /// process pending events
-  /// @note must be called in regular intervals from mainloop
-  /// @return false if no more events pending (caller may go to sleep)
-  void processPendingEvents();
 
   /// transmit data
-  void transmitBytes(size_t aNumBytes, uint8_t *aBytes);
+  size_t transmitBytes(size_t aNumBytes, uint8_t *aBytes);
 
   /// Send DALI command to bridge
   /// @param aCmd bridge command byte

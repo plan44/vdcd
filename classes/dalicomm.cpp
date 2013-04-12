@@ -8,286 +8,9 @@
 
 #include "dalicomm.hpp"
 
+
 #include <list>
 
-#pragma mark - serial operations
-
-
-class SerialOperation;
-class SerialOperationQueue;
-
-/// SerialOperation completion callback
-typedef boost::function<void (SerialOperation *, SerialOperationQueue *)> SerialOperationFinalizeCB;
-
-/// SerialOperation transmitter
-typedef boost::function<size_t(size_t aNumBytes, uint8_t *aBytes)> SerialOperationTransmitter;
-
-
-/// Serial operation
-typedef boost::shared_ptr<SerialOperation> SerialOperationPtr;
-class SerialOperation
-{
-protected:
-  SerialOperationFinalizeCB finalizeCallback;
-  SerialOperationTransmitter transmitter;
-  bool initiated;
-public:
-  /// if this flag is set, no operation queued after this operation will execute
-  bool inSequence;
-  /// constructor
-  SerialOperation() { initiated = false; inSequence = true; };
-  /// set transmitter
-  void setTransmitter(SerialOperationTransmitter aTransmitter) { transmitter = aTransmitter; }
-  /// set callback to execute when operation completes
-  void setSerialOperationCB(SerialOperationFinalizeCB aCallBack) { finalizeCallback = aCallBack; };
-  /// call to initiate operation
-  /// @return false if cannot be initiated now and must be retried
-  virtual bool initiate() { initiated=true; return initiated; }; // NOP
-  /// check if already initiated
-  bool isInitiated() { return initiated; }
-  /// call to deliver received bytes
-  /// @return number of bytes operation could accept, 0 if none
-  virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes) { return 0; };  
-  /// call to check if operation has completed
-  /// @return true if completed
-  virtual bool hasCompleted() { return true; };
-  /// call to execute after completion
-  virtual void finalize(SerialOperationQueue *aQueueP = NULL) {
-    if (finalizeCallback) {
-      finalizeCallback(this,aQueueP);
-    }
-  }
-};
-
-
-
-
-/// Send operation
-class SerialOperationSend : public SerialOperation
-{
-  typedef SerialOperation inherited;
-
-  size_t dataSize;
-  uint8_t *dataP;
-public:
-
-  SerialOperationSend(size_t aNumBytes, uint8_t *aBytes) {
-    // copy data
-    dataP = NULL;
-    dataSize = aNumBytes;
-    if (dataSize>0) {
-      dataP = (uint8_t *)malloc(dataSize);
-      memcpy(dataP, aBytes, dataSize);
-    }
-  };
-
-  virtual ~SerialOperationSend() {
-    if (dataP) {
-      free(dataP);
-    }
-  }
-
-  virtual bool initiate() {
-    size_t res;
-    if (dataP && transmitter) {
-      // transmit
-      res = transmitter(dataSize,dataP);
-      // early release
-      free(dataP);
-      dataP = NULL;
-    }
-    // executed
-    return inherited::initiate();
-  }
-};
-typedef boost::shared_ptr<SerialOperationSend> SerialOperationSendPtr;
-
-
-/// receive operation
-class SerialOperationReceive : public SerialOperation
-{
-  typedef SerialOperation inherited;
-
-  size_t expectedBytes;
-  uint8_t *dataP;
-  size_t dataIndex;
-
-public:
-
-  SerialOperationReceive(size_t aExpectedBytes)
-  {
-    // allocate buffer
-    expectedBytes = aExpectedBytes;
-    dataP = (uint8_t *)malloc(expectedBytes);
-    dataIndex = 0;
-  };
-
-  uint8_t *getDataP() { return dataP; };
-  size_t getDataSize() { return dataIndex; };
-
-  virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes)
-  {
-    // append bytes into buffer
-    if (!initiated)
-      return 0; // cannot accept bytes when not yet initiated
-    if (aNumBytes>expectedBytes)
-      aNumBytes = expectedBytes;
-    if (aNumBytes>0) {
-      memcpy(dataP+dataIndex, aBytes, aNumBytes);
-      dataIndex += aNumBytes;
-      expectedBytes -= aNumBytes;
-    }
-    // return number of bytes actually accepted
-    return aNumBytes;
-  }
-
-  virtual bool hasCompleted()
-  {
-    // completed if all expected bytes received
-    return expectedBytes<=0;
-  };
-
-};
-typedef boost::shared_ptr<SerialOperationReceive> SerialOperationReceivePtr;
-
-
-
-
-
-#pragma mark - serial operation queue
-
-
-class SerialOperationQueue
-{
-  typedef list<SerialOperationPtr> operationQueue_t;
-  operationQueue_t operationQueue;
-  SerialOperationTransmitter transmitter;
-
-public:
-
-  SerialOperationQueue(SerialOperationTransmitter aTransmitter) : transmitter(aTransmitter) {};
-
-  /// queue a new operation
-  /// @param aOperation the operation to queue
-  void queueOperation(SerialOperationPtr aOperation)
-  {
-    aOperation->setTransmitter(transmitter);
-    operationQueue.push_back(aOperation);
-  }
-
-  /// insert a new operation before other pending operations
-  /// @param aOperation the operation to insert
-  void insertOperation(SerialOperationPtr aOperation)
-  {
-    aOperation->setTransmitter(transmitter);
-    // TODO: we might need checks for inserting in the right place (after already initiated)
-    operationQueue.push_front(aOperation);
-  }
-
-
-  /// deliver bytes to the most recent waiting operation
-  size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes)
-  {
-    // let operations receive bytes
-    size_t acceptedBytes = 0;
-    for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
-      size_t consumed = (*pos)->acceptBytes(aNumBytes, aBytes);
-      aBytes += consumed; // advance pointer
-      aNumBytes -= consumed; // count
-      acceptedBytes += consumed;
-      if (aNumBytes<=0)
-        break; // all bytes consumed
-    }
-    if (aNumBytes>0) {
-      // Still bytes left to accept
-      // TODO: possibly create "unexpected receive" operation
-    }
-    // check if some operations might be complete now
-    processOperations();
-    // return number of accepted bytes
-    return acceptedBytes;
-  };
-
-  /// process operations now
-  void processOperations()
-  {
-    bool processed = false;
-    while (!processed) {
-      operationQueue_t::iterator pos;
-      // (re)start with first element in queue
-      for (pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
-        SerialOperationPtr op = *pos;
-        if (!op->isInitiated()) {
-          // initiate now
-          if (!op->initiate()) {
-            // cannot initiate this one now, continue further down into queue if sequence is not important
-            if (op->inSequence) {
-              // this op needs to be initiated before others can be checked
-              processed = true; // something must happen outside this routine to change the state of the op, so done for now
-              break;
-            }
-          }
-        }
-        else {
-          // initiated, check if already completed
-          if (op->hasCompleted()) {
-            // operation has completed
-            // - remove from list
-            operationQueue.pop_front();
-            // - finalize. This might push new operations in front or back of the queue
-            op->finalize(this);
-            // restart with start of (modified) queue
-            break;
-          }
-          else {
-            // operation has not yet completed
-            if (op->inSequence) {
-              // this op needs to be complete before others can be checked
-              processed = true; // something must happen outside this routine to change the state of the op, so done for now
-              break;
-            }
-          }
-        }
-      } // for all ops in queue
-      if (pos==operationQueue.end()) processed = true; // if seen all, we're done for now as well
-    } // while not processed
-  };
-
-};
-
-
-
-/// send operation which automatically inserts a receive operation after completion
-class SerialOperationSendAndReceive : public SerialOperationSend
-{
-  typedef SerialOperationSend inherited;
-
-  size_t expectedBytes;
-
-public:
-
-  SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes) :
-  inherited(aNumBytes, aBytes),
-  expectedBytes(aExpectedBytes)
-  { };
-
-  virtual void finalize(SerialOperationQueue *aQueueP = NULL)
-  {
-    if (aQueueP) {
-      // insert receive operation
-      SerialOperationPtr op(new SerialOperationReceive(expectedBytes));
-      op->setSerialOperationCB(finalizeCallback); // inherit completion callback
-      aQueueP->insertOperation(op);
-    }
-  }
-
-};
-
-
-
-
-
-#pragma mark - DaliComm
 
 // pseudo baudrate for dali bridge must be 9600bd
 #define BAUDRATE B9600
@@ -298,8 +21,7 @@ DaliComm::DaliComm(const char* aBridgeConnectionPath, uint16_t aPortNo) :
   bridgeConnectionPort(aPortNo),
   bridgeConnectionOpen(false)
 {
-  bridgeConnectionPath = aBridgeConnectionPath;
-  bridgeConnectionPort = aPortNo;
+  setTransmitter(boost::bind(&DaliComm::transmitBytes, this, _1, _2));
 }
 
 
@@ -325,19 +47,25 @@ int DaliComm::toBeMonitoredFD()
 void DaliComm::dataReadyOnMonitoredFD()
 {
   if (bridgeConnectionOpen) {
-    // 
+    uint8_t byte;
+    size_t res = read(bridgeFd,&byte,1); // read single byte
+    if (res==1) {
+      // deliver to queue
+      acceptBytes(1, &byte);
+    }
   }
 }
 
 
 #pragma mark - transmitter
 
-void DaliComm::transmitBytes(size_t aNumBytes, uint8_t *aBytes)
+size_t DaliComm::transmitBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   size_t res = 0;
   if (establishConnection()) {
     res = write(bridgeFd,aBytes,aNumBytes);
   }
+  return res;
 }
 
 
@@ -398,9 +126,10 @@ public:
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB)
 {
   BridgeResponseHandler handler(aResultCB,this);
+  SerialOperation *opP = NULL;
   if (aCmd<8) {
     // single byte command
-    // %%% tbd
+    opP = new SerialOperationSendAndReceive(1,&aCmd,2);
   }
   else {
     // 3 byte command
@@ -408,8 +137,15 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     cmd3[0] = aCmd;
     cmd3[1] = aDali1;
     cmd3[2] = aDali2;
-    // %%% tbd
+    opP = new SerialOperationSendAndReceive(3,cmd3,2);
   }
+  if (opP) {
+    SerialOperationPtr op(opP);
+    op->setSerialOperationCB(BridgeResponseHandler(aResultCB, this));
+    queueOperation(op);
+  }
+  // process operations
+  processOperations();
 }
 
 
@@ -421,7 +157,7 @@ void DaliComm::ackAllOn(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2)
 
 void DaliComm::allOn()
 {
-  sendBridgeCommand(0x10, 0xFE, 0xFE, boost::bind(&DaliComm::ackAllOn, this, _1, _2, _3));
+  sendBridgeCommand(0x10, 0x18, 0xFE, boost::bind(&DaliComm::ackAllOn, this, _1, _2, _3));
 }
 
 
