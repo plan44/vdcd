@@ -36,6 +36,8 @@ using namespace std;
 class DaliComm;
 typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 
+typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)> DaliBridgeResultCB;
+
 /// A class providing low level access to the DALI bus
 class DaliComm
 {
@@ -73,7 +75,7 @@ public:
   /// @param aDali1 DALI byte 1
   /// @param aDali2 DALI byte 2
   /// @param aResultCB callback executed when bridge response arrives
-  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2);
+  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
 
   /// establish the connection to the DALI bridge
   /// @note can be called multiple times, opens connection only if not already open
