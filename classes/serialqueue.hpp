@@ -53,8 +53,8 @@ public:
   /// call to check if operation has completed
   /// @return true if completed
   virtual bool hasCompleted();
-  /// call to execute after completion
-  virtual void finalize(SerialOperationQueue *aQueueP);
+  /// call to execute after completion, can chain another operation by returning it
+  virtual SerialOperationPtr finalize(SerialOperationQueue *aQueueP);
 };
 
 
@@ -106,7 +106,7 @@ public:
 
   SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes);
 
-  virtual void finalize(SerialOperationQueue *aQueueP = NULL);
+  virtual SerialOperationPtr finalize(SerialOperationQueue *aQueueP = NULL);
 };
 
 

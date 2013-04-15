@@ -60,11 +60,12 @@ bool SerialOperation::hasCompleted()
 
 
 /// call to execute after completion
-void SerialOperation::finalize(SerialOperationQueue *aQueueP)
+SerialOperationPtr SerialOperation::finalize(SerialOperationQueue *aQueueP)
 {
   if (finalizeCallback) {
     finalizeCallback(this,aQueueP);
   }
+  return SerialOperationPtr();
 }
 
 
@@ -149,14 +150,15 @@ SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, u
 };
 
 
-void SerialOperationSendAndReceive::finalize(SerialOperationQueue *aQueueP)
+SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue *aQueueP)
 {
   if (aQueueP) {
     // insert receive operation
     SerialOperationPtr op(new SerialOperationReceive(expectedBytes));
     op->setSerialOperationCB(finalizeCallback); // inherit completion callback
-    aQueueP->insertOperation(op);
+    return op;
   }
+  return SerialOperationPtr(); // none
 }
 
 
@@ -177,15 +179,6 @@ void SerialOperationQueue::queueOperation(SerialOperationPtr aOperation)
 {
   aOperation->setTransmitter(transmitter);
   operationQueue.push_back(aOperation);
-}
-
-/// insert a new operation before other pending operations
-/// @param aOperation the operation to insert
-void SerialOperationQueue::insertOperation(SerialOperationPtr aOperation)
-{
-  aOperation->setTransmitter(transmitter);
-  // TODO: we might need checks for inserting in the right place (after already initiated)
-  operationQueue.push_front(aOperation);
 }
 
 
@@ -240,9 +233,12 @@ void SerialOperationQueue::processOperations()
         if (op->hasCompleted()) {
           // operation has completed
           // - remove from list
-          operationQueue.pop_front();
+          operationQueue_t::iterator nextPos = operationQueue.erase(pos);
           // - finalize. This might push new operations in front or back of the queue
-          op->finalize(this);
+          SerialOperationPtr nextOp = op->finalize(this);
+          if (nextOp) {
+            operationQueue.insert(nextPos, nextOp);
+          }
           // restart with start of (modified) queue
           break;
         }

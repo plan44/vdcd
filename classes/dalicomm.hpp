@@ -36,9 +36,25 @@
 using namespace std;
 
 class DaliComm;
+
+typedef enum {
+  DaliStatusOK, // ok
+  DaliStatusNoOrTimeout, // response timeout (also means NO in some queries)
+  DaliStatusFrameError, // DALI bus framing error
+  DaliStatusBridgeCmdError, // invalid bridge command
+  DaliStatusBridgeCommError, // pseudo error - problem communicating with bridge
+  DaliStatusBridgeUnknown // unknown status/error
+} DaliStatus;
+
+
+
 typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 
 typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)> DaliBridgeResultCB;
+
+typedef boost::function<void (DaliComm *aDaliCommP, DaliStatus aStatus)> DaliCommandStatusCB;
+typedef boost::function<void (DaliComm *aDaliCommP, DaliStatus aStatus, uint8_t aResponse)> DaliQueryResultCB;
+
 
 /// A class providing low level access to the DALI bus
 class DaliComm : SerialOperationQueue
@@ -67,6 +83,11 @@ public:
 
   /// transmit data
   size_t transmitBytes(size_t aNumBytes, uint8_t *aBytes);
+  /// establish the connection to the DALI bridge
+  /// @note can be called multiple times, opens connection only if not already open
+  bool establishConnection();
+  /// close the current connection, if any
+  void closeConnection();
 
   /// Send DALI command to bridge
   /// @param aCmd bridge command byte
@@ -75,17 +96,20 @@ public:
   /// @param aResultCB callback executed when bridge response arrives
   void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
 
-  /// establish the connection to the DALI bridge
-  /// @note can be called multiple times, opens connection only if not already open
-  bool establishConnection();
 
-  /// close the current connection, if any
-  void closeConnection();
+  /// Send regular DALI bus command
+  void daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  /// Send DALI config command (send twice within 100ms) 
+  void daliConfigSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  /// Send DALI Query command (expect answer byte)
+  void daliQuerySend(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB);
 
 
   // %%% test
-  void allOn();
-  void ackAllOn(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2);
+  void test1();
+  void test1Ack(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2);
+  void test2();
+  void test2Ack(DaliStatus aStatus, uint8_t aResponse);
 };
 
 #endif /* DALICOMM_H_ */
