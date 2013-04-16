@@ -13,7 +13,11 @@
 Logger::Logger()
 {
   pthread_mutex_init(&reportMutex, NULL);
-  debugLevel = 5;
+  #ifdef DEBUG
+  debugLevel = LOG_DEBUG;
+  #else
+  debugLevel = LOG_NOTICE;
+  #endif
 }
 
 

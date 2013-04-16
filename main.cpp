@@ -126,6 +126,7 @@ int main(int argc, char **argv)
 
   daliComm->test1();
   daliComm->test2();
+  daliComm->test3();
 
 //  // Prepare dSDC API socket
 //  int listenfd = 0;

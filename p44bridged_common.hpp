@@ -11,6 +11,9 @@
 
 #define BOOST_NO_INTRINSIC_WCHAR_T 1
 
+#include <list>
+#include <vector>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>

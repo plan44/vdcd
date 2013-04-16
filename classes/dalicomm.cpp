@@ -8,10 +8,6 @@
 
 #include "dalicomm.hpp"
 
-
-#include <list>
-
-
 // pseudo baudrate for dali bridge must be 9600bd
 #define BAUDRATE B9600
 
@@ -184,10 +180,10 @@ void DaliComm::closeConnection()
 
 class BridgeResponseHandler
 {
-  DaliBridgeResultCB callback;
+  DaliComm::DaliBridgeResultCB callback;
   DaliComm *daliComm;
 public:
-  BridgeResponseHandler(DaliBridgeResultCB aResultCB, DaliComm *aDaliCommP) { callback = aResultCB; daliComm = aDaliCommP; };
+  BridgeResponseHandler(DaliComm::DaliBridgeResultCB aResultCB, DaliComm *aDaliCommP) { callback = aResultCB; daliComm = aDaliCommP; };
   void operator() (SerialOperation *aOpP, SerialOperationQueue *aQueueP) {
     SerialOperationReceive *ropP = dynamic_cast<SerialOperationReceive *>(aOpP);
     if (ropP) {
@@ -209,10 +205,12 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
   SerialOperation *opP = NULL;
   if (aCmd<8) {
     // single byte command
+    DBGLOG(LOG_DEBUG,"DALI bridge command: 0x%02X\n", aCmd);
     opP = new SerialOperationSendAndReceive(1,&aCmd,2);
   }
   else {
     // 3 byte command
+    DBGLOG(LOG_DEBUG,"DALI bridge command: 0x%02X 0x%02X 0x%02X\n", aCmd, aDali1, aDali2);
     uint8_t cmd3[3];
     cmd3[0] = aCmd;
     cmd3[1] = aDali1;
@@ -234,11 +232,12 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
 
 class DaliCommandStatusHandler
 {
-  DaliCommandStatusCB callback;
+  DaliComm::DaliCommandStatusCB callback;
 protected:
   DaliComm *daliComm;
   DaliStatus statusFromBridgeResponse(uint8_t aResp1, uint8_t aResp2)
   {
+    DBGLOG(LOG_DEBUG,"DALI bridge response: 0x%02X 0x%02X\n", aResp1, aResp2);
     switch(aResp1) {
       case RESP_CODE_ACK:
         // command acknowledged
@@ -259,7 +258,7 @@ protected:
     return DaliStatusBridgeUnknown;
   }
 public:
-  DaliCommandStatusHandler(DaliCommandStatusCB aResultCB, DaliComm *aDaliCommP) { callback = aResultCB; daliComm = aDaliCommP; };
+  DaliCommandStatusHandler(DaliComm::DaliCommandStatusCB aResultCB, DaliComm *aDaliCommP) { callback = aResultCB; daliComm = aDaliCommP; };
   void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)
   {
     callback(daliComm, statusFromBridgeResponse(aResp1, aResp2));
@@ -269,83 +268,224 @@ public:
 
 class DaliQueryResponseHandler : DaliCommandStatusHandler
 {
-  DaliQueryResultCB callback;
+  DaliComm::DaliQueryResultCB callback;
 public:
-  DaliQueryResponseHandler(DaliQueryResultCB aResultCB, DaliComm *aDaliCommP) :
+  DaliQueryResponseHandler(DaliComm::DaliQueryResultCB aResultCB, DaliComm *aDaliCommP) :
     DaliCommandStatusHandler(NULL, aDaliCommP)
   {
     callback = aResultCB; daliComm = aDaliCommP;
-  }
-  void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2) {
+  };
+
+  void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2)
+  {
     callback(daliComm, statusFromBridgeResponse(aResp1, aResp2), aResp2);
-  }
+  };
 };
 
 
-/// Send regular DALI bus command
+// Regular DALI bus commands
+
 void DaliComm::daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
 {
   sendBridgeCommand(CMD_CODE_SEND16, aDali1, aDali2, DaliCommandStatusHandler(aStatusCB, this));
 }
 
+void DaliComm::daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
+{
+  daliSend(dali1FromAddress(aAddress), aPower, aStatusCB, aMinTimeToNextCmd);
+}
 
-/// Send DALI config command (send twice within 100ms)
-void DaliComm::daliConfigSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
+void DaliComm::daliSendCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
+{
+  daliSend(dali1FromAddress(aAddress)+1, aCommand, aStatusCB, aMinTimeToNextCmd);
+}
+
+
+
+// DALI config commands (send twice within 100ms)
+
+void DaliComm::daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
 {
   sendBridgeCommand(CMD_CODE_2SEND16, aDali1, aDali2, DaliCommandStatusHandler(aStatusCB, this));
 }
 
+void DaliComm::daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB, int aMinTimeToNextCmd)
+{
+  daliSendTwice(dali1FromAddress(aAddress)+1, aCommand, aStatusCB, aMinTimeToNextCmd);
+}
 
-/// Send DALI Query command (expect answer byte)
-void DaliComm::daliQuerySend(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB)
+
+
+// DALI Query commands (expect answer byte)
+
+void DaliComm::daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB)
 {
   sendBridgeCommand(CMD_CODE_SEND16_REC8, aDali1, aDali2, DaliQueryResponseHandler(aResultCB, this));
 }
 
 
+void DaliComm::daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB)
+{
+  daliSendAndReceive(dali1FromAddress(aAddress)+1, aQueryCommand, aResultCB);
+}
+
+
+
+// DALI address byte:
+// 0AAA AAAS : device short address (0..63)
+// 100A AAAS : group address (0..15)
+// 1111 111S : broadcast
+// S : 0=direct arc power, 1=command
+
+uint8_t DaliComm::dali1FromAddress(DaliAddress aAddress)
+{
+  if (aAddress==DaliBroadcast) {
+    return 0xFE; // broadcast
+  }
+  else if (aAddress & DaliGroup) {
+    return 0x80 + (aAddress & DaliAddressMask)<<1; // group address
+  }
+  else {
+    return (aAddress & DaliAddressMask)<<1; // device short address
+  }
+}
 
 
 
 
 #pragma mark - DALI functionality
 
-//class ScanBusHandler
+// Scan bus for active devices (returns list of short addresses)
+
+class DaliBusScanner
+{
+  DaliComm *daliComm;
+  DaliComm::DaliBusScanCB callback;
+  DaliAddress busAddress;
+  DaliComm::DeviceListPtr activeDevicesPtr;
+public:
+  static void scanBus(DaliComm::DaliBusScanCB aResultCB, DaliComm *aDaliCommP)
+  {
+    // create new instance, deletes itself when finished
+    new DaliBusScanner(aResultCB, aDaliCommP);
+  }
+private:
+  DaliBusScanner(DaliComm::DaliBusScanCB aResultCB, DaliComm *aDaliCommP) :
+    callback(aResultCB),
+    daliComm(aDaliCommP),
+    activeDevicesPtr(new std::list<DaliAddress>)
+  {
+    busAddress = 0;
+    queryNext();
+  };
+
+  // handle scan result
+  void handleResponse(DaliStatus aStatus, uint8_t aResponse)
+  {
+    if (aStatus==DaliStatusOK && aResponse==DALIANSWER_YES) {
+      activeDevicesPtr->push_back(busAddress);
+    }
+    busAddress++;
+    if (busAddress<DALI_MAXDEVICES) {
+      // more devices to scan
+      queryNext();
+    }
+    else {
+      // scan done, return list to callback
+      callback(daliComm, activeDevicesPtr);
+      // done, delete myself
+      delete this;
+    }
+  };
+
+  // query next device
+  void queryNext()
+  {
+    daliComm->daliSendQuery(busAddress, DALICMD_QUERY_CONTROL_GEAR, boost::bind(&DaliBusScanner::handleResponse, this, _2, _3));
+  }
+
+};
+
+
+void DaliComm::daliScanBus(DaliBusScanCB aResultCB)
+{
+  DaliBusScanner::scanBus(aResultCB, this);
+}
+
+
+
+//class DaliMemoryReader
 //{
 //  DaliComm *daliComm;
+//  DaliComm::DaliReadMemoryCB callback;
+//  DaliAddress busAddress;
+//  DaliComm::MemoryVectorPtr memory;
 //public:
-//  BridgeResponseHandler(DaliComm *aDaliCommP) { daliComm = aDaliCommP; };
+//  DaliMemoryReader(DaliComm::DaliReadMemoryCB aResultCB, DaliComm *aDaliCommP) :
+//    memory(new std::vector<uint8_t>)
+//  {
+//    callback = aResultCB;
+//    daliComm = aDaliCommP;
+//  };
+//
+//  void read(
+//  
 //
 //
 //};
 
 
+void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset)
+{
+  
+}
 
 
 
 
 #pragma mark - testing %%%
 
+void DaliComm::test1()
+{
+  sendBridgeCommand(0x10, 0x18, 0x00, boost::bind(&DaliComm::test1Ack, this, _1, _2, _3));
+}
+
 void DaliComm::test1Ack(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2)
 {
   printf("test1Ack: Resp1 = 0x%02X, Resp2 = 0x%02X\n", aResp1, aResp2);
 }
 
-void DaliComm::test1()
-{
-  sendBridgeCommand(0x10, 0x18, 0xFE, boost::bind(&DaliComm::test1Ack, this, _1, _2, _3));
-}
 
+
+
+void DaliComm::test2()
+{
+  // Befehl 160: YAAA AAA1 1010 0000 „QUERY ACTUAL LEVEL“
+  daliSendAndReceive(0x0B, 0xA0, boost::bind(&DaliComm::test2Ack, this, _2, _3));
+}
 
 void DaliComm::test2Ack(DaliStatus aStatus, uint8_t aResponse)
 {
   printf("test2Ack: Status = %d, Response = 0x%02X\n", aStatus, aResponse);
 }
 
-void DaliComm::test2()
+
+
+
+void DaliComm::test3()
 {
-  // Befehl 160: YAAA AAA1 1010 0000 „QUERY ACTUAL LEVEL“
-  daliQuerySend(0x0B, 0xA0, boost::bind(&DaliComm::test2Ack, this, _2, _3));
+  daliScanBus(boost::bind(&DaliComm::test3Ack, this, _2));
 }
+
+void DaliComm::test3Ack(DeviceListPtr aDeviceListPtr)
+{
+  printf("test3Ack: %ld Devices found = ", aDeviceListPtr->size());
+  for (list<DaliAddress>::iterator pos = aDeviceListPtr->begin(); pos!=aDeviceListPtr->end(); ++pos) {
+    printf("%d ",*pos);
+  }
+  printf("\n");
+}
+
 
 
 

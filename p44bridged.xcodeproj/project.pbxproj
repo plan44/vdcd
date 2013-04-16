@@ -35,6 +35,7 @@
 		ED6D7BEF1716EAA6005DED18 /* logger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = logger.h; sourceTree = "<group>"; };
 		ED6D7BF617180766005DED18 /* serialqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialqueue.cpp; sourceTree = "<group>"; };
 		ED6D7BF717180766005DED18 /* serialqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = serialqueue.hpp; sourceTree = "<group>"; };
+		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dalidefs.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +76,7 @@
 				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
 				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
 				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
+				ED70716E171D428A00752E4D /* dalidefs.h */,
 			);
 			path = classes;
 			sourceTree = "<group>";
