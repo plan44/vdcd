@@ -127,10 +127,6 @@ public:
   /// @param aOperation the operation to queue
   void queueOperation(SerialOperationPtr aOperation);
 
-  /// insert a new operation before other pending operations
-  /// @param aOperation the operation to insert
-  void insertOperation(SerialOperationPtr aOperation);
-
   /// deliver bytes to the most recent waiting operation
   size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 

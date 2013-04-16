@@ -55,6 +55,23 @@ const DaliAddress DaliGroup = 0x80; // marks group address
 const DaliAddress DaliBroadcast = 0xFF; // all devices on the bus
 const DaliAddress DaliAddressMask = 0x3F; // address mask
 
+/// DALI device information record
+class DaliDeviceInfo
+{
+public:
+  // DALI device information
+  long long gtin; /// < global trade identification number (GTIN / EAN)
+  uint8_t fw_version_major; /// < major firmware version
+  uint8_t fw_version_minor; /// < minor firmware version
+  long long serialNo; /// < unique serial number
+  // OEM product information
+  long long oem_gtin; /// < global trade identification number of OEM product (GTIN / EAN)
+  long long oem_serialNo; /// < unique serial number
+  /// text description
+  string description();
+};
+
+
 
 typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 
@@ -91,6 +108,8 @@ public:
   /// close the current connection, if any
   void closeConnection();
 
+  /// set dali status (to allow special handling in case not OK)
+  void reportDaliStatus(DaliStatus aStatus);
 
   /// @name low level DALI bus communication
   /// @{
@@ -160,17 +179,21 @@ public:
   typedef boost::function<void (DaliComm *aDaliCommP, MemoryVectorPtr aMemoryVectorPtr)> DaliReadMemoryCB;
   /// Read DALI memory
   /// @param aResultCB callback receiving the data read as a vector<uint8_t>
-  void daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset);
+  void daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes);
 
   /// @}
 
   // %%% test
+  void test();
+private:
   void test1();
   void test1Ack(DaliComm *aDaliComm, uint8_t aResp1, uint8_t aResp2);
   void test2();
   void test2Ack(DaliStatus aStatus, uint8_t aResponse);
   void test3();
   void test3Ack(DeviceListPtr aDeviceListPtr);
+  void test4();
+  void test4Ack(MemoryVectorPtr aMemoryPtr);
 };
 
 #endif /* DALICOMM_H_ */

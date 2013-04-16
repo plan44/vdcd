@@ -14,7 +14,7 @@
 
 SerialOperation::SerialOperation() :
   initiated(false),
-  inSequence(false)
+  inSequence(true) // by default, execute in sequence
 {
 }
 
@@ -34,7 +34,8 @@ void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
 /// @return false if cannot be initiated now and must be retried
 bool SerialOperation::initiate()
 {
-  initiated=true; return initiated;
+  initiated=true;
+  return initiated;
 }
 
 /// check if already initiated
@@ -94,6 +95,14 @@ bool SerialOperationSend::initiate() {
   if (dataP && transmitter) {
     // transmit
     res = transmitter(dataSize,dataP);
+    // show
+    #ifdef DEBUG
+    std::string s;
+    for (size_t i=0; i<dataSize; i++) {
+      string_format_append(s, "%02X ",dataP[i]);
+    }
+    DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
+    #endif
     // early release
     free(dataP);
     dataP = NULL;
@@ -220,7 +229,7 @@ void SerialOperationQueue::processOperations()
       if (!op->isInitiated()) {
         // initiate now
         if (!op->initiate()) {
-          // cannot initiate this one now, continue further down into queue if sequence is not important
+          // cannot initiate this one now, check if we can continue with others
           if (op->inSequence) {
             // this op needs to be initiated before others can be checked
             processed = true; // something must happen outside this routine to change the state of the op, so done for now

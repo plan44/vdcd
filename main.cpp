@@ -124,9 +124,7 @@ int main(int argc, char **argv)
   char *outputname = argv[optind++];
   DaliCommPtr daliComm(new DaliComm(outputname, outputport));
 
-  daliComm->test1();
-  daliComm->test2();
-  daliComm->test3();
+  daliComm->test();
 
 //  // Prepare dSDC API socket
 //  int listenfd = 0;

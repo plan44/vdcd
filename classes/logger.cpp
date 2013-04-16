@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#include "logger.h"
+#include "logger.hpp"
 
 
 
