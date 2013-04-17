@@ -18,6 +18,7 @@
 #include <sys/param.h>
 #include <errno.h>
 
+#include <time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -29,12 +30,13 @@
 
 #define DEFAULT_CONNECTIONPORT 2101
 
+#define MAINLOOP_TICK_MS 100
 
 
 static void usage(char *name)
 {
   fprintf(stderr, "usage:\n");
-  fprintf(stderr, "  %s (DALI serialportdevice|DALI proxy ipaddr)\n", name);
+  fprintf(stderr, "  %s [options] (DALI serialportdevice|DALI proxy ipaddr)\n", name);
   fprintf(stderr, "    -P port : port to connect to (default: %d)\n", DEFAULT_CONNECTIONPORT);
   fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
 }
@@ -122,7 +124,8 @@ int main(int argc, char **argv)
 
   // Create DALI communicator
   char *outputname = argv[optind++];
-  DaliCommPtr daliComm(new DaliComm(outputname, outputport));
+  DaliCommPtr daliComm(new DaliComm());
+  daliComm->setConnectionParameters(outputname, outputport);
 
   daliComm->test();
 
@@ -165,14 +168,24 @@ int main(int argc, char **argv)
       numFDsToTest = MAX(clientFD+1, numFDsToTest);
       FD_SET(clientFD, &readfs);  /* set testing for source 1 */
     }
-    // block until input becomes available
-    select(numFDsToTest, &readfs, NULL, NULL, NULL);
+    // block until input becomes available or timeout
+    struct timeval tv;
+    tv.tv_sec = MAINLOOP_TICK_MS / 1000;
+    tv.tv_usec = MAINLOOP_TICK_MS % 1000 * 1000;
+    select(numFDsToTest, &readfs, NULL, NULL, &tv);
+    bool dataProcessed = false;
     if (daliFD>=0 && FD_ISSET(daliFD,&readfs)) {
-      // input DALI available, have it processed
+      // input from DALI available, have it processed
       daliComm->dataReadyOnMonitoredFD();
+      dataProcessed = true;
     }
     if (clientFD>=0 && FD_ISSET(clientFD,&readfs)) {
       // TODO: input from client available
+      dataProcessed = true;
+    }
+    if (!dataProcessed) {
+      // process even if no data processed, to execute timeouts etc.
+      daliComm->process();
     }
   }
 

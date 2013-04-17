@@ -9,32 +9,73 @@
 #include "serialqueue.hpp"
 
 
+#define DEFAULT_RECEIVE_TIMEOUT 3000 // 3 seconds
+
 
 #pragma mark - SerialOperation
 
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
+
+
+SQMilliSeconds SerialOperation::now()
+{
+  #ifdef __APPLE__
+  static bool timeInfoKnown = false;
+  static mach_timebase_info_data_t tb;
+  if (!timeInfoKnown) {
+    mach_timebase_info(&tb);
+  }
+  double t = mach_absolute_time();
+  return t * (double)tb.numer / (double)tb.denom / 1e6; // ms
+  #else
+  struct timespec tsp;
+  clock_gettime(CLOCK_MONOTONIC, &tsp);
+  // return milliseconds
+  return tsp.tv_sec*1000 + tsp.tv_nsec/1000000;
+  #endif
+}
+
+
 SerialOperation::SerialOperation() :
   initiated(false),
+  aborted(false),
+  timeout(0), // no timeout
+  timesOutAt(0), // no timeout time set
+  initiatesNotBefore(0), // no initiation delay
   inSequence(true) // by default, execute in sequence
 {
 }
 
-/// set transmitter
+// set transmitter
 void SerialOperation::setTransmitter(SerialOperationTransmitter aTransmitter)
 {
   transmitter = aTransmitter;
 }
 
-/// set callback to execute when operation completes
+// set timeout
+void SerialOperation::setTimeout(SQMilliSeconds aTimeout)
+{
+  timeout = aTimeout;
+}
+
+
+
+// set callback to execute when operation completes
 void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
 {
   finalizeCallback = aCallBack;
 }
 
-/// call to initiate operation
-/// @return false if cannot be initiated now and must be retried
+// call to initiate operation
 bool SerialOperation::initiate()
 {
-  initiated=true;
+  initiated = true;
+  if (timeout!=0)
+    timesOutAt = SerialOperation::now()+timeout;
+  else
+    timesOutAt = 0;
   return initiated;
 }
 
@@ -44,29 +85,49 @@ bool SerialOperation::isInitiated()
   return initiated;
 }
 
-/// call to deliver received bytes
-/// @return number of bytes operation could accept, 0 if none
+// call to deliver received bytes
 size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   return 0;
 }
 
 
-/// call to check if operation has completed
-/// @return true if completed
+// call to check if operation has completed
 bool SerialOperation::hasCompleted()
 {
   return true;
 }
 
 
-/// call to execute after completion
+bool SerialOperation::hasTimedOutAt(SQMilliSeconds aRefTime)
+{
+  if (timesOutAt==0) return false;
+  return aRefTime>=timesOutAt;
+}
+
+
+// call to execute after completion
 SerialOperationPtr SerialOperation::finalize(SerialOperationQueue *aQueueP)
 {
   if (finalizeCallback) {
-    finalizeCallback(this,aQueueP);
+    finalizeCallback(this,aQueueP,NULL);
+    finalizeCallback = NULL; // call once only
   }
   return SerialOperationPtr();
+}
+
+
+
+
+
+// call to execute to abort operation
+void SerialOperation::abortOperation(ErrorPtr aError)
+{
+  if (finalizeCallback && !aborted) {
+    aborted = true;
+    finalizeCallback(this,NULL,aError);
+    finalizeCallback = NULL; // call once only
+  }
 }
 
 
@@ -95,14 +156,10 @@ bool SerialOperationSend::initiate() {
   if (dataP && transmitter) {
     // transmit
     res = transmitter(dataSize,dataP);
-    // show
-    #ifdef DEBUG
-    std::string s;
-    for (size_t i=0; i<dataSize; i++) {
-      string_format_append(s, "%02X ",dataP[i]);
+    if (res!=dataSize) {
+      // error
+      abortOperation(ErrorPtr(new SQError(SQErrorTransmit)));
     }
-    DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
-    #endif
     // early release
     free(dataP);
     dataP = NULL;
@@ -122,6 +179,7 @@ SerialOperationReceive::SerialOperationReceive(size_t aExpectedBytes)
   expectedBytes = aExpectedBytes;
   dataP = (uint8_t *)malloc(expectedBytes);
   dataIndex = 0;
+  setTimeout(DEFAULT_RECEIVE_TIMEOUT);
 };
 
 
@@ -149,6 +207,13 @@ bool SerialOperationReceive::hasCompleted()
 }
 
 
+void SerialOperationReceive::abortOperation(ErrorPtr aError)
+{
+  expectedBytes = 0; // don't expect any more
+  inherited::abortOperation(aError);
+}
+
+
 #pragma mark - SerialOperationSendAndReceive
 
 
@@ -165,6 +230,7 @@ SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue 
     // insert receive operation
     SerialOperationPtr op(new SerialOperationReceive(expectedBytes));
     op->setSerialOperationCB(finalizeCallback); // inherit completion callback
+    finalizeCallback = NULL; // prevent it to be called from this object!
     return op;
   }
   return SerialOperationPtr(); // none
@@ -175,15 +241,14 @@ SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue 
 
 
 
-/// set transmitter
+// set transmitter
 void SerialOperationQueue::setTransmitter(SerialOperationTransmitter aTransmitter)
 {
   transmitter = aTransmitter;
 }
 
 
-/// queue a new operation
-/// @param aOperation the operation to queue
+// queue a new operation
 void SerialOperationQueue::queueOperation(SerialOperationPtr aOperation)
 {
   aOperation->setTransmitter(transmitter);
@@ -191,7 +256,7 @@ void SerialOperationQueue::queueOperation(SerialOperationPtr aOperation)
 }
 
 
-/// deliver bytes to the most recent waiting operation
+// deliver bytes to the most recent waiting operation
 size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   // first check if some operations still need processing
@@ -217,15 +282,24 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 };
 
 
-/// process operations now
+// process operations now
 void SerialOperationQueue::processOperations()
 {
   bool processed = false;
+  SQMilliSeconds now = SerialOperation::now();
   while (!processed) {
     operationQueue_t::iterator pos;
     // (re)start with first element in queue
     for (pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
       SerialOperationPtr op = *pos;
+      if (op->hasTimedOutAt(now)) {
+        // remove from list
+        operationQueue.erase(pos);
+        // abort with timeout
+        op->abortOperation(ErrorPtr(new SQError(SQErrorTimedOut)));
+        // restart with start of (modified) queue
+        break;
+      }
       if (!op->isInitiated()) {
         // initiate now
         if (!op->initiate()) {
@@ -267,6 +341,15 @@ void SerialOperationQueue::processOperations()
 
 
 
+// abort all pending operations
+void SerialOperationQueue::abortOperations()
+{
+  for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
+    (*pos)->abortOperation(ErrorPtr(new SQError(SQErrorAborted)));
+  }
+  // empty queue
+  operationQueue.clear();
+}
 
 
 

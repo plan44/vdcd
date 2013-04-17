@@ -93,5 +93,9 @@
 // DALI answer
 #define DALIANSWER_YES 0xFF
 
+// DALI memory banks
+#define DALIMEM_BANK0_MINBYTES 0x0F
+#define DALIMEM_BANK1_MINBYTES 0x10
+
 
 #endif
