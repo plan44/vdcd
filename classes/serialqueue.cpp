@@ -110,7 +110,7 @@ bool SerialOperation::hasTimedOutAt(SQMilliSeconds aRefTime)
 SerialOperationPtr SerialOperation::finalize(SerialOperationQueue *aQueueP)
 {
   if (finalizeCallback) {
-    finalizeCallback(this,aQueueP,NULL);
+    finalizeCallback(this,aQueueP,ErrorPtr());
     finalizeCallback = NULL; // call once only
   }
   return SerialOperationPtr();

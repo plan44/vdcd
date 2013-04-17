@@ -9,7 +9,8 @@
 #include "utils.hpp"
 
 #include <string.h>
-
+#include <stdarg.h>
+#include <stdio.h>
 
 // old-style C-formatted output into string object
 static void vStringObjPrintf(std::string &aStringObj, const char *aFormat, bool aAppend, va_list aArgs)
