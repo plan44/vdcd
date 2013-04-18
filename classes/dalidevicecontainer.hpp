@@ -17,8 +17,15 @@
 
 class DaliDeviceContainer : public DeviceClassContainer
 {
+  typedef DeviceClassContainer inherited;
+
+public:
   // the DALI communication object
-//  DaliComm
+  DaliComm daliComm;
+
+  virtual const char *deviceClassIdentifier();
+
+  virtual void collectDevices(CompletedCB aCompletedCB);
 
 };
 

@@ -700,6 +700,7 @@ DaliDeviceInfo::DaliDeviceInfo()
 string DaliDeviceInfo::description()
 {
   string s = string_format("DaliDeviceInfo for shortAddress %d\n", shortAddress);
+  string_format_append(s, "- is %suniquely defining the device\n", uniquelyIdentifiing() ? "" : "NOT ");
   string_format_append(s, "- GTIN       : %lld\n", gtin);
   string_format_append(s, "- Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
   string_format_append(s, "- Serial     : %lld\n", serialNo);
@@ -709,7 +710,10 @@ string DaliDeviceInfo::description()
 }
 
 
-
+bool DaliDeviceInfo::uniquelyIdentifiing()
+{
+  return gtin!=0 && serialNo!=0;
+}
 
 
 #pragma mark - testing %%%

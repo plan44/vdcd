@@ -86,15 +86,17 @@ public:
   // short address
   DaliAddress shortAddress;
   // DALI device information
-  long long gtin; /// < global trade identification number (GTIN / EAN)
+  long long gtin; /// < 48 bit global trade identification number (GTIN / EAN)
   uint8_t fw_version_major; /// < major firmware version
   uint8_t fw_version_minor; /// < minor firmware version
   long long serialNo; /// < unique serial number
   // OEM product information
-  long long oem_gtin; /// < global trade identification number of OEM product (GTIN / EAN)
+  long long oem_gtin; /// < 48 bit global trade identification number of OEM product (GTIN / EAN)
   long long oem_serialNo; /// < unique serial number
   /// text description
   string description();
+  /// returns true if uniquely identifying the device (real GTIN + serial found)
+  bool uniquelyIdentifiing();
 };
 
 
@@ -220,7 +222,8 @@ public:
   /// @name high level DALI bus services
   /// @{
 
-  typedef boost::shared_ptr<std::list<DaliAddress> > DeviceListPtr;
+  typedef std::list<DaliAddress> DeviceList;
+  typedef boost::shared_ptr<DeviceList> DeviceListPtr;
   typedef boost::function<void (DaliComm *aDaliCommP, DeviceListPtr aDeviceListPtr, ErrorPtr aError)> DaliBusScanCB;
   /// Scan the bus for active devices (short address)
   /// @param aResultCB callback receiving a list<int> of available short addresses on the bus

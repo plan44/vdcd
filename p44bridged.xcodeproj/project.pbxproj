@@ -16,6 +16,10 @@
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
+		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
+		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
+		EDCFE85D171FFAF6001D35F3 /* dsid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsid.cpp */; };
+		EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -51,6 +55,14 @@
 		ED6D7BF617180766005DED18 /* serialqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialqueue.cpp; sourceTree = "<group>"; };
 		ED6D7BF717180766005DED18 /* serialqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = serialqueue.hpp; sourceTree = "<group>"; };
 		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dalidefs.h; sourceTree = "<group>"; };
+		EDCFE855171FE841001D35F3 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = device.cpp; sourceTree = "<group>"; };
+		EDCFE856171FE841001D35F3 /* device.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = device.hpp; sourceTree = "<group>"; };
+		EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dalidevice.cpp; sourceTree = "<group>"; };
+		EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dalidevice.hpp; sourceTree = "<group>"; };
+		EDCFE85B171FFAF5001D35F3 /* dsid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsid.cpp; sourceTree = "<group>"; };
+		EDCFE85C171FFAF5001D35F3 /* dsid.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsid.hpp; sourceTree = "<group>"; };
+		EDCFE85E17203E47001D35F3 /* fnv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fnv.cpp; sourceTree = "<group>"; };
+		EDCFE85F17203E47001D35F3 /* fnv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fnv.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +101,8 @@
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
+				EDCFE85F17203E47001D35F3 /* fnv.hpp */,
 				ED70716E171D428A00752E4D /* dalidefs.h */,
 				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
 				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
@@ -96,12 +110,18 @@
 				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
 				ED026D03171E94D700AD5FD6 /* error.cpp */,
 				ED026D04171E94D700AD5FD6 /* error.hpp */,
+				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
+				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
 				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
 				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
 				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
 				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
+				EDCFE855171FE841001D35F3 /* device.cpp */,
+				EDCFE856171FE841001D35F3 /* device.hpp */,
+				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
+				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
 			);
 			path = classes;
 			sourceTree = "<group>";
@@ -166,6 +186,10 @@
 				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
+				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
+				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
+				EDCFE85D171FFAF6001D35F3 /* dsid.cpp in Sources */,
+				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

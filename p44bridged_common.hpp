@@ -13,8 +13,10 @@
 
 #include <list>
 #include <vector>
+#include <map>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/weak_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
