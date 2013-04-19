@@ -246,7 +246,6 @@ public:
 
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB)
 {
-  BridgeResponseHandler handler(this, aResultCB);
   SerialOperation *opP = NULL;
   if (aCmd<8) {
     // single byte command
@@ -820,7 +819,7 @@ void DaliComm::test4Ack(MemoryVectorPtr aMemoryPtr, ErrorPtr aError)
 
 void DaliComm::test5()
 {
-  daliReadDeviceInfo(boost::bind(&DaliComm::test5Ack, this, _2, _3), 15);
+  daliReadDeviceInfo(boost::bind(&DaliComm::test5Ack, this, _2, _3), 10);
 }
 
 void DaliComm::test5Ack(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError)

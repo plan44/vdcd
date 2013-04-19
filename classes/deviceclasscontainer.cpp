@@ -45,3 +45,13 @@ void DeviceClassContainer::addCollectedDevice(DevicePtr aDevice)
   devices.insert(make_pair(aDevice->dsid, aDevice));
   // TODO: trigger registration??
 }
+
+
+string DeviceClassContainer::description()
+{
+  string d = string_format("Deviceclass Container '%s' contains %d devices: %d\n", deviceClassIdentifier(), devices.size());
+  for (DeviceMap::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+    d.append(pos->second->description());
+  }
+  return d;
+}

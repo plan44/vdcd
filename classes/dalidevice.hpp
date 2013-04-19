@@ -14,6 +14,9 @@
 #include "dalicomm.hpp"
 
 
+
+class DaliDevice;
+typedef boost::shared_ptr<DaliDevice> DaliDevicePtr;
 class DaliDevice : public Device
 {
   typedef Device inherited;
@@ -26,8 +29,13 @@ public:
   
   void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
 
-  void deriveDSID();
+  /// description of object, mainly for debug and logging
+  /// @return textual description of object
+  virtual string description();
 
+protected:
+
+  void deriveDSID();
 };
 
 

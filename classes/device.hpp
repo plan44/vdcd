@@ -22,6 +22,10 @@ protected:
 public:
   Device();
 
+  /// description of object, mainly for debug and logging
+  /// @return textual description of object
+  virtual string description();
+
   /// the digitalstrom ID
   dSID dsid;
 };

@@ -77,3 +77,69 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
   }
   return identifier;
 }
+
+
+
+class DeviceClassCollector
+{
+  CompletedCB callback;
+  list<DeviceClassContainerPtr>::iterator nextContainer;
+  DeviceContainer *deviceContainerP;
+public:
+  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback)
+  {
+    // create new instance, deletes itself when finished
+    new DeviceClassCollector(aDeviceContainerP, aCallback);
+  };
+private:
+  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback) :
+  callback(aCallback),
+  deviceContainerP(aDeviceContainerP)
+  {
+    nextContainer = deviceContainerP->deviceClassContainers.begin();
+    queryNextContainer(NULL);
+  }
+
+
+  void queryNextContainer(ErrorPtr aError)
+  {
+    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
+      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1));
+    else
+      completed(aError);
+  }
+
+  void containerQueried(ErrorPtr aError)
+  {
+    // check next
+    ++nextContainer;
+    queryNextContainer(aError);
+  }
+
+  void completed(ErrorPtr aError)
+  {
+    callback(aError);
+    // done, delete myself
+    delete this;
+  }
+
+};
+
+
+void DeviceContainer::collectDevices(CompletedCB aCompletedCB)
+{
+  DeviceClassCollector::collectDevices(this, aCompletedCB);
+}
+
+
+string DeviceContainer::description()
+{
+  string d = string_format("DeviceContainer with %d device classes: %d\n", deviceClassContainers.size());
+  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+    d.append((*pos)->description());
+  }
+  return d;
+}
+
+
+

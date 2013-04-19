@@ -162,15 +162,18 @@ public:
   /// @name low level DALI bus communication
   /// @{
 
+
+  /// callback function for sendBridgeCommand
+  typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
   /// Send DALI command to bridge
   /// @param aCmd bridge command byte
   /// @param aDali1 first DALI byte
   /// @param aDali2 second DALI byte
   /// @param aResultCB callback executed when bridge response arrives
-  typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
   void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
 
 
+  /// callback function for daliSendXXX methods
   typedef boost::function<void (DaliComm *aDaliCommP, ErrorPtr aError)> DaliCommandStatusCB;
 
   /// reset the communication with the bridge
@@ -201,6 +204,8 @@ public:
   /// @param aStatusCB status callback
   void daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
 
+
+  /// callback function for daliSendXXX methods returning data
   typedef boost::function<void (DaliComm *aDaliCommP, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)> DaliQueryResultCB;
   /// Send DALI command and expect answer byte
   /// @param aDali1 first DALI byte
@@ -224,12 +229,14 @@ public:
 
   typedef std::list<DaliAddress> DeviceList;
   typedef boost::shared_ptr<DeviceList> DeviceListPtr;
+  /// callback function for daliScanBus
   typedef boost::function<void (DaliComm *aDaliCommP, DeviceListPtr aDeviceListPtr, ErrorPtr aError)> DaliBusScanCB;
   /// Scan the bus for active devices (short address)
   /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
   void daliScanBus(DaliBusScanCB aResultCB);
 
   typedef boost::shared_ptr<std::vector<uint8_t> > MemoryVectorPtr;
+  /// callback function for daliReadMemory
   typedef boost::function<void (DaliComm *aDaliCommP, MemoryVectorPtr aMemoryVectorPtr, ErrorPtr aError)> DaliReadMemoryCB;
   /// Read DALI memory
   /// @param aResultCB callback receiving the data read as a vector<uint8_t>
@@ -242,6 +249,7 @@ public:
   void daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes);
 
   typedef boost::shared_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
+  /// callback function for daliReadDeviceInfo
   typedef boost::function<void (DaliComm *aDaliCommP, DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;
   /// Read DALI device info
   /// @param aResultCB callback receiving the device info record

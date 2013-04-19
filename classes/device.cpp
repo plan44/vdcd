@@ -14,3 +14,9 @@ Device::Device() :
 {
 
 }
+
+
+string Device::description()
+{
+  return string_format("Device with dsid = %s\n", dsid.getString().c_str());
+}

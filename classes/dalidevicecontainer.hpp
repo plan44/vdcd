@@ -15,6 +15,8 @@
 
 #include "dalicomm.hpp"
 
+class DaliDeviceContainer;
+typedef boost::shared_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
 class DaliDeviceContainer : public DeviceClassContainer
 {
   typedef DeviceClassContainer inherited;

@@ -25,8 +25,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 
-#include "dalicomm.hpp"
+#include "devicecontainer.hpp"
 
+#include "dalidevicecontainer.hpp"
 
 #define DEFAULT_CONNECTIONPORT 2101
 
@@ -84,6 +85,20 @@ static void daemonize(void)
 
 
 
+class CompletionHandler
+{
+  DeviceContainerPtr deviceContainer;
+public:
+  CompletionHandler(DeviceContainerPtr aDeviceContainer) : deviceContainer(aDeviceContainer) {};
+  void operator()(ErrorPtr aError)
+  {
+    DBGLOG(LOG_INFO, deviceContainer->description().c_str());
+  }
+};
+
+
+
+
 int main(int argc, char **argv)
 {
   if (argc<1) {
@@ -122,12 +137,24 @@ int main(int argc, char **argv)
   int data;
   unsigned char byte;
 
-  // Create DALI communicator
   char *outputname = argv[optind++];
-  DaliCommPtr daliComm(new DaliComm());
-  daliComm->setConnectionParameters(outputname, outputport);
 
-  daliComm->test();
+  // Create device container
+  DeviceContainerPtr deviceContainer(new DeviceContainer());
+  // - Add DALI devices class
+  DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer());
+  daliDeviceContainer->daliComm.setConnectionParameters(outputname, outputport);
+  deviceContainer->addDeviceClassContainer(daliDeviceContainer);
+
+  // initiate device collection
+  deviceContainer->collectDevices(CompletionHandler(deviceContainer));
+
+
+//  // Create DALI communicator
+//  DaliCommPtr daliComm(new DaliComm());
+//  daliComm->setConnectionParameters(outputname, outputport);
+//
+//  daliComm->test();
 
 //  // Prepare dSDC API socket
 //  int listenfd = 0;
@@ -155,7 +182,7 @@ int main(int argc, char **argv)
     fd_set readfs; // file descriptor set
     FD_ZERO(&readfs);
     // - DALI
-    int daliFD = daliComm->toBeMonitoredFD();
+    int daliFD = daliDeviceContainer->daliComm.toBeMonitoredFD();
     if (daliFD>=0) {
       // DALI FD is active, include it
       numFDsToTest = MAX(daliFD+1, numFDsToTest);
@@ -176,7 +203,7 @@ int main(int argc, char **argv)
     bool dataProcessed = false;
     if (daliFD>=0 && FD_ISSET(daliFD,&readfs)) {
       // input from DALI available, have it processed
-      daliComm->dataReadyOnMonitoredFD();
+      daliDeviceContainer->daliComm.dataReadyOnMonitoredFD();
       dataProcessed = true;
     }
     if (clientFD>=0 && FD_ISSET(clientFD,&readfs)) {
@@ -185,7 +212,7 @@ int main(int argc, char **argv)
     }
     if (!dataProcessed) {
       // process even if no data processed, to execute timeouts etc.
-      daliComm->process();
+      daliDeviceContainer->daliComm.process();
     }
   }
 

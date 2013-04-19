@@ -13,8 +13,9 @@
 
 #include "devicecontainer.hpp"
 
+#include "dsid.hpp"
+
 class Device;
-class dSID;
 
 typedef boost::shared_ptr<Device> DevicePtr;
 typedef std::map<dSID, DevicePtr> DeviceMap;
@@ -58,18 +59,20 @@ public:
   /// @name device detection and registration
   /// @{
 
-  /// collect devices from all device classes
+  /// collect devices from this device classes
   /// @param aCompletedCB will be called when device scan for this device class has been completed
   virtual void collectDevices(CompletedCB aCompletedCB) = 0;
 
   /// @}
 
-protected:
 
-  /// Add collected device
+  /// Add device collected from hardware side (bus scan, etc.)
   /// @param aDevice a device object which has a valid dsid
   virtual void addCollectedDevice(DevicePtr aDevice);
 
+  /// description of object, mainly for debug and logging
+  /// @return textual description of object
+  virtual string description();
 
 };
 

@@ -11,10 +11,15 @@
 #include "fnv.hpp"
 
 
+DaliDevice::DaliDevice()
+{
+}
+
+
 void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
   // store the info record
-  deviceInfo = aDeviceInfo;
+  deviceInfo = aDeviceInfo; // copy
   // derive the dSID
   deriveDSID();
 }
@@ -52,4 +57,14 @@ void DaliDevice::deriveDSID()
     // - and add the DALI short address
     hash.addByte(deviceInfo.shortAddress);
   }
+  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  dsid.setSerialNo(0x7000000000000+hash.getFNV32());
+}
+
+
+string DaliDevice::description()
+{
+  string s = inherited::description();
+  s.append(deviceInfo.description());
+  return s;
 }

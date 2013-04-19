@@ -27,10 +27,14 @@ typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 ///   (each representing a specific class of devices, e.g. different bus types etc.)
 class DeviceContainer;
 typedef boost::shared_ptr<DeviceContainer> DeviceContainerPtr;
+typedef list<DeviceClassContainerPtr> ContainerList;
 class DeviceContainer
 {
-  list<DeviceClassContainerPtr> deviceClassContainers;
 public:
+
+  /// the list of containers
+  ContainerList deviceClassContainers;
+
   /// add a device class container
   /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
   /// @note this is a one-time initialisation. Device class containers are not meant to be removed at runtime
@@ -50,8 +54,13 @@ public:
   /// @param aCompletedCB will be called when all device scans have completed
   void collectDevices(CompletedCB aCompletedCB);
 
-
   /// @}
+
+  /// description of object, mainly for debug and logging
+  /// @return textual description of object
+  virtual string description();
+
+
 };
 
 #endif /* defined(__p44bridged__devicecontainer__) */
