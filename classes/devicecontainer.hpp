@@ -41,7 +41,7 @@ public:
   ///   the ID should not be dependent on the software version
   ///   the ID MUST change when same software runs on different hardware
   ///   Usually, a hardware-ID such as the MAC address is used
-  string deviceContainerInstanceIdentifier();
+  string deviceContainerInstanceIdentifier() const;
 
   /// @name device detection and registration
   /// @{

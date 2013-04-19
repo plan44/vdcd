@@ -25,7 +25,7 @@ void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceCla
 
 
 
-string DeviceContainer::deviceContainerInstanceIdentifier()
+string DeviceContainer::deviceContainerInstanceIdentifier() const
 {
   string identifier;
 

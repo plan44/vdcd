@@ -23,7 +23,7 @@ void DeviceClassContainer::setDeviceContainer(DeviceContainer *aDeviceContainerP
 }
 
 
-DeviceContainer *DeviceClassContainer::getDeviceContainerP()
+DeviceContainer *DeviceClassContainer::getDeviceContainerP() const
 {
   return deviceContainerP;
 }
@@ -31,7 +31,7 @@ DeviceContainer *DeviceClassContainer::getDeviceContainerP()
 
 
 // deviceclass container instance identifier
-string DeviceClassContainer::deviceClassContainerInstanceIdentifier()
+string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
   s.append(deviceContainerP->deviceContainerInstanceIdentifier());

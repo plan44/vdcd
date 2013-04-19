@@ -140,21 +140,21 @@ bool dSID::setAsString(string &aString)
 
 #pragma mark - getting dSIDs representations
 
-dSID::RawID dSID::getRawId()
+dSID::RawID dSID::getRawId() const
 {
   // copy of the raw bytes
   return raw;
 }
 
 
-uint8_t *dSID::getBytesP()
+const uint8_t *dSID::getBytesP() const
 {
   // direct pointer to raw bytes
   return &(raw.bytes[0]);
 }
 
 /// get upper 8 bit of object class
-uint8_t dSID::getObjectClassMSB()
+uint8_t dSID::getObjectClassMSB() const
 {
   return
     ((raw.bytes[4] & 0x0F)<<4) |
@@ -162,7 +162,7 @@ uint8_t dSID::getObjectClassMSB()
 }
 
 
-dSID::ObjectClass dSID::getObjectClass()
+dSID::ObjectClass dSID::getObjectClass() const
 {
   uint8_t cc = getObjectClassMSB();
   if (cc==MACADDRESSCLASS_MSB)
@@ -176,7 +176,7 @@ dSID::ObjectClass dSID::getObjectClass()
 }
 
 
-dSID::SerialNo dSID::getSerialNo()
+dSID::SerialNo dSID::getSerialNo() const
 {
   SerialNo s =
     raw.bytes[0] |
@@ -201,7 +201,7 @@ dSID::SerialNo dSID::getSerialNo()
 }
 
 
-string dSID::getString()
+string dSID::getString() const
 {
   string s;
   for (int i=0; i<dSID::dsidBytes; i++) {
@@ -213,13 +213,13 @@ string dSID::getString()
 
 #pragma mark - comparison
 
-bool dSID::operator== (dSID &aDSID)
+bool dSID::operator== (const dSID &aDSID) const
 {
   return memcmp(raw.bytes, aDSID.getBytesP(), dsidBytes)==0;
 }
 
 
-bool dSID::operator< (dSID &aDSID)
+bool dSID::operator< (const dSID &aDSID) const
 {
   return memcmp(raw.bytes, aDSID.getBytesP(), dsidBytes)<0;
 }

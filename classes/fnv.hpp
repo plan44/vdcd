@@ -17,7 +17,7 @@ public:
   void reset();
   void addByte(uint8_t aByte);
   void addBytes(size_t aNumBytes, uint8_t *aBytesP);
-  uint32_t getFNV32();
+  uint32_t getFNV32() const;
 };
 
 

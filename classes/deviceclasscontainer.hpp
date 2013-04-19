@@ -22,7 +22,7 @@ typedef std::map<dSID, DevicePtr> DeviceMap;
 
 class DeviceClassContainer;
 typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
-typedef boost::weak_ptr<DeviceClassContainerPtr> DeviceClassContainerWeakPtr;
+typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
 class DeviceClassContainer
 {
   DeviceContainer *deviceContainerP; ///< link to the deviceContainer
@@ -35,14 +35,14 @@ public:
   void setDeviceContainer(DeviceContainer *aDeviceContainerP);
   /// get associated container
   /// @return associated device container
-  DeviceContainer *getDeviceContainerP();
+  DeviceContainer *getDeviceContainerP() const;
 
 
   /// @name identification
   /// @{
 
   /// deviceclass identifier
-  virtual const char *deviceClassIdentifier() = 0;
+  virtual const char *deviceClassIdentifier() const = 0;
 
   /// get a sufficiently unique identifier for this class container
   /// @return ID that identifies this container running on a specific hardware
@@ -50,7 +50,7 @@ public:
   ///   the ID must differ for each of multiple device class containers run on the same hardware
   ///   the ID MUST change when same software runs on different hardware
   ///   Usually, MAC address is used as base ID.
-  string deviceClassContainerInstanceIdentifier();
+  string deviceClassContainerInstanceIdentifier() const;
 
   /// @}
 

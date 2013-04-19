@@ -51,7 +51,7 @@ void Fnv32::addBytes(size_t aNumBytes, uint8_t *aBytesP)
 }
 
 
-uint32_t Fnv32::getFNV32()
+uint32_t Fnv32::getFNV32() const
 {
   return hash;
 }

@@ -55,7 +55,7 @@ class DaliCommError : public Error
 public:
   DaliCommError(DaliCommErrors aError) : Error(ErrorCode(aError)) {};
   DaliCommError(DaliCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  virtual const char *getErrorDomain() { return "DaliComm"; }
+  virtual const char *getErrorDomain() const { return "DaliComm"; }
 };
 
 

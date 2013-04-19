@@ -10,7 +10,7 @@
 
 
 /// device class name
-const char *deviceClassIdentifier()
+const char *DaliDeviceContainer::deviceClassIdentifier() const
 {
   return "DALI_Bus_Container";
 }
@@ -35,7 +35,7 @@ private:
     daliCommP(aDaliCommP),
     callback(aCallback)
   {
-    daliCommP->daliScanBus(boost::bind(&DaliDeviceCollector::deviceListReceived, _2, _3));
+    daliCommP->daliScanBus(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _2, _3));
   }
 
   void deviceListReceived(DaliComm::DeviceListPtr aDeviceListPtr, ErrorPtr aError)

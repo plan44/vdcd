@@ -21,9 +21,9 @@ class Error {
 public:
   Error(ErrorCode aErrorCode);
   Error(ErrorCode aErrorCode, std::string aErrorMessage);
-  ErrorCode getErrorCode();
-  virtual const char *getErrorDomain();
-  virtual std::string description();
+  ErrorCode getErrorCode() const;
+  virtual const char *getErrorDomain() const;
+  virtual std::string description() const;
 };
 
 

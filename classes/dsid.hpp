@@ -40,8 +40,8 @@ public:
   dSID(string &aString);
 
   // comparison
-  bool operator== (dSID &aDSID);
-  bool operator< (dSID &aDSID);
+  bool operator== (const dSID &aDSID) const;
+  bool operator< (const dSID &aDSID) const;
 
   /// set object class
   /// @param aObjectClass 24 bit object class. If 0xFF0000, aSerialNo can be up to 52 bits
@@ -63,29 +63,29 @@ public:
 
   /// get raw dSID
   /// @return RawID union consisting of 12 bytes
-  RawID getRawId();
+  RawID getRawId() const;
 
   /// get pointer to raw dSID bytes
   /// @return pointer to array of 12 dsid bytes
-  uint8_t *getBytesP();
+  const uint8_t *getBytesP() const;
 
   /// get dSID as hex string
   /// @return string representation of dsid as 24 hex digits
-  string getString();
+  string getString() const;
 
   /// get object class
   /// @return 24bit object class. For object class 0xFFxxxx, xxxx is
   //    returned as 0 (these bits are mapped into result of getSerialNo()
-  ObjectClass getObjectClass();
+  ObjectClass getObjectClass() const;
 
   /// get upper 8 bit of object class
   /// @return upper 8bit of object class
-  uint8_t getObjectClassMSB();
+  uint8_t getObjectClassMSB() const;
 
   /// get serial number
   /// @return 36bit serial number, except for object class 0xFFxxxx,
   ///   where up to 52bits can be returned (16 bits from xxxx in object class)
-  SerialNo getSerialNo();
+  SerialNo getSerialNo() const;
 
 };
 

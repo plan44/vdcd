@@ -23,19 +23,19 @@ Error::Error(ErrorCode aErrorCode, std::string aErrorMessage)
 }
 
 
-ErrorCode Error::getErrorCode()
+ErrorCode Error::getErrorCode() const
 {
   return errorCode;
 }
 
 
-const char *Error::getErrorDomain()
+const char *Error::getErrorDomain() const
 {
   return "Error_baseClass";
 }
 
 
-std::string Error::description()
+std::string Error::description() const
 {
   std::string errorText;
   if (errorMessage.size()>0)
