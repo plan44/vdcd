@@ -63,6 +63,8 @@
 		EDCFE85C171FFAF5001D35F3 /* dsid.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsid.hpp; sourceTree = "<group>"; };
 		EDCFE85E17203E47001D35F3 /* fnv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fnv.cpp; sourceTree = "<group>"; };
 		EDCFE85F17203E47001D35F3 /* fnv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fnv.hpp; sourceTree = "<group>"; };
+		EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = xcode_docset_doxygen.sh; sourceTree = "<group>"; };
+		EDCFE86617212BA9001D35F3 /* doxygen.config */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doxygen.config; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,8 @@
 				ED6D7BE71716B6B1005DED18 /* classes */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */,
+				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
+				EDCFE86617212BA9001D35F3 /* doxygen.config */,
 				ED6D7BDC1716B63A005DED18 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -128,6 +132,23 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXLegacyTarget section */
+		EDCFE861172125F7001D35F3 /* p44bridged doxygen */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "";
+			buildConfigurationList = EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */;
+			buildPhases = (
+			);
+			buildToolPath = ./xcode_docset_doxygen.sh;
+			buildWorkingDirectory = "$(PROJECT_DIR)";
+			dependencies = (
+			);
+			name = "p44bridged doxygen";
+			passBuildSettingsInEnvironment = 1;
+			productName = "p44bridged doxygen";
+		};
+/* End PBXLegacyTarget section */
+
 /* Begin PBXNativeTarget section */
 		ED6D7BDA1716B63A005DED18 /* p44bridged */ = {
 			isa = PBXNativeTarget;
@@ -168,6 +189,7 @@
 			projectRoot = "";
 			targets = (
 				ED6D7BDA1716B63A005DED18 /* p44bridged */,
+				EDCFE861172125F7001D35F3 /* p44bridged doxygen */,
 			);
 		};
 /* End PBXProject section */
@@ -269,6 +291,27 @@
 			};
 			name = Release;
 		};
+		EDCFE863172125F7001D35F3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		EDCFE864172125F7001D35F3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -289,6 +332,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDCFE863172125F7001D35F3 /* Debug */,
+				EDCFE864172125F7001D35F3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

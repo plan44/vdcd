@@ -1,5 +1,6 @@
 boost_1_53_0/
 Debug/
 Release/
+docs/DoxygenDocs.docset/
 *~
 *.xcuserstate

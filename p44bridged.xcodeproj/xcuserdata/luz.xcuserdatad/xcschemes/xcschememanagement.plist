@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>p44bridged doxygen.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>p44bridged.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -13,6 +18,11 @@
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>ED6D7BDA1716B63A005DED18</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>EDCFE861172125F7001D35F3</key>
 		<dict>
 			<key>primary</key>
 			<true/>
