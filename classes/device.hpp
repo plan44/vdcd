@@ -13,14 +13,17 @@
 
 #include "dsid.hpp"
 
+class Device;
+typedef boost::shared_ptr<Device> DevicePtr;
 class Device
 {
   bool registered; ///< set when registered by dS system
   bool connected; ///< set when physical device is connected (known to be present on the bus etc.)
 protected:
-  DeviceClassContainerWeakPtr classContainer;
+  DeviceClassContainer *classContainerP;
 public:
-  Device();
+  Device(DeviceClassContainer *aClassContainerP);
+
 
   /// description of object, mainly for debug and logging
   /// @return textual description of object

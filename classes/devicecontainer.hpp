@@ -11,11 +11,13 @@
 
 #include "p44bridged_common.hpp"
 
-
 using namespace std;
 
 class DeviceClassContainer;
+class Device;
+class dSID;
 typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
+typedef boost::shared_ptr<Device> DevicePtr;
 
 /// generic callback for signalling completion (with success/error reporting)
 typedef boost::function<void (ErrorPtr aError)> CompletedCB;
@@ -28,8 +30,12 @@ typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 class DeviceContainer;
 typedef boost::shared_ptr<DeviceContainer> DeviceContainerPtr;
 typedef list<DeviceClassContainerPtr> ContainerList;
+typedef std::map<dSID, DevicePtr> DeviceMap;
+
 class DeviceContainer
 {
+  DeviceMap devices;
+
 public:
 
   /// the list of containers
@@ -53,6 +59,9 @@ public:
   /// collect devices from all device classes
   /// @param aCompletedCB will be called when all device scans have completed
   void collectDevices(CompletedCB aCompletedCB);
+
+  /// called by device class containers to add collected devices to the container-wide devices list
+  void addCollectedDevice(DevicePtr aDevice);
 
   /// @}
 

@@ -8,9 +8,10 @@
 
 #include "device.hpp"
 
-Device::Device() :
+Device::Device(DeviceClassContainer *aClassContainerP) :
   registered(false),
-  connected(false)
+  connected(false),
+  classContainerP(aClassContainerP)
 {
 
 }

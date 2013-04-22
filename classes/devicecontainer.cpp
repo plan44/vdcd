@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <string.h>
 
+#include "device.hpp"
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
@@ -130,6 +131,16 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB)
 {
   DeviceClassCollector::collectDevices(this, aCompletedCB);
 }
+
+
+// add a newly collected device
+void DeviceContainer::addCollectedDevice(DevicePtr aDevice)
+{
+  // add to container-wide map of devices
+  devices.insert(make_pair(aDevice->dsid, aDevice));
+}
+
+
 
 
 string DeviceContainer::description()

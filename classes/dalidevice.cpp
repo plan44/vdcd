@@ -11,7 +11,8 @@
 #include "fnv.hpp"
 
 
-DaliDevice::DaliDevice()
+DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
+  Device((DeviceClassContainer *)aClassContainerP)
 {
 }
 
@@ -28,7 +29,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 void DaliDevice::deriveDSID()
 {
   dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  Fnv32 hash;
+  Fnv64 hash;
   if (deviceInfo.uniquelyIdentifiing()) {
     // Valid device info
     // - add GTIN (6 bytes = 48bits, MSB to LSB)
@@ -51,14 +52,13 @@ void DaliDevice::deriveDSID()
   else {
     // no unqiquely defining device information, construct something as reproducible as possible
     // - use class container's ID
-    DeviceClassContainerPtr c(classContainer);
-    string s = c->deviceClassContainerInstanceIdentifier();
+    string s = classContainerP->deviceClassContainerInstanceIdentifier();
     hash.addBytes(s.size(), (uint8_t *)s.c_str());
     // - and add the DALI short address
     hash.addByte(deviceInfo.shortAddress);
   }
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setSerialNo(0x7000000000000+hash.getFNV32());
+  dsid.setSerialNo(0x7000000000000+hash.getHash48());
 }
 
 

@@ -71,11 +71,14 @@ private:
     if (!aError) {
       // got device info, add it to our collection
       // - create device
-      DaliDevicePtr daliDevice(new DaliDevice);
+      DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
       // - give it device info (such that it can calculate it's dsid)
       daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
       // - add it to our collection
       daliDeviceContainerP->addCollectedDevice(daliDevice);
+    }
+    else {
+      #error might be old device w/o device info
     }
     // check next
     ++nextDev;

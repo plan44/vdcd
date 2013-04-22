@@ -21,8 +21,8 @@
 //  FNV_prime = 16777619
 //  offset_basis = 2166136261
 
-static const uint32_t FNV32_prime = 16777619;
-static const uint32_t FNV32_offset_basis = 2166136261;
+static const uint32_t FNV32_prime = 16777619ul;
+static const uint32_t FNV32_offset_basis = 2166136261ul;
 
 
 Fnv32::Fnv32()
@@ -51,7 +51,59 @@ void Fnv32::addBytes(size_t aNumBytes, uint8_t *aBytesP)
 }
 
 
-uint32_t Fnv32::getFNV32() const
+uint32_t Fnv32::getHash() const
 {
   return hash;
+}
+
+
+
+static const uint64_t FNV64_prime = 1099511628211ull;
+static const uint64_t FNV64_offset_basis = 14695981039346656037ull;
+
+
+Fnv64::Fnv64()
+{
+  reset();
+}
+
+
+void Fnv64::reset()
+{
+  hash = FNV64_offset_basis;
+}
+
+void Fnv64::addByte(uint8_t aByte)
+{
+  hash ^= aByte;
+  hash *= FNV64_prime;
+}
+
+
+void Fnv64::addBytes(size_t aNumBytes, uint8_t *aBytesP)
+{
+  for (size_t i=0; i<aNumBytes; ++i) {
+    addByte(aBytesP[i]);
+  }
+}
+
+
+uint64_t Fnv64::getHash() const
+{
+  return hash;
+}
+
+
+// for non 2^x bit sized hashes, recommened practice is x-or folding:
+
+// If you need an x-bit hash where x is not a power of 2, then we recommend
+// that you compute the FNV hash that is just larger than x-bits and xor-fold
+// the result down to x-bits. By xor-folding we mean shift the excess high order
+// bits down and xor them with the lower x-bits.
+
+#define MASK_48 (((uint64_t)1<<48)-1) /* i.e., (uint64_t)0xffffffffffff */
+
+uint64_t Fnv64::getHash48() const
+{
+  return (hash>>48) ^ (hash & MASK_48);
 }

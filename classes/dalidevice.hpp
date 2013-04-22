@@ -14,7 +14,7 @@
 #include "dalicomm.hpp"
 
 
-
+class DaliDeviceContainer;
 class DaliDevice;
 typedef boost::shared_ptr<DaliDevice> DaliDevicePtr;
 class DaliDevice : public Device
@@ -25,7 +25,7 @@ class DaliDevice : public Device
   DaliDeviceInfo deviceInfo;
 
 public:
-  DaliDevice();
+  DaliDevice(DaliDeviceContainer *aClassContainerP);
   
   void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
 

@@ -66,6 +66,10 @@
             argument = "192.168.59.221"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "192.168.59.222"
+            isEnabled = "NO">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>

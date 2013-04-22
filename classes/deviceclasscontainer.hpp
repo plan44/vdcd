@@ -18,16 +18,16 @@
 class Device;
 
 typedef boost::shared_ptr<Device> DevicePtr;
-typedef std::map<dSID, DevicePtr> DeviceMap;
 
 
 class DeviceClassContainer;
 typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
 typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
+typedef std::list<DevicePtr> DeviceList;
 class DeviceClassContainer
 {
   DeviceContainer *deviceContainerP; ///< link to the deviceContainer
-  DeviceMap devices; ///< the devices of this class, mapped by dsid
+  DeviceList devices; ///< the devices of this class
 public:
   DeviceClassContainer();
 
