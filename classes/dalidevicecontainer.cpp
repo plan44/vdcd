@@ -11,7 +11,15 @@
 #include "dalidevice.hpp"
 
 
-/// device class name
+
+DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber) :
+  DeviceClassContainer(aInstanceNumber)
+{
+}
+
+
+
+// device class name
 const char *DaliDeviceContainer::deviceClassIdentifier() const
 {
   return "DALI_Bus_Container";
@@ -68,21 +76,23 @@ private:
 
   void deviceInfoReceived(DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
   {
-    if (!aError) {
-      // got device info, add it to our collection
+    bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
+    if (!aError || missingData) {
       // - create device
       DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
-      // - give it device info (such that it can calculate it's dsid)
+      // - give it device info (such that it can calculate its dsid)
+      //   Note: device info might be empty except for short address
       daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
       // - add it to our collection
       daliDeviceContainerP->addCollectedDevice(daliDevice);
     }
     else {
-      #error might be old device w/o device info
+      DBGLOG(LOG_INFO,"Error reading device info: %s\n",aError->description().c_str());
+      completed(aError);
     }
     // check next
     ++nextDev;
-    queryNextDev(aError);
+    queryNextDev(NULL);
   }
 
   void completed(ErrorPtr aError)

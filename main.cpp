@@ -142,13 +142,13 @@ int main(int argc, char **argv)
   // Create device container
   DeviceContainerPtr deviceContainer(new DeviceContainer());
   // - Add DALI devices class
-  DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer());
+  DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer(1));
   daliDeviceContainer->daliComm.setConnectionParameters(outputname, outputport);
   deviceContainer->addDeviceClassContainer(daliDeviceContainer);
 
   // initiate device collection
-  deviceContainer->collectDevices(CompletionHandler(deviceContainer));
-
+//  deviceContainer->collectDevices(CompletionHandler(deviceContainer));
+  daliDeviceContainer->daliComm.test6();
 
 //  // Create DALI communicator
 //  DaliCommPtr daliComm(new DaliComm());

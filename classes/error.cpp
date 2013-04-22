@@ -29,9 +29,15 @@ ErrorCode Error::getErrorCode() const
 }
 
 
-const char *Error::getErrorDomain() const
+const char *Error::domain()
 {
   return "Error_baseClass";
+}
+
+
+const char *Error::getErrorDomain() const
+{
+  return Error::domain();
 }
 
 
@@ -48,3 +54,7 @@ std::string Error::description() const
 }
 
 
+bool Error::isError(const char *aDomain, ErrorCode aErrorCode) const
+{
+  return aErrorCode==errorCode && (aDomain==NULL || strcmp(aDomain, getErrorDomain())==0);
+}

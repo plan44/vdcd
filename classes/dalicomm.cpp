@@ -424,6 +424,21 @@ uint8_t DaliComm::dali1FromAddress(DaliAddress aAddress)
 }
 
 
+DaliAddress DaliComm::addressFromDaliResponse(uint8_t aResponse)
+{
+  aResponse &= 0xFE;
+  if (aResponse==0xFE) {
+    return DaliBroadcast; // broadcast
+  }
+  else if (aResponse & 0x80) {
+    return ((aResponse>>1) & DaliGroupMask) + DaliGroup;
+  }
+  else {
+    return (aResponse>>1) & DaliAddressMask; // device short address
+  }
+}
+
+
 
 
 #pragma mark - DALI functionality
@@ -682,6 +697,182 @@ void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddre
 
 
 
+#pragma mark - Scan DALI bus by random address
+
+
+class DaliFullBusScanner
+{
+  DaliComm *daliComm;
+  DaliComm::DaliBusScanCB callback;
+  uint32_t searchMax;
+  uint32_t searchMin;
+  uint32_t searchAddr;
+  uint8_t searchL, searchM, searchH;
+  bool setLMH;
+  DaliComm::DeviceListPtr foundDevicesPtr;
+public:
+  static void fullScanBus(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB)
+  {
+    // create new instance, deletes itself when finished
+    new DaliFullBusScanner(aDaliCommP, aResultCB);
+  };
+private:
+  DaliFullBusScanner(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB) :
+    daliComm(aDaliCommP),
+    callback(aResultCB),
+    foundDevicesPtr(new DaliComm::DeviceList)
+  {
+    // Terminate any special modes first
+    daliComm->daliSend(DALICMD_TERMINATE, 0x00);
+    // initialize entire system for random address selection process
+    daliComm->daliSendTwice(DALICMD_INITIALISE, 0x00);
+    daliComm->daliSendTwice(DALICMD_RANDOMISE, 0x00);
+    // start search at lowest address
+    newSearchUpFrom(0);
+  };
+
+
+  void newSearchUpFrom(uint32_t aMinSearch)
+  {
+    // init search range
+    searchMax = 0xFFFFFF;
+    searchMin = aMinSearch;
+    searchAddr = (searchMax-aMinSearch)/2+aMinSearch; // start in the middle
+    // no search address currently set
+    setLMH = true;
+    compareNext();
+  }
+
+
+  void compareNext()
+  {
+    // issue next compare command
+    // - update address bytes as needed (only those that have changed)
+    uint8_t by = (searchAddr>>16) & 0xFF;
+    if (by!=searchH || setLMH) {
+      searchH = by;
+      daliComm->daliSend(DALICMD_SEARCHADDRH, searchH);
+    }
+    // - searchM
+    by = (searchAddr>>8) & 0xFF;
+    if (by!=searchM || setLMH) {
+      searchM = by;
+      daliComm->daliSend(DALICMD_SEARCHADDRM, searchM);
+    }
+    // - searchL
+    by = (searchAddr) & 0xFF;
+    if (by!=searchL || setLMH) {
+      searchL = by;
+      daliComm->daliSend(DALICMD_SEARCHADDRL, searchL);
+    }
+    setLMH = false; // incremental from now on until flag is set again
+    // - issue the compare command
+    daliComm->daliSendAndReceive(DALICMD_COMPARE, 0x00, boost::bind(&DaliFullBusScanner::handleCompareResult, this, _2, _3, _4));
+  }
+
+
+  void handleCompareResult(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+  {
+    // Anything received but timeout is considered a yes
+    bool isYes = !aNoOrTimeout;
+    if (aError) {
+      if (aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
+        // framing error, can occur when multiple devices try to answer with YES with slightly different timing
+        // -> consider this a YES
+        isYes = true;
+      }
+      else {
+        // other error, abort
+        completed(aError);
+        return;
+      }
+    }
+    DBGLOG(LOG_DEBUG, "DALICMD_COMPARE result = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
+    // any ballast has smaller or equal random address?
+    if (isYes) {
+      // yes, there is at least one, max address is what we searched so far
+      searchMax = searchAddr;
+    }
+    else {
+      // none at or below current search
+      if (searchMin==0xFFFFFF) {
+        // already at max possible -> no more devices found
+        DBGLOG(LOG_DEBUG, "No more devices\n");
+        completed(NULL);
+        return;
+      }
+      searchMin = searchAddr+1; // new min
+    }
+    if (searchMin==searchMax && searchAddr==searchMin) {
+      // found!
+      DBGLOG(LOG_DEBUG, "- Found device at 0x%06X\n", searchAddr);
+      // read current short address
+      daliComm->daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _2, _3, _4));
+    }
+    else {
+      // not yet - continue
+      searchAddr = searchMin + (searchMax-searchMin)/2;
+      DBGLOG(LOG_DEBUG, "-                                          New searchMin=0x%06X, searchMax=0x%06X\n", searchMin, searchMax);
+      // issue next compare
+      compareNext();
+    }
+  }
+
+
+  void handleShortAddressQuery(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+  {
+    if (aError) {
+      completed(aError);
+      return;
+    }
+    if (aNoOrTimeout) {
+      DBGLOG(LOG_ERR, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
+      // TODO: should not happen, probably bus error led to false device detection, restart search
+    }
+    else {
+      // response is short address in 0AAAAAA1 format or DALIVALUE_MASK (no adress)
+      if (aResponse==DALIVALUE_MASK) {
+        // device has no short address yet
+        DBGLOG(LOG_INFO, "- Device at 0x%06X has NO short address yet\n", searchAddr);
+        // represent by 0xFF
+        foundDevicesPtr->push_back(DALIVALUE_MASK);
+        // TODO: assign new short address
+      }
+      else {
+        DaliAddress shortAddress = DaliComm::addressFromDaliResponse(aResponse);
+        DBGLOG(LOG_INFO, "- Device at 0x%06X has short address: %d\n", searchAddr, shortAddress);
+        foundDevicesPtr->push_back(shortAddress);
+        // TODO: check for duplicates and re-assign short address when needed to make unique
+      }
+    }
+    // withdraw this device from further searches
+    daliComm->daliSend(DALICMD_WITHDRAW, 0x00);
+    // continue searching devices
+    newSearchUpFrom(searchAddr+1);
+  }
+
+
+
+  void completed(ErrorPtr aError)
+  {
+    // terminate
+    daliComm->daliSend(DALICMD_TERMINATE, 0x00);
+    // callback
+    callback(daliComm, foundDevicesPtr, aError);
+    // done, delete myself
+    delete this;
+  }
+};
+
+
+void DaliComm::daliFullScanBus(DaliBusScanCB aResultCB)
+{
+  DaliFullBusScanner::fullScanBus(this, aResultCB);
+}
+
+
+
+
 
 #pragma mark - DALI device info
 
@@ -828,6 +1019,26 @@ void DaliComm::test5Ack(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError)
     printf("test5Ack: error = %s\n", aError->description().c_str());
   else
     printf("test5Ack: %s", aDeviceInfo->description().c_str());
+}
+
+
+
+void DaliComm::test6()
+{
+  daliFullScanBus(boost::bind(&DaliComm::test6Ack, this, _2, _3));
+}
+
+void DaliComm::test6Ack(DeviceListPtr aDeviceListPtr, ErrorPtr aError)
+{
+  if (aError)
+    printf("test6Ack: error = %s\n", aError->description().c_str());
+  else {
+    printf("test6Ack: %ld Devices found = ", aDeviceListPtr->size());
+    for (list<DaliAddress>::iterator pos = aDeviceListPtr->begin(); pos!=aDeviceListPtr->end(); ++pos) {
+      printf("%d ",*pos);
+    }
+    printf("\n");
+  }
 }
 
 

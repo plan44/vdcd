@@ -20,8 +20,9 @@ typedef boost::shared_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
 class DaliDeviceContainer : public DeviceClassContainer
 {
   typedef DeviceClassContainer inherited;
-
 public:
+  DaliDeviceContainer(int aInstanceNumber);
+
   // the DALI communication object
   DaliComm daliComm;
 

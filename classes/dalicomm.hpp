@@ -48,14 +48,16 @@ typedef enum {
   DaliCommErrorBridgeUnknown,
   DaliCommErrorDALIFrame,
   DaliCommErrorMissingData,
+  DaliCommErrorInvalidAnswer,
 } DaliCommErrors;
 
 class DaliCommError : public Error
 {
 public:
+  static const char *domain() { return "DaliComm"; }
   DaliCommError(DaliCommErrors aError) : Error(ErrorCode(aError)) {};
   DaliCommError(DaliCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  virtual const char *getErrorDomain() const { return "DaliComm"; }
+  virtual const char *getErrorDomain() const { return DaliCommError::domain(); };
 };
 
 
@@ -77,6 +79,7 @@ typedef uint8_t DaliAddress;
 const DaliAddress DaliGroup = 0x80; // marks group address
 const DaliAddress DaliBroadcast = 0xFF; // all devices on the bus
 const DaliAddress DaliAddressMask = 0x3F; // address mask
+const DaliAddress DaliGroupMask = 0x0F; // address mask
 
 /// DALI device information record
 class DaliDeviceInfo
@@ -220,7 +223,8 @@ public:
   /// utility function to create address byte
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @return first DALI byte for use in daliSend/daliSendTwice
-  uint8_t dali1FromAddress(DaliAddress aAddress);
+  static uint8_t dali1FromAddress(DaliAddress aAddress);
+  static DaliAddress addressFromDaliResponse(uint8_t aAnswer);
 
   /// @}
 
@@ -256,13 +260,17 @@ public:
   /// @param aAddress short address of device to read device info from
   void daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddress);
 
+  
+  void daliFullScanBus(DaliBusScanCB aResultCB);
+
+
+
   /// @}
 
 
 public:
   // %%% test
   void test();
-private:
   void resetAck(ErrorPtr aError);
   void test1();
   void test1Ack(uint8_t aResp1, uint8_t aResp2, ErrorPtr aError);
@@ -274,6 +282,8 @@ private:
   void test4Ack(MemoryVectorPtr aMemoryPtr, ErrorPtr aError);
   void test5();
   void test5Ack(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError);
+  void test6();
+  void test6Ack(DeviceListPtr aDeviceListPtr, ErrorPtr aError);
 };
 
 #endif /* DALICOMM_H_ */

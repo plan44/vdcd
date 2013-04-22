@@ -29,9 +29,10 @@ typedef enum {
 class SQError : public Error
 {
 public:
+  static const char *domain() { return "SerialQueue"; };
   SQError(SQErrors aError) : Error(ErrorCode(aError)) {};
   SQError(SQErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  virtual const char *getErrorDomain() const { return "SerialQueue"; }
+  virtual const char *getErrorDomain() const { return SQError::domain(); };
 };
 
 

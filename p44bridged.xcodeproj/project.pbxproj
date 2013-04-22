@@ -340,6 +340,7 @@
 				EDCFE864172125F7001D35F3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

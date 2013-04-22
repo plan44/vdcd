@@ -26,10 +26,15 @@ typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
 typedef std::list<DevicePtr> DeviceList;
 class DeviceClassContainer
 {
+  DeviceClassContainerWeakPtr mySelf; ///< weak pointer to myself
   DeviceContainer *deviceContainerP; ///< link to the deviceContainer
   DeviceList devices; ///< the devices of this class
+  int instanceNumber; ///< the instance number identifying this instance among other instances of this class
 public:
-  DeviceClassContainer();
+  /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
+  ///   of this class container. This is used when generating dsids for devices that don't have their own
+  ///   unique ID, by using a hashOf(DeviceContainer's id, deviceClassIdentifier(), aInstanceNumber)
+  DeviceClassContainer(int aInstanceNumber);
 
   /// associate with container
   /// @param aDeviceContainerP device container this device class is contained in

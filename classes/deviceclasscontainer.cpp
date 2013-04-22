@@ -11,8 +11,9 @@
 #include "device.hpp"
 
 
-DeviceClassContainer::DeviceClassContainer() :
-  deviceContainerP(NULL)
+DeviceClassContainer::DeviceClassContainer(int aInstanceNumber) :
+  deviceContainerP(NULL),
+  instanceNumber(aInstanceNumber)
 {
 }
 
@@ -34,6 +35,7 @@ DeviceContainer *DeviceClassContainer::getDeviceContainerP() const
 string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
+  s.append("@");
   s.append(deviceContainerP->deviceContainerInstanceIdentifier());
   return s;
 }
