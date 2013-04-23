@@ -59,7 +59,8 @@ protected:
   bool aborted;
   SQMilliSeconds timeout; // timeout
   SQMilliSeconds timesOutAt; // absolute time for timeout
-  SQMilliSeconds initiatesNotBefore;
+  SQMilliSeconds initiationDelay; // how much to delay initiation (after first attempt to initiate)
+  SQMilliSeconds initiatesNotBefore; // absolute time for earliest initiation
 public:
   /// current time in SQMilliseconds
   static SQMilliSeconds now();
@@ -71,12 +72,18 @@ public:
   void setTransmitter(SerialOperationTransmitter aTransmitter);
   /// set callback to execute when operation completes
   void setSerialOperationCB(SerialOperationFinalizeCB aCallBack);
+  /// set delay for initiation (after first attempt to initiate)
+  void setInitiationDelay(SQMilliSeconds aInitiationDelay);
   /// set earliest time to execute
   void setInitiatesAt(SQMilliSeconds aInitiatesAt);
   /// set timeout (from initiation)
   void setTimeout(SQMilliSeconds aTimeout);
+  /// check if can be initiated
+  /// @return false if cannot be initiated now and must be retried
+  virtual bool canInitiate();
   /// call to initiate operation
   /// @return false if cannot be initiated now and must be retried
+  /// @note internally calls canInitiate() first
   virtual bool initiate();
   /// check if already initiated
   bool isInitiated();

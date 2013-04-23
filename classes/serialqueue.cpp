@@ -43,7 +43,8 @@ SerialOperation::SerialOperation() :
   aborted(false),
   timeout(0), // no timeout
   timesOutAt(0), // no timeout time set
-  initiatesNotBefore(0), // no initiation delay
+  initiationDelay(0), // no initiation delay
+  initiatesNotBefore(0), // no initiation time
   inSequence(true) // by default, execute in sequence
 {
 }
@@ -61,6 +62,19 @@ void SerialOperation::setTimeout(SQMilliSeconds aTimeout)
 }
 
 
+// set delay for initiation (after first attempt to initiate)
+void SerialOperation::setInitiationDelay(SQMilliSeconds aInitiationDelay)
+{
+  initiationDelay = aInitiationDelay;
+  initiatesNotBefore = 0;
+}
+
+// set earliest time to execute
+void SerialOperation::setInitiatesAt(SQMilliSeconds aInitiatesAt)
+{
+  initiatesNotBefore = aInitiatesAt;
+}
+
 
 // set callback to execute when operation completes
 void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
@@ -68,9 +82,27 @@ void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
   finalizeCallback = aCallBack;
 }
 
+
+// check if can be initiated
+bool SerialOperation::canInitiate()
+{
+  if (initiationDelay>0) {
+    if (initiatesNotBefore==0) {
+      // first time queried, start delay now
+      initiatesNotBefore = SerialOperation::now()+initiationDelay;
+      initiationDelay = 0; // consumed
+    }
+  }
+  // can be initiated when delay is over
+  return initiatesNotBefore==0 || initiatesNotBefore<SerialOperation::now();
+}
+
+
+
 // call to initiate operation
 bool SerialOperation::initiate()
 {
+  if (!canInitiate()) return false;
   initiated = true;
   if (timeout!=0)
     timesOutAt = SerialOperation::now()+timeout;
@@ -145,13 +177,18 @@ SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes)
   }
 }
 
-SerialOperationSend::~SerialOperationSend() {
+
+SerialOperationSend::~SerialOperationSend()
+{
   if (dataP) {
     free(dataP);
   }
 }
 
-bool SerialOperationSend::initiate() {
+
+bool SerialOperationSend::initiate()
+{
+  if (!canInitiate()) return false;
   size_t res;
   if (dataP && transmitter) {
     // transmit
