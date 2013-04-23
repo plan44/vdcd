@@ -16,6 +16,7 @@
 
 
 // DALI commands with standard address format
+// - normal commands, send once
 #define DALICMD_OFF 0x00 // 0000 0000
 #define DALICMD_UP 0x01 // 0000 0001
 #define DALICMD_DOWN 0x02 // 0000 0010
@@ -27,6 +28,8 @@
 #define DALICMD_ON AND_STEP_UP 0x08 // 0000 1000
 #define DALICMD_ENABLE_DAPC_SEQUENCE 0x09 // 0000 1001
 #define DALICMD_GO_TO_SCENE 0x10 // 0001 xxxx, x = scene number 0..15
+
+// - configuration commands, send twice within 100mS
 #define DALICMD_RESET 0x20 // 0010 0000
 #define DALICMD_STORE_ACTUAL_LEVEL_IN_DTR 0x21 // 0010 0001
 #define DALICMD_STORE_DTR_AS_MAX_LEVEL 0x2A // 0010 1010
@@ -41,6 +44,8 @@
 #define DALICMD_REMOVE_FROM_GROUP 0x70 // 0111 yyyy, y = group number 0..15
 #define DALICMD_STORE_DTR_AS_SHORT_ADDRESS 0x80 // 1000 0000
 #define DALICMD_ENABLE_WRITE_MEMORY 0x81 // 1000 0001
+
+// - query commands, return one response byte
 #define DALICMD_QUERY_STATUS 0x90 // 1001 0000
 #define DALICMD_QUERY_CONTROL_GEAR 0x91 // 1001 0001
 #define DALICMD_QUERY_LAMP_FAILURE 0x92 // 1001 0010
@@ -71,7 +76,7 @@
 #define DALICMD_QUERY_EXTENDED_VERSION 0xFF // 1111 1111
 
 
-// DALI 2-byte special commands, command in first byte
+// - DALI 2-byte special commands, command in first byte
 #define DALICMD_TERMINATE 0xA1 // 1010 0001 0000 0000
 #define DALICMD_SET_DTR 0xA3 // 1010 0011 XXXX XXXX
 #define DALICMD_INITIALISE 0xA5 // 1010 0101 XXXX XXXX

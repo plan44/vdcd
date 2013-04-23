@@ -49,6 +49,9 @@ typedef enum {
   DaliCommErrorDALIFrame,
   DaliCommErrorMissingData,
   DaliCommErrorInvalidAnswer,
+  DaliCommErrorNeedFullScan,
+  DaliCommErrorDeviceSearch,
+  DaliCommErrorSetShortAddress,
 } DaliCommErrors;
 
 class DaliCommError : public Error
@@ -116,7 +119,7 @@ class DaliComm : SerialOperationQueue
   int bridgeFd;
   struct termios oldTermIO;
   bool serialConnection;
-  ErrorPtr lastError;
+  ErrorPtr unhandledError;
 public:
 
   DaliComm();
@@ -156,8 +159,11 @@ public:
   /// close the current connection, if any
   void closeConnection();
 
-  /// set DALI bus global error
-  void setError(ErrorPtr aError);
+  /// set DALI bus error not handled by callback
+  void setUnhandledError(ErrorPtr aError);
+
+  /// get last unhandled error and clear it
+  ErrorPtr getLastUnhandledError();
 
   /// @}
 
@@ -173,7 +179,7 @@ public:
   /// @param aDali1 first DALI byte
   /// @param aDali2 second DALI byte
   /// @param aResultCB callback executed when bridge response arrives
-  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB);
+  void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay = -1);
 
 
   /// callback function for daliSendXXX methods
@@ -186,26 +192,32 @@ public:
   /// @param aDali1 first DALI byte
   /// @param aDali2 second DALI byte
   /// @param aStatusCB status callback
-  void daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  void daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @param aPower Arc power
   /// @param aStatusCB status callback
-  void daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  void daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @param aCommand command
   /// @param aStatusCB status callback
-  void daliSendCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  void daliSendCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+  /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
+  /// @param aCommand command
+  /// @param aDTRValue the value to be sent to DTR before executing aCommand
+  /// @param aStatusCB status callback
+  void daliSendDtrAndCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+
 
   /// Send two byte DALI bus command twice within 100ms
   /// @param aDali1 first DALI byte
   /// @param aDali2 second DALI byte
   /// @param aStatusCB status callback
-  void daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  void daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
   /// Send DALI config command (send twice within 100ms)
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @param aCommand command
   /// @param aStatusCB status callback
-  void daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aMinTimeToNextCmd = -1);
+  void daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
 
   /// callback function for daliSendXXX methods returning data
@@ -214,16 +226,19 @@ public:
   /// @param aDali1 first DALI byte
   /// @param aDali2 second DALI byte
   /// @param aResultCB result callback
-  void daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB);
+  void daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB, int aWithDelay = -1);
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @param aCommand command
   /// @param aResultCB result callback
-  void daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB);
+  void daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB, int aWithDelay = -1);
 
   /// utility function to create address byte
   /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   /// @return first DALI byte for use in daliSend/daliSendTwice
   static uint8_t dali1FromAddress(DaliAddress aAddress);
+  /// utility function to decode address byte
+  /// @param DALI-style bAAAAAAx address byte, as returned by some query commands
+  /// @return DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
   static DaliAddress addressFromDaliResponse(uint8_t aAnswer);
 
   /// @}
@@ -231,13 +246,19 @@ public:
   /// @name high level DALI bus services
   /// @{
 
-  typedef std::list<DaliAddress> DeviceList;
-  typedef boost::shared_ptr<DeviceList> DeviceListPtr;
+  typedef std::list<DaliAddress> ShortAddressList;
+  typedef boost::shared_ptr<ShortAddressList> ShortAddressListPtr;
   /// callback function for daliScanBus
-  typedef boost::function<void (DaliComm *aDaliCommP, DeviceListPtr aDeviceListPtr, ErrorPtr aError)> DaliBusScanCB;
+  typedef boost::function<void (DaliComm *aDaliCommP, ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
   /// Scan the bus for active devices (short address)
   /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
-  void daliScanBus(DaliBusScanCB aResultCB);
+  void daliBusScan(DaliBusScanCB aResultCB);
+  /// Scan the bus for devices by random address search
+  /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
+  /// @param aFullScanOnlyIfNeeded
+  /// @note detects short address conflicts and devices without short address, assigns new short addresses as needed
+  void daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded);
+
 
   typedef boost::shared_ptr<std::vector<uint8_t> > MemoryVectorPtr;
   /// callback function for daliReadMemory
@@ -252,6 +273,7 @@ public:
   ///   just return the number of bytes that could be read; check its size to make sure expected result was returned
   void daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes);
 
+
   typedef boost::shared_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
   /// callback function for daliReadDeviceInfo
   typedef boost::function<void (DaliComm *aDaliCommP, DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;
@@ -260,30 +282,25 @@ public:
   /// @param aAddress short address of device to read device info from
   void daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddress);
 
-  
-  void daliFullScanBus(DaliBusScanCB aResultCB);
-
-
-
   /// @}
 
 
 public:
   // %%% test
-  void test();
-  void resetAck(ErrorPtr aError);
-  void test1();
-  void test1Ack(uint8_t aResp1, uint8_t aResp2, ErrorPtr aError);
-  void test2();
-  void test2Ack(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
-  void test3();
-  void test3Ack(DeviceListPtr aDeviceListPtr, ErrorPtr aError);
-  void test4();
-  void test4Ack(MemoryVectorPtr aMemoryPtr, ErrorPtr aError);
-  void test5();
-  void test5Ack(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError);
-  void test6();
-  void test6Ack(DeviceListPtr aDeviceListPtr, ErrorPtr aError);
+  void testReset();
+  void testResetAck(ErrorPtr aError);
+
+  void testBusScan();
+  void testBusScanAck(ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
+
+  void testFullBusScan();
+  void testFullBusScanAck(ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
+
+  void testReadBytes(DaliAddress aShortAddress);
+  void testReadBytesAck(MemoryVectorPtr aMemoryPtr, ErrorPtr aError);
+
+  void testReadDeviceInfo(DaliAddress aShortAddress);
+  void testReadDeviceInfoAck(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError);
 };
 
 #endif /* DALICOMM_H_ */

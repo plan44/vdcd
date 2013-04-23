@@ -147,8 +147,8 @@ int main(int argc, char **argv)
   deviceContainer->addDeviceClassContainer(daliDeviceContainer);
 
   // initiate device collection
-//  deviceContainer->collectDevices(CompletionHandler(deviceContainer));
-  daliDeviceContainer->daliComm.test6();
+  deviceContainer->collectDevices(CompletionHandler(deviceContainer), false); // no forced full scan (only if needed)
+//  daliDeviceContainer->daliComm.testFullBusScan();
 
 //  // Create DALI communicator
 //  DaliCommPtr daliComm(new DaliComm());

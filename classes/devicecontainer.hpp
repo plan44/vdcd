@@ -58,7 +58,10 @@ public:
 
   /// collect devices from all device classes
   /// @param aCompletedCB will be called when all device scans have completed
-  void collectDevices(CompletedCB aCompletedCB);
+  /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
+  ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
+  ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
+  void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
   /// called by device class containers to add collected devices to the container-wide devices list
   void addCollectedDevice(DevicePtr aDevice);

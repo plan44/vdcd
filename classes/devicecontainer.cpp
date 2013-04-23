@@ -84,18 +84,20 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 class DeviceClassCollector
 {
   CompletedCB callback;
+  bool exhaustive;
   list<DeviceClassContainerPtr>::iterator nextContainer;
   DeviceContainer *deviceContainerP;
 public:
-  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback)
+  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aExhaustive)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassCollector(aDeviceContainerP, aCallback);
+    new DeviceClassCollector(aDeviceContainerP, aCallback, aExhaustive);
   };
 private:
-  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback) :
-  callback(aCallback),
-  deviceContainerP(aDeviceContainerP)
+  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aExhaustive) :
+    callback(aCallback),
+    deviceContainerP(aDeviceContainerP),
+    exhaustive(aExhaustive)
   {
     nextContainer = deviceContainerP->deviceClassContainers.begin();
     queryNextContainer(NULL);
@@ -105,7 +107,7 @@ private:
   void queryNextContainer(ErrorPtr aError)
   {
     if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
-      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1));
+      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), exhaustive);
     else
       completed(aError);
   }
@@ -127,9 +129,9 @@ private:
 };
 
 
-void DeviceContainer::collectDevices(CompletedCB aCompletedCB)
+void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
-  DeviceClassCollector::collectDevices(this, aCompletedCB);
+  DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
 }
 
 

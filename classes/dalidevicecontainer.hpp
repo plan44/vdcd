@@ -28,7 +28,7 @@ public:
 
   virtual const char *deviceClassIdentifier() const;
 
-  virtual void collectDevices(CompletedCB aCompletedCB);
+  virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
 };
 

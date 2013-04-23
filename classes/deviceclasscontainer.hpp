@@ -66,7 +66,10 @@ public:
 
   /// collect devices from this device classes
   /// @param aCompletedCB will be called when device scan for this device class has been completed
-  virtual void collectDevices(CompletedCB aCompletedCB) = 0;
+  /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
+  ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
+  ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
+  virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive) = 0;
 
   /// @}
 
