@@ -19,7 +19,7 @@ typedef long long MLMilliSeconds;
 /// Mainloop callback
 typedef boost::function<bool (MainLoop *aMainLoop, MLMilliSeconds aTimeRef)> IdleCB;
 
-typedef boost::shared_ptr<MainLoop> MainLoopPtr;
+
 /// A main loop for a thread
 class MainLoop
 {
@@ -27,12 +27,16 @@ class MainLoop
 		void *subscriberP;
 		IdleCB callback;
 	} IdleHandler;
-	std::list<IdleHandler> idleHandlers;
+	typedef std::list<IdleHandler> IdleHandlerList;
+	IdleHandlerList idleHandlers;
 	typedef struct {
 		MLMilliSeconds executionTime;
 		IdleCB callback;
 	} OnetimeHandler;
-	std::list<OnetimeHandler> onetimeHandlers;
+	typedef std::list<OnetimeHandler> OnetimeHandlerList;
+	OnetimeHandlerList onetimeHandlers;
+	// private constructor
+	MainLoop();
 protected:
 	MLMilliSeconds loopCycleTime;
 	bool terminated;
@@ -40,6 +44,8 @@ protected:
 public:
 	/// returns the current thread's mainloop
 	static MainLoop *currentMainLoop();
+	/// returns the current millisecond
+	static MLMilliSeconds now();
 	/// set the cycle time
 	void setLoopCycleTime(MLMilliSeconds aCycleTime);
 	/// register routine with mainloop for being called at least once per loop cycle
@@ -51,7 +57,12 @@ public:
 	void unregisterIdleHandlers(void *aSubscriberP);
 	/// have handler called from the mainloop once with an optional delay from now
 	/// @param aCallback the functor to be called
-	void execute(IdleCB aCallback, MLMilliSeconds aDelay = 0);
+	/// @param aExecutionTime when to execute (approximately), in now() timescale
+	void executeOnceAt(IdleCB aCallback, MLMilliSeconds aExecutionTime);
+	/// have handler called from the mainloop once with an optional delay from now
+	/// @param aCallback the functor to be called
+	/// @param aDelay delay from now when to execute (approximately)
+	void executeOnce(IdleCB aCallback, MLMilliSeconds aDelay = 0);
 	/// run the mainloop
 	void run();
 	/// terminate the mainloop
