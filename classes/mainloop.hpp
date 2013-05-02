@@ -14,10 +14,10 @@
 class MainLoop;
 
 // Mainloop timing unit
-typedef long long MLMilliSeconds;
+typedef long long MLMicroSeconds;
 
 /// Mainloop callback
-typedef boost::function<bool (MainLoop *aMainLoop, MLMilliSeconds aTimeRef)> IdleCB;
+typedef boost::function<bool (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> MainLoopCB;
 
 
 /// A main loop for a thread
@@ -25,86 +25,103 @@ class MainLoop
 {
 	typedef struct {
 		void *subscriberP;
-		IdleCB callback;
+		MainLoopCB callback;
 	} IdleHandler;
 	typedef std::list<IdleHandler> IdleHandlerList;
 	IdleHandlerList idleHandlers;
 	typedef struct {
-		MLMilliSeconds executionTime;
-		IdleCB callback;
+		void *submitterP;
+		MLMicroSeconds executionTime;
+		MainLoopCB callback;
 	} OnetimeHandler;
 	typedef std::list<OnetimeHandler> OnetimeHandlerList;
 	OnetimeHandlerList onetimeHandlers;
-	// private constructor
-	MainLoop();
 protected:
-	MLMilliSeconds loopCycleTime;
+	MLMicroSeconds loopCycleTime;
 	bool terminated;
-	MLMilliSeconds cycleStartTime;
+	MLMicroSeconds cycleStartTime;
+	// protected constructor
+	MainLoop();
 public:
 	/// returns the current thread's mainloop
 	static MainLoop *currentMainLoop();
-	/// returns the current millisecond
-	static MLMilliSeconds now();
+	/// returns the current microsecond
+	static MLMicroSeconds now();
 	/// set the cycle time
-	void setLoopCycleTime(MLMilliSeconds aCycleTime);
+	void setLoopCycleTime(MLMicroSeconds aCycleTime);
+  /// get time left for current cycle
+  MLMicroSeconds remainingCycleTime();
 	/// register routine with mainloop for being called at least once per loop cycle
 	/// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
 	/// @param aCallback the functor to be called
-	void registerIdleHandler(void *aSubscriberP, IdleCB aCallback);
+	void registerIdleHandler(void *aSubscriberP, MainLoopCB aCallback);
 	/// unregister all handlers registered by a given subscriber
 	/// @param aSubscriberP a value identifying the subscriber
 	void unregisterIdleHandlers(void *aSubscriberP);
 	/// have handler called from the mainloop once with an optional delay from now
 	/// @param aCallback the functor to be called
 	/// @param aExecutionTime when to execute (approximately), in now() timescale
-	void executeOnceAt(IdleCB aCallback, MLMilliSeconds aExecutionTime);
+	/// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
+	void executeOnceAt(MainLoopCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
 	/// have handler called from the mainloop once with an optional delay from now
 	/// @param aCallback the functor to be called
 	/// @param aDelay delay from now when to execute (approximately)
-	void executeOnce(IdleCB aCallback, MLMilliSeconds aDelay = 0);
-	/// run the mainloop
-	void run();
+	void executeOnce(MainLoopCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
+  /// cancel pending execution requests from submitter (NULL = cancel all)
+  void cancelExecutionsFrom(void *aSubmitterP);
 	/// terminate the mainloop
 	void terminate();
+	/// run the mainloop
+	virtual void run();
 protected:
-	/// run one cycle of the mainloop
-	virtual void runOneCylce();
+	// run all handlers
+	bool runOnetimeHandlers();
+	bool runIdleHandlers();
 };
 
 
 class SyncIOMainLoop;
 
 /// I/O callback
-typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMilliSeconds aTimeRef, int aFD)> SyncIOCB;
+typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)> SyncIOCB;
 
 typedef boost::shared_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
 /// A main loop with a Synchronous I/O multiplexer (select() call)
 class SyncIOMainLoop : public MainLoop
 {
+  typedef MainLoop inherited;
 	typedef struct {
-		void *subscriberP;
 		int monitoredFD;
 		SyncIOCB readReadyCB;
 		SyncIOCB writeReadyCB;
 		SyncIOCB errorCB;
-	} SyncIOClient;
-	std::list<SyncIOClient> syncIOHandlers;
+	} SyncIOHandler;
+	typedef std::map<int, SyncIOHandler> SyncIOHandlerMap;
+  SyncIOHandlerMap syncIOHandlers;
+	// private constructor
+	SyncIOMainLoop();
 public:
+	/// returns the current thread's SyncIOMainLoop
+  /// @return the current SyncIOMainLoop. Returns NULL if current mainloop for this thread is not a SyncIOMainLoop
+  /// @note creates a SyncIOMainLoop for the thread if no other type of mainloop already exists
+	static SyncIOMainLoop *currentMainLoop();
 	/// register routine with mainloop for being called at least once per loop cycle
 	/// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
 	/// @param aFD the file descriptor
 	/// @param aReadCB the functor to be called when the file descriptor is ready for reading
 	/// @param aWriteCB the functor to be called when the file descriptor is ready for writing
 	/// @param aErrorCB the functor to be called when the file descriptor has an error
-	void registerSyncIOHandlers(void *aSubscriberP, int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB);
+	void registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB);
 	/// unregister all handlers registered by a given subscriber
 	/// @param aSubscriberP a value identifying the subscriber
 	/// @param aFD the file descriptor
-	void unregisterSyncIOHandlers(void *aSubscriberP, int aFD);
+	void unregisterSyncIOHandlers(int aFD);
+	/// run the mainloop
+	virtual void run();
 protected:
-	/// run one cycle of the mainloop
-	virtual void runOneCylce();
+	/// handle IO
+  /// @return true if I/O handling occurred
+	bool handleSyncIO(MLMicroSeconds aTimeout);
 };
 
 

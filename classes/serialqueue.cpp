@@ -14,38 +14,8 @@
 
 #pragma mark - SerialOperation
 
-#ifdef __APPLE__
-#include <mach/mach_time.h>
-#endif
 
-
-SQMilliSeconds SerialOperation::now()
-{
-  #ifdef __APPLE__
-  static bool timeInfoKnown = false;
-  static mach_timebase_info_data_t tb;
-  if (!timeInfoKnown) {
-    mach_timebase_info(&tb);
-  }
-  double t = mach_absolute_time();
-  return t * (double)tb.numer / (double)tb.denom / 1e6; // ms
-  #else
-  struct timespec tsp;
-  clock_gettime(CLOCK_MONOTONIC, &tsp);
-  // return milliseconds
-  return tsp.tv_sec*1000 + tsp.tv_nsec/1000000;
-  #endif
-}
-
-
-SerialOperation::SerialOperation() :
-  initiated(false),
-  aborted(false),
-  timeout(0), // no timeout
-  timesOutAt(0), // no timeout time set
-  initiationDelay(0), // no initiation delay
-  initiatesNotBefore(0), // no initiation time
-  inSequence(true) // by default, execute in sequence
+SerialOperation::SerialOperation()
 {
 }
 
@@ -55,27 +25,6 @@ void SerialOperation::setTransmitter(SerialOperationTransmitter aTransmitter)
   transmitter = aTransmitter;
 }
 
-// set timeout
-void SerialOperation::setTimeout(SQMilliSeconds aTimeout)
-{
-  timeout = aTimeout;
-}
-
-
-// set delay for initiation (after first attempt to initiate)
-void SerialOperation::setInitiationDelay(SQMilliSeconds aInitiationDelay)
-{
-  initiationDelay = aInitiationDelay;
-  initiatesNotBefore = 0;
-}
-
-// set earliest time to execute
-void SerialOperation::setInitiatesAt(SQMilliSeconds aInitiatesAt)
-{
-  initiatesNotBefore = aInitiatesAt;
-}
-
-
 // set callback to execute when operation completes
 void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
 {
@@ -83,84 +32,12 @@ void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
 }
 
 
-// check if can be initiated
-bool SerialOperation::canInitiate()
-{
-  if (initiationDelay>0) {
-    if (initiatesNotBefore==0) {
-      // first time queried, start delay now
-      initiatesNotBefore = SerialOperation::now()+initiationDelay;
-      initiationDelay = 0; // consumed
-    }
-  }
-  // can be initiated when delay is over
-  return initiatesNotBefore==0 || initiatesNotBefore<SerialOperation::now();
-}
-
-
-
-// call to initiate operation
-bool SerialOperation::initiate()
-{
-  if (!canInitiate()) return false;
-  initiated = true;
-  if (timeout!=0)
-    timesOutAt = SerialOperation::now()+timeout;
-  else
-    timesOutAt = 0;
-  return initiated;
-}
-
-/// check if already initiated
-bool SerialOperation::isInitiated()
-{
-  return initiated;
-}
-
 // call to deliver received bytes
 size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   return 0;
 }
 
-
-// call to check if operation has completed
-bool SerialOperation::hasCompleted()
-{
-  return true;
-}
-
-
-bool SerialOperation::hasTimedOutAt(SQMilliSeconds aRefTime)
-{
-  if (timesOutAt==0) return false;
-  return aRefTime>=timesOutAt;
-}
-
-
-// call to execute after completion
-SerialOperationPtr SerialOperation::finalize(SerialOperationQueue *aQueueP)
-{
-  if (finalizeCallback) {
-    finalizeCallback(this,aQueueP,ErrorPtr());
-    finalizeCallback = NULL; // call once only
-  }
-  return SerialOperationPtr();
-}
-
-
-
-
-
-// call to execute to abort operation
-void SerialOperation::abortOperation(ErrorPtr aError)
-{
-  if (finalizeCallback && !aborted) {
-    aborted = true;
-    finalizeCallback(this,NULL,aError);
-    finalizeCallback = NULL; // call once only
-  }
-}
 
 
 #pragma mark - SerialOperationSend
@@ -277,6 +154,13 @@ SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue 
 #pragma mark - SerialOperationQueue
 
 
+// Link into mainloop
+SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop *aMainLoopP) :
+  inherited(aMainLoopP),
+  fileDescriptor(-1)
+{
+}
+
 
 // set transmitter
 void SerialOperationQueue::setTransmitter(SerialOperationTransmitter aTransmitter)
@@ -285,11 +169,73 @@ void SerialOperationQueue::setTransmitter(SerialOperationTransmitter aTransmitte
 }
 
 
-// queue a new operation
-void SerialOperationQueue::queueOperation(SerialOperationPtr aOperation)
+// set reader
+void SerialOperationQueue::setReader(SerialOperationReader aReader)
+{
+  reader = aReader;
+}
+
+
+// set filedescriptor to be monitored by SyncIO mainloop
+void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
+{
+  if (aFileDescriptor!=fdToMonitor) {
+    // unregister previous one, if any
+    if (fdToMonitor>=0) {
+      SyncIOMainLoop::currentMainLoop()->unregisterSyncIOHandlers(fdToMonitor);
+    }
+    // unregister new one, if any
+    if (aFileDescriptor>=0) {
+      // register
+      SyncIOMainLoop::currentMainLoop()->registerSyncIOHandlers(
+        aFileDescriptor,
+        boost::bind(&SerialOperationQueue::readyForRead, this, _1, _2, _3),
+        NULL, // TODO: implement // boost::bind(&SerialOperationQueue::readyForWrite, this, _1, _2, _3),
+        NULL // TODO: implement // boost::bind(&SerialOperationQueue::errorOccurred, this, _1, _2, _3)
+      );
+    }
+    // save new FD
+    fdToMonitor = aFileDescriptor;
+  }
+}
+
+
+#define RECBUFFER_SIZE 100
+
+bool SerialOperationQueue::readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+{
+  if (reader) {
+    uint8_t buffer[RECBUFFER_SIZE];
+    size_t numBytes = reader(RECBUFFER_SIZE, buffer);
+    if (numBytes>0) {
+      acceptBytes(numBytes, buffer);
+    }
+  }
+  return true;
+}
+
+
+//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//{
+//
+//  return true;
+//}
+//
+//
+//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//{
+//
+//  return true;
+//}
+
+
+
+
+// queue a new serial I/O operation
+void SerialOperationQueue::queueSerialOperation(SerialOperationPtr aOperation)
 {
   aOperation->setTransmitter(transmitter);
-  operationQueue.push_back(aOperation);
+  inherited::queueOperation(aOperation);
 }
 
 
@@ -300,7 +246,7 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
   processOperations();
   // let operations receive bytes
   size_t acceptedBytes = 0;
-  for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
+  for (OperationList::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
     size_t consumed = (*pos)->acceptBytes(aNumBytes, aBytes);
     aBytes += consumed; // advance pointer
     aNumBytes -= consumed; // count
@@ -317,79 +263,6 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
   // return number of accepted bytes
   return acceptedBytes;
 };
-
-
-// process operations now
-void SerialOperationQueue::processOperations()
-{
-  bool processed = false;
-  SQMilliSeconds now = SerialOperation::now();
-  while (!processed) {
-    operationQueue_t::iterator pos;
-    // (re)start with first element in queue
-    for (pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
-      SerialOperationPtr op = *pos;
-      if (op->hasTimedOutAt(now)) {
-        // remove from list
-        operationQueue.erase(pos);
-        // abort with timeout
-        op->abortOperation(ErrorPtr(new SQError(SQErrorTimedOut)));
-        // restart with start of (modified) queue
-        break;
-      }
-      if (!op->isInitiated()) {
-        // initiate now
-        if (!op->initiate()) {
-          // cannot initiate this one now, check if we can continue with others
-          if (op->inSequence) {
-            // this op needs to be initiated before others can be checked
-            processed = true; // something must happen outside this routine to change the state of the op, so done for now
-            break;
-          }
-        }
-      }
-      if (op->isInitiated()) {
-        // initiated, check if already completed
-        if (op->hasCompleted()) {
-          // operation has completed
-          // - remove from list
-          operationQueue_t::iterator nextPos = operationQueue.erase(pos);
-          // - finalize. This might push new operations in front or back of the queue
-          SerialOperationPtr nextOp = op->finalize(this);
-          if (nextOp) {
-            operationQueue.insert(nextPos, nextOp);
-          }
-          // restart with start of (modified) queue
-          break;
-        }
-        else {
-          // operation has not yet completed
-          if (op->inSequence) {
-            // this op needs to be complete before others can be checked
-            processed = true; // something must happen outside this routine to change the state of the op, so done for now
-            break;
-          }
-        }
-      }
-    } // for all ops in queue
-    if (pos==operationQueue.end()) processed = true; // if seen all, we're done for now as well
-  } // while not processed
-};
-
-
-
-// abort all pending operations
-void SerialOperationQueue::abortOperations()
-{
-  for (operationQueue_t::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
-    (*pos)->abortOperation(ErrorPtr(new SQError(SQErrorAborted)));
-  }
-  // empty queue
-  operationQueue.clear();
-}
-
-
-
 
 
 

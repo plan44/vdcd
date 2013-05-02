@@ -15,15 +15,14 @@
 
 #include <list>
 
+#include "operationqueue.hpp"
+
 using namespace std;
 
 
 // Errors
 typedef enum {
-  SQErrorOK,
-  SQErrorAborted,
   SQErrorTransmit,
-  SQErrorTimedOut,
 } SQErrors;
 
 class SQError : public Error
@@ -35,8 +34,6 @@ public:
   virtual const char *getErrorDomain() const { return SQError::domain(); };
 };
 
-
-typedef long long SQMilliSeconds;
 
 class SerialOperation;
 class SerialOperationQueue;
@@ -50,57 +47,20 @@ typedef boost::function<size_t (size_t aNumBytes, uint8_t *aBytes)> SerialOperat
 
 /// Serial operation
 typedef boost::shared_ptr<SerialOperation> SerialOperationPtr;
-class SerialOperation
+class SerialOperation : public Operation
 {
 protected:
-  SerialOperationFinalizeCB finalizeCallback;
   SerialOperationTransmitter transmitter;
-  bool initiated;
-  bool aborted;
-  SQMilliSeconds timeout; // timeout
-  SQMilliSeconds timesOutAt; // absolute time for timeout
-  SQMilliSeconds initiationDelay; // how much to delay initiation (after first attempt to initiate)
-  SQMilliSeconds initiatesNotBefore; // absolute time for earliest initiation
 public:
-  /// current time in SQMilliseconds
-  static SQMilliSeconds now();
-  /// if this flag is set, no operation queued after this operation will execute
-  bool inSequence;
   /// constructor
   SerialOperation();
   /// set transmitter
   void setTransmitter(SerialOperationTransmitter aTransmitter);
-  /// set callback to execute when operation completes
-  void setSerialOperationCB(SerialOperationFinalizeCB aCallBack);
-  /// set delay for initiation (after first attempt to initiate)
-  void setInitiationDelay(SQMilliSeconds aInitiationDelay);
-  /// set earliest time to execute
-  void setInitiatesAt(SQMilliSeconds aInitiatesAt);
-  /// set timeout (from initiation)
-  void setTimeout(SQMilliSeconds aTimeout);
-  /// check if can be initiated
-  /// @return false if cannot be initiated now and must be retried
-  virtual bool canInitiate();
-  /// call to initiate operation
-  /// @return false if cannot be initiated now and must be retried
-  /// @note internally calls canInitiate() first
-  virtual bool initiate();
-  /// check if already initiated
-  bool isInitiated();
   /// call to deliver received bytes
   /// @param aNumBytes number of bytes ready for accepting
   /// @param aBytes pointer to bytes buffer
   /// @return number of bytes operation could accept, 0 if none
   virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
-  /// call to check if operation has timed out
-  bool hasTimedOutAt(SQMilliSeconds aRefTime = SerialOperation::now());
-  /// call to check if operation has completed
-  /// @return true if completed
-  virtual bool hasCompleted();
-  /// call to execute after completion, can chain another operation by returning it
-  virtual SerialOperationPtr finalize(SerialOperationQueue *aQueueP);
-  /// abort operation
-  virtual void abortOperation(ErrorPtr aError);
 };
 
 
@@ -157,31 +117,46 @@ public:
 };
 
 
+/// SerialOperation reader
+typedef boost::function<size_t (size_t aMaxBytes, uint8_t *aBytes)> SerialOperationReader;
 
 /// Serial operation queue
-class SerialOperationQueue
+class SerialOperationQueue : public OperationQueue
 {
-  typedef list<SerialOperationPtr> operationQueue_t;
-  operationQueue_t operationQueue;
+  typedef OperationQueue inherited;
+
   SerialOperationTransmitter transmitter;
-
+  SerialOperationReader reader;
+  int fdToMonitor;
 public:
+  /// create operation queue linked into specified Synchronous IO mainloop
+  SerialOperationQueue(SyncIOMainLoop *aMainLoopP);
+  /// destructor
+  ~SerialOperationQueue();
 
-  /// set transmitter
+  /// set transmitter to be used for all operations
   void setTransmitter(SerialOperationTransmitter aTransmitter);
+  /// set reader
+  void setReader(SerialOperationReader aReader);
+
+  /// set filedescriptor to be monitored by SyncIO mainloop
+  /// @param aFileDescriptor open file descriptor for file/socket, <0 to remove monitoring
+  void setFDtoMonitor(int aFileDescriptor = -1);
 
   /// queue a new operation
-  /// @param aOperation the operation to queue
-  void queueOperation(SerialOperationPtr aOperation);
+  /// @param aOperation the serial IO operation to queue
+  void queueSerialOperation(SerialOperationPtr aOperation);
 
+private:
   /// deliver bytes to the most recent waiting operation
   size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
-  /// process operations now
-  void processOperations();
+  /// SyncIOMainloop handlers
+  bool readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
+//  bool readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
+//  bool errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
 
-  /// abort all pending operations
-  void abortOperations();
+
 };
 
 

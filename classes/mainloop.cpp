@@ -14,9 +14,14 @@
 #ifdef __APPLE__
 #include <mach/mach_time.h>
 #endif
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/param.h>
+
+#pragma mark - MainLoop
 
 // time reference in milliseconds
-MLMilliSeconds MainLoop::now()
+MLMicroSeconds MainLoop::now()
 {
 #ifdef __APPLE__
   static bool timeInfoKnown = false;
@@ -25,12 +30,12 @@ MLMilliSeconds MainLoop::now()
     mach_timebase_info(&tb);
   }
   double t = mach_absolute_time();
-  return t * (double)tb.numer / (double)tb.denom / 1e6; // ms
+  return t * (double)tb.numer / (double)tb.denom / 1e3; // uS
 #else
   struct timespec tsp;
   clock_gettime(CLOCK_MONOTONIC, &tsp);
   // return milliseconds
-  return tsp.tv_sec*1000 + tsp.tv_nsec/1000000;
+  return tsp.tv_sec*1000000 + tsp.tv_nsec/1000; // uS
 #endif
 }
 
@@ -51,19 +56,25 @@ MainLoop *MainLoop::currentMainLoop()
 
 MainLoop::MainLoop() :
 	terminated(false),
-  loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_MS)
+  loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_MS),
+  cycleStartTime(0)
 {
-	
 }
 
 
-void MainLoop::setLoopCycleTime(MLMilliSeconds aCycleTime)
+void MainLoop::setLoopCycleTime(MLMicroSeconds aCycleTime)
 {
 	loopCycleTime = aCycleTime;
 }
 
 
-void MainLoop::registerIdleHandler(void *aSubscriberP, IdleCB aCallback)
+MLMicroSeconds MainLoop::remainingCycleTime()
+{
+  return cycleStartTime+loopCycleTime-now();
+}
+
+
+void MainLoop::registerIdleHandler(void *aSubscriberP, MainLoopCB aCallback)
 {
 	IdleHandler h;
 	h.subscriberP = aSubscriberP;
@@ -78,7 +89,6 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 	while(pos!=idleHandlers.end()) {
 		if (pos->subscriberP==aSubscriberP) {
 			pos = idleHandlers.erase(pos);
-			#error is pos returning next element?
 		}
 		else {
 			// skip
@@ -88,19 +98,244 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 }
 
 
-void MainLoop::executeOnce(IdleCB aCallback, MLMilliSeconds aDelay)
+void MainLoop::executeOnce(MainLoopCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
 {
-	MLMilliSeconds executionTime = now()+aDelay;
-	executeOnceAt(aCallback, executionTime);
+	MLMicroSeconds executionTime = now()+aDelay;
+	executeOnceAt(aCallback, executionTime, aSubmitterP);
 }
 
 
-void MainLoop::executeOnceAt(IdleCB aCallback, MLMilliSeconds aExecutionTime)
+void MainLoop::executeOnceAt(MainLoopCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
 {
-	// place in queue at right time
+	OnetimeHandler h;
+	h.submitterP = aSubmitterP;
+  h.executionTime = aExecutionTime;
+	h.callback = aCallback;
+	// insert in queue before first item that has a higher execution time
+	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
+  while (pos!=onetimeHandlers.end()) {
+    if (pos->executionTime>aExecutionTime) {
+      onetimeHandlers.insert(pos, h);
+      return;
+    }
+    ++pos;
+  }
+  // none executes later than this one, just append
+  onetimeHandlers.push_back(h);
+}
+
+
+void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
+{
+	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
+	while(aSubmitterP==NULL || pos!=onetimeHandlers.end()) {
+		if (pos->submitterP==aSubmitterP) {
+			pos = onetimeHandlers.erase(pos);
+		}
+		else {
+			// skip
+		  ++pos;
+		}
+	}
+}
+
+
+void MainLoop::terminate()
+{
+  terminated = true;
+}
+
+
+void MainLoop::run()
+{
+  while (!terminated) {
+    cycleStartTime = now();
+    // start of a new cycle
+    while (!terminated) {
+      bool allCompleted = runOnetimeHandlers();
+      if (terminated) break;
+      if (allCompleted) {
+        allCompleted = allCompleted && runIdleHandlers();
+      }
+      if (terminated) break;
+      MLMicroSeconds timeLeft = remainingCycleTime();
+      if (timeLeft>0) {
+        if (allCompleted) {
+          // nothing to do any more, sleep rest of cycle
+          usleep((useconds_t)timeLeft);
+          break; // end of cycle
+        }
+        // not all completed, use time for running handlers again
+      }
+      else {
+        // no time left, end of cycle
+        break;
+      }
+    }
+  }
+}
+
+
+bool MainLoop::runOnetimeHandlers()
+{
+	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
+  bool allCompleted = true;
+  while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
+    if (terminated) return true; // terminated means everything is considered complete
+    MainLoopCB cb = pos->callback; // get handler
+    pos = onetimeHandlers.erase(pos); // remove from queue
+    allCompleted = allCompleted && cb(this, cycleStartTime); // call handler
+    ++pos;
+  }
+  return allCompleted;
+}
+
+
+bool MainLoop::runIdleHandlers()
+{
+	IdleHandlerList::iterator pos = idleHandlers.begin();
+  bool allCompleted = true;
+  while (pos!=idleHandlers.end()) {
+    if (terminated) return true; // terminated means everything is considered complete
+    MainLoopCB cb = pos->callback; // get handler
+    allCompleted = allCompleted && cb(this, cycleStartTime); // call handler
+  }
+  return allCompleted;
+}
+
+
+#pragma mark - SyncIOMainLoop
+
+
+
+// get the per-thread singleton Synchronous IO mainloop
+SyncIOMainLoop *SyncIOMainLoop::currentMainLoop()
+{
+  SyncIOMainLoop *mlP = NULL;
+	if (currentMainLoopP==NULL) {
+		// need to create it
+		mlP = new SyncIOMainLoop();
+    currentMainLoopP = mlP;
+	}
+  else {
+    mlP = dynamic_cast<SyncIOMainLoop *>(currentMainLoopP);
+  }
+	return mlP;
+}
+
+
+SyncIOMainLoop::SyncIOMainLoop()
+{
+}
+
+
+void SyncIOMainLoop::registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB)
+{
+  SyncIOHandler h;
+  h.monitoredFD = aFD;
+  h.readReadyCB = aReadCB;
+  h.writeReadyCB = aWriteCB;
+  h.errorCB = aErrorCB;
+	syncIOHandlers[aFD] = h;
+}
+
+
+void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
+{
+  syncIOHandlers.erase(aFD);
 }
 
 
 
+bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
+{
+  fd_set readfs; // file descriptor set for read
+  fd_set writefs; // file descriptor set for write
+  fd_set errorfs; // file descriptor set for errors
+  // Create bitmap for select call
+  int numFDsToTest = 0; // number of file descriptors to test (max+1 of all used FDs)
+  SyncIOHandlerMap::iterator pos = syncIOHandlers.begin();
+  if (pos!=syncIOHandlers.end()) {
+    FD_ZERO(&readfs);
+    FD_ZERO(&writefs);
+    FD_ZERO(&errorfs);
+    // collect FDs
+    while (pos!=syncIOHandlers.end()) {
+      SyncIOHandler h = pos->second;
+      numFDsToTest = MAX(h.monitoredFD+1, numFDsToTest);
+      if (h.readReadyCB) FD_SET(h.monitoredFD, &readfs);
+      if (h.writeReadyCB) FD_SET(h.monitoredFD, &writefs);
+      if (h.errorCB) FD_SET(h.monitoredFD, &errorfs);
+      ++pos;
+    }
+  }
+  // block until input becomes available or timeout
+  int numReadyFDs = 0;
+  if (numFDsToTest>0) {
+    // actual FDs to test
+    struct timeval tv;
+    tv.tv_sec = aTimeout / 1000000;
+    tv.tv_usec = aTimeout % 1000000;
+    numReadyFDs = select(numFDsToTest, &readfs, &writefs, &errorfs, &tv);
+  }
+  else {
+    // nothing to test, just await timeout
+    if (aTimeout>0) {
+      usleep((useconds_t)aTimeout);
+    }
+  }
+  if (numReadyFDs>0) {
+    // check the descriptor sets and call handlers when needed
+    for (int i = 0; i<numFDsToTest; i++) {
+      bool readReady = FD_ISSET(i, &readfs);
+      bool writeReady = FD_ISSET(i, &writefs);
+      bool errorFound = FD_ISSET(i, &errorfs);
+      if (readReady || writeReady || errorFound) {
+        SyncIOHandler h = syncIOHandlers[i];
+        if (readReady) h.readReadyCB(this, cycleStartTime, i);
+        if (writeReady) h.writeReadyCB(this, cycleStartTime, i);
+        if (errorFound) h.errorCB(this, cycleStartTime, i);
+      }
+    }
+  }
+  // return true if we actually handled some I/O
+  return numReadyFDs>0;
+}
 
+
+
+void SyncIOMainLoop::run()
+{
+  while (!terminated) {
+    cycleStartTime = now();
+    // start of a new cycle
+    while (!terminated) {
+      bool allCompleted = runOnetimeHandlers();
+      if (terminated) break;
+      if (allCompleted) {
+        allCompleted = allCompleted && runIdleHandlers();
+      }
+      if (terminated) break;
+      MLMicroSeconds timeLeft = remainingCycleTime();
+      // if other handlers have not completed yet, don't wait for I/O, just quickly check
+      bool iohandled = false;
+      if (!allCompleted || timeLeft<=0) {
+        // no time to wait for I/O, just check
+        iohandled = handleSyncIO(0);
+      }
+      else {
+        // nothing to do except waiting for I/O
+        iohandled = handleSyncIO(timeLeft);
+        if (!iohandled) {
+          // timed out, end of cycle
+          break;
+        }
+        // not timed out, means we might still have some time left
+      }
+      // if no time left, end the cycle, otherwise re-run handlers
+      if (terminated || remainingCycleTime()<=0)
+        break; // no more time, end the cycle here
+    }
+  }
+}
 
