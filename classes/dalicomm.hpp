@@ -67,15 +67,6 @@ public:
 
 class DaliComm;
 
-//typedef enum {
-//  DaliStatusOK, // ok
-//  DaliStatusNoOrTimeout, // response timeout (also means NO in some queries)
-//  DaliStatusFrameError, // DALI bus framing error
-//  DaliStatusBridgeCmdError, // invalid bridge command
-//  DaliStatusBridgeCommError, // pseudo error - problem communicating with bridge
-//  DaliStatusBridgeUnknown // unknown status/error
-//} DaliStatus;
-
 
 /// abstracted DALI bus address
 typedef uint8_t DaliAddress;
@@ -112,6 +103,8 @@ typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 /// A class providing low level access to the DALI bus
 class DaliComm : SerialOperationQueue
 {
+	typedef SerialOperationQueue inherited;
+	
   // connection to the bridge
   string bridgeConnectionPath;
   uint16_t bridgeConnectionPort;
@@ -122,7 +115,7 @@ class DaliComm : SerialOperationQueue
   ErrorPtr unhandledError;
 public:
 
-  DaliComm();
+  DaliComm(SyncIOMainLoop *aMainLoopP);
   ~DaliComm();
 
   /// Set the connection parameters for the DALI bus bridge
@@ -150,8 +143,12 @@ public:
   /// @{
 
   /// transmit data
-  size_t transmitBytes(size_t aNumBytes, uint8_t *aBytes);
+  size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes);
 
+	/// receive data
+	size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
+
+	
   /// establish the connection to the DALI bridge
   /// @note can be called multiple times, opens connection only if not already open
   bool establishConnection();

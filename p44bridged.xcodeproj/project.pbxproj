@@ -12,6 +12,7 @@
 		ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */; };
 		ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
+		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -47,6 +48,8 @@
 		ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dalidevicecontainer.hpp; sourceTree = "<group>"; };
 		ED026D03171E94D700AD5FD6 /* error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = error.cpp; sourceTree = "<group>"; };
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = error.hpp; sourceTree = "<group>"; };
+		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = application.cpp; sourceTree = "<group>"; };
+		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = application.hpp; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -117,6 +120,8 @@
 				ED026D04171E94D700AD5FD6 /* error.hpp */,
 				ED74563E1731B813001C9565 /* mainloop.cpp */,
 				ED74563F1731B813001C9565 /* mainloop.hpp */,
+				ED0E441C1732FE4F00C4C283 /* application.cpp */,
+				ED0E441D1732FE4F00C4C283 /* application.hpp */,
 				EDB284421732965700EAE5DE /* operationqueue.cpp */,
 				EDB284431732965700EAE5DE /* operationqueue.hpp */,
 				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
@@ -224,6 +229,7 @@
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
+				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

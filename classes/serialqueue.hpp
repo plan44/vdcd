@@ -42,7 +42,7 @@ class SerialOperationQueue;
 typedef boost::function<void (SerialOperation *, SerialOperationQueue *, ErrorPtr)> SerialOperationFinalizeCB;
 
 /// SerialOperation transmitter
-typedef boost::function<size_t (size_t aNumBytes, uint8_t *aBytes)> SerialOperationTransmitter;
+typedef boost::function<size_t (size_t aNumBytes, const uint8_t *aBytes)> SerialOperationTransmitter;
 
 
 /// Serial operation
@@ -113,12 +113,12 @@ public:
 
   SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes);
 
-  virtual SerialOperationPtr finalize(SerialOperationQueue *aQueueP = NULL);
+  virtual OperationPtr finalize(OperationQueue *aQueueP = NULL);
 };
 
 
-/// SerialOperation reader
-typedef boost::function<size_t (size_t aMaxBytes, uint8_t *aBytes)> SerialOperationReader;
+/// SerialOperation receiver
+typedef boost::function<size_t (size_t aMaxBytes, uint8_t *aBytes)> SerialOperationReceiver;
 
 /// Serial operation queue
 class SerialOperationQueue : public OperationQueue
@@ -126,7 +126,7 @@ class SerialOperationQueue : public OperationQueue
   typedef OperationQueue inherited;
 
   SerialOperationTransmitter transmitter;
-  SerialOperationReader reader;
+  SerialOperationReceiver receiver;
   int fdToMonitor;
 public:
   /// create operation queue linked into specified Synchronous IO mainloop
@@ -136,8 +136,8 @@ public:
 
   /// set transmitter to be used for all operations
   void setTransmitter(SerialOperationTransmitter aTransmitter);
-  /// set reader
-  void setReader(SerialOperationReader aReader);
+  /// set receiver
+  void setReceiver(SerialOperationReceiver aReceiver);
 
   /// set filedescriptor to be monitored by SyncIO mainloop
   /// @param aFileDescriptor open file descriptor for file/socket, <0 to remove monitoring

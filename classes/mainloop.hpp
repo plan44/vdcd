@@ -17,7 +17,8 @@ class MainLoop;
 typedef long long MLMicroSeconds;
 
 /// Mainloop callback
-typedef boost::function<bool (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> MainLoopCB;
+typedef boost::function<bool (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+typedef boost::function<void (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
 
 
 /// A main loop for a thread
@@ -25,14 +26,14 @@ class MainLoop
 {
 	typedef struct {
 		void *subscriberP;
-		MainLoopCB callback;
+		IdleCB callback;
 	} IdleHandler;
 	typedef std::list<IdleHandler> IdleHandlerList;
 	IdleHandlerList idleHandlers;
 	typedef struct {
 		void *submitterP;
 		MLMicroSeconds executionTime;
-		MainLoopCB callback;
+		OneTimeCB callback;
 	} OnetimeHandler;
 	typedef std::list<OnetimeHandler> OnetimeHandlerList;
 	OnetimeHandlerList onetimeHandlers;
@@ -54,7 +55,7 @@ public:
 	/// register routine with mainloop for being called at least once per loop cycle
 	/// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
 	/// @param aCallback the functor to be called
-	void registerIdleHandler(void *aSubscriberP, MainLoopCB aCallback);
+	void registerIdleHandler(void *aSubscriberP, IdleCB aCallback);
 	/// unregister all handlers registered by a given subscriber
 	/// @param aSubscriberP a value identifying the subscriber
 	void unregisterIdleHandlers(void *aSubscriberP);
@@ -62,20 +63,21 @@ public:
 	/// @param aCallback the functor to be called
 	/// @param aExecutionTime when to execute (approximately), in now() timescale
 	/// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
-	void executeOnceAt(MainLoopCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
+	void executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
 	/// have handler called from the mainloop once with an optional delay from now
 	/// @param aCallback the functor to be called
 	/// @param aDelay delay from now when to execute (approximately)
-	void executeOnce(MainLoopCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
+	void executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
   /// cancel pending execution requests from submitter (NULL = cancel all)
   void cancelExecutionsFrom(void *aSubmitterP);
 	/// terminate the mainloop
 	void terminate();
 	/// run the mainloop
-	virtual void run();
+	/// @return returns a exit code
+	virtual int run();
 protected:
 	// run all handlers
-	bool runOnetimeHandlers();
+	void runOnetimeHandlers();
 	bool runIdleHandlers();
 };
 
@@ -117,7 +119,8 @@ public:
 	/// @param aFD the file descriptor
 	void unregisterSyncIOHandlers(int aFD);
 	/// run the mainloop
-	virtual void run();
+	/// @return returns a exit code
+	virtual int run();
 protected:
 	/// handle IO
   /// @return true if I/O handling occurred

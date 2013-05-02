@@ -8,15 +8,20 @@
 
 #include "dalicomm.hpp"
 
+#include <sys/ioctl.h>
+
+
 // pseudo baudrate for dali bridge must be 9600bd
 #define BAUDRATE B9600
 
 
-DaliComm::DaliComm() :
+DaliComm::DaliComm(SyncIOMainLoop *aMainLoopP) :
+	inherited(aMainLoopP),
   bridgeConnectionPort(0),
   bridgeConnectionOpen(false)
 {
   setTransmitter(boost::bind(&DaliComm::transmitBytes, this, _1, _2));
+	setReceiver(boost::bind(&DaliComm::receiveBytes, this, _1, _2));
 }
 
 
@@ -35,44 +40,10 @@ void DaliComm::setConnectionParameters(const char* aBridgeConnectionPath, uint16
 
 
 
-#pragma mark - main loop integration
-
-int DaliComm::toBeMonitoredFD()
-{
-  if (bridgeConnectionOpen) {
-    return bridgeFd;
-  }
-  else {
-    return -1;
-  }
-}
-
-
-void DaliComm::dataReadyOnMonitoredFD()
-{
-  if (bridgeConnectionOpen) {
-    uint8_t byte;
-    size_t res = read(bridgeFd,&byte,1); // read single byte
-    if (res==1) {
-      // deliver to queue
-      DBGLOG(LOG_DEBUG,"Received byte: %02X\n", byte);
-      acceptBytes(1, &byte);
-    }
-  }
-}
-
-
-void DaliComm::process()
-{
-  processOperations();
-}
-
-
-
 #pragma mark - serial connection to the DALI bridge
 
 
-size_t DaliComm::transmitBytes(size_t aNumBytes, uint8_t *aBytes)
+size_t DaliComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes)
 {
   size_t res = 0;
   if (establishConnection()) {
@@ -87,6 +58,36 @@ size_t DaliComm::transmitBytes(size_t aNumBytes, uint8_t *aBytes)
   }
   return res;
 }
+
+
+
+size_t DaliComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
+{
+  if (bridgeConnectionOpen) {
+		// get number of bytes available
+		size_t numBytes;
+		ioctl(bridgeFd, FIONREAD, &numBytes);
+		// limit to max buffer size
+		if (numBytes>aMaxBytes)
+			numBytes = aMaxBytes;
+		// read
+    size_t gotBytes = 0;
+		if (numBytes>0)
+			gotBytes = read(bridgeFd,aBytes,numBytes); // read available bytes
+		#ifdef DEBUG
+		if (gotBytes>0) {
+			std::string s;
+			for (size_t i=0; i<gotBytes; i++) {
+				string_format_append(s, "%02X ",aBytes[i]);
+			}
+			DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
+		}
+		#endif
+		return gotBytes;
+  }
+	return 0;
+}
+
 
 
 bool DaliComm::establishConnection()
@@ -153,6 +154,8 @@ bool DaliComm::establishConnection()
     }
     // successfully opened
     bridgeConnectionOpen = true;
+		// now set FD for serialqueue to monitor
+		setFDtoMonitor(bridgeFd);
   }
   return bridgeConnectionOpen;
 }
@@ -161,6 +164,8 @@ bool DaliComm::establishConnection()
 void DaliComm::closeConnection()
 {
   if (bridgeConnectionOpen) {
+		// stop monitoring
+		setFDtoMonitor();
     // restore IO settings
     if (serialConnection) {
       tcsetattr(bridgeFd,TCSANOW,&oldTermIO);
@@ -231,7 +236,7 @@ public:
     daliComm(aDaliCommP),
     callback(aResultCB)
   {};
-  void operator() (SerialOperation *aOpP, SerialOperationQueue *aQueueP, ErrorPtr aError) {
+  void operator() (Operation *aOpP, OperationQueue *aQueueP, ErrorPtr aError) {
     SerialOperationReceive *ropP = dynamic_cast<SerialOperationReceive *>(aOpP);
     if (ropP) {
       // get received data
@@ -276,10 +281,10 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     }
     if (opP) {
       SerialOperationPtr op(opP);
-      op->setSerialOperationCB(BridgeResponseHandler(this, aResultCB));
+      op->setOperationCB(BridgeResponseHandler(this, aResultCB));
       if (aWithDelay>0)
         op->setInitiationDelay(aWithDelay);
-      queueOperation(op);
+      queueSerialOperation(op);
     }
   }
   // process operations

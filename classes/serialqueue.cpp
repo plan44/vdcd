@@ -9,7 +9,7 @@
 #include "serialqueue.hpp"
 
 
-#define DEFAULT_RECEIVE_TIMEOUT 3000 // 3 seconds
+#define DEFAULT_RECEIVE_TIMEOUT 3000000 // [uS] = 3 seconds
 
 
 #pragma mark - SerialOperation
@@ -23,12 +23,6 @@ SerialOperation::SerialOperation()
 void SerialOperation::setTransmitter(SerialOperationTransmitter aTransmitter)
 {
   transmitter = aTransmitter;
-}
-
-// set callback to execute when operation completes
-void SerialOperation::setSerialOperationCB(SerialOperationFinalizeCB aCallBack)
-{
-  finalizeCallback = aCallBack;
 }
 
 
@@ -138,12 +132,12 @@ SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, u
 };
 
 
-SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue *aQueueP)
+OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 {
   if (aQueueP) {
     // insert receive operation
     SerialOperationPtr op(new SerialOperationReceive(expectedBytes));
-    op->setSerialOperationCB(finalizeCallback); // inherit completion callback
+    op->setOperationCB(finalizeCallback); // inherit completion callback
     finalizeCallback = NULL; // prevent it to be called from this object!
     return op;
   }
@@ -157,8 +151,14 @@ SerialOperationPtr SerialOperationSendAndReceive::finalize(SerialOperationQueue 
 // Link into mainloop
 SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop *aMainLoopP) :
   inherited(aMainLoopP),
-  fileDescriptor(-1)
+  fdToMonitor(-1)
 {
+}
+
+
+SerialOperationQueue::~SerialOperationQueue()
+{
+	setFDtoMonitor(-1); // causes unregistering from mainloop
 }
 
 
@@ -169,10 +169,10 @@ void SerialOperationQueue::setTransmitter(SerialOperationTransmitter aTransmitte
 }
 
 
-// set reader
-void SerialOperationQueue::setReader(SerialOperationReader aReader)
+// set receiver
+void SerialOperationQueue::setReceiver(SerialOperationReceiver aReceiver)
 {
-  reader = aReader;
+  receiver = aReceiver;
 }
 
 
@@ -204,9 +204,9 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
 
 bool SerialOperationQueue::readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
 {
-  if (reader) {
+  if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
-    size_t numBytes = reader(RECBUFFER_SIZE, buffer);
+    size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }
@@ -247,7 +247,10 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
   // let operations receive bytes
   size_t acceptedBytes = 0;
   for (OperationList::iterator pos = operationQueue.begin(); pos!=operationQueue.end(); ++pos) {
-    size_t consumed = (*pos)->acceptBytes(aNumBytes, aBytes);
+		SerialOperationPtr sop = boost::dynamic_pointer_cast<SerialOperation>(*pos);
+    size_t consumed = 0;
+		if (sop)
+			consumed = sop->acceptBytes(aNumBytes, aBytes);
     aBytes += consumed; // advance pointer
     aNumBytes -= consumed; // count
     acceptedBytes += consumed;

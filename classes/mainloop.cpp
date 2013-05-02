@@ -74,7 +74,7 @@ MLMicroSeconds MainLoop::remainingCycleTime()
 }
 
 
-void MainLoop::registerIdleHandler(void *aSubscriberP, MainLoopCB aCallback)
+void MainLoop::registerIdleHandler(void *aSubscriberP, IdleCB aCallback)
 {
 	IdleHandler h;
 	h.subscriberP = aSubscriberP;
@@ -98,14 +98,14 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 }
 
 
-void MainLoop::executeOnce(MainLoopCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
+void MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
 {
 	MLMicroSeconds executionTime = now()+aDelay;
 	executeOnceAt(aCallback, executionTime, aSubmitterP);
 }
 
 
-void MainLoop::executeOnceAt(MainLoopCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
+void MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
 {
 	OnetimeHandler h;
 	h.submitterP = aSubmitterP;
@@ -146,17 +146,15 @@ void MainLoop::terminate()
 }
 
 
-void MainLoop::run()
+int MainLoop::run()
 {
   while (!terminated) {
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      bool allCompleted = runOnetimeHandlers();
+      runOnetimeHandlers();
       if (terminated) break;
-      if (allCompleted) {
-        allCompleted = allCompleted && runIdleHandlers();
-      }
+			bool allCompleted = runIdleHandlers();
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       if (timeLeft>0) {
@@ -173,21 +171,20 @@ void MainLoop::run()
       }
     }
   }
+	return EXIT_SUCCESS;
 }
 
 
-bool MainLoop::runOnetimeHandlers()
+void MainLoop::runOnetimeHandlers()
 {
 	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
-  bool allCompleted = true;
   while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
-    if (terminated) return true; // terminated means everything is considered complete
-    MainLoopCB cb = pos->callback; // get handler
+    if (terminated) return; // terminated means everything is considered complete
+    OneTimeCB cb = pos->callback; // get handler
     pos = onetimeHandlers.erase(pos); // remove from queue
-    allCompleted = allCompleted && cb(this, cycleStartTime); // call handler
+    cb(this, cycleStartTime); // call handler
     ++pos;
   }
-  return allCompleted;
 }
 
 
@@ -197,8 +194,9 @@ bool MainLoop::runIdleHandlers()
   bool allCompleted = true;
   while (pos!=idleHandlers.end()) {
     if (terminated) return true; // terminated means everything is considered complete
-    MainLoopCB cb = pos->callback; // get handler
+    IdleCB cb = pos->callback; // get handler
     allCompleted = allCompleted && cb(this, cycleStartTime); // call handler
+		++pos;
   }
   return allCompleted;
 }
@@ -304,17 +302,15 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 
 
 
-void SyncIOMainLoop::run()
+int SyncIOMainLoop::run()
 {
   while (!terminated) {
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      bool allCompleted = runOnetimeHandlers();
+      runOnetimeHandlers();
       if (terminated) break;
-      if (allCompleted) {
-        allCompleted = allCompleted && runIdleHandlers();
-      }
+			bool allCompleted = runIdleHandlers();
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       // if other handlers have not completed yet, don't wait for I/O, just quickly check
@@ -337,5 +333,6 @@ void SyncIOMainLoop::run()
         break; // no more time, end the cycle here
     }
   }
+	return EXIT_SUCCESS;
 }
 

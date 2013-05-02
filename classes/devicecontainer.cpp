@@ -147,7 +147,7 @@ void DeviceContainer::addCollectedDevice(DevicePtr aDevice)
 
 string DeviceContainer::description()
 {
-  string d = string_format("DeviceContainer with %d device classes: %d\n", deviceClassContainers.size());
+  string d = string_format("DeviceContainer with %d device classes:\n", deviceClassContainers.size());
   for (ContainerList::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
     d.append((*pos)->description());
   }

@@ -72,11 +72,6 @@ public:
   virtual bool initiate();
   /// check if already initiated
   bool isInitiated();
-  /// call to deliver received bytes
-  /// @param aNumBytes number of bytes ready for accepting
-  /// @param aBytes pointer to bytes buffer
-  /// @return number of bytes operation could accept, 0 if none
-  virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
   /// call to check if operation has timed out
   bool hasTimedOutAt(MLMicroSeconds aRefTime = MainLoop::now());
   /// call to check if operation has completed
@@ -107,13 +102,17 @@ public:
   /// @param aOperation the operation to queue
   void queueOperation(OperationPtr aOperation);
 
-  /// process operations now
-  /// @return true if operations processed for now, i.e. no need to call again immediately
-  ///   false if processOperations() should be called ASAP again (in the same mainloop cycle if possible)
-  bool processOperations();
+  /// process immediately pending operations now
+  void processOperations();
 
   /// abort all pending operations
   void abortOperations();
+	
+private:
+	/// handler which is registered with mainloop
+  /// @return true if operations processed for now, i.e. no need to call again immediately
+  ///   false if processOperations() should be called ASAP again (in the same mainloop cycle if possible)
+	bool idleHandler();
 };
 
 

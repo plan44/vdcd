@@ -130,7 +130,7 @@ OperationQueue::OperationQueue(MainLoop *aMainLoopP)
 {
   mainLoopP = aMainLoopP; // remember mainloop
   // register with mainloop
-  mainLoopP->registerIdleHandler(this, boost::bind(&OperationQueue::processOperations, this));
+  mainLoopP->registerIdleHandler(this, boost::bind(&OperationQueue::idleHandler, this));
 }
 
 
@@ -149,8 +149,18 @@ void OperationQueue::queueOperation(OperationPtr aOperation)
 }
 
 
-// process operations now
-bool OperationQueue::processOperations()
+// process all pending operations now
+void OperationQueue::processOperations()
+{
+	bool completed = true;
+	do {
+		completed = idleHandler();
+	} while (!completed);
+}
+
+
+
+bool OperationQueue::idleHandler()
 {
   bool pleaseCallAgainSoon = false; // assume nothing to do
   if (!operationQueue.empty()) {

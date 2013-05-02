@@ -13,7 +13,8 @@
 
 
 DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber) :
-  DeviceClassContainer(aInstanceNumber)
+  DeviceClassContainer(aInstanceNumber),
+	daliComm(SyncIOMainLoop::currentMainLoop())
 {
 }
 
