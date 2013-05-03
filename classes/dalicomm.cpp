@@ -14,7 +14,8 @@
 
 
 DaliComm::DaliComm(SyncIOMainLoop *aMainLoopP) :
-	inherited(aMainLoopP)
+	inherited(aMainLoopP),
+  runningProcedures(0)
 {
 }
 
@@ -22,6 +23,27 @@ DaliComm::DaliComm(SyncIOMainLoop *aMainLoopP) :
 DaliComm::~DaliComm()
 {
 }
+
+
+#pragma mark - procedure management
+
+void DaliComm::startProcedure()
+{
+  ++runningProcedures;
+}
+
+void DaliComm::endProcedure()
+{
+  if (runningProcedures>0)
+    --runningProcedures;
+}
+
+
+bool DaliComm::isBusy()
+{
+  return runningProcedures>0;
+}
+
 
 
 
@@ -366,6 +388,7 @@ private:
     unconfiguredDevices(false),
     activeDevicesPtr(new std::list<DaliAddress>)
   {
+    daliComm->startProcedure();
     // reset the bus first
     daliComm->reset(boost::bind(&DaliBusScanner::resetComplete, this, _2));
   }
@@ -435,6 +458,7 @@ private:
     if (!aError && (probablyCollision || unconfiguredDevices)) {
       aError = ErrorPtr(new DaliCommError(DaliCommErrorNeedFullScan,"Need full bus scan"));
     }
+    daliComm->endProcedure();
     callback(daliComm, activeDevicesPtr, aError);
     // done, delete myself
     delete this;
@@ -445,6 +469,7 @@ private:
 
 void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 {
+  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
   DaliBusScanner::scanBus(this, aResultCB);
 }
 
@@ -483,8 +508,9 @@ private:
     fullScanOnlyIfNeeded(aFullScanOnlyIfNeeded),
     foundDevicesPtr(new DaliComm::ShortAddressList)
   {
+    daliComm->startProcedure();
     // first scan for used short addresses
-    daliComm->daliBusScan(boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _2, _3));
+    DaliBusScanner::scanBus(daliComm,boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _2, _3));
   }
 
   void shortAddrListReceived(DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
@@ -697,6 +723,7 @@ private:
     // terminate
     daliComm->daliSend(DALICMD_TERMINATE, 0x00);
     // callback
+    daliComm->endProcedure();
     callback(daliComm, foundDevicesPtr, aError);
     // done, delete myself
     delete this;
@@ -706,6 +733,7 @@ private:
 
 void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
 {
+  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
   DaliFullBusScanner::fullBusScan(this, aResultCB, aFullScanOnlyIfNeeded);
 }
 
@@ -733,6 +761,7 @@ private:
     busAddress(aAddress),
     memory(new std::vector<uint8_t>)
   {
+    daliComm->startProcedure();
     // set DTR1 = bank
     daliComm->daliSend(DALICMD_SET_DTR1, aBank);
     // set DTR = offset within bank
@@ -755,6 +784,7 @@ private:
       }
     }
     // read done, timeout or error, return memory to callback
+    daliComm->endProcedure();
     callback(daliComm, memory, aError);
     // done, delete myself
     delete this;
@@ -769,6 +799,7 @@ private:
 
 void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes)
 {
+  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
   DaliMemoryReader::readMemory(this, aResultCB, aAddress, aBank, aOffset, aNumBytes);
 }
 
@@ -794,8 +825,9 @@ private:
     callback(aResultCB),
     busAddress(aAddress)
   {
+    daliComm->startProcedure();
     // read the memory
-    daliComm->daliReadMemory(boost::bind(&DaliDeviceInfoReader::handleBank0Data, this, _2, _3), busAddress, 0, 0, DALIMEM_BANK0_MINBYTES);
+    DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0Data, this, _2, _3), busAddress, 0, 0, DALIMEM_BANK0_MINBYTES);
   };
 
   void handleBank0Data(DaliComm::MemoryVectorPtr aBank0Data, ErrorPtr aError)
@@ -822,7 +854,7 @@ private:
       int extraBytes = (*aBank0Data)[0]-DALIMEM_BANK0_MINBYTES;
       if (extraBytes>0) {
         // issue read of extra bytes
-        daliComm->daliReadMemory(boost::bind(&DaliDeviceInfoReader::handleBank0ExtraData, this, _2, _3), busAddress, 0, DALIMEM_BANK0_MINBYTES, extraBytes);
+        DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0ExtraData, this, _2, _3), busAddress, 0, DALIMEM_BANK0_MINBYTES, extraBytes);
       }
       else {
         // directly continue by reading bank1
@@ -849,7 +881,7 @@ private:
 
   void readOEMInfo()
   {
-    daliComm->daliReadMemory(boost::bind(&DaliDeviceInfoReader::handleBank1Data, this, _2, _3), busAddress, 1, 0, DALIMEM_BANK1_MINBYTES);
+    DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank1Data, this, _2, _3), busAddress, 1, 0, DALIMEM_BANK1_MINBYTES);
   };
 
   void handleBank1Data(DaliComm::MemoryVectorPtr aBank1Data, ErrorPtr aError)
@@ -871,7 +903,7 @@ private:
       int extraBytes = (*aBank1Data)[0]-DALIMEM_BANK1_MINBYTES;
       if (extraBytes>0) {
         // issue read of extra bytes
-        daliComm->daliReadMemory(boost::bind(&DaliDeviceInfoReader::handleBank1ExtraData, this, _2, _3), busAddress, 0, DALIMEM_BANK1_MINBYTES, extraBytes);
+        DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank1ExtraData, this, _2, _3), busAddress, 0, DALIMEM_BANK1_MINBYTES, extraBytes);
       }
       else {
         // No extra bytes: device info is complete already
@@ -894,6 +926,7 @@ private:
 
   void complete(ErrorPtr aError)
   {
+    daliComm->endProcedure();
     callback(daliComm, deviceInfo, aError);
     // done, delete myself
     delete this;
@@ -903,6 +936,7 @@ private:
 
 void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddress)
 {
+  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
   DaliDeviceInfoReader::readDeviceInfo(this, aResultCB, aAddress);
 }
 

@@ -21,6 +21,7 @@ using namespace std;
 // Errors
 typedef enum {
   DaliCommErrorOK,
+  DaliCommErrorBusy,
   DaliCommErrorBridgeComm,
   DaliCommErrorBridgeCmd,
   DaliCommErrorBridgeUnknown,
@@ -82,11 +83,19 @@ typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 class DaliComm : public SerialComm
 {
 	typedef SerialComm inherited;
-	
+
+  int runningProcedures;
+
+  bool isBusy();
+  static ErrorPtr busyError() { return ErrorPtr(new DaliCommError(DaliCommErrorBusy)); };
+
 public:
 
   DaliComm(SyncIOMainLoop *aMainLoopP);
   virtual ~DaliComm();
+
+  void startProcedure();
+  void endProcedure();
 
   /// @name low level DALI bus communication
   /// @{

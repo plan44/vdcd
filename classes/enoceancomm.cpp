@@ -6,4 +6,4 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#include "enoceancomm.h"
+#include "enoceancomm.hpp"
