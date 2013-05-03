@@ -19,9 +19,15 @@ Logger::Logger()
 #define LOGBUFSIZ 4096
 
 
+bool Logger::logEnabled(int aErrlevel)
+{
+  return (aErrlevel <= debugLevel);
+}
+
+
 void Logger::log(int aErrlevel, const char *aFmt, ... )
 {
-  if (aErrlevel <= debugLevel) {
+  if (logEnabled(aErrlevel)) {
     char buf[LOGBUFSIZ];
     va_list ap;
     pthread_mutex_lock(&reportMutex);
@@ -51,7 +57,7 @@ void Logger::log(int aErrlevel, const char *aFmt, ... )
 
 void Logger::logSysError(int aErrlevel, int aErrNum)
 {
-  if (aErrlevel <= debugLevel) {
+  if (logEnabled(aErrlevel)) {
     // obtain error number if none specified
     if (aErrNum==0)
       aErrNum = errno;

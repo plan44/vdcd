@@ -45,13 +45,13 @@ size_t SerialComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes)
   size_t res = 0;
   if (establishConnection()) {
     res = write(connectionFd,aBytes,aNumBytes);
-    #ifdef DEBUG
-    std::string s;
-    for (size_t i=0; i<aNumBytes; i++) {
-      string_format_append(s, "%02X ",aBytes[i]);
+    if (DBGLOGENABLED(LOG_DEBUG)) {
+      std::string s;
+      for (size_t i=0; i<aNumBytes; i++) {
+        string_format_append(s, "%02X ",aBytes[i]);
+      }
+      DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
     }
-    DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
-    #endif
   }
   return res;
 }
@@ -71,15 +71,15 @@ size_t SerialComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
     size_t gotBytes = 0;
 		if (numBytes>0)
 			gotBytes = read(connectionFd,aBytes,numBytes); // read available bytes
-    #ifdef DEBUG
-		if (gotBytes>0) {
-			std::string s;
-			for (size_t i=0; i<gotBytes; i++) {
-				string_format_append(s, "%02X ",aBytes[i]);
-			}
-			DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
-		}
-    #endif
+    if (DBGLOGENABLED(LOG_DEBUG)) {
+      if (gotBytes>0) {
+        std::string s;
+        for (size_t i=0; i<gotBytes; i++) {
+          string_format_append(s, "%02X ",aBytes[i]);
+        }
+        DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
+      }
+    }
 		return gotBytes;
   }
 	return 0;

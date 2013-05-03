@@ -29,15 +29,18 @@
 #define ALWAYS_DEBUG 1
 
 #if defined(DEBUG) || ALWAYS_DEBUG
+#define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define DBGLOG(lvl,...) globalLogger.log(lvl,__VA_ARGS__)
 #define DBGLOGERRNO(lvl) globalLogger.logSysError(lvl)
 #define LOGGER_DEFAULT_LOGLEVEL LOG_DEBUG
 #else
+#define DBGLOGENABLED(lvl) false
 #define DBGLOG(lvl,...)
 #define DBGLOGERRNO(lvl)
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
+#define LOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define LOG(lvl,...) globalLogger.log(lvl,__VA_ARGS__)
 #define LOGERR(lvl,err) globalLogger.logSysError(lvl,err)
 #define LOGERRNO(lvl) globalLogger.logSysError(lvl)
@@ -48,6 +51,7 @@ class Logger {
   int debugLevel;
 public:
   Logger();
+  bool logEnabled(int aErrlevel);
   void log(int aErrlevel, const char *aFmt, ... );
   void logSysError(int aErrlevel, int aErrNum = 0);
 };
