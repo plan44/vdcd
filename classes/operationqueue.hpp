@@ -96,7 +96,7 @@ public:
   /// create operation queue linked into specified mainloop
   OperationQueue(MainLoop *aMainLoopP);
   /// destructor
-  ~OperationQueue();
+  virtual ~OperationQueue();
 
   /// queue a new operation
   /// @param aOperation the operation to queue

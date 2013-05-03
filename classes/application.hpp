@@ -22,7 +22,7 @@ public:
 	/// default constructor
 	Application();
 	/// destructor
-	~Application();
+	virtual ~Application();
 	/// main routine
 	virtual int main(int argc, char **argv);
 protected:

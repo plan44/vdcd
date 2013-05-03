@@ -132,7 +132,7 @@ public:
   /// create operation queue linked into specified Synchronous IO mainloop
   SerialOperationQueue(SyncIOMainLoop *aMainLoopP);
   /// destructor
-  ~SerialOperationQueue();
+  virtual ~SerialOperationQueue();
 
   /// set transmitter to be used for all operations
   void setTransmitter(SerialOperationTransmitter aTransmitter);

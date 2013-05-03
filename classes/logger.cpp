@@ -63,6 +63,6 @@ void Logger::logSysError(int aErrlevel, int aErrNum)
     char buf[LOGBUFSIZ];
     strerror_r(aErrNum, buf, LOGBUFSIZ);
     // show it
-    log(aErrlevel, "System error message: %s", buf);
+    log(aErrlevel, "System error message: %s\n", buf);
   }
 }
