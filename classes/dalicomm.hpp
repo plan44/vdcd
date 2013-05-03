@@ -12,37 +12,15 @@
 
 #include "p44bridged_common.hpp"
 
-#include "serialqueue.hpp"
+#include "serialcomm.hpp"
 
 #include "dalidefs.h"
-
-// unix I/O and network
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <sys/param.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-
 
 using namespace std;
 
 // Errors
 typedef enum {
   DaliCommErrorOK,
-  DaliCommErrorSocketOpen,
-  DaliCommErrorInvalidHost,
-  DaliCommErrorSerialOpen,
   DaliCommErrorBridgeComm,
   DaliCommErrorBridgeCmd,
   DaliCommErrorBridgeUnknown,
@@ -51,7 +29,7 @@ typedef enum {
   DaliCommErrorInvalidAnswer,
   DaliCommErrorNeedFullScan,
   DaliCommErrorDeviceSearch,
-  DaliCommErrorSetShortAddress,
+  DaliCommErrorSetShortAddress
 } DaliCommErrors;
 
 class DaliCommError : public Error
@@ -101,73 +79,22 @@ public:
 typedef boost::shared_ptr<DaliComm> DaliCommPtr;
 
 /// A class providing low level access to the DALI bus
-class DaliComm : SerialOperationQueue
+class DaliComm : public SerialComm
 {
-	typedef SerialOperationQueue inherited;
+	typedef SerialComm inherited;
 	
-  // connection to the bridge
-  string bridgeConnectionPath;
-  uint16_t bridgeConnectionPort;
-  bool bridgeConnectionOpen;
-  int bridgeFd;
-  struct termios oldTermIO;
-  bool serialConnection;
-  ErrorPtr unhandledError;
 public:
 
   DaliComm(SyncIOMainLoop *aMainLoopP);
-  ~DaliComm();
-
-  /// Set the connection parameters for the DALI bus bridge
-  /// @param aBridgeConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy) to connect DALI bridge
-  /// @param aPortNo port number for TCP connection (irrelevant for serial device)
-  void setConnectionParameters(const char* aBridgeConnectionPath, uint16_t aPortNo);
-
-  /// @name Main loop integration
-  /// @{
-
-  /// Get the file descriptor to be monitored in daemon main loop
-  /// @return <0 if nothing to be monitored (no connection open)
-  int toBeMonitoredFD();
-
-  /// Must be called from main loop when monitored FD has data to process
-  void dataReadyOnMonitoredFD();
-
-  /// Should be called in regular intervals to trigger timed operations (such as timeouts)
-  void process();
-
-  /// @}
-
-
-  /// @name Connection
-  /// @{
-
-  /// transmit data
-  size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes);
-
-	/// receive data
-	size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
-
-	
-  /// establish the connection to the DALI bridge
-  /// @note can be called multiple times, opens connection only if not already open
-  bool establishConnection();
-
-  /// close the current connection, if any
-  void closeConnection();
-
-  /// set DALI bus error not handled by callback
-  void setUnhandledError(ErrorPtr aError);
-
-  /// get last unhandled error and clear it
-  ErrorPtr getLastUnhandledError();
-
-  /// @}
-
+  virtual ~DaliComm();
 
   /// @name low level DALI bus communication
   /// @{
 
+  /// set the connection parameters to connect to the DALI bridge
+  /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
+  /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)
+  void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo);
 
   /// callback function for sendBridgeCommand
   typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;

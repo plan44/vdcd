@@ -8,193 +8,19 @@
 
 #include "dalicomm.hpp"
 
-#include <sys/ioctl.h>
-
 
 // pseudo baudrate for dali bridge must be 9600bd
-#define BAUDRATE B9600
+#define DALIBRIDGE_BAUDRATE 9600
 
 
 DaliComm::DaliComm(SyncIOMainLoop *aMainLoopP) :
-	inherited(aMainLoopP),
-  bridgeConnectionPort(0),
-  bridgeConnectionOpen(false)
+	inherited(aMainLoopP)
 {
-  setTransmitter(boost::bind(&DaliComm::transmitBytes, this, _1, _2));
-	setReceiver(boost::bind(&DaliComm::receiveBytes, this, _1, _2));
 }
 
 
 DaliComm::~DaliComm()
 {
-  closeConnection();
-}
-
-
-void DaliComm::setConnectionParameters(const char* aBridgeConnectionPath, uint16_t aPortNo)
-{
-  closeConnection();
-  bridgeConnectionPath = aBridgeConnectionPath;
-  bridgeConnectionPort = aPortNo;
-}
-
-
-
-#pragma mark - serial connection to the DALI bridge
-
-
-size_t DaliComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes)
-{
-  size_t res = 0;
-  if (establishConnection()) {
-    res = write(bridgeFd,aBytes,aNumBytes);
-    #ifdef DEBUG
-    std::string s;
-    for (size_t i=0; i<aNumBytes; i++) {
-      string_format_append(s, "%02X ",aBytes[i]);
-    }
-    DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
-    #endif
-  }
-  return res;
-}
-
-
-
-size_t DaliComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
-{
-  if (bridgeConnectionOpen) {
-		// get number of bytes available
-		size_t numBytes;
-		ioctl(bridgeFd, FIONREAD, &numBytes);
-		// limit to max buffer size
-		if (numBytes>aMaxBytes)
-			numBytes = aMaxBytes;
-		// read
-    size_t gotBytes = 0;
-		if (numBytes>0)
-			gotBytes = read(bridgeFd,aBytes,numBytes); // read available bytes
-		#ifdef DEBUG
-		if (gotBytes>0) {
-			std::string s;
-			for (size_t i=0; i<gotBytes; i++) {
-				string_format_append(s, "%02X ",aBytes[i]);
-			}
-			DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
-		}
-		#endif
-		return gotBytes;
-  }
-	return 0;
-}
-
-
-
-bool DaliComm::establishConnection()
-{
-  if (!bridgeConnectionOpen) {
-    // Open connection to bridge
-    bridgeFd = 0;
-    int res;
-    struct termios newtio;
-    serialConnection = bridgeConnectionPath[0]=='/';
-    // check type of input
-    if (serialConnection) {
-      // assume it's a serial port
-      bridgeFd = open(bridgeConnectionPath.c_str(), O_RDWR | O_NOCTTY);
-      if (bridgeFd<0) {
-        LOGERRNO(LOG_ERR);
-        setUnhandledError(ErrorPtr(new DaliCommError(DaliCommErrorSerialOpen)));
-        return false;
-      }
-      tcgetattr(bridgeFd,&oldTermIO); // save current port settings
-      // see "man termios" for details
-      memset(&newtio, 0, sizeof(newtio));
-      // - baudrate, 8-N-1, no modem control lines (local), reading enabled
-      newtio.c_cflag = BAUDRATE | CRTSCTS | CS8 | CLOCAL | CREAD;
-      // - ignore parity errors
-      newtio.c_iflag = IGNPAR;
-      // - no output control
-      newtio.c_oflag = 0;
-      // - no input control (non-canonical)
-      newtio.c_lflag = 0;
-      // - no inter-char time
-      newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-      // - receive every single char seperately
-      newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
-      // - set new params
-      tcflush(bridgeFd, TCIFLUSH);
-      tcsetattr(bridgeFd,TCSANOW,&newtio);
-    }
-    else {
-      // assume it's an IP address or hostname
-      struct sockaddr_in conn_addr;
-      if ((bridgeFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        LOG(LOG_ERR,"Error: Could not create socket\n");
-        setUnhandledError(ErrorPtr(new DaliCommError(DaliCommErrorSocketOpen)));
-        return false;
-      }
-      // prepare IP address
-      memset(&conn_addr, '0', sizeof(conn_addr));
-      conn_addr.sin_family = AF_INET;
-      conn_addr.sin_port = htons(bridgeConnectionPort);
-      struct hostent *server;
-      server = gethostbyname(bridgeConnectionPath.c_str());
-      if (server == NULL) {
-        LOG(LOG_ERR,"Error: no such host\n");
-        setUnhandledError(ErrorPtr(new DaliCommError(DaliCommErrorInvalidHost)));
-        return false;
-      }
-      memcpy((char *)&conn_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
-      if ((res = connect(bridgeFd, (struct sockaddr *)&conn_addr, sizeof(conn_addr))) < 0) {
-        LOGERRNO(LOG_ERR);
-        setUnhandledError(ErrorPtr(new DaliCommError(DaliCommErrorSocketOpen)));
-        return false;
-      }
-    }
-    // successfully opened
-    bridgeConnectionOpen = true;
-		// now set FD for serialqueue to monitor
-		setFDtoMonitor(bridgeFd);
-  }
-  return bridgeConnectionOpen;
-}
-
-
-void DaliComm::closeConnection()
-{
-  if (bridgeConnectionOpen) {
-		// stop monitoring
-		setFDtoMonitor();
-    // restore IO settings
-    if (serialConnection) {
-      tcsetattr(bridgeFd,TCSANOW,&oldTermIO);
-    }
-    // close
-    close(bridgeFd);
-    // closed
-    bridgeConnectionOpen = false;
-    // abort all pending operations
-    abortOperations();
-  }
-}
-
-
-void DaliComm::setUnhandledError(ErrorPtr aError)
-{
-  if (aError) {
-    unhandledError = aError;
-    LOG(LOG_ERR,"DaliComm unhandled error set: %s\n",aError->description().c_str());
-  }
-}
-
-
-
-ErrorPtr DaliComm::getLastUnhandledError()
-{
-  ErrorPtr err = unhandledError;
-  unhandledError.reset(); // no error
-  return err;
 }
 
 
@@ -224,6 +50,13 @@ ErrorPtr DaliComm::getLastUnhandledError()
 #define ACK_TIMEOUT 0x31 // timeout receiving from DALI
 #define ACK_FRAME_ERR 0x32 // rx frame error
 #define ACK_INVALIDCMD 0x39 // invalid command
+
+
+
+void DaliComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo)
+{
+  inherited::setConnectionParameters(aConnectionPath, aPortNo, DALIBRIDGE_BAUDRATE);
+}
 
 
 

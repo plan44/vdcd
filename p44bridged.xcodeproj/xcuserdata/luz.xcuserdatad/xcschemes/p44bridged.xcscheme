@@ -60,11 +60,11 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-P 12101"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "localhost"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.221"
@@ -72,7 +72,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.222"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
