@@ -16,6 +16,8 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+#include "gpio.h"
+
 #include "logger.hpp"
 
 using namespace p44;
@@ -170,7 +172,7 @@ void Gpio::setState(bool aState)
   printf(">>> GPIO %s set to %d\n", name.c_str(), pinState);
   #else
   if (gpioFD<0) return; // non-existing pins cannot be set
-  pinState = aState;
+  pinState = aState != inverted;
   // - set value
   int setval = pinState;
   int ret_val;

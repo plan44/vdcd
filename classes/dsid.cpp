@@ -40,7 +40,7 @@
 
 // create empty
 
-dSID::dSID()
+void dSID::internalInit()
 {
   // 8 bit header
   memset(raw.bytes, 0, dsidBytes);
@@ -52,6 +52,11 @@ dSID::dSID()
   raw.bytes[4] = (ManagerNo<<4) & 0xF0;
 }
 
+
+dSID::dSID()
+{
+  internalInit();
+}
 
 
 // set from object class and serial number
@@ -103,9 +108,9 @@ void dSID::setSerialNo(SerialNo aSerialNo)
 
 // create from strings
 
-dSID::dSID(string &aString) :
-  dSID::dSID()
+dSID::dSID(string &aString)
 {
+  internalInit();
   setAsString(aString);
 }
 

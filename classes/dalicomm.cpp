@@ -249,7 +249,7 @@ public:
       daliComm->setUnhandledError(aError);
   };
 };
-  
+
 
 
 /// reset the bridge
@@ -337,10 +337,10 @@ uint8_t DaliComm::dali1FromAddress(DaliAddress aAddress)
     return 0xFE; // broadcast
   }
   else if (aAddress & DaliGroup) {
-    return 0x80 + (aAddress & DaliAddressMask)<<1; // group address
+    return 0x80 + ((aAddress & DaliAddressMask)<<1); // group address
   }
   else {
-    return (aAddress & DaliAddressMask)<<1; // device short address
+    return ((aAddress & DaliAddressMask)<<1); // device short address
   }
 }
 
@@ -469,7 +469,7 @@ private:
 
 void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 {
-  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
+  if (isBusy()) { aResultCB(this, ShortAddressListPtr(), DaliComm::busyError()); return; }
   DaliBusScanner::scanBus(this, aResultCB);
 }
 
@@ -522,7 +522,7 @@ private:
     if (!fullScanNeeded && fullScanOnlyIfNeeded) {
       // just use the short address scan result
       foundDevicesPtr = aShortAddressListPtr;
-      return completed(NULL);
+      completed(ErrorPtr()); return;
     }
     // save the short address list
     usedShortAddrsPtr = aShortAddressListPtr;
@@ -608,8 +608,10 @@ private:
   {
     // Anything received but timeout is considered a yes
     bool isYes = DaliQueryResponseHandler::isYes(aNoOrTimeout, aResponse, aError, true);
-    if (aError)
-      return completed(aError); // other error, abort
+    if (aError) {
+      completed(aError); // other error, abort
+      return;
+    }
     DBGLOG(LOG_DEBUG, "DALICMD_COMPARE result = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
     // any ballast has smaller or equal random address?
     if (isYes) {
@@ -621,7 +623,7 @@ private:
       if (searchMin==0xFFFFFF) {
         // already at max possible -> no more devices found
         DBGLOG(LOG_DEBUG, "No more devices\n");
-        return completed(NULL);
+        completed(ErrorPtr()); return;
       }
       searchMin = searchAddr+1; // new min
     }
@@ -733,7 +735,7 @@ private:
 
 void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
 {
-  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
+  if (isBusy()) { aResultCB(this, ShortAddressListPtr(), DaliComm::busyError()); return; }
   DaliFullBusScanner::fullBusScan(this, aResultCB, aFullScanOnlyIfNeeded);
 }
 
@@ -799,7 +801,7 @@ private:
 
 void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes)
 {
-  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
+  if (isBusy()) { aResultCB(this, MemoryVectorPtr(), DaliComm::busyError()); return; }
   DaliMemoryReader::readMemory(this, aResultCB, aAddress, aBank, aOffset, aNumBytes);
 }
 
@@ -936,7 +938,7 @@ private:
 
 void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddress)
 {
-  if (isBusy()) return aResultCB(this, NULL, DaliComm::busyError());
+  if (isBusy()) { aResultCB(this, DaliDeviceInfoPtr(), DaliComm::busyError()); return; }
   DaliDeviceInfoReader::readDeviceInfo(this, aResultCB, aAddress);
 }
 

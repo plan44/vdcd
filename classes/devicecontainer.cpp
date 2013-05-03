@@ -100,7 +100,7 @@ private:
     exhaustive(aExhaustive)
   {
     nextContainer = deviceContainerP->deviceClassContainers.begin();
-    queryNextContainer(NULL);
+    queryNextContainer(ErrorPtr());
   }
 
 

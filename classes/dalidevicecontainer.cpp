@@ -59,7 +59,7 @@ private:
       return completed(aError); // no devices to query, completed
     // start collecting device info now
     nextDev = deviceShortAddresses->begin();
-    queryNextDev(NULL);
+    queryNextDev(ErrorPtr());
   }
 
   void queryNextDev(ErrorPtr aError)
@@ -89,7 +89,7 @@ private:
     }
     // check next
     ++nextDev;
-    queryNextDev(NULL);
+    queryNextDev(ErrorPtr());
   }
 
   void completed(ErrorPtr aError)

@@ -58,7 +58,7 @@ void DaliDevice::deriveDSID()
     hash.addByte(deviceInfo.shortAddress);
   }
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setSerialNo(0x7000000000000+hash.getHash48());
+  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
 }
 
 

@@ -47,7 +47,7 @@ public:
 
 	virtual int main(int argc, char **argv)
 	{
-		if (argc<1) {
+		if (argc<2) {
 			// show usage
 			usage(argv[0]);
 			exit(1);
@@ -55,7 +55,7 @@ public:
 		bool daemonMode = false;
 		bool verbose = false;
 		int outputport = DEFAULT_CONNECTIONPORT;
-		
+
 		int c;
 		while ((c = getopt(argc, argv, "dP:")) != -1)
 		{
@@ -71,33 +71,44 @@ public:
 					exit(-1);
 			}
 		}
-		
+
 		// daemonize now if requested and in proxy mode
 		if (daemonMode) {
 			printf("Starting background daemon\n");
 			daemonize();
 		}
-		
+
 		char *outputname = argv[optind++];
-		
-		
+
+
 		// Create static container structure
 		// - Add DALI devices class
 		DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer(1));
 		daliDeviceContainer->daliComm.setConnectionParameters(outputname, outputport);
 		deviceContainer.addDeviceClassContainer(daliDeviceContainer);
-		
+
 		// app now ready to run
 		return run();
 	}
-	
+
+	virtual bool pollButton()
+	{
+	  greenLED.setState(button.getState());
+	  return true;
+	}
+
+
 	virtual void initialize()
 	{
+    // start button test
+	  greenLED.setState(false);
+	  MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&P44bridged::pollButton,this));
+
 		// initiate device collection
     yellowLED.setState(true);
 		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
 	}
-	
+
 	virtual void devicesCollected(ErrorPtr aError)
 	{
     yellowLED.setState(false);

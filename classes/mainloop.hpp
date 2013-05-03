@@ -38,8 +38,8 @@ class MainLoop
 	typedef std::list<OnetimeHandler> OnetimeHandlerList;
 	OnetimeHandlerList onetimeHandlers;
 protected:
+  bool terminated;
 	MLMicroSeconds loopCycleTime;
-	bool terminated;
 	MLMicroSeconds cycleStartTime;
 	// protected constructor
 	MainLoop();

@@ -31,6 +31,7 @@ public:
   } RawID;
 private:
   RawID raw; ///< the raw 96bit (12*8) dsid
+  void internalInit();
 public:
   /// create empty dSID (GID96Header and ManagerNo set, rest zeroed)
   dSID();
@@ -59,7 +60,7 @@ public:
   /// @param aString 24 digit hex string, dashed allowed (ignored) everywhere, any non-hex character stops parsing
   /// @return true if 24 digits read, false otherwise
   bool setAsString(string &aString);
-  
+
 
   /// get raw dSID
   /// @return RawID union consisting of 12 bytes

@@ -40,8 +40,12 @@ MLMicroSeconds MainLoop::now()
 }
 
 
-// the current theread's main looop
+// the current thread's main looop
+#if BOOST_DISABLE_THREADS
+static MainLoop *currentMainLoopP = NULL;
+#else
 static __thread MainLoop *currentMainLoopP = NULL;
+#endif
 
 // get the per-thread singleton mainloop
 MainLoop *MainLoop::currentMainLoop()

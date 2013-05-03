@@ -26,12 +26,16 @@
 
 #include <syslog.h>
 
-#ifdef DEBUG
+#define ALWAYS_DEBUG 1
+
+#if defined(DEBUG) || ALWAYS_DEBUG
 #define DBGLOG(lvl,...) globalLogger.log(lvl,__VA_ARGS__)
 #define DBGLOGERRNO(lvl) globalLogger.logSysError(lvl)
+#define LOGGER_DEFAULT_LOGLEVEL LOG_DEBUG
 #else
 #define DBGLOG(lvl,...)
 #define DBGLOGERRNO(lvl)
+#define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
 #define LOG(lvl,...) globalLogger.log(lvl,__VA_ARGS__)
