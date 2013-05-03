@@ -247,6 +247,7 @@ void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
 
 bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 {
+  // TODO: maybe use poll() instead of select()
   fd_set readfs; // file descriptor set for read
   fd_set writefs; // file descriptor set for write
   fd_set errorfs; // file descriptor set for errors

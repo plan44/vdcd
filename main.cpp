@@ -16,13 +16,26 @@
 
 #define MAINLOOP_CYCLE_TIME_uS 100000 // 100mS
 
+using namespace p44;
+
 
 class P44bridged : public Application
 {
 	// the device container
 	DeviceContainer deviceContainer;
-	
+
+  Gpio yellowLED;
+  Gpio greenLED;
+  Gpio button;
+
 public:
+
+  P44bridged() :
+    yellowLED("ledyellow", true, true, false),
+    greenLED("ledgreen", true, true, false),
+    button("button", false, true, false)
+  {
+  }
 
 	void usage(char *name)
 	{
@@ -81,11 +94,13 @@ public:
 	virtual void initialize()
 	{
 		// initiate device collection
+    yellowLED.setState(true);
 		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
 	}
 	
 	virtual void devicesCollected(ErrorPtr aError)
 	{
+    yellowLED.setState(false);
 		DBGLOG(LOG_INFO, deviceContainer.description().c_str());
 	}
 
