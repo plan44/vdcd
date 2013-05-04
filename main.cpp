@@ -12,6 +12,9 @@
 
 #include "dalidevicecontainer.hpp"
 
+#include "gpio.hpp"
+
+
 #define DEFAULT_CONNECTIONPORT 2101
 
 #define MAINLOOP_CYCLE_TIME_uS 100000 // 100mS
@@ -26,14 +29,14 @@ class P44bridged : public Application
 
   Gpio yellowLED;
   Gpio greenLED;
-  Gpio button;
+  ButtonInput button;
 
 public:
 
   P44bridged() :
     yellowLED("ledyellow", true, true, false),
     greenLED("ledgreen", true, true, false),
-    button("button", false, true, false)
+    button("button", true)
   {
   }
 
@@ -91,9 +94,9 @@ public:
 		return run();
 	}
 
-	virtual bool pollButton()
+	virtual bool buttonHandler(bool aNewState)
 	{
-	  greenLED.setState(button.getState());
+	  greenLED.setState(aNewState);
 	  return true;
 	}
 
@@ -102,11 +105,12 @@ public:
 	{
     // start button test
 	  greenLED.setState(false);
-	  MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&P44bridged::pollButton,this));
+    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2), true);
 
 		// initiate device collection
-    yellowLED.setState(true);
-		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+    #warning DALI scanning disabled for now
+    //yellowLED.setState(true);
+		//deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
 	}
 
 	virtual void devicesCollected(ErrorPtr aError)

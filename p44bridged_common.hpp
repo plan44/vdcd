@@ -27,7 +27,6 @@
 #include "utils.hpp"
 #include "error.hpp"
 #include "mainloop.hpp"
-#include "gpio.hpp"
 #include "application.hpp"
 
 

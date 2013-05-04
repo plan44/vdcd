@@ -20,11 +20,14 @@
 
 #include "logger.hpp"
 
+#include "mainloop.hpp"
+
 using namespace p44;
 
-#if GPIO_SIMULATION
 
-#include "mainloop.hpp"
+#pragma mark - Simulation (console I/O)
+
+#if GPIO_SIMULATION
 
 #include <sys/select.h>
 #include <termios.h>
@@ -51,33 +54,59 @@ static int kbhit() {
 
 static int numSimKeys = 0;
 uint32_t inputBits = 0;
+static int pulsedBit = 0;
+
+static void simPulseReset()
+{
+  inputBits = inputBits ^ (1<<pulsedBit);
+}
+
 
 static bool simInputPoll()
 {
   if (kbhit()) {
     char  c = getchar();
-    c -= '1';
-    if (c>=0 && c<=9) {
-      inputBits = inputBits ^ (1<<c);
-      printf(">>> GPIO '%c' toggled to %d\n", c+'1', (inputBits & (1<<c))>0);
+    if (c>='a' && c<='z') {
+      c-='a';
+      // pulse
+      if (c<numSimKeys) {
+        // now toggle on
+        pulsedBit = c;
+        inputBits = inputBits ^ (1<<pulsedBit);
+        printf(">>> GPIO '%c' pulsed to %s\n", c+'a', (inputBits & (1<<pulsedBit)) ? "HI" : "LO");
+        // - schedule toggle off
+        MainLoop::currentMainLoop()->executeOnce(boost::bind(&simPulseReset), 200000);
+      }
+    }
+    else if (c>='A' && c<='Z') {
+      c-='A';
+      // toggle
+      if (c<numSimKeys) {
+        inputBits = inputBits ^ (1<<c);
+        printf(">>> GPIO '%c' toggled to %s\n", c+'A', (inputBits & (1<<c)) ? "HI" : "LO");
+      }
     }
   }
   return true; // done for this cycle
 }
 
 
-static int initSimInput(bool aInitialState)
+static int initSimInput(bool aInitialPinState)
 {
   if (numSimKeys==0) {
     // first simulated GPIO input
     MainLoop::currentMainLoop()->registerIdleHandler(NULL, boost::bind(&simInputPoll));
   }
-  if (aInitialState) inputBits |= (1<<numSimKeys); // set initial state if not zero
-  printf("- initial input state is %d, press '%c' key to toggle state\n", aInitialState, '1'+numSimKeys);
+  if (aInitialPinState) inputBits |= (1<<numSimKeys); // set initial state if not zero
+  printf("- Simulated input: Press '%c' to pulse, '%c' to toggle state\n", 'a'+numSimKeys, 'A'+numSimKeys);
   return numSimKeys++;
 }
 
 #endif // GPIO_SIMULATION
+
+
+
+#pragma mark - GPIO
 
 
 Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInverted, bool aInitialState) :
@@ -88,10 +117,10 @@ Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInverted, bool aInitialSta
   output = aOutput;
   inverted = aInverted;
   name = aGpioName;
-  pinState = aInitialState; // set even for inputs
+  pinState = aInitialState!=inverted; // set even for inputs
 
   #if GPIO_SIMULATION
-  printf("Initialized GPIO %s as %s%s\n", name.c_str(), aInverted ? "inverted " : "", aOutput ? "output" : "input");
+  printf("Initialized GPIO %s as %s%s with initial state %s\n", name.c_str(), aInverted ? "inverted " : "", aOutput ? "output" : "input", pinState ? "HI" : "LO");
   if (!output) {
     inputBitNo = initSimInput(pinState);
   }
@@ -102,7 +131,7 @@ Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInverted, bool aInitialSta
   #ifdef __APPLE__
   DBGLOG(LOG_ERR,"No GPIOs supported on Mac OS X\n");
   #else
-  string gpiopath("/dev/gpio/");
+  string gpiopath(GPIO_DEVICES_BASEPATH);
   gpiopath.append(name);
   gpioFD = open(gpiopath.c_str(), O_RDWR);
   if (gpioFD<0) {
@@ -169,7 +198,7 @@ void Gpio::setState(bool aState)
   if (!output) return; // non-outputs cannot be set
   #if GPIO_SIMULATION
   pinState = aState != inverted;
-  printf(">>> GPIO %s set to %d\n", name.c_str(), pinState);
+  printf(">>> GPIO %s set to %s\n", name.c_str(), pinState ? "HI" : "LO");
   #else
   if (gpioFD<0) return; // non-existing pins cannot be set
   pinState = aState != inverted;
@@ -182,3 +211,49 @@ void Gpio::setState(bool aState)
   }
   #endif
 }
+
+
+#pragma mark - Button input
+
+
+ButtonInput::ButtonInput(const char* aGpioName, bool aInverted) :
+  Gpio(aGpioName, false, aInverted, false)
+{
+  // save params
+  lastState = false; // assume inactive to start with
+  lastChangeTime = MainLoop::now();
+}
+
+
+void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease)
+{
+  reportPressAndRelease = aPressAndRelease;
+  buttonHandler = aButtonHandler;
+  if (buttonHandler) {
+    MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _2));
+  }
+  else {
+    // unregister
+    MainLoop::currentMainLoop()->unregisterIdleHandlers(this);
+  }
+}
+
+
+#define DEBOUNCE_TIME 1000 // 1mS
+
+bool ButtonInput::poll(MLMicroSeconds aTimestamp)
+{
+  bool newState = getState();
+  if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
+    // consider this a state change
+    lastState = newState;
+    lastChangeTime = aTimestamp;
+    // report if needed
+    if (!newState || reportPressAndRelease) {
+      buttonHandler(this, newState, aTimestamp);
+    }
+  }
+  return true;
+}
+
+
