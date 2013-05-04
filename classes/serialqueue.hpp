@@ -72,11 +72,18 @@ namespace p44 {
     typedef SerialOperation inherited;
 
     size_t dataSize;
+    size_t appendIndex;
     uint8_t *dataP;
   public:
 
     SerialOperationSend(size_t aNumBytes, uint8_t *aBytes);
     virtual ~SerialOperationSend();
+
+    void setDataSize(size_t aDataSize);
+    void appendData(size_t aNumBytes, uint8_t *aBytes);
+    void clearData();
+
+
     virtual bool initiate();
   };
   typedef boost::shared_ptr<SerialOperationSend> SerialOperationSendPtr;

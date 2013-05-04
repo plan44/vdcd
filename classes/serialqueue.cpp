@@ -39,23 +39,51 @@ size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 #pragma mark - SerialOperationSend
 
 
-SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes)
+SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes) :
+  dataP(NULL)
 {
   // copy data
-  dataP = NULL;
-  dataSize = aNumBytes;
-  if (dataSize>0) {
-    dataP = (uint8_t *)malloc(dataSize);
-    memcpy(dataP, aBytes, dataSize);
+  setDataSize(aNumBytes);
+  appendData(aNumBytes, aBytes);
+}
+
+
+void SerialOperationSend::clearData()
+{
+  if (dataP) {
+    delete [] dataP;
+    dataP = NULL;
+  }
+  dataSize = 0;
+  appendIndex = 0;
+}
+
+
+void SerialOperationSend::setDataSize(size_t aDataSize)
+{
+  clearData();
+  if (aDataSize>0) {
+    dataSize = aDataSize;
+    dataP = new uint8_t[dataSize];
   }
 }
 
 
+void SerialOperationSend::appendData(size_t aNumBytes, uint8_t *aBytes)
+{
+  if (appendIndex+aNumBytes>dataSize)
+    aNumBytes = dataSize-appendIndex;
+  if (aNumBytes>0) {
+    memcpy(dataP, aBytes, aNumBytes);
+  }
+}
+
+
+
+
 SerialOperationSend::~SerialOperationSend()
 {
-  if (dataP) {
-    free(dataP);
-  }
+  clearData();
 }
 
 

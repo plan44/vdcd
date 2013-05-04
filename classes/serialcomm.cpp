@@ -116,6 +116,9 @@ bool SerialComm::establishConnection()
         case 9600 : baudRateCode = B9600; break;
         case 19200 : baudRateCode = B19200; break;
         case 38400 : baudRateCode = B38400; break;
+        case 57600 : baudRateCode = B57600; break;
+        case 115200 : baudRateCode = B115200; break;
+        case 230400 : baudRateCode = B230400; break;
       }
       if (baudRateCode==0) {
         setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorUnknownBaudrate)));

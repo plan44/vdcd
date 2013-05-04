@@ -77,7 +77,6 @@ namespace p44 {
     /// @return number of bytes operation could accept, 0 if none (means that telegram is already complete)
     size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
-
     /// description
     string description();
 

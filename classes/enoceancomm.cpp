@@ -146,7 +146,7 @@ size_t Esp3Telegram::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
         if (dataIndex==ESP3_HEADERBYTES) {
           // header including CRC received
           // - check header CRC now
-          if (header[ESP3_HEADERBYTES-1]!=crc8(header+1, ESP3_HEADERBYTES-2)) {
+          if (header[ESP3_HEADERBYTES-1]!=headerCRC()) {
             // CRC mismatch
             // - replay from byte 1 (which could be a sync byte again)
             replayP = header+1; // consider 2nd byte of already received and stored header as potential start
