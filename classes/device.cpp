@@ -8,6 +8,9 @@
 
 #include "device.hpp"
 
+using namespace p44;
+
+
 Device::Device(DeviceClassContainer *aClassContainerP) :
   registered(false),
   connected(false),

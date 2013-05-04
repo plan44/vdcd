@@ -8,6 +8,8 @@
 
 #include "serialqueue.hpp"
 
+using namespace p44;
+
 
 #define DEFAULT_RECEIVE_TIMEOUT 3000000 // [uS] = 3 seconds
 

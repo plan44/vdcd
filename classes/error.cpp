@@ -8,6 +8,8 @@
 
 #include "error.hpp"
 
+using namespace p44;
+
 
 Error::Error(ErrorCode aErrorCode)
 {

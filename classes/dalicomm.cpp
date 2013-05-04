@@ -8,6 +8,8 @@
 
 #include "dalicomm.hpp"
 
+using namespace p44;
+
 
 // pseudo baudrate for dali bridge must be 9600bd
 #define DALIBRIDGE_BAUDRATE 9600

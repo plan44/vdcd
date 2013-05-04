@@ -12,6 +12,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+using namespace p44;
+
 // old-style C-formatted output into string object
 static void vStringObjPrintf(std::string &aStringObj, const char *aFormat, bool aAppend, va_list aArgs)
 {
@@ -46,7 +48,7 @@ static void vStringObjPrintf(std::string &aStringObj, const char *aFormat, bool 
 
 
 // old-style C-formatted output as std::string
-std::string string_format(const char *aFormat, ...)
+std::string p44::string_format(const char *aFormat, ...)
 {
   va_list args;
   va_start(args, aFormat);
@@ -59,7 +61,7 @@ std::string string_format(const char *aFormat, ...)
 
 
 // old-style C-formatted output appending to std::string
-void string_format_append(std::string &aStringToAppendTo, const char *aFormat, ...)
+void p44::string_format_append(std::string &aStringToAppendTo, const char *aFormat, ...)
 {
   va_list args;
 

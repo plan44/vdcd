@@ -12,6 +12,7 @@
 
 #include <sys/stat.h> // for umask
 
+using namespace p44;
 
 
 Application::Application(MainLoop *aMainLoopP)

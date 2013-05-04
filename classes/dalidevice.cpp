@@ -10,6 +10,8 @@
 
 #include "fnv.hpp"
 
+using namespace p44;
+
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   Device((DeviceClassContainer *)aClassContainerP)

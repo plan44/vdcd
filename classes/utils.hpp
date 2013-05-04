@@ -11,15 +11,20 @@
 
 #include <string>
 
-/// printf-style format into std::string
-/// @param aFormat printf-style format string
-/// @return formatted string
-std::string string_format(const char *aFormat, ...);
+using namespace std;
 
-/// printf-style format appending to std::string
-/// @param aStringToAppendTo std::string to append format to
-/// @param aFormat printf-style format string
-void string_format_append(std::string &aStringToAppendTo, const char *aFormat, ...);
+namespace p44 {
 
+  /// printf-style format into std::string
+  /// @param aFormat printf-style format string
+  /// @return formatted string
+  std::string string_format(const char *aFormat, ...);
+
+  /// printf-style format appending to std::string
+  /// @param aStringToAppendTo std::string to append format to
+  /// @param aFormat printf-style format string
+  void string_format_append(std::string &aStringToAppendTo, const char *aFormat, ...);
+
+} // namespace p44
 
 #endif /* defined(__p44bridged__utils__) */

@@ -10,6 +10,7 @@
 
 #include "dalidevice.hpp"
 
+using namespace p44;
 
 
 DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber) :

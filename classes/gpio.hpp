@@ -20,24 +20,32 @@ using namespace std;
 
 namespace p44 {
 
-class Gpio
-{
-  int gpioFD;
-  bool pinState;
-  bool output;
-  bool inverted;
-  string name;
-  #if GPIO_SIMULATION
-  int inputBitNo;
-  #endif
-public:
-  Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
-  ~Gpio();
-  void setState(bool aState);
-  bool getState();
-};
+  class Gpio
+  {
+    int gpioFD;
+    bool pinState;
+    bool output;
+    bool inverted;
+    string name;
+    #if GPIO_SIMULATION
+    int inputBitNo;
+    #endif
+  public:
+    Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
+    ~Gpio();
+    void setState(bool aState);
+    bool getState();
+  };
 
 
-} // namespace
+  class ButtonGpio : public Gpio
+  {
+    
+  };
+
+
+
+
+} // namespace p44
 
 #endif /* defined(__p44bridged__gpio__) */

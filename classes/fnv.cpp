@@ -24,6 +24,8 @@
 static const uint32_t FNV32_prime = 16777619ul;
 static const uint32_t FNV32_offset_basis = 2166136261ul;
 
+using namespace p44;
+
 
 Fnv32::Fnv32()
 {

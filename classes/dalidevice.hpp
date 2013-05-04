@@ -13,30 +13,34 @@
 
 #include "dalicomm.hpp"
 
+using namespace std;
 
-class DaliDeviceContainer;
-class DaliDevice;
-typedef boost::shared_ptr<DaliDevice> DaliDevicePtr;
-class DaliDevice : public Device
-{
-  typedef Device inherited;
+namespace p44 {
 
-  // the device info
-  DaliDeviceInfo deviceInfo;
+  class DaliDeviceContainer;
+  class DaliDevice;
+  typedef boost::shared_ptr<DaliDevice> DaliDevicePtr;
+  class DaliDevice : public Device
+  {
+    typedef Device inherited;
 
-public:
-  DaliDevice(DaliDeviceContainer *aClassContainerP);
-  
-  void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
+    // the device info
+    DaliDeviceInfo deviceInfo;
 
-  /// description of object, mainly for debug and logging
-  /// @return textual description of object
-  virtual string description();
+  public:
+    DaliDevice(DaliDeviceContainer *aClassContainerP);
+    
+    void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
 
-protected:
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description();
 
-  void deriveDSID();
-};
+  protected:
 
+    void deriveDSID();
+  };
+
+} // namespace p44
 
 #endif /* defined(__p44bridged__dalidevice__) */

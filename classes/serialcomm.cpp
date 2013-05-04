@@ -10,6 +10,8 @@
 
 #include <sys/ioctl.h>
 
+using namespace p44;
+
 
 SerialComm::SerialComm(SyncIOMainLoop *aMainLoopP) :
 	inherited(aMainLoopP),

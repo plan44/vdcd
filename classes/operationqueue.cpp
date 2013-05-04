@@ -8,6 +8,8 @@
 
 #include "operationqueue.hpp"
 
+using namespace p44;
+
 
 Operation::Operation() :
   initiated(false),

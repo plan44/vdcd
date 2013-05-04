@@ -7,3 +7,6 @@
 //
 
 #include "enoceancomm.hpp"
+
+
+using namespace p44;

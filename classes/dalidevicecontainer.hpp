@@ -15,22 +15,28 @@
 
 #include "dalicomm.hpp"
 
-class DaliDeviceContainer;
-typedef boost::shared_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
-class DaliDeviceContainer : public DeviceClassContainer
-{
-  typedef DeviceClassContainer inherited;
-public:
-  DaliDeviceContainer(int aInstanceNumber);
+using namespace std;
 
-  // the DALI communication object
-  DaliComm daliComm;
+namespace p44 {
 
-  virtual const char *deviceClassIdentifier() const;
+  class DaliDeviceContainer;
+  typedef boost::shared_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
+  class DaliDeviceContainer : public DeviceClassContainer
+  {
+    typedef DeviceClassContainer inherited;
+  public:
+    DaliDeviceContainer(int aInstanceNumber);
 
-  virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+    // the DALI communication object
+    DaliComm daliComm;
 
-};
+    virtual const char *deviceClassIdentifier() const;
+
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+
+  };
+
+} // namespace p44
 
 
 #endif /* defined(__p44bridged__dalidevicecontainer__) */

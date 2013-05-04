@@ -11,23 +11,28 @@
 
 #include "p44bridged_common.hpp"
 
-typedef long ErrorCode;
+using namespace std;
 
-class Error;
-typedef boost::shared_ptr<Error> ErrorPtr;
-class Error {
-  ErrorCode errorCode;
-  std::string errorMessage;
-public:
-  static const char *domain();
-  Error(ErrorCode aErrorCode);
-  Error(ErrorCode aErrorCode, std::string aErrorMessage);
-  ErrorCode getErrorCode() const;
-  virtual const char *getErrorDomain() const;
-  virtual std::string description() const;
-  bool isError(const char *aDomain, ErrorCode aErrorCode) const;
-};
+namespace p44 {
 
+  typedef long ErrorCode;
+
+  class Error;
+  typedef boost::shared_ptr<Error> ErrorPtr;
+  class Error {
+    ErrorCode errorCode;
+    std::string errorMessage;
+  public:
+    static const char *domain();
+    Error(ErrorCode aErrorCode);
+    Error(ErrorCode aErrorCode, std::string aErrorMessage);
+    ErrorCode getErrorCode() const;
+    virtual const char *getErrorDomain() const;
+    virtual std::string description() const;
+    bool isError(const char *aDomain, ErrorCode aErrorCode) const;
+  };
+
+} // namespace p44
 
 
 #endif /* defined(__p44bridged__dcerror__) */

@@ -46,18 +46,22 @@
 #define LOGERRNO(lvl) globalLogger.logSysError(lvl)
 
 
-class Logger {
-  pthread_mutex_t reportMutex;
-  int debugLevel;
-public:
-  Logger();
-  bool logEnabled(int aErrlevel);
-  void log(int aErrlevel, const char *aFmt, ... );
-  void logSysError(int aErrlevel, int aErrNum = 0);
-};
+namespace p44 {
+
+  class Logger {
+    pthread_mutex_t reportMutex;
+    int debugLevel;
+  public:
+    Logger();
+    bool logEnabled(int aErrlevel);
+    void log(int aErrlevel, const char *aFmt, ... );
+    void logSysError(int aErrlevel, int aErrNum = 0);
+  };
 
 
-static Logger globalLogger;
+  static Logger globalLogger;
+
+} // namespace p44
 
 
 #endif /* defined(__p44bridged__logger__) */

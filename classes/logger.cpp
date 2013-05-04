@@ -8,7 +8,7 @@
 
 #include "logger.hpp"
 
-
+using namespace p44;
 
 Logger::Logger()
 {

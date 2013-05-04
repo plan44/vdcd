@@ -34,75 +34,79 @@
 
 using namespace std;
 
-// Errors
-typedef enum {
-  SerialCommErrorOK,
-  SerialCommErrorSocketOpen,
-  SerialCommErrorInvalidHost,
-  SerialCommErrorSerialOpen,
-  SerialCommErrorUnknownBaudrate,
-} SerialCommErrors;
+namespace p44 {
 
-class SerialCommError : public Error
-{
-public:
-  static const char *domain() { return "SerialComm"; }
-  SerialCommError(SerialCommErrors aError) : Error(ErrorCode(aError)) {};
-  SerialCommError(SerialCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  virtual const char *getErrorDomain() const { return SerialCommError::domain(); };
-};
+  // Errors
+  typedef enum {
+    SerialCommErrorOK,
+    SerialCommErrorSocketOpen,
+    SerialCommErrorInvalidHost,
+    SerialCommErrorSerialOpen,
+    SerialCommErrorUnknownBaudrate,
+  } SerialCommErrors;
 
-
-
-class SerialComm;
-typedef boost::shared_ptr<SerialComm> SerialCommPtr;
-
-/// A class providing low level access to the DALI bus
-class SerialComm : public SerialOperationQueue
-{
-	typedef SerialOperationQueue inherited;
-
-  // connection to the bridge
-  string connectionPath;
-  uint16_t connectionPort;
-  int baudRate;
-  bool connectionOpen;
-  int connectionFd;
-  struct termios oldTermIO;
-  bool serialConnection;
-protected:
-  ErrorPtr unhandledError;
-public:
-
-  SerialComm(SyncIOMainLoop *aMainLoopP);
-  virtual ~SerialComm();
-
-  /// Set the serial connection parameters
-  /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
-  /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)
-  /// @param aBaudRate baud rate for serial connection (irrelevant for TCP connection)
-  void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo, int aBaudRate);
-
-  /// transmit data
-  size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes);
-
-	/// receive data
-	size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
+  class SerialCommError : public Error
+  {
+  public:
+    static const char *domain() { return "SerialComm"; }
+    SerialCommError(SerialCommErrors aError) : Error(ErrorCode(aError)) {};
+    SerialCommError(SerialCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+    virtual const char *getErrorDomain() const { return SerialCommError::domain(); };
+  };
 
 
-  /// establish the connection to the DALI bridge
-  /// @note can be called multiple times, opens connection only if not already open
-  bool establishConnection();
 
-  /// close the current connection, if any
-  void closeConnection();
+  class SerialComm;
+  typedef boost::shared_ptr<SerialComm> SerialCommPtr;
 
-  /// set DALI bus error not handled by callback
-  void setUnhandledError(ErrorPtr aError);
+  /// A class providing low level access to the DALI bus
+  class SerialComm : public SerialOperationQueue
+  {
+    typedef SerialOperationQueue inherited;
 
-  /// get last unhandled error and clear it
-  ErrorPtr getLastUnhandledError();
+    // connection to the bridge
+    string connectionPath;
+    uint16_t connectionPort;
+    int baudRate;
+    bool connectionOpen;
+    int connectionFd;
+    struct termios oldTermIO;
+    bool serialConnection;
+  protected:
+    ErrorPtr unhandledError;
+  public:
 
-};
+    SerialComm(SyncIOMainLoop *aMainLoopP);
+    virtual ~SerialComm();
+
+    /// Set the serial connection parameters
+    /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
+    /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)
+    /// @param aBaudRate baud rate for serial connection (irrelevant for TCP connection)
+    void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo, int aBaudRate);
+
+    /// transmit data
+    size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes);
+
+    /// receive data
+    size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
+
+
+    /// establish the connection to the DALI bridge
+    /// @note can be called multiple times, opens connection only if not already open
+    bool establishConnection();
+
+    /// close the current connection, if any
+    void closeConnection();
+
+    /// set DALI bus error not handled by callback
+    void setUnhandledError(ErrorPtr aError);
+
+    /// get last unhandled error and clear it
+    ErrorPtr getLastUnhandledError();
+
+  };
+
+} // namespace p44
 
 #endif /* defined(__p44bridged__serialcomm__) */

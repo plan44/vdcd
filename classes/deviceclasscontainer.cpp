@@ -10,6 +10,8 @@
 
 #include "device.hpp"
 
+using namespace p44;
+
 
 DeviceClassContainer::DeviceClassContainer(int aInstanceNumber) :
   deviceContainerP(NULL),

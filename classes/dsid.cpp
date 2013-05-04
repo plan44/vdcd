@@ -8,6 +8,7 @@
 
 #include "dsid.hpp"
 
+using namespace p44;
 
 #pragma mark - creating dSIDs
 

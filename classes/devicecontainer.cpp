@@ -18,6 +18,9 @@
 
 #include "device.hpp"
 
+using namespace p44;
+
+
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
   deviceClassContainers.push_back(aDeviceClassContainerPtr);

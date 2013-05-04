@@ -13,24 +13,32 @@
 
 #include "dsid.hpp"
 
-class Device;
-typedef boost::shared_ptr<Device> DevicePtr;
-class Device
-{
-  bool registered; ///< set when registered by dS system
-  bool connected; ///< set when physical device is connected (known to be present on the bus etc.)
-protected:
-  DeviceClassContainer *classContainerP;
-public:
-  Device(DeviceClassContainer *aClassContainerP);
+using namespace std;
+
+namespace p44 {
+
+  class Device;
+  typedef boost::shared_ptr<Device> DevicePtr;
+  class Device
+  {
+    bool registered; ///< set when registered by dS system
+    bool connected; ///< set when physical device is connected (known to be present on the bus etc.)
+  protected:
+    DeviceClassContainer *classContainerP;
+  public:
+    Device(DeviceClassContainer *aClassContainerP);
 
 
-  /// description of object, mainly for debug and logging
-  /// @return textual description of object
-  virtual string description();
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description();
 
-  /// the digitalstrom ID
-  dSID dsid;
-};
+    /// the digitalstrom ID
+    dSID dsid;
+  };
+
+
+} // namespace p44
+
 
 #endif /* defined(__p44bridged__device__) */
