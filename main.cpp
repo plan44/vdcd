@@ -17,7 +17,7 @@
 
 #define DEFAULT_CONNECTIONPORT 2101
 
-#define MAINLOOP_CYCLE_TIME_uS 100000 // 100mS
+#define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
 
 using namespace p44;
 
@@ -27,15 +27,15 @@ class P44bridged : public Application
 	// the device container
 	DeviceContainer deviceContainer;
 
-  Gpio yellowLED;
-  Gpio greenLED;
+  IndicatorOutput yellowLED;
+  IndicatorOutput greenLED;
   ButtonInput button;
 
 public:
 
   P44bridged() :
-    yellowLED("ledyellow", true, true, false),
-    greenLED("ledgreen", true, true, false),
+    yellowLED("ledyellow", true, false),
+    greenLED("ledgreen", true, false),
     button("button", true)
   {
   }
@@ -96,7 +96,22 @@ public:
 
 	virtual bool buttonHandler(bool aNewState)
 	{
-	  greenLED.setState(aNewState);
+    static bool testBlink = false;
+
+    if (aNewState==false) {
+      // key released
+      /*/
+      testBlink = !testBlink;
+      if (testBlink)
+        yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+      else
+        yellowLED.stop();
+      /*/
+      yellowLED.blinkFor(5*Second, 200*MilliSecond);
+      //*/
+    }
+
+	  //greenLED.set(aNewState);
 	  return true;
 	}
 
@@ -104,18 +119,18 @@ public:
 	virtual void initialize()
 	{
     // start button test
-	  greenLED.setState(false);
+	  greenLED.off();
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2), true);
 
 		// initiate device collection
     #warning DALI scanning disabled for now
-    //yellowLED.setState(true);
+    //yellowLED.on();
 		//deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
 	}
 
 	virtual void devicesCollected(ErrorPtr aError)
 	{
-    yellowLED.setState(false);
+    yellowLED.off();
 		DBGLOG(LOG_INFO, deviceContainer.description().c_str());
 	}
 

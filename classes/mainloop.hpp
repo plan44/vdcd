@@ -19,6 +19,11 @@ namespace p44 {
 
   // Mainloop timing unit
   typedef long long MLMicroSeconds;
+  const MLMicroSeconds Infinite = -1;
+  const MLMicroSeconds MicroSecond = 1;
+  const MLMicroSeconds MilliSecond = 1000;
+  const MLMicroSeconds Second = 1000*MilliSecond;
+  const MLMicroSeconds Minute = 60*Second;
 
   /// Mainloop callback
   typedef boost::function<bool (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;

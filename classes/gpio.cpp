@@ -170,7 +170,7 @@ Gpio::~Gpio()
 }
 
 
-bool Gpio::getState()
+bool Gpio::isSet()
 {
   if (output)
     return pinState != inverted; // just return last set state
@@ -193,7 +193,7 @@ bool Gpio::getState()
 }
 
 
-void Gpio::setState(bool aState)
+void Gpio::set(bool aState)
 {
   if (!output) return; // non-outputs cannot be set
   #if GPIO_SIMULATION
@@ -210,6 +210,29 @@ void Gpio::setState(bool aState)
     return;
   }
   #endif
+}
+
+
+void Gpio::on()
+{
+  set(true);
+}
+
+
+void Gpio::off()
+{
+  set(false);
+}
+
+
+bool Gpio::toggle()
+{
+  bool state = isSet();
+  if (output) {
+    state = !state;
+    set(state);
+  }
+  return state;
 }
 
 
@@ -243,7 +266,7 @@ void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAn
 
 bool ButtonInput::poll(MLMicroSeconds aTimestamp)
 {
-  bool newState = getState();
+  bool newState = isSet();
   if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
     // consider this a state change
     lastState = newState;
@@ -257,3 +280,67 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
 }
 
 
+
+#pragma mark - Indicator output
+
+IndicatorOutput::IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn) :
+  Gpio(aGpioName, true, aInverted, aInitiallyOn),
+  switchOffAt(0),
+  blinkOnTime(0),
+  blinkOffTime(0)
+{
+  MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _2));
+}
+
+
+void IndicatorOutput::onFor(MLMicroSeconds aOnTime)
+{
+  blinkOnTime = 0;
+  blinkOffTime = 0;
+  set(true);
+  if (aOnTime>0)
+    switchOffAt = MainLoop::now()+aOnTime;
+  else
+    switchOffAt = 0;
+}
+
+
+void IndicatorOutput::blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  onFor(aOnTime);
+  blinkOnTime =  (aBlinkPeriod*aOnRatioPercent*10)/1000;
+  blinkOffTime = aBlinkPeriod - blinkOnTime;
+  blinkToggleAt = MainLoop::now()+blinkOnTime;
+}
+
+
+void IndicatorOutput::stop()
+{
+  blinkOnTime = 0;
+  blinkOffTime = 0;
+  switchOffAt = 0;
+  off();
+}
+
+
+bool IndicatorOutput::timer(MLMicroSeconds aTimestamp)
+{
+  // check off time first
+  if (switchOffAt>0 && aTimestamp>=switchOffAt) {
+    stop();
+  }
+  else if (blinkOnTime>0) {
+    // blinking enabled
+    if (aTimestamp>=blinkToggleAt) {
+      if (toggle()) {
+        // turned on, blinkOnTime starts
+        blinkToggleAt = aTimestamp + blinkOnTime;
+      }
+      else {
+        // turned off, blinkOffTime starts
+        blinkToggleAt = aTimestamp + blinkOffTime;
+      }
+    }
+  }
+  return true;
+}

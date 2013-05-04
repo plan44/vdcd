@@ -8,9 +8,6 @@
 
 #include "mainloop.hpp"
 
-#define MAINLOOP_DEFAULT_CYCLE_TIME_MS 100
-
-
 #ifdef __APPLE__
 #include <mach/mach_time.h>
 #endif
@@ -21,8 +18,10 @@
 #pragma mark - MainLoop
 
 
-using namespace p44;
+#define MAINLOOP_DEFAULT_CYCLE_TIME_uS 100000 // 100mS
 
+
+using namespace p44;
 
 // time reference in milliseconds
 MLMicroSeconds MainLoop::now()
@@ -64,7 +63,7 @@ MainLoop *MainLoop::currentMainLoop()
 
 MainLoop::MainLoop() :
 	terminated(false),
-  loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_MS),
+  loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_uS),
   cycleStartTime(0)
 {
 }

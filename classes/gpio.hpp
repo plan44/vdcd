@@ -46,11 +46,18 @@ namespace p44 {
     Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
     ~Gpio();
     /// set state of output (NOP for inputs)
-    /// @param aState new state to set output to
-    void setState(bool aState);
-    /// set state of output (NOP for inputs)
     /// @return current state (actual level on pin for inputs, last set state for outputs)
-    bool getState();
+    bool isSet();
+    /// set state of output (NOP for inputs)
+    /// @param aState new state to set output to
+    void set(bool aState);
+    /// set state to true
+    void on();
+    /// set state to false
+    void off();
+    /// toggle state of output and return new state
+    /// @return new state of output after toggling (for inputs, just returns state like isSet() does)
+    bool toggle();
   };
 
 
@@ -75,7 +82,7 @@ namespace p44 {
     bool poll(MLMicroSeconds aTimestamp);
     
   public:
-    /// Craete pushbutton
+    /// Create pushbutton
     /// @param aGpioName name of the GPIO where the pushbutton is connected
     /// @param aInverted inverted polarity (output high level is treated as logic false)
     ButtonInput(const char* aGpioName, bool aInverted);
@@ -88,6 +95,37 @@ namespace p44 {
     
   };
 
+  /// GPIO used for indicator (e.g. LED)
+  class IndicatorOutput : public Gpio
+  {
+    typedef Gpio inherited;
+
+    MLMicroSeconds switchOffAt;
+    MLMicroSeconds blinkOnTime;
+    MLMicroSeconds blinkOffTime;
+    MLMicroSeconds blinkToggleAt;
+
+    bool timer(MLMicroSeconds aTimestamp);
+
+  public:
+    /// Create indicator output
+    /// @param aGpioName name of the GPIO where the indicator is connected
+    /// @param aInverted inverted polarity (output high level means indicator off)
+    /// @param aInitiallyOn initial state (on or off) of the indicator
+    IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn = false);
+
+    /// activate the output for a certain time period, then switch off again
+    /// @param aOnTime how long indicator should stay active
+    void onFor(MLMicroSeconds aOnTime);
+
+    /// blink indicator for a certain time period, with a given blink period and on ratio
+    /// @param aOnTime how long indicator should stay active, or p44::infinite to keep blinking
+    void blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
+
+    /// stop blinking/timed activation immediately, turn off
+    void stop();
+
+  };
 
 
 
