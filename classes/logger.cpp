@@ -13,7 +13,7 @@ using namespace p44;
 Logger::Logger()
 {
   pthread_mutex_init(&reportMutex, NULL);
-  debugLevel = LOGGER_DEFAULT_LOGLEVEL;
+  logLevel = LOGGER_DEFAULT_LOGLEVEL;
 }
 
 #define LOGBUFSIZ 4096
@@ -21,7 +21,7 @@ Logger::Logger()
 
 bool Logger::logEnabled(int aErrlevel)
 {
-  return (aErrlevel <= debugLevel);
+  return (aErrlevel <= logLevel);
 }
 
 
@@ -67,4 +67,10 @@ void Logger::logSysError(int aErrlevel, int aErrNum)
     // show it
     log(aErrlevel, "System error message: %s\n", buf);
   }
+}
+
+
+void Logger::setLogLevel(int aErrlevel)
+{
+  logLevel = aErrlevel;
 }

@@ -45,17 +45,19 @@
 #define LOGERR(lvl,err) globalLogger.logSysError(lvl,err)
 #define LOGERRNO(lvl) globalLogger.logSysError(lvl)
 
+#define SETLOGLEVEL(lvl) globalLogger.setLogLevel(lvl)
 
 namespace p44 {
 
   class Logger {
     pthread_mutex_t reportMutex;
-    int debugLevel;
+    int logLevel;
   public:
     Logger();
     bool logEnabled(int aErrlevel);
     void log(int aErrlevel, const char *aFmt, ... );
     void logSysError(int aErrlevel, int aErrNum = 0);
+    void setLogLevel(int aErrlevel);
   };
 
 

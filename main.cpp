@@ -100,7 +100,7 @@ public:
 
     if (aNewState==false) {
       // key released
-      /*/
+      //*/
       testBlink = !testBlink;
       if (testBlink)
         yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
@@ -123,9 +123,14 @@ public:
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2), true);
 
 		// initiate device collection
+    /*/
     #warning DALI scanning disabled for now
-    //yellowLED.on();
-		//deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+    /*/
+    SETLOGLEVEL(LOG_INFO);
+    yellowLED.on();
+		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+    //*/
+
 	}
 
 	virtual void devicesCollected(ErrorPtr aError)
