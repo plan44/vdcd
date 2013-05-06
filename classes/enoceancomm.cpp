@@ -241,13 +241,13 @@ int make_telegram(u_int8_t *telegram, u_int8_t rpsData, int press)
   telegram[n++] = 0x1A;
   telegram[n++] = press ? 0x30 : 0x20; // T21 and NU bits ???
   // - optional data
-  telegram[n++] = 0x03; // ???
-  telegram[n++] = 0xFF; // destination
+  telegram[n++] = 0x03; // Subtelegram Number, 3 for set, 1..n for receive
+  telegram[n++] = 0xFF; // destination address, FFFFFFFF = broadcast
   telegram[n++] = 0xFF;
   telegram[n++] = 0xFF;
   telegram[n++] = 0xFF;
-  telegram[n++] = 0xFF; // ??? power?
-  telegram[n++] = 0x00; // ???
+  telegram[n++] = 0xFF; // dBm, send: set to FF, receive: best RSSI value of all subtelegrams
+  telegram[n++] = 0x00; // 0 = unencrypted, 1..F = type of encryption
   // final CRC over all data
   telegram[n] = crc8(telegram+datastart,n-datastart);
   n++;
