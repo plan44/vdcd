@@ -11,11 +11,17 @@
 
 #include "p44bridged_common.hpp"
 
+#include "serialcomm.hpp"
+
 using namespace std;
 
 namespace p44 {
 
+	class EnoceanComm;
 
+  class Esp3Telegram;
+	typedef boost::shared_ptr<Esp3Telegram> Esp3TelegramPtr;
+	/// ESP3 telegram object with byte stream parser and generator
   class Esp3Telegram
   {
   public:
@@ -81,6 +87,33 @@ namespace p44 {
     string description();
 
   };
+	
+	
+  typedef boost::shared_ptr<EnoceanComm> EnoceanCommPtr;
+	// Enocean communication
+	class EnoceanComm : public SerialComm
+	{
+		typedef SerialComm inherited;
+		
+		Esp3TelegramPtr currentIncomingTelegram;
+		
+	public:
+		
+		EnoceanComm(SyncIOMainLoop *aMainLoopP);
+		virtual ~EnoceanComm();
+		
+    /// set the connection parameters to connect to the enOcean TCM310 modem
+    /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
+    /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)
+    void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo);
+		
+    /// derived implementation: deliver bytes to the ESP3 parser
+    /// @param aNumBytes number of bytes ready for accepting
+    /// @param aBytes pointer to bytes buffer
+    /// @return number of bytes parser could accept (normally, all)
+    virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+		
+	};
 
 
 

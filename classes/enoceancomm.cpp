@@ -11,6 +11,9 @@
 
 using namespace p44;
 
+
+#pragma mark - ESP3 telegram object
+
 // enoceansender hex up:
 // 55 00 07 07 01 7A F6 30 00 86 B8 1A 30 03 FF FF FF FF FF 00 C0
 
@@ -309,3 +312,59 @@ uint8_t Esp3Telegram::crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue)
   }
   return aCRCValue;
 }
+
+
+#pragma mark - EnOcean communication handler
+
+// pseudo baudrate for dali bridge must be 9600bd
+#define ENOCEAN_ESP3_BAUDRATE 57600
+
+
+EnoceanComm::EnoceanComm(SyncIOMainLoop *aMainLoopP) :
+	inherited(aMainLoopP)
+{
+}
+
+
+EnoceanComm::~EnoceanComm()
+{
+}
+
+
+void EnoceanComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo)
+{
+  inherited::setConnectionParameters(aConnectionPath, aPortNo, ENOCEAN_ESP3_BAUDRATE);
+	// open connection so we can receive
+	establishConnection();
+}
+
+
+size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
+{
+	size_t remainingBytes = aNumBytes;
+	while (remainingBytes>0) {
+		if (!currentIncomingTelegram) {
+			currentIncomingTelegram = Esp3TelegramPtr(new Esp3Telegram);
+		}
+		// pass bytes to current telegram
+		size_t consumedBytes = currentIncomingTelegram->acceptBytes(remainingBytes, aBytes);
+		if (currentIncomingTelegram->isComplete()) {
+			// TODO: %%%% pass to higher level handling of telegram
+			// %%% for now, just show description
+			printf("Received ESP3 telegram: %s", currentIncomingTelegram->description().c_str());
+			currentIncomingTelegram = NULL; // forget
+		}
+		// continue with rest (if any)
+		aBytes+=consumedBytes;
+		remainingBytes-=consumedBytes;
+	}
+	return aNumBytes-remainingBytes;
+}
+
+
+
+
+
+
+
+

@@ -92,7 +92,7 @@ namespace p44 {
     size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
 
 
-    /// establish the connection to the DALI bridge
+    /// establish the serial connection
     /// @note can be called multiple times, opens connection only if not already open
     bool establishConnection();
 

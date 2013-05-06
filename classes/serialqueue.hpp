@@ -134,10 +134,11 @@ namespace p44 {
   {
     typedef OperationQueue inherited;
 
+    int fdToMonitor;
     SerialOperationTransmitter transmitter;
     SerialOperationReceiver receiver;
-    int fdToMonitor;
-  public:
+  
+	public:
     /// create operation queue linked into specified Synchronous IO mainloop
     SerialOperationQueue(SyncIOMainLoop *aMainLoopP);
     /// destructor
@@ -157,8 +158,8 @@ namespace p44 {
     void queueSerialOperation(SerialOperationPtr aOperation);
 
   private:
-    /// deliver bytes to the most recent waiting operation
-    size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+    /// base class implementation: deliver bytes to the most recent waiting operation
+    virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// SyncIOMainloop handlers
     bool readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);

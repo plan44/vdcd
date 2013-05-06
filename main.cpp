@@ -12,10 +12,13 @@
 
 #include "dalidevicecontainer.hpp"
 
+#include "enoceancomm.hpp" //%%% test
+
 #include "gpio.hpp"
 
 
-#define DEFAULT_CONNECTIONPORT 2101
+#define DEFAULT_DALIPORT 2101
+#define DEFAULT_ENOCEANPORT 2102
 
 #define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
 
@@ -26,11 +29,15 @@ class P44bridged : public Application
 {
 	// the device container
 	DeviceContainer deviceContainer;
-
+		
   IndicatorOutput yellowLED;
   IndicatorOutput greenLED;
   ButtonInput button;
 
+	// %%% Enocean test
+	EnoceanComm *enoceanCommP;
+	
+	
 public:
 
   P44bridged() :
@@ -43,8 +50,11 @@ public:
 	void usage(char *name)
 	{
 		fprintf(stderr, "usage:\n");
-		fprintf(stderr, "  %s [options] (DALI serialportdevice|DALI proxy ipaddr)\n", name);
-		fprintf(stderr, "    -P port : port to connect to (default: %d)\n", DEFAULT_CONNECTIONPORT);
+		fprintf(stderr, "  %s [options]\n", name);
+		fprintf(stderr, "    -a dalipath : DALI serial port device or DALI proxy ipaddr\n");
+		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)", DEFAULT_DALIPORT);
+		fprintf(stderr, "    -e enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
+		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
 	};
 
@@ -57,18 +67,34 @@ public:
 		}
 		bool daemonMode = false;
 		bool verbose = false;
-		int outputport = DEFAULT_CONNECTIONPORT;
+		
+		char *daliname = NULL;
+		int daliport = DEFAULT_DALIPORT;
+
+		char *enoceanname = NULL;
+		int enoceanport = DEFAULT_ENOCEANPORT;
+		
+		
 
 		int c;
-		while ((c = getopt(argc, argv, "dP:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:")) != -1)
 		{
 			switch (c) {
 				case 'd':
 					daemonMode = true;
 					verbose = true;
 					break;
-				case 'P':
-					outputport = atoi(optarg);
+				case 'a':
+					daliname = optarg;
+					break;
+				case 'A':
+					daliport = atoi(optarg);
+					break;
+				case 'b':
+					enoceanname = optarg;
+					break;
+				case 'B':
+					enoceanport = atoi(optarg);
 					break;
 				default:
 					exit(-1);
@@ -81,15 +107,20 @@ public:
 			daemonize();
 		}
 
-		char *outputname = argv[optind++];
-
-
 		// Create static container structure
 		// - Add DALI devices class
-		DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer(1));
-		daliDeviceContainer->daliComm.setConnectionParameters(outputname, outputport);
-		deviceContainer.addDeviceClassContainer(daliDeviceContainer);
+		if (daliname) {
+			DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer(1));
+			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
+			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
+		}
 
+		if (enoceanname) {
+			// TODO: %%% Enocean test
+			enoceanCommP = new EnoceanComm(SyncIOMainLoop::currentMainLoop());
+			enoceanCommP->setConnectionParameters(enoceanname, enoceanport);
+		}
+		
 		// app now ready to run
 		return run();
 	}
