@@ -12,7 +12,7 @@
 
 #include "dalidevicecontainer.hpp"
 
-#include "enoceancomm.hpp" //%%% test
+#include "enoceandevicecontainer.hpp"
 
 #include "gpio.hpp"
 
@@ -34,9 +34,10 @@ class P44bridged : public Application
   IndicatorOutput greenLED;
   ButtonInput button;
 
-	// %%% Enocean test
-	EnoceanComm *enoceanCommP;
-	
+  // Enocean device learning
+  EnoceanDeviceContainerPtr enoceanDeviceContainer;
+  bool deviceLearning;
+
 	
 public:
 
@@ -116,31 +117,59 @@ public:
 		}
 
 		if (enoceanname) {
-			// TODO: %%% Enocean test
-			enoceanCommP = new EnoceanComm(SyncIOMainLoop::currentMainLoop());
-			enoceanCommP->setConnectionParameters(enoceanname, enoceanport);
+			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
+			enoceanDeviceContainer->enoceanComm.setConnectionParameters(daliname, daliport);
+			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
 		}
 		
 		// app now ready to run
 		return run();
 	}
 
-	virtual bool buttonHandler(bool aNewState)
+
+  void deviceLearnHandler(ErrorPtr aStatus)
+  {
+    yellowLED.off(); // end of learn (whatever reason)
+    if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceLearned)) {
+      // show device learned
+      greenLED.blinkFor(1*Second, 333*MilliSecond, 30);
+    }
+    else if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceUnlearned)) {
+      // show device unlearned
+      yellowLED.blinkFor(1*Second, 333*MilliSecond, 30);
+    }
+  }
+
+
+	virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeStamp)
 	{
+    // TODO: %%% clean up, test hacks for now
+    //*/
+    if (aNewState==false) {
+      // released
+      // TODO: check for long press
+      if (!enoceanDeviceContainer->isLearning()) {
+        // start device learning
+        yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+        enoceanDeviceContainer->learnSwitchDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+      }
+      else {
+        // abort device learning
+        enoceanDeviceContainer->stopLearning();
+      }
+    }
+    /*/
     static bool testBlink = false;
 
     if (aNewState==false) {
       // key released
-      //*/
       testBlink = !testBlink;
       if (testBlink)
         yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
       else
         yellowLED.stop();
-      /*/
-      yellowLED.blinkFor(5*Second, 200*MilliSecond);
-      //*/
     }
+    //*/
 
 	  //greenLED.set(aNewState);
 	  return true;
@@ -151,7 +180,7 @@ public:
 	{
     // start button test
 	  greenLED.off();
-    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2), true);
+    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
 
 		// initiate device collection
     /*/

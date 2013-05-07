@@ -13,6 +13,8 @@
 		ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */; };
+		ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B290817393A0700334C71 /* enoceandevice.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -53,6 +55,10 @@
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = error.hpp; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = application.cpp; sourceTree = "<group>"; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = application.hpp; sourceTree = "<group>"; };
+		ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceandevicecontainer.cpp; sourceTree = "<group>"; };
+		ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevicecontainer.hpp; sourceTree = "<group>"; };
+		ED5B290817393A0700334C71 /* enoceandevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceandevice.cpp; sourceTree = "<group>"; };
+		ED5B290917393A0700334C71 /* enoceandevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevice.hpp; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -152,10 +158,14 @@
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
 				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
 				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
+				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
+				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
 				EDCFE855171FE841001D35F3 /* device.cpp */,
 				EDCFE856171FE841001D35F3 /* device.hpp */,
 				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
 				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
+				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
+				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
 			);
 			path = classes;
 			sourceTree = "<group>";
@@ -248,6 +258,8 @@
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
+				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,
+				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

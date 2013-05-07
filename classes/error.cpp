@@ -60,3 +60,16 @@ bool Error::isError(const char *aDomain, ErrorCode aErrorCode) const
 {
   return aErrorCode==errorCode && (aDomain==NULL || strcmp(aDomain, getErrorDomain())==0);
 }
+
+
+bool Error::isOK(ErrorPtr aError)
+{
+  return (aError==NULL || aError->getErrorCode()==0);
+}
+
+
+bool Error::isError(ErrorPtr aError, const char *aDomain, ErrorCode aErrorCode)
+{
+  if (!aError) return false;
+  return aError->isError(aDomain, aErrorCode);
+}
