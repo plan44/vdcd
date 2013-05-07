@@ -12,34 +12,41 @@
 using namespace p44;
 
 
-#pragma mark - ESP3 telegram object
+#pragma mark - ESP3 packet object
 
 // enoceansender hex up:
 // 55 00 07 07 01 7A F6 30 00 86 B8 1A 30 03 FF FF FF FF FF 00 C0
 
-Esp3Telegram::Esp3Telegram() :
+Esp3Packet::Esp3Packet() :
   payloadP(NULL)
 {
   clear();
 }
 
 
-Esp3Telegram::~Esp3Telegram()
+Esp3Packet::~Esp3Packet()
 {
   clear();
 }
 
 
-void Esp3Telegram::clear()
+void Esp3Packet::clear()
+{
+  clearData();
+  memset(header, 0, sizeof(header));
+  state = ps_syncwait;
+}
+
+
+void Esp3Packet::clearData()
 {
   if (payloadP) {
     if (payloadP) delete [] payloadP;
     payloadP = NULL;
   }
   payloadSize = 0;
-  memset(header, 0, sizeof(header));
-  state = ts_syncwait;
 }
+
 
 
 // ESP3 Header
@@ -54,68 +61,68 @@ void Esp3Telegram::clear()
 
 
 
-size_t Esp3Telegram::dataLength()
+size_t Esp3Packet::dataLength()
 {
   return (header[1]<<8) + header[2];
 }
 
-void Esp3Telegram::setDataLength(size_t aNumBytes)
+void Esp3Packet::setDataLength(size_t aNumBytes)
 {
   header[1] = (aNumBytes>>8) & 0xFF;
   header[2] = (aNumBytes) & 0xFF;
 }
 
 
-size_t Esp3Telegram::optDataLength()
+size_t Esp3Packet::optDataLength()
 {
   return header[3];
 }
 
-void Esp3Telegram::setOptDataLength(size_t aNumBytes)
+void Esp3Packet::setOptDataLength(size_t aNumBytes)
 {
   header[3] = aNumBytes;
 }
 
 
-uint8_t Esp3Telegram::packetType()
+PacketType Esp3Packet::packetType()
 {
-  return header[4];
+  return (PacketType)header[4];
 }
 
 
-void Esp3Telegram::setPacketType(uint8_t aPacketType)
+void Esp3Packet::setPacketType(PacketType aPacketType)
 {
-  header[4] = aPacketType;
+  header[4] = (uint8_t)aPacketType;
 }
 
 
-uint8_t Esp3Telegram::headerCRC()
+uint8_t Esp3Packet::headerCRC()
 {
   return crc8(header+1, ESP3_HEADERBYTES-2);
 }
 
 
-uint8_t Esp3Telegram::payloadCRC()
+uint8_t Esp3Packet::payloadCRC()
 {
   if (!payloadP) return 0;
   return crc8(payloadP, payloadSize-1); // last byte of payload is CRC itself
 }
 
 
-bool Esp3Telegram::isComplete()
+bool Esp3Packet::isComplete()
 {
-  return state==ts_complete;
+  return state==ps_complete;
 }
 
 
 
-size_t Esp3Telegram::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
+size_t Esp3Packet::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   size_t replayBytes = 0;
   size_t acceptedBytes = 0;
   uint8_t *replayP;
-  // completed telegrams do not accept any more bytes
-  if (state==ts_complete) return 0;
+  // completed packets do not accept any more bytes
+  if (state==ps_complete) return 0;
   // process bytes
   while (acceptedBytes<aNumBytes || replayBytes>0) {
     uint8_t byte;
@@ -132,17 +139,17 @@ size_t Esp3Telegram::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
       acceptedBytes++;
     }
     switch (state) {
-      case ts_syncwait:
+      case ps_syncwait:
         // waiting for 0x55 sync byte
         if (byte==0x55) {
-          // potential start of telegram
+          // potential start of packet
           header[0] = byte;
           // - start reading header
-          state = ts_headerread;
+          state = ps_headerread;
           dataIndex = 1;
         }
         break;
-      case ts_headerread:
+      case ps_headerread:
         // collecting header bytes 1..5
         header[dataIndex] = byte;
         ++dataIndex;
@@ -155,65 +162,148 @@ size_t Esp3Telegram::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
             replayP = header+1; // consider 2nd byte of already received and stored header as potential start
             replayBytes = ESP3_HEADERBYTES-1;
             // - back to syncwait
-            state = ts_syncwait;
+            state = ps_syncwait;
           }
           else {
             // CRC matches, now read data
-            // - allocate buffer
-            payloadSize = dataLength()+optDataLength()+1; // one byte extra for CRC
-            if (payloadP) delete [] payloadP;
-            payloadP = new uint8_t[payloadSize];
+            // - make sure we have a buffer according to dataLength() and optDataLength()
+            data();
             dataIndex = 0; // start of data read
             // - enter payload read state
-            state = ts_dataread;
+            state = ps_dataread;
           }
         }
         break;
-      case ts_dataread:
+      case ps_dataread:
         // collecting payload
         payloadP[dataIndex] = byte;
         ++dataIndex;
         if (dataIndex==payloadSize) {
           // payload including CRC received
           // - check payload CRC now
-          if (header[payloadSize-1]!=payloadCRC()) {
-            // payload CRC mismatch, discard telegram, start scanning for telegram at next byte
+          if (payloadP[payloadSize-1]!=payloadCRC()) {
+            // payload CRC mismatch, discard packet, start scanning for packet at next byte
             clear();
           }
           else {
-            // telegram is complete,
-            state = ts_complete;
+            // packet is complete,
+            state = ps_complete;
             // just return number of bytes accepted to complete it
             return acceptedBytes;
           }
         }
         break;
       default:
-        // something's wrong, reset the telegram
+        // something's wrong, reset the packet
         clear();
         break;
     }
   }
-  // number of bytes accepted (but telegram not complete)
+  // number of bytes accepted (but packet not complete)
   return acceptedBytes;
 }
 
 
-string Esp3Telegram::description()
+uint8_t *Esp3Packet::data()
+{
+  size_t s = dataLength()+optDataLength()+1; // one byte extra for CRC
+  if (s!=payloadSize || !payloadP) {
+    if (payloadSize>300) {
+      // safety - prevent huge telegrams
+      clearData();
+      return NULL;
+    }
+    payloadSize = s;
+    if (payloadP) delete [] payloadP;
+    payloadP = new uint8_t[payloadSize];
+    memset(payloadP, 0, payloadSize); // zero out
+  }
+  return payloadP;
+}
+
+
+uint8_t *Esp3Packet::optData()
+{
+  uint8_t *o = data();
+  if (o) {
+    o += dataLength();
+  }
+  return o;
+}
+
+
+
+uint8_t Esp3Packet::radio_subtelegrams()
+{
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return 0;
+  return o[0];
+}
+
+
+EnoceanAddress Esp3Packet::radio_destination()
+{
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return 0;
+  return
+    (o[1]<<24) +
+    (o[2]<<16) +
+    (o[3]<<8) +
+    (o[4]);
+}
+
+
+int Esp3Packet::radio_dBm()
+{
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return 0;
+  return -o[5];
+}
+
+
+uint8_t Esp3Packet::radio_security_level()
+{
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return 0;
+  return o[6];
+}
+
+
+
+
+
+
+
+string Esp3Packet::description()
 {
   if (isComplete()) {
-    string t = string_format("ESP3 telegram packet type %d", packetType());
+    string t;
+    if (packetType()==pt_radio) {
+      string_format_append(t,
+        "ESP3 RADIO packet, subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d",
+        radio_subtelegrams(),
+        radio_destination(),
+        radio_dBm(),
+        radio_security_level()
+      );
+    }
+    else {
+      string_format_append(t, "ESP3 packet of type %d", packetType());
+    }
     string_format_append(t, "\n- %3d data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
-      string_format_append(t, "%02X ", payloadP[i]);
-    string_format_append(t, "\n- %3d opt  bytes: ", optDataLength());
-    for (int i=0; i<optDataLength(); i++)
-      string_format_append(t, "%02X ", payloadP[dataLength()+i]);
+      string_format_append(t, "%02X ", data()[i]);
     t.append("\n");
+    if (packetType()==pt_radio) {
+      string_format_append(t, "- %3d opt  bytes: ", optDataLength());
+      for (int i=0; i<optDataLength(); i++)
+        string_format_append(t, "%02X ", optData()[i]);
+      t.append("\n");
+    }
     return t;
   }
   else {
-    return string_format("Incomplete ESP3 telegram in state = %d\n", (int)state);
+    return string_format("Incomplete ESP3 packet in state = %d\n", (int)state);
   }
 }
 
@@ -298,13 +388,13 @@ static u_int8_t CRC8Table[256] = {
 };
 
 
-uint8_t Esp3Telegram::addToCrc8(uint8_t aByte, uint8_t aCRCValue)
+uint8_t Esp3Packet::addToCrc8(uint8_t aByte, uint8_t aCRCValue)
 {
   return CRC8Table[aCRCValue ^ aByte];
 }
 
 
-uint8_t Esp3Telegram::crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue)
+uint8_t Esp3Packet::crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue)
 {
   int i;
   for (i = 0; i<aNumBytes; i++) {
@@ -343,16 +433,16 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
 	size_t remainingBytes = aNumBytes;
 	while (remainingBytes>0) {
-		if (!currentIncomingTelegram) {
-			currentIncomingTelegram = Esp3TelegramPtr(new Esp3Telegram);
+		if (!currentIncomingPacket) {
+			currentIncomingPacket = Esp3PacketPtr(new Esp3Packet);
 		}
 		// pass bytes to current telegram
-		size_t consumedBytes = currentIncomingTelegram->acceptBytes(remainingBytes, aBytes);
-		if (currentIncomingTelegram->isComplete()) {
-			// TODO: %%%% pass to higher level handling of telegram
-			// %%% for now, just show description
-			printf("Received ESP3 telegram: %s", currentIncomingTelegram->description().c_str());
-			currentIncomingTelegram = NULL; // forget
+		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
+		if (currentIncomingPacket->isComplete()) {
+      LOG(LOG_INFO, "Received: %s", currentIncomingPacket->description().c_str());
+      dispatchPacket(currentIncomingPacket);
+      // forget the packet, further incoming bytes will create new packet
+			currentIncomingPacket = NULL; // forget
 		}
 		// continue with rest (if any)
 		aBytes+=consumedBytes;
@@ -362,6 +452,23 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 }
 
 
+void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
+{
+  PacketType pt = aPacket->packetType();
+  if (pt==pt_radio) {
+    // incoming radio packet
+    if (radioPacketHandler) {
+      // call the handler
+      radioPacketHandler(this, aPacket, ErrorPtr());
+    }
+  }
+  else if (pt==pt_response) {
+    // TODO: %%% have queue check for operations awaiting a response command
+  }
+  else {
+    // TODO: %%% handle other packet types
+  }
+}
 
 
 

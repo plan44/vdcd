@@ -17,23 +17,39 @@ using namespace std;
 
 namespace p44 {
 
+  typedef enum {
+    pt_radio = 0x01, // Radio telegram
+    pt_response = 0x02, // Response to any packet
+    pt_radio_sub_tel = 0x03, // Radio subtelegram
+    pt_event_message = 0x04, // Event message
+    pt_common_cmd = 0x05, // Common command
+    pt_smart_ack_command = 0x06, // Smart Ack command
+    pt_remote_man_command = 0x07, // Remote management command
+    pt_manufacturer_specific_cmd_first = 0x80, // first manufacturer specific command
+    pt_manufacturer_specific_cmd_last = 0xFF // last manufacturer specific command
+  } PacketType;
+
+  /// EnOcean addresses (IDs)
+  typedef uint32_t EnoceanAddress;
+  const EnoceanAddress EnoceanBroadcast = 0xFFFFFFFF; // broadcast
+
 	class EnoceanComm;
 
-  class Esp3Telegram;
-	typedef boost::shared_ptr<Esp3Telegram> Esp3TelegramPtr;
-	/// ESP3 telegram object with byte stream parser and generator
-  class Esp3Telegram
+  class Esp3Packet;
+	typedef boost::shared_ptr<Esp3Packet> Esp3PacketPtr;
+	/// ESP3 packet object with byte stream parser and generator
+  class Esp3Packet
   {
   public:
     typedef enum {
-      ts_syncwait,
-      ts_headerread,
-      ts_dataread,
-      ts_complete
-    } TelegramState;
+      ps_syncwait,
+      ps_headerread,
+      ps_dataread,
+      ps_complete
+    } PacketState;
 
   private:
-    TelegramState state;
+    PacketState state;
     uint8_t header[6];
     size_t dataIndex;
     uint8_t *payloadP;
@@ -41,9 +57,9 @@ namespace p44 {
 
     
   public:
-    /// construct empty telegram
-    Esp3Telegram();
-    ~Esp3Telegram();
+    /// construct empty packet
+    Esp3Packet();
+    ~Esp3Packet();
 
     /// add one byte to a ESP3 CRC8
     /// @param aByte the byte to add
@@ -57,8 +73,23 @@ namespace p44 {
     /// @return updated CRC
     static uint8_t crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue = 0);
 
-    /// clear the telegram, now re-start accepting bytes and looking for telegram start
+    /// clear the packet, re-start accepting bytes and looking for packet start
     void clear();
+    /// clear only the payload data/optdata (implicitly happens at setDataLength() and setOptDataLength()
+    void clearData();
+
+    /// check if packet is complete
+    bool isComplete();
+
+    /// swallow bytes until packet is complete
+    /// @param aNumBytes number of bytes ready for accepting
+    /// @param aBytes pointer to bytes buffer
+    /// @return number of bytes operation could accept, 0 if none (means that packet is already complete)
+    size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+
+
+    /// @name access to header fields
+    /// @{
 
     /// data length
     size_t dataLength();
@@ -67,35 +98,64 @@ namespace p44 {
     size_t optDataLength();
     void setOptDataLength(size_t aNumBytes);
     /// packet type
-    uint8_t packetType();
-    void setPacketType(uint8_t aPacketType);
+    PacketType packetType();
+    void setPacketType(PacketType aPacketType);
     /// calculated CRC of header
     uint8_t headerCRC();
     /// calculated CRC of payload, 0 if no payload
     uint8_t payloadCRC();
 
-    /// check if telegram is complete
-    bool isComplete();
+    /// @}
 
-    /// swallow bytes until telegram is complete
-    /// @param aNumBytes number of bytes ready for accepting
-    /// @param aBytes pointer to bytes buffer
-    /// @return number of bytes operation could accept, 0 if none (means that telegram is already complete)
-    size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+
+    /// @name access to raw data
+    /// @{
+
+    /// @return pointer to payload buffer. If no buffer exists, or header size fields have been changed,
+    ///   a new empty buffer is allocated.
+    uint8_t *data();
+
+    /// @return pointer to optional data part of payload
+    uint8_t *optData();
+
+    /// @}
+
+
+
+    /// @name access to radio telegram fields
+    /// @{
+
+    /// @return subtelegram number
+    uint8_t radio_subtelegrams();
+
+    /// @return destination address
+    EnoceanAddress radio_destination();
+
+    /// @return RSSI in dBm (negative, higher (more near zero) values = better signal)
+    int radio_dBm();
+
+    /// @return security level
+    uint8_t radio_security_level();
+
+    /// @}
+
 
     /// description
     string description();
 
   };
-	
-	
+
+
+  typedef boost::function<void (EnoceanComm *aEnoceanCommP, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
+
   typedef boost::shared_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication
 	class EnoceanComm : public SerialComm
 	{
 		typedef SerialComm inherited;
 		
-		Esp3TelegramPtr currentIncomingTelegram;
+		Esp3PacketPtr currentIncomingPacket;
+    RadioPacketCB radioPacketHandler;
 		
 	public:
 		
@@ -112,7 +172,15 @@ namespace p44 {
     /// @param aBytes pointer to bytes buffer
     /// @return number of bytes parser could accept (normally, all)
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
-		
+
+    /// set callback to handle received radio packets 
+    void setRadioPacketHandler(RadioPacketCB aRadioPacketCB);
+
+  protected:
+
+    /// dispatch received Esp3 packets to approriate receiver
+    void dispatchPacket(Esp3PacketPtr aPacket);
+
 	};
 
 
