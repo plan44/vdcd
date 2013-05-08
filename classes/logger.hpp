@@ -57,7 +57,7 @@ namespace p44 {
     bool logEnabled(int aErrlevel);
     void log(int aErrlevel, const char *aFmt, ... );
     void logSysError(int aErrlevel, int aErrNum = 0);
-    void setLogLevel(int aErrlevel);
+    void setLogLevel(int aLogLevel);
   };
 
 } // namespace p44

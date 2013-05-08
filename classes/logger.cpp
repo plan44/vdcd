@@ -72,7 +72,8 @@ void Logger::logSysError(int aErrlevel, int aErrNum)
 }
 
 
-void Logger::setLogLevel(int aErrlevel)
+void Logger::setLogLevel(int aLogLevel)
 {
-  logLevel = aErrlevel;
+  if (aLogLevel<LOG_EMERG || aLogLevel>LOG_DEBUG) return;
+  logLevel = aLogLevel;
 }
