@@ -10,6 +10,8 @@
 
 using namespace p44;
 
+p44::Logger globalLogger;
+
 Logger::Logger()
 {
   pthread_mutex_init(&reportMutex, NULL);

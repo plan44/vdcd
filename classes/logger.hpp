@@ -60,10 +60,11 @@ namespace p44 {
     void setLogLevel(int aErrlevel);
   };
 
-
-  static Logger globalLogger;
-
 } // namespace p44
+
+
+extern p44::Logger globalLogger;
+
 
 
 #endif /* defined(__p44bridged__logger__) */
