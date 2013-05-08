@@ -18,10 +18,17 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
 }
 
 
-void EnoceanDevice::setEnoceanID(EnoceanAddress aAddress, int aSubDeviceIndex)
+EnoceanAddress EnoceanDevice::getEnoceanAddress()
+{
+  return enoceanAddress;
+}
+
+
+
+
+void EnoceanDevice::setEnoceanAddress(EnoceanAddress aAddress)
 {
   enoceanAddress = aAddress;
-  subDeviceIndex = aSubDeviceIndex;
   deriveDSID();
 }
 
@@ -30,7 +37,7 @@ void EnoceanDevice::deriveDSID()
 {
   dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 6
-  dsid.setSerialNo(0x6000000000000ll+enoceanAddress+(((uint64_t)subDeviceIndex&0xF)<<32));
+  dsid.setSerialNo(0x6000000000000ll+getEnoceanAddress());
 }
 
 

@@ -32,11 +32,11 @@ namespace p44 {
   class DeviceContainer;
   typedef boost::shared_ptr<DeviceContainer> DeviceContainerPtr;
   typedef list<DeviceClassContainerPtr> ContainerList;
-  typedef std::map<dSID, DevicePtr> DeviceMap;
+  typedef std::map<dSID, DevicePtr> DsDeviceMap;
 
   class DeviceContainer
   {
-    DeviceMap devices;
+    DsDeviceMap dSDevices;
 
   public:
 

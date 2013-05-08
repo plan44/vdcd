@@ -53,6 +53,14 @@ void DeviceClassContainer::addCollectedDevice(DevicePtr aDevice)
 }
 
 
+void DeviceClassContainer::forgetCollectedDevices()
+{
+  devices.clear();
+}
+
+
+
+
 string DeviceClassContainer::description()
 {
   string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), devices.size());

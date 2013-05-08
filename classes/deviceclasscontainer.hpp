@@ -82,6 +82,10 @@ namespace p44 {
     /// @param aDevice a device object which has a valid dsid
     virtual void addCollectedDevice(DevicePtr aDevice);
 
+    /// Forget previously collected devices
+    virtual void forgetCollectedDevices();
+
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

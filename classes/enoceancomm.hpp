@@ -29,6 +29,24 @@ namespace p44 {
     pt_manufacturer_specific_cmd_last = 0xFF // last manufacturer specific command
   } PacketType;
 
+  typedef enum {
+    rorg_invalid = 0, // pseudo-RORG = invalid
+    rorg_RPS = 0xF6,
+    rorg_1BS = 0xD5,
+    rorg_4BS = 0xA5,
+    rorg_VLD = 0xD2
+  } RadioOrg;
+
+  typedef enum {
+    rpsa_none = 0,
+    rpsa_onOrDown = 0x01,
+    rpsa_offOrUp = 0x02,
+    rpsa_multiple = 0x04,
+    rpsa_pressed = 0x10,
+    rpsa_released = 0x20
+  } RPSAction;
+
+
   /// EnOcean addresses (IDs)
   typedef uint32_t EnoceanAddress;
   const EnoceanAddress EnoceanBroadcast = 0xFFFFFFFF; // broadcast
@@ -47,6 +65,7 @@ namespace p44 {
       ps_dataread,
       ps_complete
     } PacketState;
+
 
   private:
     PacketState state;
@@ -94,14 +113,18 @@ namespace p44 {
     /// data length
     size_t dataLength();
     void setDataLength(size_t aNumBytes);
+
     /// optional data length
     size_t optDataLength();
     void setOptDataLength(size_t aNumBytes);
+
     /// packet type
     PacketType packetType();
     void setPacketType(PacketType aPacketType);
+
     /// calculated CRC of header
     uint8_t headerCRC();
+
     /// calculated CRC of payload, 0 if no payload
     uint8_t payloadCRC();
 
@@ -122,7 +145,7 @@ namespace p44 {
 
 
 
-    /// @name access to radio telegram fields
+    /// @name access to generic radio telegram fields
     /// @{
 
     /// @return subtelegram number
@@ -137,7 +160,39 @@ namespace p44 {
     /// @return security level
     uint8_t radio_security_level();
 
+    /// @return RORG (radio telegram organisation)
+    RadioOrg radio_rorg();
+
+    /// @return radio status byte
+    uint8_t radio_status();
+
+    /// @return sender's address
+    EnoceanAddress radio_sender();
+
+    /// @return the number of radio user data bytes
+    size_t radio_userDataLength();
+
+    /// @return pointer to the radio user data
+    uint8_t *radio_userData();
+
+
     /// @}
+
+
+    /// @name access to RPS (repeated switch) radio telegram fields
+    /// @{
+
+    /// Query number of switches
+    int rps_numRockers();
+
+    /// Query switch action
+    /// @param aButtonIndex, which button to query (0=A, 1=B, ...)
+    /// @return RPSAction action code
+    uint8_t rps_action(uint8_t aButtonIndex);
+
+    /// @}
+
+
 
 
     /// description

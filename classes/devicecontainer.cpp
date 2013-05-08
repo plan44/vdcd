@@ -134,6 +134,7 @@ private:
 
 void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
+  dSDevices.clear(); // forget existing ones
   DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
 }
 
@@ -142,7 +143,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 void DeviceContainer::addCollectedDevice(DevicePtr aDevice)
 {
   // add to container-wide map of devices
-  devices.insert(make_pair(aDevice->dsid, aDevice));
+  dSDevices.insert(make_pair(aDevice->dsid, aDevice));
 }
 
 

@@ -233,6 +233,16 @@ uint8_t *Esp3Packet::optData()
 
 
 
+#pragma mark - radio telegram specifics
+
+
+// Radio telegram optional data
+//  0    : Subtelegram Number, 3 for set, 1..n for receive
+//  1..4 : destination address, FFFFFFFF = broadcast
+//  5    : dBm, send: set to FF, receive: best RSSI value of all subtelegrams
+//  6    : security level: 0 = unencrypted, 1..F = type of encryption
+
+
 uint8_t Esp3Packet::radio_subtelegrams()
 {
   uint8_t *o = optData();
@@ -269,9 +279,164 @@ uint8_t Esp3Packet::radio_security_level()
 }
 
 
+// Radio telegram data
+//  0        : RORG
+//  1..n     : user data, n bytes
+//  n+1..n+4 : sender address
+//  n+5      : status
+//  n+6      : for VLD only: CRC
+
+RadioOrg Esp3Packet::radio_rorg()
+{
+  if (packetType()!=pt_radio) return rorg_invalid; // no radio
+  uint8_t *d = data();
+  if (!d || dataLength()<1) return rorg_invalid; // no RORG
+  return (RadioOrg)d[0]; // this is the RORG byte
+}
+
+
+uint8_t Esp3Packet::radio_status()
+{
+  RadioOrg rorg = radio_rorg();
+  int statusoffset = 0;
+  if (rorg!=rorg_invalid) {
+    statusoffset = (int)dataLength()-1; // last byte is status...
+    if (rorg==rorg_VLD) statusoffset--; // ..except for VLD, where last byte is CRC
+  }
+  if (statusoffset<0) return 0;
+  return data()[statusoffset]; // this is the status byte
+}
 
 
 
+
+size_t Esp3Packet::radio_userDataLength()
+{
+  if (packetType()!=pt_radio) return 0; // no data
+  RadioOrg rorg = radio_rorg();
+  int bytes = (int)dataLength(); // start with actual length
+  bytes -= 1; // RORG byte
+  bytes -= 1; // one status byte
+  bytes -= 4; // 4 bytes for sender
+  if (rorg==rorg_VLD) bytes -= 1; // extra CRC
+  return bytes<0 ? 0 : bytes;
+}
+
+
+uint8_t *Esp3Packet::radio_userData()
+{
+  if (radio_userDataLength()==0) return NULL;
+  uint8_t *d = data();
+  return d+1;
+}
+
+
+EnoceanAddress Esp3Packet::radio_sender()
+{
+  size_t l = radio_userDataLength();
+  if (l>0) {
+    uint8_t *d = data()+1+l; // skip RORG and userdata
+    return
+      (d[0]<<24) +
+      (d[1]<<16) +
+      (d[2]<<8) +
+      d[3];
+  }
+  else
+    return 0;
+}
+
+
+
+
+#pragma mark - RPS repeated switch radio telegram specifics
+
+
+//telegram[n++] = 0xF6; // RPS telegram
+//telegram[n++] = rpsData; // Data: 30=rocker switch up, 10=rocker switch down
+//telegram[n++] = 0x00; // Sender ID, 4 Bytes (hard-coding that of my USB300: 00 86 B8 1A)
+//telegram[n++] = 0x86;
+//telegram[n++] = 0xB8;
+//telegram[n++] = 0x1A;
+//telegram[n++] = press ? 0x30 : 0x20; // T21 and NU bits ???
+
+
+#define STATUS_MASK 0x30
+#define STATUS_T21 0x20
+#define STATUS_NU 0x10 // set if N-Message, cleared if U-Message
+
+
+int Esp3Packet::rps_numRockers()
+{
+  if (radio_rorg()!=rorg_RPS) return 0; // none
+  return (radio_status()&STATUS_T21) ? 2 : 4;
+}
+
+
+
+uint8_t Esp3Packet::rps_action(uint8_t aButtonIndex)
+{
+  uint8_t action = rpsa_none; // none by default
+  if (radio_rorg()==rorg_RPS && aButtonIndex<rps_numRockers()) {
+    uint8_t data = *(radio_userData());
+    uint8_t status = radio_status();
+    if (status & STATUS_NU) {
+      // N-Message
+      // collect action
+      for (int ai=1; ai>=0; ai--) {
+        uint8_t a = (data >> (4*ai+1)) & 0x07;
+        if (ai==0 && (data&0x01)==0)
+          break; // no second action
+        if (((a>>1) & 0x03)==aButtonIndex) {
+          // querying this button
+          // Note: this is for application style 1 (as used in EU, with 0-state up mount)
+          if (a & 0x01)
+            action |= rpsa_offOrUp;
+          else
+            action |= rpsa_onOrDown;
+        }
+      }
+    }
+    else {
+      // U-Message
+      uint8_t b = (data>>5) & 0x07;
+      uint8_t numAffectedRockers = 0;
+      if (status & STATUS_T21) {
+        // 2-rocker
+        if (b==0)
+          numAffectedRockers = rps_numRockers(); // all affected
+        else if(b==3)
+          numAffectedRockers = 2; // 3 or 4 buttons -> both rockers affected
+      }
+      else {
+        // 4-rocker
+        if (b==0)
+          numAffectedRockers = rps_numRockers();
+        else
+          numAffectedRockers = (b+1)>>1; // half of buttons affected = switches affected
+      }
+      if (aButtonIndex<numAffectedRockers) {
+        // this is one of the affected switches
+        action |= rpsa_multiple;
+      }
+    }
+    if (action!=rpsa_none) {
+      // we have an action for this button
+      if (data & 0x10)
+        action |= rpsa_pressed;
+      else
+        action |= rpsa_released;
+    }
+  }
+  return action;
+}
+
+
+
+
+
+
+#pragma mark - Description
 
 
 string Esp3Packet::description()
@@ -280,17 +445,32 @@ string Esp3Packet::description()
     string t;
     if (packetType()==pt_radio) {
       string_format_append(t,
-        "ESP3 RADIO packet, subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d",
+        "ESP3 RADIO rorg=0x%02X,  sender=0x%08lX, status=0x%02X\n"
+        "- subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d\n",
+        radio_rorg(),
+        radio_sender(),
+        radio_status(),
         radio_subtelegrams(),
         radio_destination(),
         radio_dBm(),
         radio_security_level()
       );
+      if (radio_rorg()==rorg_RPS) {
+        for (int s=0; s<rps_numRockers(); s++) {
+          uint8_t a = rps_action(s);
+          string_format_append(t,
+            "- RPS switch %d action = %d (%s %s)\n", s,
+            a,
+            a&rpsa_offOrUp ? "Off/Up" : ((a&rpsa_onOrDown) ? "On/Down" : ((a&rpsa_multiple) ? "multiple" : "")),
+            a&rpsa_pressed ? "pressed" : ((a&rpsa_released) ? "released" : "none")
+          );
+        }
+      }
     }
     else {
-      string_format_append(t, "ESP3 packet of type %d", packetType());
+      string_format_append(t, "ESP3 packet of type %d\n", packetType());
     }
-    string_format_append(t, "\n- %3d data bytes: ", dataLength());
+    string_format_append(t, "- %3d data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
       string_format_append(t, "%02X ", data()[i]);
     t.append("\n");
@@ -307,47 +487,6 @@ string Esp3Packet::description()
   }
 }
 
-
-
-
-
-
-/*
-
-int make_telegram(u_int8_t *telegram, u_int8_t rpsData, int press)
-{
-  // - Header
-  size_t n = 0;
-  telegram[n++] = 0x55; // sync byte
-  telegram[n++] = 0x00; // data length MSB
-  telegram[n++] = 0x07; // data length LSB
-  telegram[n++] = 0x07; // optional data length
-  telegram[n++] = 0x01; // packet type = RADIO
-  telegram[n++] = crc8(telegram+1,4); // CRC over data length, optional data length, packet type
-  // - Payload (RADIO telegram)
-  size_t datastart = n;
-  telegram[n++] = 0xF6; // RPS telegram
-  telegram[n++] = rpsData; // Data: 30=rocker switch up, 10=rocker switch down
-  telegram[n++] = 0x00; // Sender ID, 4 Bytes (hard-coding that of my USB300: 00 86 B8 1A)
-  telegram[n++] = 0x86;
-  telegram[n++] = 0xB8;
-  telegram[n++] = 0x1A;
-  telegram[n++] = press ? 0x30 : 0x20; // T21 and NU bits ???
-  // - optional data
-  telegram[n++] = 0x03; // Subtelegram Number, 3 for set, 1..n for receive
-  telegram[n++] = 0xFF; // destination address, FFFFFFFF = broadcast
-  telegram[n++] = 0xFF;
-  telegram[n++] = 0xFF;
-  telegram[n++] = 0xFF;
-  telegram[n++] = 0xFF; // dBm, send: set to FF, receive: best RSSI value of all subtelegrams
-  telegram[n++] = 0x00; // 0 = unencrypted, 1..F = type of encryption
-  // final CRC over all data
-  telegram[n] = crc8(telegram+datastart,n-datastart);
-  n++;
-  return n;
-}
-
-*/
 
 
 #pragma mark - CRC8 calculation
@@ -429,6 +568,14 @@ void EnoceanComm::setConnectionParameters(const char* aConnectionPath, uint16_t 
 }
 
 
+void EnoceanComm::setRadioPacketHandler(RadioPacketCB aRadioPacketCB)
+{
+  radioPacketHandler = aRadioPacketCB;
+}
+
+
+
+
 size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
 	size_t remainingBytes = aNumBytes;
@@ -439,7 +586,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 		// pass bytes to current telegram
 		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
 		if (currentIncomingPacket->isComplete()) {
-      LOG(LOG_INFO, "Received: %s", currentIncomingPacket->description().c_str());
+      LOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
 			currentIncomingPacket = NULL; // forget

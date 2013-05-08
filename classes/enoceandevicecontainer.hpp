@@ -15,6 +15,9 @@
 
 #include "enoceancomm.hpp"
 
+#include "enoceandevice.hpp"
+
+
 using namespace std;
 
 namespace p44 {
@@ -38,6 +41,11 @@ namespace p44 {
   };
 
 
+  typedef std::map<EnoceanAddress, EnoceanDevicePtr> EnoceanDeviceMap;
+
+  /// @param aSubDeviceIndex subdevice, can be -1 if subdevice cannot be determined (multiple rockers released)
+  /// @return true if locally handled such that no further operation is needed, false otherwise
+  typedef boost::function<bool (EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)> KeyEventHandlerCB;
 
 
   class EnoceanDeviceContainer;
@@ -47,6 +55,9 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
 
     CompletedCB learningCompleteHandler;
+    KeyEventHandlerCB keyEventHandler;
+
+    EnoceanDeviceMap enoceanDevices; ///< local map linking EnoceanDeviceID to devices
 
   public:
     EnoceanDeviceContainer(int aInstanceNumber);
@@ -57,6 +68,13 @@ namespace p44 {
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+
+    virtual void forgetCollectedDevices();
+
+    virtual void addCollectedDevice(DevicePtr aDevice);
+
+//    virtual void removeDevice(DevicePtr aDevice);
+
 
     /// learn RPS device (repeated switch)
     /// Listen for switch device actions with high signal (i.e. which are physically nearby)
@@ -70,9 +88,22 @@ namespace p44 {
     /// stop learning
     void stopLearning();
 
+
+    /// set keypress handler (for local direct operation)
+    void setKeyEventHandler(KeyEventHandlerCB aKeyEventHandler);
+
+  protected:
+
+    /// get device by Address
+    /// @param aDeviceAddress enocean address
+    /// @return the device having the specified Address or empty pointer
+    EnoceanDevicePtr getDeviceByAddress(EnoceanAddress aDeviceAddress);
+
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+
+    void endLearning(ErrorPtr aError);
 
   };
 

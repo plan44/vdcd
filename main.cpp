@@ -27,26 +27,50 @@ using namespace p44;
 
 class P44bridged : public Application
 {
+  // status
+  typedef enum {
+    status_ok,  // ok, all normal
+    status_busy,  // busy, but normal
+    status_interaction, // expecting user interaction
+    status_error, // error
+    status_fatalerror  // fatal error that needs user interaction
+  } P44bridgeStatus;
+
+  // App status
+  P44bridgeStatus appStatus;
+
 	// the device container
 	DeviceContainer deviceContainer;
 		
-  IndicatorOutput yellowLED;
+  IndicatorOutput redLED;
   IndicatorOutput greenLED;
   ButtonInput button;
 
   // Enocean device learning
   EnoceanDeviceContainerPtr enoceanDeviceContainer;
   bool deviceLearning;
-
+  // Direct DALI control from enocean switches
+  DaliDeviceContainerPtr daliDeviceContainer;
 	
 public:
 
   P44bridged() :
-    yellowLED("ledyellow", true, false),
+    redLED("ledyellow", true, false),
     greenLED("ledgreen", true, false),
-    button("button", true)
+    button("button", true),
+    appStatus(status_busy),
+    deviceLearning(false)
   {
+    showAppStatus();
   }
+
+  void setAppStatus(P44bridgeStatus aStatus)
+  {
+    appStatus = aStatus;
+    // update LEDs
+    showAppStatus();
+  }
+
 
 	void usage(char *name)
 	{
@@ -57,6 +81,7 @@ public:
 		fprintf(stderr, "    -e enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
 		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
+		fprintf(stderr, "    -l loglevel : set loglevel (default = %d)\n", LOGGER_DEFAULT_LOGLEVEL);
 	};
 
 	virtual int main(int argc, char **argv)
@@ -78,12 +103,15 @@ public:
 		
 
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:l:")) != -1)
 		{
 			switch (c) {
 				case 'd':
 					daemonMode = true;
 					verbose = true;
+					break;
+				case 'l':
+					SETLOGLEVEL(atoi(optarg));
 					break;
 				case 'a':
 					daliname = optarg;
@@ -111,15 +139,16 @@ public:
 		// Create static container structure
 		// - Add DALI devices class
 		if (daliname) {
-			DaliDeviceContainerPtr daliDeviceContainer(new DaliDeviceContainer(1));
+			daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
 			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
 			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
 		}
 
 		if (enoceanname) {
 			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
-			enoceanDeviceContainer->enoceanComm.setConnectionParameters(daliname, daliport);
+			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
+      enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
 		}
 		
 		// app now ready to run
@@ -127,16 +156,61 @@ public:
 	}
 
 
+  // show global status on LEDs
+  void showAppStatus()
+  {
+    greenLED.stop();
+    redLED.stop();
+    switch (appStatus) {
+      case status_ok:
+        greenLED.on();
+        break;
+      case status_busy:
+        greenLED.on();
+        redLED.on();
+        break;
+      case status_interaction:
+        greenLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+        redLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+        break;
+      case status_error:
+        redLED.on();
+        break;
+      case status_fatalerror:
+        redLED.blinkFor(p44::Infinite, 800*MilliSecond, 50);;
+        break;
+    }
+  }
+
+
+  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
+  {
+    #warning // TODO: refine - now just switches all lamps on/off
+    if (daliDeviceContainer) {
+      if (aAction&rpsa_pressed) {
+        daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, (aAction&rpsa_offOrUp)!=0 ? 0 : 254);
+      }
+      return true;
+    }
+    return false;
+  }
+
+
+
   void deviceLearnHandler(ErrorPtr aStatus)
   {
-    yellowLED.off(); // end of learn (whatever reason)
+    // back to normal...
+    setAppStatus(status_ok);
+    // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
+    // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceLearned)) {
       // show device learned
-      greenLED.blinkFor(1*Second, 333*MilliSecond, 30);
+      greenLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
     }
     else if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceUnlearned)) {
       // show device unlearned
-      yellowLED.blinkFor(1*Second, 333*MilliSecond, 30);
+      redLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
     }
   }
 
@@ -150,7 +224,7 @@ public:
       // TODO: check for long press
       if (!enoceanDeviceContainer->isLearning()) {
         // start device learning
-        yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+        setAppStatus(status_interaction);
         enoceanDeviceContainer->learnSwitchDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
       }
       else {
@@ -186,8 +260,7 @@ public:
     /*/
     #warning DALI scanning disabled for now
     /*/
-    SETLOGLEVEL(LOG_INFO);
-    yellowLED.on();
+    setAppStatus(status_busy);
 		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
     //*/
 
@@ -195,7 +268,10 @@ public:
 
 	virtual void devicesCollected(ErrorPtr aError)
 	{
-    yellowLED.off();
+    if (Error::isOK(aError))
+      setAppStatus(status_ok);
+    else
+      setAppStatus(status_error);
 		DBGLOG(LOG_INFO, deviceContainer.description().c_str());
 	}
 

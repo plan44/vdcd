@@ -109,6 +109,7 @@ private:
 /// @param aCompletedCB will be called when device scan for this device class has been completed
 void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
+  forgetCollectedDevices();
   DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aExhaustive);
 }
 

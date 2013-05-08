@@ -13,9 +13,13 @@
 
 #include "enoceancomm.hpp"
 
+#include "enoceandevice.hpp"
+
 using namespace std;
 
 namespace p44 {
+
+  typedef uint64_t EnoceanDeviceID;
 
   class EnoceanDeviceContainer;
   class EnoceanDevice;
@@ -32,7 +36,11 @@ namespace p44 {
 
     /// set the enocean address and subdevice index (identifying)
     /// @param aAddress 32bit enocean device address/ID
-    void setEnoceanID(EnoceanAddress aAddress, int aSubDeviceIndex);
+    void setEnoceanAddress(EnoceanAddress aAddress);
+
+    /// get number which identifies this enocean (sub)device.
+    /// @return identifier number
+    EnoceanAddress getEnoceanAddress();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
