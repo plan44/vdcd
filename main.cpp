@@ -85,8 +85,8 @@ public:
 		fprintf(stderr, "  %s [options]\n", name);
 		fprintf(stderr, "    -a dalipath : DALI serial port device or DALI proxy ipaddr\n");
 		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
-		fprintf(stderr, "    -e enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
-		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+		fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
+		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -d : fully daemonize\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
 	};
