@@ -146,7 +146,7 @@ Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInverted, bool aInitialSta
       return;
     }
     // set state immediately
-    setState(aInitialState);
+    set(aInitialState);
   }
   else {
     // input

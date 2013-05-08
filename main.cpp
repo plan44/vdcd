@@ -20,6 +20,13 @@
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
 
+#ifdef __APPLE__
+#define DEFAULT_DAEMON_LOGLEVEL LOG_WARN
+#else
+#define DEFAULT_DAEMON_LOGLEVEL LOG_WARNING
+#endif
+#define DEFAULT_LOGLEVEL LOG_INFO
+
 #define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
 
 using namespace p44;
@@ -41,7 +48,7 @@ class P44bridged : public Application
 
 	// the device container
 	DeviceContainer deviceContainer;
-		
+
   IndicatorOutput redLED;
   IndicatorOutput greenLED;
   ButtonInput button;
@@ -51,7 +58,7 @@ class P44bridged : public Application
   bool deviceLearning;
   // Direct DALI control from enocean switches
   DaliDeviceContainerPtr daliDeviceContainer;
-	
+
 public:
 
   P44bridged() :
@@ -77,11 +84,11 @@ public:
 		fprintf(stderr, "usage:\n");
 		fprintf(stderr, "  %s [options]\n", name);
 		fprintf(stderr, "    -a dalipath : DALI serial port device or DALI proxy ipaddr\n");
-		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)", DEFAULT_DALIPORT);
+		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
 		fprintf(stderr, "    -e enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
-		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)", DEFAULT_ENOCEANPORT);
-		fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
-		fprintf(stderr, "    -l loglevel : set loglevel (default = %d)\n", LOGGER_DEFAULT_LOGLEVEL);
+		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+		fprintf(stderr, "    -d : fully daemonize\n");
+		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
 	};
 
 	virtual int main(int argc, char **argv)
@@ -92,15 +99,15 @@ public:
 			exit(1);
 		}
 		bool daemonMode = false;
-		bool verbose = false;
-		
+
 		char *daliname = NULL;
 		int daliport = DEFAULT_DALIPORT;
 
 		char *enoceanname = NULL;
 		int enoceanport = DEFAULT_ENOCEANPORT;
-		
-		
+
+    int loglevel = -1; // use defaults
+
 
 		int c;
 		while ((c = getopt(argc, argv, "da:A:b:B:l:")) != -1)
@@ -108,10 +115,10 @@ public:
 			switch (c) {
 				case 'd':
 					daemonMode = true;
-					verbose = true;
+
 					break;
 				case 'l':
-					SETLOGLEVEL(atoi(optarg));
+					loglevel = atoi(optarg);
 					break;
 				case 'a':
 					daliname = optarg;
@@ -132,9 +139,16 @@ public:
 
 		// daemonize now if requested and in proxy mode
 		if (daemonMode) {
-			printf("Starting background daemon\n");
+			LOG(LOG_INFO, "Starting background daemon\n");
 			daemonize();
+      if (loglevel<0) loglevel = DEFAULT_DAEMON_LOGLEVEL;
 		}
+		else {
+		  if (loglevel<0) loglevel = DEFAULT_LOGLEVEL;
+		}
+
+		// set log level
+		SETLOGLEVEL(loglevel);
 
 		// Create static container structure
 		// - Add DALI devices class
@@ -150,7 +164,7 @@ public:
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
       enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
 		}
-		
+
 		// app now ready to run
 		return run();
 	}
@@ -170,8 +184,8 @@ public:
         redLED.on();
         break;
       case status_interaction:
-        greenLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
-        redLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
+        greenLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
+        redLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
         break;
       case status_error:
         redLED.on();
@@ -222,14 +236,16 @@ public:
     if (aNewState==false) {
       // released
       // TODO: check for long press
-      if (!enoceanDeviceContainer->isLearning()) {
-        // start device learning
-        setAppStatus(status_interaction);
-        enoceanDeviceContainer->learnSwitchDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
-      }
-      else {
-        // abort device learning
-        enoceanDeviceContainer->stopLearning();
+      if (enoceanDeviceContainer) {
+        if (!enoceanDeviceContainer->isLearning()) {
+          // start device learning
+          setAppStatus(status_interaction);
+          enoceanDeviceContainer->learnSwitchDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+        }
+        else {
+          // abort device learning
+          enoceanDeviceContainer->stopLearning();
+        }
       }
     }
     /*/

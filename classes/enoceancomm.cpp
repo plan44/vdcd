@@ -589,7 +589,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
       LOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
-			currentIncomingPacket = NULL; // forget
+			currentIncomingPacket = Esp3PacketPtr(); // forget
 		}
 		// continue with rest (if any)
 		aBytes+=consumedBytes;

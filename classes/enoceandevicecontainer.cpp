@@ -73,16 +73,20 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 
 #ifdef DEBUG
-#define LEARN_WITH_WEEK_SIGNAL 1
+#define MIN_LEARN_DBM -255 // any signal strength
+#warning "DEBUG Learning with weak signal enabled!"
+#else
+#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
 #endif
+
+
+
 
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (isLearning()) {
     // in learn mode, check if strong signal and if so, learn/unlearn
-    #if !LEARN_WITH_WEEK_SIGNAL
-    if (aEsp3PacketPtr->radio_dBm()>-60)
-    #endif
+    if (aEsp3PacketPtr->radio_dBm()>MIN_LEARN_DBM)
     {
       // learn device where at least one button was released
       for (int bi=0; bi<aEsp3PacketPtr->rps_numRockers(); bi++) {
@@ -135,7 +139,7 @@ void EnoceanDeviceContainer::learnSwitchDevice(CompletedCB aCompletedCB, MLMicro
   if (isLearning()) return; // already learning -> NOP
   // start timer for timeout
   learningCompleteHandler = aCompletedCB;
-  MainLoop::currentMainLoop()->executeOnce(bind(&EnoceanDeviceContainer::stopLearning, this), aLearnTimeout);
+  MainLoop::currentMainLoop()->executeOnce(boost::bind(&EnoceanDeviceContainer::stopLearning, this), aLearnTimeout);
 }
 
 
