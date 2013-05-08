@@ -34,7 +34,8 @@ SerialComm::~SerialComm()
 void SerialComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo, int aBaudRate)
 {
   closeConnection();
-  connectionPath = aConnectionPath;
+  if (aConnectionPath)
+    connectionPath = aConnectionPath;
   connectionPort = aPortNo;
   baudRate = aBaudRate;
 }
