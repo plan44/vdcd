@@ -19,6 +19,23 @@ using namespace std;
 
 namespace p44 {
 
+  // Errors
+  typedef enum {
+    DeviceClassErrorOK,
+    DeviceClassErrorInitialize,
+  } DeviceClassErrors;
+	
+  class DeviceClassError : public Error
+  {
+  public:
+    static const char *domain() { return "DeviceClass"; }
+    DeviceClassError(DeviceClassErrors aError) : Error(ErrorCode(aError)) {};
+    DeviceClassError(DeviceClassErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+    virtual const char *getErrorDomain() const { return DeviceClassError::domain(); };
+  };
+	
+	
+	
   class Device;
 
   typedef boost::shared_ptr<Device> DevicePtr;
@@ -34,6 +51,7 @@ namespace p44 {
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceList devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
+		string persistentDataDir; ///<directory path to directory where to store persistent data
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsids for devices that don't have their own
@@ -47,12 +65,35 @@ namespace p44 {
     /// @return associated device container
     DeviceContainer *getDeviceContainerP() const;
 
+		/// initialize
+		/// @param aCompletedCB will be called when initialisation is complete
+		///  callback will return an error if initialisation has failed and the device class is not functional
+    virtual void initialize(CompletedCB aCompletedCB);
+		
+    /// @name persistence
+    /// @{
 
+    /// set the directory where to store persistent data (databases etc.)
+    /// @param aPersistentDataDir full path to directory to save persistent data
+    void setPersistentDataDir(const char *aPersistentDataDir);
+		/// get the persistent data dir path
+		/// @return full path to directory to save persistent data
+		const char *getPersistentDataDir();
+		
+    /// @}
+		
+		
     /// @name identification
     /// @{
 
     /// deviceclass identifier
+		/// @return constant identifier for this container class (no spaces, filename-safe)
     virtual const char *deviceClassIdentifier() const = 0;
+		
+    /// Instance number (to differentiate multiple device class containers of the same class)
+		/// @return instance index number
+		int getInstanceNumber();
+		
 
     /// get a sufficiently unique identifier for this class container
     /// @return ID that identifies this container running on a specific hardware
@@ -75,15 +116,14 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive) = 0;
 
-    /// @}
-
-
     /// Add device collected from hardware side (bus scan, etc.)
     /// @param aDevice a device object which has a valid dsid
     virtual void addCollectedDevice(DevicePtr aDevice);
 
     /// Forget previously collected devices
     virtual void forgetCollectedDevices();
+
+		/// @}
 
 
     /// description of object, mainly for debug and logging

@@ -55,7 +55,11 @@ namespace p44 {
     ///   Usually, a hardware-ID such as the MAC address is used
     string deviceContainerInstanceIdentifier() const;
 
-    /// @name device detection and registration
+		/// initialize
+    /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
+    void initialize(CompletedCB aCompletedCB);
+
+		/// @name device detection and registration
     /// @{
 
     /// collect devices from all device classes

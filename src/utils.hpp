@@ -24,6 +24,11 @@ namespace p44 {
   /// @param aStringToAppendTo std::string to append format to
   /// @param aFormat printf-style format string
   void string_format_append(std::string &aStringToAppendTo, const char *aFormat, ...);
+	
+	/// always return a valid C String, if NULL is passed, an empty string is returned
+	/// @param aNULLOrCStr NULL or C-String
+	/// @return the input string if it is non-NULL, or an empty string
+	const char *nonNullCStr(const char *aNULLOrCStr);
 
 } // namespace p44
 

@@ -70,3 +70,11 @@ void p44::string_format_append(std::string &aStringToAppendTo, const char *aForm
   vStringObjPrintf(aStringToAppendTo,aFormat,true,args);
   va_end(args);
 } // string_format_append
+
+
+const char *p44::nonNullCStr(const char *aNULLOrCStr)
+{
+	if (aNULLOrCStr==NULL) return "";
+	return aNULLOrCStr;
+}
+

@@ -32,6 +32,34 @@ DeviceContainer *DeviceClassContainer::getDeviceContainerP() const
 }
 
 
+void DeviceClassContainer::initialize(CompletedCB aCompletedCB)
+{
+	aCompletedCB(ErrorPtr()); // default to error-free initialisation
+}
+
+
+void DeviceClassContainer::setPersistentDataDir(const char *aPersistentDataDir)
+{
+	persistentDataDir = nonNullCStr(aPersistentDataDir);
+	if (!persistentDataDir.empty() && persistentDataDir[persistentDataDir.length()-1]!='/') {
+		persistentDataDir.append("/");
+	}
+}
+
+
+const char *DeviceClassContainer::getPersistentDataDir()
+{
+	return persistentDataDir.c_str();
+}
+
+
+int DeviceClassContainer::getInstanceNumber()
+{
+	return instanceNumber;
+}
+
+
+
 
 // deviceclass container instance identifier
 string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const

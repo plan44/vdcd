@@ -70,13 +70,13 @@ namespace p44 {
     KeyEventHandlerCB keyEventHandler;
 
     EnoceanDeviceMap enoceanDevices; ///< local map linking EnoceanDeviceID to devices
+		
+		EnoceanPersistence db;
 
   public:
     EnoceanDeviceContainer(int aInstanceNumber);
-
-    /// set the directory where to store persistent data (databases etc.)
-    /// @param aPersistentDataDir full path to directory to save 
-    void setPersistentDataDir(const char *aPersistentDataDir);
+		
+		void initialize(CompletedCB aCompletedCB);
 
     // the Enocean communication object
     EnoceanComm enoceanComm;

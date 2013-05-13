@@ -26,6 +26,48 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 }
 
 
+#pragma mark - DB and initialisation
+
+
+#define SCHEMA_VERSION 1
+
+string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
+{
+  string sql;
+  if (aFromVersion==0) {
+    // create DB from scratch
+		// - use standard globs table for schema version
+    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
+		// - create my tables
+    sql.append(
+			"CREATE TABLE knownDevices ("
+			" ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
+			" enoceanAddress INTEGER"
+			");"
+		);
+    // reached final version in one step
+    aToVersion = SCHEMA_VERSION;
+  }
+  return sql;
+}
+
+
+void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB)
+{
+	string databaseName = getPersistentDataDir();
+	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+	if (db.connectAndInitialize(databaseName.c_str(), SCHEMA_VERSION)!=SQLITE_OK) {
+		aCompletedCB(ErrorPtr(new DeviceClassError(DeviceClassErrorInitialize)));
+		return;
+	}
+	// init ok
+	aCompletedCB(ErrorPtr()); // default to error-free initialisation
+}
+
+
+
+
+#pragma mark - collect devices
 
 void EnoceanDeviceContainer::forgetCollectedDevices()
 {
@@ -70,26 +112,10 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 
 
-#define SCHEMA_VERSION 1
-
-string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
-{
-  string sql;
-  if (aFromVersion==0) {
-    // create DB from scratch
-    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
-    sql.append(
-      "CREATE TABLE enOceanDevices"
-      " %%%" %%%%
-    );
-    // reached final version in one step
-    aToVersion = SCHEMA_VERSION;
-  }
-  return sql;
-}
 
 
 
+#pragma mark - learn and unlearn devices
 
 
 #ifdef DEBUG

@@ -71,7 +71,7 @@ string SQLite3Persistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
       "CREATE TABLE globs ("
       " ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
       " schemaVersion INTEGER"
-      ")";
+      ");";
   }
   return s;
 }

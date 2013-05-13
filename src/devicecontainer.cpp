@@ -83,6 +83,60 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 }
 
 
+class DeviceClassInitializer
+{
+  CompletedCB callback;
+  list<DeviceClassContainerPtr>::iterator nextContainer;
+  DeviceContainer *deviceContainerP;
+public:
+  static void initialize(DeviceContainer *aDeviceContainerP, CompletedCB aCallback)
+  {
+    // create new instance, deletes itself when finished
+    new DeviceClassInitializer(aDeviceContainerP, aCallback);
+  };
+private:
+  DeviceClassInitializer(DeviceContainer *aDeviceContainerP, CompletedCB aCallback) :
+		callback(aCallback),
+		deviceContainerP(aDeviceContainerP)
+  {
+    nextContainer = deviceContainerP->deviceClassContainers.begin();
+    queryNextContainer(ErrorPtr());
+  }
+	
+	
+  void queryNextContainer(ErrorPtr aError)
+  {
+    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
+      (*nextContainer)->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1));
+    else
+      completed(aError);
+  }
+	
+  void containerInitialized(ErrorPtr aError)
+  {
+    // check next
+    ++nextContainer;
+    queryNextContainer(aError);
+  }
+	
+  void completed(ErrorPtr aError)
+  {
+    callback(aError);
+    // done, delete myself
+    delete this;
+  }
+	
+};
+
+
+void DeviceContainer::initialize(CompletedCB aCompletedCB)
+{
+  DeviceClassInitializer::initialize(this, aCompletedCB);
+}
+
+
+
+
 
 class DeviceClassCollector
 {

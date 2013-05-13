@@ -22,7 +22,7 @@
 #define DEFAULT_DBDIR "/tmp"
 
 #ifdef __APPLE__
-#define DEFAULT_DAEMON_LOGLEVEL LOG_WARN
+#define DEFAULT_DAEMON_LOGLEVEL LOG_INFO
 #else
 #define DEFAULT_DAEMON_LOGLEVEL LOG_WARNING
 #endif
@@ -109,7 +109,7 @@ public:
 		char *enoceanname = NULL;
 		int enoceanport = DEFAULT_ENOCEANPORT;
 
-    char *dbdir = DEFAULT_DBDIR;
+    const char *dbdir = DEFAULT_DBDIR;
 
     int loglevel = -1; // use defaults
 
@@ -119,7 +119,6 @@ public:
 			switch (c) {
 				case 'd':
 					daemonMode = true;
-
 					break;
 				case 'l':
 					loglevel = atoi(optarg);
@@ -136,7 +135,7 @@ public:
 				case 'B':
 					enoceanport = atoi(optarg);
 					break;
-				case '2':
+				case 's':
 					dbdir = optarg;
 					break;
 				default:
@@ -162,6 +161,7 @@ public:
 		if (daliname) {
 			daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
 			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
+      daliDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
 		}
 
@@ -240,7 +240,6 @@ public:
 	virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeStamp)
 	{
     // TODO: %%% clean up, test hacks for now
-    //*/
     if (aNewState==false) {
       // released
       // TODO: check for long press
@@ -256,20 +255,6 @@ public:
         }
       }
     }
-    /*/
-    static bool testBlink = false;
-
-    if (aNewState==false) {
-      // key released
-      testBlink = !testBlink;
-      if (testBlink)
-        yellowLED.blinkFor(p44::Infinite, 800*MilliSecond, 80);
-      else
-        yellowLED.stop();
-    }
-    //*/
-
-	  //greenLED.set(aNewState);
 	  return true;
 	}
 
@@ -277,19 +262,27 @@ public:
 	virtual void initialize()
 	{
     // start button test
-	  greenLED.off();
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
-
-		// initiate device collection
-    /*/
-    #warning DALI scanning disabled for now
-    /*/
-    setAppStatus(status_busy);
-		deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
-    //*/
-
+		// initialize the device container
+		deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1));
+	}
+	
+	
+	virtual void initialized(ErrorPtr aError)
+	{
+		if (!Error::isOK(aError)) {
+			// cannot initialize, this is a fatal error
+			setAppStatus(status_fatalerror);
+			// TODO: what should happen next? Wait for restart?
+		}
+		else {
+			// initiate device collection
+			setAppStatus(status_busy);
+			deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+		}
 	}
 
+	
 	virtual void devicesCollected(ErrorPtr aError)
 	{
     if (Error::isOK(aError))
