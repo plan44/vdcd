@@ -70,6 +70,27 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 
 
+#define SCHEMA_VERSION 1
+
+string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
+{
+  string sql;
+  if (aFromVersion==0) {
+    // create DB from scratch
+    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
+    sql.append(
+      "CREATE TABLE enOceanDevices"
+      " %%%" %%%%
+    );
+    // reached final version in one step
+    aToVersion = SCHEMA_VERSION;
+  }
+  return sql;
+}
+
+
+
+
 
 #ifdef DEBUG
 #define LEARN_WITH_WEEK_SIGNAL 1

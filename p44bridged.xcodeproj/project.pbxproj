@@ -15,6 +15,17 @@
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */; };
 		ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B290817393A0700334C71 /* enoceandevice.cpp */; };
+		ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291D1740E72200334C71 /* sqlite3pp.cpp */; };
+		ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */; };
+		ED5B292B1740E72200334C71 /* testaggregate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29211740E72200334C71 /* testaggregate.cpp */; };
+		ED5B292C1740E72200334C71 /* testattach.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29221740E72200334C71 /* testattach.cpp */; };
+		ED5B292D1740E72200334C71 /* testcallback.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29231740E72200334C71 /* testcallback.cpp */; };
+		ED5B292E1740E72200334C71 /* testdisconnect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29241740E72200334C71 /* testdisconnect.cpp */; };
+		ED5B292F1740E72200334C71 /* testfunction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29251740E72200334C71 /* testfunction.cpp */; };
+		ED5B29301740E72200334C71 /* testinsert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29261740E72200334C71 /* testinsert.cpp */; };
+		ED5B29311740E72200334C71 /* testinsertall.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29271740E72200334C71 /* testinsertall.cpp */; };
+		ED5B29321740E72200334C71 /* testselect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29281740E72200334C71 /* testselect.cpp */; };
+		ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2933174124D300334C71 /* sqlite3persistence.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -59,6 +70,20 @@
 		ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevicecontainer.hpp; sourceTree = "<group>"; };
 		ED5B290817393A0700334C71 /* enoceandevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceandevice.cpp; sourceTree = "<group>"; };
 		ED5B290917393A0700334C71 /* enoceandevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevice.hpp; sourceTree = "<group>"; };
+		ED5B291D1740E72200334C71 /* sqlite3pp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite3pp.cpp; sourceTree = "<group>"; };
+		ED5B291E1740E72200334C71 /* sqlite3pp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3pp.h; sourceTree = "<group>"; };
+		ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite3ppext.cpp; sourceTree = "<group>"; };
+		ED5B29201740E72200334C71 /* sqlite3ppext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3ppext.h; sourceTree = "<group>"; };
+		ED5B29211740E72200334C71 /* testaggregate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testaggregate.cpp; sourceTree = "<group>"; };
+		ED5B29221740E72200334C71 /* testattach.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testattach.cpp; sourceTree = "<group>"; };
+		ED5B29231740E72200334C71 /* testcallback.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testcallback.cpp; sourceTree = "<group>"; };
+		ED5B29241740E72200334C71 /* testdisconnect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testdisconnect.cpp; sourceTree = "<group>"; };
+		ED5B29251740E72200334C71 /* testfunction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testfunction.cpp; sourceTree = "<group>"; };
+		ED5B29261740E72200334C71 /* testinsert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testinsert.cpp; sourceTree = "<group>"; };
+		ED5B29271740E72200334C71 /* testinsertall.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testinsertall.cpp; sourceTree = "<group>"; };
+		ED5B29281740E72200334C71 /* testselect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testselect.cpp; sourceTree = "<group>"; };
+		ED5B2933174124D300334C71 /* sqlite3persistence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite3persistence.cpp; sourceTree = "<group>"; };
+		ED5B2934174124D400334C71 /* sqlite3persistence.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sqlite3persistence.hpp; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -102,12 +127,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		ED5B291C1740E72100334C71 /* sqlite3pp */ = {
+			isa = PBXGroup;
+			children = (
+				ED5B291D1740E72200334C71 /* sqlite3pp.cpp */,
+				ED5B291E1740E72200334C71 /* sqlite3pp.h */,
+				ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */,
+				ED5B29201740E72200334C71 /* sqlite3ppext.h */,
+				ED5B29211740E72200334C71 /* testaggregate.cpp */,
+				ED5B29221740E72200334C71 /* testattach.cpp */,
+				ED5B29231740E72200334C71 /* testcallback.cpp */,
+				ED5B29241740E72200334C71 /* testdisconnect.cpp */,
+				ED5B29251740E72200334C71 /* testfunction.cpp */,
+				ED5B29261740E72200334C71 /* testinsert.cpp */,
+				ED5B29271740E72200334C71 /* testinsertall.cpp */,
+				ED5B29281740E72200334C71 /* testselect.cpp */,
+			);
+			path = sqlite3pp;
+			sourceTree = "<group>";
+		};
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
-				ED6D7BE71716B6B1005DED18 /* classes */,
-				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
-				ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */,
+				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
 				ED6D7BDC1716B63A005DED18 /* Products */,
@@ -122,9 +164,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		ED6D7BE71716B6B1005DED18 /* classes */ = {
+		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ED5B291C1740E72100334C71 /* sqlite3pp */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
@@ -139,6 +182,8 @@
 				ED0E441D1732FE4F00C4C283 /* application.hpp */,
 				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
 				EDB2844C1733DE2A00EAE5DE /* gpio.hpp */,
+				ED5B2933174124D300334C71 /* sqlite3persistence.cpp */,
+				ED5B2934174124D400334C71 /* sqlite3persistence.hpp */,
 				EDB284421732965700EAE5DE /* operationqueue.cpp */,
 				EDB284431732965700EAE5DE /* operationqueue.hpp */,
 				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
@@ -166,8 +211,10 @@
 				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
 				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
+				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
+				ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */,
 			);
-			path = classes;
+			path = src;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,6 +307,17 @@
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
+				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
+				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
+				ED5B292B1740E72200334C71 /* testaggregate.cpp in Sources */,
+				ED5B292C1740E72200334C71 /* testattach.cpp in Sources */,
+				ED5B292D1740E72200334C71 /* testcallback.cpp in Sources */,
+				ED5B292E1740E72200334C71 /* testdisconnect.cpp in Sources */,
+				ED5B292F1740E72200334C71 /* testfunction.cpp in Sources */,
+				ED5B29301740E72200334C71 /* testinsert.cpp in Sources */,
+				ED5B29311740E72200334C71 /* testinsertall.cpp in Sources */,
+				ED5B29321740E72200334C71 /* testselect.cpp in Sources */,
+				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
