@@ -17,6 +17,8 @@
 
 #include "enoceandevice.hpp"
 
+#include "sqlite3persistence.hpp"
+
 
 using namespace std;
 
@@ -48,6 +50,16 @@ namespace p44 {
   typedef boost::function<bool (EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)> KeyEventHandlerCB;
 
 
+  /// persistence for enocean device container
+  class EnoceanPersistence : public SQLite3Persistence
+  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
   class EnoceanDeviceContainer;
   typedef boost::shared_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
   class EnoceanDeviceContainer : public DeviceClassContainer
@@ -61,6 +73,10 @@ namespace p44 {
 
   public:
     EnoceanDeviceContainer(int aInstanceNumber);
+
+    /// set the directory where to store persistent data (databases etc.)
+    /// @param aPersistentDataDir full path to directory to save 
+    void setPersistentDataDir(const char *aPersistentDataDir);
 
     // the Enocean communication object
     EnoceanComm enoceanComm;
