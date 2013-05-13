@@ -64,7 +64,7 @@ namespace p44 {
   {
     typedef SerialOperationQueue inherited;
 
-    // connection to the bridge
+    // serial connection
     string connectionPath;
     uint16_t connectionPort;
     int baudRate;
@@ -99,7 +99,7 @@ namespace p44 {
     /// close the current connection, if any
     void closeConnection();
 
-    /// set DALI bus error not handled by callback
+    /// set Error not handled by a callback
     void setUnhandledError(ErrorPtr aError);
 
     /// get last unhandled error and clear it

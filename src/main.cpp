@@ -20,6 +20,8 @@
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
 
+#define DEFAULT_DBDIR "/tmp"
+
 #define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
 
 using namespace p44;
@@ -82,6 +84,7 @@ public:
 		fprintf(stderr, "    -E enoceanport : port number for enocean proxy ipaddr (default=%d)", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -d : fully daemonize and suppress showing byte transfer messages on stdout\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d)\n", LOGGER_DEFAULT_LOGLEVEL);
+		fprintf(stderr, "    -s dirpath : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
 	};
 
 	virtual int main(int argc, char **argv)
@@ -99,11 +102,11 @@ public:
 
 		char *enoceanname = NULL;
 		int enoceanport = DEFAULT_ENOCEANPORT;
-		
-		
+
+    char *dbdir = DEFAULT_DBDIR;
 
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:l:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:l:s:")) != -1)
 		{
 			switch (c) {
 				case 'd':
@@ -124,6 +127,9 @@ public:
 					break;
 				case 'B':
 					enoceanport = atoi(optarg);
+					break;
+				case '2':
+					dbdir = optarg;
 					break;
 				default:
 					exit(-1);
@@ -147,6 +153,7 @@ public:
 		if (enoceanname) {
 			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
 			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
+      enoceanDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
       enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
 		}

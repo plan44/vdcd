@@ -8,7 +8,6 @@
 
 #include "enoceandevicecontainer.hpp"
 
-
 using namespace p44;
 
 
