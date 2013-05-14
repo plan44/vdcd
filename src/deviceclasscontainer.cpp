@@ -84,7 +84,13 @@ void DeviceClassContainer::addDevice(DevicePtr aDevice)
 // delete a device
 void DeviceClassContainer::removeDevice(DevicePtr aDevice)
 {
-  #error to be implemented, find and remove device in my own list
+	// find and remove from my list.
+	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+		if (*pos==aDevice) {
+			devices.erase(pos);
+			break;
+		}
+	}
   // announce to global device container
   deviceContainerP->removeDevice(aDevice);
 }

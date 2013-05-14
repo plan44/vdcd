@@ -95,6 +95,18 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
 }
 
 
+void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice)
+{
+  inherited::removeDevice(aDevice);
+  EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
+  if (ed) {
+    enoceanDevices.erase(ed->getEnoceanAddress());
+  }
+}
+
+
+
+
 
 EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDeviceAddress)
 {
