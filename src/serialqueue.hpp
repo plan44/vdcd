@@ -31,9 +31,9 @@ namespace p44 {
   {
   public:
     static const char *domain() { return "SerialQueue"; };
+    virtual const char *getErrorDomain() const { return SQError::domain(); };
     SQError(SQErrors aError) : Error(ErrorCode(aError)) {};
     SQError(SQErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-    virtual const char *getErrorDomain() const { return SQError::domain(); };
   };
 
 

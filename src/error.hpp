@@ -17,6 +17,12 @@ namespace p44 {
 
   typedef long ErrorCode;
 
+  typedef enum {
+    ErrorOK,
+  } CommonErrors;
+
+
+  /// error base class
   class Error;
   typedef boost::shared_ptr<Error> ErrorPtr;
   class Error {
@@ -52,6 +58,27 @@ namespace p44 {
     /// @return true if OK
     static bool isOK(ErrorPtr aError);
   };
+
+
+  /// C errno based system error
+  class SysError : public Error
+  {
+  public:
+    static const char *domain();
+    virtual const char *getErrorDomain() const;
+    /// create system error from current errno and set message to strerror() text
+    SysError(const char *aContextMessage = NULL);
+    /// create system error from passed errno and set message to strerror() text
+    /// @param aErrNo a errno error number
+    SysError(int aErrNo, const char *aContextMessage = NULL);
+    /// factory function to create a ErrorPtr either containing NULL (if errno indicates OK)
+    /// or a SysError (if errno indicates error)
+    static ErrorPtr errNo(const char *aContextMessage = NULL);
+    /// factory function to create a ErrorPtr either containing NULL (if aErrNo indicates OK)
+    /// or a SysError (if aErrNo indicates error)
+    static ErrorPtr err(int aErrNo, const char *aContextMessage = NULL);
+  };
+
 
 } // namespace p44
 

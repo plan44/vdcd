@@ -37,9 +37,9 @@ namespace p44 {
   {
   public:
     static const char *domain() { return "Enocean"; }
+    virtual const char *getErrorDomain() const { return EnoceanError::domain(); };
     EnoceanError(EnoceanErrors aError) : Error(ErrorCode(aError)) {};
     EnoceanError(EnoceanErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-    virtual const char *getErrorDomain() const { return EnoceanError::domain(); };
   };
 
 
@@ -76,20 +76,30 @@ namespace p44 {
   public:
     EnoceanDeviceContainer(int aInstanceNumber);
 		
-		void initialize(CompletedCB aCompletedCB);
+		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
     // the Enocean communication object
     EnoceanComm enoceanComm;
+
+
+    /// @name iteration
+    /// @{
+
+    virtual iterator begin() { return enoceanDevices.begin(); }
+    virtual iterator end()  { return enoceanDevices.end(); };
+
+    /// @}
+
 
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    virtual void forgetCollectedDevices();
+    virtual void forgetDevices();
 
-    virtual void addCollectedDevice(DevicePtr aDevice);
+    virtual void addDevice(DevicePtr aDevice);
 
-//    virtual void removeDevice(DevicePtr aDevice);
+    virtual void removeDevice(DevicePtr aDevice);
 
 
     /// learn RPS device (repeated switch)

@@ -82,7 +82,7 @@ private:
       //   Note: device info might be empty except for short address
       daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
       // - add it to our collection
-      daliDeviceContainerP->addCollectedDevice(daliDevice);
+      daliDeviceContainerP->addDevice(daliDevice);
     }
     else {
       DBGLOG(LOG_INFO,"Error reading device info: %s\n",aError->description().c_str());
@@ -109,7 +109,7 @@ private:
 /// @param aCompletedCB will be called when device scan for this device class has been completed
 void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
-  forgetCollectedDevices();
+  forgetDevices();
   DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aExhaustive);
 }
 

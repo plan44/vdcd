@@ -88,16 +88,18 @@ class DeviceClassInitializer
   CompletedCB callback;
   list<DeviceClassContainerPtr>::iterator nextContainer;
   DeviceContainer *deviceContainerP;
+  bool factoryReset;
 public:
-  static void initialize(DeviceContainer *aDeviceContainerP, CompletedCB aCallback)
+  static void initialize(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aFactoryReset)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassInitializer(aDeviceContainerP, aCallback);
+    new DeviceClassInitializer(aDeviceContainerP, aCallback, aFactoryReset);
   };
 private:
-  DeviceClassInitializer(DeviceContainer *aDeviceContainerP, CompletedCB aCallback) :
+  DeviceClassInitializer(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aFactoryReset) :
 		callback(aCallback),
-		deviceContainerP(aDeviceContainerP)
+		deviceContainerP(aDeviceContainerP),
+    factoryReset(aFactoryReset)
   {
     nextContainer = deviceContainerP->deviceClassContainers.begin();
     queryNextContainer(ErrorPtr());
@@ -106,8 +108,8 @@ private:
 	
   void queryNextContainer(ErrorPtr aError)
   {
-    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
-      (*nextContainer)->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1));
+    if ((!aError || factoryReset) && nextContainer!=deviceContainerP->deviceClassContainers.end())
+      (*nextContainer)->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
     else
       completed(aError);
   }
@@ -129,9 +131,9 @@ private:
 };
 
 
-void DeviceContainer::initialize(CompletedCB aCompletedCB)
+void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  DeviceClassInitializer::initialize(this, aCompletedCB);
+  DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
 }
 
 
@@ -193,12 +195,25 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 }
 
 
-// add a newly collected device
-void DeviceContainer::addCollectedDevice(DevicePtr aDevice)
+// add a new device, replaces possibly existing one based on dsid
+void DeviceContainer::addDevice(DevicePtr aDevice)
+{
+  // set for given dsid in the container-wide map of devices
+  dSDevices[aDevice->dsid] = aDevice;
+  DBGLOG(LOG_INFO,"--- added device: %s", aDevice->description().c_str());
+  // TODO: make sure device gets registered with the vdSM
+}
+
+
+// remove a device
+void DeviceContainer::removeDevice(DevicePtr aDevice)
 {
   // add to container-wide map of devices
-  dSDevices.insert(make_pair(aDevice->dsid, aDevice));
+  dSDevices.erase(aDevice->dsid);
+  DBGLOG(LOG_INFO,"--- removed device: %s", aDevice->description().c_str());
+  // TODO: make sure device gets unregistered with the vdSM
 }
+
 
 
 

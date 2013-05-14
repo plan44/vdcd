@@ -8,8 +8,14 @@
 
 #include "error.hpp"
 
+#include <string.h>
+#include <errno.h>
+
+#include "utils.hpp"
+
 using namespace p44;
 
+#pragma mark - error base class
 
 Error::Error(ErrorCode aErrorCode)
 {
@@ -73,3 +79,46 @@ bool Error::isError(ErrorPtr aError, const char *aDomain, ErrorCode aErrorCode)
   if (!aError) return false;
   return aError->isError(aDomain, aErrorCode);
 }
+
+
+#pragma mark - system error
+
+
+const char *SysError::domain()
+{
+  return "System";
+}
+
+const char *SysError::getErrorDomain() const
+{
+  return SysError::domain();
+}
+
+
+SysError::SysError(const char *aContextMessage) :
+  Error(errno, string(nonNullCStr(aContextMessage)).append(nonNullCStr(strerror(errno))))
+{
+}
+
+
+SysError::SysError(int aErrNo, const char *aContextMessage) :
+  Error(aErrNo, nonNullCStr(strerror(aErrNo)))
+{
+}
+
+
+ErrorPtr SysError::errNo(const char *aContextMessage)
+{
+  if (errno==0)
+    return ErrorPtr(); // empty, no error
+  return ErrorPtr(new SysError::SysError(aContextMessage));
+}
+
+
+ErrorPtr SysError::err(int aErrNo, const char *aContextMessage)
+{
+  if (aErrNo==0)
+    return ErrorPtr(); // empty, no error
+  return ErrorPtr(new SysError::SysError(aErrNo, aContextMessage));
+}
+

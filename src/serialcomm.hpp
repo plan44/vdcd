@@ -39,9 +39,7 @@ namespace p44 {
   // Errors
   typedef enum {
     SerialCommErrorOK,
-    SerialCommErrorSocketOpen,
     SerialCommErrorInvalidHost,
-    SerialCommErrorSerialOpen,
     SerialCommErrorUnknownBaudrate,
   } SerialCommErrors;
 
@@ -49,9 +47,9 @@ namespace p44 {
   {
   public:
     static const char *domain() { return "SerialComm"; }
+    virtual const char *getErrorDomain() const { return SerialCommError::domain(); };
     SerialCommError(SerialCommErrors aError) : Error(ErrorCode(aError)) {};
     SerialCommError(SerialCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-    virtual const char *getErrorDomain() const { return SerialCommError::domain(); };
   };
 
 

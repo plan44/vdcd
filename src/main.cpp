@@ -264,7 +264,7 @@ public:
     // start button test
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
 		// initialize the device container
-		deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1));
+		deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
 	}
 	
 	

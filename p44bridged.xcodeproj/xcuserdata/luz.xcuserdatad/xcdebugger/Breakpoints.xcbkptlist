@@ -46,13 +46,13 @@
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "src/main.cpp"
-         timestampString = "390169536.73063"
+         filePath = "src/sqlite3persistence.cpp"
+         timestampString = "390219587.591782"
          startingColumnNumber = "9223372036854775807"
          endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "267"
-         endingLineNumber = "267"
-         landmarkName = "initialize()"
+         startingLineNumber = "54"
+         endingLineNumber = "54"
+         landmarkName = "SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset)"
          landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>

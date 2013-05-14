@@ -128,7 +128,7 @@ bool SerialComm::establishConnection()
       connectionFd = open(connectionPath.c_str(), O_RDWR | O_NOCTTY);
       if (connectionFd<0) {
         LOGERRNO(LOG_ERR);
-        setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorSerialOpen)));
+        setUnhandledError(SysError::errNo("Cannot open serial port: "));
         return false;
       }
       tcgetattr(connectionFd,&oldTermIO); // save current port settings
@@ -155,7 +155,7 @@ bool SerialComm::establishConnection()
       struct sockaddr_in conn_addr;
       if ((connectionFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         LOG(LOG_ERR,"Error: Could not create socket\n");
-        setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorSocketOpen)));
+        setUnhandledError(SysError::errNo("Cannot create socket: "));
         return false;
       }
       // prepare IP address
@@ -172,7 +172,7 @@ bool SerialComm::establishConnection()
       memcpy((char *)&conn_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
       if ((res = connect(connectionFd, (struct sockaddr *)&conn_addr, sizeof(conn_addr))) < 0) {
         LOGERRNO(LOG_ERR);
-        setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorSocketOpen)));
+        setUnhandledError(SysError::errNo("Cannot open socket: "));
         return false;
       }
     }

@@ -28,9 +28,9 @@ namespace p44 {
   {
   public:
     static const char *domain() { return "OperationQueue"; };
+    virtual const char *getErrorDomain() const { return OQError::domain(); };
     OQError(OQErrors aError) : Error(ErrorCode(aError)) {};
     OQError(OQErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-    virtual const char *getErrorDomain() const { return OQError::domain(); };
   };
 
 

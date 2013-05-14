@@ -52,16 +52,12 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB)
+void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-	if (db.connectAndInitialize(databaseName.c_str(), SCHEMA_VERSION)!=SQLITE_OK) {
-		aCompletedCB(ErrorPtr(new DeviceClassError(DeviceClassErrorInitialize)));
-		return;
-	}
-	// init ok
-	aCompletedCB(ErrorPtr()); // default to error-free initialisation
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), SCHEMA_VERSION, aFactoryReset);
+	aCompletedCB(error); // return status of DB init
 }
 
 
@@ -69,9 +65,9 @@ void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB)
 
 #pragma mark - collect devices
 
-void EnoceanDeviceContainer::forgetCollectedDevices()
+void EnoceanDeviceContainer::forgetDevices()
 {
-  inherited::forgetCollectedDevices();
+  inherited::forgetDevices();
   enoceanDevices.clear();
 }
 
@@ -80,18 +76,18 @@ void EnoceanDeviceContainer::forgetCollectedDevices()
 void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
   // TODO: actually collect
-  forgetCollectedDevices();
+  forgetDevices();
   // - read learned-in enOcean button IDs from DB
   // - create EnoceanDevice objects
-  // - addCollectedDevice(enoceanDevice);
+  // - addDevice(enoceanDevice);
   // %%% for now, just return ok
   aCompletedCB(ErrorPtr());
 }
 
 
-void EnoceanDeviceContainer::addCollectedDevice(DevicePtr aDevice)
+void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
 {
-  inherited::addCollectedDevice(aDevice);
+  inherited::addDevice(aDevice);
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
     enoceanDevices[ed->getEnoceanAddress()] = ed;

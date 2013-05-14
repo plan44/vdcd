@@ -39,9 +39,9 @@ namespace p44 {
   {
   public:
     static const char *domain() { return "DaliComm"; }
+    virtual const char *getErrorDomain() const { return DaliCommError::domain(); };
     DaliCommError(DaliCommErrors aError) : Error(ErrorCode(aError)) {};
     DaliCommError(DaliCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-    virtual const char *getErrorDomain() const { return DaliCommError::domain(); };
   };
 
 

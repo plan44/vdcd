@@ -57,7 +57,7 @@ namespace p44 {
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
-    void initialize(CompletedCB aCompletedCB);
+    void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
 		/// @name device detection and registration
     /// @{
@@ -69,8 +69,15 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
     void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    /// called by device class containers to add collected devices to the container-wide devices list
-    void addCollectedDevice(DevicePtr aDevice);
+    /// called by device class containers to add devices to the container-wide devices list
+    /// @param aDevice a device object which has a valid dsid
+    /// @note this can be called as part of a collectDevices scan, or when a new device is detected
+    ///   by other means than a scan/collect operation
+    void addDevice(DevicePtr aDevice);
+
+    /// called by device class containers to remove devices from the container-wide list
+    /// @param aDevice a device object which has a valid dsid
+    void removeDevice(DevicePtr aDevice);
 
     /// @}
 

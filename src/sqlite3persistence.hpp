@@ -11,13 +11,31 @@
 
 #include "sqlite3pp/sqlite3pp.h"
 
+#include "error.hpp"
+
 using namespace std;
 
 namespace p44 {
 
+  
+  #define SQLITE_PERSISTENCE_ERR_MIGRATION -99
+  #define SQLITE_PERSISTENCE_ERR_SCHEMATOONEW -98
+
+  /// SQLite3 error code based error
+  class SQLite3Error : public Error
+  {
+  public:
+    static const char *domain();
+    virtual const char *getErrorDomain() const;
+    SQLite3Error(int aSQLiteError, const char *aSQLiteMessage, const char *aContextMessage = NULL);
+    static ErrorPtr err(int aSQLiteError, const char *aSQLiteMessage, const char *aContextMessage = NULL);
+  };
+
+
   class SQLite3Persistence : public sqlite3pp::database
   {
     typedef sqlite3pp::database inherited;
+    bool initialized;
   protected:
     /// Get DB Schema upgrade SQL statements
     /// @param aFromVersion current version (0=no database)
@@ -25,11 +43,23 @@ namespace p44 {
     /// @return SQL statements needed to get to aToVersion, empty string if no migration is possible  
     virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
   public:
+    SQLite3Persistence();
+    ~SQLite3Persistence();
+
+    /// get current SQLite3 error as a Error object
+    ErrorPtr error(const char *aContextMessage = NULL);
+
     /// connects to DB, and performs initialisation/migration as needed to be compatible with the given version
     /// @param aDatabaseFileName the SQLite3 database file path
     /// @param aNeededSchemaVersion the schema version needed to use the DB
     /// @param returns SQLITE_OK or SQLite error code
-    int connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion);
+    ErrorPtr connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset);
+
+    /// check if database is available (was initialized correctly)
+    bool isAvailable();
+
+    /// disconnect and finalize
+    void finalizeAndDisconnect();
   };
 
 }

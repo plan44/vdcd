@@ -32,7 +32,7 @@ DeviceContainer *DeviceClassContainer::getDeviceContainerP() const
 }
 
 
-void DeviceClassContainer::initialize(CompletedCB aCompletedCB)
+void DeviceClassContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
 	aCompletedCB(ErrorPtr()); // default to error-free initialisation
 }
@@ -71,19 +71,25 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 }
 
 
-// add a newly collected device
-void DeviceClassContainer::addCollectedDevice(DevicePtr aDevice)
+// add a device
+void DeviceClassContainer::addDevice(DevicePtr aDevice)
 {
-  // save in my own list
-  devices.push_back(aDevice);
   // announce to global device container
-  deviceContainerP->addCollectedDevice(aDevice);
+  deviceContainerP->addDevice(aDevice);
 }
 
 
-void DeviceClassContainer::forgetCollectedDevices()
+// add a newly collected device
+void DeviceClassContainer::removeDevice(DevicePtr aDevice)
 {
-  devices.clear();
+  // announce to global device container
+  deviceContainerP->addDevice(aDevice);
+}
+
+
+
+void DeviceClassContainer::forgetDevices()
+{
 }
 
 
