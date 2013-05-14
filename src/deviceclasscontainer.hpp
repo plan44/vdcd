@@ -15,9 +15,6 @@
 
 #include "dsid.hpp"
 
-#include <boost/range/detail/any_iterator.hpp>
-
-
 using namespace std;
 
 namespace p44 {
@@ -44,37 +41,17 @@ namespace p44 {
   typedef boost::shared_ptr<Device> DevicePtr;
 
 
-//  template<typename T>  class device_iterator :
-//    public std::iterator<std::forward_iterator_tag, /* type of iterator */ T,ptrdiff_t,const T*,const T&> // Info about iterator
-//  {
-//  public:
-//    const T& operator*() const;
-//    const T* operator->() const;
-//    device_iterator& operator++();
-//    device_iterator operator++(int);
-//    bool equal(device_iterator const& rhs) const;
-//  };
-//
-//  template<typename T>
-//  inline bool operator==(device_iterator<T> const& lhs,device_iterator<T> const& rhs)
-//  {
-//    return lhs.equal(rhs);
-//  }
-
-
-
   class DeviceClassContainer;
   typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
+  typedef std::list<DevicePtr> DeviceList;
   class DeviceClassContainer
   {
     DeviceClassContainerWeakPtr mySelf; ///< weak pointer to myself
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
+    DeviceList devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
 		string persistentDataDir; ///<directory path to directory where to store persistent data
-  protected:
-    typedef boost::range_detail::any_iterator<DevicePtr, std::forward_iterator_tag, DevicePtr&, std::ptrdiff_t> iterator;
-				
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsids for devices that don't have their own
@@ -93,17 +70,6 @@ namespace p44 {
 		///  callback will return an error if initialisation has failed and the device class is not functional
     virtual void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 		
-    /// @name iteration
-    /// @{
-
-    virtual iterator begin() = 0;
-    virtual iterator end() = 0;
-    virtual size_t size() = 0;
-
-    /// @}
-
-
-
     /// @name persistence
     /// @{
 

@@ -74,22 +74,26 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 // add a device
 void DeviceClassContainer::addDevice(DevicePtr aDevice)
 {
+  // save in my own list
+  devices.push_back(aDevice);
   // announce to global device container
   deviceContainerP->addDevice(aDevice);
 }
 
 
-// add a newly collected device
+// delete a device
 void DeviceClassContainer::removeDevice(DevicePtr aDevice)
 {
+  #error to be implemented, find and remove device in my own list
   // announce to global device container
-  deviceContainerP->addDevice(aDevice);
+  deviceContainerP->removeDevice(aDevice);
 }
 
 
 
 void DeviceClassContainer::forgetDevices()
 {
+  devices.clear();
 }
 
 
@@ -97,8 +101,8 @@ void DeviceClassContainer::forgetDevices()
 
 string DeviceClassContainer::description()
 {
-  string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), size());
-  for (iterator pos = begin(); pos!=end(); ++pos) {
+  string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), devices.size());
+  for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
     d.append((*pos)->description());
   }
   return d;

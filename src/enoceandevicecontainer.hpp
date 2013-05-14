@@ -19,7 +19,6 @@
 
 #include "sqlite3persistence.hpp"
 
-#include <boost/iterator/transform_iterator.hpp>
 
 using namespace std;
 
@@ -63,12 +62,6 @@ namespace p44 {
 
   class EnoceanDeviceContainer;
   typedef boost::shared_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
-	
-	EnoceanDevicePtr deref(EnoceanDeviceMap::iterator::reference ref)
-	{
-		return ref.second;
-	}
-	
   class EnoceanDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;
@@ -87,19 +80,6 @@ namespace p44 {
 
     // the Enocean communication object
     EnoceanComm enoceanComm;
-
-
-    /// @name iteration
-    /// @{
-
-		typedef boost::transform_iterator<boost::function<EnoceanDevicePtr (EnoceanDeviceMap::iterator::reference)>, EnoceanDeviceMap::iterator> titerator;
-				
-    virtual iterator begin() { return iterator(titerator(enoceanDevices.begin(), &deref)); };
-    virtual iterator end()  { return iterator(titerator(enoceanDevices.end(), &deref)); };
-    virtual size_t size()  { return enoceanDevices.size(); };
-
-    /// @}
-
 
     virtual const char *deviceClassIdentifier() const;
 
