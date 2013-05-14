@@ -97,8 +97,8 @@ void DeviceClassContainer::forgetDevices()
 
 string DeviceClassContainer::description()
 {
-  string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), devices.size());
-  for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+  string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), size());
+  for (iterator pos = begin(); pos!=end(); ++pos) {
     d.append((*pos)->description());
   }
   return d;

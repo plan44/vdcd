@@ -68,12 +68,13 @@ namespace p44 {
   typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
   class DeviceClassContainer
   {
-    typedef boost::range_detail::any_iterator<DevicePtr, std::forward_iterator_tag, DevicePtr&, std::ptrdiff_t> iterator;
-
     DeviceClassContainerWeakPtr mySelf; ///< weak pointer to myself
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
 		string persistentDataDir; ///<directory path to directory where to store persistent data
+  protected:
+    typedef boost::range_detail::any_iterator<DevicePtr, std::forward_iterator_tag, DevicePtr&, std::ptrdiff_t> iterator;
+				
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsids for devices that don't have their own
@@ -97,6 +98,7 @@ namespace p44 {
 
     virtual iterator begin() = 0;
     virtual iterator end() = 0;
+    virtual size_t size() = 0;
 
     /// @}
 
