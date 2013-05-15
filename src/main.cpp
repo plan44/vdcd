@@ -90,6 +90,7 @@ public:
 		fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
 		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -d : fully daemonize\n");
+		fprintf(stderr, "    -w seconds : delay startup\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
 		fprintf(stderr, "    -s dirpath : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
 	};
@@ -113,8 +114,10 @@ public:
 
     int loglevel = -1; // use defaults
 
+    int startupDelay = 0; // no delay
+
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:l:s:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:l:s:w:")) != -1)
 		{
 			switch (c) {
 				case 'd':
@@ -138,6 +141,9 @@ public:
 				case 's':
 					dbdir = optarg;
 					break;
+        case 'w':
+          startupDelay = atoi(optarg);
+          break;
 				default:
 					exit(-1);
 			}
@@ -155,6 +161,12 @@ public:
 
 		// set log level
 		SETLOGLEVEL(loglevel);
+
+    // before starting anything, delay
+    if (startupDelay>0) {
+      LOG(LOG_INFO, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
+      sleep(startupDelay);
+    }
 
 		// Create static container structure
 		// - Add DALI devices class
