@@ -75,12 +75,18 @@ void EnoceanDeviceContainer::forgetDevices()
 
 void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
-  // TODO: actually collect
+  // start with zero
   forgetDevices();
   // - read learned-in enOcean button IDs from DB
-  // - create EnoceanDevice objects
-  // - addDevice(enoceanDevice);
-  // %%% for now, just return ok
+  sqlite3pp::query qry(db);
+  if (qry.prepare("SELECT enoceanAddress FROM knownDevices")==SQLITE_OK) {
+    for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
+      EnoceanDevicePtr newdev = EnoceanDevicePtr(new EnoceanDevice(this));
+      newdev->setEnoceanAddress(i->get<int>(0));
+      addDevice(newdev);
+    }
+  }
+  // assume ok
   aCompletedCB(ErrorPtr());
 }
 
@@ -91,6 +97,17 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
     enoceanDevices[ed->getEnoceanAddress()] = ed;
+    // save enocean ID to DB
+    sqlite3pp::query qry(db);
+    // - check if already saved
+    if (qry.prepare("SELECT ROWID FROM knownDevices WHERE enoceanAddress=?1")==SQLITE_OK) {
+      qry.bind(1, (int)ed->getEnoceanAddress());
+      if (qry.begin()==qry.end()) {
+        qry.reset();
+        // - does not exist yet
+        db.executef("INSERT INTO knownDevices (enoceanAddress) VALUES (%d)", ed->getEnoceanAddress());
+      }
+    }
   }
 }
 
@@ -101,6 +118,8 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice)
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
     enoceanDevices.erase(ed->getEnoceanAddress());
+    // remove from DB
+    db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d", ed->getEnoceanAddress());
   }
 }
 
@@ -149,16 +168,14 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
           EnoceanDevicePtr dev = getDeviceByAddress(aEsp3PacketPtr->radio_sender());
           if (dev) {
             // device exists - unlearn
-            enoceanDevices.erase(dev->getEnoceanAddress());
-            #warning // TODO: let device container know (de-register??)
+            removeDevice(dev);
             endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned)));
           }
           else {
             // device does not exist - learn = create it
             EnoceanDevicePtr newdev = EnoceanDevicePtr(new EnoceanDevice(this));
             newdev->setEnoceanAddress(aEsp3PacketPtr->radio_sender());
-            enoceanDevices[newdev->getEnoceanAddress()] = newdev;
-            #warning // TODO: let device container know (de-register??)
+            addDevice(newdev);
             endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceLearned)));
           }
           // learn action detected, don't create more!

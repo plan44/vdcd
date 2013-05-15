@@ -45,6 +45,6 @@ void EnoceanDevice::deriveDSID()
 string EnoceanDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "Enocean Address = 0x%08lX", enoceanAddress);
+  string_format_append(s, "Enocean Address = 0x%08lX\n", enoceanAddress);
   return s;
 }
