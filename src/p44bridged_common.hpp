@@ -9,7 +9,8 @@
 #ifndef P44BRIDGED_COMMON_HPP_
 #define P44BRIDGED_COMMON_HPP_
 
-#define BOOST_NO_INTRINSIC_WCHAR_T 1
+//#define BOOST_NO_INTRINSIC_WCHAR_T 1
+
 #define BOOST_DISABLE_THREADS 1
 #warning Threads disabled
 
