@@ -286,7 +286,7 @@ uint8_t Esp3Packet::radio_security_level()
 //  n+5      : status
 //  n+6      : for VLD only: CRC
 
-RadioOrg Esp3Packet::radio_rorg()
+RadioOrg Esp3Packet::eep_rorg()
 {
   if (packetType()!=pt_radio) return rorg_invalid; // no radio
   uint8_t *d = data();
@@ -295,9 +295,24 @@ RadioOrg Esp3Packet::radio_rorg()
 }
 
 
+/// @return EEP function code
+uint8_t Esp3Packet::eep_func()
+{
+  #error asjhdasjkdh
+}
+
+/// @return EEP type code
+uint8_t Esp3Packet::eep_type()
+{
+  #error asjhdasjkdh
+}
+
+
+
+
 uint8_t Esp3Packet::radio_status()
 {
-  RadioOrg rorg = radio_rorg();
+  RadioOrg rorg = eep_rorg();
   int statusoffset = 0;
   if (rorg!=rorg_invalid) {
     statusoffset = (int)dataLength()-1; // last byte is status...
@@ -313,7 +328,7 @@ uint8_t Esp3Packet::radio_status()
 size_t Esp3Packet::radio_userDataLength()
 {
   if (packetType()!=pt_radio) return 0; // no data
-  RadioOrg rorg = radio_rorg();
+  RadioOrg rorg = eep_rorg();
   int bytes = (int)dataLength(); // start with actual length
   bytes -= 1; // RORG byte
   bytes -= 1; // one status byte
@@ -368,7 +383,7 @@ EnoceanAddress Esp3Packet::radio_sender()
 
 int Esp3Packet::rps_numRockers()
 {
-  if (radio_rorg()!=rorg_RPS) return 0; // none
+  if (eep_rorg()!=rorg_RPS) return 0; // none
   return (radio_status()&STATUS_T21) ? 2 : 4;
 }
 
@@ -377,7 +392,7 @@ int Esp3Packet::rps_numRockers()
 uint8_t Esp3Packet::rps_action(uint8_t aButtonIndex)
 {
   uint8_t action = rpsa_none; // none by default
-  if (radio_rorg()==rorg_RPS && aButtonIndex<rps_numRockers()) {
+  if (eep_rorg()==rorg_RPS && aButtonIndex<rps_numRockers()) {
     uint8_t data = *(radio_userData());
     uint8_t status = radio_status();
     if (status & STATUS_NU) {
@@ -447,7 +462,7 @@ string Esp3Packet::description()
       string_format_append(t,
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08lX, status=0x%02X\n"
         "- subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d\n",
-        radio_rorg(),
+        eep_rorg(),
         radio_sender(),
         radio_status(),
         radio_subtelegrams(),
@@ -455,7 +470,7 @@ string Esp3Packet::description()
         radio_dBm(),
         radio_security_level()
       );
-      if (radio_rorg()==rorg_RPS) {
+      if (eep_rorg()==rorg_RPS) {
         for (int s=0; s<rps_numRockers(); s++) {
           uint8_t a = rps_action(s);
           string_format_append(t,

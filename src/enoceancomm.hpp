@@ -30,12 +30,21 @@ namespace p44 {
   } PacketType;
 
   typedef enum {
-    rorg_invalid = 0, // pseudo-RORG = invalid
-    rorg_RPS = 0xF6,
-    rorg_1BS = 0xD5,
-    rorg_4BS = 0xA5,
-    rorg_VLD = 0xD2
+    rorg_invalid = 0, ///< pseudo-RORG = invalid
+    rorg_RPS = 0xF6, ///< Repeated Switch Communication
+    rorg_1BS = 0xD5, ///< 1 Byte Communication
+    rorg_4BS = 0xA5, ///< 4 Byte Communication
+    rorg_VLD = 0xD2, ///< Variable Length Data
+    rorg_MSC = 0xD1, ///< Manufacturer specific communication
+    rorg_ADT = 0xA6, ///< Adressing Destination Telegram
+    rorg_SM_LRN_REQ = 0xC6, ///< Smart Ack Learn Request
+    rorg_SM_LRN_ANS = 0xC7, ///< Smart Ack Learn Answer
+    rorg_SM_REC = 0xA7, ///< Smart Ack Reclaim
+    rorg_SYS_EX = 0xC5, ///< Remote Management
+    rorg_SEC = 0x30, ///< Secure telegram
+    rorg_SEC_ENCAPS = 0x31 ///< Secure telegram with R-ORG encapsulation
   } RadioOrg;
+
 
   typedef enum {
     rpsa_none = 0,
@@ -160,9 +169,6 @@ namespace p44 {
     /// @return security level
     uint8_t radio_security_level();
 
-    /// @return RORG (radio telegram organisation)
-    RadioOrg radio_rorg();
-
     /// @return radio status byte
     uint8_t radio_status();
 
@@ -175,8 +181,23 @@ namespace p44 {
     /// @return pointer to the radio user data
     uint8_t *radio_userData();
 
+    /// @}
+
+
+    /// @name Enocean Equipment Profile (EEP) information
+    /// @{
+
+    /// @return RORG (radio telegram organisation)
+    RadioOrg eep_rorg();
+
+    /// @return EEP function code
+    uint8_t eep_func();
+
+    /// @return EEP type code
+    uint8_t eep_type();
 
     /// @}
+
 
 
     /// @name access to RPS (repeated switch) radio telegram fields

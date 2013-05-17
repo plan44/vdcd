@@ -157,6 +157,7 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
+  #error dispatch depending on RORG/FUNC/TYPE
   if (isLearning()) {
     // in learn mode, check if strong signal and if so, learn/unlearn
     if (aEsp3PacketPtr->radio_dBm()>MIN_LEARN_DBM)
