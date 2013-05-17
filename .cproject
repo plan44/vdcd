@@ -27,6 +27,7 @@
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.1491026085" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
+<listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.365296998" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
@@ -41,12 +42,13 @@
 <option id="gnu.cpp.compiler.option.preprocessor.def.104925405" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
+<listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.1587132294" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.debug.351995787" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.debug"/>
 <tool id="com.digi.lxnetes.managedbuild.cpp.linker.debug.1643172921" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.managedbuild.cpp.linker.debug">
-<option id="gnu.cpp.link.option.libs.436267425" superClass="gnu.cpp.link.option.libs" valueType="libs">
+<option id="gnu.cpp.link.option.libs.436267425" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.449462333" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -1024,6 +1026,7 @@
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.635601814" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
+<listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
@@ -1038,6 +1041,7 @@
 <option id="gnu.cpp.compiler.option.preprocessor.def.1780290498" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
+<listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.219824697" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
