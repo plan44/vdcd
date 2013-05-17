@@ -44,7 +44,7 @@ namespace p44 {
     /// @param aInitialState initial state (to set for output, to expect without triggering change for input)
     ///   Note: aInitialState is logic state (pin state will be inverse if aInverted is set)
     Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
-    ~Gpio();
+    virtual ~Gpio();
     /// set state of output (NOP for inputs)
     /// @return current state (actual level on pin for inputs, last set state for outputs)
     bool isSet();

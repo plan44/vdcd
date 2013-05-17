@@ -59,7 +59,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-w 10"
+            argument = "-w 3"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

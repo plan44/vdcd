@@ -48,6 +48,14 @@ SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes) :
 }
 
 
+SerialOperationSend::~SerialOperationSend()
+{
+  clearData();
+}
+
+
+
+
 void SerialOperationSend::clearData()
 {
   if (dataP) {
@@ -81,12 +89,6 @@ void SerialOperationSend::appendData(size_t aNumBytes, uint8_t *aBytes)
 
 
 
-SerialOperationSend::~SerialOperationSend()
-{
-  clearData();
-}
-
-
 bool SerialOperationSend::initiate()
 {
   if (!canInitiate()) return false;
@@ -99,8 +101,7 @@ bool SerialOperationSend::initiate()
       abortOperation(ErrorPtr(new SQError(SQErrorTransmit)));
     }
     // early release
-    free(dataP);
-    dataP = NULL;
+    clearData();
   }
   // executed
   return inherited::initiate();
@@ -115,10 +116,28 @@ SerialOperationReceive::SerialOperationReceive(size_t aExpectedBytes)
 {
   // allocate buffer
   expectedBytes = aExpectedBytes;
-  dataP = (uint8_t *)malloc(expectedBytes);
+  dataP = new uint8_t[expectedBytes];
   dataIndex = 0;
   setTimeout(DEFAULT_RECEIVE_TIMEOUT);
 };
+
+
+SerialOperationReceive::~SerialOperationReceive()
+{
+  clearData();
+}
+
+
+
+void SerialOperationReceive::clearData()
+{
+  if (dataP) {
+    delete [] dataP;
+    dataP = NULL;
+  }
+  expectedBytes = 0;
+  dataIndex = 0;
+}
 
 
 size_t SerialOperationReceive::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
@@ -147,7 +166,7 @@ bool SerialOperationReceive::hasCompleted()
 
 void SerialOperationReceive::abortOperation(ErrorPtr aError)
 {
-  expectedBytes = 0; // don't expect any more
+  clearData(); // don't expect any more, early release
   inherited::abortOperation(aError);
 }
 

@@ -101,8 +101,10 @@ namespace p44 {
   public:
 
     SerialOperationReceive(size_t aExpectedBytes);
+    virtual ~SerialOperationReceive();
     uint8_t *getDataP() { return dataP; };
     size_t getDataSize() { return dataIndex; };
+    void clearData();
 
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
     virtual bool hasCompleted();

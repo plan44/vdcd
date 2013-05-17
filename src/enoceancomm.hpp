@@ -78,7 +78,7 @@ namespace p44 {
   public:
     /// construct empty packet
     Esp3Packet();
-    ~Esp3Packet();
+    virtual ~Esp3Packet();
 
     /// add one byte to a ESP3 CRC8
     /// @param aByte the byte to add

@@ -44,7 +44,7 @@ namespace p44 {
     virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
   public:
     SQLite3Persistence();
-    ~SQLite3Persistence();
+    virtual ~SQLite3Persistence();
 
     /// get current SQLite3 error as a Error object
     ErrorPtr error(const char *aContextMessage = NULL);
