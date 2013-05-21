@@ -29,18 +29,32 @@ namespace p44 {
     typedef Device inherited;
 
     EnoceanAddress enoceanAddress;
-    int subDeviceIndex;
+    EnoceanProfile eeProfile;
+    EnoceanManufacturer eeManufacturer;
+    
 
   public:
     EnoceanDevice(EnoceanDeviceContainer *aClassContainerP);
 
-    /// set the enocean address and subdevice index (identifying)
+    /// set the enocean address identifying the device
     /// @param aAddress 32bit enocean device address/ID
     void setEnoceanAddress(EnoceanAddress aAddress);
 
-    /// get number which identifies this enocean (sub)device.
-    /// @return identifier number
+    /// set the enocean address identifying the device
+    /// @return enOcean device ID/address
     EnoceanAddress getEnoceanAddress();
+
+    /// set EEP information
+    /// @param aEEPProfileNumber RORG/FUNC/TYPE EEP profile number
+    /// @param aManNumber manufacturer number (or manufacturer_unknown)
+    void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer);
+
+    /// @return RORG/FUNC/TYPE EEP profile number 
+    EnoceanProfile getEEProfile();
+
+    /// @return eanufacturer code
+    EnoceanManufacturer getEEManufacturer();
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

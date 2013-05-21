@@ -29,7 +29,7 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 #pragma mark - DB and initialisation
 
 
-#define SCHEMA_VERSION 1
+#define SCHEMA_VERSION 2
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -42,11 +42,21 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
     sql.append(
 			"CREATE TABLE knownDevices ("
 			" ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
-			" enoceanAddress INTEGER"
+			" enoceanAddress INTEGER,"
+      " eeProfile INTEGER,"
+      " eeManufacturer INTEGER,"
 			");"
 		);
     // reached final version in one step
     aToVersion = SCHEMA_VERSION;
+  }
+  else if (aFromVersion==1) {
+    // V1->V2: eeProfile, eeManufacturer added
+    sql =
+      "ALTER TABLE knownDevices ADD eeProfile INTEGER;"
+      "ALTER TABLE knownDevices ADD eeManufacturer INTEGER;";
+    // reached version 2
+    aToVersion = 2;
   }
   return sql;
 }
@@ -79,10 +89,11 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
   forgetDevices();
   // - read learned-in enOcean button IDs from DB
   sqlite3pp::query qry(db);
-  if (qry.prepare("SELECT enoceanAddress FROM knownDevices")==SQLITE_OK) {
+  if (qry.prepare("SELECT enoceanAddress, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
     for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
       EnoceanDevicePtr newdev = EnoceanDevicePtr(new EnoceanDevice(this));
       newdev->setEnoceanAddress(i->get<int>(0));
+      newdev->setEEPInfo(i->get<int>(1), i->get<int>(2));
       addDevice(newdev);
     }
   }
@@ -105,7 +116,12 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
       if (qry.begin()==qry.end()) {
         qry.reset();
         // - does not exist yet
-        db.executef("INSERT INTO knownDevices (enoceanAddress) VALUES (%d)", ed->getEnoceanAddress());
+        db.executef(
+          "INSERT INTO knownDevices (enoceanAddress, eeProfile, eeManufacturer) VALUES (%d,%d,%d)",
+          ed->getEnoceanAddress(),
+          ed->getEEProfile(),
+          ed->getEEManufacturer()
+        );
       }
     }
   }
@@ -157,42 +173,51 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
-  #error dispatch depending on RORG/FUNC/TYPE
+  // look up device we might already have for this address
+  EnoceanDevicePtr dev = getDeviceByAddress(aEsp3PacketPtr->radio_sender());
+  // check learning mode
   if (isLearning()) {
     // in learn mode, check if strong signal and if so, learn/unlearn
     if (aEsp3PacketPtr->radio_dBm()>MIN_LEARN_DBM)
     {
-      // learn device where at least one button was released
-      for (int bi=0; bi<aEsp3PacketPtr->rps_numRockers(); bi++) {
-        uint8_t a = aEsp3PacketPtr->rps_action(bi);
-        if ((a & rpsa_released)!=0) {
-          EnoceanDevicePtr dev = getDeviceByAddress(aEsp3PacketPtr->radio_sender());
-          if (dev) {
-            // device exists - unlearn
-            removeDevice(dev);
-            endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned)));
-          }
-          else {
-            // device does not exist - learn = create it
-            EnoceanDevicePtr newdev = EnoceanDevicePtr(new EnoceanDevice(this));
-            newdev->setEnoceanAddress(aEsp3PacketPtr->radio_sender());
-            addDevice(newdev);
+      // no learn/unlearn actions detected so far
+      bool learnIn = dev==NULL; // no device yet
+      // now add/remove the device (if the action is a valid learn/unlearn)
+      if (aEsp3PacketPtr->eep_hasTeachInfo()) {
+        // This is actually a valid learn action
+        if (learnIn) {
+          // new device learned in, add it
+          // - create it
+          dev = EnoceanDevicePtr(new EnoceanDevice(this));
+          // - set ID/address
+          dev->setEnoceanAddress(aEsp3PacketPtr->radio_sender());
+          // - set enocean profile information, determines behaviour
+          dev->setEEPInfo(aEsp3PacketPtr->eep_profile(), aEsp3PacketPtr->eep_manufacturer());
+          if (dev->getDSBehaviour()) {
+            // device could derive a dS behaviour from EEP, so we can operate it
+            addDevice(dev);
             endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceLearned)));
           }
-          // learn action detected, don't create more!
-          break;
+          else {
+            // device could not derive a dS behaviour, we cannot operate it
+            endLearning(ErrorPtr(new EnoceanError(EnoceanNoKnownProfile)));
+          }
         }
-      }
-    } // strong enough signal
+        else {
+          // device learned out, remove it
+          removeDevice(dev);
+          endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned)));
+        }
+      } // learn action
+    } // strong enough signal for learning
   }
   else {
     // not learning
-    // TODO: refine
-    if (keyEventHandler) {
-      // - check if device already exists
-      EnoceanDevicePtr dev = getDeviceByAddress(aEsp3PacketPtr->radio_sender());
-      if (dev) {
-        // known device
+    if (dev) {
+      // known device
+      #error // TODO: dispatch packet to devices, let them handle it via their dS behaviour
+      if (keyEventHandler && aEsp3PacketPtr->eep_rorg()==rorg_RPS) {
+        // direct handling of key events
         for (int bi=0; bi<aEsp3PacketPtr->rps_numRockers(); bi++) {
           uint8_t a = aEsp3PacketPtr->rps_action(bi);
           if (a!=rpsa_none) {
@@ -201,12 +226,12 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
           }
         }
       }
-    }
+    } // known device
   }
 }
 
 
-void EnoceanDeviceContainer::learnSwitchDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout)
+void EnoceanDeviceContainer::learnDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout)
 {
   if (isLearning()) return; // already learning -> NOP
   // start timer for timeout

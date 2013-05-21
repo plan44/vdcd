@@ -259,7 +259,7 @@ public:
         if (!enoceanDeviceContainer->isLearning()) {
           // start device learning
           setAppStatus(status_interaction);
-          enoceanDeviceContainer->learnSwitchDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+          enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
         }
         else {
           // abort device learning

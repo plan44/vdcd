@@ -19,6 +19,7 @@
 		ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291D1740E72200334C71 /* sqlite3pp.cpp */; };
 		ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */; };
 		ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2933174124D300334C71 /* sqlite3persistence.cpp */; };
+		ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29391749446200334C71 /* lightbehaviour.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -70,6 +71,8 @@
 		ED5B29201740E72200334C71 /* sqlite3ppext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sqlite3ppext.h; sourceTree = "<group>"; };
 		ED5B2933174124D300334C71 /* sqlite3persistence.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite3persistence.cpp; sourceTree = "<group>"; };
 		ED5B2934174124D400334C71 /* sqlite3persistence.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sqlite3persistence.hpp; sourceTree = "<group>"; };
+		ED5B29391749446200334C71 /* lightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lightbehaviour.cpp; sourceTree = "<group>"; };
+		ED5B293A1749446300334C71 /* lightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lightbehaviour.hpp; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -199,6 +202,8 @@
 				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
 				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
+				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
+				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */,
 			);
@@ -298,6 +303,7 @@
 				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
+				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

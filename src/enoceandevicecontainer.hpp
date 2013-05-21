@@ -29,6 +29,7 @@ namespace p44 {
     EnoceanErrorOK,
     EnoceanDeviceLearned,
     EnoceanDeviceUnlearned,
+    EnoceanNoKnownProfile,
     EnoceanLearnTimeout,
     EnoceanLearnAborted,
   } EnoceanErrors;
@@ -98,7 +99,7 @@ namespace p44 {
     /// @param aCompletedCB handler to call when learn-in (EnoceanDeviceLearned) or learn-out (EnoceanDeviceUnlearned)
     ///   completes or learn mode times out (EnoceanLearnTimeout)
     /// @param aLearnTimeout how long to wait for a keypress to learn in or out
-    void learnSwitchDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout);
+    void learnDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout);
     /// @return true if currently in learn mode
     bool isLearning();
     /// stop learning

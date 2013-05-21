@@ -13,7 +13,9 @@ using namespace p44;
 
 
 EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
-  Device((DeviceClassContainer *)aClassContainerP)
+  Device((DeviceClassContainer *)aClassContainerP),
+  eeProfile(eep_profile_unknown),
+  eeManufacturer(manufacturer_unknown)
 {
 }
 
@@ -24,12 +26,17 @@ EnoceanAddress EnoceanDevice::getEnoceanAddress()
 }
 
 
-
-
 void EnoceanDevice::setEnoceanAddress(EnoceanAddress aAddress)
 {
   enoceanAddress = aAddress;
   deriveDSID();
+}
+
+
+void EnoceanDevice::setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
+{
+  eeProfile = aEEProfile;
+  eeManufacturer = aEEManufacturer;
 }
 
 

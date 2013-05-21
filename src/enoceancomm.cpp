@@ -279,36 +279,10 @@ uint8_t Esp3Packet::radio_security_level()
 }
 
 
-// Radio telegram data
-//  0        : RORG
-//  1..n     : user data, n bytes
-//  n+1..n+4 : sender address
-//  n+5      : status
-//  n+6      : for VLD only: CRC
 
-RadioOrg Esp3Packet::eep_rorg()
-{
-  if (packetType()!=pt_radio) return rorg_invalid; // no radio
-  uint8_t *d = data();
-  if (!d || dataLength()<1) return rorg_invalid; // no RORG
-  return (RadioOrg)d[0]; // this is the RORG byte
-}
-
-
-/// @return EEP function code
-uint8_t Esp3Packet::eep_func()
-{
-  #error asjhdasjkdh
-}
-
-/// @return EEP type code
-uint8_t Esp3Packet::eep_type()
-{
-  #error asjhdasjkdh
-}
-
-
-
+#define STATUS_MASK 0x30
+#define STATUS_T21 0x20
+#define STATUS_NU 0x10 // set if N-Message, cleared if U-Message
 
 uint8_t Esp3Packet::radio_status()
 {
@@ -362,23 +336,165 @@ EnoceanAddress Esp3Packet::radio_sender()
 }
 
 
+#pragma mark - Enocean Eqipment Profile (EEP) information extraction
+
+
+// Radio telegram data
+//  0        : RORG
+//  1..n     : user data, n bytes
+//  n+1..n+4 : sender address
+//  n+5      : status
+//  n+6      : for VLD only: CRC
+
+RadioOrg Esp3Packet::eep_rorg()
+{
+  if (packetType()!=pt_radio) return rorg_invalid; // no radio
+  uint8_t *d = data();
+  if (!d || dataLength()<1) return rorg_invalid; // no RORG
+  return (RadioOrg)d[0]; // this is the RORG byte
+}
+
+
+
+// RPS Signatures
+//
+// Status                D[0]
+// T21 NU    7   6   5   4   3   2   1   0    RORG FUNC TYPE   Desc       Notes
+// --- --   --- --- --- --- --- --- --- ---   ---- ---- ----   ---------- -------------------
+//  1   0    1   x   x   x   x   x   x   x    F6   10   00     Win Handle SIGNATURE
+//
+//  1   x    0   x   x   x   x   x   x   x    F6   02   01/2   2-Rocker   SIGNATURE (not unique, overlaps with key card switch)
+//
+//  0   x    x   x   x   x   x   x   x   x    F6   03   01/2   4-Rocker   SIGNATURE
+//
+//
+//  1   x    0   x   x   x   0   0   0   0    F6   04   01     Key Card   no unqiue SIGNATURE (overlaps with 2-Rocker)
+
+
+// 1BS Telegrams
+//
+//                       D[0]
+// T21 NU    7   6   5   4   3   2   1   0    RORG FUNC TYPE   Desc       Notes
+// --- --   --- --- --- --- --- --- --- ---   ---- ---- ----   ---------- -------------------
+//  x   x    x   x   x   x  LRN  x   x   c    D5   00   01     1 Contact  c:0=open,1=closed
+
+
+// 4BS teach-in telegram
+//
+//       D[0]      |       D[1]      |       D[2]      |              D[3]
+// 7 6 5 4 3 2 1 0 | 7 6 5 4 3 2 1 0 | 7 6 5 4 3 2 1 0 |  7   6   5   4   3   2   1   0
+//
+// f f f f f f t t   t t t t t m m m   m m m m m m m m   LRN EEP LRN LRN LRN  x   x   x
+//    FUNC    |     TYPE      |      MANUFACTURER      | typ res res sta bit
+
+
+// SA_LEARN_REQUEST
+//
+//    D[0]     D[1]   D[2] D[3] D[4] D[5] D[6] D[7] D[8] D[9] D[10] D[11] D[12] D[13] D[14] D[15]
+//  rrrrrmmm mmmmmmmm RORG FUNC TYPE RSSI ID3  ID2  ID1  ID0   ID3   ID2   ID1   ID0  STAT  CHECK
+//  Req  Manufacturer|   EEP No.    |dBm |    Repeater ID    |       Sender ID       |     |
+
+
+EnoceanProfile Esp3Packet::eep_profile()
+{
+  // default: unknown signature
+  EnoceanProfile profile = eep_profile_unknown;
+  RadioOrg rorg = eep_rorg();
+  if (rorg!=rorg_invalid) {
+    // valid rorg
+    if (rorg==rorg_RPS) {
+      // RPS have no learn mode, EEP signature can be derived from bits (not completely, but usable approximation)
+      uint8_t status = radio_status();
+      uint8_t data = radio_userData()[0];
+      if ((status & STATUS_T21)!=0) {
+        // Win handle or 2-Rocker (or key card, but we can't distinguish that, so we default to 2-Rocker)
+        if ((data & 0x80)!=0 && (status & STATUS_NU)==0) {
+          // Window handle
+          profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x10<<8) | (0x00); // FUNC = Window handle, TYPE = 0 (no others defined)
+        }
+        else if ((data & 0x80)==0) {
+          // 2-Rocker (or key card, but we ignore that
+          profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x02<<8) | (eep_func_unknown); // FUNC = 2-Rocker switch, type unknown (1 or 2 is possible)
+        }
+      }
+      else {
+        // must be 4-Rocker
+        profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x03<<8) | (eep_func_unknown); // FUNC = 2-Rocker switch, type unknown (1 or 2 is possible)
+      }
+    }
+    else if (rorg==rorg_1BS) {
+      // 1BS has a learn bit
+      if (eep_hasTeachInfo()) {
+        // As per March 2013, only one EEP is defined for 1BS: single contact
+        profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x00<<8) | (0x01); // FUNC = contacts and switches, TYPE = single contact
+      }
+    }
+    else if (rorg==rorg_4BS) {
+      // 4BS has separate LRN telegrams
+      if (eep_hasTeachInfo()) {
+        profile =
+          (rorg<<16) |
+          (((EnoceanProfile)(radio_userData()[0])<<6) & 0x3F) | // 6 FUNC bits, shifted to bit 8..13
+          (((EnoceanProfile)(radio_userData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
+          (((EnoceanProfile)(radio_userData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
+      }
+    }
+    else if (rorg==rorg_SM_LRN_REQ) {
+      // Smart Ack Learn Request
+      profile =
+        (((EnoceanProfile)radio_userData()[2])<<16) | // RORG field
+        (((EnoceanProfile)radio_userData()[3])<<8) | // FUNC field
+        radio_userData()[4]; // TYPE field
+    }
+  } // valid rorg
+  // return it
+  return profile;
+}
+
+
+EnoceanManNo Esp3Packet::eep_manufacturer()
+{
+  EnoceanManNo man = manufacturer_unknown;
+  RadioOrg rorg = eep_rorg();
+  if (eep_hasTeachInfo()) {
+    if (rorg==rorg_4BS) {
+      man =
+        ((((EnoceanManNo)radio_userData()[1])<<8) & 0x07) |
+        radio_userData()[2];
+    }
+    else if (rorg==rorg_SM_LRN_REQ) {
+      man =
+        ((((EnoceanManNo)radio_userData()[0])&0x07)<<8) |
+        radio_userData()[1];
+    }
+  }
+  // return it
+  return man;
+}
+
+
+#define LRN_BIT_MASK 0x08 // Bit 3
+
+bool Esp3Packet::eep_hasTeachInfo()
+{
+  RadioOrg rorg = eep_rorg();
+  switch (rorg) {
+    case rorg_RPS:
+      return true; // RPS telegrams always have (somewhat limited) signature that can be used for teach-in
+    case rorg_1BS:
+      return (radio_userData()[0] & LRN_BIT_MASK)!=0; // 1BS telegrams have teach-in info if LRN bit is set
+    case rorg_4BS:
+      return (radio_userData()[3] & LRN_BIT_MASK)!=0; // 4BS telegrams have teach-in info if LRN bit is set
+    case rorg_SM_LRN_REQ:
+      return true; // smart ack learn requests are by definition teach-in commands and have full EEP signature
+    default:
+      return false; // no learn-in, regular data 
+  }
+}
+
 
 
 #pragma mark - RPS repeated switch radio telegram specifics
-
-
-//telegram[n++] = 0xF6; // RPS telegram
-//telegram[n++] = rpsData; // Data: 30=rocker switch up, 10=rocker switch down
-//telegram[n++] = 0x00; // Sender ID, 4 Bytes (hard-coding that of my USB300: 00 86 B8 1A)
-//telegram[n++] = 0x86;
-//telegram[n++] = 0xB8;
-//telegram[n++] = 0x1A;
-//telegram[n++] = press ? 0x30 : 0x20; // T21 and NU bits ???
-
-
-#define STATUS_MASK 0x30
-#define STATUS_T21 0x20
-#define STATUS_NU 0x10 // set if N-Message, cleared if U-Message
 
 
 int Esp3Packet::rps_numRockers()
@@ -393,7 +509,7 @@ uint8_t Esp3Packet::rps_action(uint8_t aButtonIndex)
 {
   uint8_t action = rpsa_none; // none by default
   if (eep_rorg()==rorg_RPS && aButtonIndex<rps_numRockers()) {
-    uint8_t data = *(radio_userData());
+    uint8_t data = radio_userData()[0];
     uint8_t status = radio_status();
     if (status & STATUS_NU) {
       // N-Message
@@ -448,9 +564,6 @@ uint8_t Esp3Packet::rps_action(uint8_t aButtonIndex)
 
 
 
-
-
-
 #pragma mark - Description
 
 
@@ -459,6 +572,7 @@ string Esp3Packet::description()
   if (isComplete()) {
     string t;
     if (packetType()==pt_radio) {
+      // ESP3 radio packet
       string_format_append(t,
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08lX, status=0x%02X\n"
         "- subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d\n",
@@ -470,7 +584,19 @@ string Esp3Packet::description()
         radio_dBm(),
         radio_security_level()
       );
-      if (eep_rorg()==rorg_RPS) {
+      // EEP info if any
+      if (eep_hasTeachInfo()) {
+        string_format_append(t,
+          "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer Code = %03X\n",
+          (eep_profile()>>16) & 0xFF,
+          (eep_profile()>>8) & 0xFF,
+          eep_profile() & 0xFF,
+          eep_manufacturer()
+        );
+      }
+      // Rocker switch info
+      if ((eep_profile() & 0xFFFE00)==0xF60200) {
+        // is a 2-rocker or 4-rocker switch
         for (int s=0; s<rps_numRockers(); s++) {
           uint8_t a = rps_action(s);
           string_format_append(t,
@@ -483,8 +609,10 @@ string Esp3Packet::description()
       }
     }
     else {
+      // non-radio ESP3 packet
       string_format_append(t, "ESP3 packet of type %d\n", packetType());
     }
+    // raw data
     string_format_append(t, "- %3d data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
       string_format_append(t, "%02X ", data()[i]);

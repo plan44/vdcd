@@ -13,8 +13,14 @@ using namespace p44;
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
   registered(false),
-  connected(false),
-  classContainerP(aClassContainerP)
+  classContainerP(aClassContainerP),
+  behaviourP(NULL)
+{
+
+}
+
+
+Device::~Device()
 {
 
 }

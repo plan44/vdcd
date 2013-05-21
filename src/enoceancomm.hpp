@@ -56,6 +56,20 @@ namespace p44 {
   } RPSAction;
 
 
+
+
+  /// Enocean EEP profile number (RORG/FUNC/TYPE)
+  typedef uint32_t EnoceanProfile;
+  // unknown markers
+  const uint8_t eep_func_unknown = 0xFF;
+  const uint8_t eep_type_unknown = 0xFF;
+  const EnoceanProfile eep_profile_unknown = (rorg_invalid<<16) + (eep_func_unknown<<8) + eep_type_unknown;
+
+  /// Enocean Manufacturer number (11 bits)
+  typedef uint16_t EnoceanManufacturer;
+  // unknown marker
+  const EnoceanManufacturer manufacturer_unknown = 0xFFFF;
+
   /// EnOcean addresses (IDs)
   typedef uint32_t EnoceanAddress;
   const EnoceanAddress EnoceanBroadcast = 0xFFFFFFFF; // broadcast
@@ -187,14 +201,19 @@ namespace p44 {
     /// @name Enocean Equipment Profile (EEP) information
     /// @{
 
-    /// @return RORG (radio telegram organisation)
+    /// @return RORG (radio telegram organisation, valid for all telegrams)
     RadioOrg eep_rorg();
 
-    /// @return EEP function code
-    uint8_t eep_func();
+    /// @return true if at least eep_func() has some valid information that can be used for teach-in
+    ///   (is the case for specific teach-in telegrams in 1BS, 4BS, VLD, as well as all RPS telegrams)
+    bool eep_hasTeachInfo();
 
-    /// @return EEP type code
-    uint8_t eep_type();
+    /// @return EEP signature as 0x00rrfftt (rr=RORG, ff=FUNC, tt=TYPE)
+    ///   ff and tt can be func_unknown or type_unknown if not extractable from telegram
+    EnoceanProfile eep_profile();
+
+    /// @return EEP manufacturer code (11 bit), or manufacturer_unknown if not known
+    EnoceanManNo eep_manufacturer();
 
     /// @}
 
