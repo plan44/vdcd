@@ -158,9 +158,9 @@ size_t SocketComm::receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aEr
 size_t SocketComm::numBytesReady()
 {
   // get number of bytes ready for reading
-  size_t numBytes;
-  ioctl(connectionFd, FIONREAD, &numBytes);
-  return numBytes<0 ? 0 : numBytes;
+	int numBytes; // must be int!! FIONREAD defines parameter as *int
+  int res = ioctl(connectionFd, FIONREAD, &numBytes);
+  return res!=0 ? 0 : numBytes;
 }
 
 

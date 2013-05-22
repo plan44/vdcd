@@ -108,7 +108,7 @@ void JsonComm::gotData(ErrorPtr aError)
           }
           if (eom>0 && !ignoreUntilNextEOM) {
             // feed data to tokener
-            struct json_object *o = json_tokener_parse_ex(tokener, (const char *)buf, (int)eom);
+            struct json_object *o = json_tokener_parse_ex(tokener, (const char *)buf+bom, (int)(eom-bom));
             if (o==NULL) {
               // error (or incomplete JSON, which is fine)
               JsonCommErrors err = json_tokener_get_error(tokener);
@@ -174,6 +174,12 @@ void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
         // buffer the rest, canSendData handler will take care of writing it out
         transmitBuffer.assign(json_string+sentBytes, jsonSize-sentBytes);
       }
+			else {
+				// all sent
+				// - append end of line (end of message)
+				uint8_t lf = '\n';
+				transmitBytes(1, &lf, aError);
+			}
     }
   }
 }
@@ -189,6 +195,9 @@ void JsonComm::canSendData(ErrorPtr aError)
       if (sentBytes==bytesToSend) {
         // all sent
         transmitBuffer.erase();
+				// - append end of line (end of message)
+				uint8_t lf = '\n';
+				transmitBytes(1, &lf, aError);
       }
       else {
         // partially sent, remove sent bytes

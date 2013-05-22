@@ -64,7 +64,7 @@ size_t SerialComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
 {
   if (connectionOpen) {
 		// get number of bytes available
-		size_t numBytes;
+		int numBytes; // must be int!! FIONREAD defines parameter as *int
 		ioctl(connectionFd, FIONREAD, &numBytes);
 		// limit to max buffer size
 		if (numBytes>aMaxBytes)

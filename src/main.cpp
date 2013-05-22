@@ -343,11 +343,11 @@ public:
       // send again
       aJsonCommP->sendMessage(aJsonObject, aError);
       if (!Error::isOK(aError)) {
-        LOG(LOG_ERR, "Could not echo back JSON: %s", aError->description().c_str());
+        LOG(LOG_ERR, "Could not echo back JSON: %s\n", aError->description().c_str());
       }
     }
     else {
-      LOG(LOG_ERR, "Invalid JSON received: %s", aError->description().c_str());
+      LOG(LOG_ERR, "Invalid JSON received: %s\n", aError->description().c_str());
     }
   }
 

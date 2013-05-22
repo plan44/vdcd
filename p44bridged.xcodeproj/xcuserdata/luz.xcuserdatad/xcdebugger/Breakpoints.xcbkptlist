@@ -72,19 +72,6 @@
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "src/socketcomm.cpp"
-         timestampString = "390931801.382345"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "42"
-         endingLineNumber = "42"
-         landmarkName = "SocketComm::openConnection()"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
          filePath = "src/sqlite3persistence.cpp"
          timestampString = "390932133.079864"
          startingColumnNumber = "9223372036854775807"
@@ -92,6 +79,19 @@
          startingLineNumber = "81"
          endingLineNumber = "81"
          landmarkName = "SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "No"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "src/jsoncomm.cpp"
+         timestampString = "390954622.267762"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "127"
+         endingLineNumber = "127"
+         landmarkName = "JsonComm::gotData(ErrorPtr aError)"
          landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>

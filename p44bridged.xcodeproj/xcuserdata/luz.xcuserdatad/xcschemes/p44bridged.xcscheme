@@ -59,6 +59,10 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
+            argument = "-l 7"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-w 3"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -71,19 +75,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-a"
+            argument = "-a localhost"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "localhost"
+            argument = "-a 192.168.59.221"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "192.168.59.221"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "192.168.59.222"
+            argument = "-a 192.168.59.222"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -91,15 +91,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-b"
+            argument = "-b 192.168.59.210"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "192.168.59.210"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "192.168.59.222"
+            argument = "-b 192.168.59.222"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
