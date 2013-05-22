@@ -213,7 +213,7 @@ namespace p44 {
     EnoceanProfile eep_profile();
 
     /// @return EEP manufacturer code (11 bit), or manufacturer_unknown if not known
-    EnoceanManNo eep_manufacturer();
+    EnoceanManufacturer eep_manufacturer();
 
     /// @}
 

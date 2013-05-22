@@ -28,6 +28,20 @@ namespace p44 {
   class DSBehaviour
   {
   public:
+
+    /// @name functional identification for digitalSTROM system
+    /// @{
+
+    virtual uint16_t functionId() = 0;
+    virtual uint16_t productId() = 0;
+    virtual uint16_t groupMemberShip() = 0;
+    virtual uint8_t ltMode() = 0;
+    virtual uint8_t outputMode() = 0;
+    virtual uint8_t buttonIdGroup() = 0;
+
+    /// @}
+
+
   };
 
 

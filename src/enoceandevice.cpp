@@ -40,6 +40,19 @@ void EnoceanDevice::setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aE
 }
 
 
+EnoceanProfile EnoceanDevice::getEEProfile()
+{
+  return eeProfile;
+}
+
+
+EnoceanManufacturer EnoceanDevice::getEEManufacturer()
+{
+  return eeManufacturer;
+}
+
+
+
 void EnoceanDevice::deriveDSID()
 {
   dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);

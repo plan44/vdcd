@@ -44,7 +44,7 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 			" ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
 			" enoceanAddress INTEGER,"
       " eeProfile INTEGER,"
-      " eeManufacturer INTEGER,"
+      " eeManufacturer INTEGER"
 			");"
 		);
     // reached final version in one step
@@ -215,7 +215,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // not learning
     if (dev) {
       // known device
-      #error // TODO: dispatch packet to devices, let them handle it via their dS behaviour
+      #warning // TODO: dispatch packet to devices, let them handle it via their dS behaviour
       if (keyEventHandler && aEsp3PacketPtr->eep_rorg()==rorg_RPS) {
         // direct handling of key events
         for (int bi=0; bi<aEsp3PacketPtr->rps_numRockers(); bi++) {

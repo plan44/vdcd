@@ -452,19 +452,19 @@ EnoceanProfile Esp3Packet::eep_profile()
 }
 
 
-EnoceanManNo Esp3Packet::eep_manufacturer()
+EnoceanManufacturer Esp3Packet::eep_manufacturer()
 {
-  EnoceanManNo man = manufacturer_unknown;
+  EnoceanManufacturer man = manufacturer_unknown;
   RadioOrg rorg = eep_rorg();
   if (eep_hasTeachInfo()) {
     if (rorg==rorg_4BS) {
       man =
-        ((((EnoceanManNo)radio_userData()[1])<<8) & 0x07) |
+        ((((EnoceanManufacturer)radio_userData()[1])<<8) & 0x07) |
         radio_userData()[2];
     }
     else if (rorg==rorg_SM_LRN_REQ) {
       man =
-        ((((EnoceanManNo)radio_userData()[0])&0x07)<<8) |
+        ((((EnoceanManufacturer)radio_userData()[0])&0x07)<<8) |
         radio_userData()[1];
     }
   }
