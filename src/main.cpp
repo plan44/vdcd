@@ -14,11 +14,14 @@
 
 #include "enoceandevicecontainer.hpp"
 
+#include "jsoncomm.hpp"
+
 #include "gpio.hpp"
 
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
+#define DEFAULT_VDSMSERVICE "8440"
 #define DEFAULT_DBDIR "/tmp"
 
 #ifdef __APPLE__
@@ -47,6 +50,9 @@ class P44bridged : public Application
 
   // App status
   P44bridgeStatus appStatus;
+
+  // JSON connection to vdSM
+  JsonCommPtr jsonComm;
 
 	// the device container
 	DeviceContainer deviceContainer;
@@ -89,6 +95,8 @@ public:
 		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
 		fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
 		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+		fprintf(stderr, "    -c vdsmhost : vdSM hostname/IP\n");
+		fprintf(stderr, "    -C vdsmport : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
 		fprintf(stderr, "    -d : fully daemonize\n");
 		fprintf(stderr, "    -w seconds : delay startup\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
@@ -110,6 +118,9 @@ public:
 		char *enoceanname = NULL;
 		int enoceanport = DEFAULT_ENOCEANPORT;
 
+		char *vdsmname = NULL;
+		char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+
     const char *dbdir = DEFAULT_DBDIR;
 
     int loglevel = -1; // use defaults
@@ -117,7 +128,7 @@ public:
     int startupDelay = 0; // no delay
 
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:l:s:w:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:c:C:l:s:w:")) != -1)
 		{
 			switch (c) {
 				case 'd':
@@ -137,6 +148,12 @@ public:
 					break;
 				case 'B':
 					enoceanport = atoi(optarg);
+					break;
+				case 'c':
+					vdsmname = optarg;
+					break;
+				case 'C':
+					vdsmport = optarg;
 					break;
 				case 's':
 					dbdir = optarg;
@@ -166,6 +183,12 @@ public:
     if (startupDelay>0) {
       LOG(LOG_INFO, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
       sleep(startupDelay);
+    }
+
+    // Create JSON interface
+    if (vdsmname) {
+      jsonComm = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
+      jsonComm->setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
     }
 
 		// Create static container structure
@@ -273,7 +296,7 @@ public:
 
 	virtual void initialize()
 	{
-    // start button test
+    // connect button
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
 		// initialize the device container
 		deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
@@ -297,12 +320,36 @@ public:
 	
 	virtual void devicesCollected(ErrorPtr aError)
 	{
-    if (Error::isOK(aError))
+    if (Error::isOK(aError)) {
       setAppStatus(status_ok);
+      DBGLOG(LOG_INFO, deviceContainer.description().c_str());
+      jsonComm->setMessageHandler(boost::bind(&P44bridged::jsonHandler, this, _1, _2, _3));
+      ErrorPtr err = jsonComm->openConnection();
+      if (!Error::isOK(err)) {
+        LOG(LOG_ERR, "Cannot open connection to vdSM: %s\n", err->description().c_str());
+        setAppStatus(status_error);
+      }
+    }
     else
       setAppStatus(status_error);
-		DBGLOG(LOG_INFO, deviceContainer.description().c_str());
 	}
+
+
+  void jsonHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
+  {
+    // for now, just log and echo
+    if (Error::isOK(aError)) {
+      DBGLOG(LOG_DEBUG, "JSON received: %s\n", aJsonObject->c_str());
+      // send again
+      aJsonCommP->sendMessage(aJsonObject, aError);
+      if (!Error::isOK(aError)) {
+        LOG(LOG_ERR, "Could not echo back JSON: %s", aError->description().c_str());
+      }
+    }
+    else {
+      LOG(LOG_ERR, "Invalid JSON received: %s", aError->description().c_str());
+    }
+  }
 
 };
 

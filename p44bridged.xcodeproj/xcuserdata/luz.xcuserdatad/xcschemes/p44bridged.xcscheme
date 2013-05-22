@@ -60,6 +60,10 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-w 3"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-c localhost"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -68,7 +72,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-a"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "localhost"
@@ -76,7 +80,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.221"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.222"
@@ -88,11 +92,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.210"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "192.168.59.222"

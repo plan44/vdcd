@@ -13,6 +13,10 @@
 		ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
+		ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
+		ED55760F174CFAEC00CCC4DD /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
+		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
 		ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED5AF914174182E700689E4B /* libsqlite3.dylib */; };
 		ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */; };
 		ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B290817393A0700334C71 /* enoceandevice.cpp */; };
@@ -60,6 +64,13 @@
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = error.hpp; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = application.cpp; sourceTree = "<group>"; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = application.hpp; sourceTree = "<group>"; };
+		ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = buttonbehaviour.cpp; sourceTree = "<group>"; };
+		ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = buttonbehaviour.hpp; sourceTree = "<group>"; };
+		ED55760B174CC03A00CCC4DD /* socketcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socketcomm.cpp; sourceTree = "<group>"; };
+		ED55760C174CC03A00CCC4DD /* socketcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = socketcomm.hpp; sourceTree = "<group>"; };
+		ED55760E174CFAEC00CCC4DD /* libjson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjson.a; path = "/usr/local/Cellar/json-c/0.10/lib/libjson.a"; sourceTree = "<absolute>"; };
+		ED557610174CFB3000CCC4DD /* jsoncomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsoncomm.cpp; sourceTree = "<group>"; };
+		ED557611174CFB3100CCC4DD /* jsoncomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsoncomm.hpp; sourceTree = "<group>"; };
 		ED5AF914174182E700689E4B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceandevicecontainer.cpp; sourceTree = "<group>"; };
 		ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevicecontainer.hpp; sourceTree = "<group>"; };
@@ -111,6 +122,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
+				ED55760F174CFAEC00CCC4DD /* libjson.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -120,6 +132,7 @@
 		ED5AF9161741830200689E4B /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				ED55760E174CFAEC00CCC4DD /* libjson.a */,
 				ED5AF914174182E700689E4B /* libsqlite3.dylib */,
 			);
 			name = libs;
@@ -181,29 +194,35 @@
 				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
 				EDB284481733B59500EAE5DE /* serialcomm.cpp */,
 				EDB284491733B59500EAE5DE /* serialcomm.hpp */,
-				ED70716E171D428A00752E4D /* dalidefs.h */,
-				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
-				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
-				EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */,
-				EDB284461733B4ED00EAE5DE /* enoceancomm.hpp */,
+				ED55760B174CC03A00CCC4DD /* socketcomm.cpp */,
+				ED55760C174CC03A00CCC4DD /* socketcomm.hpp */,
+				ED557610174CFB3000CCC4DD /* jsoncomm.cpp */,
+				ED557611174CFB3100CCC4DD /* jsoncomm.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
 				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
 				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
-				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
-				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
-				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
-				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
 				EDCFE855171FE841001D35F3 /* device.cpp */,
 				EDCFE856171FE841001D35F3 /* device.hpp */,
-				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
-				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
-				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
-				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
+				ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */,
+				ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */,
 				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
+				ED70716E171D428A00752E4D /* dalidefs.h */,
+				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
+				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
+				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
+				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
+				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
+				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
+				EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */,
+				EDB284461733B4ED00EAE5DE /* enoceancomm.hpp */,
+				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
+				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
+				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
+				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* p44bridged_common.hpp */,
 			);
@@ -304,6 +323,9 @@
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
+				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
+				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
+				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,7 +335,7 @@
 		ED6D7BE21716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -336,7 +358,11 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = /usr/local/Cellar/boost/1.53.0/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/Cellar/boost/1.53.0/include,
+					"/usr/local/Cellar/json-c/0.10/include",
+				);
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/Cellar/json-c/0.10/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -346,7 +372,7 @@
 		ED6D7BE31716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -363,7 +389,11 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = /usr/local/Cellar/boost/1.53.0/include;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/Cellar/boost/1.53.0/include,
+					"/usr/local/Cellar/json-c/0.10/include",
+				);
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/Cellar/json-c/0.10/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
 			};
