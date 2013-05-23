@@ -279,11 +279,6 @@ uint8_t Esp3Packet::radio_security_level()
 }
 
 
-
-#define STATUS_MASK 0x30
-#define STATUS_T21 0x20
-#define STATUS_NU 0x10 // set if N-Message, cleared if U-Message
-
 uint8_t Esp3Packet::radio_status()
 {
   RadioOrg rorg = eep_rorg();
@@ -406,9 +401,9 @@ EnoceanProfile Esp3Packet::eep_profile()
       // RPS have no learn mode, EEP signature can be derived from bits (not completely, but usable approximation)
       uint8_t status = radio_status();
       uint8_t data = radio_userData()[0];
-      if ((status & STATUS_T21)!=0) {
+      if ((status & status_T21)!=0) {
         // Win handle or 2-Rocker (or key card, but we can't distinguish that, so we default to 2-Rocker)
-        if ((data & 0x80)!=0 && (status & STATUS_NU)==0) {
+        if ((data & 0x80)!=0 && (status & status_NU)==0) {
           // Window handle
           profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x10<<8) | (0x00); // FUNC = Window handle, TYPE = 0 (no others defined)
         }
@@ -419,7 +414,7 @@ EnoceanProfile Esp3Packet::eep_profile()
       }
       else {
         // must be 4-Rocker
-        profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x03<<8) | (eep_func_unknown); // FUNC = 2-Rocker switch, type unknown (1 or 2 is possible)
+        profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x03<<8) | (eep_func_unknown); // FUNC = 4-Rocker switch, type unknown (1 or 2 is possible)
       }
     }
     else if (rorg==rorg_1BS) {
@@ -494,75 +489,6 @@ bool Esp3Packet::eep_hasTeachInfo()
 
 
 
-#pragma mark - RPS repeated switch radio telegram specifics
-
-
-int Esp3Packet::rps_numRockers()
-{
-  if (eep_rorg()!=rorg_RPS) return 0; // none
-  return (radio_status()&STATUS_T21) ? 2 : 4;
-}
-
-
-
-uint8_t Esp3Packet::rps_action(uint8_t aButtonIndex)
-{
-  uint8_t action = rpsa_none; // none by default
-  if (eep_rorg()==rorg_RPS && aButtonIndex<rps_numRockers()) {
-    uint8_t data = radio_userData()[0];
-    uint8_t status = radio_status();
-    if (status & STATUS_NU) {
-      // N-Message
-      // collect action
-      for (int ai=1; ai>=0; ai--) {
-        uint8_t a = (data >> (4*ai+1)) & 0x07;
-        if (ai==0 && (data&0x01)==0)
-          break; // no second action
-        if (((a>>1) & 0x03)==aButtonIndex) {
-          // querying this button
-          // Note: this is for application style 1 (as used in EU, with 0-state up mount)
-          if (a & 0x01)
-            action |= rpsa_offOrUp;
-          else
-            action |= rpsa_onOrDown;
-        }
-      }
-    }
-    else {
-      // U-Message
-      uint8_t b = (data>>5) & 0x07;
-      uint8_t numAffectedRockers = 0;
-      if (status & STATUS_T21) {
-        // 2-rocker
-        if (b==0)
-          numAffectedRockers = rps_numRockers(); // all affected
-        else if(b==3)
-          numAffectedRockers = 2; // 3 or 4 buttons -> both rockers affected
-      }
-      else {
-        // 4-rocker
-        if (b==0)
-          numAffectedRockers = rps_numRockers();
-        else
-          numAffectedRockers = (b+1)>>1; // half of buttons affected = switches affected
-      }
-      if (aButtonIndex<numAffectedRockers) {
-        // this is one of the affected switches
-        action |= rpsa_multiple;
-      }
-    }
-    if (action!=rpsa_none) {
-      // we have an action for this button
-      if (data & 0x10)
-        action |= rpsa_pressed;
-      else
-        action |= rpsa_released;
-    }
-  }
-  return action;
-}
-
-
 
 #pragma mark - Description
 
@@ -593,19 +519,6 @@ string Esp3Packet::description()
           eep_profile() & 0xFF,
           eep_manufacturer()
         );
-      }
-      // Rocker switch info
-      if ((eep_profile() & 0xFFFE00)==0xF60200) {
-        // is a 2-rocker or 4-rocker switch
-        for (int s=0; s<rps_numRockers(); s++) {
-          uint8_t a = rps_action(s);
-          string_format_append(t,
-            "- RPS switch %d action = %d (%s %s)\n", s,
-            a,
-            a&rpsa_offOrUp ? "Off/Up" : ((a&rpsa_onOrDown) ? "On/Down" : ((a&rpsa_multiple) ? "multiple" : "")),
-            a&rpsa_pressed ? "pressed" : ((a&rpsa_released) ? "released" : "none")
-          );
-        }
       }
     }
     else {

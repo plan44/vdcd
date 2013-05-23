@@ -391,6 +391,7 @@ private:
     activeDevicesPtr(new std::list<DaliAddress>)
   {
     daliComm->startProcedure();
+    LOG(LOG_INFO, "DaliComm: starting quick bus scan (short address poll)\n");
     // reset the bus first
     daliComm->reset(boost::bind(&DaliBusScanner::resetComplete, this, _2));
   }
@@ -528,6 +529,7 @@ private:
     }
     // save the short address list
     usedShortAddrsPtr = aShortAddressListPtr;
+    LOG(LOG_INFO, "DaliComm: starting full bus scan (random address binary search)\n");
     // Terminate any special modes first
     daliComm->daliSend(DALICMD_TERMINATE, 0x00);
     // initialize entire system for random address selection process
@@ -624,14 +626,14 @@ private:
       // none at or below current search
       if (searchMin==0xFFFFFF) {
         // already at max possible -> no more devices found
-        DBGLOG(LOG_DEBUG, "No more devices\n");
+        LOG(LOG_INFO, "No more devices\n");
         completed(ErrorPtr()); return;
       }
       searchMin = searchAddr+1; // new min
     }
     if (searchMin==searchMax && searchAddr==searchMin) {
       // found!
-      DBGLOG(LOG_DEBUG, "- Found device at 0x%06X\n", searchAddr);
+      LOG(LOG_INFO, "- Found device at 0x%06X\n", searchAddr);
       // read current short address
       daliComm->daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _2, _3, _4));
     }
@@ -640,9 +642,9 @@ private:
       searchAddr = searchMin + (searchMax-searchMin)/2;
       DBGLOG(LOG_DEBUG, "                         Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
       if (searchAddr>0xFFFFFF) {
-        DBGLOG(LOG_INFO, "- failed search\n");
+        LOG(LOG_INFO, "- failed search\n");
         if (restarts<MAX_RESTARTS) {
-          DBGLOG(LOG_INFO, "- restarting search at address of last found device + 1\n");
+          LOG(LOG_INFO, "- restarting search at address of last found device + 1\n");
           restarts++;
           newSearchUpFrom(lastSearchMin);
           return;
@@ -671,7 +673,7 @@ private:
       if (aResponse==DALIVALUE_MASK) {
         // device has no short address yet, assign one
         newAddress = newShortAddress();
-        DBGLOG(LOG_INFO, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
+        LOG(LOG_INFO, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
       }
       else {
         shortAddress = DaliComm::addressFromDaliResponse(aResponse);
@@ -679,7 +681,7 @@ private:
         // check for collisions
         if (isShortAddressInList(shortAddress, foundDevicesPtr)) {
           newAddress = newShortAddress();
-          DBGLOG(LOG_INFO, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
+          LOG(LOG_INFO, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
         }
       }
       // check if we need to re-assign the short address
@@ -707,7 +709,7 @@ private:
     }
     else {
       // short address verification failed
-      DBGLOG(LOG_ERR, "Error - could not assign new short address %d\n", newAddress);
+      LOG(LOG_ERR, "Error - could not assign new short address %d\n", newAddress);
       return completed(ErrorPtr(new DaliCommError(DaliCommErrorSetShortAddress, "Failed setting short address")));
     }
   }
@@ -960,13 +962,13 @@ DaliDeviceInfo::DaliDeviceInfo()
 
 string DaliDeviceInfo::description()
 {
-  string s = string_format("DaliDeviceInfo for shortAddress %d\n", shortAddress);
-  string_format_append(s, "- is %suniquely defining the device\n", uniquelyIdentifiing() ? "" : "NOT ");
-  string_format_append(s, "- GTIN       : %lld\n", gtin);
-  string_format_append(s, "- Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
-  string_format_append(s, "- Serial     : %lld\n", serialNo);
-  string_format_append(s, "- OEM GTIN   : %lld\n", oem_gtin);
-  string_format_append(s, "- OEM Serial : %lld\n", oem_serialNo);
+  string s = string_format("- DaliDeviceInfo for shortAddress %d\n", shortAddress);
+  string_format_append(s, "  - is %suniquely defining the device\n", uniquelyIdentifiing() ? "" : "NOT ");
+  string_format_append(s, "  - GTIN       : %lld\n", gtin);
+  string_format_append(s, "  - Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
+  string_format_append(s, "  - Serial     : %lld\n", serialNo);
+  string_format_append(s, "  - OEM GTIN   : %lld\n", oem_gtin);
+  string_format_append(s, "  - OEM Serial : %lld\n", oem_serialNo);
   return s;
 }
 

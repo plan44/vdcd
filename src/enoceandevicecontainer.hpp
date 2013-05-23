@@ -44,7 +44,7 @@ namespace p44 {
   };
 
 
-  typedef std::map<EnoceanAddress, EnoceanDevicePtr> EnoceanDeviceMap;
+  typedef std::multimap<EnoceanAddress, EnoceanDevicePtr> EnoceanDeviceMap;
 
   /// @param aSubDeviceIndex subdevice, can be -1 if subdevice cannot be determined (multiple rockers released)
   /// @return true if locally handled such that no further operation is needed, false otherwise
@@ -65,6 +65,7 @@ namespace p44 {
   typedef boost::shared_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
   class EnoceanDeviceContainer : public DeviceClassContainer
   {
+    friend class EnoceanDevice;
     typedef DeviceClassContainer inherited;
 
     CompletedCB learningCompleteHandler;
@@ -90,7 +91,13 @@ namespace p44 {
 
     virtual void addDevice(DevicePtr aDevice);
 
+    /// remove device
+    /// @param aDevice device to remove (possibly only part of a multi-function physical device)
     virtual void removeDevice(DevicePtr aDevice);
+
+    /// remove devices by physical device address
+    /// @param aEnoceanAddress address for which to remove all physical devices
+    void removeDevicesByAddress(EnoceanAddress aEnoceanAddress);
 
 
     /// learn RPS device (repeated switch)
@@ -106,20 +113,16 @@ namespace p44 {
     void stopLearning();
 
 
-    /// set keypress handler (for local direct operation)
-    void setKeyEventHandler(KeyEventHandlerCB aKeyEventHandler);
-
   protected:
 
-    /// get device by Address
-    /// @param aDeviceAddress enocean address
-    /// @return the device having the specified Address or empty pointer
-    EnoceanDevicePtr getDeviceByAddress(EnoceanAddress aDeviceAddress);
+//    /// get device by Address
+//    /// @param aDeviceAddress enocean address
+//    /// @return the device having the specified Address or empty pointer
+//    EnoceanDevicePtr getDeviceByAddress(EnoceanAddress aDeviceAddress);
 
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
-
     void endLearning(ErrorPtr aError);
 
   };

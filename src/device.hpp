@@ -27,7 +27,11 @@ namespace p44 {
   /// and hue devices will make use of the dS light state machine behaviour.
   class DSBehaviour
   {
+  protected:
+    Device *deviceP;
   public:
+    DSBehaviour(Device *aDeviceP);
+    virtual ~DSBehaviour();
 
     /// @name functional identification for digitalSTROM system
     /// @{
@@ -41,6 +45,9 @@ namespace p44 {
 
     /// @}
 
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description() = 0;
 
   };
 
@@ -52,23 +59,37 @@ namespace p44 {
   class Device
   {
     bool registered; ///< set when registered by dS system
-    DSBehaviour *behaviourP; ///< private, owned instance of the behaviour.
+    DSBehaviour *behaviourP; ///< private owned instance of the behaviour, set right after creation
   protected:
     DeviceClassContainer *classContainerP;
   public:
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
 
+    /// the digitalstrom ID
+    dSID dsid;
+
     /// get pointer to the behaviour
     /// @return the behaviour. If NULL, the device ist not yet set up and cannot be operated
     DSBehaviour *getDSBehaviour() { return behaviourP; };
+
+    /// set the device behaviour
+    /// @param aBehaviour the behaviour. Ownership is passed to the Device.
+    void setBehaviour(DSBehaviour *aBehaviour);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
 
-    /// the digitalstrom ID
-    dSID dsid;
+    /// number of inputs
+    /// @return returns total number of inputs the associated physical device has.
+    /// @note for each input, a separate device exists with increasing serialNo part in the dsid
+    virtual int getNumInputs() { return 0; }
+
+    /// input index of this device
+    /// @return index of input (0..getNumInputs()-1) of this sub-device within its physical device
+    virtual int getInputIndex() { return 0; }
+
   };
 
 

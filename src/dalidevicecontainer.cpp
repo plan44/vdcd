@@ -75,7 +75,7 @@ private:
   {
     bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
     if (!aError || missingData) {
-      if (missingData) { DBGLOG(LOG_INFO,"Device at shortAddress %d does not have device info: %d\n",aDaliDeviceInfoPtr->shortAddress); }
+      if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info: %d\n",aDaliDeviceInfoPtr->shortAddress); }
       // - create device
       DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
       // - give it device info (such that it can calculate its dsid)
@@ -85,7 +85,7 @@ private:
       daliDeviceContainerP->addDevice(daliDevice);
     }
     else {
-      DBGLOG(LOG_INFO,"Error reading device info: %s\n",aError->description().c_str());
+      LOG(LOG_ERR,"Error reading device info: %s\n",aError->description().c_str());
       return completed(aError);
     }
     // check next

@@ -168,7 +168,7 @@ public:
 
 		// daemonize now if requested and in proxy mode
 		if (daemonMode) {
-			LOG(LOG_INFO, "Starting background daemon\n");
+			LOG(LOG_NOTICE, "Starting background daemon\n");
 			daemonize();
       if (loglevel<0) loglevel = DEFAULT_DAEMON_LOGLEVEL;
 		}
@@ -181,7 +181,7 @@ public:
 
     // before starting anything, delay
     if (startupDelay>0) {
-      LOG(LOG_INFO, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
+      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
       sleep(startupDelay);
     }
 
@@ -205,7 +205,7 @@ public:
 			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
       enoceanDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
-      enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
+//      enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
 		}
 
 		// app now ready to run
@@ -240,17 +240,17 @@ public:
   }
 
 
-  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
-  {
-    #warning // TODO: refine - now just switches all lamps on/off
-    if (daliDeviceContainer) {
-      if (aAction&rpsa_pressed) {
-        daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, (aAction&rpsa_offOrUp)!=0 ? 0 : 254);
-      }
-      return true;
-    }
-    return false;
-  }
+//  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
+//  {
+//    #warning // TODO: refine - now just switches all lamps on/off
+//    if (daliDeviceContainer) {
+//      if (aAction&rpsa_pressed) {
+//        daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, (aAction&rpsa_offOrUp)!=0 ? 0 : 254);
+//      }
+//      return true;
+//    }
+//    return false;
+//  }
 
 
 
@@ -323,11 +323,13 @@ public:
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
       DBGLOG(LOG_INFO, deviceContainer.description().c_str());
-      jsonComm->setMessageHandler(boost::bind(&P44bridged::jsonHandler, this, _1, _2, _3));
-      ErrorPtr err = jsonComm->openConnection();
-      if (!Error::isOK(err)) {
-        LOG(LOG_ERR, "Cannot open connection to vdSM: %s\n", err->description().c_str());
-        setAppStatus(status_error);
+      if (jsonComm) {
+        jsonComm->setMessageHandler(boost::bind(&P44bridged::jsonHandler, this, _1, _2, _3));
+        ErrorPtr err = jsonComm->openConnection();
+        if (!Error::isOK(err)) {
+          LOG(LOG_ERR, "Cannot open connection to vdSM: %s\n", err->description().c_str());
+          setAppStatus(status_error);
+        }
       }
     }
     else

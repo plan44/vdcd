@@ -29,7 +29,7 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 #pragma mark - DB and initialisation
 
 
-#define SCHEMA_VERSION 2
+#define SCHEMA_VERSION 3
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -43,6 +43,7 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 			"CREATE TABLE knownDevices ("
 			" ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
 			" enoceanAddress INTEGER,"
+      " channel INTEGER,"
       " eeProfile INTEGER,"
       " eeManufacturer INTEGER"
 			");"
@@ -57,6 +58,13 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
       "ALTER TABLE knownDevices ADD eeManufacturer INTEGER;";
     // reached version 2
     aToVersion = 2;
+  }
+  else if (aFromVersion==2) {
+    // V2->V3: channel added
+    sql =
+      "ALTER TABLE knownDevices ADD channel INTEGER;";
+    // reached version 2
+    aToVersion = 3;
   }
   return sql;
 }
@@ -89,12 +97,23 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
   forgetDevices();
   // - read learned-in enOcean button IDs from DB
   sqlite3pp::query qry(db);
-  if (qry.prepare("SELECT enoceanAddress, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
+  if (qry.prepare("SELECT enoceanAddress, channel, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
     for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-      EnoceanDevicePtr newdev = EnoceanDevicePtr(new EnoceanDevice(this));
-      newdev->setEnoceanAddress(i->get<int>(0));
-      newdev->setEEPInfo(i->get<int>(1), i->get<int>(2));
-      addDevice(newdev);
+      EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
+        this,
+        i->get<int>(0), i->get<int>(1), // address / channel
+        i->get<int>(2), i->get<int>(3) // profile / manufacturer
+      );
+      if (newdev) {
+        addDevice(newdev);
+      }
+      else {
+        LOG(LOG_ERR,
+          "EnOcean device could not be created for addr=%08X, channel=%d, profile=%06X, manufacturer=%d",
+          i->get<int>(0), i->get<int>(1), // address / channel
+          i->get<int>(2), i->get<int>(3) // profile / manufacturer
+        );
+      }
     }
   }
   // assume ok
@@ -107,18 +126,20 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
   inherited::addDevice(aDevice);
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
-    enoceanDevices[ed->getEnoceanAddress()] = ed;
+    enoceanDevices.insert(make_pair(ed->getAddress(), ed));
     // save enocean ID to DB
     sqlite3pp::query qry(db);
-    // - check if already saved
-    if (qry.prepare("SELECT ROWID FROM knownDevices WHERE enoceanAddress=?1")==SQLITE_OK) {
-      qry.bind(1, (int)ed->getEnoceanAddress());
+    // - check if this channel is already stored
+    if (qry.prepare("SELECT ROWID FROM knownDevices WHERE enoceanAddress=?1 AND channel=?2")==SQLITE_OK) {
+      qry.bind(1, (int)ed->getAddress());
+      qry.bind(2, (int)ed->getChannel());
       if (qry.begin()==qry.end()) {
         qry.reset();
         // - does not exist yet
         db.executef(
-          "INSERT INTO knownDevices (enoceanAddress, eeProfile, eeManufacturer) VALUES (%d,%d,%d)",
-          ed->getEnoceanAddress(),
+          "INSERT INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
+          ed->getAddress(),
+          ed->getChannel(),
           ed->getEEProfile(),
           ed->getEEManufacturer()
         );
@@ -130,28 +151,49 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
 
 void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice)
 {
-  inherited::removeDevice(aDevice);
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
-    enoceanDevices.erase(ed->getEnoceanAddress());
-    // remove from DB
-    db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d", ed->getEnoceanAddress());
+    // - remove single device from superclass
+    inherited::removeDevice(aDevice);
+    // - remove only selected channel from my own list
+    EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(ed->getAddress());
+    while (pos!=enoceanDevices.upper_bound(ed->getAddress())) {
+      if (pos->second->getChannel()==ed->getChannel()) {
+        // this is the channel we want deleted
+        enoceanDevices.erase(pos);
+        break; // done
+      }
+      pos++;
+    }
+    // also remove from DB
+    db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND channel=%d", ed->getAddress(), ed->getChannel());
   }
 }
 
 
-
-
-
-EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDeviceAddress)
+void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddress)
 {
-  EnoceanDeviceMap::iterator pos = enoceanDevices.find(aDeviceAddress);
-  if (pos!=enoceanDevices.end()) {
-    return pos->second;
+  // remove all logical devices with same physical address
+  // - remove from superclass (which sees these as completely separate devices)
+  for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEnoceanAddress); pos!=enoceanDevices.upper_bound(aEnoceanAddress); ++pos) {
+    inherited::removeDevice(pos->second);
   }
-  // none found
-  return EnoceanDevicePtr();
+  // - remove all with that address from my own list
+  enoceanDevices.erase(aEnoceanAddress);
+  // also remove from DB
+  db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d", aEnoceanAddress);
 }
+
+
+//EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDeviceAddress)
+//{
+//  EnoceanDeviceMap::iterator pos = enoceanDevices.find(aDeviceAddress);
+//  if (pos!=enoceanDevices.end()) {
+//    return pos->second;
+//  }
+//  // none found
+//  return EnoceanDevicePtr();
+//}
 
 
 
@@ -173,62 +215,51 @@ EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDevi
 
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
-  // look up device we might already have for this address
-  EnoceanDevicePtr dev = getDeviceByAddress(aEsp3PacketPtr->radio_sender());
+  if (aError) {
+    LOG(LOG_INFO, "Radio packet error: %s\n", aError->description().c_str());
+    return;
+  }
   // check learning mode
   if (isLearning()) {
     // in learn mode, check if strong signal and if so, learn/unlearn
     if (aEsp3PacketPtr->radio_dBm()>MIN_LEARN_DBM)
     {
       // no learn/unlearn actions detected so far
-      bool learnIn = dev==NULL; // no device yet
+      // - check if we know that device address already. If so, it is a learn-out
+      bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radio_sender())==enoceanDevices.end();
       // now add/remove the device (if the action is a valid learn/unlearn)
       if (aEsp3PacketPtr->eep_hasTeachInfo()) {
         // This is actually a valid learn action
+        ErrorPtr learnStatus;
         if (learnIn) {
-          // new device learned in, add it
-          // - create it
-          dev = EnoceanDevicePtr(new EnoceanDevice(this));
-          // - set ID/address
-          dev->setEnoceanAddress(aEsp3PacketPtr->radio_sender());
-          // - set enocean profile information, determines behaviour
-          dev->setEEPInfo(aEsp3PacketPtr->eep_profile(), aEsp3PacketPtr->eep_manufacturer());
-          if (dev->getDSBehaviour()) {
-            // device could derive a dS behaviour from EEP, so we can operate it
-            addDevice(dev);
-            endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceLearned)));
-          }
-          else {
-            // device could not derive a dS behaviour, we cannot operate it
-            endLearning(ErrorPtr(new EnoceanError(EnoceanNoKnownProfile)));
+          // new device learned in, add logical devices for it
+          int numNewDevices = EnoceanDevice::createDevicesFromEEP(this,aEsp3PacketPtr);
+          if (numNewDevices>0) {
+            learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceLearned));
           }
         }
         else {
           // device learned out, remove it
-          removeDevice(dev);
-          endLearning(ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned)));
+          removeDevicesByAddress(aEsp3PacketPtr->radio_sender()); // remove all logical devices in this physical device
+          learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
         }
+        // - end learning if actually learned or unlearned something
+        if (learnStatus)
+          endLearning(learnStatus);
       } // learn action
     } // strong enough signal for learning
   }
   else {
-    // not learning
-    if (dev) {
-      // known device
-      #warning // TODO: dispatch packet to devices, let them handle it via their dS behaviour
-      if (keyEventHandler && aEsp3PacketPtr->eep_rorg()==rorg_RPS) {
-        // direct handling of key events
-        for (int bi=0; bi<aEsp3PacketPtr->rps_numRockers(); bi++) {
-          uint8_t a = aEsp3PacketPtr->rps_action(bi);
-          if (a!=rpsa_none) {
-            // create event
-            keyEventHandler(dev, (a & rpsa_multiple)==0 ? bi : -1, a);
-          }
-        }
-      }
-    } // known device
+    // not learning, dispatch packet to all devices known for that address
+    for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radio_sender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radio_sender()); ++pos) {
+      pos->second->handleRadioPacket(aEsp3PacketPtr);
+    }
   }
 }
+
+
+
+#pragma mark - learning / unlearning
 
 
 void EnoceanDeviceContainer::learnDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout)
@@ -262,11 +293,6 @@ void EnoceanDeviceContainer::endLearning(ErrorPtr aError)
   }
 }
 
-
-void EnoceanDeviceContainer::setKeyEventHandler(KeyEventHandlerCB aKeyEventHandler)
-{
-  keyEventHandler = aKeyEventHandler;
-}
 
 
 

@@ -200,7 +200,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
 {
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
-  DBGLOG(LOG_INFO,"--- added device: %s", aDevice->description().c_str());
+  LOG(LOG_NOTICE,"--- added device: %s", aDevice->description().c_str());
   // TODO: make sure device gets registered with the vdSM
 }
 
@@ -210,7 +210,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice)
 {
   // add to container-wide map of devices
   dSDevices.erase(aDevice->dsid);
-  DBGLOG(LOG_INFO,"--- removed device: %s", aDevice->description().c_str());
+  LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
   // TODO: make sure device gets unregistered with the vdSM
 }
 

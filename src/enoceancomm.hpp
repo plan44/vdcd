@@ -46,16 +46,12 @@ namespace p44 {
   } RadioOrg;
 
 
+  // RPS bits
   typedef enum {
-    rpsa_none = 0,
-    rpsa_onOrDown = 0x01,
-    rpsa_offOrUp = 0x02,
-    rpsa_multiple = 0x04,
-    rpsa_pressed = 0x10,
-    rpsa_released = 0x20
-  } RPSAction;
-
-
+    status_mask = 0x30,
+    status_T21 = 0x20,
+    status_NU = 0x10 // set if N-Message, cleared if U-Message
+  } StatusBits;
 
 
   /// Enocean EEP profile number (RORG/FUNC/TYPE)
@@ -64,11 +60,17 @@ namespace p44 {
   const uint8_t eep_func_unknown = 0xFF;
   const uint8_t eep_type_unknown = 0xFF;
   const EnoceanProfile eep_profile_unknown = (rorg_invalid<<16) + (eep_func_unknown<<8) + eep_type_unknown;
+  const EnoceanProfile eep_ignore_type_mask = 0xFFFF00;
+
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;
   // unknown marker
   const EnoceanManufacturer manufacturer_unknown = 0xFFFF;
+
+  /// EnOcean channel (for devices with multiple functions, or multiple instances of a function like multi-pushbuttons)
+  typedef uint8_t EnoceanChannel;
+  const EnoceanChannel EnoceanAllChannels = 0xFF; // all channels
 
   /// EnOcean addresses (IDs)
   typedef uint32_t EnoceanAddress;
@@ -216,23 +218,6 @@ namespace p44 {
     EnoceanManufacturer eep_manufacturer();
 
     /// @}
-
-
-
-    /// @name access to RPS (repeated switch) radio telegram fields
-    /// @{
-
-    /// Query number of switches
-    int rps_numRockers();
-
-    /// Query switch action
-    /// @param aButtonIndex, which button to query (0=A, 1=B, ...)
-    /// @return RPSAction action code
-    uint8_t rps_action(uint8_t aButtonIndex);
-
-    /// @}
-
-
 
 
     /// description
