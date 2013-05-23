@@ -53,6 +53,13 @@ void Fnv32::addBytes(size_t aNumBytes, uint8_t *aBytesP)
 }
 
 
+void Fnv32::addCStr(const char *aCStr)
+{
+  while (char c = *aCStr++)
+    addByte(c);
+}
+
+
 uint32_t Fnv32::getHash() const
 {
   return hash;
@@ -88,6 +95,14 @@ void Fnv64::addBytes(size_t aNumBytes, uint8_t *aBytesP)
     addByte(aBytesP[i]);
   }
 }
+
+
+void Fnv64::addCStr(const char *aCStr)
+{
+  while (char c = *aCStr++)
+    addByte(c);
+}
+
 
 
 uint64_t Fnv64::getHash() const

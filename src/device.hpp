@@ -75,7 +75,7 @@ namespace p44 {
 
     /// set the device behaviour
     /// @param aBehaviour the behaviour. Ownership is passed to the Device.
-    void setBehaviour(DSBehaviour *aBehaviour);
+    void setDSBehaviour(DSBehaviour *aBehaviour);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

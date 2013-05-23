@@ -63,7 +63,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 5"
+            argument = "-l 7"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -92,11 +92,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.210"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.222"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-g testbutton"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

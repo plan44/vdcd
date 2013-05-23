@@ -11,8 +11,8 @@
 #include "devicecontainer.hpp"
 
 #include "dalidevicecontainer.hpp"
-
 #include "enoceandevicecontainer.hpp"
+#include "staticdevicecontainer.hpp"
 
 #include "jsoncomm.hpp"
 
@@ -97,6 +97,7 @@ public:
 		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -c vdsmhost : vdSM hostname/IP\n");
 		fprintf(stderr, "    -C vdsmport : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
+		fprintf(stderr, "    -g gpioname : add static GPIO button device\n");
 		fprintf(stderr, "    -d : fully daemonize\n");
 		fprintf(stderr, "    -w seconds : delay startup\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
@@ -120,6 +121,8 @@ public:
 
 		char *vdsmname = NULL;
 		char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+		
+		DeviceConfigMap staticDeviceConfigs;
 
     const char *dbdir = DEFAULT_DBDIR;
 
@@ -128,7 +131,7 @@ public:
     int startupDelay = 0; // no delay
 
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:c:C:l:s:w:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:l:s:w:")) != -1)
 		{
 			switch (c) {
 				case 'd':
@@ -154,6 +157,9 @@ public:
 					break;
 				case 'C':
 					vdsmport = optarg;
+					break;
+				case 'g':
+					staticDeviceConfigs.insert(make_pair("gpio", optarg));
 					break;
 				case 's':
 					dbdir = optarg;
@@ -192,20 +198,25 @@ public:
     }
 
 		// Create static container structure
-		// - Add DALI devices class
+		// - Add DALI devices class if DALI bridge serialport/host is specified
 		if (daliname) {
 			daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
 			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
       daliDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
 		}
-
+		// - Add enOcean devices class if enOcean modem serialport/host is specified
 		if (enoceanname) {
 			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
 			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
       enoceanDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
 //      enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
+		}
+		// - Add static devices if we have collected any config from the command line
+		if (staticDeviceConfigs.size()>0) {
+			StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
+			deviceContainer.addDeviceClassContainer(staticDeviceContainer);
 		}
 
 		// app now ready to run

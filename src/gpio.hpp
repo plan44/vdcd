@@ -45,21 +45,31 @@ namespace p44 {
     ///   Note: aInitialState is logic state (pin state will be inverse if aInverted is set)
     Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
     virtual ~Gpio();
+
+		/// get name
+		const char *getName() { return name.c_str(); };
+		
     /// set state of output (NOP for inputs)
     /// @return current state (actual level on pin for inputs, last set state for outputs)
     bool isSet();
+
     /// set state of output (NOP for inputs)
     /// @param aState new state to set output to
     void set(bool aState);
+
     /// set state to true
     void on();
+
     /// set state to false
     void off();
+
     /// toggle state of output and return new state
     /// @return new state of output after toggling (for inputs, just returns state like isSet() does)
     bool toggle();
   };
-
+	typedef boost::shared_ptr<Gpio> GpioPtr;
+	
+	
 
   /// GPIO used as pushbutton
   class ButtonInput : public Gpio
@@ -94,7 +104,10 @@ namespace p44 {
     void setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease);
     
   };
+	typedef boost::shared_ptr<ButtonInput> ButtonInputPtr;
 
+	
+	
   /// GPIO used for indicator (e.g. LED)
   class IndicatorOutput : public Gpio
   {
@@ -126,6 +139,7 @@ namespace p44 {
     void stop();
 
   };
+	typedef boost::shared_ptr<IndicatorOutput> IndicatorOutputPtr;
 
 
 

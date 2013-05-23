@@ -33,11 +33,11 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
 
 Device::~Device()
 {
-  setBehaviour(NULL);
+  setDSBehaviour(NULL);
 }
 
 
-void Device::setBehaviour(DSBehaviour *aBehaviour)
+void Device::setDSBehaviour(DSBehaviour *aBehaviour)
 {
   if (behaviourP)
     delete behaviourP;
