@@ -31,11 +31,12 @@ namespace p44 {
     EnoceanAddress enoceanAddress;
     EnoceanProfile eeProfile;
     EnoceanManufacturer eeManufacturer;
-    EnoceanChannel channel;
+    EnoceanChannel channel; ///< channel number this logical device represents (out of possibly multiple channels in this physical device)
+		EnoceanChannel numChannels; ///< number of channels in the physical device (of which this logical device represents one channel)
 
   public:
     /// constructor, create device in container
-    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP);
+    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels);
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
@@ -67,10 +68,14 @@ namespace p44 {
     EnoceanAddress getAddress();
 
     /// get the enocean channel that identifies this logical device among other logical devices in the same
-    ///   physical enOcean device (having the same enOcean deviceID/adress
+    ///   physical enOcean device (having the same enOcean deviceID/address)
     /// @return enOcean device ID/address
     EnoceanChannel getChannel();
 
+		/// get number of channels in the physical device (of which this logical device represents one channel)
+		/// @return number of channels
+		EnoceanChannel getNumChannels();
+		
 
     /// set EEP information
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number

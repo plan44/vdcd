@@ -11,16 +11,15 @@
 using namespace p44;
 
 
-ButtonBehaviour::ButtonBehaviour(Device *aDeviceP, bool aTwoWay) :
-  inherited(aDeviceP),
-  twoWay(aTwoWay)
+ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
+  inherited(aDeviceP)
 {
 }
 
 
-void ButtonBehaviour::buttonAction(bool aPressed, bool aSecondKey)
+void ButtonBehaviour::buttonAction(bool aPressed)
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: %s Button was %s\n", aSecondKey ? "Second" : "First", aPressed ? "pressed" : "released");
+  LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
 }
 
 
@@ -82,5 +81,5 @@ uint8_t ButtonBehaviour::buttonIdGroup()
 
 string ButtonBehaviour::description()
 {
-  return string_format("%sbutton", twoWay ? "Two way " : "Push");
+  return string("Button");
 }

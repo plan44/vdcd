@@ -18,11 +18,9 @@ namespace p44 {
   class ButtonBehaviour : public DSBehaviour
   {
     typedef DSBehaviour inherited;
-    bool twoWay;
   public:
     // constructor
-    // @param aTwoWay if set, behaviour represents a two-way (up/down type rocker) button
-    ButtonBehaviour(Device *aDeviceP, bool aTwoWay);
+    ButtonBehaviour(Device *aDeviceP);
 
     /// @name functional identification for digitalSTROM system
     /// @{
@@ -40,8 +38,7 @@ namespace p44 {
 
     /// button action occurred
     /// @param aPressed true if action is button pressed, false if action is button released
-    /// @param aSecondKey true if action comes from second key, false if action comes from first key
-    void buttonAction(bool aPressed, bool aSecondKey);
+    void buttonAction(bool aPressed);
     
     /// @}
 

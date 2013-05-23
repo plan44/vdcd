@@ -14,10 +14,11 @@
 using namespace p44;
 
 
-EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
+EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels) :
   Device((DeviceClassContainer *)aClassContainerP),
   eeProfile(eep_profile_unknown),
-  eeManufacturer(manufacturer_unknown)
+  eeManufacturer(manufacturer_unknown),
+	numChannels(aNumChannels)
 {
 }
 
@@ -31,6 +32,12 @@ EnoceanAddress EnoceanDevice::getAddress()
 EnoceanChannel EnoceanDevice::getChannel()
 {
   return channel;
+}
+
+
+EnoceanChannel EnoceanDevice::getNumChannels()
+{
+	return numChannels;
 }
 
 
@@ -70,8 +77,9 @@ void EnoceanDevice::deriveDSID()
   // - bits 48..51 set to 6
   // - bits 40..47 unused
   // - enOcean address encoded into bits 8..39
-  // - bits 2..7 reserved for non-input channels
-  // - channel (input index) encoded into bits 0..1
+  // - channel encoded into bits 0..7 (max 255 channels)
+	//   Note: this conforms to the dS convention which mandates that multi-input physical
+	//   devices (up to 4) must have adjacent dsids.
   dsid.setSerialNo(
     0x6000000000000ll+
     ((uint64_t)getAddress()<<8) +
@@ -104,28 +112,24 @@ class RpsEnoceanDevice : public EnoceanDevice
 {
   typedef EnoceanDevice inherited;
   
-  int numInputs; // total number of inputs in physical device containing this logical device
-
-  bool pressed[2]; // true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
+  bool pressed; // true if currently pressed, false if released
 
 public:
-  RpsEnoceanDevice(EnoceanDeviceContainer *aClassContainerP, int aNumInputs) :
-    inherited(aClassContainerP),
-    numInputs(aNumInputs)
+  RpsEnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels) :
+    inherited(aClassContainerP, aNumChannels)
   {
-    pressed[0] = false;
-    pressed[1] = false;
+    pressed = false;
   };
 
   virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
   {
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
     // set the behaviour
-    setBehaviour(new ButtonBehaviour(this, true));
+    setDSBehaviour(new ButtonBehaviour(this));
   };
 
-  // return number of inputs set at creation
-  virtual int getNumInputs() { return numInputs; }
+  // return number of inputs (of the emulated dS device)
+  virtual int getNumInputs() { return getNumChannels()>4 ? 4 : getNumChannels(); }
 
   // the channel corresponds to the dS input
   virtual int getInputIndex() { return getChannel(); }
@@ -144,10 +148,9 @@ public:
         uint8_t a = (data >> (4*ai+1)) & 0x07;
         if (ai==0 && (data&0x01)==0)
           break; // no second action
-        if (((a>>1) & 0x03)==getChannel()) {
+        if ((a & 0x07)==getChannel()) {
           // querying this channel
-          // Note: this is for application style 1 (as used in EU, with 0-state up mount)
-          setButtonState((data & 0x10)!=0, (a & 0x01) ? 1 : 0);
+          setButtonState((data & 0x10)!=0);
         }
       }
     }
@@ -180,26 +183,25 @@ public:
         else {
           // released
           // assume both buttons (both sides of the rocker) released
-          setButtonState(false, 0);
-          setButtonState(false, 1);
+          setButtonState(false);
         }
       }
     }
   };
 
 private:
-  void setButtonState(bool aPressed, int aIndex)
+  void setButtonState(bool aPressed)
   {
     // only propagate real changes
-    if (aPressed!=pressed[aIndex]) {
+    if (aPressed!=pressed) {
       // real change, propagate to behaviour
       ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
       if (b) {
-        LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button[%d] changed state to %s\n", getAddress(), getChannel(), aIndex, aPressed ? "pressed" : "released");
-        b->buttonAction(aPressed, aIndex!=0);
+        LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button changed state to %s\n", getAddress(), getChannel(), aPressed ? "pressed" : "released");
+        b->buttonAction(aPressed);
       }
       // update cached status
-      pressed[aIndex] = aPressed;
+      pressed = aPressed;
     }
   }
 
@@ -220,8 +222,8 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDevicePtr newDev;
   EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
   if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    // 2 or 4 rocker switch = 2 or 4 channels
-    numChannels = functionProfile==0xF60300 ? 4 : 2;
+    // 2 or 4 rocker switch = 4 or 8 channels
+    numChannels = functionProfile==0xF60300 ? 8 : 4;
     // create device
     newDev = EnoceanDevicePtr(new RpsEnoceanDevice(aClassContainerP, numChannels));
     // assign channel and address
