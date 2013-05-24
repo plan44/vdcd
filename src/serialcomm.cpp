@@ -134,8 +134,10 @@ bool SerialComm::establishConnection()
       tcgetattr(connectionFd,&oldTermIO); // save current port settings
       // see "man termios" for details
       memset(&newtio, 0, sizeof(newtio));
-      // - baudrate, 8-N-1, no modem control lines (local), reading enabled
-      newtio.c_cflag = baudRateCode | CRTSCTS | CS8 | CLOCAL | CREAD;
+      // - set speed
+      cfsetspeed(&newtio, baudRateCode);
+      // - 8-N-1, no modem control lines (local), reading enabled
+      newtio.c_cflag = CS8 | CLOCAL | CREAD;
       // - ignore parity errors
       newtio.c_iflag = IGNPAR;
       // - no output control
