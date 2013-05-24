@@ -53,7 +53,8 @@ namespace p44 {
       ct_click_2x,
       ct_click_3x,
       ct_short_long,
-      ct_short_short_long
+      ct_short_short_long,
+      numClickTypes
     } ClickType;
 
     // - vars
@@ -73,7 +74,7 @@ namespace p44 {
     const int t_click_pause = 140*MilliSecond;
     const int t_tip_timeout = 800*MilliSecond;
     const int t_local_dim_timeout = 160*MilliSecond;
-    const int max_hold_repeats = 30*MilliSecond;
+    const int max_hold_repeats = 30;
 
     // - methods
     void resetStateMachine();

@@ -11,6 +11,29 @@
 using namespace p44;
 
 
+#ifdef DEBUG
+
+
+static const char *ClickTypeNames[] {
+  "ct_tip_1x",
+  "ct_tip_2x",
+  "ct_tip_3x",
+  "ct_tip_4x",
+  "ct_hold_start",
+  "ct_hold_repeat",
+  "ct_hold_end",
+  "ct_click_1x",
+  "ct_click_2x",
+  "ct_click_3x",
+  "ct_short_long",
+  "ct_short_short_long"
+};
+
+
+#endif
+
+
+
 ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
   inherited(aDeviceP)
 {
@@ -109,7 +132,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S3_hold:
-      if (aButtonChange && buttonPressed) {
+      if (aButtonChange && !buttonPressed) {
         // no packet send time, skip S15
         sendClick(ct_hold_end);
         state = S0_idle;
@@ -173,6 +196,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
         state = S4_nextTipWait;
       }
       else if (timeSinceRef>t_long_function_delay) {
+        sendClick(ct_short_long);
         state = S8_awaitrelease;
       }
       break;
@@ -252,7 +276,7 @@ void ButtonBehaviour::localDim()
 
 void ButtonBehaviour::sendClick(ClickType aClickType)
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Sending Click Type %d\n", aClickType);
+  LOG(LOG_NOTICE,"ButtonBehaviour: Sending Click Type %d = %s\n", aClickType, ClickTypeNames[aClickType]);
 }
 
 
