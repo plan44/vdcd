@@ -59,19 +59,6 @@
          shouldBeEnabled = "Yes"
          ignoreCount = "0"
          continueAfterRunningActions = "No"
-         filePath = "src/socketcomm.cpp"
-         timestampString = "390931801.382345"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "42"
-         endingLineNumber = "42"
-         landmarkName = "SocketComm::openConnection()"
-         landmarkType = "5">
-      </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "Yes"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
          filePath = "src/sqlite3persistence.cpp"
          timestampString = "391021314.365511"
          startingColumnNumber = "9223372036854775807"
@@ -105,6 +92,19 @@
          startingLineNumber = "144"
          endingLineNumber = "144"
          landmarkName = "handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)"
+         landmarkType = "5">
+      </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "src/devicecontainer.cpp"
+         timestampString = "391208083.666807"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "277"
+         endingLineNumber = "277"
+         landmarkName = "DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)"
          landmarkType = "5">
       </FileBreakpoint>
    </FileBreakpoints>

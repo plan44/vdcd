@@ -11,6 +11,8 @@
 
 #include "p44bridged_common.hpp"
 
+#include "jsoncomm.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -34,14 +36,35 @@ namespace p44 {
   typedef list<DeviceClassContainerPtr> ContainerList;
   typedef std::map<dSID, DevicePtr> DsDeviceMap;
 
+  typedef std::map<uint32_t, DevicePtr> BusAddressMap;
+
+
   class DeviceContainer
   {
-    DsDeviceMap dSDevices;
+    friend class DeviceClassCollector;
+
+    bool collecting;
+
+    DsDeviceMap dSDevices; ///< available devices by dSID
+
+    BusAddressMap busDevices; ///< registered devices by BusAddress.
+    // TODO: %%% we'll probably get rid of this with the new vDSM API
+
+
+  private:
+
+    /// vdSM API message handler
+    void vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject);
 
   public:
 
+    DeviceContainer();
+
     /// the list of containers
     ContainerList deviceClassContainers;
+
+    /// JSON communication with vdsm
+    JsonComm vdsmJsonComm;
 
     /// add a device class container
     /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
@@ -69,6 +92,10 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
     void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
+    /// register all unregistered devices
+    void registerDevices(MLMicroSeconds aLastRegBefore = Never);
+
+
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dsid
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
@@ -78,6 +105,11 @@ namespace p44 {
     /// called by device class containers to remove devices from the container-wide list
     /// @param aDevice a device object which has a valid dsid
     void removeDevice(DevicePtr aDevice);
+
+
+    /// periodic task
+    void periodicTask(MLMicroSeconds aCycleStartTime);
+
 
     /// @}
 

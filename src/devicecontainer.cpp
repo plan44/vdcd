@@ -21,6 +21,14 @@
 using namespace p44;
 
 
+DeviceContainer::DeviceContainer() :
+  vdsmJsonComm(SyncIOMainLoop::currentMainLoop()),
+  collecting(false)
+{
+  vdsmJsonComm.setMessageHandler(boost::bind(&DeviceContainer::vdsmMessageHandler, this, _2, _3));
+}
+
+
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
   deviceClassContainers.push_back(aDeviceClassContainerPtr);
@@ -83,6 +91,9 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 }
 
 
+#pragma mark - initialize
+
+
 class DeviceClassInitializer
 {
   CompletedCB callback;
@@ -123,6 +134,9 @@ private:
 	
   void completed(ErrorPtr aError)
   {
+    // start periodic tasks like registration checking
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
+    // callback
     callback(aError);
     // done, delete myself
     delete this;
@@ -131,16 +145,34 @@ private:
 };
 
 
+#define PERIODIC_TASK_INTERVAL (3*Second)
+
+void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
+{
+  // cancel any pending executions
+  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  if (!collecting) {
+    // check for devices that need registration
+    registerDevices();
+  }
+  // schedule next run
+  MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+}
+
+
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
+  // initialize class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
 }
 
 
 
 
+#pragma mark - collect devices
 
-class DeviceClassCollector
+
+class p44::DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
@@ -181,6 +213,7 @@ private:
   void completed(ErrorPtr aError)
   {
     callback(aError);
+    deviceContainerP->collecting = false;
     // done, delete myself
     delete this;
   }
@@ -188,11 +221,20 @@ private:
 };
 
 
+
 void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
-  dSDevices.clear(); // forget existing ones
-  DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
+  if (!collecting) {
+    collecting = true;
+    dSDevices.clear(); // forget existing ones
+    DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
+  }
 }
+
+
+
+
+#pragma mark - adding/removing devices
 
 
 // add a new device, replaces possibly existing one based on dsid
@@ -201,7 +243,10 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s", aDevice->description().c_str());
-  // TODO: make sure device gets registered with the vdSM
+  // unless collecting now, register new device right away
+  if (!collecting) {
+    registerDevices();
+  }
 }
 
 
@@ -210,13 +255,113 @@ void DeviceContainer::removeDevice(DevicePtr aDevice)
 {
   // add to container-wide map of devices
   dSDevices.erase(aDevice->dsid);
+  busDevices.erase(aDevice->busAddress);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
-  // TODO: make sure device gets unregistered with the vdSM
+  // TODO: maybe unregister from vdSM???
 }
 
 
 
+#pragma mark - message dispatcher
 
+void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
+{
+  JsonObjectPtr opObj = aJsonObject->get("operation");
+  if (!opObj) {
+    // no operation
+    LOG(LOG_ERR, "vdSM message error: missing 'operation'\n");
+    return;
+  }
+  string o = opObj->stringValue();
+  // check for parameter addressing a device
+  DevicePtr dev;
+  JsonObjectPtr paramsObj = aJsonObject->get("parameter");
+  if (paramsObj) {
+    // first check for dSID
+    JsonObjectPtr dsidObj = paramsObj->get("dSID");
+    if (dsidObj) {
+      string s = dsidObj->stringValue();
+      dSID dsid(s);
+      DsDeviceMap::iterator pos = dSDevices.find(dsid);
+      if (pos!=dSDevices.end())
+        dev = pos->second;
+    }
+    if (!dev) {
+      // not found by dSID, try BusAddress
+      JsonObjectPtr baObj = paramsObj->get("BusAddress");
+      if (baObj) {
+        BusAddressMap::iterator pos = busDevices.find(baObj->int32Value());
+        if (pos!=busDevices.end())
+          dev = pos->second;
+      }
+    }
+  }
+  // dev now set to target device if one could be found
+  if (dev) {
+    // check operations targeting a device
+    if (o=="DeviceRegistrationAck") {
+      dev->confirmRegistration(paramsObj);
+      // %%% TODO: probably remove later
+      // save by bus address
+      JsonObjectPtr baObj = paramsObj->get("BusAddress");
+      if (baObj) {
+        busDevices[baObj->int32Value()] = dev;
+      }
+    }
+  }
+  else {
+    // check operations not targeting a device
+    // TODO: add operations
+    // unknown operation
+    LOG(LOG_ERR, "vdSM message error: unknown operation '%s'\n", o.c_str());
+  }
+}
+
+//  if request['operation'] == 'DeviceRegistrationAck':
+//      self.address = request['parameter']['BusAddress']
+//      self.zone = request['parameter']['Zone']
+//      self.groups = request['parameter']['GroupMemberships']
+//      print 'BusAddress:', request['parameter']['BusAddress']
+//      print 'Zone:', request['parameter']['Zone']
+//      print 'Groups:', request['parameter']['GroupMemberships']
+
+
+
+#pragma mark - registration
+
+
+#define REGISTRATION_TIMEOUT (15*Second)
+
+void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
+{
+  // check all devices for unregistered ones and register those
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    if (
+      dev->registered<=aLastRegBefore && // no or outdated registration
+      (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_TIMEOUT)
+    ) {
+      // mark device as being in process of getting registered
+      dev->registering = MainLoop::now();
+      // create registration request
+      JsonObjectPtr req = JsonObject::newObj();
+      req->add("operation", JsonObject::newString("DeviceRegistration"));
+      // ask the device to provide the registration parameters
+      JsonObjectPtr params = dev->registrationParams();
+      req->add("parameter", params);
+      // issue the request
+      ErrorPtr err;
+      vdsmJsonComm.sendMessage(req, err);
+      if (!Error::isOK(err)) {
+        LOG(LOG_ERR, "Cannot send registration message for %s: %s\n", dev->shortDesc().c_str(), err->description().c_str());
+        dev->registering = Never; // not registering
+      }
+    }
+  }
+}
+
+
+#pragma mark - description
 
 string DeviceContainer::description()
 {

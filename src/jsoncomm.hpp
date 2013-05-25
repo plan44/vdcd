@@ -11,7 +11,7 @@
 
 #include "socketcomm.hpp"
 
-#include <json/json.h>
+#include "jsonobject.hpp"
 
 using namespace std;
 
@@ -31,27 +31,6 @@ namespace p44 {
 
 
   class JsonComm;
-  class JsonObject;
-
-  /// shared pointer for JSON object
-  typedef boost::shared_ptr<JsonObject> JsonObjectPtr;
-
-  class JsonObject
-  {
-    friend class JsonComm;
-
-    struct json_object *json_obj;
-
-    /// private constructor from existing JSON object
-    JsonObject(struct json_object *obj);
-  public:
-    JsonObject();
-    virtual ~JsonObject();
-
-    struct json_object *obj() { return json_obj; };
-    const char *c_str();
-  };
-
 
 
   /// generic callback for signalling completion (with success/error reporting)

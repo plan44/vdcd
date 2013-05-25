@@ -43,11 +43,13 @@ namespace p44 {
     virtual uint8_t outputMode() = 0;
     virtual uint8_t buttonIdGroup() = 0;
 
+    virtual uint16_t version() { return 0xFFFF; }
+
     /// @}
 
-    /// description of object, mainly for debug and logging
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
-    virtual string description() = 0;
+    virtual string shortDesc() = 0;
 
   };
 
@@ -58,8 +60,13 @@ namespace p44 {
   /// the device class' specifics.
   class Device
   {
+    friend class DeviceContainer;
+    
     MLMicroSeconds registered; ///< set when registered by dS system
-    bool registering; ///< set when registration is in progress (but not yet confirmed)
+    MLMicroSeconds registering; ///< set when registration has been started (but not yet confirmed)
+    /// TODO: %%% old vDSM interface, hope we get rid of the bus address later
+    uint32_t busAddress;
+
     DSBehaviour *behaviourP; ///< private owned instance of the behaviour, set right after creation
   protected:
     DeviceClassContainer *classContainerP;
@@ -78,10 +85,6 @@ namespace p44 {
     /// @param aBehaviour the behaviour. Ownership is passed to the Device.
     void setDSBehaviour(DSBehaviour *aBehaviour);
 
-    /// description of object, mainly for debug and logging
-    /// @return textual description of object
-    virtual string description();
-
     /// number of inputs
     /// @return returns total number of inputs the associated physical device has.
     /// @note for each input, a separate device exists with increasing serialNo part in the dsid
@@ -92,8 +95,20 @@ namespace p44 {
     virtual int getInputIndex() { return 0; }
 
 
-    /// 
-    void registerDevice();
+    /// Get the parameters for registering this device with the vdSM
+    /// @return JSON object containing the parameters
+    JsonObjectPtr registrationParams();
+
+    /// Confirm registration
+    void confirmRegistration(JsonObjectPtr aParams);
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description();
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
 
   };
 

@@ -338,7 +338,7 @@ uint8_t ButtonBehaviour::buttonIdGroup()
 
 
 
-string ButtonBehaviour::description()
+string ButtonBehaviour::shortDesc()
 {
   return string("Button");
 }

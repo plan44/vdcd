@@ -108,9 +108,9 @@ namespace p44 {
     
     /// @}
 
-    /// description of object, mainly for debug and logging
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
-    virtual string description();
+    virtual string shortDesc();
 
   };
   

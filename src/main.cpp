@@ -51,9 +51,6 @@ class P44bridged : public Application
   // App status
   P44bridgeStatus appStatus;
 
-  // JSON connection to vdSM
-  JsonCommPtr jsonComm;
-
 	// the device container
 	DeviceContainer deviceContainer;
 
@@ -193,8 +190,7 @@ public:
 
     // Create JSON interface
     if (vdsmname) {
-      jsonComm = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
-      jsonComm->setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
+      deviceContainer.vdsmJsonComm.setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
     }
 
 		// Create static container structure
@@ -334,35 +330,10 @@ public:
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
       DBGLOG(LOG_INFO, deviceContainer.description().c_str());
-      if (jsonComm) {
-        jsonComm->setMessageHandler(boost::bind(&P44bridged::jsonHandler, this, _1, _2, _3));
-        ErrorPtr err = jsonComm->openConnection();
-        if (!Error::isOK(err)) {
-          LOG(LOG_ERR, "Cannot open connection to vdSM: %s\n", err->description().c_str());
-          setAppStatus(status_error);
-        }
-      }
     }
     else
       setAppStatus(status_error);
 	}
-
-
-  void jsonHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
-  {
-    // for now, just log and echo
-    if (Error::isOK(aError)) {
-      DBGLOG(LOG_DEBUG, "JSON received: %s\n", aJsonObject->c_str());
-      // send again
-      aJsonCommP->sendMessage(aJsonObject, aError);
-      if (!Error::isOK(aError)) {
-        LOG(LOG_ERR, "Could not echo back JSON: %s\n", aError->description().c_str());
-      }
-    }
-    else {
-      LOG(LOG_ERR, "Invalid JSON received: %s\n", aError->description().c_str());
-    }
-  }
 
 };
 

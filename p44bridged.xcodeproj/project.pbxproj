@@ -19,6 +19,7 @@
 		ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		ED55760F174CFAEC00CCC4DD /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
 		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
+		ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
 		ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED5AF914174182E700689E4B /* libsqlite3.dylib */; };
 		ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */; };
 		ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B290817393A0700334C71 /* enoceandevice.cpp */; };
@@ -77,6 +78,8 @@
 		ED55760E174CFAEC00CCC4DD /* libjson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjson.a; path = "/usr/local/Cellar/json-c/0.10/lib/libjson.a"; sourceTree = "<absolute>"; };
 		ED557610174CFB3000CCC4DD /* jsoncomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsoncomm.cpp; sourceTree = "<group>"; };
 		ED557611174CFB3100CCC4DD /* jsoncomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsoncomm.hpp; sourceTree = "<group>"; };
+		ED5576131750B15E00CCC4DD /* jsonobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsonobject.cpp; sourceTree = "<group>"; };
+		ED5576141750B15F00CCC4DD /* jsonobject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonobject.hpp; sourceTree = "<group>"; };
 		ED5AF914174182E700689E4B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
 		ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceandevicecontainer.cpp; sourceTree = "<group>"; };
 		ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceandevicecontainer.hpp; sourceTree = "<group>"; };
@@ -204,6 +207,8 @@
 				ED55760C174CC03A00CCC4DD /* socketcomm.hpp */,
 				ED557610174CFB3000CCC4DD /* jsoncomm.cpp */,
 				ED557611174CFB3100CCC4DD /* jsoncomm.hpp */,
+				ED5576131750B15E00CCC4DD /* jsonobject.cpp */,
+				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
@@ -338,6 +343,7 @@
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* gpiodevice.cpp in Sources */,
+				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
