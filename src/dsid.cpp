@@ -126,7 +126,7 @@ bool dSID::setAsString(string &aString)
   while ((c = *p++)!=0 && byteIndex<dsidBytes) {
     if (c=='-') continue;
     c = toupper(c)-'0';
-    if (c>9) c -= ('A'-'9'+1);
+    if (c>9) c -= ('A'-'9'-1);
     if (c<0 || c>0xF)
       break; // invalid char, done
     if (firstNibble) {
