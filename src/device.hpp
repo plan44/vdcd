@@ -58,7 +58,8 @@ namespace p44 {
   /// the device class' specifics.
   class Device
   {
-    bool registered; ///< set when registered by dS system
+    MLMicroSeconds registered; ///< set when registered by dS system
+    bool registering; ///< set when registration is in progress (but not yet confirmed)
     DSBehaviour *behaviourP; ///< private owned instance of the behaviour, set right after creation
   protected:
     DeviceClassContainer *classContainerP;
@@ -89,6 +90,10 @@ namespace p44 {
     /// input index of this device
     /// @return index of input (0..getNumInputs()-1) of this sub-device within its physical device
     virtual int getInputIndex() { return 0; }
+
+
+    /// 
+    void registerDevice();
 
   };
 

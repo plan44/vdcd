@@ -64,7 +64,7 @@ MainLoop *MainLoop::currentMainLoop()
 MainLoop::MainLoop() :
 	terminated(false),
   loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_uS),
-  cycleStartTime(0)
+  cycleStartTime(Never)
 {
 }
 

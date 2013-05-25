@@ -285,9 +285,9 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
 
 IndicatorOutput::IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn) :
   Gpio(aGpioName, true, aInverted, aInitiallyOn),
-  switchOffAt(0),
-  blinkOnTime(0),
-  blinkOffTime(0)
+  switchOffAt(Never),
+  blinkOnTime(Never),
+  blinkOffTime(Never)
 {
   MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _2));
 }
@@ -295,13 +295,13 @@ IndicatorOutput::IndicatorOutput(const char* aGpioName, bool aInverted, bool aIn
 
 void IndicatorOutput::onFor(MLMicroSeconds aOnTime)
 {
-  blinkOnTime = 0;
-  blinkOffTime = 0;
+  blinkOnTime = Never;
+  blinkOffTime = Never;
   set(true);
   if (aOnTime>0)
     switchOffAt = MainLoop::now()+aOnTime;
   else
-    switchOffAt = 0;
+    switchOffAt = Never;
 }
 
 
@@ -316,9 +316,9 @@ void IndicatorOutput::blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeri
 
 void IndicatorOutput::stop()
 {
-  blinkOnTime = 0;
-  blinkOffTime = 0;
-  switchOffAt = 0;
+  blinkOnTime = Never;
+  blinkOffTime = Never;
+  switchOffAt = Never;
   off();
 }
 
@@ -326,10 +326,10 @@ void IndicatorOutput::stop()
 bool IndicatorOutput::timer(MLMicroSeconds aTimestamp)
 {
   // check off time first
-  if (switchOffAt>0 && aTimestamp>=switchOffAt) {
+  if (switchOffAt!=Never && aTimestamp>=switchOffAt) {
     stop();
   }
-  else if (blinkOnTime>0) {
+  else if (blinkOnTime!=Never) {
     // blinking enabled
     if (aTimestamp>=blinkToggleAt) {
       if (toggle()) {

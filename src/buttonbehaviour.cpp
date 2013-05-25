@@ -58,7 +58,7 @@ void ButtonBehaviour::resetStateMachine()
   outputOn = false;
   localButtonEnabled = false;
   dimmingUp = false;
-  timerRef = 0;
+  timerRef = Never;
   timerPending = false;
 }
 
@@ -252,7 +252,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       break;
   }
-  if (timerRef) {
+  if (timerRef!=Never) {
     // need timing, schedule calling again
     timerPending = true;
     MainLoop::currentMainLoop()->executeOnceAt(boost::bind(&ButtonBehaviour::checkTimer, this, _2), aNow+10*MilliSecond, this);

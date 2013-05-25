@@ -23,7 +23,8 @@ DSBehaviour::~DSBehaviour()
 
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
-  registered(false),
+  registered(Never),
+  registering(false),
   classContainerP(aClassContainerP),
   behaviourP(NULL)
 {
