@@ -47,6 +47,18 @@ namespace p44 {
 
     /// @}
 
+    /// handle message from vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return Error object if message generated an error
+    virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
+
+    /// send message to vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
@@ -94,6 +106,13 @@ namespace p44 {
     /// @return index of input (0..getNumInputs()-1) of this sub-device within its physical device
     virtual int getInputIndex() { return 0; }
 
+    /// "pings" the device. Device should respond by sending back a "pong" shortly after (using pong())
+    /// base class just sends the pong, but derived classes which can actually ping their hardware should
+    /// do so and send the pong only if the hardware actually responds.
+    virtual void ping();
+
+    /// sends a "pong" back to the vdSM. Devices should call this as a response to ping()
+    void pong();
 
     /// Get the parameters for registering this device with the vdSM
     /// @return JSON object containing the parameters
@@ -101,6 +120,19 @@ namespace p44 {
 
     /// Confirm registration
     void confirmRegistration(JsonObjectPtr aParams);
+
+
+    /// handle message from vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return Error object if message generated an error
+    ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
+
+    /// send message to vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

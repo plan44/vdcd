@@ -8,6 +8,8 @@
 
 #include "dalidevice.hpp"
 
+#include "dalidevicecontainer.hpp"
+
 #include "fnv.hpp"
 
 using namespace p44;
@@ -18,6 +20,11 @@ DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
 {
 }
 
+DaliDeviceContainer *DaliDevice::daliDeviceContainerP()
+{
+  return (DaliDeviceContainer *)classContainerP;
+}
+
 
 void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
@@ -25,6 +32,25 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceInfo = aDeviceInfo; // copy
   // derive the dSID
   deriveDSID();
+}
+
+
+void DaliDevice::ping()
+{
+  // query the device
+  daliDeviceContainerP()->daliComm.daliSendQuery(
+    deviceInfo.shortAddress, DALICMD_QUERY_CONTROL_GEAR,
+    boost::bind(&DaliDevice::pingResponse, this, _2, _3, _4)
+  );
+}
+
+
+void DaliDevice::pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, false)) {
+    // proper YES (without collision) received
+    pong();
+  }
 }
 
 

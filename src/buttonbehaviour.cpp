@@ -12,8 +12,6 @@ using namespace p44;
 
 
 #ifdef DEBUG
-
-
 static const char *ClickTypeNames[] {
   "ct_tip_1x",
   "ct_tip_2x",
@@ -26,10 +24,11 @@ static const char *ClickTypeNames[] {
   "ct_click_2x",
   "ct_click_3x",
   "ct_short_long",
-  "ct_short_short_long"
+  "ct_local_off",
+  "ct_local_on",
+  "ct_short_short_long",
+  "ct_local_stop"
 };
-
-
 #endif
 
 
@@ -38,6 +37,13 @@ ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
   inherited(aDeviceP)
 {
   resetStateMachine();
+}
+
+
+void ButtonBehaviour::setKeyId(KeyId aKeyId)
+{
+  // set type of key (1way, rockerA/B, local)
+  keyId = aKeyId;
 }
 
 
@@ -264,19 +270,32 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 void ButtonBehaviour::localToggle()
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Local toggle\n");
+  outputOn = !outputOn;
+  // TODO: actually switch output
+  // send status
+  sendClick(outputOn ? ct_local_on : ct_local_off);
 }
 
 
 void ButtonBehaviour::localDim()
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Local dim\n");
+  // TODO: actually dim output in direction as indicated by dimmingUp
 }
 
 
 
 void ButtonBehaviour::sendClick(ClickType aClickType)
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Sending Click Type %d = %s\n", aClickType, ClickTypeNames[aClickType]);
+  #ifdef DEBUG
+  LOG(LOG_NOTICE,"ButtonBehaviour: Sending KeyId %d, Click Type %d = %s\n", keyId, aClickType, ClickTypeNames[aClickType]);
+  #else
+  LOG(LOG_NOTICE,"ButtonBehaviour: Sending KeyId %d, Click Type %d\n", keyId, aClickType);
+  #endif
+  JsonObjectPtr params = JsonObject::newObj();
+  params->add("key", JsonObject::newInt32(keyId));
+  params->add("click", JsonObject::newInt32(aClickType));
+  sendMessage("DeviceButtonClick", params);
 }
 
 

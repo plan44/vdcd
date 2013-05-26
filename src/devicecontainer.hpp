@@ -17,6 +17,26 @@ using namespace std;
 
 namespace p44 {
 
+  // Errors
+  typedef enum {
+    vdSMErrorOK,
+    vdSMErrorMissingOperation,
+    vdSMErrorDeviceNotFound,
+    vdSMErrorUnknownDeviceOperation,
+    vdSMErrorUnknownContainerOperation,
+  } vdSMErrors;
+
+  class vdSMError : public Error
+  {
+  public:
+    static const char *domain() { return "vdSMAPI"; }
+    virtual const char *getErrorDomain() const { return vdSMError::domain(); };
+    vdSMError(vdSMErrors aError) : Error(ErrorCode(aError)) {};
+    vdSMError(vdSMErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+  };
+
+
+
   class DeviceClassContainer;
   class Device;
   class dSID;
@@ -106,12 +126,16 @@ namespace p44 {
     /// @param aDevice a device object which has a valid dsid
     void removeDevice(DevicePtr aDevice);
 
-
     /// periodic task
     void periodicTask(MLMicroSeconds aCycleStartTime);
 
-
     /// @}
+
+    /// send message to vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

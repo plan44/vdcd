@@ -218,28 +218,6 @@ public:
     callback(aResultCB)
   { };
 
-
-  static bool isYes(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr &aError, bool aCollisionIsYes)
-  {
-    bool isYes = !aNoOrTimeout;
-    if (aError && aCollisionIsYes && aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
-      // framing error -> consider this a YES
-      isYes = true;
-      aError.reset(); // not considered an error when aCollisionIsYes is set
-    }
-    else if (isYes && !aCollisionIsYes) {
-      // regular answer, must be DALIANSWER_YES to be a regular YES
-      if (aResponse!=DALIANSWER_YES) {
-        // invalid YES response
-        aError.reset(new DaliCommError(DaliCommErrorInvalidAnswer));
-      }
-    }
-    if (aError)
-      return false; // real error, consider NO
-    // return YES/NO
-    return isYes;
-  }
-
   void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
   {
     bool noOrTimeout;
@@ -254,7 +232,7 @@ public:
 
 
 
-/// reset the bridge
+// reset the bridge
 
 void DaliComm::reset(DaliCommandStatusCB aStatusCB)
 {
@@ -323,6 +301,28 @@ void DaliComm::daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResul
 void DaliComm::daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB, int aWithDelay)
 {
   daliSendAndReceive(dali1FromAddress(aAddress)+1, aQueryCommand, aResultCB, aWithDelay);
+}
+
+
+bool DaliComm::isYes(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr &aError, bool aCollisionIsYes)
+{
+  bool isYes = !aNoOrTimeout;
+  if (aError && aCollisionIsYes && aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
+    // framing error -> consider this a YES
+    isYes = true;
+    aError.reset(); // not considered an error when aCollisionIsYes is set
+  }
+  else if (isYes && !aCollisionIsYes) {
+    // regular answer, must be DALIANSWER_YES to be a regular YES
+    if (aResponse!=DALIANSWER_YES) {
+      // invalid YES response
+      aError.reset(new DaliCommError(DaliCommErrorInvalidAnswer));
+    }
+  }
+  if (aError)
+    return false; // real error, consider NO
+  // return YES/NO
+  return isYes;
 }
 
 
@@ -407,7 +407,7 @@ private:
 
   void handleMissingShortAddressResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
-    if (DaliQueryResponseHandler::isYes(aNoOrTimeout, aResponse, aError, true)) {
+    if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
       // we have devices without short addresses
       unconfiguredDevices = true;
     }
@@ -611,7 +611,7 @@ private:
   void handleCompareResult(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
     // Anything received but timeout is considered a yes
-    bool isYes = DaliQueryResponseHandler::isYes(aNoOrTimeout, aResponse, aError, true);
+    bool isYes = DaliComm::isYes(aNoOrTimeout, aResponse, aError, true);
     if (aError) {
       completed(aError); // other error, abort
       return;
@@ -703,7 +703,7 @@ private:
 
   void handleNewShortAddressVerify(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
-    if (DaliQueryResponseHandler::isYes(aNoOrTimeout, aResponse, aError, false)) {
+    if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, false)) {
       // real clean YES - new short address verified
       deviceFound(newAddress);
     }

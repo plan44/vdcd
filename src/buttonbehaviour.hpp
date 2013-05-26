@@ -42,20 +42,30 @@ namespace p44 {
 
     // - click types
     typedef enum {
-      ct_tip_1x,
-      ct_tip_2x,
-      ct_tip_3x,
-      ct_tip_4x,
-      ct_hold_start,
-      ct_hold_repeat,
-      ct_hold_end,
-      ct_click_1x,
-      ct_click_2x,
-      ct_click_3x,
-      ct_short_long,
-      ct_short_short_long,
+      ct_tip_1x = 0, ///< first tip
+      ct_tip_2x = 1, ///< second tip
+      ct_tip_3x = 2, ///< third tip
+      ct_tip_4x = 3, ///< fourth tip
+      ct_hold_start = 4, ///< hold start
+      ct_hold_repeat = 5, ///< hold repeat
+      ct_hold_end = 6, ///< hold end
+      ct_click_1x = 7, ///< short click
+      ct_click_2x = 8, ///< double click
+      ct_click_3x = 9, ///< triple click
+      ct_short_long = 10, ///< short/long = programming mode
+      ct_local_off = 11, ///< local button has turned device off
+      ct_local_on = 12, ///< local button has turned device on
+      ct_short_short_long = 13, ///< short/short/long = local programming mode
+      ct_local_stop = 14, ///< local stop
       numClickTypes
     } ClickType;
+
+    typedef enum {
+      key_1way = 0, ///< one way push button
+      key_2way_A = 1, ///< two way rocker switch, upper
+      key_2way_B = 2, ///< two way rocker switch, lower
+      key_local = 4, ///< local button
+    } KeyId;
 
     // - vars
     bool buttonPressed;
@@ -75,6 +85,8 @@ namespace p44 {
     const int t_tip_timeout = 800*MilliSecond;
     const int t_local_dim_timeout = 160*MilliSecond;
     const int max_hold_repeats = 30;
+    // - type of button
+    KeyId keyId;
 
     // - methods
     void resetStateMachine();
@@ -101,6 +113,9 @@ namespace p44 {
     /// @}
 
     /// @name interface towards actual device hardware (or simulation)
+
+    /// set type of button
+    void setKeyId(KeyId aKeyId);
 
     /// button action occurred
     /// @param aPressed true if action is button pressed, false if action is button released

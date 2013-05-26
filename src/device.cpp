@@ -11,15 +11,43 @@
 using namespace p44;
 
 
+#pragma mark - digitalSTROM behaviour
+
+
 DSBehaviour::DSBehaviour(Device *aDeviceP) :
   deviceP(aDeviceP)
 {
 }
 
+
 DSBehaviour::~DSBehaviour()
 {
 }
 
+
+ErrorPtr DSBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
+{
+  // base class behaviour does not support any operations
+  return ErrorPtr(new vdSMError(
+    vdSMErrorUnknownDeviceOperation,
+    string_format(
+      "unknown device behaviour operation '%s' for %s/%s",
+      aOperation.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
+    )
+  ));
+}
+
+
+bool DSBehaviour::sendMessage(const char *aOperation, JsonObjectPtr aParams)
+{
+  // just forward to device
+  return deviceP->sendMessage(aOperation, aParams);
+}
+
+
+
+
+#pragma mark - Device
 
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
@@ -44,6 +72,20 @@ void Device::setDSBehaviour(DSBehaviour *aBehaviour)
   if (behaviourP)
     delete behaviourP;
   behaviourP = aBehaviour;
+}
+
+
+void Device::ping()
+{
+  // base class just sends the pong, but derived classes which can actually ping their hardware should
+  // do so and send the pong only if the hardware actually responds.
+  pong();
+}
+
+
+void Device::pong()
+{
+  sendMessage("pong", JsonObjectPtr());
 }
 
 
@@ -76,22 +118,55 @@ void Device::confirmRegistration(JsonObjectPtr aParams)
   registering = Never;
 }
 
+//  if request['operation'] == 'DeviceRegistrationAck':
+//      self.address = request['parameter']['BusAddress']
+//      self.zone = request['parameter']['Zone']
+//      self.groups = request['parameter']['GroupMemberships']
+//      print 'BusAddress:', request['parameter']['BusAddress']
+//      print 'Zone:', request['parameter']['Zone']
+//      print 'Groups:', request['parameter']['GroupMemberships']
 
 
 
-//  json_object* operationObj = json_object_object_get(json_request, "operation");
+ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
+{
+  // check for generic device operations
+  if (aOperation=="ping") {
+    // 
+  }
+  // TODO: add generic device operations
+  // no generic device operation, let behaviour handle it
+  if (behaviourP) {
+    return behaviourP->handleMessage(aOperation, aParams);
+  }
+  else {
+    return ErrorPtr(new vdSMError(
+      vdSMErrorUnknownDeviceOperation,
+      string_format("unknown device operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
+    ));
+  }
+}
 
 
-//  json_object *call = json_object_new_object();
-//  json_object *params = json_object_new_object();
-//
-//  json_object_object_add(params, "Bank", json_object_new_int(paramBank));
-//  json_object_object_add(params, "Offset", json_object_new_int(paramOffset));
-//
-//  json_object_object_add(call, "operation", json_object_new_string("GetDeviceParameter"));
-//  json_object_object_add(call, "parameter", params);
-//
-//  device_api_send_device(deviceId, call);
+
+bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
+{
+  if (!aParams) {
+    // no parameters passed, create new parameter object
+    aParams = JsonObject::newObj();
+  }
+  // add dsid and bus address parameters
+  aParams->add("dSID", JsonObject::newString(dsid.getString()));
+  if (registered) {
+    aParams->add("BusAddress", JsonObject::newInt32(busAddress));
+  }
+  // have device container send it
+  return classContainerP->getDeviceContainerP()->sendMessage(aOperation, aParams);
+}
+
+
+
+
 
 
 

@@ -29,8 +29,13 @@ namespace p44 {
 
   public:
     DaliDevice(DaliDeviceContainer *aClassContainerP);
-    
+
+    DaliDeviceContainer *daliDeviceContainerP();
+
     void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
+
+    /// "pings" the device. Device should respond by sending back a "pong" shortly after
+    virtual void ping();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -39,6 +44,11 @@ namespace p44 {
   protected:
 
     void deriveDSID();
+
+  private:
+
+    void pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+
   };
 
 } // namespace p44

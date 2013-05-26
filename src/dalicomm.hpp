@@ -166,6 +166,8 @@ namespace p44 {
     /// @param aCommand command
     /// @param aResultCB result callback
     void daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB, int aWithDelay = -1);
+    /// helper to check daliSendQuery() callback response for a DALI YES answer
+    static bool isYes(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr &aError, bool aCollisionIsYes);
 
     /// utility function to create address byte
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)

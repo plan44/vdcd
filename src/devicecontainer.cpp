@@ -266,64 +266,96 @@ void DeviceContainer::removeDevice(DevicePtr aDevice)
 
 void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
 {
+  ErrorPtr err;
   JsonObjectPtr opObj = aJsonObject->get("operation");
   if (!opObj) {
     // no operation
-    LOG(LOG_ERR, "vdSM message error: missing 'operation'\n");
-    return;
-  }
-  string o = opObj->stringValue();
-  // check for parameter addressing a device
-  DevicePtr dev;
-  JsonObjectPtr paramsObj = aJsonObject->get("parameter");
-  if (paramsObj) {
-    // first check for dSID
-    JsonObjectPtr dsidObj = paramsObj->get("dSID");
-    if (dsidObj) {
-      string s = dsidObj->stringValue();
-      dSID dsid(s);
-      DsDeviceMap::iterator pos = dSDevices.find(dsid);
-      if (pos!=dSDevices.end())
-        dev = pos->second;
-    }
-    if (!dev) {
-      // not found by dSID, try BusAddress
-      JsonObjectPtr baObj = paramsObj->get("BusAddress");
-      if (baObj) {
-        BusAddressMap::iterator pos = busDevices.find(baObj->int32Value());
-        if (pos!=busDevices.end())
-          dev = pos->second;
-      }
-    }
-  }
-  // dev now set to target device if one could be found
-  if (dev) {
-    // check operations targeting a device
-    if (o=="DeviceRegistrationAck") {
-      dev->confirmRegistration(paramsObj);
-      // %%% TODO: probably remove later
-      // save by bus address
-      JsonObjectPtr baObj = paramsObj->get("BusAddress");
-      if (baObj) {
-        busDevices[baObj->int32Value()] = dev;
-      }
-    }
+    err = ErrorPtr(new vdSMError(vdSMErrorMissingOperation, "missing 'operation'"));
   }
   else {
-    // check operations not targeting a device
-    // TODO: add operations
-    // unknown operation
-    LOG(LOG_ERR, "vdSM message error: unknown operation '%s'\n", o.c_str());
+    string o = opObj->stringValue();
+    // check for parameter addressing a device
+    DevicePtr dev;
+    JsonObjectPtr paramsObj = aJsonObject->get("parameter");
+    bool doesAddressDevice = false;
+    if (paramsObj) {
+      // first check for dSID
+      JsonObjectPtr dsidObj = paramsObj->get("dSID");
+      if (dsidObj) {
+        string s = dsidObj->stringValue();
+        dSID dsid(s);
+        doesAddressDevice = true;
+        DsDeviceMap::iterator pos = dSDevices.find(dsid);
+        if (pos!=dSDevices.end())
+          dev = pos->second;
+      }
+      if (!dev) {
+        // not found by dSID, try BusAddress
+        JsonObjectPtr baObj = paramsObj->get("BusAddress");
+        if (baObj) {
+          doesAddressDevice = true;
+          BusAddressMap::iterator pos = busDevices.find(baObj->int32Value());
+          if (pos!=busDevices.end())
+            dev = pos->second;
+        }
+      }
+    }
+    // dev now set to target device if one could be found
+    if (dev) {
+      // check operations targeting a device
+      if (o=="DeviceRegistrationAck") {
+        dev->confirmRegistration(paramsObj);
+        // %%% TODO: probably remove later
+        // save by bus address
+        JsonObjectPtr baObj = paramsObj->get("BusAddress");
+        if (baObj) {
+          busDevices[baObj->int32Value()] = dev;
+        }
+      }
+      else {
+        // just forward message to device
+        err = dev->handleMessage(o, paramsObj);
+      }
+    }
+    else {
+      // could not find a device to send the message to
+      if (doesAddressDevice) {
+        // if the message was actually targeting a device, this is an error
+        err = ErrorPtr(new vdSMError(vdSMErrorDeviceNotFound, "device not found"));
+      }
+      else {
+        // check operations not targeting a device
+        // TODO: add operations
+        // unknown operation
+        err = ErrorPtr(new vdSMError(vdSMErrorUnknownContainerOperation, string_format("unknown container operation '%s'", o.c_str())));
+      }
+    }
+  }
+  if (!Error::isOK(err)) {
+    LOG(LOG_ERR, "vdSM message processing error: %s\n", err->description().c_str());
+    // send back error response
+    sendMessage("Error", JsonObject::newString(err->description()));
   }
 }
 
-//  if request['operation'] == 'DeviceRegistrationAck':
-//      self.address = request['parameter']['BusAddress']
-//      self.zone = request['parameter']['Zone']
-//      self.groups = request['parameter']['GroupMemberships']
-//      print 'BusAddress:', request['parameter']['BusAddress']
-//      print 'Zone:', request['parameter']['Zone']
-//      print 'Groups:', request['parameter']['GroupMemberships']
+
+bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
+{
+  JsonObjectPtr req = JsonObject::newObj();
+  req->add("operation", JsonObject::newString(aOperation));
+  if (aParams) {
+    req->add("parameter", aParams);
+  }
+  ErrorPtr err;
+  vdsmJsonComm.sendMessage(req, err);
+  if (!Error::isOK(err)) {
+    LOG(LOG_INFO, "Error sending JSON message: %s\n", err->description().c_str());
+    return false;
+  }
+  return true;
+}
+
+
 
 
 
@@ -343,17 +375,9 @@ void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
     ) {
       // mark device as being in process of getting registered
       dev->registering = MainLoop::now();
-      // create registration request
-      JsonObjectPtr req = JsonObject::newObj();
-      req->add("operation", JsonObject::newString("DeviceRegistration"));
-      // ask the device to provide the registration parameters
-      JsonObjectPtr params = dev->registrationParams();
-      req->add("parameter", params);
-      // issue the request
-      ErrorPtr err;
-      vdsmJsonComm.sendMessage(req, err);
-      if (!Error::isOK(err)) {
-        LOG(LOG_ERR, "Cannot send registration message for %s: %s\n", dev->shortDesc().c_str(), err->description().c_str());
+      // send registration request
+      if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
+        LOG(LOG_ERR, "Could not send registration message for device %s\n", dev->shortDesc().c_str());
         dev->registering = Never; // not registering
       }
     }
