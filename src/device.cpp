@@ -75,6 +75,14 @@ void Device::setDSBehaviour(DSBehaviour *aBehaviour)
 }
 
 
+bool Device::isPublicDS()
+{
+  // base class assumes that devices with a dS behaviour are public
+  // (subclasses might decide otherwise)
+  return behaviourP!=NULL;
+}
+
+
 void Device::ping()
 {
   // base class just sends the pong, but derived classes which can actually ping their hardware should
@@ -132,19 +140,90 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
   // check for generic device operations
   if (aOperation=="ping") {
-    // 
+    // ping hardware (if possible), creates pong now or after hardware was queried
+    ping();
   }
-  // TODO: add generic device operations
-  // no generic device operation, let behaviour handle it
-  if (behaviourP) {
-    return behaviourP->handleMessage(aOperation, aParams);
+  else if (aOperation=="callscene") {
+    // TODO: implement callscene
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="undoscenenumber") {
+    // TODO: implement undoscenenumber
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="undoscene") {
+    // TODO: implement undoscene
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="blink") {
+    // TODO: implement Blink
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="setlocalprio") {
+    // TODO: implement SetLocalPrio
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="callscenemin") {
+    // TODO: implement CallSceneMin
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="progmodeon") {
+    // TODO: implement ProgModeOn
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="progmodeoff") {
+    // TODO: implement ProgModeOff
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="savescene") {
+    // TODO: implement SaveScene
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="setoutval") {
+    // TODO: implement SetOutval
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="setzone") {
+    // TODO: implement SetZone
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="getdevicesensortype") {
+    // TODO: implement GetDeviceSensorType
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="getdevicesensorvalue") {
+    // TODO: implement GetDeviceSensorValue
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="setdeviceparameter") {
+    // TODO: implement SetDeviceParameter
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="getdeviceparameter") {
+    // TODO: implement GetDeviceParameter
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="pushsensorvalue") {
+    // TODO: implement PushSensorValue
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
+  }
+  else if (aOperation=="setgroups") {
+    // TODO: implement SetGroups
+    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", shortDesc().c_str(), aOperation.c_str());
   }
   else {
-    return ErrorPtr(new vdSMError(
-      vdSMErrorUnknownDeviceOperation,
-      string_format("unknown device operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
-    ));
+    // no generic device operation, let behaviour handle it
+    if (behaviourP) {
+      return behaviourP->handleMessage(aOperation, aParams);
+    }
+    else {
+      return ErrorPtr(new vdSMError(
+        vdSMErrorUnknownDeviceOperation,
+        string_format("unknown device operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
+      ));
+    }
   }
+  return ErrorPtr();
 }
 
 

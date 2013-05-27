@@ -111,6 +111,8 @@ uint64_t Fnv64::getHash() const
 }
 
 
+#pragma mark - folded down variants with less bits
+
 // for non 2^x bit sized hashes, recommened practice is x-or folding:
 
 // If you need an x-bit hash where x is not a power of 2, then we recommend
@@ -123,4 +125,12 @@ uint64_t Fnv64::getHash() const
 uint64_t Fnv64::getHash48() const
 {
   return (hash>>48) ^ (hash & MASK_48);
+}
+
+
+#define MASK_28 (((uint64_t)1<<28)-1) /* i.e., (uint64_t)0xffffffffffff */
+
+uint64_t Fnv32::getHash28() const
+{
+  return (hash>>28) ^ (hash & MASK_28);
 }

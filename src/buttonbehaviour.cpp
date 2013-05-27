@@ -66,6 +66,7 @@ void ButtonBehaviour::resetStateMachine()
   dimmingUp = false;
   timerRef = Never;
   timerPending = false;
+  keyId = key_1way;
 }
 
 

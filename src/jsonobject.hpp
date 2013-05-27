@@ -119,6 +119,7 @@ namespace p44 {
     const char *c_strValue();
     size_t stringLength();
     string stringValue();
+    string lowercaseStringValue();
 
   };
 

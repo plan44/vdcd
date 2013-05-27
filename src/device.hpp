@@ -93,6 +93,10 @@ namespace p44 {
     /// @return the behaviour. If NULL, the device ist not yet set up and cannot be operated
     DSBehaviour *getDSBehaviour() { return behaviourP; };
 
+    /// check if device is public dS device (which should be registered with vdSM)
+    /// @return true if device is registerable with vdSM
+    virtual bool isPublicDS();
+
     /// set the device behaviour
     /// @param aBehaviour the behaviour. Ownership is passed to the Device.
     void setDSBehaviour(DSBehaviour *aBehaviour);

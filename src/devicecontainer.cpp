@@ -266,6 +266,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice)
 
 void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
 {
+  LOG(LOG_DEBUG, "Received vdSM API message: %s\n", aJsonObject->json_c_str());
   ErrorPtr err;
   JsonObjectPtr opObj = aJsonObject->get("operation");
   if (!opObj) {
@@ -273,7 +274,8 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
     err = ErrorPtr(new vdSMError(vdSMErrorMissingOperation, "missing 'operation'"));
   }
   else {
-    string o = opObj->stringValue();
+    // get operation as lowercase string (to make comparisons case insensitive, we do all in lowercase)
+    string o = opObj->lowercaseStringValue();
     // check for parameter addressing a device
     DevicePtr dev;
     JsonObjectPtr paramsObj = aJsonObject->get("parameter");
@@ -303,7 +305,7 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
     // dev now set to target device if one could be found
     if (dev) {
       // check operations targeting a device
-      if (o=="DeviceRegistrationAck") {
+      if (o=="deviceregistrationack") {
         dev->confirmRegistration(paramsObj);
         // %%% TODO: probably remove later
         // save by bus address
@@ -348,6 +350,7 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
   }
   ErrorPtr err;
   vdsmJsonComm.sendMessage(req, err);
+  LOG(LOG_DEBUG, "Sent vdSM API message: %s\n", req->json_c_str());
   if (!Error::isOK(err)) {
     LOG(LOG_INFO, "Error sending JSON message: %s\n", err->description().c_str());
     return false;
@@ -370,6 +373,7 @@ void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
     if (
+      dev->isPublicDS(), // only public ones
       dev->registered<=aLastRegBefore && // no or outdated registration
       (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_TIMEOUT)
     ) {
@@ -379,6 +383,9 @@ void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
       if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
         LOG(LOG_ERR, "Could not send registration message for device %s\n", dev->shortDesc().c_str());
         dev->registering = Never; // not registering
+      }
+      else {
+        LOG(LOG_INFO, "Sent registration for device %s\n", dev->shortDesc().c_str());
       }
     }
   }

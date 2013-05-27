@@ -11,6 +11,7 @@
 #include "enoceandevicecontainer.hpp"
 #include "buttonbehaviour.hpp"
 
+
 using namespace p44;
 
 
@@ -70,8 +71,20 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 
 
+// if set to 1, dsids will be made look like aizo devices (class 0)
+//#define FAKE_REAL_DSD_IDS 1
+
+
 void EnoceanDevice::deriveDSID()
 {
+  #if FAKE_REAL_DSD_IDS
+  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  dsid.setSerialNo(
+    ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
+    (getChannel()&0x0F) // 4 lower bits for up to 16 channels
+  );
+  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+  #else
   dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
   // TODO: validate, now we are using the MAC-address class with:
   // - bits 48..51 set to 6
@@ -85,6 +98,7 @@ void EnoceanDevice::deriveDSID()
     ((uint64_t)getAddress()<<8) +
     (getChannel()&0xFF)
   );
+  #endif
 }
 
 
@@ -125,7 +139,9 @@ public:
   {
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
     // set the behaviour
-    setDSBehaviour(new ButtonBehaviour(this));
+    ButtonBehaviour *b = new ButtonBehaviour(this);
+    b->setKeyId((getChannel() & 1)==0 ? ButtonBehaviour::key_2way_A : ButtonBehaviour::key_2way_B); // even keys
+    setDSBehaviour(b);
   };
 
   // return number of inputs (of the emulated dS device)
@@ -134,7 +150,7 @@ public:
   // the channel corresponds to the dS input
   virtual int getInputIndex() { return getChannel(); }
 
-  /// device specific radio packet handling
+  // device specific radio packet handling
   virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   {
     // extract payload data

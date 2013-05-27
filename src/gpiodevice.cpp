@@ -21,7 +21,9 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
 	buttonInput = ButtonInputPtr(new ButtonInput(aDeviceConfig.c_str(), false));
 	buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
 	// set the behaviour
-	setDSBehaviour(new ButtonBehaviour(this));
+  ButtonBehaviour *b = new ButtonBehaviour(this);
+  b->setKeyId(ButtonBehaviour::key_1way); // one-way key
+	setDSBehaviour(b);
 	deriveDSID();
 }
 

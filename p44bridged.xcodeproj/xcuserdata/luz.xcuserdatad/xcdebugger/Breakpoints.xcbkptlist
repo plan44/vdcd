@@ -81,18 +81,5 @@
          landmarkName = "SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset)"
          landmarkType = "5">
       </FileBreakpoint>
-      <FileBreakpoint
-         shouldBeEnabled = "No"
-         ignoreCount = "0"
-         continueAfterRunningActions = "No"
-         filePath = "src/enoceandevice.cpp"
-         timestampString = "391038247.886075"
-         startingColumnNumber = "9223372036854775807"
-         endingColumnNumber = "9223372036854775807"
-         startingLineNumber = "144"
-         endingLineNumber = "144"
-         landmarkName = "handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)"
-         landmarkType = "5">
-      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>

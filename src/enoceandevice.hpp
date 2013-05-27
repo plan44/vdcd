@@ -61,7 +61,7 @@ namespace p44 {
     /// set the enocean address identifying the device
     /// @param aAddress 32bit enocean device address/ID
     /// @param aChannel channel number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
-    void setAddressingInfo(EnoceanAddress aAddress, EnoceanChannel aChannel);
+    virtual void setAddressingInfo(EnoceanAddress aAddress, EnoceanChannel aChannel);
 
     /// get the enocean address identifying the hardware that contains this logical device
     /// @return enOcean device ID/address

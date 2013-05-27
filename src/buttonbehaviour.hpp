@@ -19,26 +19,7 @@ namespace p44 {
   {
     typedef DSBehaviour inherited;
 
-    // button state machine v2.01
-
-    // - states
-    typedef enum {
-      S0_idle,
-      S1_initialpress,
-      S2_holdOrTip,
-      S3_hold,
-      S4_nextTipWait,
-      S5_nextPauseWait,
-      S6_2ClickWait,
-      S7_progModeWait,
-      S8_awaitrelease,
-      S9_2pauseWait,
-      // S10 missing
-      S11_localdim,
-      S12_3clickWait,
-      S13_3pauseWait,
-      S14_awaitrelease, // duplicate of S8
-    } ButtonState;
+  public:
 
     // - click types
     typedef enum {
@@ -66,6 +47,29 @@ namespace p44 {
       key_2way_B = 2, ///< two way rocker switch, lower
       key_local = 4, ///< local button
     } KeyId;
+
+  private:
+
+    // button state machine v2.01
+
+    // - states
+    typedef enum {
+      S0_idle,
+      S1_initialpress,
+      S2_holdOrTip,
+      S3_hold,
+      S4_nextTipWait,
+      S5_nextPauseWait,
+      S6_2ClickWait,
+      S7_progModeWait,
+      S8_awaitrelease,
+      S9_2pauseWait,
+      // S10 missing
+      S11_localdim,
+      S12_3clickWait,
+      S13_3pauseWait,
+      S14_awaitrelease, // duplicate of S8
+    } ButtonState;
 
     // - vars
     bool buttonPressed;
