@@ -22,7 +22,7 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
 	buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
 	// set the behaviour
   ButtonBehaviour *b = new ButtonBehaviour(this);
-  b->setKeyId(ButtonBehaviour::key_1way); // one-way key
+  b->setKeyMode(ButtonBehaviour::keymode_oneway); // one-way key
 	setDSBehaviour(b);
 	deriveDSID();
 }
@@ -32,7 +32,7 @@ void GpioDevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 {
 	ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
 	if (b) {
-		b->buttonAction(aNewState);
+		b->buttonAction(aNewState, false);
 	}
 }
 

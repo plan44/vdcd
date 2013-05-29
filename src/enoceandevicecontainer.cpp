@@ -185,21 +185,6 @@ void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddre
 }
 
 
-//EnoceanDevicePtr EnoceanDeviceContainer::getDeviceByAddress(EnoceanAddress aDeviceAddress)
-//{
-//  EnoceanDeviceMap::iterator pos = enoceanDevices.find(aDeviceAddress);
-//  if (pos!=enoceanDevices.end()) {
-//    return pos->second;
-//  }
-//  // none found
-//  return EnoceanDevicePtr();
-//}
-
-
-
-
-
-
 #pragma mark - learn and unlearn devices
 
 

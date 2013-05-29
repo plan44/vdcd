@@ -126,13 +126,14 @@ class RpsEnoceanDevice : public EnoceanDevice
 {
   typedef EnoceanDevice inherited;
   
-  bool pressed; // true if currently pressed, false if released
+  bool pressed[2]; // true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
 
 public:
   RpsEnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels) :
     inherited(aClassContainerP, aNumChannels)
   {
-    pressed = false;
+    pressed[0] = false;
+    pressed[1] = false;
   };
 
   virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
@@ -140,7 +141,7 @@ public:
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
     // set the behaviour
     ButtonBehaviour *b = new ButtonBehaviour(this);
-    b->setKeyId((getChannel() & 1)==0 ? ButtonBehaviour::key_2way_A : ButtonBehaviour::key_2way_B); // even keys
+    b->setKeyMode(ButtonBehaviour::keymode_twoway);
     setDSBehaviour(b);
   };
 
@@ -164,9 +165,9 @@ public:
         uint8_t a = (data >> (4*ai+1)) & 0x07;
         if (ai==0 && (data&0x01)==0)
           break; // no second action
-        if ((a & 0x07)==getChannel()) {
-          // querying this channel
-          setButtonState((data & 0x10)!=0);
+        if (((a>>1) & 0x03)==getChannel()) {
+          // querying this channel/rocker
+          setButtonState((data & 0x10)!=0, (a & 0x01) ? 1 : 0);
         }
       }
     }
@@ -199,25 +200,26 @@ public:
         else {
           // released
           // assume both buttons (both sides of the rocker) released
-          setButtonState(false);
+          setButtonState(false, 0);
+          setButtonState(false, 1);
         }
       }
     }
   };
 
 private:
-  void setButtonState(bool aPressed)
+  void setButtonState(bool aPressed, int aIndex)
   {
     // only propagate real changes
-    if (aPressed!=pressed) {
+    if (aPressed!=pressed[aIndex]) {
       // real change, propagate to behaviour
       ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
       if (b) {
-        LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button changed state to %s\n", getAddress(), getChannel(), aPressed ? "pressed" : "released");
-        b->buttonAction(aPressed);
+        LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button[%d] changed state to %s\n", getAddress(), getChannel(), aIndex, aPressed ? "pressed" : "released");
+        b->buttonAction(aPressed, aIndex!=0);
       }
       // update cached status
-      pressed = aPressed;
+      pressed[aIndex] = aPressed;
     }
   }
 
@@ -238,14 +240,20 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDevicePtr newDev;
   EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
   if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    // 2 or 4 rocker switch = 4 or 8 channels
-    numChannels = functionProfile==0xF60300 ? 8 : 4;
+    // 2 or 4 rocker switch = 2 or 4 dsDevices
+    numChannels = functionProfile==0xF60300 ? 4 : 2;
     // create device
     newDev = EnoceanDevicePtr(new RpsEnoceanDevice(aClassContainerP, numChannels));
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aChannel);
     // assign EPP information, device derives behaviour from this
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    // make first switch local
+    if (aChannel==0) {
+#warning // TODO: q&d local button enable
+      // - enable local button
+      static_cast<ButtonBehaviour *>(newDev->getDSBehaviour())->setLocalButtonEnabled(true);
+    }
   }
   if (aNumChannelsP) *aNumChannelsP = numChannels;
   return newDev;

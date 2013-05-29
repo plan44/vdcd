@@ -40,17 +40,20 @@ ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
 }
 
 
-void ButtonBehaviour::setKeyId(KeyId aKeyId)
+void ButtonBehaviour::setKeyMode(KeyMode aKeyMode)
 {
-  // set type of key (1way, rockerA/B, local)
-  keyId = aKeyId;
+  // set mode
+  keyMode = aKeyMode;
 }
 
 
-void ButtonBehaviour::buttonAction(bool aPressed)
+void ButtonBehaviour::buttonAction(bool aPressed, bool aSecondKey)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
+  if (state==S0_idle) {
+    secondKey = aSecondKey; // remember which key initiates the state machine (until state machine gets idle again, we'll stick to that)
+  }
   checkStateMachine(true, MainLoop::now());
 }
 
@@ -66,7 +69,7 @@ void ButtonBehaviour::resetStateMachine()
   dimmingUp = false;
   timerRef = Never;
   timerPending = false;
-  keyId = key_1way;
+  keyMode = keymode_oneway;
 }
 
 
@@ -110,7 +113,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 
     case S2_holdOrTip:
       if (aButtonChange && !buttonPressed && clickCounter==0) {
-        localToggle();
+        localSwitchOutput();
         timerRef = aNow;
         clickCounter = 1;
         state = S4_nextTipWait;
@@ -179,7 +182,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       else if (timeSinceRef>=t_click_pause) {
         if (localButtonEnabled)
-          localToggle();
+          localSwitchOutput();
         else
           sendClick(ct_click_1x);
         state = S4_nextTipWait;
@@ -268,13 +271,23 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 
 
 
-void ButtonBehaviour::localToggle()
+void ButtonBehaviour::localSwitchOutput()
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Local toggle\n");
-  outputOn = !outputOn;
+  LOG(LOG_NOTICE,"ButtonBehaviour: Local switch\n");
+  if (keyMode==keymode_twoway) {
+    // on or off depending on which side of the two-way switch was clicked
+    outputOn = secondKey;
+  }
+  else {
+    // one-way: toggle output
+    outputOn = !outputOn;
+  }
   // TODO: actually switch output
   // send status
   sendClick(outputOn ? ct_local_on : ct_local_off);
+  // pass on local toggle to device container
+  #warning // TODO: generically implement this one
+  deviceP->getDeviceContainer()->localSwitchOutput(deviceP->dsid, outputOn);
 }
 
 
@@ -285,9 +298,21 @@ void ButtonBehaviour::localDim()
 }
 
 
+void ButtonBehaviour::setLocalButtonEnabled(bool aEnabled)
+{
+  localButtonEnabled = aEnabled;
+}
+
+
+
+
 
 void ButtonBehaviour::sendClick(ClickType aClickType)
 {
+  KeyId keyId = key_1way;
+  if (keyMode==keymode_twoway) {
+    keyId = secondKey ? key_2way_B : key_2way_A;
+  }
   #ifdef DEBUG
   LOG(LOG_NOTICE,"ButtonBehaviour: Sending KeyId %d, Click Type %d = %s\n", keyId, aClickType, ClickTypeNames[aClickType]);
   #else

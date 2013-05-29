@@ -29,6 +29,8 @@ namespace p44 {
     virtual ~Application();
     /// main routine
     virtual int main(int argc, char **argv);
+    /// get shared instance (singleton)
+    Application *sharedApplication();
   protected:
     /// daemonize
     void daemonize();

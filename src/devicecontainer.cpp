@@ -162,6 +162,11 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
+  // try to open connection to vdsm
+  ErrorPtr err = vdsmJsonComm.openConnection();
+  if (!Error::isOK(err)) {
+    LOG(LOG_ERR, "Cannot open connection to vdsm: %s", err->description().c_str());
+  }
   // initialize class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
 }
@@ -359,6 +364,14 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 }
 
 
+// TODO: %%% hack implementation only
+void DeviceContainer::localSwitchOutput(const dSID &aDsid, bool aNewOutState)
+{
+  if (localSwitchOutputCallback) {
+    localSwitchOutputCallback(aDsid, aNewOutState);
+  }
+}
+
 
 
 
@@ -369,23 +382,25 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 
 void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
 {
-  // check all devices for unregistered ones and register those
-  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-    DevicePtr dev = pos->second;
-    if (
-      dev->isPublicDS(), // only public ones
-      dev->registered<=aLastRegBefore && // no or outdated registration
-      (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_TIMEOUT)
-    ) {
-      // mark device as being in process of getting registered
-      dev->registering = MainLoop::now();
-      // send registration request
-      if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
-        LOG(LOG_ERR, "Could not send registration message for device %s\n", dev->shortDesc().c_str());
-        dev->registering = Never; // not registering
-      }
-      else {
-        LOG(LOG_INFO, "Sent registration for device %s\n", dev->shortDesc().c_str());
+  if (vdsmJsonComm.connected()) {
+    // check all devices for unregistered ones and register those
+    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+      DevicePtr dev = pos->second;
+      if (
+        dev->isPublicDS(), // only public ones
+        dev->registered<=aLastRegBefore && // no or outdated registration
+        (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_TIMEOUT)
+      ) {
+        // mark device as being in process of getting registered
+        dev->registering = MainLoop::now();
+        // send registration request
+        if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
+          LOG(LOG_ERR, "Could not send registration message for device %s\n", dev->shortDesc().c_str());
+          dev->registering = Never; // not registering
+        }
+        else {
+          LOG(LOG_INFO, "Sent registration for device %s\n", dev->shortDesc().c_str());
+        }
       }
     }
   }

@@ -47,6 +47,11 @@ namespace p44 {
   typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 
 
+  /// TODO: %%% q&d only
+  typedef boost::function<void (const dSID &aDsid, bool aOutputOn)> LocalSwitchOutputCB;
+
+
+
   /// container for all devices hosted by this application
   /// - is the connection point to a vDSM
   /// - contains one or multiple device class containers
@@ -70,6 +75,7 @@ namespace p44 {
     BusAddressMap busDevices; ///< registered devices by BusAddress.
     // TODO: %%% we'll probably get rid of this with the new vDSM API
 
+    LocalSwitchOutputCB localSwitchOutputCallback;
 
   private:
 
@@ -136,6 +142,13 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
+
+    /// TODO: %%% handle "local" button presses
+    void localSwitchOutput(const dSID &aDsid, bool aNewOutState);
+
+    /// TODO: %%% set local toggle handler
+    void setLocalSwitchOutputHandler(LocalSwitchOutputCB aLocalSwitchOutputHandler) { localSwitchOutputCallback = aLocalSwitchOutputHandler; };
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

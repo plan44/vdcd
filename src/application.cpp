@@ -15,15 +15,26 @@
 using namespace p44;
 
 
+static Application *sharedApplicationP = NULL;
+
+
+Application *Application::sharedApplication()
+{
+  return sharedApplicationP;
+}
+
+
 Application::Application(MainLoop *aMainLoopP)
 {
 	mainLoopP = aMainLoopP;
+  sharedApplicationP = this;
 }
 
 
 Application::Application()
 {
 	mainLoopP = MainLoop::currentMainLoop();
+  sharedApplicationP = this;
 }
 
 Application::~Application()

@@ -21,6 +21,16 @@ namespace p44 {
 
   public:
 
+    typedef enum {
+      keymode_oneway,
+      keymode_twoway
+    } KeyMode;
+
+
+  private:
+
+    // dS enums
+
     // - click types
     typedef enum {
       ct_tip_1x = 0, ///< first tip
@@ -48,8 +58,6 @@ namespace p44 {
       key_local = 4, ///< local button
     } KeyId;
 
-  private:
-
     // button state machine v2.01
 
     // - states
@@ -73,6 +81,7 @@ namespace p44 {
 
     // - vars
     bool buttonPressed;
+    bool secondKey;
     ButtonState state;
     int clickCounter;
     int holdRepeats;
@@ -82,6 +91,7 @@ namespace p44 {
     MLMicroSeconds timerRef;
     bool timerPending;
     // - params
+    KeyMode keyMode;
     const int t_long_function_delay = 500*MilliSecond;
     const int t_dim_repeat_time = 1000*MilliSecond;
     const int t_click_length = 140*MilliSecond;
@@ -89,14 +99,12 @@ namespace p44 {
     const int t_tip_timeout = 800*MilliSecond;
     const int t_local_dim_timeout = 160*MilliSecond;
     const int max_hold_repeats = 30;
-    // - type of button
-    KeyId keyId;
 
     // - methods
     void resetStateMachine();
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
     void checkTimer(MLMicroSeconds aCycleStartTime);
-    void localToggle();
+    void localSwitchOutput();
     void localDim();
     void sendClick(ClickType aClickType);
 
@@ -119,11 +127,15 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
 
     /// set type of button
-    void setKeyId(KeyId aKeyId);
+    void setKeyMode(KeyMode aKeyMode);
+
+    /// enable disable "local" button functionality
+    void setLocalButtonEnabled(bool aEnabled);
 
     /// button action occurred
     /// @param aPressed true if action is button pressed, false if action is button released
-    void buttonAction(bool aPressed);
+    /// @param aPressed true if action was detected on second key (for 2-way rocker switches)
+    void buttonAction(bool aPressed, bool aSecondKey);
     
     /// @}
 

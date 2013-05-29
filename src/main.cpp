@@ -328,12 +328,22 @@ public:
 		}
 	}
 
-	
+
+  void localSwitchOutputHandler(const dSID &aDsid, bool aOutputOn)
+  {
+    if (daliDeviceContainer) {
+      daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, !aOutputOn ? 0 : 254);
+    }
+  }
+
+  
 	virtual void devicesCollected(ErrorPtr aError)
 	{
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
       DBGLOG(LOG_INFO, deviceContainer.description().c_str());
+      /// TODO: %%% q&d: install local toggle handler
+      deviceContainer.setLocalSwitchOutputHandler(boost::bind(&P44bridged::localSwitchOutputHandler, this, _1, _2));
     }
     else
       setAppStatus(status_error);
