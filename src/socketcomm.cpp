@@ -42,7 +42,10 @@ ErrorPtr SocketComm::openConnection()
 {
   int res;
 
-  if (!connectionOpen && !hostNameOrAddress.empty()) {
+  if (!connectionOpen) {
+    if (hostNameOrAddress.empty()) {
+      return ErrorPtr(new SocketCommError(SocketCommErrorNoParams,"Missing connection parameters"));
+    }
     // try to resolve host name
     struct addrinfo *addressInfoP;
     struct addrinfo hint;
@@ -100,8 +103,16 @@ void SocketComm::closeConnection()
     mainLoopP->unregisterSyncIOHandlers(connectionFd);
     close(connectionFd);
     connectionFd = -1;
+    connectionOpen = false;
   }
 }
+
+
+bool SocketComm::connected()
+{
+  return connectionOpen;
+}
+
 
 
 void SocketComm::setReceiveHandler(SocketCommCB aReceiveHandler)

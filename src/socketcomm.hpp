@@ -37,6 +37,7 @@ namespace p44 {
   // Errors
   typedef enum {
     SocketCommErrorOK,
+    SocketCommErrorNoParams,
     SocketCommErrorCannotResolveHost,
     SocketCommErrorCannotConnect,
     SocketCommErrorFDErr,
@@ -94,6 +95,11 @@ namespace p44 {
 
     /// close the current connection, if any
     void closeConnection();
+
+    /// check if connected
+    /// @return true if connected.
+    /// @note checking connected does not automatically try to establish a connection
+    bool connected();
 
 
     /// write data (non-blocking)
