@@ -51,9 +51,12 @@ void ButtonBehaviour::buttonAction(bool aPressed, bool aSecondKey)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
-  if (state==S0_idle) {
-    secondKey = aSecondKey; // remember which key initiates the state machine (until state machine gets idle again, we'll stick to that)
+  if (state!=S0_idle && secondKey!=aSecondKey) {
+    // pressing the other key within a state machine run
+    // aborts the current operation and begins a new run
+    resetStateMachine();
   }
+  secondKey = aSecondKey;
   checkStateMachine(true, MainLoop::now());
 }
 
