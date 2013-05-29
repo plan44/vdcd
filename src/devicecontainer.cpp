@@ -115,8 +115,8 @@ private:
     nextContainer = deviceContainerP->deviceClassContainers.begin();
     queryNextContainer(ErrorPtr());
   }
-	
-	
+
+
   void queryNextContainer(ErrorPtr aError)
   {
     if ((!aError || factoryReset) && nextContainer!=deviceContainerP->deviceClassContainers.end())
@@ -124,14 +124,14 @@ private:
     else
       completed(aError);
   }
-	
+
   void containerInitialized(ErrorPtr aError)
   {
     // check next
     ++nextContainer;
     queryNextContainer(aError);
   }
-	
+
   void completed(ErrorPtr aError)
   {
     // start periodic tasks like registration checking
@@ -141,7 +141,7 @@ private:
     // done, delete myself
     delete this;
   }
-	
+
 };
 
 
@@ -176,8 +176,9 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
 #pragma mark - collect devices
 
+namespace p44 {
 
-class p44::DeviceClassCollector
+class DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
@@ -236,7 +237,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
   }
 }
 
-
+} // namespace
 
 
 #pragma mark - adding/removing devices

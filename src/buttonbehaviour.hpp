@@ -92,13 +92,13 @@ namespace p44 {
     bool timerPending;
     // - params
     KeyMode keyMode;
-    const int t_long_function_delay = 500*MilliSecond;
-    const int t_dim_repeat_time = 1000*MilliSecond;
-    const int t_click_length = 140*MilliSecond;
-    const int t_click_pause = 140*MilliSecond;
-    const int t_tip_timeout = 800*MilliSecond;
-    const int t_local_dim_timeout = 160*MilliSecond;
-    const int max_hold_repeats = 30;
+    static const int t_long_function_delay = 500*MilliSecond;
+    static const int t_dim_repeat_time = 1000*MilliSecond;
+    static const int t_click_length = 140*MilliSecond;
+    static const int t_click_pause = 140*MilliSecond;
+    static const int t_tip_timeout = 800*MilliSecond;
+    static const int t_local_dim_timeout = 160*MilliSecond;
+    static const int max_hold_repeats = 30;
 
     // - methods
     void resetStateMachine();
@@ -136,7 +136,7 @@ namespace p44 {
     /// @param aPressed true if action is button pressed, false if action is button released
     /// @param aPressed true if action was detected on second key (for 2-way rocker switches)
     void buttonAction(bool aPressed, bool aSecondKey);
-    
+
     /// @}
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
@@ -144,7 +144,7 @@ namespace p44 {
     virtual string shortDesc();
 
   };
-  
+
 }
 
 

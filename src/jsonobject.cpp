@@ -8,32 +8,38 @@
 
 #include "jsonobject.hpp"
 
+#if DIGI_ESP
+#include "json_object_private.h"
+#else
 #include <json/json_object_private.h> // needed for _ref_count
+#endif
 
 using namespace p44;
 
 
 #pragma mark - intrusive pointer refcount management
 
-void p44::intrusive_ptr_add_ref(JsonObject* p)
-{
-  json_object_get(p->json_obj); // increment ref count
-}
+namespace p44 {
 
-void p44::intrusive_ptr_release(JsonObject* p)
-{
-  if (p->json_obj->_ref_count==1) {
-    // will reach zero
-    json_object_put(p->json_obj); // will delete object
-    delete p; // delete this object with it
+  void intrusive_ptr_add_ref(JsonObject* p)
+  {
+    json_object_get(p->json_obj); // increment ref count
   }
-  else {
-    // just decerement
-    json_object_put(p->json_obj);
+
+  void intrusive_ptr_release(JsonObject* p)
+  {
+    if (p->json_obj->_ref_count==1) {
+      // will reach zero
+      json_object_put(p->json_obj); // will delete object
+      delete p; // delete this object with it
+    }
+    else {
+      // just decerement
+      json_object_put(p->json_obj);
+    }
   }
-}
 
-
+} // namespace
 
 
 #pragma mark - private constructors / destructor

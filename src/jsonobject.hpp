@@ -11,7 +11,11 @@
 
 #include "p44bridged_common.hpp"
 
+#if DIGI_ESP
+#include "json.h"
+#else
 #include <json/json.h>
+#endif
 
 #include <boost/intrusive_ptr.hpp>
 
@@ -37,7 +41,7 @@ namespace p44 {
 
     struct json_object *json_obj;
 
-    /// construct object as wrapper of json-c json_object. 
+    /// construct object as wrapper of json-c json_object.
     /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
     JsonObject(struct json_object *aObj);
 
@@ -85,7 +89,7 @@ namespace p44 {
 
     /// put at specific position in array
     void arrayPut(int aAtIndex, JsonObjectPtr aObj);
-    
+
 
     /// create new empty object
     static JsonObjectPtr newObj();
