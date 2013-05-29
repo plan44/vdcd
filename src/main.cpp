@@ -67,8 +67,8 @@ class P44bridged : public Application
 public:
 
   P44bridged() :
-    redLED("ledyellow", true, false),
-    greenLED("ledgreen", true, false),
+    redLED("ledred", false, false),
+    greenLED("ledgreen", false, false),
     button("button", true),
     appStatus(status_busy),
     deviceLearning(false)
@@ -247,6 +247,8 @@ public:
   }
 
 
+  
+
 //  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
 //  {
 //    #warning // TODO: refine - now just switches all lamps on/off
@@ -270,10 +272,12 @@ public:
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceLearned)) {
       // show device learned
+      redLED.stop();
       greenLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
     }
     else if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceUnlearned)) {
       // show device unlearned
+      greenLED.stop();
       redLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
     }
   }
