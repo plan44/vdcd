@@ -378,8 +378,13 @@ void DeviceContainer::localSwitchOutput(const dSID &aDsid, bool aNewOutState)
 
 #pragma mark - registration
 
+#ifdef DEBUG
+  #warning "%%% HUGE registration timeout!"
+  #define REGISTRATION_TIMEOUT (3600ll*Second)
+#else
+  #define REGISTRATION_TIMEOUT (15*Second)
+#endif
 
-#define REGISTRATION_TIMEOUT (15*Second)
 
 void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
 {
