@@ -81,5 +81,18 @@
          landmarkName = "SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset)"
          landmarkType = "5">
       </FileBreakpoint>
+      <FileBreakpoint
+         shouldBeEnabled = "Yes"
+         ignoreCount = "0"
+         continueAfterRunningActions = "No"
+         filePath = "src/device.cpp"
+         timestampString = "391708042.122717"
+         startingColumnNumber = "9223372036854775807"
+         endingColumnNumber = "9223372036854775807"
+         startingLineNumber = "379"
+         endingLineNumber = "379"
+         landmarkName = "Device::getDeviceParam(const string &amp;aParamName, int aArrayIndex, uint32_t &amp;aValue)"
+         landmarkType = "5">
+      </FileBreakpoint>
    </FileBreakpoints>
 </Bucket>

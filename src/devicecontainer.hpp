@@ -21,6 +21,8 @@ namespace p44 {
   typedef enum {
     vdSMErrorOK,
     vdSMErrorMissingOperation,
+    vdSMErrorMissingParameter,
+    vdSMErrorInvalidParameter,
     vdSMErrorDeviceNotFound,
     vdSMErrorUnknownDeviceOperation,
     vdSMErrorUnknownContainerOperation,

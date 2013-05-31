@@ -13,6 +13,7 @@
 		ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED0FA631175891F300FC0958 /* dsparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FA62F175891F200FC0958 /* dsparams.cpp */; };
 		ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */; };
 		ED4C1443174EB9550037ED0C /* gpiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C1442174EB9550037ED0C /* gpiodevice.cpp */; };
 		ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
@@ -67,6 +68,8 @@
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = error.hpp; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = application.cpp; sourceTree = "<group>"; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = application.hpp; sourceTree = "<group>"; };
+		ED0FA62F175891F200FC0958 /* dsparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsparams.cpp; sourceTree = "<group>"; };
+		ED0FA630175891F300FC0958 /* dsparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsparams.hpp; sourceTree = "<group>"; };
 		ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = staticdevicecontainer.cpp; sourceTree = "<group>"; };
 		ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = staticdevicecontainer.hpp; sourceTree = "<group>"; };
 		ED4C1442174EB9550037ED0C /* gpiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gpiodevice.cpp; sourceTree = "<group>"; };
@@ -211,6 +214,8 @@
 				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
+				ED0FA62F175891F200FC0958 /* dsparams.cpp */,
+				ED0FA630175891F300FC0958 /* dsparams.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
 				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
 				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
@@ -344,6 +349,7 @@
 				ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* gpiodevice.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
+				ED0FA631175891F300FC0958 /* dsparams.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

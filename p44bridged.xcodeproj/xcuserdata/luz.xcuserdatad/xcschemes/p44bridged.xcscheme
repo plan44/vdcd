@@ -72,7 +72,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-c localhost"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-A 12101"
@@ -84,7 +84,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-a 192.168.59.221"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-a 192.168.59.222"

@@ -53,6 +53,18 @@ namespace p44 {
     /// @return Error object if message generated an error
     virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
 
+    /// get behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue will receive the current value
+    virtual ErrorPtr getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
+
+    /// set behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue the new value to set
+    virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
+
     /// send message to vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none
@@ -62,6 +74,7 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
+
 
   };
 
@@ -148,6 +161,11 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+  protected:
+
+    virtual ErrorPtr getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
+    virtual ErrorPtr setDeviceParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
 
   };
 
