@@ -12,6 +12,7 @@
 #include "deviceclasscontainer.hpp"
 
 #include "dsid.hpp"
+#include "dsdefs.h"
 
 using namespace std;
 

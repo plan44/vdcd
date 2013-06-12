@@ -96,6 +96,7 @@
 		ED5B2934174124D400334C71 /* sqlite3persistence.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sqlite3persistence.hpp; sourceTree = "<group>"; };
 		ED5B29391749446200334C71 /* lightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lightbehaviour.cpp; sourceTree = "<group>"; };
 		ED5B293A1749446300334C71 /* lightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lightbehaviour.hpp; sourceTree = "<group>"; };
+		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dsdefs.h; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -214,6 +215,7 @@
 				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
+				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				ED0FA62F175891F200FC0958 /* dsparams.cpp */,
 				ED0FA630175891F300FC0958 /* dsparams.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,

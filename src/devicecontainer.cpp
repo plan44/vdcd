@@ -165,7 +165,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   // try to open connection to vdsm
   ErrorPtr err = vdsmJsonComm.openConnection();
   if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "Cannot open connection to vdsm: %s", err->description().c_str());
+    LOG(LOG_ERR, "Cannot open connection to vdsm: %s\n", err->description().c_str());
   }
   // initialize class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);

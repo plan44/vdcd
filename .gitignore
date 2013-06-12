@@ -4,3 +4,4 @@ Release/
 docs/DoxygenDocs.docset/
 *~
 *.xcuserstate
+p44bridged.xcodeproj/xcuserdata/*
