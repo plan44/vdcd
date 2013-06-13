@@ -10,13 +10,9 @@
 
 using namespace p44;
 
-PersistentParams::PersistentParams() :
-  dirty(false)
-{
-
-}
 
 
+#pragma mark - LightScene
 
 typedef struct {
   Brightness sceneValue; ///< output value for this scene
@@ -123,7 +119,7 @@ LightScene::LightScene(SceneNo aSceneNo) :
 {
   // fetch from defaults
   if (aSceneNo>NUMDEFAULTSCENES)
-    aSceneNo = NUMDEFAULTSCENES;
+    aSceneNo = NUMDEFAULTSCENES; // last entry in the table is the default for all higher scene numbers
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
   sceneValue = p.sceneValue;
   slowTransition = p.slowTransition;
@@ -132,4 +128,40 @@ LightScene::LightScene(SceneNo aSceneNo) :
   dontCare = p.dontCare;
   specialBehaviour = p.specialBehaviour;
 }
+
+
+#pragma mark - LightSettings
+
+
+LightSettings::LightSettings() :
+  isDimmable(false),
+  onThreshold(128),
+  minDim(1),
+  maxDim(255)
+{
+  
+}
+
+
+
+LightScenePtr LightSettings::getScene(SceneNo aSceneNo)
+{
+  // check if we have modified from default data
+  LightSceneMap::iterator pos = scenes.find(aSceneNo);
+  if (pos!=scenes.end()) {
+    // found scene params in map
+    return pos->second;
+  }
+  else {
+    // just return default values for this scene
+    return LightScenePtr(new LightScene(aSceneNo));
+  }
+}
+
+
+
+
+
+
+
 

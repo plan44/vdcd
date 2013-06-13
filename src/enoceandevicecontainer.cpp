@@ -41,11 +41,11 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 		// - create my tables
     sql.append(
 			"CREATE TABLE knownDevices ("
-			" ROWID INTEGER PRIMARY KEY AUTOINCREMENT,"
 			" enoceanAddress INTEGER,"
       " channel INTEGER,"
       " eeProfile INTEGER,"
-      " eeManufacturer INTEGER"
+      " eeManufacturer INTEGER,"
+      " PRIMARY KEY (enoceanAddress, channel)"
 			");"
 		);
     // reached final version in one step
@@ -130,21 +130,13 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
     // save enocean ID to DB
     sqlite3pp::query qry(db);
     // - check if this channel is already stored
-    if (qry.prepare("SELECT ROWID FROM knownDevices WHERE enoceanAddress=?1 AND channel=?2")==SQLITE_OK) {
-      qry.bind(1, (int)ed->getAddress());
-      qry.bind(2, (int)ed->getChannel());
-      if (qry.begin()==qry.end()) {
-        qry.reset();
-        // - does not exist yet
-        db.executef(
-          "INSERT INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
-          ed->getAddress(),
-          ed->getChannel(),
-          ed->getEEProfile(),
-          ed->getEEManufacturer()
-        );
-      }
-    }
+    db.executef(
+      "INSERT OR REPLACE INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
+      ed->getAddress(),
+      ed->getChannel(),
+      ed->getEEProfile(),
+      ed->getEEManufacturer()
+    );
   }
 }
 

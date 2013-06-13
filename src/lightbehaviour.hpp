@@ -11,21 +11,14 @@
 
 #include "device.hpp"
 
+#include "persistentparams.hpp"
+
 using namespace std;
 
 namespace p44 {
 
   typedef uint8_t Brightness;
   typedef uint8_t SceneNo;
-
-
-  class PersistentParams
-  {
-  public:
-    PersistentParams();
-    bool dirty; ///< if set, means that values need to be saved 
-  };
-
 
 
   class LightScene : public PersistentParams
@@ -49,6 +42,7 @@ namespace p44 {
   class LightSettings : public PersistentParams
   {
   public:
+    LightSettings();
     bool isDimmable; ///< if set, device can be dimmed
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
