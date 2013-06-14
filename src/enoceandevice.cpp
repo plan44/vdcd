@@ -71,10 +71,6 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 
 
-// if set to 1, dsids will be made look like aizo devices (class 0)
-#define FAKE_REAL_DSD_IDS 1
-
-
 void EnoceanDevice::deriveDSID()
 {
   #if FAKE_REAL_DSD_IDS

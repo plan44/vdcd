@@ -290,7 +290,7 @@ void ButtonBehaviour::localSwitchOutput()
   sendClick(outputOn ? ct_local_on : ct_local_off);
   // pass on local toggle to device container
   #warning // TODO: generically implement this one
-  deviceP->getDeviceContainer()->localSwitchOutput(deviceP->dsid, outputOn);
+  deviceP->getDeviceContainer().localSwitchOutput(deviceP->dsid, outputOn);
 }
 
 

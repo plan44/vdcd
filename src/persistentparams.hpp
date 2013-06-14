@@ -23,14 +23,15 @@ namespace p44 {
 
   class ParamStore : public SQLite3Persistence
   {
-    
+    typedef SQLite3Persistence inherited;
   };
 
 
   class PersistentParams
   {
-    ParamStore &paramStore; ///< the associated parameter store
     bool dirty; ///< if set, means that values need to be saved
+  protected:
+    ParamStore &paramStore; ///< the associated parameter store
   public:
     PersistentParams(ParamStore &aParamStore);
     uint64_t rowid; ///< ROWID of the persisted data, 0 if not yet persisted
@@ -58,11 +59,17 @@ namespace p44 {
 
     /// load values from passed row
     /// @param aRow result row to get parameter values from
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int aFirstFieldIndex) = 0;
+    /// @param aIndex index of first column to load
+    /// @note the base class loads ROWID and the parent identifier (first item in keyDefs) automatically.
+    ///   subclasses should always call inherited loadFromRow() FIRST
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
 
     /// bind values to passed statement
     /// @param aStatement statement to bind parameter values to
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int aFirstFieldIndex) = 0;
+    /// @param aIndex index of first column to bind
+    /// @note the base class binds ROWID and the parent identifier (first item in keyDefs) automatically.
+    ///   subclasses should always call inherited bindToStatement() FIRST
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
     /// load child parameters (if any)
     virtual ErrorPtr loadChildren() { return ErrorPtr(); };
@@ -70,19 +77,25 @@ namespace p44 {
     /// save child parameters (if any)
     virtual ErrorPtr saveChildren() { return ErrorPtr(); };
 
-
     /// @}
 
+    /// mark the parameter set dirty (so it will be saved to DB next time saveToStore is called
+    virtual void markDirty();
+
+
     /// get parameter set from persistent storage
-    /// @param aPersistence the sqlite3persistence to load from
-    /// @param aKey the record key
-    /// @param aParentKey the parent key or NULL if no parent
+    /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
     ErrorPtr loadFromStore(const char *aParentIdentifier);
 
     /// save parameter set to persistent storage if dirty
-    /// @param aPersistence the sqlite3persistence to load from
     /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
     ErrorPtr saveToStore(const char *aParentIdentifier);
+
+    /// helper for implementation of loadChildren()
+    /// @return a prepared query set up to iterate through all records with a given parent identifier, or NULL on error
+    /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
+    sqlite3pp::query *newLoadAllQuery(const char *aParentIdentifier);
+
 
   private:
     /// check and update schema to hold the parameters

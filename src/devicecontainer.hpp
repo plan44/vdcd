@@ -13,6 +13,8 @@
 
 #include "jsoncomm.hpp"
 
+#include "persistentparams.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -53,6 +55,16 @@ namespace p44 {
   typedef boost::function<void (const dSID &aDsid, bool aOutputOn)> LocalSwitchOutputCB;
 
 
+  /// persistence for digitalSTROM paramters
+  class DsParamStore : public ParamStore
+  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
 
   /// container for all devices hosted by this application
   /// - is the connection point to a vDSM
@@ -70,12 +82,14 @@ namespace p44 {
   {
     friend class DeviceClassCollector;
 
-    bool collecting;
-
     DsDeviceMap dSDevices; ///< available devices by dSID
+    DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
     BusAddressMap busDevices; ///< registered devices by BusAddress.
     // TODO: %%% we'll probably get rid of this with the new vDSM API
+
+    bool collecting;
+    string persistentDataDir;
 
     LocalSwitchOutputCB localSwitchOutputCallback;
 
@@ -139,6 +153,23 @@ namespace p44 {
 
     /// @}
 
+    /// @name persistence
+    /// @{
+
+    /// set the directory where to store persistent data (databases etc.)
+    /// @param aPersistentDataDir full path to directory to save persistent data
+    void setPersistentDataDir(const char *aPersistentDataDir);
+
+		/// get the persistent data dir path
+		/// @return full path to directory to save persistent data
+		const char *getPersistentDataDir();
+
+    /// get the dsParamStore
+    DsParamStore &getDsParamStore() { return dsParamStore; }
+
+    /// @}
+
+		
     /// send message to vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none

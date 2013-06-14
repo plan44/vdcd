@@ -56,7 +56,7 @@ void DaliDevice::pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aEr
 
 void DaliDevice::deriveDSID()
 {
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  // create a hash
   Fnv64 hash;
   if (deviceInfo.uniquelyIdentifiing()) {
     // Valid device info
@@ -85,8 +85,15 @@ void DaliDevice::deriveDSID()
     // - and add the DALI short address
     hash.addByte(deviceInfo.shortAddress);
   }
+  #if FAKE_REAL_DSD_IDS
+  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  dsid.setSerialNo(hash.getHash36());
+  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+  #else
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
   dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+  #endif
 }
 
 

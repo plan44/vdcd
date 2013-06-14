@@ -101,7 +101,6 @@ bool DSBehaviour::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 
 
 
-
 #pragma mark - Device
 
 
@@ -417,7 +416,14 @@ bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
     aParams->add("BusAddress", JsonObject::newInt32(busAddress));
   }
   // have device container send it
-  return classContainerP->getDeviceContainerP()->sendMessage(aOperation, aParams);
+  return classContainerP->getDeviceContainer().sendMessage(aOperation, aParams);
+}
+
+
+void Device::save()
+{
+  if (behaviourP)
+    behaviourP->save();
 }
 
 

@@ -26,9 +26,9 @@ void DeviceClassContainer::setDeviceContainer(DeviceContainer *aDeviceContainerP
 }
 
 
-DeviceContainer *DeviceClassContainer::getDeviceContainerP() const
+DeviceContainer &DeviceClassContainer::getDeviceContainer() const
 {
-  return deviceContainerP;
+  return *deviceContainerP;
 }
 
 
@@ -38,18 +38,9 @@ void DeviceClassContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRes
 }
 
 
-void DeviceClassContainer::setPersistentDataDir(const char *aPersistentDataDir)
-{
-	persistentDataDir = nonNullCStr(aPersistentDataDir);
-	if (!persistentDataDir.empty() && persistentDataDir[persistentDataDir.length()-1]!='/') {
-		persistentDataDir.append("/");
-	}
-}
-
-
 const char *DeviceClassContainer::getPersistentDataDir()
 {
-	return persistentDataDir.c_str();
+	return deviceContainerP->getPersistentDataDir();
 }
 
 

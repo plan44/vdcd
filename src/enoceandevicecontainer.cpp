@@ -29,7 +29,7 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 #pragma mark - DB and initialisation
 
 
-#define SCHEMA_VERSION 3
+#define ENOCEAN_SCHEMA_VERSION 3
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -49,7 +49,7 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 			");"
 		);
     // reached final version in one step
-    aToVersion = SCHEMA_VERSION;
+    aToVersion = ENOCEAN_SCHEMA_VERSION;
   }
   else if (aFromVersion==1) {
     // V1->V2: eeProfile, eeManufacturer added
@@ -74,7 +74,7 @@ void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryR
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), ENOCEAN_SCHEMA_VERSION, aFactoryReset);
 	aCompletedCB(error); // return status of DB init
 }
 

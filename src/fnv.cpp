@@ -127,6 +127,14 @@ uint64_t Fnv64::getHash48() const
   return (hash>>48) ^ (hash & MASK_48);
 }
 
+#define MASK_36 (((uint64_t)1<<36)-1) /* i.e., (uint64_t)0xffffffff */
+
+uint64_t Fnv64::getHash36() const
+{
+  return (hash>>36) ^ (hash & MASK_36);
+}
+
+
 
 #define MASK_28 (((uint64_t)1<<28)-1) /* i.e., (uint64_t)0xffffffffffff */
 

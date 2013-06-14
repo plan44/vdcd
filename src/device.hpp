@@ -72,6 +72,10 @@ namespace p44 {
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
+    /// save unsaved behaviour parameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    virtual void save() { /* NOP in base class */ };
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
@@ -108,7 +112,7 @@ namespace p44 {
     DSBehaviour *getDSBehaviour() { return behaviourP; };
 
     /// get pointer to device container
-    DeviceContainer *getDeviceContainer() { return classContainerP->getDeviceContainerP(); };
+    DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
 
     /// check if device is public dS device (which should be registered with vdSM)
     /// @return true if device is registerable with vdSM
@@ -154,6 +158,11 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
+
+
+    /// save unsaved parameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    virtual void save();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

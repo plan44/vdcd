@@ -51,7 +51,6 @@ namespace p44 {
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceList devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
-		string persistentDataDir; ///<directory path to directory where to store persistent data
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsids for devices that don't have their own
@@ -63,7 +62,7 @@ namespace p44 {
     void setDeviceContainer(DeviceContainer *aDeviceContainerP);
     /// get associated container
     /// @return associated device container
-    DeviceContainer *getDeviceContainerP() const;
+    DeviceContainer &getDeviceContainer() const;
 
 		/// initialize
 		/// @param aCompletedCB will be called when initialisation is complete
@@ -73,9 +72,6 @@ namespace p44 {
     /// @name persistence
     /// @{
 
-    /// set the directory where to store persistent data (databases etc.)
-    /// @param aPersistentDataDir full path to directory to save persistent data
-    void setPersistentDataDir(const char *aPersistentDataDir);
 		/// get the persistent data dir path
 		/// @return full path to directory to save persistent data
 		const char *getPersistentDataDir();

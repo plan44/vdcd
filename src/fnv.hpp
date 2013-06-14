@@ -37,6 +37,7 @@ namespace p44 {
     void addBytes(size_t aNumBytes, uint8_t *aBytesP);
 		void addCStr(const char *aCStr);
     uint64_t getHash() const;
+    uint64_t getHash36() const; ///< get hash "xor folded down" to 36bits
     uint64_t getHash48() const; ///< get hash "xor folded down" to 48bits
   };
 

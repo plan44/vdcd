@@ -91,7 +91,25 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 }
 
 
-#pragma mark - initialize
+void DeviceContainer::setPersistentDataDir(const char *aPersistentDataDir)
+{
+	persistentDataDir = nonNullCStr(aPersistentDataDir);
+	if (!persistentDataDir.empty() && persistentDataDir[persistentDataDir.length()-1]!='/') {
+		persistentDataDir.append("/");
+	}
+}
+
+
+const char *DeviceContainer::getPersistentDataDir()
+{
+	return persistentDataDir.c_str();
+}
+
+
+
+
+
+#pragma mark - initializisation of DB and containers
 
 
 class DeviceClassInitializer
@@ -145,18 +163,21 @@ private:
 };
 
 
-#define PERIODIC_TASK_INTERVAL (3*Second)
+#define DSPARAMS_SCHEMA_VERSION 1
 
-void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
+string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
-  // cancel any pending executions
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
-  if (!collecting) {
-    // check for devices that need registration
-    registerDevices();
+  string sql;
+  if (aFromVersion==0) {
+    // create DB from scratch
+		// - use standard globs table for schema version
+    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
+		// - no devicecontainer level table to create at this time
+    //   (PersistentParams create and update their tables as needed)
+    // reached final version in one step
+    aToVersion = DSPARAMS_SCHEMA_VERSION;
   }
-  // schedule next run
-  MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+  return sql;
 }
 
 
@@ -167,7 +188,12 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   if (!Error::isOK(err)) {
     LOG(LOG_ERR, "Cannot open connection to vdsm: %s\n", err->description().c_str());
   }
-  // initialize class containers
+  // initialize dsParamsDB database
+	string databaseName = getPersistentDataDir();
+	string_format_append(databaseName, "DsParams.sqlite3");
+  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, aFactoryReset);
+
+  // start initialisation of class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
 }
 
@@ -264,6 +290,25 @@ void DeviceContainer::removeDevice(DevicePtr aDevice)
   busDevices.erase(aDevice->busAddress);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
   // TODO: maybe unregister from vdSM???
+}
+
+
+
+#pragma mark - periodic activity
+
+
+#define PERIODIC_TASK_INTERVAL (3*Second)
+
+void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
+{
+  // cancel any pending executions
+  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  if (!collecting) {
+    // check for devices that need registration
+    registerDevices();
+  }
+  // schedule next run
+  MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
 }
 
 

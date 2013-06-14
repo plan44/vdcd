@@ -14,6 +14,7 @@
 #define BOOST_DISABLE_THREADS 1
 #warning Threads disabled
 
+#define FAKE_REAL_DSD_IDS 1 // if set to 1, dsids will be made look like aizo devices (class 0)
 
 #include <list>
 #include <vector>

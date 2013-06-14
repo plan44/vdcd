@@ -19,15 +19,15 @@ PersistentParams::PersistentParams(ParamStore &aParamStore) :
 }
 
 
-static const FieldDefinition defaultkeys[] = {
-  { "parentID", SQLITE_TEXT},
-  { NULL, 0 },
-};
 
 
 const FieldDefinition *PersistentParams::getKeyDefs()
 {
-  return defaultkeys;
+  static const FieldDefinition keyDefs[] = {
+    { "parentID", SQLITE_TEXT },
+    { NULL, 0 },
+  };
+  return keyDefs;
 }
 
 
@@ -108,10 +108,10 @@ static int appendfieldList(string &sql, const FieldDefinition *aDefinitions, boo
 }
 
 
-ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
+// helper for implementation of loadChildren()
+sqlite3pp::query *PersistentParams::newLoadAllQuery(const char *aParentIdentifier)
 {
-  ErrorPtr err;
-  sqlite3pp::query qry(paramStore);
+  sqlite3pp::query * queryP = new sqlite3pp::query(paramStore);
   string sql = "SELECT ROWID";
   // key fields
   appendfieldList(sql, getKeyDefs(), true, false);
@@ -119,29 +119,64 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
   appendfieldList(sql, getFieldDefs(), true, false);
   string_format_append(sql, " WHERE %s='%s'", getKeyDefs()->fieldName, aParentIdentifier);
   // now execute query
-  if (qry.prepare(sql.c_str())!=SQLITE_OK) {
+  if (queryP->prepare(sql.c_str())!=SQLITE_OK) {
     // - error could mean schema is not up to date
-    qry.reset();
+    queryP->reset();
     checkAndUpdateSchema();
-    if (qry.prepare(sql.c_str())!=SQLITE_OK) {
+    if (queryP->prepare(sql.c_str())!=SQLITE_OK) {
       // error now means something is really wrong
-      err = paramStore.error();
+      delete queryP;
+      return NULL;
     }
   }
-  if (Error::isOK(err)) {
-    sqlite3pp::query::iterator i = qry.begin();
-    if (i!=qry.end()) {
+  return queryP;
+}
+
+
+
+/// load values from passed row
+void PersistentParams::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  // - load ROWID which is always there
+  rowid = aRow->get<long long>(aIndex++);
+  // - skip the row that identifies the parent (because that's the fetch criteria)
+  aIndex++;
+}
+
+
+ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
+{
+  ErrorPtr err;
+  sqlite3pp::query * queryP = newLoadAllQuery(aParentIdentifier);
+  if (queryP==NULL) {
+    // real error preparing query
+    err = paramStore.error();
+  }
+  else {
+    sqlite3pp::query::iterator row = queryP->begin();
+    if (row!=queryP->end()) {
       // got record
-      // - load ROWID which is always there
-      rowid = i->get<long long>(0);
-      // - let subclass load the other params
-      loadFromRow(i, 1);
+      int index = 0;
+      loadFromRow(row, index);
     }
-  }
-  if (Error::isOK(err)) {
-    err = loadChildren();
   }
   return err;
+}
+
+
+
+void PersistentParams::markDirty()
+{
+  dirty = true;
+}
+
+
+
+/// bind values to passed statement
+void PersistentParams::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  // the parent identifier is the first column to bind
+  aStatement.bind(aIndex, aParentIdentifier);
 }
 
 
@@ -159,10 +194,8 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       appendfieldList(sql, getFieldDefs(), true, true);
       string_format_append(sql, " WHERE ROWID=%lld", rowid);
       // bind the values
-      // - the parent identifier is the first
-      cmd.bind(0, aParentIdentifier);
-      // - let subclass bind the other params
-      bindToStatement(cmd, 1);
+      int index = 0;
+      bindToStatement(cmd, index, aParentIdentifier);
       // now execute command
       if (cmd.execute()!=SQLITE_OK) {
         // error on update is always a real error - if we loaded the params from the DB, schema IS ok!
@@ -196,10 +229,8 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       }
       if (Error::isOK(err)) {
         // bind the values
-        // - the parent identifier is the first
-        cmd.bind(0, aParentIdentifier);
-        // - let subclass bind the other params
-        bindToStatement(cmd, 1);
+        int index = 0;
+        bindToStatement(cmd, index, aParentIdentifier);
         // now execute command
         if (cmd.execute()!=SQLITE_OK) {
           err = paramStore.error();

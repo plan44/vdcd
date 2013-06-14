@@ -188,6 +188,9 @@ public:
       sleep(startupDelay);
     }
 
+    // Set the persistent data directory
+    deviceContainer.setPersistentDataDir(dbdir);
+
     // Create JSON interface
     if (vdsmname) {
       deviceContainer.vdsmJsonComm.setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
@@ -198,16 +201,13 @@ public:
 		if (daliname) {
 			daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
 			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
-      daliDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
 		}
 		// - Add enOcean devices class if enOcean modem serialport/host is specified
 		if (enoceanname) {
 			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
 			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
-      enoceanDeviceContainer->setPersistentDataDir(dbdir);
 			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
-//      enoceanDeviceContainer->setKeyEventHandler(boost::bind(&P44bridged::localKeyHandler, this, _1, _2, _3));
 		}
 		// - Add static devices if we have collected any config from the command line
 		if (staticDeviceConfigs.size()>0) {

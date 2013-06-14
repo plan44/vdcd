@@ -114,7 +114,8 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
 
 
 
-LightScene::LightScene(SceneNo aSceneNo) :
+LightScene::LightScene(ParamStore &aParamStore, SceneNo aSceneNo) :
+  inherited(aParamStore),
   sceneNo(aSceneNo)
 {
   // fetch from defaults
@@ -130,10 +131,87 @@ LightScene::LightScene(SceneNo aSceneNo) :
 }
 
 
+// SQLIte3 table name to store these parameters to
+const char *LightScene::tableName()
+{
+  return "dsLightScenes";
+}
+
+
+// primary key field definitions
+const FieldDefinition *LightScene::getKeyDefs()
+{
+  static const FieldDefinition keyDefs[] = {
+    { "parentID", SQLITE_TEXT }, // not included in loadFromRow() and bindToStatement()
+    { "sceneNo", SQLITE_INTEGER }, // first field included in loadFromRow() and bindToStatement()
+    { NULL, 0 },
+  };
+  return keyDefs;
+}
+
+
+/// data field definitions
+const FieldDefinition *LightScene::getFieldDefs()
+{
+  static const FieldDefinition dataDefs[] = {
+    { "sceneValue", SQLITE_INTEGER },
+    { "sceneFlags", SQLITE_INTEGER },
+    { NULL, 0 },
+  };
+  return dataDefs;
+}
+
+
+enum {
+  LightSceneFlag_dontCare = 0x0001,
+  LightSceneFlag_ignoreLocalPriority = 0x0002,
+  LightSceneFlag_specialBehaviour = 0x0004,
+  LightSceneFlag_flashing = 0x0008,
+  LightSceneFlag_slowTransition = 0x0010,
+};
+
+
+/// load values from passed row
+void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  sceneNo = aRow->get<int>(aIndex++);
+  sceneValue = aRow->get<int>(aIndex++);
+  int flags = aRow->get<int>(aIndex++);
+  // decode the flags
+  dontCare = flags & LightSceneFlag_dontCare;
+  ignoreLocalPriority = flags & LightSceneFlag_ignoreLocalPriority;
+  specialBehaviour = flags & LightSceneFlag_specialBehaviour;
+  flashing = flags & LightSceneFlag_flashing;
+  slowTransition = flags & LightSceneFlag_slowTransition;
+
+}
+
+
+/// bind values to passed statement
+void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // encode the flags
+  int flags = 0;
+  if (dontCare) flags |= LightSceneFlag_dontCare;
+  if (ignoreLocalPriority) flags |= LightSceneFlag_ignoreLocalPriority;
+  if (specialBehaviour) flags |= LightSceneFlag_specialBehaviour;
+  if (flashing) flags |= LightSceneFlag_flashing;
+  if (slowTransition) flags |= LightSceneFlag_slowTransition;  
+  // bind the fields
+  aStatement.bind(aIndex++, sceneNo);
+  aStatement.bind(aIndex++, sceneValue);
+  aStatement.bind(aIndex++, flags);
+}
+
+
 #pragma mark - LightSettings
 
 
-LightSettings::LightSettings() :
+LightSettings::LightSettings(ParamStore &aParamStore) :
+  inherited(aParamStore),
   isDimmable(false),
   onThreshold(128),
   minDim(1),
@@ -154,8 +232,111 @@ LightScenePtr LightSettings::getScene(SceneNo aSceneNo)
   }
   else {
     // just return default values for this scene
-    return LightScenePtr(new LightScene(aSceneNo));
+    return LightScenePtr(new LightScene(paramStore, aSceneNo));
   }
+}
+
+
+void LightSettings::updateScene(LightScenePtr aScene)
+{
+  if (aScene->rowid==0) {
+    // unstored so far, add to map of non-default scenes
+    scenes[aScene->sceneNo] = aScene;
+  }
+  // anyway, mark dirty
+  aScene->markDirty();
+}
+
+
+
+// SQLIte3 table name to store these parameters to
+const char *LightSettings::tableName()
+{
+  return "dsLight";
+}
+
+/// data field definitions
+const FieldDefinition *LightSettings::getFieldDefs()
+{
+  static const FieldDefinition dataDefs[] = {
+    { "isDimmable", SQLITE_INTEGER },
+    { "onThreshold", SQLITE_INTEGER },
+    { "minDim", SQLITE_INTEGER },
+    { "maxDim", SQLITE_INTEGER },
+    { NULL, 0 },
+  };
+  return dataDefs;
+}
+
+
+/// load values from passed row
+void LightSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  isDimmable = aRow->get<bool>(aIndex++);
+  onThreshold = aRow->get<int>(aIndex++);
+  minDim = aRow->get<int>(aIndex++);
+  maxDim = aRow->get<int>(aIndex++);
+}
+
+
+// bind values to passed statement
+void LightSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  aStatement.bind(aIndex++, isDimmable);
+  aStatement.bind(aIndex++, onThreshold);
+  aStatement.bind(aIndex++, minDim);
+  aStatement.bind(aIndex++, maxDim);
+}
+
+
+// load child parameters (scenes)
+ErrorPtr LightSettings::loadChildren()
+{
+  ErrorPtr err;
+  // my own ROWID is the parent key for the children
+  string parentID = string_format("%d",rowid);
+  // create a template
+  LightScenePtr scene = LightScenePtr(new LightScene(paramStore, 0));
+  // get the query
+  sqlite3pp::query * queryP = scene->newLoadAllQuery(parentID.c_str());
+  if (queryP==NULL) {
+    // real error preparing query
+    err = paramStore.error();
+  }
+  else {
+    for (sqlite3pp::query::iterator row = queryP->begin(); row!=queryP->end(); ++row) {
+      // got record
+      // - load record fields into scene object
+      int index = 0;
+      scene->loadFromRow(row, index);
+      // - put scene into map of non-default scenes
+      scenes[scene->sceneNo] = scene;
+      // - fresh object for next row
+      scene = LightScenePtr(new LightScene(paramStore, 0));
+    }
+  }
+  if (Error::isOK(err)) {
+    err = loadChildren();
+  }
+  return err;
+
+}
+
+// save child parameters (scenes)
+ErrorPtr LightSettings::saveChildren()
+{
+  ErrorPtr err;
+  // my own ROWID is the parent key for the children
+  string parentID = string_format("%d",rowid);
+  // save all elements of the map (only dirty ones will be actually stored to DB
+  for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
+    err = pos->second->saveToStore(parentID.c_str());
+  }
+  return err;
 }
 
 
