@@ -146,7 +146,8 @@ namespace p44 {
 
     /// called by device class containers to remove devices from the container-wide list
     /// @param aDevice a device object which has a valid dsid
-    void removeDevice(DevicePtr aDevice);
+    /// @param aForget if set, parameters stored for the device will be deleted
+    void removeDevice(DevicePtr aDevice, bool aForget);
 
     /// periodic task
     void periodicTask(MLMicroSeconds aCycleStartTime);
@@ -166,6 +167,8 @@ namespace p44 {
 
     /// get the dsParamStore
     DsParamStore &getDsParamStore() { return dsParamStore; }
+
+    /// save
 
     /// @}
 

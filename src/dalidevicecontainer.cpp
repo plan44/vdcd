@@ -81,6 +81,7 @@ private:
       // - give it device info (such that it can calculate its dsid)
       //   Note: device info might be empty except for short address
       daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
+      // - make it 
       // - add it to our collection
       daliDeviceContainerP->addDevice(daliDevice);
     }

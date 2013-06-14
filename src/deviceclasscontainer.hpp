@@ -121,7 +121,8 @@ namespace p44 {
 
     /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
     /// @param aDevice a device object which has a valid dsid
-    virtual void removeDevice(DevicePtr aDevice);
+    /// @param aForget if set, all parameters stored for the device will be deleted
+    virtual void removeDevice(DevicePtr aDevice, bool aForget = false);
 
 
     /// Forget all previously collected devices

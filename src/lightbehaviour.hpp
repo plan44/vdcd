@@ -94,22 +94,77 @@ namespace p44 {
     virtual ErrorPtr loadChildren();
     /// save child parameters (if any)
     virtual ErrorPtr saveChildren();
-    
+    /// delete child parameters (if any)
+    virtual ErrorPtr deleteChildren();
+
     /// @}
   };
 
 
   class LightBehaviour : public DSBehaviour
   {
+    typedef DSBehaviour inherited;
+
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
     Brightness outputValue; ///< current internal output value. For non-dimmables, output is on only if outputValue>onThreshold
     LightSettings lightSettings; ///< the persistent params of this lighting device
 
   public:
+    LightBehaviour(Device *aDeviceP);
+
     /// @return current brightness value, 0..255, linear brightness as perceived by humans (half value = half brightness)
     Brightness getBrightness();
 
+    /// @name functional identification for digitalSTROM system
+    /// @{
+
+    virtual uint16_t functionId();
+    virtual uint16_t productId();
+    virtual uint16_t groupMemberShip();
+    virtual uint8_t ltMode();
+    virtual uint8_t outputMode();
+    virtual uint8_t buttonIdGroup();
+
+    /// @}
+
+    /// @name interaction with digitalSTROM system
+    /// @{
+
+    /// handle message from vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return Error object if message generated an error
+    virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
+
+    /// get behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue will receive the current value
+    virtual ErrorPtr getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
+
+    /// set behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue the new value to set
+    virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
+
+    /// load behaviour parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    virtual ErrorPtr load();
+
+    /// save unsaved behaviourparameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    virtual ErrorPtr save();
+
+    /// forget any behaviour parameters stored in persistent DB
+    virtual ErrorPtr forget();
+    
+    /// @}
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
   };
 
 }

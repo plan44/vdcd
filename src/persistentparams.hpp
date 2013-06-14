@@ -66,7 +66,7 @@ namespace p44 {
 
     /// bind values to passed statement
     /// @param aStatement statement to bind parameter values to
-    /// @param aIndex index of first column to bind
+    /// @param aIndex index of first column to bind, will be incremented past the last bound column
     /// @note the base class binds ROWID and the parent identifier (first item in keyDefs) automatically.
     ///   subclasses should always call inherited bindToStatement() FIRST
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
@@ -76,6 +76,9 @@ namespace p44 {
 
     /// save child parameters (if any)
     virtual ErrorPtr saveChildren() { return ErrorPtr(); };
+
+    /// delete child parameters (if any)
+    virtual ErrorPtr deleteChildren() { return ErrorPtr(); };
 
     /// @}
 
@@ -90,6 +93,9 @@ namespace p44 {
     /// save parameter set to persistent storage if dirty
     /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
     ErrorPtr saveToStore(const char *aParentIdentifier);
+
+    /// delete this parameter set from the store
+    ErrorPtr deleteFromStore();
 
     /// helper for implementation of loadChildren()
     /// @return a prepared query set up to iterate through all records with a given parent identifier, or NULL on error

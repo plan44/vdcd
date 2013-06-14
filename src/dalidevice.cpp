@@ -12,6 +12,8 @@
 
 #include "fnv.hpp"
 
+#include "lightbehaviour.hpp"
+
 using namespace p44;
 
 
@@ -32,6 +34,14 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceInfo = aDeviceInfo; // copy
   // derive the dSID
   deriveDSID();
+  // set the behaviour
+  LightBehaviour *l = new LightBehaviour(this);
+  setDSBehaviour(l);
+  #ifdef DEBUG
+  #warning // TODO: %%%% remove this q&d debug hack
+  if (deviceInfo.shortAddress==0)
+    l->setBehaviourParam("MINDIM", 0, 20);
+  #endif
 }
 
 

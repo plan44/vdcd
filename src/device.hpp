@@ -48,6 +48,10 @@ namespace p44 {
 
     /// @}
 
+
+    /// @name interaction with digitalSTROM system, to be implemented in concrete classes
+    /// @{
+
     /// handle message from vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none
@@ -66,20 +70,27 @@ namespace p44 {
     /// @param aValue the new value to set
     virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
 
+    /// load behaviour parameters from persistent DB
+    virtual ErrorPtr load() { return ErrorPtr(); /* NOP in base class */ };
+
+    /// save unsaved behaviour parameters to persistent DB
+    virtual ErrorPtr save() { return ErrorPtr(); /* NOP in base class */ };
+
+    /// forget any parameters stored in persistent DB
+    virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
+
+    /// @}
+    
+
     /// send message to vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
-    /// save unsaved behaviour parameters to persistent DB
-    /// @note this is usually called from the device container in regular intervals
-    virtual void save() { /* NOP in base class */ };
-
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
-
 
   };
 
@@ -160,9 +171,16 @@ namespace p44 {
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
 
+    /// load parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    virtual ErrorPtr load();
+
     /// save unsaved parameters to persistent DB
     /// @note this is usually called from the device container in regular intervals
-    virtual void save();
+    virtual ErrorPtr save();
+
+    /// forget any parameters stored in persistent DB
+    virtual ErrorPtr forget();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

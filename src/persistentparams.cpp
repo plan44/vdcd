@@ -117,7 +117,7 @@ sqlite3pp::query *PersistentParams::newLoadAllQuery(const char *aParentIdentifie
   appendfieldList(sql, getKeyDefs(), true, false);
   // other fields
   appendfieldList(sql, getFieldDefs(), true, false);
-  string_format_append(sql, " WHERE %s='%s'", getKeyDefs()->fieldName, aParentIdentifier);
+  string_format_append(sql, " FROM %s WHERE %s='%s'", tableName(), getKeyDefs()->fieldName, aParentIdentifier);
   // now execute query
   if (queryP->prepare(sql.c_str())!=SQLITE_OK) {
     // - error could mean schema is not up to date
@@ -147,6 +147,7 @@ void PersistentParams::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex
 ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
 {
   ErrorPtr err;
+  rowid = 0; // loading means that we'll get the rowid from the DB, so forget any previous one
   sqlite3pp::query * queryP = newLoadAllQuery(aParentIdentifier);
   if (queryP==NULL) {
     // real error preparing query
@@ -154,6 +155,7 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
   }
   else {
     sqlite3pp::query::iterator row = queryP->begin();
+    // Note: it might be OK to not find any stored params in the DB. If so, values are left untouched
     if (row!=queryP->end()) {
       // got record
       int index = 0;
@@ -176,7 +178,7 @@ void PersistentParams::markDirty()
 void PersistentParams::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   // the parent identifier is the first column to bind
-  aStatement.bind(aIndex, aParentIdentifier);
+  aStatement.bind(aIndex++, aParentIdentifier, false); // text not static
 }
 
 
@@ -194,10 +196,11 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       appendfieldList(sql, getFieldDefs(), true, true);
       string_format_append(sql, " WHERE ROWID=%lld", rowid);
       // bind the values
-      int index = 0;
+      int index = 1; // SQLite parameter indexes are 1-based!
       bindToStatement(cmd, index, aParentIdentifier);
       // now execute command
       if (cmd.execute()!=SQLITE_OK) {
+        #error returns SQLITE_DONE, not OK
         // error on update is always a real error - if we loaded the params from the DB, schema IS ok!
         err = paramStore.error();
       }
@@ -215,6 +218,7 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       for (int i=0; i<numFields; i++) {
         if (!first) sql += ", ";
         sql += "?";
+        first = false;
       }
       sql += ")";
       // prepare
@@ -229,10 +233,11 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       }
       if (Error::isOK(err)) {
         // bind the values
-        int index = 0;
+        int index = 1; // SQLite parameter indexes are 1-based!
         bindToStatement(cmd, index, aParentIdentifier);
         // now execute command
         if (cmd.execute()!=SQLITE_OK) {
+          #error really returns SQLITE_OK???
           err = paramStore.error();
         }
         else {
@@ -243,10 +248,30 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       }
     }
   }
-  // anyway, have childrend checked
+  // anyway, have children checked
   if (Error::isOK(err)) {
     err = saveChildren();
   }
   return err;
 }
+
+
+ErrorPtr PersistentParams::deleteFromStore()
+{
+  ErrorPtr err;
+  dirty = false; // forget any unstored changes
+  if (rowid!=0) {
+    if (paramStore.executef("DELETE FROM %s WHERE ROWID=%d", tableName(), rowid) != SQLITE_OK) {
+      err = paramStore.error();
+    }
+    // deleted, forget
+    rowid = 0;
+  }
+  // anyway, remove children
+  if (Error::isOK(err)) {
+    err = deleteChildren();
+  }
+  return err;
+}
+
 

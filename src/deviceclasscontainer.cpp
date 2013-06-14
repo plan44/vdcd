@@ -73,7 +73,7 @@ void DeviceClassContainer::addDevice(DevicePtr aDevice)
 
 
 // delete a device
-void DeviceClassContainer::removeDevice(DevicePtr aDevice)
+void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
 	// find and remove from my list.
 	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
@@ -83,7 +83,7 @@ void DeviceClassContainer::removeDevice(DevicePtr aDevice)
 		}
 	}
   // announce to global device container
-  deviceContainerP->removeDevice(aDevice);
+  deviceContainerP->removeDevice(aDevice, aForget);
 }
 
 

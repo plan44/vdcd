@@ -141,12 +141,12 @@ void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
 }
 
 
-void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice)
+void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
     // - remove single device from superclass
-    inherited::removeDevice(aDevice);
+    inherited::removeDevice(aDevice, aForget);
     // - remove only selected channel from my own list
     EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(ed->getAddress());
     while (pos!=enoceanDevices.upper_bound(ed->getAddress())) {
@@ -168,7 +168,7 @@ void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddre
   // remove all logical devices with same physical address
   // - remove from superclass (which sees these as completely separate devices)
   for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEnoceanAddress); pos!=enoceanDevices.upper_bound(aEnoceanAddress); ++pos) {
-    inherited::removeDevice(pos->second);
+    inherited::removeDevice(pos->second, true);
   }
   // - remove all with that address from my own list
   enoceanDevices.erase(aEnoceanAddress);

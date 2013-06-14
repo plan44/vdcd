@@ -420,11 +420,30 @@ bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 }
 
 
-void Device::save()
+ErrorPtr Device::save()
 {
   if (behaviourP)
-    behaviourP->save();
+    return behaviourP->save();
+  return ErrorPtr();
 }
+
+
+ErrorPtr Device::load()
+{
+  if (behaviourP)
+    behaviourP->load();
+  return ErrorPtr();
+}
+
+
+ErrorPtr Device::forget()
+{
+  if (behaviourP)
+    behaviourP->forget();
+  return ErrorPtr();
+}
+
+
 
 
 

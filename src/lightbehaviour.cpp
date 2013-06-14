@@ -243,8 +243,10 @@ void LightSettings::updateScene(LightScenePtr aScene)
     // unstored so far, add to map of non-default scenes
     scenes[aScene->sceneNo] = aScene;
   }
-  // anyway, mark dirty
+  // anyway, mark scene dirty
   aScene->markDirty();
+  // as we need the ROWID of the lightsettings as parentID, make sure we get saved if we don't have one
+  if (rowid==0) markDirty();
 }
 
 
@@ -330,15 +332,188 @@ ErrorPtr LightSettings::loadChildren()
 ErrorPtr LightSettings::saveChildren()
 {
   ErrorPtr err;
-  // my own ROWID is the parent key for the children
-  string parentID = string_format("%d",rowid);
-  // save all elements of the map (only dirty ones will be actually stored to DB
-  for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
-    err = pos->second->saveToStore(parentID.c_str());
+  // Cannot save children before I have my own rowID
+  if (rowid!=0) {
+    // my own ROWID is the parent key for the children
+    string parentID = string_format("%d",rowid);
+    // save all elements of the map (only dirty ones will be actually stored to DB
+    for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
+      err = pos->second->saveToStore(parentID.c_str());
+    }
   }
   return err;
 }
 
+
+// save child parameters (scenes)
+ErrorPtr LightSettings::deleteChildren()
+{
+  ErrorPtr err;
+  for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
+    err = pos->second->deleteFromStore();
+  }
+  return err;
+}
+
+
+
+
+#pragma mark - LightBehaviour
+
+LightBehaviour::LightBehaviour(Device *aDeviceP) :
+  inherited(aDeviceP),
+  lightSettings(aDeviceP->getDeviceContainer().getDsParamStore())
+{
+}
+
+
+
+
+#pragma mark - functional identification for digitalSTROM system
+
+#warning // TODO: for now, we just emulate a GE-KM200 in a more or less hard-coded way
+
+// from DeviceConfig.py:
+// #  productName (functionId, productId, groupMemberShip, ltMode, outputMode, buttonIdGroup)
+// deviceDefaults["GE-KM200"] =  ( 0x1111, 200, 3, 0, 16, 0x10 )
+
+// Die Function-ID enthält (für alle dSIDs identisch) in den letzten 2 Bit eine Kennung,
+// wieviele Eingänge das Gerät besitzt: 0=keine, 1=1 Eingang, 2=2 Eingänge, 3=4 Eingänge.
+// Die dSID muss für den ersten Eingang mit einer durch 4 teilbaren dSID beginnen, die weiteren dSIDs sind fortlaufend.
+
+
+uint16_t LightBehaviour::functionId()
+{
+  #warning // TODO: try with using actual number of inputs (0) later
+  //%%% for now, fake one input to make it as similar to GE-KM200 as possible
+  int i = 1;
+  // int i = deviceP->getNumInputs();
+  return 0x1110 + i>3 ? 3 : i; // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
+}
+
+
+
+uint16_t LightBehaviour::productId()
+{
+  return 200;
+}
+
+
+uint16_t LightBehaviour::groupMemberShip()
+{
+  return 3; // Light
+}
+
+
+uint8_t LightBehaviour::ltMode()
+{
+  return 0;
+}
+
+
+uint8_t LightBehaviour::outputMode()
+{
+  return 16;
+}
+
+
+
+uint8_t LightBehaviour::buttonIdGroup()
+{
+  return 0x10;
+}
+
+
+
+string LightBehaviour::shortDesc()
+{
+  return string("Light");
+}
+
+
+
+#pragma mark - interaction with digitalSTROM system
+
+
+// handle message from vdSM
+ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
+{
+  ErrorPtr err;
+  return err;
+}
+
+
+// MODE:
+//  16 Schalter
+//  17 Effektivwertdimmer
+//  18 Effektivwertdimmer mit Kennlinie
+//  19 Phasenanschnittdimmer
+//  20 Phasenanschnittsdimmer mit Kennlinie
+//  21 Phasenabschnittsdimmer
+//  22 Phasenabschnittsdimmer mit Kennlinie
+//  23 PWM
+//  24 PWM mit Kennlinie
+
+// get behaviour-specific parameter
+ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
+{
+  if (aParamName=="MODE")
+    aValue = lightSettings.isDimmable ? 17 : 16;
+  else if (aParamName=="MINDIM")
+    aValue = lightSettings.minDim;
+  else if (aParamName=="MAXDIM")
+    aValue = lightSettings.maxDim;
+  else if (aParamName=="SW_THR")
+    aValue = lightSettings.onThreshold;
+  else
+    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+  // done
+  return ErrorPtr();
+}
+
+
+// set behaviour-specific parameter
+ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
+{
+  if (aParamName=="MODE")
+    lightSettings.isDimmable = aValue>=17 && aValue<=24; // any dimmer mode enables dimming
+  else if (aParamName=="MINDIM")
+    lightSettings.minDim = aValue;
+  else if (aParamName=="MAXDIM")
+    lightSettings.maxDim = aValue;
+  else if (aParamName=="SW_THR")
+    lightSettings.onThreshold = aValue;
+  else
+    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+  // set a local param, mark dirty
+  lightSettings.markDirty();
+  return ErrorPtr();
+}
+
+
+
+// this is usually called from the device container in regular intervals
+ErrorPtr LightBehaviour::load()
+{
+  // load light settings (and scenes along with it)
+  return lightSettings.loadFromStore(deviceP->dsid.getString().c_str());
+}
+
+
+// this is usually called from the device container in regular intervals
+ErrorPtr LightBehaviour::save()
+{
+  // save light settings (and scenes along with it)
+  return lightSettings.saveToStore(deviceP->dsid.getString().c_str());
+}
+
+
+// this is usually called from the device container in regular intervals
+ErrorPtr LightBehaviour::forget()
+{
+  // delete light settings (and scenes along with it)
+  return lightSettings.deleteFromStore();
+}
 
 
 

@@ -152,7 +152,7 @@ private:
 
   void completed(ErrorPtr aError)
   {
-    // start periodic tasks like registration checking
+    // start periodic tasks like registration checking and saving parameters
     MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
     // callback
     callback(aError);
@@ -275,6 +275,8 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s", aDevice->description().c_str());
+  // load the device's persistent params
+  aDevice->load();
   // unless collecting now, register new device right away
   if (!collecting) {
     registerDevices();
@@ -283,9 +285,17 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
 
 
 // remove a device
-void DeviceContainer::removeDevice(DevicePtr aDevice)
+void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
-  // add to container-wide map of devices
+  if (aForget) {
+    // permanently remove from DB
+    aDevice->forget();
+  }
+  else {
+    // save, as we don't want to forget the settings associated with the device
+    aDevice->save();
+  }
+  // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
   busDevices.erase(aDevice->busAddress);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
@@ -306,6 +316,10 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
   if (!collecting) {
     // check for devices that need registration
     registerDevices();
+    // do a save run as well
+    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+      pos->second->save();
+    }
   }
   // schedule next run
   MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);

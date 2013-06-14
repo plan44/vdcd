@@ -93,7 +93,7 @@ namespace p44 {
 
     /// remove device
     /// @param aDevice device to remove (possibly only part of a multi-function physical device)
-    virtual void removeDevice(DevicePtr aDevice);
+    virtual void removeDevice(DevicePtr aDevice, bool aForget);
 
     /// remove devices by physical device address
     /// @param aEnoceanAddress address for which to remove all physical devices
