@@ -131,6 +131,7 @@ namespace p44 {
     virtual uint8_t ltMode();
     virtual uint8_t outputMode();
     virtual uint8_t buttonIdGroup();
+    virtual uint16_t version();
 
     /// @}
 

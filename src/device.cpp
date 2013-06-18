@@ -188,7 +188,7 @@ void Device::confirmRegistration(JsonObjectPtr aParams)
 //      print 'Zone:', request['parameter']['Zone']
 //      print 'Groups:', request['parameter']['GroupMemberships']
 
-
+#define RETURN_ZERO_FOR_READ_ERRORS 1
 
 ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
@@ -281,7 +281,6 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
         LOG(LOG_NOTICE,"%s Bank=%d, Offset=%d\n", aOperation.c_str(), bank, offset);
         const paramEntry *p = DsParams::paramEntryForBankOffset(bank, offset);
         if (p==NULL) {
-          LOG(LOG_NOTICE,"- no named parameter found for bank/offset\n");
           err = ErrorPtr(new vdSMError(
             vdSMErrorInvalidParameter,
             string_format("unknown parameter bank %d / offset %d", bank, offset)
@@ -292,8 +291,10 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
           int arrayIndex = offset / p->size;
           uint8_t inFieldOffset = offset-p->offset-(arrayIndex*p->size);
           uint32_t val;
+          LOG(LOG_NOTICE,"- accessing %s[%d] byte#%d\n", p->name, arrayIndex, inFieldOffset);
           err = getDeviceParam(p->name, arrayIndex, val);
           if (Error::isOK(err)) {
+            LOG(LOG_NOTICE,"- current value : 0x%08X/%d\n", val, val);
             if (inFieldOffset<p->size) {
               // now handle read or write
               if (write) {
@@ -308,18 +309,20 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
                 else {
                   // replace requested byte
                   uint32_t newVal = o->int32Value();
+                  LOG(LOG_NOTICE,"- changing byte#%d to 0x%02X/%d\n", inFieldOffset, newVal, newVal);
                   newVal = newVal << ((p->size-inFieldOffset-1)*8); // shift into position
                   val &= ~(0xFF << ((p->size-inFieldOffset-1)*8)); // create mask
                   val |= newVal;
                   // modify param
                   err = setDeviceParam(p->name, arrayIndex, val);
-                  LOG(LOG_NOTICE,"- %s[%d] set to %d/0x%X\n", p->name, arrayIndex, val);
+                  LOG(LOG_NOTICE,"- updated value : 0x%08X/%d\n", val, val);
                 }
               }
               else {
                 // extract the requested byte
-                val = (val >> ((p->size-inFieldOffset-1)*8)) & 0xFF;
                 LOG(LOG_NOTICE,"- %s[%d] = %d/0x%X\n", p->name, arrayIndex, val);
+                val = (val >> ((p->size-inFieldOffset-1)*8)) & 0xFF;
+                LOG(LOG_NOTICE,"- extracting byte#%d = 0x%02X/%d\n", inFieldOffset, val, val);
                 // create json answer
                 // - re-use param
                 aParams->add("Value", JsonObject::newInt32(val));
@@ -337,6 +340,17 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
         }
       }
     }
+    #if RETURN_ZERO_FOR_READ_ERRORS
+    // never error, just return 0 for params we don't know
+    if (!Error::isOK(err) && !write) {
+      // Error reading param -> just return zero value instead of error
+      LOG(LOG_ERR, "getdeviceparameter error: %s\n", err->description().c_str());
+      // - re-use param
+      aParams->add("Value", JsonObject::newInt32(0)); // zero
+      sendMessage("DeviceParameter", aParams);
+      err = NULL;
+    }
+    #endif
   }
   else if (aOperation=="pushsensorvalue") {
     // TODO: implement PushSensorValue
@@ -375,7 +389,8 @@ ErrorPtr Device::getDeviceParam(const string &aParamName, int aArrayIndex, uint3
     aValue = busAddress;
   }
   else if (aParamName=="GRP") {
-    aValue = busAddress;
+    #warning "// TODO: what is the structure of this group membership mask"
+    aValue = 0; //%%% wrong
   }
   // check behaviour specific params
   else {

@@ -430,6 +430,14 @@ uint16_t LightBehaviour::groupMemberShip()
 }
 
 
+uint16_t LightBehaviour::version()
+{
+  #warning // TODO: just faking a real GE-KM200's version for now
+  return 0x0314;
+}
+
+
+
 uint8_t LightBehaviour::ltMode()
 {
   return 0;
