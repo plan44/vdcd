@@ -164,9 +164,9 @@ static const paramEntry bank3params_9W[] =
 
 static const paramEntry bank5params[] =
 {
-  { 0x0, 1, "PRIO[4]" },
-  { 0x4, 1, "TMR[4]" },
-  { 0x8, 6, "ST[32]" },
+  { 0x0, 1, "PRIO" }, // 4 array elements
+  { 0x4, 1, "TMR" }, // 4 array elements
+  { 0x8, 6, "ST" }, // 32 array elements
   { 0, 0, NULL },
 };
 
@@ -191,22 +191,22 @@ static const paramEntry bank64params[] =
 
 static const paramEntry bank128params[] =
 {
-  { 0x0, 128, "SCE" },
-  { 0x80, 128, "SCECON" },
+  { 0x0, 1, "SCE" }, // 128 array elements
+  { 0x80, 1, "SCECON" }, // 128 array elements
   { 0, 0, NULL },
 };
 
 
 static const paramEntry bank129params[] =
 {
-  { 0x0, 64, "SCE_LO" },
+  { 0x0, 1, "SCE_LO" }, // 64 array elements (each byte holds two nibbles, so 64 elements are enough for 128 scene value extensions to 12bit
   { 0, 0, NULL },
 };
 
 
 static const paramEntry bank130params[] =
 {
-  { 0x0, 128, "ScnAngle" },
+  { 0x0, 1, "ScnAngle" },
   { 0, 0, NULL },
 };
 

@@ -16,7 +16,7 @@ using namespace p44;
 
 typedef struct {
   Brightness sceneValue; ///< output value for this scene
-  bool slowTransition; ///< set if transition must be slow
+  uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
   bool flashing; ///< flashing active for this scene
   bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
   bool dontCare; ///< if set, applying this scene does not change the output value
@@ -28,88 +28,88 @@ typedef struct {
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
   { 0, false, false, false, false, false }, // 0 : Preset 0 - T0_S0
-  { 0, false, false, true, false, false }, // 1 : Area 1 Off - T1_S0
-  { 0, false, false, true, false, false }, // 2 : Area 2 Off - T2_S0
-  { 0, false, false, true, false, false }, // 3 : Area 3 Off - T3_S0
-  { 0, false, false, true, false, false }, // 4 : Area 4 Off - T4_S0
-  { 255, false, false, false, false, false }, // 5 : Preset 1 - T0_S1
-  { 255, false, false, true, false, false }, // 6 : Area 1 On - T1_S1
-  { 255, false, false, true, false, false }, // 7 : Area 2 On - T1_S1
-  { 255, false, false, true, false, false }, // 8 : Area 3 On - T1_S1
-  { 255, false, false, true, false, false }, // 9 : Area 4 On - T1_S1
-  { 0, false, false, true, false, false }, // 10 : Area Stepping continue - T1234_CONT
-  { 0, false, false, false, false, false }, // 11 : Decrement - DEC_S
-  { 0, false, false, false, false, false }, // 12 : Increment - INC_S
-  { 0, false, false, true, false, false }, // 13 : Minimum - MIN_S
-  { 255, false, false, true, false, false }, // 14 : Maximum - MAX_S
-  { 0, false, false, true, false, false }, // 15 : Stop - STOP_S
-  { 0, false, false, false, true, false }, // 16 : Reserved
-  { 192, false, false, false, false, false }, // 17 : Preset 2 - T0_S2
-  { 128, false, false, false, false, false }, // 18 : Preset 3 - T0_S3
-  { 64, false, false, false, false, false }, // 19 : Preset 4 - T0_S4
-  { 192, false, false, false, false, false }, // 20 : Preset 12 - T1_S2
-  { 128, false, false, false, false, false }, // 21 : Preset 13 - T1_S3
-  { 64, false, false, false, false, false }, // 22 : Preset 14 - T1_S4
-  { 192, false, false, false, false, false }, // 23 : Preset 22 - T2_S2
-  { 168, false, false, false, false, false }, // 24 : Preset 23 - T2_S3
-  { 64, false, false, false, false, false }, // 25 : Preset 24 - T2_S4
-  { 192, false, false, false, false, false }, // 26 : Preset 32 - T3_S2
-  { 168, false, false, false, false, false }, // 27 : Preset 33 - T3_S3
-  { 64, false, false, false, false, false }, // 28 : Preset 34 - T3_S4
-  { 192, false, false, false, false, false }, // 29 : Preset 42 - T4_S2
-  { 168, false, false, false, false, false }, // 30 : Preset 43 - T4_S3
-  { 64, false, false, false, false, false }, // 31 : Preset 44 - T4_S4
-  { 0, false, false, false, false, false }, // 32 : Preset 10 - T1E_S0
-  { 255, false, false, false, false, false }, // 33 : Preset 11 - T1E_S1
-  { 0, false, false, false, false, false }, // 34 : Preset 20 - T2E_S0
-  { 255, false, false, false, false, false }, // 35 : Preset 21 - T2E_S1
-  { 0, false, false, false, false, false }, // 36 : Preset 30 - T3E_S0
-  { 255, false, false, false, false, false }, // 37 : Preset 31 - T3E_S1
-  { 0, false, false, false, false, false }, // 38 : Preset 40 - T4E_S0
-  { 255, false, false, false, false, false }, // 39 : Preset 41 - T4E_S1
-  { 0, false, false, false, true, false }, // 40 : Reserved
-  { 0, false, false, false, true, false }, // 41 : Reserved
-  { 0, false, false, true, false, false }, // 42 : Area 1 Decrement - T1_DEC
-  { 0, false, false, true, false, false }, // 43 : Area 1 Increment - T1_INC 
-  { 0, false, false, true, false, false }, // 44 : Area 2 Decrement - T2_DEC
-  { 0, false, false, true, false, false }, // 45 : Area 2 Increment - T2_INC 
-  { 0, false, false, true, false, false }, // 46 : Area 3 Decrement - T3_DEC
-  { 0, false, false, true, false, false }, // 47 : Area 3 Increment - T3_INC
-  { 0, false, false, true, false, false }, // 48 : Area 4 Decrement - T4_DEC
-  { 0, false, false, true, false, false }, // 49 : Area 4 Increment - T4_INC 
-  { 0, false, false, true, false, false }, // 50 : Device (Local Button) on : LOCAL_OFF
-  { 255, false, false, true, false, false }, // 51 : Device (Local Button) on : LOCAL_ON
-  { 0, false, false, true, false, false }, // 52 : Area 1 Stop - T1_STOP_S
-  { 0, false, false, true, false, false }, // 53 : Area 2 Stop - T2_STOP_S
-  { 0, false, false, true, false, false }, // 54 : Area 3 Stop - T3_STOP_S
-  { 0, false, false, true, false, false }, // 55 : Area 4 Stop - T4_STOP_S
-  { 0, false, false, false, true, false }, // 56 : Reserved
-  { 0, false, false, false, true, false }, // 57 : Reserved
-  { 0, false, false, false, true, false }, // 58 : Reserved
-  { 0, false, false, false, true, false }, // 59 : Reserved
-  { 0, false, false, false, true, false }, // 60 : Reserved
-  { 0, false, false, false, true, false }, // 61 : Reserved
-  { 0, false, false, false, true, false }, // 62 : Reserved
-  { 0, false, false, false, true, false }, // 63 : Reserved
+  { 0, 1, false, true, false, false }, // 1 : Area 1 Off - T1_S0
+  { 0, 1, false, true, false, false }, // 2 : Area 2 Off - T2_S0
+  { 0, 1, false, true, false, false }, // 3 : Area 3 Off - T3_S0
+  { 0, 1, false, true, false, false }, // 4 : Area 4 Off - T4_S0
+  { 255, 1, false, false, false, false }, // 5 : Preset 1 - T0_S1
+  { 255, 1, false, true, false, false }, // 6 : Area 1 On - T1_S1
+  { 255, 1, false, true, false, false }, // 7 : Area 2 On - T1_S1
+  { 255, 1, false, true, false, false }, // 8 : Area 3 On - T1_S1
+  { 255, 1, false, true, false, false }, // 9 : Area 4 On - T1_S1
+  { 0, 1, false, true, false, false }, // 10 : Area Stepping continue - T1234_CONT
+  { 0, 1, false, false, false, false }, // 11 : Decrement - DEC_S
+  { 0, 1, false, false, false, false }, // 12 : Increment - INC_S
+  { 0, 1, false, true, false, false }, // 13 : Minimum - MIN_S
+  { 255, 1, false, true, false, false }, // 14 : Maximum - MAX_S
+  { 0, 1, false, true, false, false }, // 15 : Stop - STOP_S
+  { 0, 1, false, false, true, false }, // 16 : Reserved
+  { 192, 1, false, false, false, false }, // 17 : Preset 2 - T0_S2
+  { 128, 1, false, false, false, false }, // 18 : Preset 3 - T0_S3
+  { 64, 1, false, false, false, false }, // 19 : Preset 4 - T0_S4
+  { 192, 1, false, false, false, false }, // 20 : Preset 12 - T1_S2
+  { 128, 1, false, false, false, false }, // 21 : Preset 13 - T1_S3
+  { 64, 1, false, false, false, false }, // 22 : Preset 14 - T1_S4
+  { 192, 1, false, false, false, false }, // 23 : Preset 22 - T2_S2
+  { 168, 1, false, false, false, false }, // 24 : Preset 23 - T2_S3
+  { 64, 1, false, false, false, false }, // 25 : Preset 24 - T2_S4
+  { 192, 1, false, false, false, false }, // 26 : Preset 32 - T3_S2
+  { 168, 1, false, false, false, false }, // 27 : Preset 33 - T3_S3
+  { 64, 1, false, false, false, false }, // 28 : Preset 34 - T3_S4
+  { 192, 1, false, false, false, false }, // 29 : Preset 42 - T4_S2
+  { 168, 1, false, false, false, false }, // 30 : Preset 43 - T4_S3
+  { 64, 1, false, false, false, false }, // 31 : Preset 44 - T4_S4
+  { 0, 1, false, false, false, false }, // 32 : Preset 10 - T1E_S0
+  { 255, 1, false, false, false, false }, // 33 : Preset 11 - T1E_S1
+  { 0, 1, false, false, false, false }, // 34 : Preset 20 - T2E_S0
+  { 255, 1, false, false, false, false }, // 35 : Preset 21 - T2E_S1
+  { 0, 1, false, false, false, false }, // 36 : Preset 30 - T3E_S0
+  { 255, 1, false, false, false, false }, // 37 : Preset 31 - T3E_S1
+  { 0, 1, false, false, false, false }, // 38 : Preset 40 - T4E_S0
+  { 255, 1, false, false, false, false }, // 39 : Preset 41 - T4E_S1
+  { 0, 1, false, false, true, false }, // 40 : Reserved
+  { 0, 1, false, false, true, false }, // 41 : Reserved
+  { 0, 1, false, true, false, false }, // 42 : Area 1 Decrement - T1_DEC
+  { 0, 1, false, true, false, false }, // 43 : Area 1 Increment - T1_INC 
+  { 0, 1, false, true, false, false }, // 44 : Area 2 Decrement - T2_DEC
+  { 0, 1, false, true, false, false }, // 45 : Area 2 Increment - T2_INC 
+  { 0, 1, false, true, false, false }, // 46 : Area 3 Decrement - T3_DEC
+  { 0, 1, false, true, false, false }, // 47 : Area 3 Increment - T3_INC
+  { 0, 1, false, true, false, false }, // 48 : Area 4 Decrement - T4_DEC
+  { 0, 1, false, true, false, false }, // 49 : Area 4 Increment - T4_INC 
+  { 0, 1, false, true, false, false }, // 50 : Device (Local Button) on : LOCAL_OFF
+  { 255, 1, false, true, false, false }, // 51 : Device (Local Button) on : LOCAL_ON
+  { 0, 1, false, true, false, false }, // 52 : Area 1 Stop - T1_STOP_S
+  { 0, 1, false, true, false, false }, // 53 : Area 2 Stop - T2_STOP_S
+  { 0, 1, false, true, false, false }, // 54 : Area 3 Stop - T3_STOP_S
+  { 0, 1, false, true, false, false }, // 55 : Area 4 Stop - T4_STOP_S
+  { 0, 1, false, false, true, false }, // 56 : Reserved
+  { 0, 1, false, false, true, false }, // 57 : Reserved
+  { 0, 1, false, false, true, false }, // 58 : Reserved
+  { 0, 1, false, false, true, false }, // 59 : Reserved
+  { 0, 1, false, false, true, false }, // 60 : Reserved
+  { 0, 1, false, false, true, false }, // 61 : Reserved
+  { 0, 1, false, false, true, false }, // 62 : Reserved
+  { 0, 1, false, false, true, false }, // 63 : Reserved
   // global, appartment-wide, group independent scenes
-  { 0, true, false, true, false, false }, // 64 : Auto Standby - AUTO_STANDBY
-  { 255, false, false, true, false, false }, // 65 : Panic - SIG_PANIC
-  { 0, false, false, false, true, false }, // 66 : Reserved (ENERGY_OL)
-  { 0, false, false, true, false, false }, // 67 : Standby - STANDBY
-  { 0, false, false, true, false, false }, // 68 : Deep Off - DEEP_OFF
-  { 0, false, false, true, false, false }, // 69 : Sleeping - SLEEPING
-  { 255, false, false, true, true, false }, // 70 : Wakeup - WAKE_UP
-  { 255, false, false, true, true, false }, // 71 : Present - PRESENT
-  { 0, false, false, true, false, false }, // 72 : Absent - ABSENT
-  { 0, false, false, true, true, false }, // 73 : Door Bell - SIG_BELL
-  { 0, false, false, false, true, false }, // 74 : Reserved (SIG_ALARM)
-  { 255, false, false, false, true, false }, // 75 : Zone Active
-  { 255, false, false, false, true, false }, // 76 : Reserved
-  { 255, false, false, false, true, false }, // 77 : Reserved
-  { 0, false, false, false, true, false }, // 78 : Reserved
-  { 0, false, false, false, true, false }, // 79 : Reserved
+  { 0, 2, false, true, false, false }, // 64 : Auto Standby - AUTO_STANDBY
+  { 255, 1, false, true, false, false }, // 65 : Panic - SIG_PANIC
+  { 0, 1, false, false, true, false }, // 66 : Reserved (ENERGY_OL)
+  { 0, 1, false, true, false, false }, // 67 : Standby - STANDBY
+  { 0, 1, false, true, false, false }, // 68 : Deep Off - DEEP_OFF
+  { 0, 1, false, true, false, false }, // 69 : Sleeping - SLEEPING
+  { 255, 1, false, true, true, false }, // 70 : Wakeup - WAKE_UP
+  { 255, 1, false, true, true, false }, // 71 : Present - PRESENT
+  { 0, 1, false, true, false, false }, // 72 : Absent - ABSENT
+  { 0, 1, false, true, true, false }, // 73 : Door Bell - SIG_BELL
+  { 0, 1, false, false, true, false }, // 74 : Reserved (SIG_ALARM)
+  { 255, 1, false, false, true, false }, // 75 : Zone Active
+  { 255, 1, false, false, true, false }, // 76 : Reserved
+  { 255, 1, false, false, true, false }, // 77 : Reserved
+  { 0, 1, false, false, true, false }, // 78 : Reserved
+  { 0, 1, false, false, true, false }, // 79 : Reserved
   // all other scenes equal or higher
-  { 0, false, false, false, true, false }, // 80..n : Reserved
+  { 0, 1, false, false, true, false }, // 80..n : Reserved
 };
 
 
@@ -123,7 +123,7 @@ LightScene::LightScene(ParamStore &aParamStore, SceneNo aSceneNo) :
     aSceneNo = NUMDEFAULTSCENES; // last entry in the table is the default for all higher scene numbers
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
   sceneValue = p.sceneValue;
-  slowTransition = p.slowTransition;
+  dimTimeSelector = p.dimTimeSelector;
   flashing = p.flashing;
   ignoreLocalPriority = p.ignoreLocalPriority;
   dontCare = p.dontCare;
@@ -156,6 +156,7 @@ const FieldDefinition *LightScene::getFieldDefs()
   static const FieldDefinition dataDefs[] = {
     { "sceneValue", SQLITE_INTEGER },
     { "sceneFlags", SQLITE_INTEGER },
+    { "dimTimeSelector", SQLITE_INTEGER },
     { NULL, 0 },
   };
   return dataDefs;
@@ -179,13 +180,12 @@ void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   sceneNo = aRow->get<int>(aIndex++);
   sceneValue = aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
+  dimTimeSelector = aRow->get<int>(aIndex++);
   // decode the flags
   dontCare = flags & LightSceneFlag_dontCare;
   ignoreLocalPriority = flags & LightSceneFlag_ignoreLocalPriority;
   specialBehaviour = flags & LightSceneFlag_specialBehaviour;
   flashing = flags & LightSceneFlag_flashing;
-  slowTransition = flags & LightSceneFlag_slowTransition;
-
 }
 
 
@@ -199,11 +199,40 @@ void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, 
   if (ignoreLocalPriority) flags |= LightSceneFlag_ignoreLocalPriority;
   if (specialBehaviour) flags |= LightSceneFlag_specialBehaviour;
   if (flashing) flags |= LightSceneFlag_flashing;
-  if (slowTransition) flags |= LightSceneFlag_slowTransition;  
   // bind the fields
   aStatement.bind(aIndex++, sceneNo);
   aStatement.bind(aIndex++, sceneValue);
   aStatement.bind(aIndex++, flags);
+  aStatement.bind(aIndex++, dimTimeSelector);
+}
+
+
+// SCECON
+//  Bit0: Don't care flag. Wenn 1 wird der Ausgang nicht verändert
+//  Bit1: Lokale Priorisierung ignorieren
+//  Bit2: Spezialverhalten aktiv (INC/DEC/STOP/meinCLICK)
+//  Bit3: Flashen für diese Szene aktiv
+//  Bit4-5 : 0 LED Konfiguration nicht verändern, 1-3 LEDCON0..2 verwenden
+//  Bit6-7 : 0 DIMTIME Konfiguration nicht verändern 1-3 DIMTIME0..2 verwenden
+
+uint8_t LightScene::getSceCon()
+{
+  return
+    (dontCare ? 0x01 : 0) +
+    (ignoreLocalPriority ? 0x02 : 0) +
+    (specialBehaviour ? 0x04 : 0) +
+    (flashing ? 0x08 : 0) +
+    (dimTimeSelector<<6) & 0xC0;
+}
+
+
+void LightScene::setSceCon(uint8_t aSceCon)
+{
+  dontCare = aSceCon & 0x01;
+  ignoreLocalPriority = aSceCon & 0x02;
+  specialBehaviour = aSceCon & 0x04;
+  flashing = aSceCon & 0x08;
+  dimTimeSelector = (aSceCon>>6) & 0x03;
 }
 
 
@@ -321,11 +350,7 @@ ErrorPtr LightSettings::loadChildren()
       scene = LightScenePtr(new LightScene(paramStore, 0));
     }
   }
-  if (Error::isOK(err)) {
-    err = loadChildren();
-  }
   return err;
-
 }
 
 // save child parameters (scenes)
@@ -465,6 +490,10 @@ ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayI
     aValue = lightSettings.maxDim;
   else if (aParamName=="SW_THR")
     aValue = lightSettings.onThreshold;
+  else if (aParamName=="SCE")
+    aValue = lightSettings.getScene(aArrayIndex)->sceneValue;
+  else if (aParamName=="SCECON")
+    aValue = lightSettings.getScene(aArrayIndex)->getSceCon();
   else
     return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
   // done
@@ -483,6 +512,16 @@ ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayI
     lightSettings.maxDim = aValue;
   else if (aParamName=="SW_THR")
     lightSettings.onThreshold = aValue;
+  else if (aParamName=="SCE") {
+    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
+    ls->sceneValue = aValue;
+    lightSettings.updateScene(ls);
+  }
+  else if (aParamName=="SCECON") {
+    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
+    ls->setSceCon(aValue);
+    lightSettings.updateScene(ls);
+  }
   else
     return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
   // set a local param, mark dirty

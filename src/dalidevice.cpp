@@ -38,9 +38,12 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   LightBehaviour *l = new LightBehaviour(this);
   setDSBehaviour(l);
   #ifdef DEBUG
-  #warning // TODO: %%%% remove this q&d debug hack
-  if (deviceInfo.shortAddress==0)
-    l->setBehaviourParam("MINDIM", 0, 20);
+//  #warning // TODO: %%%% remove this q&d debug hack
+//  if (deviceInfo.shortAddress==0) {
+//    l->setBehaviourParam("MINDIM", 0, 20);
+//    // get scene
+//    l->setBehaviourParam("SCE", T0_S1, 78);
+//  }
   #endif
 }
 

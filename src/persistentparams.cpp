@@ -73,7 +73,7 @@ void PersistentParams::checkAndUpdateSchema()
     sqlite3pp::command cmd(paramStore, sql.c_str());
     cmd.execute();
     // create index for parentID (first field on getKeyDefs()
-    sql = string_format("CREATE INDEX parentIndex ON %s (%s)", tableName(), getKeyDefs()->fieldName);
+    sql = string_format("CREATE INDEX %s_parentIndex ON %s (%s)", tableName(), tableName(), getKeyDefs()->fieldName);
     cmd.prepare(sql.c_str());
     cmd.execute();
   }
@@ -162,6 +162,9 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
       loadFromRow(row, index);
     }
   }
+  if (Error::isOK(err)) {
+    err = loadChildren();
+  }
   return err;
 }
 
@@ -195,17 +198,24 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       appendfieldList(sql, getKeyDefs(), false, true);
       appendfieldList(sql, getFieldDefs(), true, true);
       string_format_append(sql, " WHERE ROWID=%lld", rowid);
-      // bind the values
-      int index = 1; // SQLite parameter indexes are 1-based!
-      bindToStatement(cmd, index, aParentIdentifier);
       // now execute command
-      if (cmd.execute()!=SQLITE_OK) {
-        #error returns SQLITE_DONE, not OK
+      if (cmd.prepare(sql.c_str())!=SQLITE_OK) {
         // error on update is always a real error - if we loaded the params from the DB, schema IS ok!
         err = paramStore.error();
       }
-      else {
-        dirty = false;
+      if (Error::isOK(err)) {
+        // bind the values
+        int index = 1; // SQLite parameter indexes are 1-based!
+        bindToStatement(cmd, index, aParentIdentifier);
+        // now execute command
+        if (cmd.execute()==SQLITE_OK) {
+          // ok, updated ok
+          dirty = false;
+        }
+        else {
+          // failed
+          err = paramStore.error();
+        }
       }
     }
     else {
@@ -236,14 +246,14 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
         int index = 1; // SQLite parameter indexes are 1-based!
         bindToStatement(cmd, index, aParentIdentifier);
         // now execute command
-        if (cmd.execute()!=SQLITE_OK) {
-          #error really returns SQLITE_OK???
-          err = paramStore.error();
-        }
-        else {
+        if (cmd.execute()==SQLITE_OK) {
           // get the new ROWID
           rowid = paramStore.last_insert_rowid();
           dirty = false;
+        }
+        else {
+          // failed
+          err = paramStore.error();
         }
       }
     }

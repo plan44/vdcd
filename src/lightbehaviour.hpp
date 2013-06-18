@@ -35,7 +35,13 @@ namespace p44 {
     bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
     bool specialBehaviour; ///< special behaviour active
     bool flashing; ///< flashing active for this scene
-    bool slowTransition; ///< set if transition must be slow
+    uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
+
+    /// Legacy: get scene flags encoded as SCECON byte
+    uint8_t getSceCon();
+    /// Legacy: set scene flags encoded as SCECON byte
+    void setSceCon(uint8_t aSceCon);
+
 
     /// @name PersistentParams methods which implement actual storage
     /// @{
