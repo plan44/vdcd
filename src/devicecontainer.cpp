@@ -204,12 +204,14 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
 namespace p44 {
 
+/// collects and initializes all devices
 class DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
   list<DeviceClassContainerPtr>::iterator nextContainer;
   DeviceContainer *deviceContainerP;
+  DsDeviceMap::iterator nextDevice;
 public:
   static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aExhaustive)
   {
@@ -232,7 +234,7 @@ private:
     if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
       (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), exhaustive);
     else
-      completed(aError);
+      collectedAll(aError);
   }
 
   void containerQueried(ErrorPtr aError)
@@ -241,6 +243,33 @@ private:
     ++nextContainer;
     queryNextContainer(aError);
   }
+
+
+  void collectedAll(ErrorPtr aError)
+  {
+    // now have each of them initialized
+    nextDevice = deviceContainerP->dSDevices.begin();
+    initializeNextDevice(ErrorPtr());
+  }
+
+
+  void initializeNextDevice(ErrorPtr aError)
+  {
+    if (!aError && nextDevice!=deviceContainerP->dSDevices.end())
+      // TODO: now never doing factory reset init, maybe parametrize later
+      nextDevice->second->initializeDevice(boost::bind(&DeviceClassCollector::deviceInitialized, this, _1), false);
+    else
+      completed(aError);
+  }
+
+
+  void deviceInitialized(ErrorPtr aError)
+  {
+    // check next
+    ++nextDevice;
+    initializeNextDevice(aError);
+  }
+
 
   void completed(ErrorPtr aError)
   {

@@ -127,7 +127,7 @@ namespace p44 {
 		/// @name device detection and registration
     /// @{
 
-    /// collect devices from all device classes
+    /// collect devices from all device classes, and have each of them initialized
     /// @param aCompletedCB will be called when all device scans have completed
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should

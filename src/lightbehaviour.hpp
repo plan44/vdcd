@@ -17,9 +17,7 @@ using namespace std;
 
 namespace p44 {
 
-  typedef uint8_t Brightness;
-  typedef uint8_t SceneNo;
-
+  typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
 
   class LightSettings;
 
@@ -69,21 +67,28 @@ namespace p44 {
   {
     typedef PersistentParams inherited;
     friend class LightScene;
+    LightSceneMap scenes; ///< the user defined light scenes (default scenes will be created on the fly)
   public:
     LightSettings(ParamStore &aParamStore);
     bool isDimmable; ///< if set, device can be dimmed
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
     Brightness maxDim; ///< maximum dimming value, dimming up will not go above this
-  private:
-    LightSceneMap scenes; ///< the user defined light scenes (default scenes will be created on the fly)
-  public:
+    DimmingTime dimUpTime[3]; ///< dimming up time
+    DimmingTime dimDownTime[3]; ///< dimming down time
+    Brightness dimUpStep; ///< size of dim up steps
+    Brightness dimDownStep; ///< size of dim down steps
 
     /// get the parameters for the scene
     LightScenePtr getScene(SceneNo aSceneNo);
 
     /// update scene (mark dirty, add to list of non-default scene objects)
     void updateScene(LightScenePtr aScene);
+
+    /// Get output MODE
+    uint8_t getOutputMode();
+    /// Set output MODE
+    void setOutputMode(uint8_t aOutputMode);
 
     /// @name PersistentParams methods which implement actual storage
     /// @{
@@ -113,14 +118,21 @@ namespace p44 {
 
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
-    Brightness outputValue; ///< current internal output value. For non-dimmables, output is on only if outputValue>onThreshold
+    Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     LightSettings lightSettings; ///< the persistent params of this lighting device
 
   public:
     LightBehaviour(Device *aDeviceP);
 
-    /// @return current brightness value, 0..255, linear brightness as perceived by humans (half value = half brightness)
-    Brightness getBrightness();
+    /// Get the current logical brightness
+    /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
+    Brightness getLogicalBrightness();
+
+    /// set new brightness
+    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
+    void setLogicalBrightness(Brightness aBrightness);
+
+
 
     /// @name functional identification for digitalSTROM system
     /// @{

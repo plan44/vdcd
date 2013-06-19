@@ -16,7 +16,7 @@ using namespace std;
 namespace p44 {
 
   typedef struct {
-    uint8_t offset;
+    uint16_t offset;
     uint8_t size;
     const char *name;
   } paramEntry;

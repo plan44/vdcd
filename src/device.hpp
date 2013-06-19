@@ -18,6 +18,10 @@ using namespace std;
 
 namespace p44 {
 
+  typedef uint8_t Brightness;
+  typedef uint8_t SceneNo;
+
+
   class Device;
   class DSBehaviour;
 
@@ -80,7 +84,7 @@ namespace p44 {
     virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
 
     /// @}
-    
+
 
     /// send message to vdSM
     /// @param aOperation the operation keyword
@@ -142,14 +146,6 @@ namespace p44 {
     /// @return index of input (0..getNumInputs()-1) of this sub-device within its physical device
     virtual int getInputIndex() { return 0; }
 
-    /// "pings" the device. Device should respond by sending back a "pong" shortly after (using pong())
-    /// base class just sends the pong, but derived classes which can actually ping their hardware should
-    /// do so and send the pong only if the hardware actually responds.
-    virtual void ping();
-
-    /// sends a "pong" back to the vdSM. Devices should call this as a response to ping()
-    void pong();
-
     /// Get the parameters for registering this device with the vdSM
     /// @return JSON object containing the parameters
     JsonObjectPtr registrationParams();
@@ -189,6 +185,35 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+
+    /// @name interaction with subclasses, actually representing physical I/O
+    /// @{
+
+    /// initializes the physical device for being used
+    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
+    /// @note this is called before interaction with dS system starts
+    /// @note implementation should call inherited when complete, so superclasses could chain further activity
+    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
+
+    /// "pings" the device. Device should respond by sending back a "pong" shortly after (using pong())
+    /// base class just sends the pong, but derived classes which can actually ping their hardware should
+    /// do so and send the pong only if the hardware actually responds.
+    virtual void ping();
+
+    /// sends a "pong" back to the vdSM. Devices should call this as a response to ping()
+    void pong();
+    
+    /// get currently set output value from device
+    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    virtual int16_t getOutputValue(int aChannel) { return 0; };
+
+    /// set new output value on device
+    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    virtual void setOutputValue(int aChannel, int16_t aValue) { /* NOP */ };
+
+    /// @}
+
 
   protected:
 

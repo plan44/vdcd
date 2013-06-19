@@ -304,6 +304,10 @@ void DaliComm::daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQu
 }
 
 
+
+
+
+
 bool DaliComm::isYes(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr &aError, bool aCollisionIsYes)
 {
   bool isYes = !aNoOrTimeout;

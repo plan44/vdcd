@@ -1,4 +1,4 @@
-//
+  //
 //  lightbehaviour.cpp
 //  p44bridged
 //
@@ -246,7 +246,14 @@ LightSettings::LightSettings(ParamStore &aParamStore) :
   minDim(1),
   maxDim(255)
 {
-  
+  dimUpTime[0] = 0x0F; // 100mS
+  dimUpTime[1] = 0x3F; // 800mS
+  dimUpTime[2] = 0x2F; // 400mS
+  dimDownTime[0] = 0x0F; // 100mS
+  dimDownTime[1] = 0x3F; // 800mS
+  dimDownTime[2] = 0x2F; // 400mS
+  dimUpStep = 11;
+  dimDownStep = 11;
 }
 
 
@@ -381,6 +388,28 @@ ErrorPtr LightSettings::deleteChildren()
 }
 
 
+// (output) MODE:
+//  16 Schalter
+//  17 Effektivwertdimmer
+//  18 Effektivwertdimmer mit Kennlinie
+//  19 Phasenanschnittdimmer
+//  20 Phasenanschnittsdimmer mit Kennlinie
+//  21 Phasenabschnittsdimmer
+//  22 Phasenabschnittsdimmer mit Kennlinie
+//  23 PWM
+//  24 PWM mit Kennlinie
+
+uint8_t LightSettings::getOutputMode()
+{
+  return isDimmable ? 22 : 16;
+}
+
+
+void LightSettings::setOutputMode(uint8_t aOutputMode)
+{
+  isDimmable = aOutputMode>=17 && aOutputMode<=24;
+}
+
 
 
 #pragma mark - LightBehaviour
@@ -389,6 +418,34 @@ LightBehaviour::LightBehaviour(Device *aDeviceP) :
   inherited(aDeviceP),
   lightSettings(aDeviceP->getDeviceContainer().getDsParamStore())
 {
+}
+
+
+Brightness LightBehaviour::getLogicalBrightness()
+{
+  return logicalBrightness;
+}
+
+
+void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
+{
+  if (aBrightness>255) aBrightness = 255;
+  logicalBrightness = aBrightness;
+  if (isLocigallyOn) {
+    // device is logically ON
+    if (lightSettings.isDimmable) {
+      // dimmable, 0=off, 1..255=brightness
+      deviceP->setOutputValue(0, logicalBrightness);
+    }
+    else {
+      // not dimmable, on if logical brightness is above threshold
+      deviceP->setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0);
+    }
+  }
+  else {
+    // off is off
+    deviceP->setOutputValue(0, 0);
+  }
 }
 
 
@@ -413,7 +470,7 @@ uint16_t LightBehaviour::functionId()
   //%%% for now, fake one input to make it as similar to GE-KM200 as possible
   int i = 1;
   // int i = deviceP->getNumInputs();
-  return 0x1110 + i>3 ? 3 : i; // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
+  return 0x1110 + (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
 
@@ -440,20 +497,20 @@ uint16_t LightBehaviour::version()
 
 uint8_t LightBehaviour::ltMode()
 {
-  return 0;
+  return 0; // TODO: Really parametrize this
 }
 
 
 uint8_t LightBehaviour::outputMode()
 {
-  return 16;
+  return lightSettings.getOutputMode();
 }
 
 
 
 uint8_t LightBehaviour::buttonIdGroup()
 {
-  return 0x10;
+  return 0x10; // TODO: Really parametrize this
 }
 
 
@@ -472,32 +529,61 @@ string LightBehaviour::shortDesc()
 ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
   ErrorPtr err;
+  if (aOperation=="setoutval") {
+    JsonObjectPtr o = aParams->get("Outval");
+    if (o==NULL) {
+      err = ErrorPtr(new vdSMError(
+        vdSMErrorMissingParameter,
+        string_format("missing parameter 'Outval'")
+      ));
+    }
+    else {
+      Brightness b = o->int32Value();
+      isLocigallyOn = b!=0; // TODO: is this correct?
+      setLogicalBrightness(b);
+    }
+  }
+  else {
+    err = ErrorPtr(new vdSMError(
+      vdSMErrorUnknownDeviceOperation,
+      string_format("unknown light behaviour operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
+    ));
+  }
   return err;
 }
 
-
-// MODE:
-//  16 Schalter
-//  17 Effektivwertdimmer
-//  18 Effektivwertdimmer mit Kennlinie
-//  19 Phasenanschnittdimmer
-//  20 Phasenanschnittsdimmer mit Kennlinie
-//  21 Phasenabschnittsdimmer
-//  22 Phasenabschnittsdimmer mit Kennlinie
-//  23 PWM
-//  24 PWM mit Kennlinie
 
 // get behaviour-specific parameter
 ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
 {
   if (aParamName=="MODE")
-    aValue = lightSettings.isDimmable ? 17 : 16;
+    aValue = lightSettings.getOutputMode();
+  else if (aParamName=="VAL") // current logical brightness value (actual output value might be different for non-dimmables)
+    aValue = getLogicalBrightness();
   else if (aParamName=="MINDIM")
     aValue = lightSettings.minDim;
   else if (aParamName=="MAXDIM")
     aValue = lightSettings.maxDim;
   else if (aParamName=="SW_THR")
     aValue = lightSettings.onThreshold;
+  else if (aParamName=="SW_THR")
+    aValue = lightSettings.onThreshold;
+  else if (aParamName=="DIMTIME0_UP")
+    aValue = lightSettings.dimUpTime[0];
+  else if (aParamName=="DIMTIME1_UP")
+    aValue = lightSettings.dimUpTime[1];
+  else if (aParamName=="DIMTIME2_UP")
+    aValue = lightSettings.dimUpTime[2];
+  else if (aParamName=="DIMTIME0_DOWN")
+    aValue = lightSettings.dimDownTime[0];
+  else if (aParamName=="DIMTIME1_DOWN")
+    aValue = lightSettings.dimDownTime[1];
+  else if (aParamName=="DIMTIME2_DOWN")
+    aValue = lightSettings.dimDownTime[2];
+  else if (aParamName=="STEP0_UP")
+    aValue = lightSettings.dimUpStep;
+  else if (aParamName=="STEP0_DOWN")
+    aValue = lightSettings.dimDownStep;
   else if (aParamName=="SCE")
     aValue = lightSettings.getScene(aArrayIndex)->sceneValue;
   else if (aParamName=="SCECON")
@@ -513,13 +599,31 @@ ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayI
 ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
 {
   if (aParamName=="MODE")
-    lightSettings.isDimmable = aValue>=17 && aValue<=24; // any dimmer mode enables dimming
+    lightSettings.setOutputMode(aValue);
+  else if (aParamName=="VAL") // set current logical brightness value. // TODO: this is redunant with SetOutval operation
+    setLogicalBrightness(aValue);
   else if (aParamName=="MINDIM")
     lightSettings.minDim = aValue;
   else if (aParamName=="MAXDIM")
     lightSettings.maxDim = aValue;
   else if (aParamName=="SW_THR")
     lightSettings.onThreshold = aValue;
+  else if (aParamName=="DIMTIME0_UP")
+    lightSettings.dimUpTime[0] = aValue;
+  else if (aParamName=="DIMTIME1_UP")
+    lightSettings.dimUpTime[1] = aValue;
+  else if (aParamName=="DIMTIME2_UP")
+    lightSettings.dimUpTime[2] = aValue;
+  else if (aParamName=="DIMTIME0_DOWN")
+    lightSettings.dimDownTime[0] = aValue;
+  else if (aParamName=="DIMTIME1_DOWN")
+    lightSettings.dimDownTime[1] = aValue;
+  else if (aParamName=="DIMTIME2_DOWN")
+    lightSettings.dimDownTime[2] = aValue;
+  else if (aParamName=="STEP0_UP")
+    lightSettings.dimUpStep = aValue;
+  else if (aParamName=="STEP0_DOWN")
+    lightSettings.dimDownStep = aValue;
   else if (aParamName=="SCE") {
     LightScenePtr ls = lightSettings.getScene(aArrayIndex);
     ls->sceneValue = aValue;

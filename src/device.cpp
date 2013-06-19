@@ -235,10 +235,6 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
     // TODO: implement SaveScene
     LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
   }
-  else if (aOperation=="setoutval") {
-    // TODO: implement SetOutval
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
   else if (aOperation=="setzone") {
     // TODO: implement SetZone
     LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
@@ -288,10 +284,10 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
         }
         else {
           // found named param
-          int arrayIndex = offset / p->size;
+          int arrayIndex = (offset-p->offset) / p->size;
           uint8_t inFieldOffset = offset-p->offset-(arrayIndex*p->size);
           uint32_t val;
-          LOG(LOG_NOTICE,"- accessing %s[%d] byte#%d\n", p->name, arrayIndex, inFieldOffset);
+          LOG(LOG_NOTICE,"- accessing %s[%d] byte#%d\n", p->name, arrayIndex, (int)inFieldOffset);
           err = getDeviceParam(p->name, arrayIndex, val);
           if (Error::isOK(err)) {
             LOG(LOG_NOTICE,"- current value : 0x%08X/%d\n", val, val);
@@ -320,7 +316,7 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
               }
               else {
                 // extract the requested byte
-                LOG(LOG_NOTICE,"- %s[%d] = %d/0x%X\n", p->name, arrayIndex, val);
+                LOG(LOG_NOTICE,"- %s[%d] = %d/0x%X\n", p->name, arrayIndex, val, val);
                 val = (val >> ((p->size-inFieldOffset-1)*8)) & 0xFF;
                 LOG(LOG_NOTICE,"- extracting byte#%d = 0x%02X/%d\n", inFieldOffset, val, val);
                 // create json answer

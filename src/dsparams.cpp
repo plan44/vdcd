@@ -16,7 +16,7 @@ static const paramEntry bank0params[] =
   { 0x0, 4, "DSMDSID" },
   { 0x4, 4, "LASTDSMDSID" },
   { 0x8, 1, "PROGEN" },
-  { 0, 0, NULL },
+  { 0x9, 0, NULL },
 };
 
 
@@ -34,9 +34,9 @@ static const paramEntry bank1params[] =
   { 0x1a, 2, "DatasetVersion" },
   { 0x1c, 2, "OEM_Serial" },
   { 0x1e, 1, "OEM_PartNo" },
-  { 0x20, 2, "ST[]" },
-  { 0x40, 3, "StateTable[]" },
-  { 0, 0, NULL },
+  { 0x20, 2, "ST" }, // 16 array elements
+  { 0x40, 3, "StateTable" }, // 16 array elements
+  { 0x70, 0, NULL },
 };
 
 
@@ -49,7 +49,7 @@ static const paramEntry bank2params[] =
   { 0x8, 2, "dSCResetCnt" },
   { 0xa, 1, "FCHPOL" },
   { 0xb, 1, "FIXED_FREQ" },
-  { 0, 0, NULL },
+  { 0xc, 0, NULL },
 };
 
 
@@ -95,8 +95,8 @@ static const paramEntry bank3params[] =
   { 0x28, 1, "LEDCONFLASH" },
   { 0x29, 1, "FMODE" },
   { 0x2a, 6, "OEM_EAN" },
-//  { 0x30, 32, "FID_DEPENDENT_VAL[]" },
-  { 0, 0, NULL },
+  { 0x30, 1, "FID_DEPENDENT_VAL" }, // 32 array elements
+  { 0x50, 0, NULL },
 };
 
 
@@ -108,7 +108,7 @@ static const paramEntry bank3params_M[] =
   { 0x42, 1, "TRN" },
   { 0x43, 1, "SW_THR" },
   { 0x44, 1, "SW_RAMP_THR" },
-  { 0, 0, NULL },
+  { 0x45, 0, NULL },
 };
 
 
@@ -123,7 +123,7 @@ static const paramEntry bank3params_Lx[] =
   { 0x3A, 2, "POS_DIMINC" },
   { 0x3C, 1, "SW_THR" },
   { 0x3d, 1, "SW_RAMP_THR" },
-  { 0, 0, NULL },
+  { 0x3e, 0, NULL },
 };
 
 
@@ -150,7 +150,7 @@ static const paramEntry bank3params_L[] =
   { 0x45, 1, "ST_ID" },
   { 0x46, 1, "ST_Cnt" },
   { 0x47, 1, "LamAngleLast" },
-  { 0, 0, NULL },
+  { 0x48, 0, NULL },
 };
 
 static const paramEntry bank3params_9W[] =
@@ -158,7 +158,7 @@ static const paramEntry bank3params_9W[] =
   // 9-Wegetaster
   { 0x30, 2, "solltemp" },
   { 0x32, 1, "anmeldev_on" },
-  { 0, 0, NULL },
+  { 0x33, 0, NULL },
 };
 
 
@@ -167,14 +167,14 @@ static const paramEntry bank5params[] =
   { 0x0, 1, "PRIO" }, // 4 array elements
   { 0x4, 1, "TMR" }, // 4 array elements
   { 0x8, 6, "ST" }, // 32 array elements
-  { 0, 0, NULL },
+  { 0xC8, 0, NULL },
 };
 
 
 static const paramEntry bank6params[] =
 {
-  { 0x0, 6, "ET[16]" },
-  { 0, 0, NULL },
+  { 0x0, 6, "ET" }, // 16 array elements
+  { 0x60, 0, NULL },
 };
 
 
@@ -185,7 +185,7 @@ static const paramEntry bank64params[] =
   { 0x2, 2, "Position" },
   { 0x4, 1, "LamAngle" },
   { 0x6, 2, "ActPos" },
-  { 0, 0, NULL },
+  { 0x8, 0, NULL },
 };
 
 
@@ -193,21 +193,21 @@ static const paramEntry bank128params[] =
 {
   { 0x0, 1, "SCE" }, // 128 array elements
   { 0x80, 1, "SCECON" }, // 128 array elements
-  { 0, 0, NULL },
+  { 0x100, 0, NULL },
 };
 
 
 static const paramEntry bank129params[] =
 {
   { 0x0, 1, "SCE_LO" }, // 64 array elements (each byte holds two nibbles, so 64 elements are enough for 128 scene value extensions to 12bit
-  { 0, 0, NULL },
+  { 0x40, 0, NULL },
 };
 
 
 static const paramEntry bank130params[] =
 {
-  { 0x0, 1, "ScnAngle" },
-  { 0, 0, NULL },
+  { 0x0, 1, "ScnAngle" }, // 128 array elements
+  { 0x80, 0, NULL },
 };
 
 
@@ -221,12 +221,12 @@ static const bankEntry paramTable[] =
   { 3, 2, bank3params_Lx },
   { 3, 3, bank3params_L },
   { 3, 4, bank3params_9W },
-  { 2, 0, bank5params },
-  { 2, 0, bank6params },
-  { 2, 0, bank64params },
-  { 2, 0, bank128params },
-  { 2, 0, bank129params },
-  { 2, 0, bank130params },
+  { 5, 0, bank5params },
+  { 6, 0, bank6params },
+  { 64, 0, bank64params },
+  { 128, 0, bank128params },
+  { 129, 0, bank129params },
+  { 130, 0, bank130params },
   { 0, NULL }
 };
 
@@ -239,8 +239,11 @@ const paramEntry *DsParams::paramEntryForOffset(const paramEntry *aBankTable, ui
   while (pp->name!=NULL) {
     // not last entry
     if (pp[1].name==NULL || pp[1].offset>aOffset) {
-      // this is my entry
+      // this is the highest entry which has an offset lower or equal to aOffset (next entry has higher offset or is end of table) 
       foundEntry = pp;
+      // for end-of-table case, check if aOffset exceeds end of table
+      if (aOffset>=pp[1].offset)
+        foundEntry = NULL; // beyond last table entry -> none matches
       break;
     }
     ++pp; // next param

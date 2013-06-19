@@ -7,18 +7,20 @@
 //
 
 #include "dalidevice.hpp"
-
 #include "dalidevicecontainer.hpp"
 
 #include "fnv.hpp"
 
 #include "lightbehaviour.hpp"
 
+#include <math.h>
+
 using namespace p44;
 
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
-  Device((DeviceClassContainer *)aClassContainerP)
+  Device((DeviceClassContainer *)aClassContainerP),
+  cachedBrightness(0)
 {
 }
 
@@ -48,6 +50,33 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 }
 
 
+void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+{
+  // query actual arc power level
+  daliDeviceContainerP()->daliComm.daliSendQuery(
+    deviceInfo.shortAddress,
+    DALICMD_QUERY_ACTUAL_LEVEL,
+    boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+  );
+}
+
+
+void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  cachedBrightness = 0; // default to 0
+  if (Error::isOK(aError) && !aNoOrTimeout) {
+    // this is my current arc power, save it as brightness for dS system side queries
+    cachedBrightness = arcpowerToBrightness(aResponse);
+    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache: arc power = %d, brightness = %d\n", aResponse, cachedBrightness);
+  }
+  // initialize the light behaviour with the current output value
+  static_cast<LightBehaviour *>(getDSBehaviour())->setLogicalBrightness(cachedBrightness);
+  // let superclass initialize as well
+  inherited::initializeDevice(aCompletedCB, aFactoryReset);
+}
+
+
+
 void DaliDevice::ping()
 {
   // query the device
@@ -65,6 +94,50 @@ void DaliDevice::pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aEr
     pong();
   }
 }
+
+
+int16_t DaliDevice::getOutputValue(int aChannel)
+{
+  if (aChannel==0)
+    return cachedBrightness;
+  else
+    return inherited::getOutputValue(aChannel); // let superclass handle this
+}
+
+
+
+void DaliDevice::setOutputValue(int aChannel, int16_t aValue)
+{
+  if (aChannel==0) {
+    cachedBrightness = aValue;
+    // update actual dimmer value
+    uint8_t power = brightnessToArcpower(cachedBrightness);
+    LOG(LOG_DEBUG, "DaliDevice: set new brightness = %d, arc power = %d\n", cachedBrightness, power);
+    daliDeviceContainerP()->daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
+  }
+  else
+    return inherited::setOutputValue(aChannel, aValue); // let superclass handle this
+}
+
+
+
+uint8_t DaliDevice::brightnessToArcpower(Brightness aBrightness)
+{
+  double intensity = (double)aBrightness/255;
+  if (intensity<0) intensity = 0;
+  if (intensity>1) intensity = 1;
+  return log10((intensity*9)+1)*254;
+}
+
+
+
+Brightness DaliDevice::arcpowerToBrightness(int aArcpower)
+{
+  double intensity = (pow(10, aArcpower/254.0)-1)/9;
+  return intensity*255;
+}
+
+
 
 
 void DaliDevice::deriveDSID()
@@ -100,7 +173,7 @@ void DaliDevice::deriveDSID()
   }
   #if FAKE_REAL_DSD_IDS
   dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(hash.getHash36());
+  dsid.setSerialNo(hash.getHash32());
   #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
   #else
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
