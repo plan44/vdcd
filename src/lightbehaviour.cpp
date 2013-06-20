@@ -25,6 +25,31 @@ typedef struct {
 
 #define NUMDEFAULTSCENES 80 ///< Number of default scenes
 
+// General rules
+
+//  Rule 1 A digitalSTROM Ready Device has to be preconfigured in the right functional group. This is essential to ensure that all electrical devices in one functional group can be orchestrated together.
+//  Rule 2 A digitalSTROM Ready Device must be configured for exactly one digitalSTROM functional group. The assigned functional group must be non- ambiguous and is part of the static device configuration (see Function-ID 9.4).
+//  Rule 3 The function of a devices output is the basis of its group member- ship. For devices without actuator the target function of the switch button decides about the group membership.
+//  Rule 4 digitalSTROM Devices have to implement a default behavior for all 128 scene commands. The system behavior and default values are defined in the particular documents for each functional group.
+//  Rule 5 When applications send a scene command to a set of digitalSTROM Devices with more than one target device they have to use scene calls di- rected to a group, splitting into multiple calls to single devices has to be avoided due to latency and statemachine consistency issues.
+
+//  Rule 6 digitalSTROM Ready Devices must ignore stepping commands if their output value is zero.
+
+//  Rule 7 digitalSTROM Device have to complete the identification action on the command Programming Mode Start within 4 seconds.
+//  Rule 8 Application processes that do automatic cyclic reads or writes of device parameters are subject to a request limit: at maximum one request per minute and circuit is allowed.
+//  Rule 9 Application processes that do automatic cyclic reads of measured values are subject to a request limit: at maximum one request per minute and circuit is allowed.
+//  Rule 10 The action command "SetOutputValue" must not be used for other than device configuration purposes.
+//  Rule 11 digitalSTROM Ready Devices must not send upstream events continously and must stop sending Low-Level-Event data even if the event is still or repeatedly valid. Transmission of pushbutton events must be abondoned after a maximum time of 2.5 minutes. Automatically genereated events must not exceed a rate limit of 5 events per 5 minutes.
+//  Rule 12 Applications shall use the digitalSTROM Server webservice inter- face for communication with the digitalSTROM system. Directly interfacing the dSM-API shall be avoided because it is an internal interface and its API may change in the future.
+
+//  Rule 13 Applications that automatically generate Call Scene action commands (see 5.1.1) must not execute the action commands at a rate faster than one request per second.
+
+
+// Light rules
+
+//  Rule 3 If a digitalSTROM Device is in local priority state, a scene call is ignored.
+//  Rule 4 All devices which are turned on and not in local priority state take part in the dimming process.
+
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
   { 0, false, false, false, false, false }, // 0 : Preset 0 - T0_S0
@@ -142,7 +167,7 @@ const char *LightScene::tableName()
 const FieldDefinition *LightScene::getKeyDefs()
 {
   static const FieldDefinition keyDefs[] = {
-    { "parentID", SQLITE_TEXT }, // not included in loadFromRow() and bindToStatement()
+    { "parentID", SQLITE_INTEGER }, // not included in loadFromRow() and bindToStatement()
     { "sceneNo", SQLITE_INTEGER }, // first field included in loadFromRow() and bindToStatement()
     { NULL, 0 },
   };
@@ -449,6 +474,15 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
 }
 
 
+void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
+{
+  if (aBrightness<lightSettings.minDim) {
+    lightSettings.minDim = aBrightness;
+    lightSettings.markDirty();
+  }
+}
+
+
 
 
 #pragma mark - functional identification for digitalSTROM system
@@ -458,6 +492,16 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
 // from DeviceConfig.py:
 // #  productName (functionId, productId, groupMemberShip, ltMode, outputMode, buttonIdGroup)
 // deviceDefaults["GE-KM200"] =  ( 0x1111, 200, 3, 0, 16, 0x10 )
+
+// Die Function-ID enthält (für alle dSIDs identisch) in den ersten 4 Bit die "Farbe" (Gruppe) des devices
+//  1 Light (yellow)
+//  2 Blinds (grey)
+//  3 Climate (blue)
+//  4 Audio (cyan)
+//  5 Video (magenta)
+//  6 Security (red)
+//  7 Access (green)
+//  8 Joker (black)
 
 // Die Function-ID enthält (für alle dSIDs identisch) in den letzten 2 Bit eine Kennung,
 // wieviele Eingänge das Gerät besitzt: 0=keine, 1=1 Eingang, 2=2 Eingänge, 3=4 Eingänge.
@@ -470,6 +514,12 @@ uint16_t LightBehaviour::functionId()
   //%%% for now, fake one input to make it as similar to GE-KM200 as possible
   int i = 1;
   // int i = deviceP->getNumInputs();
+  return
+    (group_yellow_light<<12) +
+    (0x11 << 4) + // ??
+    (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
+
+
   return 0x1110 + (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
@@ -643,7 +693,7 @@ ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayI
 
 
 
-// this is usually called from the device container in regular intervals
+// this is usually called from the device container when device is added (detected)
 ErrorPtr LightBehaviour::load()
 {
   // load light settings (and scenes along with it)
@@ -659,7 +709,6 @@ ErrorPtr LightBehaviour::save()
 }
 
 
-// this is usually called from the device container in regular intervals
 ErrorPtr LightBehaviour::forget()
 {
   // delete light settings (and scenes along with it)

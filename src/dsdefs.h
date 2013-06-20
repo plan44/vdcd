@@ -80,7 +80,22 @@ typedef enum {
   ABSENT = (START_APARTMENT_SCENES + 8),          /**< not at home */
   SIG_BELL = (START_APARTMENT_SCENES + 9),        /**< bell */
   SIG_ALARM = (START_APARTMENT_SCENES + 10),      /**< alarm/fire */
-} Scene;
+} DsScene;
+
+typedef enum {
+  group_variable = 0,
+  group_yellow_light = 1,
+  group_grey_shadow = 2,
+  group_blue_climate = 3,
+  group_cyan_audio = 4,
+  group_magenta_video = 5,
+  group_red_security = 6,
+  group_green_access = 7,
+  group_black_joker = 8,
+  group_white = 9,
+  group_displays = 10
+} DsGroup;
+
 
 
 #endif

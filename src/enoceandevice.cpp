@@ -137,7 +137,11 @@ public:
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
     // set the behaviour
     ButtonBehaviour *b = new ButtonBehaviour(this);
-    b->setKeyMode(ButtonBehaviour::keymode_twoway);
+    b->setHardwareButtonType(
+      // TODO: if ds defines 4-rocker, add it here
+      (getNumInputs()>1 ? hwbuttontype_2x2way : hwbuttontype_2way),
+      false // no local button
+    );
     setDSBehaviour(b);
   };
 
@@ -244,12 +248,6 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
     newDev->setAddressingInfo(aAddress, aChannel);
     // assign EPP information, device derives behaviour from this
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-    // make first switch local
-    if (aChannel==0) {
-#warning // TODO: q&d local button enable
-      // - enable local button
-      static_cast<ButtonBehaviour *>(newDev->getDSBehaviour())->setLocalButtonEnabled(true);
-    }
   }
   if (aNumChannelsP) *aNumChannelsP = numChannels;
   return newDev;

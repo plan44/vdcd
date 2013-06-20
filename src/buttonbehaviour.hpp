@@ -15,17 +15,107 @@ using namespace std;
 
 namespace p44 {
 
+  typedef enum {
+    buttonmode_standard = 0,
+    buttonmode_turbo = 1,
+    buttonmode_presence = 2,
+    buttonmode_switch = 3,
+    buttonmode_reserved1 = 4,
+    buttonmode_rockerDown1 = 5,
+    buttonmode_rockerDown2 = 6,
+    buttonmode_rockerDown3 = 7,
+    buttonmode_rockerDown4 = 8,
+    buttonmode_rockerUp1 = 9,
+    buttonmode_rockerUp2 = 10,
+    buttonmode_rockerUp3 = 11,
+    buttonmode_rockerUp4 = 12,
+    buttonmode_rockerUpDown = 13,
+    buttonmode_standard_multi = 14,
+    buttonmode_reserved2 = 15,
+    buttonmode_akm_rising1_falling0 = 16,
+    buttonmode_akm_rising0_falling1 = 17,
+    buttonmode_akm_rising1 = 18,
+    buttonmode_akm_falling1 = 19,
+    buttonmode_akm_rising0 = 20,
+    buttonmode_akm_falling0 = 21,
+    buttonmode_akm_risingToggle = 22,
+    buttonmode_akm_fallingToggle = 23,
+    buttonmode_inactive = 255
+  } DsButtonMode;
+
+
+  typedef enum {
+    hwbuttontype_1way = 0,
+    hwbuttontype_2way = 1,
+    hwbuttontype_2x1way = 2,
+    hwbuttontype_4way = 3,
+    hwbuttontype_4x1way = 4,
+    hwbuttontype_2x2way = 5,
+    hwbuttontype_reserved = 6,
+    hwbuttontype_none = 7
+  } DsHardwareButtonType;
+
+
+  typedef enum {
+    // all colored buttons
+    buttonfunc_device = 0, ///< device button (and preset 2-4)
+    buttonfunc_area1_preset0x = 1, ///< area1 button (and preset 2-4)
+    buttonfunc_area2_preset0x = 2, ///< area2 button (and preset 2-4)
+    buttonfunc_area3_preset0x = 3, ///< area3 button (and preset 2-4)
+    buttonfunc_area4_preset0x = 4, ///< area4 button (and preset 2-4)
+    buttonfunc_room_preset0x = 5, ///< room button (and preset 1-4)
+    buttonfunc_room_preset1x = 6, ///< room button (and preset 10-14)
+    buttonfunc_room_preset2x = 7, ///< room button (and preset 20-24)
+    buttonfunc_room_preset3x = 8, ///< room button (and preset 30-34)
+    buttonfunc_room_preset4x = 9, ///< room button (and preset 40-44)
+    buttonfunc_area1_preset1x = 10, ///< area1 button (and preset 12-14)
+    buttonfunc_area2_preset2x = 11, ///< area2 button (and preset 22-24)
+    buttonfunc_area3_preset3x = 12, ///< area3 button (and preset 32-34)
+    buttonfunc_area4_preset4x = 13, ///< area4 button (and preset 42-44)
+    // black buttons
+    buttonfunc_alarm = 1, ///< alarm
+    buttonfunc_panic = 2, ///< panic
+    buttonfunc_leave = 3, ///< leaving home
+    buttonfunc_doorbell = 5, ///< door bell
+    buttonfunc_app = 15, ///< application specific button
+  } DsButtonFunc;
+
+
+  /// the persistent parameters of a device with light behaviour
+  class ButtonSettings : public PersistentParams
+  {
+    typedef PersistentParams inherited;
+
+  public:
+    DsButtonMode buttonMode; ///< the button mode (LTMODE)
+    DsGroup buttonGroup; ///< the group/color of the button
+    DsButtonFunc buttonFunction; ///< the function of the button
+
+    ButtonSettings(ParamStore &aParamStore);
+
+    /// @return true if this is a two-way button
+    bool isTwoWay();
+
+    /// @name PersistentParams methods which implement actual storage
+    /// @{
+
+    /// SQLIte3 table name to store these parameters to
+    virtual const char *tableName();
+    /// data field definitions
+    virtual const FieldDefinition *getFieldDefs();
+    /// load values from passed row
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    /// bind values to passed statement
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+    
+    /// @}
+  };
+
+
+
   class ButtonBehaviour : public DSBehaviour
   {
     typedef DSBehaviour inherited;
-
-  public:
-
-    typedef enum {
-      keymode_oneway,
-      keymode_twoway
-    } KeyMode;
-
 
   private:
 
@@ -53,9 +143,11 @@ namespace p44 {
 
     typedef enum {
       key_1way = 0, ///< one way push button
-      key_2way_A = 1, ///< two way rocker switch, upper
-      key_2way_B = 2, ///< two way rocker switch, lower
-      key_local = 4, ///< local button
+      key_2way_A = 1, ///< two way rocker switch, lower
+      key_2way_B = 2, ///< two way rocker switch, upper
+      key_local_1way = 4, ///< local one way push button
+      key_local_2way_A = 5, ///< two way rocker switch, lower
+      key_local_2way_B = 6, ///< two way rocker switch, upper
     } KeyId;
 
     // button state machine v2.01
@@ -79,7 +171,7 @@ namespace p44 {
       S14_awaitrelease, // duplicate of S8
     } ButtonState;
 
-    // - vars
+    // - state machine vars
     bool buttonPressed;
     bool secondKey;
     ButtonState state;
@@ -90,8 +182,8 @@ namespace p44 {
     bool dimmingUp;
     MLMicroSeconds timerRef;
     bool timerPending;
-    // - params
-    KeyMode keyMode;
+
+    // - state machine params
     static const int t_long_function_delay = 500*MilliSecond;
     static const int t_dim_repeat_time = 1000*MilliSecond;
     static const int t_click_length = 140*MilliSecond;
@@ -100,6 +192,12 @@ namespace p44 {
     static const int t_local_dim_timeout = 160*MilliSecond;
     static const int max_hold_repeats = 30;
 
+    // - hardware params
+    DsHardwareButtonType hardwareButtonType; ///< the hardware button type
+    bool hasLocalButton; ///< set if first button is local
+    ButtonSettings buttonSettings; ///< the persistent params of this button device
+
+
     // - methods
     void resetStateMachine();
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
@@ -107,6 +205,7 @@ namespace p44 {
     void localSwitchOutput();
     void localDim();
     void sendClick(ClickType aClickType);
+
 
   public:
     // constructor
@@ -121,13 +220,22 @@ namespace p44 {
     virtual uint8_t ltMode();
     virtual uint8_t outputMode();
     virtual uint8_t buttonIdGroup();
+    virtual uint16_t version();
 
     /// @}
 
     /// @name interface towards actual device hardware (or simulation)
 
-    /// set type of button
-    void setKeyMode(KeyMode aKeyMode);
+    /// set hardware button characteristics
+    void setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal);
+
+    /// query type/mode of button
+    /// @return button mode (LTMODE)
+    DsButtonMode getButtonMode();
+
+    /// set type of button (usually set when collecting actual devices)
+    /// @param aButtonMode button mode (LTMODE)
+    void setButtonMode(DsButtonMode aButtonMode);
 
     /// enable disable "local" button functionality
     void setLocalButtonEnabled(bool aEnabled);
@@ -138,6 +246,43 @@ namespace p44 {
     void buttonAction(bool aPressed, bool aSecondKey);
 
     /// @}
+
+
+    /// @name interaction with digitalSTROM system
+    /// @{
+
+    /// handle message from vdSM
+    /// @param aOperation the operation keyword
+    /// @param aParams the parameters object, or NULL if none
+    /// @return Error object if message generated an error
+    // TODO: delete if button does not need to handle any message
+    //virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
+
+    /// get behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue will receive the current value
+    virtual ErrorPtr getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
+
+    /// set behaviour-specific parameter
+    /// @param aParamName name of the parameter
+    /// @param aArrayIndex index of the parameter if the parameter is an array
+    /// @param aValue the new value to set
+    virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
+
+    /// load behaviour parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    virtual ErrorPtr load();
+
+    /// save unsaved behaviourparameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    virtual ErrorPtr save();
+
+    /// forget any behaviour parameters stored in persistent DB
+    virtual ErrorPtr forget();
+    
+    /// @}
+    
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object

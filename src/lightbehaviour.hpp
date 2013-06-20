@@ -132,6 +132,10 @@ namespace p44 {
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
     void setLogicalBrightness(Brightness aBrightness);
 
+    /// set min brightness the lamp can provide
+    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
+    void setMinimalBrightness(Brightness aBrightness);
+
 
 
     /// @name functional identification for digitalSTROM system

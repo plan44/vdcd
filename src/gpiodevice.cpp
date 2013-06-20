@@ -22,7 +22,7 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
 	buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
 	// set the behaviour
   ButtonBehaviour *b = new ButtonBehaviour(this);
-  b->setKeyMode(ButtonBehaviour::keymode_oneway); // one-way key
+  b->setButtonMode(buttonmode_standard); // one-way key
 	setDSBehaviour(b);
 	deriveDSID();
 }

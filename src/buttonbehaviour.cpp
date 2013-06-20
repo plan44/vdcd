@@ -11,6 +11,70 @@
 using namespace p44;
 
 
+#pragma mark - ButtonSettings
+
+ButtonSettings::ButtonSettings(ParamStore &aParamStore) :
+  inherited(aParamStore),
+  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  buttonGroup(group_yellow_light), // default to light
+  buttonFunction(buttonfunc_room_preset0x) // default to regular room button
+{
+
+}
+
+
+// SQLIte3 table name to store these parameters to
+const char *ButtonSettings::tableName()
+{
+  return "dsButton";
+}
+
+/// data field definitions
+const FieldDefinition *ButtonSettings::getFieldDefs()
+{
+  static const FieldDefinition dataDefs[] = {
+    { "buttonMode", SQLITE_INTEGER },
+    { "buttonGroup", SQLITE_INTEGER },
+    { "buttonFunction", SQLITE_INTEGER },
+    { NULL, 0 },
+  };
+  return dataDefs;
+}
+
+
+/// load values from passed row
+void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  buttonMode = (DsButtonMode)aRow->get<bool>(aIndex++);
+  buttonGroup  = (DsGroup)aRow->get<bool>(aIndex++);
+  buttonFunction = (DsButtonFunc)aRow->get<bool>(aIndex++);
+}
+
+
+// bind values to passed statement
+void ButtonSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  aStatement.bind(aIndex++, buttonMode);
+  aStatement.bind(aIndex++, buttonGroup);
+  aStatement.bind(aIndex++, buttonFunction);
+}
+
+
+bool ButtonSettings::isTwoWay()
+{
+  return buttonMode>=buttonmode_rockerDown1 && buttonMode<=buttonmode_rockerUpDown;
+}
+
+
+
+
+#pragma mark - ButtonBehaviour
+
+
 #ifdef DEBUG
 static const char *ClickTypeNames[] {
   "ct_tip_1x",
@@ -34,17 +98,56 @@ static const char *ClickTypeNames[] {
 
 
 ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
-  inherited(aDeviceP)
+  inherited(aDeviceP),
+  buttonSettings(aDeviceP->getDeviceContainer().getDsParamStore()),
+  hardwareButtonType(hwbuttontype_none), // undefined, actual device should set it
+  hasLocalButton(false)
 {
   resetStateMachine();
 }
 
 
-void ButtonBehaviour::setKeyMode(KeyMode aKeyMode)
+void ButtonBehaviour::setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal)
+{
+  hardwareButtonType = aButtonType;
+  hasLocalButton = aFirstButtonLocal;
+  // now set default button mode
+  if (hardwareButtonType==hwbuttontype_2way || hardwareButtonType==hwbuttontype_2x2way) {
+    // this is a 2-way hardware button (with single dsid)
+    buttonSettings.buttonMode = buttonmode_rockerUpDown;
+  }
+  else if (hardwareButtonType==hwbuttontype_1way || hardwareButtonType==hwbuttontype_2x1way || hardwareButtonType==hwbuttontype_4x1way) {
+    // this is a 1-way hardware button
+    buttonSettings.buttonMode = buttonmode_standard;
+  }
+  else {
+    // no known button type, inactive until set via LTMODE param
+    buttonSettings.buttonMode = buttonmode_inactive;
+  }
+  buttonSettings.markDirty();
+}
+
+
+
+
+DsButtonMode ButtonBehaviour::getButtonMode()
+{
+  return buttonSettings.buttonMode;
+}
+
+
+void ButtonBehaviour::setButtonMode(DsButtonMode aButtonMode)
 {
   // set mode
-  keyMode = aKeyMode;
+  buttonSettings.buttonMode = aButtonMode;
+  buttonSettings.markDirty();
 }
+
+
+void setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal);
+
+
+
 
 
 void ButtonBehaviour::buttonAction(bool aPressed, bool aSecondKey)
@@ -72,7 +175,6 @@ void ButtonBehaviour::resetStateMachine()
   dimmingUp = false;
   timerRef = Never;
   timerPending = false;
-  keyMode = keymode_oneway;
 }
 
 
@@ -277,7 +379,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 void ButtonBehaviour::localSwitchOutput()
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Local switch\n");
-  if (keyMode==keymode_twoway) {
+  if (buttonSettings.isTwoWay()) {
     // on or off depending on which side of the two-way switch was clicked
     outputOn = secondKey;
   }
@@ -313,7 +415,7 @@ void ButtonBehaviour::setLocalButtonEnabled(bool aEnabled)
 void ButtonBehaviour::sendClick(ClickType aClickType)
 {
   KeyId keyId = key_1way;
-  if (keyMode==keymode_twoway) {
+  if (buttonSettings.isTwoWay()) {
     keyId = secondKey ? key_2way_B : key_2way_A;
   }
   #ifdef DEBUG
@@ -341,15 +443,49 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 // deviceDefaults["SW-TKM200"] = ( 0x8103, 1224, 257, 0, 0, 0 ) # 4 inputs
 // deviceDefaults["SW-TKM210"] = ( 0x8102, 1234, 257, 0, 0, 0 ) # 2 inputs
 
+// Die Function-ID enthält (für alle dSIDs identisch) in den ersten 4 Bit die "Farbe" (Gruppe) des devices
+//  1 Light (yellow)
+//  2 Blinds (grey)
+//  3 Climate (blue)
+//  4 Audio (cyan)
+//  5 Video (magenta)
+//  6 Security (red)
+//  7 Access (green)
+//  8 Joker (black)
+
+
 // Die Function-ID enthält (für alle dSIDs identisch) in den letzten 2 Bit eine Kennung,
 // wieviele Eingänge das Gerät besitzt: 0=keine, 1=1 Eingang, 2=2 Eingänge, 3=4 Eingänge.
 // Die dSID muss für den ersten Eingang mit einer durch 4 teilbaren dSID beginnen, die weiteren dSIDs sind fortlaufend.
 
 
+//  Each device has a function ID programmed into its chip. The function ID has the capabilities of the chip coded into it.
+//
+//  1111 11
+//  5432 1098 76 543210
+//  xxxx.xxxx xx.xxxxxx
+//
+//  Bits 15..12 (dS-Class), Bits 11..6 (dS-Subclass), Bits 5..0 (Functionmodule)
+
+//  dS-Class = group/color
+
+//  dS Subclass Light
+//  - 0: dS-Standard
+
+//  Function Module Light/dS-Standard
+//  - Bits 5..4 : 0 = No output available, 1 = Output is a switch, 2 = Output is a dimmer, 3 = undefined
+//  - Bit 3     : if set, The first button is a local-button
+//  - Bits 2..0 : 0 = 1-Way, 1 = 2-Way, 2 = 2x1-Way, 3 = 4-Way, 4 = 4x1-Way, 5 = 2x2-Way, 6 = reserved, 7 = no buttons
+
+
 uint16_t ButtonBehaviour::functionId()
 {
-  int i = deviceP->getNumInputs();
-  return 0x8100 + i>3 ? 3 : i; // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
+  return
+    (group_black_joker<<12) +
+    (0x04 << 6) + // ??
+    (0 << 4) + // no output
+    ((hasLocalButton ? 1 : 0) << 3) +
+    hardwareButtonType; // reflect the hardware button type
 }
 
 
@@ -363,6 +499,13 @@ uint16_t ButtonBehaviour::productId()
 uint16_t ButtonBehaviour::groupMemberShip()
 {
   return 257; // all groups
+}
+
+
+uint16_t ButtonBehaviour::version()
+{
+#warning // TODO: just faking a >=3.5.0 version because only those have KEYSTATE
+  return 0x0350;
 }
 
 
@@ -390,3 +533,68 @@ string ButtonBehaviour::shortDesc()
 {
   return string("Button");
 }
+
+
+#pragma mark - interaction with digitalSTROM system
+
+// LTNUMGRP0
+//  Bits 4..7: Button group/color
+//  Bits 0..3: Button function/number
+
+
+// get behaviour-specific parameter
+ErrorPtr ButtonBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
+{
+  if (aParamName=="LTMODE")
+    aValue = getButtonMode();
+  else if (aParamName=="LTNUMGRP0")
+    aValue = (buttonSettings.buttonGroup<<4)+(buttonSettings.buttonFunction & 0xF);
+  else if (aParamName=="KEYSTATE")
+    aValue = buttonPressed ? (secondKey ? 0x02 : 0x01) : 0;
+  else
+    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+  // done
+  return ErrorPtr();
+}
+
+
+// set behaviour-specific parameter
+ErrorPtr ButtonBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
+{
+  if (aParamName=="LTMODE")
+    setButtonMode((DsButtonMode)aValue);
+  else if (aParamName=="LTNUMGRP0") {
+    buttonSettings.buttonGroup = (DsGroup)((aValue>>4) & 0xF); // upper 4 bits
+    buttonSettings.buttonFunction = (DsButtonFunc)(aValue & 0xF); // lower 4 bits
+  }
+  else
+    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+  // set a local param, mark dirty
+  buttonSettings.markDirty();
+  return ErrorPtr();
+}
+
+
+// this is usually called from the device container when device is added (detected)
+ErrorPtr ButtonBehaviour::load()
+{
+  // load light settings (and scenes along with it)
+  return buttonSettings.loadFromStore(deviceP->dsid.getString().c_str());
+}
+
+
+// this is usually called from the device container in regular intervals
+ErrorPtr ButtonBehaviour::save()
+{
+  // save light settings (and scenes along with it)
+  return buttonSettings.saveToStore(deviceP->dsid.getString().c_str());
+}
+
+
+ErrorPtr ButtonBehaviour::forget()
+{
+  // delete light settings (and scenes along with it)
+  return buttonSettings.deleteFromStore();
+}
+
+

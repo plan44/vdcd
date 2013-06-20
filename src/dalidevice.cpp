@@ -39,14 +39,6 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   // set the behaviour
   LightBehaviour *l = new LightBehaviour(this);
   setDSBehaviour(l);
-  #ifdef DEBUG
-//  #warning // TODO: %%%% remove this q&d debug hack
-//  if (deviceInfo.shortAddress==0) {
-//    l->setBehaviourParam("MINDIM", 0, 20);
-//    // get scene
-//    l->setBehaviourParam("SCE", T0_S1, 78);
-//  }
-  #endif
 }
 
 
@@ -71,9 +63,30 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
   }
   // initialize the light behaviour with the current output value
   static_cast<LightBehaviour *>(getDSBehaviour())->setLogicalBrightness(cachedBrightness);
+  // query the minimum dimming level
+  daliDeviceContainerP()->daliComm.daliSendQuery(
+    deviceInfo.shortAddress,
+    DALICMD_QUERY_MIN_LEVEL,
+    boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+  );
+}
+
+
+void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  Brightness minLevel = 0; // default to 0
+  if (Error::isOK(aError) && !aNoOrTimeout) {
+    // this is my current arc power, save it as brightness for dS system side queries
+    minLevel = arcpowerToBrightness(aResponse);
+    LOG(LOG_DEBUG, "DaliDevice: minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
+  }
+  // initialize the light behaviour with the minimal dimming level
+  static_cast<LightBehaviour *>(getDSBehaviour())->setMinimalBrightness(minLevel);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
+
+
 
 
 
