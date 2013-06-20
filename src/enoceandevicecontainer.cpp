@@ -105,7 +105,8 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
         i->get<int>(2), i->get<int>(3) // profile / manufacturer
       );
       if (newdev) {
-        addDevice(newdev);
+        // we fetched this from DB, so it is already known (don't save again!)
+        addKnownDevice(newdev);
       }
       else {
         LOG(LOG_ERR,
@@ -121,23 +122,27 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
 }
 
 
-void EnoceanDeviceContainer::addDevice(DevicePtr aDevice)
+void EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
 {
-  inherited::addDevice(aDevice);
-  EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
-  if (ed) {
-    enoceanDevices.insert(make_pair(ed->getAddress(), ed));
-    // save enocean ID to DB
-    sqlite3pp::query qry(db);
-    // - check if this channel is already stored
-    db.executef(
-      "INSERT OR REPLACE INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
-      ed->getAddress(),
-      ed->getChannel(),
-      ed->getEEProfile(),
-      ed->getEEManufacturer()
-    );
-  }
+  inherited::addDevice(aEnoceanDevice);
+  enoceanDevices.insert(make_pair(aEnoceanDevice->getAddress(), aEnoceanDevice));
+}
+
+
+
+void EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice)
+{
+  addKnownDevice(aEnoceanDevice);
+  // save enocean ID to DB
+  sqlite3pp::query qry(db);
+  // - check if this channel is already stored
+  db.executef(
+    "INSERT OR REPLACE INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
+    aEnoceanDevice->getAddress(),
+    aEnoceanDevice->getChannel(),
+    aEnoceanDevice->getEEProfile(),
+    aEnoceanDevice->getEEManufacturer()
+  );
 }
 
 

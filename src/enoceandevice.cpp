@@ -274,7 +274,7 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
     }
     // created device
     // - add it to the container
-    aClassContainerP->addDevice(newDev);
+    aClassContainerP->addAndRemeberDevice(newDev);
     // - count it
     channel++;
   }

@@ -85,11 +85,17 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
+    /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
+    /// forget all devices (but don't delete learned-in devices, so next collect will add them again)
     virtual void forgetDevices();
 
-    virtual void addDevice(DevicePtr aDevice);
+    /// add device to container (already known device, already stored in DB)
+    virtual void addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
+
+    /// add newly learned device to enOcean container (and remember it in DB)
+    virtual void addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// remove device
     /// @param aDevice device to remove (possibly only part of a multi-function physical device)
