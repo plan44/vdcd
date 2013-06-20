@@ -160,6 +160,7 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
       // got record
       int index = 0;
       loadFromRow(row, index);
+      dirty = false; // just loaded: clean
     }
   }
   if (Error::isOK(err)) {
