@@ -38,6 +38,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deriveDSID();
   // set the behaviour
   LightBehaviour *l = new LightBehaviour(this);
+  l->setHardwareDimmer(true); // DALI ballasts are always dimmable
   setDSBehaviour(l);
 }
 

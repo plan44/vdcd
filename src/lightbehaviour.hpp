@@ -70,7 +70,7 @@ namespace p44 {
     LightSceneMap scenes; ///< the user defined light scenes (default scenes will be created on the fly)
   public:
     LightSettings(ParamStore &aParamStore);
-    bool isDimmable; ///< if set, device can be dimmed
+    bool isDimmable; ///< if set, ballast can be dimmed. If not set, ballast must not be dimmed, even if we have dimmer hardware
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
     Brightness maxDim; ///< maximum dimming value, dimming up will not go above this
@@ -86,9 +86,9 @@ namespace p44 {
     void updateScene(LightScenePtr aScene);
 
     /// Get output MODE
-    uint8_t getOutputMode();
+    DsOutputModes getOutputMode();
     /// Set output MODE
-    void setOutputMode(uint8_t aOutputMode);
+    void setOutputMode(DsOutputModes aOutputMode);
 
     /// @name PersistentParams methods which implement actual storage
     /// @{
@@ -121,8 +121,17 @@ namespace p44 {
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     LightSettings lightSettings; ///< the persistent params of this lighting device
 
+    // - hardware params
+    bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
+
   public:
     LightBehaviour(Device *aDeviceP);
+
+    /// @name interface towards actual device hardware (or simulation)
+    /// @{
+
+    /// Configure if output can dim or not
+    void setHardwareDimmer(bool aAvailable);
 
     /// Get the current logical brightness
     /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
@@ -136,6 +145,7 @@ namespace p44 {
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
     void setMinimalBrightness(Brightness aBrightness);
 
+    /// @}
 
 
     /// @name functional identification for digitalSTROM system
@@ -184,6 +194,10 @@ namespace p44 {
     virtual ErrorPtr forget();
     
     /// @}
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object, may contain LFs
+    virtual string description();
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object

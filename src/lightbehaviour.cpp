@@ -413,26 +413,15 @@ ErrorPtr LightSettings::deleteChildren()
 }
 
 
-// (output) MODE:
-//  16 Schalter
-//  17 Effektivwertdimmer
-//  18 Effektivwertdimmer mit Kennlinie
-//  19 Phasenanschnittdimmer
-//  20 Phasenanschnittsdimmer mit Kennlinie
-//  21 Phasenabschnittsdimmer
-//  22 Phasenabschnittsdimmer mit Kennlinie
-//  23 PWM
-//  24 PWM mit Kennlinie
-
-uint8_t LightSettings::getOutputMode()
+DsOutputModes LightSettings::getOutputMode()
 {
-  return isDimmable ? 22 : 16;
+  return isDimmable ? outputmode_dim_phase_trailing_char : outputmode_switch;
 }
 
 
-void LightSettings::setOutputMode(uint8_t aOutputMode)
+void LightSettings::setOutputMode(DsOutputModes aOutputMode)
 {
-  isDimmable = aOutputMode>=17 && aOutputMode<=24;
+  isDimmable = aOutputMode>=outputmode_dim_eff && aOutputMode<=outputmode_dim_pwm_char;
 }
 
 
@@ -444,6 +433,17 @@ LightBehaviour::LightBehaviour(Device *aDeviceP) :
   lightSettings(aDeviceP->getDeviceContainer().getDsParamStore())
 {
 }
+
+
+void LightBehaviour::setHardwareDimmer(bool aAvailable)
+{
+  hasDimmer = aAvailable;
+  // default to dimming mode if we have a dimmer, not dimming otherwise
+  lightSettings.isDimmable = hasDimmer;
+  // re-interpret current brightness
+  setLogicalBrightness(getLogicalBrightness());
+}
+
 
 
 Brightness LightBehaviour::getLogicalBrightness()
@@ -458,7 +458,7 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
   logicalBrightness = aBrightness;
   if (isLocigallyOn) {
     // device is logically ON
-    if (lightSettings.isDimmable) {
+    if (lightSettings.isDimmable && hasDimmer) {
       // dimmable, 0=off, 1..255=brightness
       deviceP->setOutputValue(0, logicalBrightness);
     }
@@ -518,9 +518,6 @@ uint16_t LightBehaviour::functionId()
     (group_yellow_light<<12) +
     (0x11 << 4) + // ??
     (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
-
-
-  return 0x1110 + (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
 
@@ -533,7 +530,7 @@ uint16_t LightBehaviour::productId()
 
 uint16_t LightBehaviour::groupMemberShip()
 {
-  return 3; // Light
+  return group_yellow_light; // Light
 }
 
 
@@ -547,7 +544,7 @@ uint16_t LightBehaviour::version()
 
 uint8_t LightBehaviour::ltMode()
 {
-  return 0; // TODO: Really parametrize this
+  return buttonmode_inactive; // TODO: Really parametrize this
 }
 
 
@@ -560,15 +557,9 @@ uint8_t LightBehaviour::outputMode()
 
 uint8_t LightBehaviour::buttonIdGroup()
 {
-  return 0x10; // TODO: Really parametrize this
+  return group_yellow_light<<4 + buttonfunc_device; // TODO: Really parametrize this
 }
 
-
-
-string LightBehaviour::shortDesc()
-{
-  return string("Light");
-}
 
 
 
@@ -649,7 +640,7 @@ ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayI
 ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
 {
   if (aParamName=="MODE")
-    lightSettings.setOutputMode(aValue);
+    lightSettings.setOutputMode((DsOutputModes)aValue);
   else if (aParamName=="VAL") // set current logical brightness value. // TODO: this is redunant with SetOutval operation
     setLogicalBrightness(aValue);
   else if (aParamName=="MINDIM")
@@ -713,6 +704,27 @@ ErrorPtr LightBehaviour::forget()
 {
   // delete light settings (and scenes along with it)
   return lightSettings.deleteFromStore();
+}
+
+
+
+#pragma mark - ButtonBehaviour description/shortDesc
+
+
+string LightBehaviour::shortDesc()
+{
+  return string("Light");
+}
+
+
+string LightBehaviour::description()
+{
+  string s = string_format("dS behaviour %s\n", shortDesc().c_str());
+  string_format_append(s, "- hardware: %s\n", hasDimmer ? "dimmer" : "switch");
+  string_format_append(s, "- logical brightness = %d, logical on = %d, localPriority = %d\n", logicalBrightness, isLocigallyOn, localPriority);
+  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", lightSettings.isDimmable, lightSettings.minDim, lightSettings.maxDim, lightSettings.onThreshold);
+  s.append(inherited::description());
+  return s;
 }
 
 
