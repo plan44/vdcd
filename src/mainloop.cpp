@@ -234,6 +234,46 @@ SyncIOMainLoop::SyncIOMainLoop()
 }
 
 
+
+void SyncIOMainLoop::syncIOHandlerForFd(int aFD, SyncIOHandler &h)
+{
+  SyncIOHandlerMap::iterator pos = syncIOHandlers.find(aFD);
+  if (pos!=syncIOHandlers.end())
+    h = pos->second;
+  else {
+    h.monitoredFD = aFD;
+    h.readReadyCB = NULL;
+    h.writeReadyCB = NULL;
+    h.errorCB = NULL;
+  }
+}
+
+
+void SyncIOMainLoop::registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB)
+{
+  SyncIOHandler h;
+  syncIOHandlerForFd(aFD, h);
+  h.readReadyCB = aReadReadyCB;
+	syncIOHandlers[aFD] = h;
+}
+
+void SyncIOMainLoop::registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB)
+{
+  SyncIOHandler h;
+  syncIOHandlerForFd(aFD, h);
+  h.writeReadyCB = aWriteReadyCB;
+	syncIOHandlers[aFD] = h;
+}
+
+void SyncIOMainLoop::registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB)
+{
+  SyncIOHandler h;
+  syncIOHandlerForFd(aFD, h);
+  h.errorCB = aIOErrorCB;
+	syncIOHandlers[aFD] = h;
+}
+
+
 void SyncIOMainLoop::registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB)
 {
   SyncIOHandler h;

@@ -113,21 +113,39 @@ namespace p44 {
     // private constructor
     SyncIOMainLoop();
   public:
+
     /// returns the current thread's SyncIOMainLoop
     /// @return the current SyncIOMainLoop. Returns NULL if current mainloop for this thread is not a SyncIOMainLoop
     /// @note creates a SyncIOMainLoop for the thread if no other type of mainloop already exists
     static SyncIOMainLoop *currentMainLoop();
-    /// register routine with mainloop for being called at least once per loop cycle
-    /// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
+
+    /// register routine to be called when data gets available on specified file descriptor
+    /// @param aFD the file descriptor
+    /// @param aReadReadyCB the functor to be called when the file descriptor is ready for reading
+    void registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB);
+
+    /// register routine to be called when specified file descriptor is ready to write data to
+    /// @param aFD the file descriptor
+    /// @param aWriteReadyCB the functor to be called when the file descriptor is ready for writing
+    void registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB);
+
+    /// register routine to be called when IO error occurs on specified file descriptor
+    /// @param aFD the file descriptor
+    /// @param aIOErrorCB the functor to be called when the file descriptor has an error
+    void registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB);
+
+    /// register routines to be called for activity on specified file descriptor
     /// @param aFD the file descriptor
     /// @param aReadCB the functor to be called when the file descriptor is ready for reading
     /// @param aWriteCB the functor to be called when the file descriptor is ready for writing
     /// @param aErrorCB the functor to be called when the file descriptor has an error
     void registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB);
+
     /// unregister all handlers registered by a given subscriber
     /// @param aSubscriberP a value identifying the subscriber
     /// @param aFD the file descriptor
     void unregisterSyncIOHandlers(int aFD);
+
     /// run the mainloop
     /// @return returns a exit code
     virtual int run();
@@ -135,6 +153,11 @@ namespace p44 {
     /// handle IO
     /// @return true if I/O handling occurred
     bool handleSyncIO(MLMicroSeconds aTimeout);
+
+  private:
+
+    void syncIOHandlerForFd(int aFD, SyncIOHandler &h);
+
   };
 
 } // namespace p44

@@ -17,7 +17,6 @@ JsonComm::JsonComm(SyncIOMainLoop *aMainLoopP) :
   ignoreUntilNextEOM(false)
 {
   setReceiveHandler(boost::bind(&JsonComm::gotData, this, _2));
-  setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _2));
 }
 
 
@@ -124,26 +123,28 @@ void JsonComm::gotData(ErrorPtr aError)
 
 void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
 {
-  const char *json_string = aJsonObject->json_c_str();
-  size_t jsonSize = strlen(json_string);
+  string json_string = aJsonObject->json_c_str();
+  json_string.append("\n");
+  size_t jsonSize = json_string.size();
   if (transmitBuffer.size()>0) {
-    // other messages are already waiting, buffer entire message
-    transmitBuffer.assign(json_string, jsonSize);
+    // other messages are already waiting, append entire message
+    transmitBuffer.append(json_string);
   }
   else {
     // nothing in buffer yet, start new send
-    size_t sentBytes = transmitBytes(jsonSize, (uint8_t *)json_string, aError);
+    size_t sentBytes = transmitBytes(jsonSize, (uint8_t *)json_string.c_str(), aError);
     if (Error::isOK(aError)) {
       // check if all could be sent
       if (sentBytes<jsonSize) {
+        // enable callback for ready-for-send
+        setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _2));
         // buffer the rest, canSendData handler will take care of writing it out
-        transmitBuffer.assign(json_string+sentBytes, jsonSize-sentBytes);
+        transmitBuffer.assign(json_string.c_str()+sentBytes, jsonSize-sentBytes);
       }
 			else {
 				// all sent
-				// - append end of line (end of message)
-				uint8_t lf = '\n';
-				transmitBytes(1, &lf, aError);
+				// - disable transmit handler
+        setTransmitHandler(NULL);
 			}
     }
   }
@@ -160,9 +161,8 @@ void JsonComm::canSendData(ErrorPtr aError)
       if (sentBytes==bytesToSend) {
         // all sent
         transmitBuffer.erase();
-				// - append end of line (end of message)
-				uint8_t lf = '\n';
-				transmitBytes(1, &lf, aError);
+				// - disable transmit handler
+        setTransmitHandler(NULL);
       }
       else {
         // partially sent, remove sent bytes

@@ -82,11 +82,11 @@ ErrorPtr SocketComm::openConnection()
     if ((flags = fcntl(connectionFd, F_GETFL, 0))==-1)
       flags = 0;
     fcntl(connectionFd, F_SETFL, flags | O_NONBLOCK);
-    // register with main loop
+    // register read/error handlers with main loop
     mainLoopP->registerSyncIOHandlers(
       connectionFd,
       boost::bind(&SocketComm::readyForRead, this, _1, _2, _3),
-      boost::bind(&SocketComm::readyForWrite, this, _1, _2, _3),
+      transmitHandler.empty() ? SyncIOCB() : boost::bind(&SocketComm::readyForWrite, this, _1, _2, _3),
       boost::bind(&SocketComm::errorOccurred, this, _1, _2, _3)
     );
     // connected
@@ -123,7 +123,14 @@ void SocketComm::setReceiveHandler(SocketCommCB aReceiveHandler)
 
 void SocketComm::setTransmitHandler(SocketCommCB aTransmitHandler)
 {
-  transmitHandler = aTransmitHandler;
+  if (transmitHandler.empty()!=aTransmitHandler.empty()) {
+    transmitHandler = aTransmitHandler;
+    // register with mainloop only if we actually have a handler to pass events on
+    mainLoopP->registerWriteReadyHandler(
+      connectionFd,
+      transmitHandler.empty() ? SyncIOCB() : boost::bind(&SocketComm::readyForWrite, this, _1, _2, _3)
+    );
+  }
 }
 
 
