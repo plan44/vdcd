@@ -15,71 +15,6 @@ using namespace std;
 
 namespace p44 {
 
-  typedef enum {
-    buttonmode_standard = 0,
-    buttonmode_turbo = 1,
-    buttonmode_presence = 2,
-    buttonmode_switch = 3,
-    buttonmode_reserved1 = 4,
-    buttonmode_rockerDown1 = 5,
-    buttonmode_rockerDown2 = 6,
-    buttonmode_rockerDown3 = 7,
-    buttonmode_rockerDown4 = 8,
-    buttonmode_rockerUp1 = 9,
-    buttonmode_rockerUp2 = 10,
-    buttonmode_rockerUp3 = 11,
-    buttonmode_rockerUp4 = 12,
-    buttonmode_rockerUpDown = 13,
-    buttonmode_standard_multi = 14,
-    buttonmode_reserved2 = 15,
-    buttonmode_akm_rising1_falling0 = 16,
-    buttonmode_akm_rising0_falling1 = 17,
-    buttonmode_akm_rising1 = 18,
-    buttonmode_akm_falling1 = 19,
-    buttonmode_akm_rising0 = 20,
-    buttonmode_akm_falling0 = 21,
-    buttonmode_akm_risingToggle = 22,
-    buttonmode_akm_fallingToggle = 23,
-    buttonmode_inactive = 255
-  } DsButtonMode;
-
-
-  typedef enum {
-    hwbuttontype_1way = 0,
-    hwbuttontype_2way = 1,
-    hwbuttontype_2x1way = 2,
-    hwbuttontype_4way = 3,
-    hwbuttontype_4x1way = 4,
-    hwbuttontype_2x2way = 5,
-    hwbuttontype_reserved = 6,
-    hwbuttontype_none = 7
-  } DsHardwareButtonType;
-
-
-  typedef enum {
-    // all colored buttons
-    buttonfunc_device = 0, ///< device button (and preset 2-4)
-    buttonfunc_area1_preset0x = 1, ///< area1 button (and preset 2-4)
-    buttonfunc_area2_preset0x = 2, ///< area2 button (and preset 2-4)
-    buttonfunc_area3_preset0x = 3, ///< area3 button (and preset 2-4)
-    buttonfunc_area4_preset0x = 4, ///< area4 button (and preset 2-4)
-    buttonfunc_room_preset0x = 5, ///< room button (and preset 1-4)
-    buttonfunc_room_preset1x = 6, ///< room button (and preset 10-14)
-    buttonfunc_room_preset2x = 7, ///< room button (and preset 20-24)
-    buttonfunc_room_preset3x = 8, ///< room button (and preset 30-34)
-    buttonfunc_room_preset4x = 9, ///< room button (and preset 40-44)
-    buttonfunc_area1_preset1x = 10, ///< area1 button (and preset 12-14)
-    buttonfunc_area2_preset2x = 11, ///< area2 button (and preset 22-24)
-    buttonfunc_area3_preset3x = 12, ///< area3 button (and preset 32-34)
-    buttonfunc_area4_preset4x = 13, ///< area4 button (and preset 42-44)
-    // black buttons
-    buttonfunc_alarm = 1, ///< alarm
-    buttonfunc_panic = 2, ///< panic
-    buttonfunc_leave = 3, ///< leaving home
-    buttonfunc_doorbell = 5, ///< door bell
-    buttonfunc_app = 15, ///< application specific button
-  } DsButtonFunc;
-
 
   /// the persistent parameters of a device with light behaviour
   class ButtonSettings : public PersistentParams
@@ -284,9 +219,20 @@ namespace p44 {
     /// @}
     
 
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object, may contain LFs
+    virtual string description();
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+  protected:
+
+    uint8_t getLTNUMGRP0();
+
+    void setLTNUMGRP0(uint8_t aLTNUMGRP0);
+
 
   };
 

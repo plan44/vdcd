@@ -100,7 +100,6 @@ bool DSBehaviour::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 }
 
 
-
 #pragma mark - Device
 
 
@@ -433,16 +432,20 @@ bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 
 ErrorPtr Device::save()
 {
-  if (behaviourP)
+  if (behaviourP) {
     return behaviourP->save();
+  }
   return ErrorPtr();
 }
 
 
 ErrorPtr Device::load()
 {
-  if (behaviourP)
+  if (behaviourP) {
     behaviourP->load();
+    // show loaded behaviour
+    LOG(LOG_INFO, "Device %s: behaviour loaded:\n%s", shortDesc().c_str(), behaviourP->description().c_str());
+  }
   return ErrorPtr();
 }
 
@@ -456,7 +459,7 @@ ErrorPtr Device::forget()
 
 
 
-
+#pragma mark - Device description/shortDesc
 
 string Device::shortDesc()
 {

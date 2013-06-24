@@ -15,9 +15,9 @@ using namespace p44;
 
 ButtonSettings::ButtonSettings(ParamStore &aParamStore) :
   inherited(aParamStore),
-  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonGroup(group_yellow_light), // default to light
-  buttonFunction(buttonfunc_room_preset0x) // default to regular room button
+  buttonFunction(buttonfunc_room_preset0x), // default to regular room button
+  buttonMode(buttonmode_inactive) // none by default, hardware should set a default matching the actual HW capabilities
 {
 
 }
@@ -47,9 +47,9 @@ void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  buttonMode = (DsButtonMode)aRow->get<bool>(aIndex++);
-  buttonGroup  = (DsGroup)aRow->get<bool>(aIndex++);
-  buttonFunction = (DsButtonFunc)aRow->get<bool>(aIndex++);
+  buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
+  buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
+  buttonFunction = (DsButtonFunc)aRow->get<int>(aIndex++);
 }
 
 
@@ -144,7 +144,19 @@ void ButtonBehaviour::setButtonMode(DsButtonMode aButtonMode)
 }
 
 
-void setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal);
+uint8_t ButtonBehaviour::getLTNUMGRP0()
+{
+  return (buttonSettings.buttonGroup<<4)+(buttonSettings.buttonFunction & 0xF);
+}
+
+
+void ButtonBehaviour::setLTNUMGRP0(uint8_t aLTNUMGRP0)
+{
+  buttonSettings.buttonGroup = (DsGroup)((aLTNUMGRP0>>4) & 0xF); // upper 4 bits
+  buttonSettings.buttonFunction = (DsButtonFunc)(aLTNUMGRP0 & 0xF); // lower 4 bits
+  buttonSettings.markDirty();
+}
+
 
 
 
@@ -511,27 +523,21 @@ uint16_t ButtonBehaviour::version()
 
 uint8_t ButtonBehaviour::ltMode()
 {
-  return 0;
+  return buttonSettings.buttonMode;
 }
 
 
 uint8_t ButtonBehaviour::outputMode()
 {
-  return 0;
+  return outputmode_none;
 }
 
 
 
 uint8_t ButtonBehaviour::buttonIdGroup()
 {
-  return 0;
-}
-
-
-
-string ButtonBehaviour::shortDesc()
-{
-  return string("Button");
+  // LTNUMGRP0
+  return getLTNUMGRP0();
 }
 
 
@@ -539,7 +545,7 @@ string ButtonBehaviour::shortDesc()
 
 // LTNUMGRP0
 //  Bits 4..7: Button group/color
-//  Bits 0..3: Button function/number
+//  Bits 0..3: Button function/id/number
 
 
 // get behaviour-specific parameter
@@ -548,7 +554,7 @@ ErrorPtr ButtonBehaviour::getBehaviourParam(const string &aParamName, int aArray
   if (aParamName=="LTMODE")
     aValue = getButtonMode();
   else if (aParamName=="LTNUMGRP0")
-    aValue = (buttonSettings.buttonGroup<<4)+(buttonSettings.buttonFunction & 0xF);
+    aValue = getLTNUMGRP0();
   else if (aParamName=="KEYSTATE")
     aValue = buttonPressed ? (secondKey ? 0x02 : 0x01) : 0;
   else
@@ -563,10 +569,8 @@ ErrorPtr ButtonBehaviour::setBehaviourParam(const string &aParamName, int aArray
 {
   if (aParamName=="LTMODE")
     setButtonMode((DsButtonMode)aValue);
-  else if (aParamName=="LTNUMGRP0") {
-    buttonSettings.buttonGroup = (DsGroup)((aValue>>4) & 0xF); // upper 4 bits
-    buttonSettings.buttonFunction = (DsButtonFunc)(aValue & 0xF); // lower 4 bits
-  }
+  else if (aParamName=="LTNUMGRP0")
+    setLTNUMGRP0(aValue);
   else
     return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
   // set a local param, mark dirty
@@ -596,5 +600,25 @@ ErrorPtr ButtonBehaviour::forget()
   // delete light settings (and scenes along with it)
   return buttonSettings.deleteFromStore();
 }
+
+
+#pragma mark - ButtonBehaviour description/shortDesc
+
+
+string ButtonBehaviour::shortDesc()
+{
+  return string("Button");
+}
+
+
+string ButtonBehaviour::description()
+{
+  string s = string_format("dS behaviour %s\n", shortDesc().c_str());
+  string_format_append(s, "- hardware button type: %d, %s local button\n", hardwareButtonType, hasLocalButton ? "has" : "no");
+  string_format_append(s, "- group: %d, function/number: %d, buttonmode/LTMODE: %d\n", buttonSettings.buttonGroup, buttonSettings.buttonFunction, buttonSettings.buttonMode);
+  s.append(inherited::description());
+  return s;
+}
+
 
 

@@ -85,6 +85,9 @@ namespace p44 {
     /// mark the parameter set dirty (so it will be saved to DB next time saveToStore is called
     virtual void markDirty();
 
+    /// @return true if needs to be saved
+    bool isDirty() { return dirty; }
+
 
     /// get parameter set from persistent storage
     /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)

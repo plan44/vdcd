@@ -53,7 +53,7 @@ namespace p44 {
     /// @}
 
 
-    /// @name interaction with digitalSTROM system, to be implemented in concrete classes
+    /// @name interaction with digitalSTROM system, to be implemented/used in concrete classes
     /// @{
 
     /// handle message from vdSM
@@ -83,14 +83,18 @@ namespace p44 {
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
 
-    /// @}
-
-
     /// send message to vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
+
+    /// @}
+
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object, may contain LFs
+    virtual string description() { return ""; /* empty string, to allow chaining descriptions for behaviour hierarchies */ };
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
@@ -139,7 +143,7 @@ namespace p44 {
 
     /// number of inputs
     /// @return returns total number of inputs the associated physical device has.
-    /// @note for each input, a separate device exists with increasing serialNo part in the dsid
+    /// @note for each input, a separate logical device exists with increasing serialNo part in the dsid
     virtual int getNumInputs() { return 0; }
 
     /// input index of this device
@@ -178,14 +182,6 @@ namespace p44 {
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget();
 
-    /// description of object, mainly for debug and logging
-    /// @return textual description of object
-    virtual string description();
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
-
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
@@ -215,6 +211,14 @@ namespace p44 {
     /// @}
 
 
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object, may contain LFs
+    virtual string description();
+    
   protected:
 
     virtual ErrorPtr getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);

@@ -92,6 +92,7 @@ static const paramEntry bank3params[] =
   { 0x24, 1, "LTSCENEONCFG" },
   { 0x25, 1, "LTSCENEOFF" },
   { 0x26, 1, "LTSCENEOFFCFG" },
+  { 0x27, 1, "_TRANSQUAL_CMD_ID" },
   { 0x28, 1, "LEDCONFLASH" },
   { 0x29, 1, "FMODE" },
   { 0x2a, 6, "OEM_EAN" },
