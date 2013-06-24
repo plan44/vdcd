@@ -47,5 +47,7 @@ void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhau
 			addDevice(newDev);
 		}
 	}
+  // assume ok
+  aCompletedCB(ErrorPtr());
 }
 

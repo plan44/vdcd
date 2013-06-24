@@ -24,7 +24,7 @@ namespace p44 {
     void addBytes(size_t aNumBytes, uint8_t *aBytesP);
 		void addCStr(const char *aCStr);
     uint32_t getHash() const;
-    uint64_t getHash28() const; ///< get hash "xor folded down" to 28bits
+    uint32_t getHash28() const; ///< get hash "xor folded down" to 28bits
   };
 
 
@@ -37,6 +37,7 @@ namespace p44 {
     void addBytes(size_t aNumBytes, uint8_t *aBytesP);
 		void addCStr(const char *aCStr);
     uint64_t getHash() const;
+    uint32_t getHash28() const; ///< get hash "xor folded down" to 28bits
     uint64_t getHash32() const; ///< get hash "xor folded down" to 32bits
     uint64_t getHash36() const; ///< get hash "xor folded down" to 36bits
     uint64_t getHash48() const; ///< get hash "xor folded down" to 48bits

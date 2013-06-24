@@ -24,23 +24,42 @@ namespace p44 {
   {
     typedef Device inherited;
 		ButtonInputPtr buttonInput;
+    IndicatorOutputPtr indicatorOutput;
+    bool isOutput;
+    bool inverted;
 
   public:
     GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
-		/// single input
-		virtual int getNumInputs() { return 1; }
+		/// single or no input
+		virtual int getNumInputs() { return isOutput ? 0 : 1; }
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
+
+
+    /// @name interaction with subclasses, actually representing physical I/O
+    /// @{
+
+    /// get currently set output value from device
+    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    virtual int16_t getOutputValue(int aChannel);
+
+    /// set new output value on device
+    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    virtual void setOutputValue(int aChannel, int16_t aValue);
+    
+    /// @}
+
+
 
   protected:
 
     void deriveDSID();
 		
 	private:
-		
+
     void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
 		
   };
