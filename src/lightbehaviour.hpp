@@ -139,7 +139,8 @@ namespace p44 {
 
     /// set new brightness
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-    void setLogicalBrightness(Brightness aBrightness);
+    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness
+    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTime=0);
 
     /// set min brightness the lamp can provide
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)

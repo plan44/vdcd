@@ -78,7 +78,7 @@ int16_t GpioDevice::getOutputValue(int aChannel)
 
 
 
-void GpioDevice::setOutputValue(int aChannel, int16_t aValue)
+void GpioDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime)
 {
   if (aChannel==0 && indicatorOutput) {
     indicatorOutput->set(aValue>0);

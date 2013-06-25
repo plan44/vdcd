@@ -120,9 +120,10 @@ int16_t DaliDevice::getOutputValue(int aChannel)
 
 
 
-void DaliDevice::setOutputValue(int aChannel, int16_t aValue)
+void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime)
 {
   if (aChannel==0) {
+    // TODO: implement transition time
     cachedBrightness = aValue;
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(cachedBrightness);

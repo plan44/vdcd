@@ -452,7 +452,7 @@ Brightness LightBehaviour::getLogicalBrightness()
 }
 
 
-void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
+void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTime)
 {
   if (aBrightness>255) aBrightness = 255;
   logicalBrightness = aBrightness;
@@ -460,16 +460,16 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness)
     // device is logically ON
     if (lightSettings.isDimmable && hasDimmer) {
       // dimmable, 0=off, 1..255=brightness
-      deviceP->setOutputValue(0, logicalBrightness);
+      deviceP->setOutputValue(0, logicalBrightness, aTransitionTime);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      deviceP->setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0);
+      deviceP->setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0, aTransitionTime);
     }
   }
   else {
     // off is off
-    deviceP->setOutputValue(0, 0);
+    deviceP->setOutputValue(0, 0, aTransitionTime);
   }
 }
 
