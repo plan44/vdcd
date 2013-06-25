@@ -124,6 +124,8 @@ namespace p44 {
     // - hardware params
     bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
 
+    int blinkCounter; ///< for generation of blink sequence
+
   public:
     LightBehaviour(Device *aDeviceP);
 
@@ -203,6 +205,10 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+  private:
+
+    void nextBlink();
   };
 
 }

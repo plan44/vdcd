@@ -52,7 +52,7 @@ typedef struct {
 
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
-  { 0, false, false, false, false, false }, // 0 : Preset 0 - T0_S0
+  { 0, 1, false, false, false, false }, // 0 : Preset 0 - T0_S0
   { 0, 1, false, true, false, false }, // 1 : Area 1 Off - T1_S0
   { 0, 1, false, true, false, false }, // 2 : Area 2 Off - T2_S0
   { 0, 1, false, true, false, false }, // 3 : Area 3 Off - T3_S0
@@ -430,7 +430,10 @@ void LightSettings::setOutputMode(DsOutputModes aOutputMode)
 
 LightBehaviour::LightBehaviour(Device *aDeviceP) :
   inherited(aDeviceP),
-  lightSettings(aDeviceP->getDeviceContainer().getDsParamStore())
+  lightSettings(aDeviceP->getDeviceContainer().getDsParamStore()),
+  localPriority(false),
+  isLocigallyOn(false),
+  logicalBrightness(0)
 {
 }
 
@@ -530,7 +533,7 @@ uint16_t LightBehaviour::productId()
 
 uint16_t LightBehaviour::groupMemberShip()
 {
-  return group_yellow_light; // Light
+  return group_yellow_light; // fixed to Light
 }
 
 
@@ -584,6 +587,72 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
       setLogicalBrightness(b);
     }
   }
+  else if (aOperation=="callscene") {
+    JsonObjectPtr o = aParams->get("Scene");
+    if (o==NULL) {
+      err = ErrorPtr(new vdSMError(
+        vdSMErrorMissingParameter,
+        string_format("missing parameter 'Scene'")
+      ));
+    }
+    else {
+      SceneNo sceneNo = o->int32Value();
+      if (sceneNo==DEC_S || sceneNo==INC_S) {
+        // dimming up/down special scenes
+        //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
+        if (isLocigallyOn && !localPriority) {
+          Brightness b = getLogicalBrightness();
+          Brightness nb = b;
+          if (sceneNo==DEC_S) {
+            // dim down
+            // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
+            // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
+            nb = nb>11 ? nb-11 : 1; // never below 1
+            // also make sure we don't go below minDim
+            if (nb<lightSettings.minDim)
+              nb = lightSettings.minDim;
+          }
+          else {
+            // dim up
+            nb = nb<255-11 ? nb+11 : 255;
+            // also make sure we don't go above maxDim
+            if (nb>lightSettings.maxDim)
+              nb = lightSettings.maxDim;
+          }
+          if (nb!=b) {
+            isLocigallyOn = nb!=0; // TODO: is this correct?
+            // TODO: pass correct transition time
+            setLogicalBrightness(nb, 0);
+            LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
+          }
+        }
+      }
+      else {
+        LightScenePtr scene = lightSettings.getScene(sceneNo);
+        if (!scene->dontCare && (!localPriority || scene->ignoreLocalPriority)) {
+          // apply to output
+          Brightness b = scene->sceneValue;
+          isLocigallyOn = b!=0; // TODO: is this correct?
+          // TODO: pass correct transition time
+          setLogicalBrightness(b, 0);
+          LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", sceneNo, b);
+        }
+      }
+    }
+  }
+  else if (aOperation=="undoscenenumber") {
+    // TODO: implement undoscenenumber
+    LOG(LOG_NOTICE,"Called unimplemented %s on behaviour %s\n", aOperation.c_str(), shortDesc().c_str());
+  }
+  else if (aOperation=="undoscene") {
+    // TODO: implement undoscene
+    LOG(LOG_NOTICE,"Called unimplemented %s on behaviour %s\n", aOperation.c_str(), shortDesc().c_str());
+  }
+  else if (aOperation=="blink") {
+    blinkCounter = 3;
+    setLogicalBrightness(0,0);
+    nextBlink();
+  }
   else {
     err = ErrorPtr(new vdSMError(
       vdSMErrorUnknownDeviceOperation,
@@ -591,6 +660,28 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
     ));
   }
   return err;
+}
+
+
+#define BLINK_HALF_PERIOD (500*MilliSecond)
+
+void LightBehaviour::nextBlink()
+{
+  Brightness b = getLogicalBrightness();
+  if (b==0)
+    b = 255;
+  else {
+    b = 0;
+    // one complete period
+    blinkCounter--;
+  }
+  isLocigallyOn = b!=0; // TODO: is this correct?
+  setLogicalBrightness(b,0);
+  // schedule next
+  if (blinkCounter>0) {
+    // schedule next blink
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&LightBehaviour::nextBlink, this), BLINK_HALF_PERIOD);
+  }
 }
 
 
