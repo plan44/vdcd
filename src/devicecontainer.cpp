@@ -23,7 +23,8 @@ using namespace p44;
 
 DeviceContainer::DeviceContainer() :
   vdsmJsonComm(SyncIOMainLoop::currentMainLoop()),
-  collecting(false)
+  collecting(false),
+  registeringTicket(0)
 {
   vdsmJsonComm.setMessageHandler(boost::bind(&DeviceContainer::vdsmMessageHandler, this, _2, _3));
 }
@@ -407,6 +408,8 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
         if (baObj) {
           busDevices[baObj->int32Value()] = dev;
         }
+        // signal device registered, so next can be issued
+        deviceRegistered();
       }
       else {
         // just forward message to device
@@ -466,24 +469,28 @@ void DeviceContainer::localSwitchOutput(const dSID &aDsid, bool aNewOutState)
 
 #pragma mark - registration
 
+// how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
+#define REGISTRATION_TIMEOUT (15*Second)
+
+// how long until a not acknowledged registration for a device is retried again for the same device
 #ifdef DEBUG
   #warning "%%% HUGE registration timeout!"
-  #define REGISTRATION_TIMEOUT (3600ll*Second)
+  #define REGISTRATION_RETRY_TIMEOUT (3600ll*Second)
 #else
-  #define REGISTRATION_TIMEOUT (15*Second)
+  #define REGISTRATION_RETRY_TIMEOUT (60*Second)
 #endif
 
 
 void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
 {
-  if (vdsmJsonComm.connected()) {
+  if (registeringTicket==0 && vdsmJsonComm.connected()) {
     // check all devices for unregistered ones and register those
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (
         dev->isPublicDS(), // only public ones
         dev->registered<=aLastRegBefore && // no or outdated registration
-        (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_TIMEOUT)
+        (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_RETRY_TIMEOUT)
       ) {
         // mark device as being in process of getting registered
         dev->registering = MainLoop::now();
@@ -495,9 +502,22 @@ void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
         else {
           LOG(LOG_INFO, "Sent registration for device %s\n", dev->shortDesc().c_str());
         }
+        // don't register too fast, prevent re-registering for a while
+        registeringTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::deviceRegistered, this), REGISTRATION_TIMEOUT);
+        // done for now, continues after REGISTRATION_TIMEOUT or when registration acknowledged
+        break;
       }
     }
   }
+}
+
+
+void DeviceContainer::deviceRegistered()
+{
+  MainLoop::currentMainLoop()->cancelExecutionTicket(registeringTicket);
+  registeringTicket = 0;
+  // try next registration
+  registerDevices();
 }
 
 

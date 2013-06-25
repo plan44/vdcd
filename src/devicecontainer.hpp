@@ -88,10 +88,11 @@ namespace p44 {
     BusAddressMap busDevices; ///< registered devices by BusAddress.
     // TODO: %%% we'll probably get rid of this with the new vDSM API
 
-    bool collecting;
     string persistentDataDir;
-
     LocalSwitchOutputCB localSwitchOutputCallback;
+
+    bool collecting;
+    long registeringTicket;
 
   private:
 
@@ -189,6 +190,10 @@ namespace p44 {
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
+
+  private:
+  
+    void deviceRegistered();
 
   };
 
