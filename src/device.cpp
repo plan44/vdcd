@@ -205,22 +205,22 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
     // ping hardware (if possible), creates pong now or after hardware was queried
     ping();
   }
-  else if (aOperation=="callscene") {
-    // TODO: implement callscene
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="undoscenenumber") {
-    // TODO: implement undoscenenumber
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="undoscene") {
-    // TODO: implement undoscene
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="blink") {
-    // TODO: implement Blink
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
+//  else if (aOperation=="callscene") {
+//    // TODO: implement callscene
+//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
+//  }
+//  else if (aOperation=="undoscenenumber") {
+//    // TODO: implement undoscenenumber
+//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
+//  }
+//  else if (aOperation=="undoscene") {
+//    // TODO: implement undoscene
+//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
+//  }
+//  else if (aOperation=="blink") {
+//    // TODO: implement Blink
+//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
+//  }
   else if (aOperation=="setlocalprio") {
     // TODO: implement SetLocalPrio
     LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
