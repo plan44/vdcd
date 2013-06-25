@@ -42,11 +42,13 @@ namespace p44 {
     IdleHandlerList idleHandlers;
     typedef struct {
       void *submitterP;
+      long ticketNo;
       MLMicroSeconds executionTime;
       OneTimeCB callback;
     } OnetimeHandler;
     typedef std::list<OnetimeHandler> OnetimeHandlerList;
     OnetimeHandlerList onetimeHandlers;
+    long ticketNo;
   protected:
     bool terminated;
     MLMicroSeconds loopCycleTime;
@@ -54,32 +56,47 @@ namespace p44 {
     // protected constructor
     MainLoop();
   public:
+
     /// returns the current thread's mainloop
     static MainLoop *currentMainLoop();
+
     /// returns the current microsecond
     static MLMicroSeconds now();
+
     /// set the cycle time
     void setLoopCycleTime(MLMicroSeconds aCycleTime);
+
     /// get time left for current cycle
     MLMicroSeconds remainingCycleTime();
+
     /// register routine with mainloop for being called at least once per loop cycle
     /// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
     /// @param aCallback the functor to be called
     void registerIdleHandler(void *aSubscriberP, IdleCB aCallback);
+
     /// unregister all handlers registered by a given subscriber
     /// @param aSubscriberP a value identifying the subscriber
     void unregisterIdleHandlers(void *aSubscriberP);
+
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aExecutionTime when to execute (approximately), in now() timescale
     /// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
-    void executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
+    /// @return ticket number which can be used to cancel this specific execution request
+    long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
+
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aDelay delay from now when to execute (approximately)
-    void executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
+    /// @return ticket number which can be used to cancel this specific execution request
+    long executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
+
     /// cancel pending execution requests from submitter (NULL = cancel all)
     void cancelExecutionsFrom(void *aSubmitterP);
+
+    /// cancel pending execution by ticket number
+    void cancelExecutionTicket(long aTicketNo);
+
     /// terminate the mainloop
     void terminate();
     /// run the mainloop

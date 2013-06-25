@@ -105,17 +105,18 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 }
 
 
-void MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
+long MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
 {
 	MLMicroSeconds executionTime = now()+aDelay;
-	executeOnceAt(aCallback, executionTime, aSubmitterP);
+	return executeOnceAt(aCallback, executionTime, aSubmitterP);
 }
 
 
-void MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
+long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
 {
 	OnetimeHandler h;
-	h.submitterP = aSubmitterP;
+  h.ticketNo = ++ticketNo;
+  h.submitterP = aSubmitterP;
   h.executionTime = aExecutionTime;
 	h.callback = aCallback;
 	// insert in queue before first item that has a higher execution time
@@ -123,12 +124,13 @@ void MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime,
   while (pos!=onetimeHandlers.end()) {
     if (pos->executionTime>aExecutionTime) {
       onetimeHandlers.insert(pos, h);
-      return;
+      return ticketNo;
     }
     ++pos;
   }
   // none executes later than this one, just append
   onetimeHandlers.push_back(h);
+  return ticketNo;
 }
 
 
@@ -145,6 +147,19 @@ void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
 		}
 	}
 }
+
+
+void MainLoop::cancelExecutionTicket(long aTicketNo)
+{
+  if (aTicketNo==0) return; // no ticket, NOP
+  for (OnetimeHandlerList::iterator pos = onetimeHandlers.begin(); pos!=onetimeHandlers.end(); ++pos) {
+		if (pos->ticketNo==aTicketNo) {
+			pos = onetimeHandlers.erase(pos);
+      break;
+		}
+	}
+}
+
 
 
 void MainLoop::terminate()
