@@ -75,11 +75,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-A 12101"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-a localhost"
+            argument = "-A 12101 -a localhost"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -91,7 +87,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-B 12102"
+            argument = "-B 12102 -b localhost"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -99,11 +95,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-b /dev/cu.usbserial-FTVEQ3US"
+            argument = "-b 192.168.59.222"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-b 192.168.59.222"
+            argument = "-b /dev/cu.usbserial-FTVEQ3US"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
