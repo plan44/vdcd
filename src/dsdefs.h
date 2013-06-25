@@ -163,6 +163,7 @@ typedef enum {
   buttonfunc_panic = 2, ///< panic
   buttonfunc_leave = 3, ///< leaving home
   buttonfunc_doorbell = 5, ///< door bell
+  buttonfunc_apartment = 14, ///< appartment button
   buttonfunc_app = 15, ///< application specific button
 } DsButtonFunc;
 
