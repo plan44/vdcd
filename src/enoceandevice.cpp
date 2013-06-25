@@ -142,6 +142,8 @@ public:
       (getNumInputs()>1 ? hwbuttontype_2x2way : hwbuttontype_2way),
       false // no local button
     );
+    #warning default to GE-TKM for now
+    b->setDeviceColor(group_yellow_light);
     setDSBehaviour(b);
   };
 

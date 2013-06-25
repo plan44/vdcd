@@ -50,6 +50,8 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
     // set the behaviour
     ButtonBehaviour *b = new ButtonBehaviour(this);
     b->setHardwareButtonType(hwbuttontype_1way, false);
+    #warning default to GE-TKM for now
+    b->setDeviceColor(group_yellow_light);
     setDSBehaviour(b);
   }
 	deriveDSID();
