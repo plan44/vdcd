@@ -33,7 +33,10 @@ namespace p44 {
   class DSBehaviour
   {
   protected:
+
     Device *deviceP;
+    DsGroup deviceColorGroup;
+
   public:
     DSBehaviour(Device *aDeviceP);
     virtual ~DSBehaviour();
@@ -49,6 +52,15 @@ namespace p44 {
     virtual uint8_t buttonIdGroup() = 0;
 
     virtual uint16_t version() { return 0xFFFF; }
+
+    /// @}
+
+
+    /// @name interface towards actual device hardware (or simulation)
+    /// @{
+
+    /// set basic device color to represent in identification for digitalSTROM system
+    void setDeviceColor(DsGroup aColorGroup);
 
     /// @}
 

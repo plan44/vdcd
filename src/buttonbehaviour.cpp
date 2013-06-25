@@ -103,6 +103,7 @@ ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
   hardwareButtonType(hwbuttontype_none), // undefined, actual device should set it
   hasLocalButton(false)
 {
+  buttonSettings.buttonGroup = deviceColorGroup; // default to overall color
   resetStateMachine();
 }
 
@@ -471,6 +472,7 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 // Die dSID muss für den ersten Eingang mit einer durch 4 teilbaren dSID beginnen, die weiteren dSIDs sind fortlaufend.
 
 
+// %%% probably outdated
 //  Each device has a function ID programmed into its chip. The function ID has the capabilities of the chip coded into it.
 //
 //  1111 11
@@ -484,6 +486,7 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 //  dS Subclass Light
 //  - 0: dS-Standard
 
+// %%% probably outdated
 //  Function Module Light/dS-Standard
 //  - Bits 5..4 : 0 = No output available, 1 = Output is a switch, 2 = Output is a dimmer, 3 = undefined
 //  - Bit 3     : if set, The first button is a local-button
@@ -492,12 +495,17 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 
 uint16_t ButtonBehaviour::functionId()
 {
+  int i = deviceP->getNumInputs();
   return
-    (group_black_joker<<12) +
+    (deviceColorGroup<<12) +
     (0x04 << 6) + // ??
-    (0 << 4) + // no output
-    ((hasLocalButton ? 1 : 0) << 3) +
-    hardwareButtonType; // reflect the hardware button type
+// TODO: hardwareButtonType Seems not ok, probably outdated specs
+//    (0 << 4) + // no output
+//    ((hasLocalButton ? 1 : 0) << 3) +
+//    hardwareButtonType; // reflect the hardware button type
+    (0x11 << 4) + // ??
+// TODO: number of inputs seems ok
+    (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
 

@@ -26,13 +26,20 @@ using namespace p44;
 
 
 DSBehaviour::DSBehaviour(Device *aDeviceP) :
-  deviceP(aDeviceP)
+  deviceP(aDeviceP),
+  deviceColorGroup(group_black_joker)
 {
 }
 
 
 DSBehaviour::~DSBehaviour()
 {
+}
+
+
+void DSBehaviour::setDeviceColor(DsGroup aColorGroup)
+{
+  deviceColorGroup = aColorGroup;
 }
 
 
