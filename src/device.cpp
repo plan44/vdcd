@@ -350,7 +350,7 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
       // - re-use param
       aParams->add("Value", JsonObject::newInt32(0)); // zero
       sendMessage("DeviceParameter", aParams);
-      err = NULL;
+      err = ErrorPtr();
     }
     #endif
   }
