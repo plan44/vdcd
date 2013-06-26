@@ -622,7 +622,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
           if (nb!=b) {
             isLocigallyOn = nb!=0; // TODO: is this correct?
             // TODO: pass correct transition time
-            setLogicalBrightness(nb, 0);
+            setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
             LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
           }
         }
@@ -650,7 +650,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
   }
   else if (aOperation=="blink") {
     blinkCounter = 3;
-    setLogicalBrightness(0,0);
+    setLogicalBrightness(1,0); // not entirely off to avoid multiple ignition
     nextBlink();
   }
   else {
@@ -668,10 +668,10 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
 void LightBehaviour::nextBlink()
 {
   Brightness b = getLogicalBrightness();
-  if (b==0)
+  if (b<128)
     b = 255;
   else {
-    b = 0;
+    b = 1;
     // one complete period
     blinkCounter--;
   }

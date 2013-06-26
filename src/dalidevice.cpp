@@ -20,7 +20,8 @@ using namespace p44;
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   Device((DeviceClassContainer *)aClassContainerP),
-  cachedBrightness(0)
+  cachedBrightness(0),
+  transitionTime(Infinite) // invalid
 {
 }
 
@@ -88,7 +89,24 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
 }
 
 
+// Fade rate: R = 506/SQRT(2^X) [steps/second] -> x = ln2((506/R)^2) : R=44 [steps/sec] -> x = 7
 
+void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
+{
+  if (transitionTime==Infinite || transitionTime!=aTransitionTime) {
+    transitionTime = aTransitionTime;
+    uint8_t tr = 0; // default to 0
+    if (aTransitionTime>0) {
+      // Fade time: T = 0.5 * SQRT(2^X) [seconds] -> x = ln2((T/0.5)^2) : T=0.25 [sec] -> x = -2, T=10 -> 8.64
+      double h = (((double)aTransitionTime/Second)/0.5);
+      h = h*h;
+      h = log(h)/log(2);
+      tr = (uint8_t)h;
+      LOG(LOG_DEBUG, "DaliDevice: set new transition time = %ld, Fade Time setting = %f (rounded %d)\n", aTransitionTime, h, tr);
+    }
+    daliDeviceContainerP()->daliComm.daliSendDtrAndCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+  }
+}
 
 
 void DaliDevice::ping()
@@ -123,7 +141,7 @@ int16_t DaliDevice::getOutputValue(int aChannel)
 void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime)
 {
   if (aChannel==0) {
-    // TODO: implement transition time
+    setTransitionTime(aTransitionTime);
     cachedBrightness = aValue;
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(cachedBrightness);
