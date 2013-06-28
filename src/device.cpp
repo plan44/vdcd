@@ -17,7 +17,6 @@ using namespace p44;
 
 //  virtual uint16_t functionId() = 0;
 //  virtual uint16_t productId() = 0;
-//  virtual uint16_t groupMemberShip() = 0;
 //  virtual uint8_t ltMode() = 0;
 //  virtual uint8_t outputMode() = 0;
 //  virtual uint8_t buttonIdGroup() = 0;
@@ -37,9 +36,33 @@ DSBehaviour::~DSBehaviour()
 }
 
 
+
+void DSBehaviour::confirmRegistration(JsonObjectPtr aParams)
+{
+  // - group membership
+  JsonObjectPtr o = aParams->get("GroupMemberships");
+  if (o) {
+    groupMembership = 0; // clear
+    for (int i=0; i<o->arrayLength(); i++) {
+      JsonObjectPtr elem = o->arrayGet(i);
+      if (elem) {
+        DsGroup grp = (DsGroup)elem->int32Value();
+        groupMembership |= ((DsGroupMask)1)<<grp;
+      }
+    }
+  }
+}
+
+
+
 void DSBehaviour::setDeviceColor(DsGroup aColorGroup)
 {
+  // set primary color of the device
   deviceColorGroup = aColorGroup;
+  // derive the initial group membership: primary color plus group 0
+  groupMembership =
+    ((DsGroupMask)1)<<aColorGroup | // primary color
+    0x1; // Group 0
 }
 
 
@@ -65,6 +88,12 @@ ErrorPtr DSBehaviour::getBehaviourParam(const string &aParamName, int aArrayInde
   else if (aParamName=="PID") {
     aValue = productId();
   }
+  else if (aParamName=="GRP") {
+    if (aArrayIndex>7)
+      aValue = 0;
+    else
+      aValue = (groupMembership>>(8*aArrayIndex)) & 0xFF;
+  }
   else {
     aValue = 0;
     err = ErrorPtr(new vdSMError(
@@ -82,8 +111,12 @@ ErrorPtr DSBehaviour::getBehaviourParam(const string &aParamName, int aArrayInde
 ErrorPtr DSBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
 {
   ErrorPtr err;
-  if (false) {
-
+  if (aParamName=="GRP") {
+    if (aArrayIndex<=7) {
+      DsGroupMask m = ((DsGroupMask)(aValue & 0xFF))<<(8*aArrayIndex);
+      groupMembership = groupMembership & ~(DsGroupMask)((DsGroupMask)0xFF<<(8*aArrayIndex));
+      groupMembership |= m;
+    }
   }
   else {
     err = ErrorPtr(new vdSMError(
@@ -177,10 +210,13 @@ JsonObjectPtr Device::registrationParams()
 
 void Device::confirmRegistration(JsonObjectPtr aParams)
 {
+  // get the parameters
   JsonObjectPtr o = aParams->get("BusAddress");
   if (o) {
     busAddress = o->int32Value();
   }
+  // have behaviour look at this
+  behaviourP->confirmRegistration(aParams);
   // registered now
   registered = MainLoop::now();
   registering = Never;
@@ -204,54 +240,6 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
   if (aOperation=="ping") {
     // ping hardware (if possible), creates pong now or after hardware was queried
     ping();
-  }
-//  else if (aOperation=="callscene") {
-//    // TODO: implement callscene
-//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-//  }
-//  else if (aOperation=="undoscenenumber") {
-//    // TODO: implement undoscenenumber
-//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-//  }
-//  else if (aOperation=="undoscene") {
-//    // TODO: implement undoscene
-//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-//  }
-//  else if (aOperation=="blink") {
-//    // TODO: implement Blink
-//    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-//  }
-  else if (aOperation=="setlocalprio") {
-    // TODO: implement SetLocalPrio
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="callscenemin") {
-    // TODO: implement CallSceneMin
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="progmodeon") {
-    // TODO: implement ProgModeOn
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="progmodeoff") {
-    // TODO: implement ProgModeOff
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="savescene") {
-    // TODO: implement SaveScene
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="setzone") {
-    // TODO: implement SetZone
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="getdevicesensortype") {
-    // TODO: implement GetDeviceSensorType
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="getdevicesensorvalue") {
-    // TODO: implement GetDeviceSensorValue
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
   }
   else if (
     aOperation=="getdeviceparameter" ||
@@ -485,7 +473,7 @@ string Device::description()
     s.append(" (unregistered)");
   s.append("\n");
   if (behaviourP) {
-    string_format_append(s, "- Input: %d/%d, DSBehaviour : %s\n", getInputIndex()+1, getNumInputs(), behaviourP->shortDesc().c_str());
+    string_format_append(s, "- Button: %d/%d, DSBehaviour : %s\n", getButtonIndex()+1, getNumButtons(), behaviourP->shortDesc().c_str());
   }
   return s;
 }

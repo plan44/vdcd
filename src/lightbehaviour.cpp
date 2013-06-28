@@ -435,6 +435,7 @@ LightBehaviour::LightBehaviour(Device *aDeviceP) :
   isLocigallyOn(false),
   logicalBrightness(0)
 {
+  deviceColorGroup = group_yellow_light;
 }
 
 
@@ -443,8 +444,6 @@ void LightBehaviour::setHardwareDimmer(bool aAvailable)
   hasDimmer = aAvailable;
   // default to dimming mode if we have a dimmer, not dimming otherwise
   lightSettings.isDimmable = hasDimmer;
-  // re-interpret current brightness
-  setLogicalBrightness(getLogicalBrightness());
 }
 
 
@@ -490,13 +489,8 @@ void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
 
 #pragma mark - functional identification for digitalSTROM system
 
-#warning // TODO: for now, we just emulate a GE-KM200 in a more or less hard-coded way
-
-// from DeviceConfig.py:
-// #  productName (functionId, productId, groupMemberShip, ltMode, outputMode, buttonIdGroup)
-// deviceDefaults["GE-KM200"] =  ( 0x1111, 200, 3, 0, 16, 0x10 )
-
-// Die Function-ID enthält (für alle dSIDs identisch) in den ersten 4 Bit die "Farbe" (Gruppe) des devices
+// Standard group
+//  0 variable (all)
 //  1 Light (yellow)
 //  2 Blinds (grey)
 //  3 Climate (blue)
@@ -506,20 +500,59 @@ void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
 //  7 Access (green)
 //  8 Joker (black)
 
-// Die Function-ID enthält (für alle dSIDs identisch) in den letzten 2 Bit eine Kennung,
-// wieviele Eingänge das Gerät besitzt: 0=keine, 1=1 Eingang, 2=2 Eingänge, 3=4 Eingänge.
-// Die dSID muss für den ersten Eingang mit einer durch 4 teilbaren dSID beginnen, die weiteren dSIDs sind fortlaufend.
+// Function ID:
+//
+//  1111 11
+//  5432 1098 76 543210
+//  gggg.cccc cc.xxxxxx
+//
+//  - gggg   : device group (color, class), 0..15
+//  - cccccc : device subclass
+//             - 000100 : dS-Standard R105 (current dS standard)
+//  - xxxxxx : class specific config
+//
+//  Light:
+//  - Xxxxxx : Bit 5 : if set, ramp time is variable and can be set in RAMPTIMEMAX
+//  - xXxxxx : Bit 4 : if set, device has a power output
+//  - xxXxxx : Bit 3 : if set, device has extra hardware features like extra binary inputs, sensors etc.
+//  - xxxXxx : Bit 2 : reserved
+//  - xxxxXX : Bit 0..1 : 0 = no button, 1 = one button, 2 = two buttons, 3 = four buttons
+
+//  Name,          FunctionId  ProductId,  ltMode, outputMode,   buttonIdGroup
+//  "GE-KM200",    0x1111,     200,        0,      16,           0x10
+//  "GE-TKM210",   0x1111,     1234,       0,      16,           0x15
+//  "GE-TKM220",   0x1101,     1244,       0,      0,            0x15
+//  "GE-TKM230",   0x1102,     1254,       0,      0,            0x15
+//  "GE-KL200",    0x1111,     3272,       0,      35,           0x10
+//  "GE-KL210",    0x1111,     5320,       0,      35,           0x10
+//  "GE-SDM200",   0x1111,     2248,       0,      16,           0x10
+//  "GE-SDS200",   0x1119,     6344,       0,      16,           0x10
+//  "GR-KL200",    0x2131,     3272,       0,      33,           0x20
+//  "GR-KL210",    0x2131,     3282,       0,      33,           0x20
+//  "GR-KL220",    0x2131,     3292,       0,      42,           0x20
+//  "GR-TKM200",   0x2101,     1224,       0,      0,            0x25
+//  "GR-TKM210",   0x2101,     1234,       0,      0,            0x25
+//  "RT-TKM200",   0x6001,     1224,       0,      16,           0
+//  "RT-SDM200",   0x6001,     2248,       0,      16,           0
+//  "GN-TKM200",   0x7050,     1224,       0,      16,           0
+//  "GN-TKM210",   0x6001,     1234,       0,      16,           0
+//  "GN-KM200",    0x6001,     200,        0,      16,           70
+//  "SW-KL200",    0x8111,     5320,       0,      41,           0
+//  "SW-KL210",    0x8111,     3273,       0,      40,           0
+//  "SW-TKM200",   0x8102,     1224,       0,      0,            0
+//  "SW-TKM210",   0x8103,     1234,       0,      0,            0
+
 
 
 uint16_t LightBehaviour::functionId()
 {
-  #warning // TODO: try with using actual number of inputs (0) later
-  //%%% for now, fake one input to make it as similar to GE-KM200 as possible
-  int i = 1;
-  // int i = deviceP->getNumInputs();
+  int i = deviceP->getNumButtons();
   return
-    (group_yellow_light<<12) +
-    (0x11 << 4) + // ??
+    (group_yellow_light<<12) + // always light
+    (0x04 << 6) + // DS Standard R105
+    (0 << 5) + // no variable ramp time
+    (0 << 5) + // no variable ramp time
+    (1 << 4) + // light always has power output
     (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
@@ -622,7 +655,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
           if (nb!=b) {
             isLocigallyOn = nb!=0; // TODO: is this correct?
             // TODO: pass correct transition time
-            setLogicalBrightness(nb, 0);
+            setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
             LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
           }
         }
@@ -640,6 +673,13 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
       }
     }
   }
+  else if (aOperation=="callscenemin") {
+    Brightness b = lightSettings.minDim;
+    isLocigallyOn = true; // mindim always turns on light
+    // TODO: pass correct transition time
+    setLogicalBrightness(b, 0);
+    LOG(LOG_NOTICE,"- CallSceneMin: setting minDim %d\n", b);
+  }
   else if (aOperation=="undoscenenumber") {
     // TODO: implement undoscenenumber
     LOG(LOG_NOTICE,"Called unimplemented %s on behaviour %s\n", aOperation.c_str(), shortDesc().c_str());
@@ -650,7 +690,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
   }
   else if (aOperation=="blink") {
     blinkCounter = 3;
-    setLogicalBrightness(0,0);
+    setLogicalBrightness(1,0); // not entirely off to avoid multiple ignition
     nextBlink();
   }
   else {
@@ -668,10 +708,10 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
 void LightBehaviour::nextBlink()
 {
   Brightness b = getLogicalBrightness();
-  if (b==0)
+  if (b<128)
     b = 255;
   else {
-    b = 0;
+    b = 1;
     // one complete period
     blinkCounter--;
   }

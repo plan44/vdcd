@@ -448,15 +448,8 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 
 #pragma mark - functional identification for digitalSTROM system
 
-#warning // TODO: for now, we just emulate a SW-TKM2xx in a more or less hard-coded way
-
-// from DeviceConfig.py:
-// #  productName (functionId, productId, groupMemberShip, ltMode, outputMode, buttonIdGroup)
-// %%% luz: was apparently wrong names, TKM200 is the 4-input version TKM210 the 2-input, I corrected the functionID below:
-// deviceDefaults["SW-TKM200"] = ( 0x8103, 1224, 257, 0, 0, 0 ) # 4 inputs
-// deviceDefaults["SW-TKM210"] = ( 0x8102, 1234, 257, 0, 0, 0 ) # 2 inputs
-
-// Die Function-ID enthält (für alle dSIDs identisch) in den ersten 4 Bit die "Farbe" (Gruppe) des devices
+// Standard group
+//  0 variable (all)
 //  1 Light (yellow)
 //  2 Blinds (grey)
 //  3 Climate (blue)
@@ -466,45 +459,56 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 //  7 Access (green)
 //  8 Joker (black)
 
-
-// Die Function-ID enthält (für alle dSIDs identisch) in den letzten 2 Bit eine Kennung,
-// wieviele Eingänge das Gerät besitzt: 0=keine, 1=1 Eingang, 2=2 Eingänge, 3=4 Eingänge.
-// Die dSID muss für den ersten Eingang mit einer durch 4 teilbaren dSID beginnen, die weiteren dSIDs sind fortlaufend.
-
-
-// %%% probably outdated
-//  Each device has a function ID programmed into its chip. The function ID has the capabilities of the chip coded into it.
+// Function ID:
 //
 //  1111 11
 //  5432 1098 76 543210
-//  xxxx.xxxx xx.xxxxxx
+//  gggg.cccc cc.xxxxxx
 //
-//  Bits 15..12 (dS-Class), Bits 11..6 (dS-Subclass), Bits 5..0 (Functionmodule)
+//  - gggg   : device group (color, class), 0..15
+//  - cccccc : device subclass
+//             - 000100 : dS-Standard R105 (current dS standard)
+//  - xxxxxx : class specific config
+//
+//  Light:
+//  - Xxxxxx : Bit 5 : if set, ramp time is variable and can be set in RAMPTIMEMAX
+//  - xXxxxx : Bit 4 : if set, device has a power output
+//  - xxXxxx : Bit 3 : if set, device has extra hardware features like extra binary inputs, sensors etc.
+//  - xxxXxx : Bit 2 : reserved
+//  - xxxxXX : Bit 0..1 : 0 = no button, 1 = one button, 2 = two buttons, 3 = four buttons
 
-//  dS-Class = group/color
-
-//  dS Subclass Light
-//  - 0: dS-Standard
-
-// %%% probably outdated
-//  Function Module Light/dS-Standard
-//  - Bits 5..4 : 0 = No output available, 1 = Output is a switch, 2 = Output is a dimmer, 3 = undefined
-//  - Bit 3     : if set, The first button is a local-button
-//  - Bits 2..0 : 0 = 1-Way, 1 = 2-Way, 2 = 2x1-Way, 3 = 4-Way, 4 = 4x1-Way, 5 = 2x2-Way, 6 = reserved, 7 = no buttons
+//  Name,          FunctionId  ProductId,  ltMode, outputMode,   buttonIdGroup
+//  "GE-KM200",    0x1111,     200,        0,      16,           0x10
+//  "GE-TKM210",   0x1111,     1234,       0,      16,           0x15
+//  "GE-TKM220",   0x1101,     1244,       0,      0,            0x15
+//  "GE-TKM230",   0x1102,     1254,       0,      0,            0x15
+//  "GE-KL200",    0x1111,     3272,       0,      35,           0x10
+//  "GE-KL210",    0x1111,     5320,       0,      35,           0x10
+//  "GE-SDM200",   0x1111,     2248,       0,      16,           0x10
+//  "GE-SDS200",   0x1119,     6344,       0,      16,           0x10
+//  "GR-KL200",    0x2131,     3272,       0,      33,           0x20
+//  "GR-KL210",    0x2131,     3282,       0,      33,           0x20
+//  "GR-KL220",    0x2131,     3292,       0,      42,           0x20
+//  "GR-TKM200",   0x2101,     1224,       0,      0,            0x25
+//  "GR-TKM210",   0x2101,     1234,       0,      0,            0x25
+//  "RT-TKM200",   0x6001,     1224,       0,      16,           0
+//  "RT-SDM200",   0x6001,     2248,       0,      16,           0
+//  "GN-TKM200",   0x7050,     1224,       0,      16,           0
+//  "GN-TKM210",   0x6001,     1234,       0,      16,           0
+//  "GN-KM200",    0x6001,     200,        0,      16,           70
+//  "SW-KL200",    0x8111,     5320,       0,      41,           0
+//  "SW-KL210",    0x8111,     3273,       0,      40,           0
+//  "SW-TKM200",   0x8102,     1224,       0,      0,            0
+//  "SW-TKM210",   0x8103,     1234,       0,      0,            0
 
 
 uint16_t ButtonBehaviour::functionId()
 {
-  int i = deviceP->getNumInputs();
+  int i = deviceP->getNumButtons();
   return
     (deviceColorGroup<<12) +
-    (0x04 << 6) + // ??
-// TODO: hardwareButtonType Seems not ok, probably outdated specs
-//    (0 << 4) + // no output
-//    ((hasLocalButton ? 1 : 0) << 3) +
-//    hardwareButtonType; // reflect the hardware button type
-    (0x11 << 4) + // ??
-// TODO: number of inputs seems ok
+    (0x04 << 6) + // DS Standard R105
+    (0 << 4) + // no variable ramp time (B5), no output (B4)
     (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
 }
 
@@ -512,13 +516,7 @@ uint16_t ButtonBehaviour::functionId()
 
 uint16_t ButtonBehaviour::productId()
 {
-  return 1234;
-}
-
-
-uint16_t ButtonBehaviour::groupMemberShip()
-{
-  return 257; // all groups
+  return 200; // dummy product ID
 }
 
 
@@ -531,7 +529,7 @@ uint16_t ButtonBehaviour::version()
 
 uint8_t ButtonBehaviour::ltMode()
 {
-  return buttonSettings.buttonMode;
+  return buttonSettings.buttonMode; // standard button is 0, see DsButtonMode
 }
 
 

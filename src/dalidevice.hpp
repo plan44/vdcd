@@ -30,6 +30,9 @@ namespace p44 {
     /// cached brightness
     Brightness cachedBrightness;
 
+    /// currently set transition time
+    MLMicroSeconds transitionTime;
+
   public:
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
@@ -83,6 +86,10 @@ namespace p44 {
     /// @param aArcpower 0..254
     /// @return brightness 0..255
     Brightness arcpowerToBrightness(int aArcpower);
+
+    /// set transition time for subsequent brightness changes
+    /// @param aTransitionTime time for transition
+    void setTransitionTime(MLMicroSeconds aTransitionTime);
 
 
   private:

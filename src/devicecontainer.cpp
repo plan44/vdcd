@@ -433,7 +433,10 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
   if (!Error::isOK(err)) {
     LOG(LOG_ERR, "vdSM message processing error: %s\n", err->description().c_str());
     // send back error response
-    sendMessage("Error", JsonObject::newString(err->description()));
+    JsonObjectPtr params = JsonObject::newObj();
+    params->add("BusAddress", JsonObject::newInt32(0));
+    params->add("Message", JsonObject::newString(err->description()));
+    sendMessage("Error", params);
   }
 }
 

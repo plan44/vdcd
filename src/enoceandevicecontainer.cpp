@@ -185,13 +185,14 @@ void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddre
 #pragma mark - learn and unlearn devices
 
 
-#ifdef DEBUG
-#define MIN_LEARN_DBM -255 // any signal strength
-#warning "DEBUG Learning with weak signal enabled!"
-#else
-#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
-#endif
+//#ifdef DEBUG
+//#define MIN_LEARN_DBM -255 // any signal strength
+//#warning "DEBUG Learning with weak signal enabled!"
+//#else
+//#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
+//#endif
 
+#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
 
 
 
