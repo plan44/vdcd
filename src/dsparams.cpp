@@ -29,7 +29,7 @@ static const paramEntry bank1params[] =
   { 0xA, 2, "PID" },
   { 0xC, 2, "ADR" },
   { 0xE, 2, "VSK" },
-  { 0x10, 8, "GRP" },
+  { 0x10, 1, "GRP" }, // 8 array elements. GRP[0] bit 0 is Group 0 ... GRP[7] bit 7 is Group 63
   { 0x18, 2, "RebootCnt" },
   { 0x1a, 2, "DatasetVersion" },
   { 0x1c, 2, "OEM_Serial" },

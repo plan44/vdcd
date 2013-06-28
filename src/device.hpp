@@ -35,7 +35,8 @@ namespace p44 {
   protected:
 
     Device *deviceP;
-    DsGroup deviceColorGroup;
+    DsGroup deviceColorGroup; ///< basic color of the device, as represented in the function ID
+    DsGroupMask groupMembership; ///< mask for groups the device is member of ("GRP" property)
 
   public:
     DSBehaviour(Device *aDeviceP);
@@ -46,12 +47,14 @@ namespace p44 {
 
     virtual uint16_t functionId() = 0;
     virtual uint16_t productId() = 0;
-    virtual uint16_t groupMemberShip() = 0;
     virtual uint8_t ltMode() = 0;
     virtual uint8_t outputMode() = 0;
     virtual uint8_t buttonIdGroup() = 0;
 
     virtual uint16_t version() { return 0xFFFF; }
+
+    /// Confirm registration
+    virtual void confirmRegistration(JsonObjectPtr aParams);
 
     /// @}
 
@@ -153,14 +156,14 @@ namespace p44 {
     /// @param aBehaviour the behaviour. Ownership is passed to the Device.
     void setDSBehaviour(DSBehaviour *aBehaviour);
 
-    /// number of inputs
-    /// @return returns total number of inputs the associated physical device has.
-    /// @note for each input, a separate logical device exists with increasing serialNo part in the dsid
-    virtual int getNumInputs() { return 0; }
+    /// number of buttons
+    /// @return returns total number of buttons the associated physical device has.
+    /// @note for each button, a separate logical device may exist with increasing serialNo part in the dsid
+    virtual int getNumButtons() { return 0; }
 
-    /// input index of this device
-    /// @return index of input (0..getNumInputs()-1) of this sub-device within its physical device
-    virtual int getInputIndex() { return 0; }
+    /// button index of this device
+    /// @return index of button (0..getNumButtons()-1) of this sub-device within its physical device
+    virtual int getButtonIndex() { return 0; }
 
     /// Get the parameters for registering this device with the vdSM
     /// @return JSON object containing the parameters

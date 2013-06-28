@@ -139,19 +139,18 @@ public:
     ButtonBehaviour *b = new ButtonBehaviour(this);
     b->setHardwareButtonType(
       // TODO: if ds defines 4-rocker, add it here
-      (getNumInputs()>1 ? hwbuttontype_2x2way : hwbuttontype_2way),
+      (getNumButtons()>1 ? hwbuttontype_2x2way : hwbuttontype_2way),
       false // no local button
     );
-    #warning default to GE-TKM for now
-    b->setDeviceColor(group_yellow_light);
+    b->setDeviceColor(group_black_joker);
     setDSBehaviour(b);
   };
 
-  // return number of inputs (of the emulated dS device)
-  virtual int getNumInputs() { return getNumChannels()>4 ? 4 : getNumChannels(); }
+  // return number of buttons (of the emulated dS device)
+  virtual int getNumButtons() { return getNumChannels()>4 ? 4 : getNumChannels(); }
 
   // the channel corresponds to the dS input
-  virtual int getInputIndex() { return getChannel(); }
+  virtual int getButtonIndex() { return getChannel(); }
 
   // device specific radio packet handling
   virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
@@ -180,14 +179,14 @@ public:
       if (status & status_T21) {
         // 2-rocker
         if (b==0)
-          numAffectedRockers = getNumInputs(); // all affected
+          numAffectedRockers = getNumButtons(); // all affected
         else if(b==3)
           numAffectedRockers = 2; // 3 or 4 buttons -> both rockers affected
       }
       else {
         // 4-rocker
         if (b==0)
-          numAffectedRockers = getNumInputs();
+          numAffectedRockers = getNumButtons();
         else
           numAffectedRockers = (b+1)>>1; // half of buttons affected = switches affected
       }

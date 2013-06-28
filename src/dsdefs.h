@@ -98,6 +98,9 @@ typedef enum {
   group_displays = 10
 } DsGroup;
 
+typedef uint64_t DsGroupMask; ///< 64 bit mask, Bit0 = group 0, Bit63 = group 63
+
+
 /// button mode aka "LTMODE"
 typedef enum {
   buttonmode_standard = 0,

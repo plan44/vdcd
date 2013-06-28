@@ -151,7 +151,6 @@ namespace p44 {
 
     virtual uint16_t functionId();
     virtual uint16_t productId();
-    virtual uint16_t groupMemberShip();
     virtual uint8_t ltMode();
     virtual uint8_t outputMode();
     virtual uint8_t buttonIdGroup();

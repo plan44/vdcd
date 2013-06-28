@@ -75,6 +75,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-c 192.168.2.150"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-A 12101 -a localhost"
             isEnabled = "NO">
          </CommandLineArgument>
