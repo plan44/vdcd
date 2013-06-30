@@ -20,6 +20,11 @@
 #define GPIO_SIMULATION 1
 #endif
 
+#if GPIO_SIMULATION
+#include "consolekey.hpp"
+#endif
+
+
 
 using namespace std;
 
@@ -34,7 +39,7 @@ namespace p44 {
     bool inverted;
     string name;
     #if GPIO_SIMULATION
-    int inputBitNo;
+    ConsoleKeyPtr consoleKey;
     #endif
   public:
     /// Create general purpose I/O
@@ -49,8 +54,8 @@ namespace p44 {
 		/// get name
 		const char *getName() { return name.c_str(); };
 		
-    /// set state of output (NOP for inputs)
-    /// @return current state (actual level on pin for inputs, last set state for outputs)
+    /// get state of GPIO
+    /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
     bool isSet();
 
     /// set state of output (NOP for inputs)
@@ -97,6 +102,10 @@ namespace p44 {
     /// @param aInverted inverted polarity (output high level is treated as logic false)
     ButtonInput(const char* aGpioName, bool aInverted);
 
+    /// destructor
+    virtual ~ButtonInput();
+
+
     /// set handler to be called on pushbutton events
     /// @param aButtonHandler handler for pushbutton events
     /// @param aPressAndRelease if set, both pressing and releasing button generates event.
@@ -126,6 +135,9 @@ namespace p44 {
     /// @param aInverted inverted polarity (output high level means indicator off)
     /// @param aInitiallyOn initial state (on or off) of the indicator
     IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn = false);
+
+    /// destructor
+    virtual ~IndicatorOutput();
 
     /// activate the output for a certain time period, then switch off again
     /// @param aOnTime how long indicator should stay active

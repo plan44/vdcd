@@ -94,7 +94,8 @@ public:
 		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
 		fprintf(stderr, "    -c vdsmhost : vdSM hostname/IP\n");
 		fprintf(stderr, "    -C vdsmport : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
-		fprintf(stderr, "    -g gpioname : add static GPIO button device\n");
+		fprintf(stderr, "    -g gpioname[:[!](in|out)] : add static GPIO input or output device, use ! for inverted polarity (default is noninverted input)\n");
+		fprintf(stderr, "    -k name[:(in|out|io)] : add static device which reads and writes console (first char of name=action key)\n");
 		fprintf(stderr, "    -d : fully daemonize\n");
 		fprintf(stderr, "    -w seconds : delay startup\n");
 		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
@@ -128,7 +129,7 @@ public:
     int startupDelay = 0; // no delay
 
 		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:l:s:w:")) != -1)
+		while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:k:l:s:w:")) != -1)
 		{
 			switch (c) {
 				case 'd':
@@ -157,6 +158,9 @@ public:
 					break;
 				case 'g':
 					staticDeviceConfigs.insert(make_pair("gpio", optarg));
+					break;
+				case 'k':
+					staticDeviceConfigs.insert(make_pair("console", optarg));
 					break;
 				case 's':
 					dbdir = optarg;
