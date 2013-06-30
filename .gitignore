@@ -4,4 +4,5 @@ Release/
 docs/DoxygenDocs.docset/
 *~
 *.xcuserstate
-p44bridged.xcodeproj/xcuserdata/*
+vdcd.xcodeproj/xcuserdata/*
+vdcd.xcodeproj/project.xcworkspace/xcuserdata/*

@@ -102,7 +102,7 @@
 		ED5B29391749446200334C71 /* lightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lightbehaviour.cpp; sourceTree = "<group>"; };
 		ED5B293A1749446300334C71 /* lightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lightbehaviour.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dsdefs.h; sourceTree = "<group>"; };
-		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BEA1716B6B1005DED18 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -185,7 +185,7 @@
 		ED6D7BDC1716B63A005DED18 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				ED6D7BDB1716B63A005DED18 /* p44bridged */,
+				ED6D7BDB1716B63A005DED18 /* vdcd */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -269,26 +269,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		EDCFE861172125F7001D35F3 /* p44bridged doxygen */ = {
+		EDCFE861172125F7001D35F3 /* vdcd doxygen */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "";
-			buildConfigurationList = EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */;
+			buildConfigurationList = EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */;
 			buildPhases = (
 			);
 			buildToolPath = ./xcode_docset_doxygen.sh;
 			buildWorkingDirectory = "$(PROJECT_DIR)";
 			dependencies = (
 			);
-			name = "p44bridged doxygen";
+			name = "vdcd doxygen";
 			passBuildSettingsInEnvironment = 1;
 			productName = "p44bridged doxygen";
 		};
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
-		ED6D7BDA1716B63A005DED18 /* p44bridged */ = {
+		ED6D7BDA1716B63A005DED18 /* vdcd */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "p44bridged" */;
+			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */;
 			buildPhases = (
 				ED6D7BD71716B63A005DED18 /* Sources */,
 				ED6D7BD81716B63A005DED18 /* Frameworks */,
@@ -298,9 +298,9 @@
 			);
 			dependencies = (
 			);
-			name = p44bridged;
+			name = vdcd;
 			productName = p44bridged;
-			productReference = ED6D7BDB1716B63A005DED18 /* p44bridged */;
+			productReference = ED6D7BDB1716B63A005DED18 /* vdcd */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -312,7 +312,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = plan44.ch;
 			};
-			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "p44bridged" */;
+			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -324,8 +324,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				ED6D7BDA1716B63A005DED18 /* p44bridged */,
-				EDCFE861172125F7001D35F3 /* p44bridged doxygen */,
+				ED6D7BDA1716B63A005DED18 /* vdcd */,
+				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
 			);
 		};
 /* End PBXProject section */
@@ -446,14 +446,14 @@
 		ED6D7BE51716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = vdcd;
 			};
 			name = Debug;
 		};
 		ED6D7BE61716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = vdcd;
 			};
 			name = Release;
 		};
@@ -465,7 +465,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "vdcd doxygen";
 			};
 			name = Debug;
 		};
@@ -474,14 +474,14 @@
 			buildSettings = {
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "vdcd doxygen";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "p44bridged" */ = {
+		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				ED6D7BE21716B63A005DED18 /* Debug */,
@@ -490,7 +490,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "p44bridged" */ = {
+		ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				ED6D7BE51716B63A005DED18 /* Debug */,
@@ -499,7 +499,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */ = {
+		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EDCFE863172125F7001D35F3 /* Debug */,
