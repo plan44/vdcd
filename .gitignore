@@ -27,3 +27,6 @@ src/.deps/
 src/.dirstamp
 src/sqlite3pp/.deps/
 stamp-h1
+.dirstamp
+vdcd
+

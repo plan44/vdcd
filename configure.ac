@@ -11,9 +11,16 @@ AC_PROG_CXX
 
 AC_CONFIG_FILES([Makefile])
 
-AC_CHECK_LIB(m, atan2)
-AC_CHECK_LIB(sqlite3, sqlite3_open)
-AC_CHECK_LIB(json, json_tokener_parse)
+PKG_CHECK_MODULES([JSONC], [json], [],
+    [
+        AC_MSG_ERROR([Missing json-c / libjson0])
+    ])
+
+AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m)])])
+AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
+AC_CHECK_LIB(json, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
+AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clock_gettime])])
+
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h sys/resource.h], [], [AC_MSG_ERROR([required system header not found])])
