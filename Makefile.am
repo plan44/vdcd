@@ -75,6 +75,6 @@ vdcd_SOURCES = \
   src/sqlite3pp/sqlite3pp.cpp \
   src/sqlite3pp/sqlite3pp.h \
   src/sqlite3pp/sqlite3ppext.cpp \
-  src/sqlite3pp/sqlite3ppext.h \
+  src/sqlite3pp/sqlite3ppext.h
 
 dist_noinst_SCRIPTS = autogen.sh

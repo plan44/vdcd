@@ -1,8 +1,29 @@
+docs/DoxygenDocs.docset/
+*~
+
+# DigiESP/Eclipse CDT specifics
 boost_1_53_0/
 Debug/
 Release/
-docs/DoxygenDocs.docset/
-*~
+
+# XCode specifics
 *.xcuserstate
 vdcd.xcodeproj/xcuserdata/*
 vdcd.xcodeproj/project.xcworkspace/xcuserdata/*
+
+# Autotools specifics
+*.o
+Makefile
+Makefile.in
+autom4te.cache/
+aclocal.m4
+config.h
+config.h.in
+config.log
+config.status
+configure
+configure_aux/
+src/.deps/
+src/.dirstamp
+src/sqlite3pp/.deps/
+stamp-h1
