@@ -144,10 +144,12 @@ namespace p44 {
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness
     void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTime=0);
 
-    /// set min brightness the lamp can provide
-    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-    void setMinimalBrightness(Brightness aBrightness);
-
+    /// initialize behaviour with actual device's brightness parameters
+    /// @param aCurrent current brightness of the light device
+    /// @param aMin minimal brightness that can be set
+    /// @param aMax maximal brightness that can be set
+    /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
+    void initBrightnessParams(Brightness aCurrent, Brightness aMin, Brightness aMax);
     /// @}
 
 

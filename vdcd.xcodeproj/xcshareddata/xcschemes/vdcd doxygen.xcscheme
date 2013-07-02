@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "EDCFE861172125F7001D35F3"
-               BuildableName = "p44bridged doxygen"
+               BuildableName = "vdcd doxygen"
                BlueprintName = "vdcd doxygen"
                ReferencedContainer = "container:vdcd.xcodeproj">
             </BuildableReference>

@@ -61,10 +61,8 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     cachedBrightness = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache: arc power = %d, brightness = %d\n", aResponse, cachedBrightness);
+    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, cachedBrightness);
   }
-  // initialize the light behaviour with the current output value
-  static_cast<LightBehaviour *>(getDSBehaviour())->setLogicalBrightness(cachedBrightness);
   // query the minimum dimming level
   daliDeviceContainerP()->daliComm.daliSendQuery(
     deviceInfo.shortAddress,
@@ -80,10 +78,10 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     minLevel = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliDevice: minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
+    LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
-  static_cast<LightBehaviour *>(getDSBehaviour())->setMinimalBrightness(minLevel);
+  static_cast<LightBehaviour *>(getDSBehaviour())->initBrightnessParams(cachedBrightness,minLevel,255);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
@@ -94,17 +92,21 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
 void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 {
   if (transitionTime==Infinite || transitionTime!=aTransitionTime) {
-    transitionTime = aTransitionTime;
     uint8_t tr = 0; // default to 0
     if (aTransitionTime>0) {
       // Fade time: T = 0.5 * SQRT(2^X) [seconds] -> x = ln2((T/0.5)^2) : T=0.25 [sec] -> x = -2, T=10 -> 8.64
       double h = (((double)aTransitionTime/Second)/0.5);
       h = h*h;
       h = log(h)/log(2);
-      tr = (uint8_t)h;
-      LOG(LOG_DEBUG, "DaliDevice: set new transition time = %ld, Fade Time setting = %f (rounded %d)\n", aTransitionTime, h, tr);
+      tr = h>1 ? (uint8_t)h : 1;
+      LOG(LOG_DEBUG, "DaliDevice: new transition time = %ld, calculated FADE_TIME setting = %f (rounded %d)\n", aTransitionTime, h, tr);
     }
-    daliDeviceContainerP()->daliComm.daliSendDtrAndCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+    if (tr!=fadeTime || transitionTime==Infinite) {
+      LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", tr);
+      daliDeviceContainerP()->daliComm.daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+      fadeTime = tr;
+    }
+    transitionTime = aTransitionTime;
   }
 }
 
@@ -145,7 +147,7 @@ void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTr
     cachedBrightness = aValue;
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(cachedBrightness);
-    LOG(LOG_DEBUG, "DaliDevice: set new brightness = %d, arc power = %d\n", cachedBrightness, power);
+    LOG(LOG_DEBUG, "DaliDevice: setting new brightness = %d, arc power = %d\n", cachedBrightness, power);
     daliDeviceContainerP()->daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
   }
   else

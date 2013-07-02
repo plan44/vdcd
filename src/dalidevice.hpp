@@ -33,6 +33,9 @@ namespace p44 {
     /// currently set transition time
     MLMicroSeconds transitionTime;
 
+    /// currently set DALI fade rate
+    uint8_t fadeTime;
+
   public:
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 

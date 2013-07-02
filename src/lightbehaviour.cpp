@@ -476,10 +476,15 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
 }
 
 
-void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
+void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, Brightness aMax)
 {
-  if (aBrightness<lightSettings.minDim) {
-    lightSettings.minDim = aBrightness;
+  // save current brightness
+  logicalBrightness = aCurrent;
+  if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
+
+  if (aMin!=lightSettings.minDim || aMax!=lightSettings.maxDim) {
+    lightSettings.maxDim = aMax;
+    lightSettings.minDim = aMin>0 ? aMin : 1; // never below 1
     lightSettings.markDirty();
   }
 }
