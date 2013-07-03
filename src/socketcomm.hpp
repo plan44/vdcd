@@ -37,10 +37,12 @@ namespace p44 {
   // Errors
   typedef enum {
     SocketCommErrorOK,
-    SocketCommErrorNoParams,
-    SocketCommErrorCannotResolveHost,
-    SocketCommErrorCannotConnect,
-    SocketCommErrorFDErr,
+    SocketCommErrorNoParams, ///< parameters missing to even try initiating connection
+    SocketCommErrorCannotResolveHost, ///< host cannot be resolved
+    SocketCommErrorConnecting, ///< connection could not be established
+    SocketCommErrorHungUp, ///< other side closed connection (hung up, HUP)
+    SocketCommErrorClosed, ///< closed from my side
+    SocketCommErrorFDErr, ///< error on file descriptor
   } SocketCommErrors;
 
   class SocketCommError : public Error
@@ -71,10 +73,12 @@ namespace p44 {
     int socketType;
     int protocol;
     // connection internals
+    bool isConnecting; ///< in progress of opening connection
     bool connectionOpen;
     int connectionFd;
     SocketCommCB receiveHandler;
     SocketCommCB transmitHandler;
+    SocketCommCB connectionStatusHandler;
   public:
 
     SocketComm(SyncIOMainLoop *aMainLoopP);
@@ -88,13 +92,30 @@ namespace p44 {
     /// @param aProtocol defaults to 0
     void setClientConnection(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType = SOCK_STREAM, int aProtocolFamily = AF_UNSPEC, int aProtocol = 0);
 
-
-    /// open the connection (possibly blocking)
-    /// @note can be called multiple times, opens connection only if not already open
-    ErrorPtr openConnection();
+    /// initiate the connection (non-blocking)
+    /// This starts the connection process
+    /// @return if no error is returned, this means the connection could be initiated
+    ///   (but actual connection might still fail)
+    /// @note can be called multiple times, initiates connection only if not already open or initiated
+    ///   When connection status changes, the connectionStatusHandler (if set) will be called
+    /// @note if connectionStatusHandler is set, it will be called when initiation fails with the same error
+    ///   code as returned by initiateConnection itself.
+    ErrorPtr initiateConnection();
 
     /// close the current connection, if any
+    /// @note can be called multiple times, closes connection if a connection is open (or connecting)
     void closeConnection();
+
+    /// set connection status handler
+    /// @param aConnectionStatusHandler will be called when connection status changes.
+    ///   If callback is called without error, connection was established. Otherwise, error signals
+    ///   why connection was closed
+    void setConnectionStatusHandler(SocketCommCB aConnectionStatusHandler);
+
+    /// check if connection in progress
+    /// @return true if connection initiated and in progress.
+    /// @note checking connecting does not automatically try to establish a connection
+    bool connecting();
 
     /// check if connected
     /// @return true if connected.
@@ -106,7 +127,7 @@ namespace p44 {
     /// @param aNumBytes number of bytes to transfer
     /// @param aBytes pointer to buffer to be sent
     /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
-    /// @return number ob bytes actually written
+    /// @return number ob bytes actually written, can be 0 (e.g. if connection is still in process of opening)
     size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
 
     /// @return number of bytes ready for read
@@ -128,11 +149,13 @@ namespace p44 {
     void setTransmitHandler(SocketCommCB aTransmitHandler);
 
 
-  protected:
-    bool readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
-    bool readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
-    bool errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
+  private:
+    bool readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
 
+    bool connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    void internalCloseConnection();
 
   };
   

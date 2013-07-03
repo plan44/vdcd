@@ -345,16 +345,16 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
   }
   if (numReadyFDs>0) {
     // check the descriptor sets and call handlers when needed
-    for (int i = 0; i<numFDsToTest; i++) {
+    for (int i = 0; i<numReadyFDs; i++) {
       struct pollfd *pollfdP = &pollFds[i];
       bool readReady = pollfdP->revents & POLLIN;
       bool writeReady = pollfdP->revents & POLLOUT;
       bool errorFound = pollfdP->revents & (POLLERR|POLLHUP|POLLNVAL);
       if (readReady || writeReady || errorFound) {
         SyncIOHandler h = syncIOHandlers[pollfdP->fd];
+        if (errorFound) h.errorCB(this, cycleStartTime, i, pollfdP->revents);
         if (readReady) h.readReadyCB(this, cycleStartTime, i, pollfdP->revents);
         if (writeReady) h.writeReadyCB(this, cycleStartTime, i, pollfdP->revents);
-        if (errorFound) h.errorCB(this, cycleStartTime, i, pollfdP->revents);
       }
     }
   }

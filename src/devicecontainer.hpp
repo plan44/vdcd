@@ -195,6 +195,9 @@ namespace p44 {
   
     void deviceRegistered();
 
+    void initiateVdsmConnection();
+    void vdsmConnStatusHandler(ErrorPtr aError);
+
   };
 
 } // namespace p44

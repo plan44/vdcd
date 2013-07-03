@@ -138,17 +138,17 @@ namespace p44 {
 
     /// register routine to be called when data gets available on specified file descriptor
     /// @param aFD the file descriptor
-    /// @param aReadReadyCB the functor to be called when the file descriptor is ready for reading
+    /// @param aReadReadyCB the functor to be called when the file descriptor is ready for reading (can be empty to disable)
     void registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB);
 
     /// register routine to be called when specified file descriptor is ready to write data to
     /// @param aFD the file descriptor
-    /// @param aWriteReadyCB the functor to be called when the file descriptor is ready for writing
+    /// @param aWriteReadyCB the functor to be called when the file descriptor is ready for writing (can be empty to disable)
     void registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB);
 
     /// register routine to be called when IO error occurs on specified file descriptor
     /// @param aFD the file descriptor
-    /// @param aIOErrorCB the functor to be called when the file descriptor has an error
+    /// @param aIOErrorCB the functor to be called when the file descriptor has an error (can be empty to disable)
     void registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB);
 
     /// register routines to be called for activity on specified file descriptor

@@ -184,11 +184,10 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // try to open connection to vdsm
-  ErrorPtr err = vdsmJsonComm.openConnection();
-  if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "Cannot open connection to vdsm: %s\n", err->description().c_str());
-  }
+  // install a connection handler
+  vdsmJsonComm.setConnectionStatusHandler(boost::bind(&DeviceContainer::vdsmConnStatusHandler, this, _2));
+  // try to initiate connection to vdsm, connectionStatusHandler will take care of retries etc.
+  initiateVdsmConnection();
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
@@ -196,6 +195,31 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
   // start initialisation of class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
+}
+
+
+
+void DeviceContainer::initiateVdsmConnection()
+{
+  LOG(LOG_DEBUG, ".............. Initiating connection to vdSM\n");
+  vdsmJsonComm.initiateConnection();
+}
+
+
+void DeviceContainer::vdsmConnStatusHandler(ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    // vdSM connection successfully opened
+    LOG(LOG_DEBUG, "++++++++++++++ Connection to vdSM established\n");
+    #warning "// TODO: initiate vDC/device sessions
+  }
+  else {
+    // error on vdSM connection, was closed
+    LOG(LOG_DEBUG, "-------------- Connection to vdSM terminated: %s\n\n", aError->description().c_str());
+    #warning "// TODO: terminate vDC/device sessions
+    // re-initiate connection in a while
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 10*Second);
+  }
 }
 
 
