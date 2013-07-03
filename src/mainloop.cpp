@@ -12,7 +12,7 @@
 #include <mach/mach_time.h>
 #endif
 #include <unistd.h>
-#include <sys/select.h>
+#include <sys/poll.h>
 #include <sys/param.h>
 
 #pragma mark - MainLoop
@@ -309,35 +309,33 @@ void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
 
 bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 {
-  // TODO: maybe use poll() instead of select()
-  fd_set readfs; // file descriptor set for read
-  fd_set writefs; // file descriptor set for write
-  fd_set errorfs; // file descriptor set for errors
-  // Create bitmap for select call
-  int numFDsToTest = 0; // number of file descriptors to test (max+1 of all used FDs)
+  // create poll structure
+  struct pollfd *pollFds = NULL;
+  size_t numFDsToTest = syncIOHandlers.size();
+  if (numFDsToTest>0) {
+    // allocate pollfd array
+    pollFds = new struct pollfd[numFDsToTest];
+  }
+  // fill poll structure
   SyncIOHandlerMap::iterator pos = syncIOHandlers.begin();
-  if (pos!=syncIOHandlers.end()) {
-    FD_ZERO(&readfs);
-    FD_ZERO(&writefs);
-    FD_ZERO(&errorfs);
-    // collect FDs
-    while (pos!=syncIOHandlers.end()) {
-      SyncIOHandler h = pos->second;
-      numFDsToTest = MAX(h.monitoredFD+1, numFDsToTest);
-      if (h.readReadyCB) FD_SET(h.monitoredFD, &readfs);
-      if (h.writeReadyCB) FD_SET(h.monitoredFD, &writefs);
-      if (h.errorCB) FD_SET(h.monitoredFD, &errorfs);
-      ++pos;
-    }
+  size_t i = 0;
+  // collect FDs
+  while (pos!=syncIOHandlers.end()) {
+    SyncIOHandler h = pos->second;
+    struct pollfd *pollfdP = &pollFds[i];
+    pollfdP->fd = h.monitoredFD;
+    pollfdP->revents = 0; // no event returned so far
+    pollfdP->events =
+      (h.readReadyCB ? POLLIN : 0) | // interested when ready to read
+      (h.writeReadyCB ? POLLOUT : 0); // interested when ready to write
+    ++i;
+    ++pos;
   }
   // block until input becomes available or timeout
   int numReadyFDs = 0;
   if (numFDsToTest>0) {
     // actual FDs to test
-    struct timeval tv;
-    tv.tv_sec = aTimeout / 1000000;
-    tv.tv_usec = aTimeout % 1000000;
-    numReadyFDs = select(numFDsToTest, &readfs, &writefs, &errorfs, &tv);
+    numReadyFDs = poll(pollFds, (int)numFDsToTest, (int)(aTimeout/MilliSecond));
   }
   else {
     // nothing to test, just await timeout
@@ -348,14 +346,15 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
   if (numReadyFDs>0) {
     // check the descriptor sets and call handlers when needed
     for (int i = 0; i<numFDsToTest; i++) {
-      bool readReady = FD_ISSET(i, &readfs);
-      bool writeReady = FD_ISSET(i, &writefs);
-      bool errorFound = FD_ISSET(i, &errorfs);
+      struct pollfd *pollfdP = &pollFds[i];
+      bool readReady = pollfdP->revents & POLLIN;
+      bool writeReady = pollfdP->revents & POLLOUT;
+      bool errorFound = pollfdP->revents & (POLLERR|POLLHUP|POLLNVAL);
       if (readReady || writeReady || errorFound) {
-        SyncIOHandler h = syncIOHandlers[i];
-        if (readReady) h.readReadyCB(this, cycleStartTime, i);
-        if (writeReady) h.writeReadyCB(this, cycleStartTime, i);
-        if (errorFound) h.errorCB(this, cycleStartTime, i);
+        SyncIOHandler h = syncIOHandlers[pollfdP->fd];
+        if (readReady) h.readReadyCB(this, cycleStartTime, i, pollfdP->revents);
+        if (writeReady) h.writeReadyCB(this, cycleStartTime, i, pollfdP->revents);
+        if (errorFound) h.errorCB(this, cycleStartTime, i, pollfdP->revents);
       }
     }
   }

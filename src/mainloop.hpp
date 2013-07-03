@@ -112,7 +112,7 @@ namespace p44 {
   class SyncIOMainLoop;
 
   /// I/O callback
-  typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)> SyncIOCB;
+  typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
   typedef boost::shared_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
   /// A main loop with a Synchronous I/O multiplexer (select() call)
