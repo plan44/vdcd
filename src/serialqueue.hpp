@@ -164,9 +164,7 @@ namespace p44 {
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// SyncIOMainloop handlers
-    bool readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
-  //  bool readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
-  //  bool errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD);
+    bool pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
 
 
   };

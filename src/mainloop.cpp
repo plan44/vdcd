@@ -12,7 +12,6 @@
 #include <mach/mach_time.h>
 #endif
 #include <unistd.h>
-#include <sys/poll.h>
 #include <sys/param.h>
 
 #pragma mark - MainLoop
@@ -250,57 +249,40 @@ SyncIOMainLoop::SyncIOMainLoop()
 
 
 
-void SyncIOMainLoop::syncIOHandlerForFd(int aFD, SyncIOHandler &h)
+void SyncIOMainLoop::registerPollHandler(int aFD, int aPollFlags, SyncIOCB aPollEventHandler)
+{
+  if (aPollEventHandler.empty())
+    unregisterPollHandler(aFD); // no handler means unregistering handler
+  // register new handler
+  SyncIOHandler h;
+  h.monitoredFD = aFD;
+  h.pollFlags = aPollFlags;
+  h.pollHandler = aPollEventHandler;
+	syncIOHandlers[aFD] = h;
+}
+
+
+void SyncIOMainLoop::changePollFlags(int aFD, int aSetPollFlags, int aClearPollFlags)
 {
   SyncIOHandlerMap::iterator pos = syncIOHandlers.find(aFD);
-  if (pos!=syncIOHandlers.end())
-    h = pos->second;
-  else {
-    h.monitoredFD = aFD;
-    h.readReadyCB = NULL;
-    h.writeReadyCB = NULL;
-    h.errorCB = NULL;
+  if (pos!=syncIOHandlers.end()) {
+    // found fd to set flags for
+    if (aClearPollFlags>=0) {
+      // read modify write
+      // - clear specified flags
+      pos->second.pollFlags &= ~aClearPollFlags;
+      pos->second.pollFlags |= aSetPollFlags;
+    }
+    else {
+      // just set
+      pos->second.pollFlags = aSetPollFlags;
+    }
   }
 }
 
 
-void SyncIOMainLoop::registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.readReadyCB = aReadReadyCB;
-	syncIOHandlers[aFD] = h;
-}
 
-void SyncIOMainLoop::registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.writeReadyCB = aWriteReadyCB;
-	syncIOHandlers[aFD] = h;
-}
-
-void SyncIOMainLoop::registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.errorCB = aIOErrorCB;
-	syncIOHandlers[aFD] = h;
-}
-
-
-void SyncIOMainLoop::registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB)
-{
-  SyncIOHandler h;
-  h.monitoredFD = aFD;
-  h.readReadyCB = aReadCB;
-  h.writeReadyCB = aWriteCB;
-  h.errorCB = aErrorCB;
-	syncIOHandlers[aFD] = h;
-}
-
-
-void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
+void SyncIOMainLoop::unregisterPollHandler(int aFD)
 {
   syncIOHandlers.erase(aFD);
 }
@@ -311,24 +293,25 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 {
   // create poll structure
   struct pollfd *pollFds = NULL;
-  size_t numFDsToTest = syncIOHandlers.size();
-  if (numFDsToTest>0) {
-    // allocate pollfd array
-    pollFds = new struct pollfd[numFDsToTest];
+  size_t maxFDsToTest = syncIOHandlers.size();
+  if (maxFDsToTest>0) {
+    // allocate pollfd array (max, in case some are disabled, we'll need less)
+    pollFds = new struct pollfd[maxFDsToTest];
   }
   // fill poll structure
   SyncIOHandlerMap::iterator pos = syncIOHandlers.begin();
-  size_t i = 0;
+  size_t numFDsToTest = 0;
   // collect FDs
   while (pos!=syncIOHandlers.end()) {
     SyncIOHandler h = pos->second;
-    struct pollfd *pollfdP = &pollFds[i];
-    pollfdP->fd = h.monitoredFD;
-    pollfdP->revents = 0; // no event returned so far
-    pollfdP->events =
-      (h.readReadyCB ? POLLIN : 0) | // interested when ready to read
-      (h.writeReadyCB ? POLLOUT : 0); // interested when ready to write
-    ++i;
+    if (h.pollFlags) {
+      // don't include handlers that are currently disabled (no flags set)
+      struct pollfd *pollfdP = &pollFds[numFDsToTest];
+      pollfdP->fd = h.monitoredFD;
+      pollfdP->events = h.pollFlags;
+      pollfdP->revents = 0; // no event returned so far
+      ++numFDsToTest;
+    }
     ++pos;
   }
   // block until input becomes available or timeout
@@ -343,22 +326,24 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
       usleep((useconds_t)aTimeout);
     }
   }
+  // call handlers
+  bool didHandle = false;
   if (numReadyFDs>0) {
-    // check the descriptor sets and call handlers when needed
-    for (int i = 0; i<numReadyFDs; i++) {
+    // at least one of the flagged events has occurred in at least one FD
+    // - find the FDs that are affected and call their handlers when needed
+    for (int i = 0; i<numFDsToTest; i++) {
       struct pollfd *pollfdP = &pollFds[i];
-      bool readReady = pollfdP->revents & POLLIN;
-      bool writeReady = pollfdP->revents & POLLOUT;
-      bool errorFound = pollfdP->revents & (POLLERR|POLLHUP|POLLNVAL);
-      if (readReady || writeReady || errorFound) {
+      if (pollfdP->revents) {
+        // an event has occurred for this FD
         SyncIOHandler h = syncIOHandlers[pollfdP->fd];
-        if (errorFound) h.errorCB(this, cycleStartTime, i, pollfdP->revents);
-        if (readReady) h.readReadyCB(this, cycleStartTime, i, pollfdP->revents);
-        if (writeReady) h.writeReadyCB(this, cycleStartTime, i, pollfdP->revents);
+        if (h.pollHandler(this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+          didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
       }
     }
   }
-  // return true if we actually handled some I/O
+  // return the poll array
+  delete pollFds;
+  // return true if poll actually reported something (not just timed out)
   return numReadyFDs>0;
 }
 

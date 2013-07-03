@@ -86,7 +86,6 @@ ErrorPtr SocketComm::initiateConnection()
       }
       // remember error...
       err = SysError::errNo("SocketComm: cannot initiate socket connection: ");
-      LOG(LOG_NOTICE, "Connection to %s:%s not initiated: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
       close(socketFD);
       // ..but retry other addresses before giving up
     }
@@ -96,13 +95,15 @@ ErrorPtr SocketComm::initiateConnection()
       // - save FD
       connectionFd = socketFD;
       // - register callbacks to get notified when connection is established
-      mainLoopP->registerSyncIOHandlers(
+      mainLoopP->registerPollHandler(
         connectionFd,
-        //SyncIOCB(), // none for read
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4), // call us when we can write
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4), // call us when we can write
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4) // and call us on error
+        POLLOUT|POLLERR,
+        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
       );
+    }
+    else {
+      // not connecting, initiation failed
+      LOG(LOG_NOTICE, "Failed initiating connection to %s:%s : %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
     }
   }
 done:
@@ -128,21 +129,27 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
       connectionStatusHandler(this, ErrorPtr());
     }
     // register handlers for operating open connection
-    mainLoopP->registerSyncIOHandlers(
+    mainLoopP->registerPollHandler(
       connectionFd,
-      boost::bind(&SocketComm::readyForRead, this, _1, _2, _3, _4),
-      transmitHandler.empty() ? SyncIOCB() : boost::bind(&SocketComm::readyForWrite, this, _1, _2, _3, _4),
-      boost::bind(&SocketComm::errorOccurred, this, _1, _2, _3, _4)
+      (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
+      (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
+      boost::bind(&SocketComm::dataMonitorHandler, this, _1, _2, _3, _4)
     );
   }
   else {
     // must be error, close connection
     ErrorPtr err;
-    if ((aPollFlags & POLLIN)) {
+    if (aPollFlags & POLLHUP) {
+      err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp, "Connection HUP while opening (= connection rejected)"));
+    }
+    else if (aPollFlags & POLLIN) {
+      // try to get real error code
       if (read(connectionFd,NULL,0)<0)
         err = SysError::errNo("Connection attempt failed: ");
-      else
-        err = ErrorPtr(new SocketCommError(SocketCommErrorConnecting, "Connection attempt failed"));
+    }
+    if (!err) {
+      // no specific error, use general one
+      err = ErrorPtr(new SocketCommError(SocketCommErrorConnecting, "Connection attempt failed"));
     }
     LOG(LOG_WARNING, "Connection attempt to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
     internalCloseConnection();
@@ -150,6 +157,38 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
       connectionStatusHandler(this, err);
     }
   }
+  return true;
+}
+
+
+
+bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+{
+  if (aPollFlags & POLLHUP) {
+    // other end has closed connection
+    // - close my end
+    internalCloseConnection();
+    if (connectionStatusHandler) {
+      // report reason for closing
+      connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
+    }
+  }
+  else if ((aPollFlags & POLLIN) && receiveHandler) {
+    receiveHandler(this, ErrorPtr());
+  }
+  else if ((aPollFlags & POLLOUT) && transmitHandler) {
+    transmitHandler(this, ErrorPtr());
+  }
+  else {
+    // other event, error
+    ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorFDErr,"Async socket error"));
+    if (receiveHandler) {
+      // report error
+      receiveHandler(this, err);
+    }
+    LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+  }
+  // handled
   return true;
 }
 
@@ -183,7 +222,7 @@ void SocketComm::internalCloseConnection()
 {
   // unregister from main loop
   if (connectionOpen || isConnecting) {
-    mainLoopP->unregisterSyncIOHandlers(connectionFd);
+    mainLoopP->unregisterPollHandler(connectionFd);
     close(connectionFd);
     connectionFd = -1;
     connectionOpen = false;
@@ -207,6 +246,17 @@ bool SocketComm::connecting()
 
 void SocketComm::setReceiveHandler(SocketCommCB aReceiveHandler)
 {
+  if (receiveHandler.empty()!=aReceiveHandler.empty()) {
+    receiveHandler = aReceiveHandler;
+    if (connectionOpen) {
+      // If connected already, update poll flags to include data-ready-to-read
+      // (otherwise, flags will be set when connection opens)
+      if (receiveHandler.empty())
+        mainLoopP->changePollFlags(connectionFd, 0, POLLIN); // clear POLLIN
+      else
+        mainLoopP->changePollFlags(connectionFd, POLLIN, 0); // set POLLIN
+    }
+  }
   receiveHandler = aReceiveHandler;
 }
 
@@ -216,12 +266,12 @@ void SocketComm::setTransmitHandler(SocketCommCB aTransmitHandler)
   if (transmitHandler.empty()!=aTransmitHandler.empty()) {
     transmitHandler = aTransmitHandler;
     if (connectionOpen) {
-      // If connected already, update mainloop registration
-      // (otherwise, registration occurs when connection is established)
-      mainLoopP->registerWriteReadyHandler(
-        connectionFd,
-        transmitHandler.empty() ? SyncIOCB() : boost::bind(&SocketComm::readyForWrite, this, _1, _2, _3, _4)
-      );
+      // If connected already, update poll flags to include ready-for-transmit
+      // (otherwise, flags will be set when connection opens)
+      if (transmitHandler.empty())
+        mainLoopP->changePollFlags(connectionFd, 0, POLLOUT); // clear POLLOUT
+      else
+        mainLoopP->changePollFlags(connectionFd, POLLOUT, 0); // set POLLOUT
     }
   }
 }
@@ -282,51 +332,4 @@ size_t SocketComm::numBytesReady()
   int res = ioctl(connectionFd, FIONREAD, &numBytes);
   return res!=0 ? 0 : numBytes;
 }
-
-
-
-bool SocketComm::readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
-{
-  if (receiveHandler) {
-    receiveHandler(this, ErrorPtr());
-  }
-  return true;
-}
-
-
-bool SocketComm::readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
-{
-  if (transmitHandler) {
-    transmitHandler(this, ErrorPtr());
-  }
-  return true;
-}
-
-
-bool SocketComm::errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
-{
-  ErrorPtr err;
-  // check for connection hangup
-  if (aPollFlags & POLLHUP) {
-    // other end has closed connection
-    // - close my end
-    internalCloseConnection();
-    if (connectionStatusHandler) {
-      // report reason for closing
-      connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
-    }
-  }
-  else {
-    // other error
-    err = ErrorPtr(new SocketCommError(SocketCommErrorFDErr,"Async socket error"));
-    if (receiveHandler) {
-      // report error
-      receiveHandler(this, err);
-    }
-  }
-  LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-  return true;
-}
-
-
 

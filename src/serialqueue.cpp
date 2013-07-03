@@ -231,16 +231,15 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
   if (aFileDescriptor!=fdToMonitor) {
     // unregister previous one, if any
     if (fdToMonitor>=0) {
-      SyncIOMainLoop::currentMainLoop()->unregisterSyncIOHandlers(fdToMonitor);
+      SyncIOMainLoop::currentMainLoop()->unregisterPollHandler(fdToMonitor);
     }
     // unregister new one, if any
     if (aFileDescriptor>=0) {
       // register
-      SyncIOMainLoop::currentMainLoop()->registerSyncIOHandlers(
+      SyncIOMainLoop::currentMainLoop()->registerPollHandler(
         aFileDescriptor,
-        boost::bind(&SerialOperationQueue::readyForRead, this, _1, _2, _3),
-        NULL, // TODO: implement // boost::bind(&SerialOperationQueue::readyForWrite, this, _1, _2, _3),
-        NULL // TODO: implement // boost::bind(&SerialOperationQueue::errorOccurred, this, _1, _2, _3)
+        POLLIN,
+        boost::bind(&SerialOperationQueue::pollHandler, this, _1, _2, _3, _4)
       );
     }
     // save new FD
@@ -251,7 +250,7 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
 
 #define RECBUFFER_SIZE 100
 
-bool SerialOperationQueue::readyForRead(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+bool SerialOperationQueue::pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
