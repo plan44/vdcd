@@ -85,9 +85,6 @@ namespace p44 {
     DsDeviceMap dSDevices; ///< available devices by dSID
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
-    BusAddressMap busDevices; ///< registered devices by BusAddress.
-    // TODO: %%% we'll probably get rid of this with the new vDSM API
-
     string persistentDataDir;
     LocalSwitchOutputCB localSwitchOutputCallback;
 

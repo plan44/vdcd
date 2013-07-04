@@ -351,7 +351,6 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   }
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
-  busDevices.erase(aDevice->busAddress);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
   // TODO: maybe unregister from vdSM???
 }
@@ -410,28 +409,12 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
         if (pos!=dSDevices.end())
           dev = pos->second;
       }
-      if (!dev) {
-        // not found by dSID, try BusAddress
-        JsonObjectPtr baObj = paramsObj->get("BusAddress");
-        if (baObj) {
-          doesAddressDevice = true;
-          BusAddressMap::iterator pos = busDevices.find(baObj->int32Value());
-          if (pos!=busDevices.end())
-            dev = pos->second;
-        }
-      }
     }
     // dev now set to target device if one could be found
     if (dev) {
       // check operations targeting a device
       if (o=="deviceregistrationack") {
         dev->confirmRegistration(paramsObj);
-        // %%% TODO: probably remove later
-        // save by bus address
-        JsonObjectPtr baObj = paramsObj->get("BusAddress");
-        if (baObj) {
-          busDevices[baObj->int32Value()] = dev;
-        }
         // signal device registered, so next can be issued
         deviceRegistered();
       }

@@ -210,11 +210,6 @@ JsonObjectPtr Device::registrationParams()
 
 void Device::confirmRegistration(JsonObjectPtr aParams)
 {
-  // get the parameters
-  JsonObjectPtr o = aParams->get("BusAddress");
-  if (o) {
-    busAddress = o->int32Value();
-  }
   // have behaviour look at this
   behaviourP->confirmRegistration(aParams);
   // registered now
