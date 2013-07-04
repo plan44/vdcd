@@ -39,7 +39,7 @@ namespace p44 {
     SocketCommErrorOK,
     SocketCommErrorNoParams, ///< parameters missing to even try initiating connection
     SocketCommErrorCannotResolveHost, ///< host cannot be resolved
-    SocketCommErrorConnecting, ///< connection could not be established
+    SocketCommErrorNoConnection, ///< no connection could be established (none of the addresses worked)
     SocketCommErrorHungUp, ///< other side closed connection (hung up, HUP)
     SocketCommErrorClosed, ///< closed from my side
     SocketCommErrorFDErr, ///< error on file descriptor
@@ -73,6 +73,8 @@ namespace p44 {
     int socketType;
     int protocol;
     // connection internals
+    struct addrinfo *addressInfoList; ///< list of possible connection addresses
+    struct addrinfo *currentAddressInfo; ///< address currently connecting to
     bool isConnecting; ///< in progress of opening connection
     bool connectionOpen;
     int connectionFd;
@@ -150,6 +152,9 @@ namespace p44 {
 
 
   private:
+    void freeAddressInfo();
+    ErrorPtr connectionError();
+    ErrorPtr connectNextAddress();
     bool connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
     void internalCloseConnection();
     bool dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);

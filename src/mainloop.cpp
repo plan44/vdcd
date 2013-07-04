@@ -335,9 +335,13 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
       struct pollfd *pollfdP = &pollFds[i];
       if (pollfdP->revents) {
         // an event has occurred for this FD
-        SyncIOHandler h = syncIOHandlers[pollfdP->fd];
-        if (h.pollHandler(this, cycleStartTime, pollfdP->fd, pollfdP->revents))
-          didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
+        // - get handler, note that it might have been deleted in the meantime
+        SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
+        if (pos!=syncIOHandlers.end()) {
+          // - there is a handler
+          if (pos->second.pollHandler(this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+            didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
+        }
       }
     }
   }

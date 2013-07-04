@@ -210,12 +210,12 @@ void DeviceContainer::vdsmConnStatusHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // vdSM connection successfully opened
-    LOG(LOG_DEBUG, "++++++++++++++ Connection to vdSM established\n");
+    LOG(LOG_NOTICE, "++++++++++++++ Connection to vdSM established\n");
     #warning "// TODO: initiate vDC/device sessions
   }
   else {
     // error on vdSM connection, was closed
-    LOG(LOG_DEBUG, "-------------- Connection to vdSM terminated: %s\n\n", aError->description().c_str());
+    LOG(LOG_NOTICE, "-------------- Connection to vdSM terminated: %s\n\n", aError->description().c_str());
     #warning "// TODO: terminate vDC/device sessions
     // re-initiate connection in a while
     MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 10*Second);

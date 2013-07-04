@@ -17,6 +17,8 @@ SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
   connectionOpen(false),
   isConnecting(false),
   connectionFd(-1),
+  addressInfoList(NULL),
+  currentAddressInfo(NULL),
   mainLoopP(aMainLoopP)
 {
 }
@@ -45,66 +47,30 @@ ErrorPtr SocketComm::initiateConnection()
   ErrorPtr err;
 
   if (!connectionOpen && !isConnecting) {
+    freeAddressInfo();
     if (hostNameOrAddress.empty()) {
       err = ErrorPtr(new SocketCommError(SocketCommErrorNoParams,"Missing connection parameters"));
       goto done;
     }
     // try to resolve host name
-    struct addrinfo *addressInfoP;
     struct addrinfo hint;
     memset(&hint, 0, sizeof(addrinfo));
     hint.ai_flags = 0; // no flags
     hint.ai_family = protocolFamily;
     hint.ai_socktype = socketType;
     hint.ai_protocol = protocol;
-    res = getaddrinfo(hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), &hint, &addressInfoP);
+    res = getaddrinfo(hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), &hint, &addressInfoList);
     if (res!=0) {
       // error
       err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolveHost, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
       goto done;
     }
-    // try to create a connection
-    int socketFD = -1;
-    struct addrinfo *aiP;
-    for (aiP = addressInfoP; aiP!=NULL; aiP = aiP->ai_next) {
-      socketFD = socket(aiP->ai_family, aiP->ai_socktype, aiP->ai_protocol);
-      if (socketFD==-1)
-        continue; // can't create socket with this address
-      // socket created
-      // - make socket non-blocking
-      int flags;
-      if ((flags = fcntl(socketFD, F_GETFL, 0))==-1)
-        flags = 0;
-      fcntl(socketFD, F_SETFL, flags | O_NONBLOCK);
-      // - initiate connection
-      res = connect(socketFD, aiP->ai_addr, aiP->ai_addrlen);
-      if (res==0 || errno==EINPROGRESS) {
-        // connection initiated (or already open, but connectionMonitorHandler will take care in both cases)
-        LOG(LOG_NOTICE, "Connection to %s:%s initiated\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
-        isConnecting = true;
-        break;
-      }
-      // remember error...
-      err = SysError::errNo("SocketComm: cannot initiate socket connection: ");
-      close(socketFD);
-      // ..but retry other addresses before giving up
-    }
-    freeaddrinfo(addressInfoP);
-    if (isConnecting) {
-      // connecting
-      // - save FD
-      connectionFd = socketFD;
-      // - register callbacks to get notified when connection is established
-      mainLoopP->registerPollHandler(
-        connectionFd,
-        POLLOUT|POLLERR,
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
-      );
-    }
-    else {
-      // not connecting, initiation failed
-      LOG(LOG_NOTICE, "Failed initiating connection to %s:%s : %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    }
+    // now try all addresses in the list
+    // - init iterator pointer
+    currentAddressInfo = addressInfoList;
+    // - try connecting first address
+    LOG(LOG_DEBUG, "Initiating connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    err = connectNextAddress();
   }
 done:
   if (!Error::isOK(err) && connectionStatusHandler) {
@@ -115,14 +81,118 @@ done:
 }
 
 
+void SocketComm::freeAddressInfo()
+{
+  if (!currentAddressInfo && addressInfoList) {
+    // entire list consumed, free it
+    freeaddrinfo(addressInfoList);
+    addressInfoList = NULL;
+  }
+}
+
+
+ErrorPtr SocketComm::connectNextAddress()
+{
+  int res;
+  ErrorPtr err;
+
+  // close possibly not fully open connection FD
+  internalCloseConnection();
+  // try to create a socket
+  int socketFD = -1;
+  // as long as we have more addresses to check and not already connecting
+  bool connectingAgain = false;
+  while (currentAddressInfo && !connectingAgain) {
+    err.reset();
+    socketFD = socket(currentAddressInfo->ai_family, currentAddressInfo->ai_socktype, currentAddressInfo->ai_protocol);
+    if (socketFD==-1) {
+      err = SysError::errNo("Cannot create socket: ");
+    }
+    else {
+      // usable address found, socket created
+      // - make socket non-blocking
+      int flags;
+      if ((flags = fcntl(socketFD, F_GETFL, 0))==-1)
+        flags = 0;
+      fcntl(socketFD, F_SETFL, flags | O_NONBLOCK);
+      // - initiate connection
+      res = connect(socketFD, currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen);
+      LOG(LOG_DEBUG, "- Attempting connection with address family = %d, protocol = %d\n", currentAddressInfo->ai_family, currentAddressInfo->ai_protocol);
+      if (res==0 || errno==EINPROGRESS) {
+        // connection initiated (or already open, but connectionMonitorHandler will take care in both cases)
+        connectingAgain = true;
+      }
+      else {
+        // immediate error connecting
+        err = SysError::errNo("Cannot connect: ");
+      }
+    }
+    // advance to next address
+    currentAddressInfo = currentAddressInfo->ai_next;
+  }
+  if (!connectingAgain) {
+    // exhausted addresses without starting to connect
+    if (!err) err = ErrorPtr(new SocketCommError(SocketCommErrorNoConnection, "No connection could be established"));
+    LOG(LOG_DEBUG, "Cannot initiate connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+  }
+  else {
+    // connection in progress
+    isConnecting = true;
+    // - save FD
+    connectionFd = socketFD;
+    // - install callback for when FD becomes writable (or errors out)
+    mainLoopP->registerPollHandler(
+      connectionFd,
+      POLLOUT,
+      boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
+    );
+  }
+  // clean up if list processed
+  freeAddressInfo();
+  // return status
+  return err;
+}
+
+
+
+ErrorPtr SocketComm::connectionError()
+{
+  ErrorPtr err;
+  int result;
+  socklen_t result_len = sizeof(result);
+  if (getsockopt(connectionFd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0) {
+    // error, fail somehow, close socket
+    err = SysError::errNo("Cant get socket error status: ");
+  }
+  else {
+    err = SysError::err(result, "Socket Error status: ");
+  }
+  return err;
+}
+
+
 
 bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
+  ErrorPtr err;
   if ((aPollFlags & POLLOUT) && isConnecting) {
-    // connecting, became ready for write: connection is open now
+    // became writable, check status
+    err = connectionError();
+  }
+  else if (aPollFlags & POLLHUP) {
+    err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp, "Connection HUP while opening (= connection rejected)"));
+  }
+  else if (aPollFlags & POLLERR) {
+    err = connectionError();
+  }
+  // now check if successful
+  if (Error::isOK(err)) {
+    // successfully connected
     connectionOpen = true;
     isConnecting = false;
-    LOG(LOG_NOTICE, "Connection to %s:%s established\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    currentAddressInfo = NULL; // no more addresses to check
+    freeAddressInfo();
+    LOG(LOG_DEBUG, "Connection to %s:%s established\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     // call handler if defined
     if (connectionStatusHandler) {
       // connection ok
@@ -137,26 +207,21 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
     );
   }
   else {
-    // must be error, close connection
-    ErrorPtr err;
-    if (aPollFlags & POLLHUP) {
-      err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp, "Connection HUP while opening (= connection rejected)"));
-    }
-    else if (aPollFlags & POLLIN) {
-      // try to get real error code
-      if (read(connectionFd,NULL,0)<0)
-        err = SysError::errNo("Connection attempt failed: ");
-    }
-    if (!err) {
-      // no specific error, use general one
-      err = ErrorPtr(new SocketCommError(SocketCommErrorConnecting, "Connection attempt failed"));
-    }
-    LOG(LOG_WARNING, "Connection attempt to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    internalCloseConnection();
-    if (connectionStatusHandler) {
-      connectionStatusHandler(this, err);
+    // this attempt has failed, try next (if any)
+    LOG(LOG_DEBUG, "- Connection attempt failed: %s\n", err->description().c_str());
+    // this will return no error if we have another address to try
+    err = connectNextAddress();
+    if (err) {
+      // no next attempt started, report error
+      LOG(LOG_WARNING, "Connection to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      internalCloseConnection();
+      if (connectionStatusHandler) {
+        connectionStatusHandler(this, err);
+      }
+      freeAddressInfo();
     }
   }
+  // handled
   return true;
 }
 
@@ -179,14 +244,16 @@ bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aC
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
     transmitHandler(this, ErrorPtr());
   }
-  else {
-    // other event, error
-    ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorFDErr,"Async socket error"));
-    if (receiveHandler) {
-      // report error
-      receiveHandler(this, err);
-    }
+  else if (aPollFlags & POLLERR) {
+    // error
+    ErrorPtr err = connectionError();
     LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+    // - shut down
+    internalCloseConnection();
+    if (connectionStatusHandler) {
+      // report reason for closing
+      connectionStatusHandler(this, err);
+    }
   }
   // handled
   return true;
@@ -212,7 +279,7 @@ void SocketComm::closeConnection()
       // connection ok
       ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
       connectionStatusHandler(this, err);
-      LOG(LOG_WARNING, "Connection to %s:%s explicitly closed\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+      LOG(LOG_NOTICE, "Connection to %s:%s explicitly closed\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     }
   }
 }
