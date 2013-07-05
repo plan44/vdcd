@@ -203,6 +203,7 @@ JsonObjectPtr Device::registrationParams()
   req->add("Version", JsonObject::newInt32(behaviourP->version()));
   req->add("LTMode", JsonObject::newInt32(behaviourP->ltMode()));
   req->add("Mode", JsonObject::newInt32(behaviourP->outputMode()));
+  req->add("buttonIdAndGroup", JsonObject::newInt32(behaviourP->buttonIdGroup()));
   // return it
   return req;
 }

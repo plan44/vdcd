@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.223"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b /dev/cu.usbserial-FTVEQ3US"

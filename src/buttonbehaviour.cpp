@@ -108,6 +108,20 @@ ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
 }
 
 
+
+void ButtonBehaviour::setDeviceColor(DsGroup aColorGroup)
+{
+  // have base class set color
+  inherited::setDeviceColor(aColorGroup);
+  // adjust default
+  if (deviceColorGroup==group_black_joker)
+    buttonSettings.buttonFunction = buttonfunc_app; // black devices have an App button by default
+  else
+    buttonSettings.buttonFunction = buttonfunc_room_preset0x; // all others are room button
+}
+
+
+
 void ButtonBehaviour::setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal)
 {
   hardwareButtonType = aButtonType;
@@ -498,8 +512,8 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
 //  "GN-KM200",    0x6001,     200,        0,      16,           70
 //  "SW-KL200",    0x8111,     5320,       0,      41,           0
 //  "SW-KL210",    0x8111,     3273,       0,      40,           0
-//  "SW-TKM200",   0x8102,     1224,       0,      0,            0
-//  "SW-TKM210",   0x8103,     1234,       0,      0,            0
+//  "SW-TKM210",   0x8102,     1234,       0,      0,            0
+//  "SW-TKM200",   0x8103,     1224,       0,      0,            0
 
 
 uint16_t ButtonBehaviour::functionId()
@@ -516,14 +530,15 @@ uint16_t ButtonBehaviour::functionId()
 
 uint16_t ButtonBehaviour::productId()
 {
-  return 200; // dummy product ID
+#warning // TODO: just faking a SW-TKM210
+  return 1234; // SW-TKM210
 }
 
 
 uint16_t ButtonBehaviour::version()
 {
-#warning // TODO: just faking a >=3.5.0 version because only those have KEYSTATE
-  return 0x0350;
+#warning // TODO: just faking a 3.5.2 version because our real SW-TKM210 has that version
+  return 0x0352;
 }
 
 
@@ -548,6 +563,21 @@ uint8_t ButtonBehaviour::buttonIdGroup()
 
 
 #pragma mark - interaction with digitalSTROM system
+
+
+// handle message from vdSM
+ErrorPtr ButtonBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
+{
+  ErrorPtr err;
+  if (aOperation=="callscene") {
+    // NOP for button
+  }
+  else {
+    err = inherited::handleMessage(aOperation, aParams);
+  }
+  return err;
+}
+
 
 // LTNUMGRP0
 //  Bits 4..7: Button group/color

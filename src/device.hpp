@@ -63,7 +63,7 @@ namespace p44 {
     /// @{
 
     /// set basic device color to represent in identification for digitalSTROM system
-    void setDeviceColor(DsGroup aColorGroup);
+    virtual void setDeviceColor(DsGroup aColorGroup);
 
     /// @}
 
