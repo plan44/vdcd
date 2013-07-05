@@ -12,8 +12,8 @@
 #include "p44bridged_common.hpp"
 
 #include "jsoncomm.hpp"
-
 #include "persistentparams.hpp"
+#include "dsid.hpp"
 
 using namespace std;
 
@@ -89,7 +89,7 @@ namespace p44 {
     LocalSwitchOutputCB localSwitchOutputCallback;
 
     bool collecting;
-    long registeringTicket;
+    long announcementTicket;
 
   private:
 
@@ -99,6 +99,9 @@ namespace p44 {
   public:
 
     DeviceContainer();
+
+    /// the digitalstrom ID
+    dSID containerDsid;
 
     /// the list of containers
     ContainerList deviceClassContainers;
@@ -132,9 +135,14 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
     void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    /// register all unregistered devices
-    void registerDevices(MLMicroSeconds aLastRegBefore = Never);
+    /// start vDC session (say Hello to the vdSM)
+    void startContainerSession();
 
+    /// end vDC session
+    void endContainerSession();
+
+    /// announce all not-yet announced devices to the vdSM
+    void announceDevices();
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dsid
@@ -190,7 +198,7 @@ namespace p44 {
 
   private:
   
-    void deviceRegistered();
+    void deviceAnnounced();
 
     void initiateVdsmConnection();
     void vdsmConnStatusHandler(ErrorPtr aError);

@@ -36,7 +36,7 @@ DSBehaviour::~DSBehaviour()
 }
 
 
-
+#warning "// TODO: remove when new vDC API is implemented"
 void DSBehaviour::confirmRegistration(JsonObjectPtr aParams)
 {
   // - group membership
@@ -144,9 +144,8 @@ bool DSBehaviour::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
-  registered(Never),
-  registering(Never),
-  busAddress(0),
+  announced(Never),
+  announcing(Never),
   classContainerP(aClassContainerP),
   behaviourP(NULL)
 {
@@ -193,10 +192,11 @@ void Device::pong()
 
 JsonObjectPtr Device::registrationParams()
 {
+  // TODO: %%% prelim, not needed any more for new API
   // create the registration request
   JsonObjectPtr req = JsonObject::newObj();
   // add the parameters
-  req->add("dSID", JsonObject::newString(dsid.getString()));
+  req->add("dSidentifier", JsonObject::newString(dsid.getString()));
   req->add("VendorId", JsonObject::newInt32(1)); // TODO: %%% luz: must be 1=aizo, dsa cannot expand other ids so far
   req->add("FunctionId", JsonObject::newInt32(behaviourP->functionId()));
   req->add("ProductId", JsonObject::newInt32(behaviourP->productId()));
@@ -208,13 +208,14 @@ JsonObjectPtr Device::registrationParams()
 }
 
 
-void Device::confirmRegistration(JsonObjectPtr aParams)
+void Device::announcementAck(JsonObjectPtr aParams)
 {
   // have behaviour look at this
+  // TODO: %%% prelim, not needed any more for new API
   behaviourP->confirmRegistration(aParams);
   // registered now
-  registered = MainLoop::now();
-  registering = Never;
+  announced = MainLoop::now();
+  announcing = Never;
 }
 
 //  if request['operation'] == 'DeviceRegistrationAck':
@@ -370,9 +371,6 @@ ErrorPtr Device::getDeviceParam(const string &aParamName, int aArrayIndex, uint3
     // TODO: this only works for dsids in the dSD class
     aValue = (uint32_t)dsid.getSerialNo();
   }
-  else if (aParamName=="ADR") {
-    aValue = busAddress;
-  }
   else if (aParamName=="GRP") {
     #warning "// TODO: what is the structure of this group membership mask"
     aValue = 0; //%%% wrong
@@ -411,10 +409,7 @@ bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
     aParams = JsonObject::newObj();
   }
   // add dsid and bus address parameters
-  aParams->add("dSID", JsonObject::newString(dsid.getString()));
-  if (registered) {
-    aParams->add("BusAddress", JsonObject::newInt32(busAddress));
-  }
+  aParams->add("dSidentifier", JsonObject::newString(dsid.getString()));
   // have device container send it
   return classContainerP->getDeviceContainer().sendMessage(aOperation, aParams);
 }
@@ -462,10 +457,10 @@ string Device::shortDesc()
 string Device::description()
 {
   string s = string_format("Device %s", shortDesc().c_str());
-  if (registered)
-    string_format_append(s, " (BusAddress %d)", busAddress);
+  if (announced!=Never)
+    string_format_append(s, " (Announced %lld)", announced);
   else
-    s.append(" (unregistered)");
+    s.append(" (not yet announced)");
   s.append("\n");
   if (behaviourP) {
     string_format_append(s, "- Button: %d/%d, DSBehaviour : %s\n", getButtonIndex()+1, getNumButtons(), behaviourP->shortDesc().c_str());

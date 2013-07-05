@@ -126,10 +126,8 @@ namespace p44 {
   {
     friend class DeviceContainer;
     
-    MLMicroSeconds registered; ///< set when registered by dS system
-    MLMicroSeconds registering; ///< set when registration has been started (but not yet confirmed)
-    /// TODO: %%% old vDSM interface, hope we get rid of the bus address later
-    uint32_t busAddress;
+    MLMicroSeconds announced; ///< set when last announced to the vdSM
+    MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
 
     DSBehaviour *behaviourP; ///< private owned instance of the behaviour, set right after creation
   protected:
@@ -169,8 +167,8 @@ namespace p44 {
     /// @return JSON object containing the parameters
     JsonObjectPtr registrationParams();
 
-    /// Confirm registration
-    void confirmRegistration(JsonObjectPtr aParams);
+    /// acknowledge announcement
+    void announcementAck(JsonObjectPtr aParams);
 
 
     /// handle message from vdSM
