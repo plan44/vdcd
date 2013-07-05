@@ -109,6 +109,7 @@ namespace p44 {
 
     /// callback function for sendBridgeCommand
     typedef boost::function<void (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
+
     /// Send DALI command to bridge
     /// @param aCmd bridge command byte
     /// @param aDali1 first DALI byte
@@ -128,14 +129,17 @@ namespace p44 {
     /// @param aDali2 second DALI byte
     /// @param aStatusCB status callback
     void daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aPower Arc power
     /// @param aStatusCB status callback
     void daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aStatusCB status callback
     void daliSendCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aDTRValue the value to be sent to DTR before executing aCommand
@@ -148,24 +152,33 @@ namespace p44 {
     /// @param aDali2 second DALI byte
     /// @param aStatusCB status callback
     void daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+
     /// Send DALI config command (send twice within 100ms)
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aStatusCB status callback
     void daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
+    /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
+    /// @param aCommand command
+    /// @param aDTRValue the value to be sent to DTR before executing aCommand
+    /// @param aStatusCB status callback
+    void daliSendDtrAndConfigCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// callback function for daliSendXXX methods returning data
     typedef boost::function<void (DaliComm *aDaliCommP, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)> DaliQueryResultCB;
+
     /// Send DALI command and expect answer byte
     /// @param aDali1 first DALI byte
     /// @param aDali2 second DALI byte
     /// @param aResultCB result callback
     void daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB, int aWithDelay = -1);
+
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aResultCB result callback
     void daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB, int aWithDelay = -1);
+
     /// helper to check daliSendQuery() callback response for a DALI YES answer
     static bool isYes(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr &aError, bool aCollisionIsYes);
 
@@ -173,6 +186,7 @@ namespace p44 {
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @return first DALI byte for use in daliSend/daliSendTwice
     static uint8_t dali1FromAddress(DaliAddress aAddress);
+
     /// utility function to decode address byte
     /// @param DALI-style bAAAAAAx address byte, as returned by some query commands
     /// @return DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
@@ -187,9 +201,11 @@ namespace p44 {
     typedef boost::shared_ptr<ShortAddressList> ShortAddressListPtr;
     /// callback function for daliScanBus
     typedef boost::function<void (DaliComm *aDaliCommP, ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
+
     /// Scan the bus for active devices (short address)
     /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
     void daliBusScan(DaliBusScanCB aResultCB);
+
     /// Scan the bus for devices by random address search
     /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
     /// @param aFullScanOnlyIfNeeded
@@ -198,7 +214,9 @@ namespace p44 {
 
 
     typedef boost::shared_ptr<std::vector<uint8_t> > MemoryVectorPtr;
+
     /// callback function for daliReadMemory
+
     typedef boost::function<void (DaliComm *aDaliCommP, MemoryVectorPtr aMemoryVectorPtr, ErrorPtr aError)> DaliReadMemoryCB;
     /// Read DALI memory
     /// @param aResultCB callback receiving the data read as a vector<uint8_t>
@@ -212,8 +230,10 @@ namespace p44 {
 
 
     typedef boost::shared_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
+
     /// callback function for daliReadDeviceInfo
     typedef boost::function<void (DaliComm *aDaliCommP, DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;
+
     /// Read DALI device info
     /// @param aResultCB callback receiving the device info record
     /// @param aAddress short address of device to read device info from

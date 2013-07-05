@@ -38,10 +38,12 @@
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
 		EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
+		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
 		EDCFE85D171FFAF6001D35F3 /* dsid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsid.cpp */; };
 		EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
+		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -100,7 +102,7 @@
 		ED5B29391749446200334C71 /* lightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lightbehaviour.cpp; sourceTree = "<group>"; };
 		ED5B293A1749446300334C71 /* lightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lightbehaviour.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dsdefs.h; sourceTree = "<group>"; };
-		ED6D7BDB1716B63A005DED18 /* p44bridged */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44bridged; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BEA1716B6B1005DED18 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -120,6 +122,10 @@
 		EDB284491733B59500EAE5DE /* serialcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = serialcomm.hpp; sourceTree = "<group>"; };
 		EDB2844B1733DE2900EAE5DE /* gpio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gpio.cpp; sourceTree = "<group>"; };
 		EDB2844C1733DE2A00EAE5DE /* gpio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = gpio.hpp; sourceTree = "<group>"; };
+		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = consoledevice.cpp; sourceTree = "<group>"; };
+		EDC1166B177EDC1800F27115 /* consoledevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = consoledevice.hpp; sourceTree = "<group>"; };
+		EDC1166C177EDDDF00F27115 /* consolekey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consolekey.cpp; sourceTree = "<group>"; };
+		EDC1166D177EDDDF00F27115 /* consolekey.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = consolekey.hpp; sourceTree = "<group>"; };
 		EDCFE855171FE841001D35F3 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = device.cpp; sourceTree = "<group>"; };
 		EDCFE856171FE841001D35F3 /* device.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = device.hpp; sourceTree = "<group>"; };
 		EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dalidevice.cpp; sourceTree = "<group>"; };
@@ -179,7 +185,7 @@
 		ED6D7BDC1716B63A005DED18 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				ED6D7BDB1716B63A005DED18 /* p44bridged */,
+				ED6D7BDB1716B63A005DED18 /* vdcd */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -202,6 +208,8 @@
 				ED0E441D1732FE4F00C4C283 /* application.hpp */,
 				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
 				EDB2844C1733DE2A00EAE5DE /* gpio.hpp */,
+				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
+				EDC1166D177EDDDF00F27115 /* consolekey.hpp */,
 				ED5B2933174124D300334C71 /* sqlite3persistence.cpp */,
 				ED5B2934174124D400334C71 /* sqlite3persistence.hpp */,
 				ED17F4C61769F51D0076B47C /* persistentparams.cpp */,
@@ -235,6 +243,8 @@
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
 				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
 				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
+				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
+				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
 				ED4C1442174EB9550037ED0C /* gpiodevice.cpp */,
 				ED4C1444174EB9650037ED0C /* gpiodevice.hpp */,
 				ED70716E171D428A00752E4D /* dalidefs.h */,
@@ -259,26 +269,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		EDCFE861172125F7001D35F3 /* p44bridged doxygen */ = {
+		EDCFE861172125F7001D35F3 /* vdcd doxygen */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "";
-			buildConfigurationList = EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */;
+			buildConfigurationList = EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */;
 			buildPhases = (
 			);
 			buildToolPath = ./xcode_docset_doxygen.sh;
 			buildWorkingDirectory = "$(PROJECT_DIR)";
 			dependencies = (
 			);
-			name = "p44bridged doxygen";
+			name = "vdcd doxygen";
 			passBuildSettingsInEnvironment = 1;
 			productName = "p44bridged doxygen";
 		};
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
-		ED6D7BDA1716B63A005DED18 /* p44bridged */ = {
+		ED6D7BDA1716B63A005DED18 /* vdcd */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "p44bridged" */;
+			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */;
 			buildPhases = (
 				ED6D7BD71716B63A005DED18 /* Sources */,
 				ED6D7BD81716B63A005DED18 /* Frameworks */,
@@ -288,9 +298,9 @@
 			);
 			dependencies = (
 			);
-			name = p44bridged;
+			name = vdcd;
 			productName = p44bridged;
-			productReference = ED6D7BDB1716B63A005DED18 /* p44bridged */;
+			productReference = ED6D7BDB1716B63A005DED18 /* vdcd */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -302,7 +312,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = plan44.ch;
 			};
-			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "p44bridged" */;
+			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -314,8 +324,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				ED6D7BDA1716B63A005DED18 /* p44bridged */,
-				EDCFE861172125F7001D35F3 /* p44bridged doxygen */,
+				ED6D7BDA1716B63A005DED18 /* vdcd */,
+				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
 			);
 		};
 /* End PBXProject section */
@@ -331,6 +341,7 @@
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* devicecontainer.cpp in Sources */,
+				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
 				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
@@ -340,6 +351,7 @@
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
+				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
@@ -434,14 +446,14 @@
 		ED6D7BE51716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = vdcd;
 			};
 			name = Debug;
 		};
 		ED6D7BE61716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = vdcd;
 			};
 			name = Release;
 		};
@@ -453,7 +465,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "vdcd doxygen";
 			};
 			name = Debug;
 		};
@@ -462,14 +474,14 @@
 			buildSettings = {
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "vdcd doxygen";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "p44bridged" */ = {
+		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				ED6D7BE21716B63A005DED18 /* Debug */,
@@ -478,7 +490,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "p44bridged" */ = {
+		ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				ED6D7BE51716B63A005DED18 /* Debug */,
@@ -487,7 +499,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "p44bridged doxygen" */ = {
+		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EDCFE863172125F7001D35F3 /* Debug */,

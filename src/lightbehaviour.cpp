@@ -52,6 +52,7 @@ typedef struct {
 
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
+  // { sceneValue, dimTimeSelector, flashing, ignoreLocalPriority, dontCare, specialBehaviour }
   { 0, 1, false, false, false, false }, // 0 : Preset 0 - T0_S0
   { 0, 1, false, true, false, false }, // 1 : Area 1 Off - T1_S0
   { 0, 1, false, true, false, false }, // 2 : Area 2 Off - T2_S0
@@ -476,10 +477,15 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
 }
 
 
-void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
+void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, Brightness aMax)
 {
-  if (aBrightness<lightSettings.minDim) {
-    lightSettings.minDim = aBrightness;
+  // save current brightness
+  logicalBrightness = aCurrent;
+  if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
+
+  if (aMin!=lightSettings.minDim || aMax!=lightSettings.maxDim) {
+    lightSettings.maxDim = aMax;
+    lightSettings.minDim = aMin>0 ? aMin : 1; // never below 1
     lightSettings.markDirty();
   }
 }
@@ -539,8 +545,8 @@ void LightBehaviour::setMinimalBrightness(Brightness aBrightness)
 //  "GN-KM200",    0x6001,     200,        0,      16,           70
 //  "SW-KL200",    0x8111,     5320,       0,      41,           0
 //  "SW-KL210",    0x8111,     3273,       0,      40,           0
-//  "SW-TKM200",   0x8102,     1224,       0,      0,            0
-//  "SW-TKM210",   0x8103,     1234,       0,      0,            0
+//  "SW-TKM210",   0x8102,     1234,       0,      0,            0
+//  "SW-TKM200",   0x8103,     1224,       0,      0,            0
 
 
 
@@ -694,10 +700,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
     nextBlink();
   }
   else {
-    err = ErrorPtr(new vdSMError(
-      vdSMErrorUnknownDeviceOperation,
-      string_format("unknown light behaviour operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
-    ));
+    err = inherited::handleMessage(aOperation, aParams);
   }
   return err;
 }

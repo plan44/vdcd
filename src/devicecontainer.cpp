@@ -18,15 +18,31 @@
 
 #include "device.hpp"
 
+#include "fnv.hpp"
+
 using namespace p44;
 
 
 DeviceContainer::DeviceContainer() :
   vdsmJsonComm(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
-  registeringTicket(0)
+  announcementTicket(0)
 {
   vdsmJsonComm.setMessageHandler(boost::bind(&DeviceContainer::vdsmMessageHandler, this, _2, _3));
+  #warning "// TODO: %%%% use final dsid scheme"
+  // create a hash of the deviceContainerInstanceIdentifier
+  string s = deviceContainerInstanceIdentifier();
+  Fnv64 hash;
+  hash.addBytes(s.size(), (uint8_t *)s.c_str());
+  #if FAKE_REAL_DSD_IDS
+  containerDsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  containerDsid.setSerialNo(hash.getHash32());
+  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+  #else
+  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  containerDsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+  containerDsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+  #endif
 }
 
 
@@ -42,7 +58,6 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 {
   string identifier;
 
-  //
   struct ifreq ifr;
   struct ifconf ifc;
   char buf[1024];
@@ -184,11 +199,10 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // try to open connection to vdsm
-  ErrorPtr err = vdsmJsonComm.openConnection();
-  if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "Cannot open connection to vdsm: %s\n", err->description().c_str());
-  }
+  // install a connection handler
+  vdsmJsonComm.setConnectionStatusHandler(boost::bind(&DeviceContainer::vdsmConnStatusHandler, this, _2));
+  // try to initiate connection to vdsm, connectionStatusHandler will take care of retries etc.
+  initiateVdsmConnection();
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
@@ -196,6 +210,33 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
   // start initialisation of class containers
   DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
+}
+
+
+
+void DeviceContainer::initiateVdsmConnection()
+{
+  LOG(LOG_DEBUG, ".............. Initiating connection to vdSM\n");
+  vdsmJsonComm.initiateConnection();
+}
+
+
+void DeviceContainer::vdsmConnStatusHandler(ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    // vdSM connection successfully opened
+    LOG(LOG_NOTICE, "++++++++++++++ Connection to vdSM established\n");
+    // start container session
+    startContainerSession();
+  }
+  else {
+    // error on vdSM connection, was closed
+    LOG(LOG_NOTICE, "-------------- Connection to vdSM terminated: %s\n\n", aError->description().c_str());
+    // end container session
+    endContainerSession();
+    // re-initiate connection in a while
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 10*Second);
+  }
 }
 
 
@@ -309,7 +350,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   aDevice->load();
   // unless collecting now, register new device right away
   if (!collecting) {
-    registerDevices();
+    announceDevices();
   }
 }
 
@@ -325,9 +366,12 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     // save, as we don't want to forget the settings associated with the device
     aDevice->save();
   }
+  // send vanish message
+  JsonObjectPtr params = JsonObject::newObj();
+  params->add("dSidentifier", JsonObject::newString(aDevice->dsid.getString()));
+  sendMessage("Vanish", params);
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
-  busDevices.erase(aDevice->busAddress);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
   // TODO: maybe unregister from vdSM???
 }
@@ -345,7 +389,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
   MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
   if (!collecting) {
     // check for devices that need registration
-    registerDevices();
+    announceDevices();
     // do a save run as well
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       pos->second->save();
@@ -377,7 +421,7 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
     bool doesAddressDevice = false;
     if (paramsObj) {
       // first check for dSID
-      JsonObjectPtr dsidObj = paramsObj->get("dSID");
+      JsonObjectPtr dsidObj = paramsObj->get("dSidentifier");
       if (dsidObj) {
         string s = dsidObj->stringValue();
         dSID dsid(s);
@@ -386,30 +430,14 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
         if (pos!=dSDevices.end())
           dev = pos->second;
       }
-      if (!dev) {
-        // not found by dSID, try BusAddress
-        JsonObjectPtr baObj = paramsObj->get("BusAddress");
-        if (baObj) {
-          doesAddressDevice = true;
-          BusAddressMap::iterator pos = busDevices.find(baObj->int32Value());
-          if (pos!=busDevices.end())
-            dev = pos->second;
-        }
-      }
     }
     // dev now set to target device if one could be found
     if (dev) {
       // check operations targeting a device
       if (o=="deviceregistrationack") {
-        dev->confirmRegistration(paramsObj);
-        // %%% TODO: probably remove later
-        // save by bus address
-        JsonObjectPtr baObj = paramsObj->get("BusAddress");
-        if (baObj) {
-          busDevices[baObj->int32Value()] = dev;
-        }
+        dev->announcementAck(paramsObj);
         // signal device registered, so next can be issued
-        deviceRegistered();
+        deviceAnnounced();
       }
       else {
         // just forward message to device
@@ -434,7 +462,7 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
     LOG(LOG_ERR, "vdSM message processing error: %s\n", err->description().c_str());
     // send back error response
     JsonObjectPtr params = JsonObject::newObj();
-    params->add("BusAddress", JsonObject::newInt32(0));
+    params->add("dSidentifier", JsonObject::newString(containerDsid.getString()));
     params->add("Message", JsonObject::newString(err->description()));
     sendMessage("Error", params);
   }
@@ -470,43 +498,70 @@ void DeviceContainer::localSwitchOutput(const dSID &aDsid, bool aNewOutState)
 
 
 
-#pragma mark - registration
+#pragma mark - session management
+
+
+/// start vDC session (say Hello to the vdSM)
+void DeviceContainer::startContainerSession()
+{
+  // end previous container session first (set all devices unannounced)
+  endContainerSession();
+  // send Hello
+  JsonObjectPtr params = JsonObject::newObj();
+  params->add("dSidentifier", JsonObject::newString(containerDsid.getString()));
+  params->add("APIVersion", JsonObject::newInt32(1)); // TODO: %%% luz: must be 1=aizo, dsa cannot expand other ids so far
+  sendMessage("Hello", params);
+  #warning "For now, vdSM does not understand Hello, so we are not waiting for an answer yet"
+  // %%% continue with announcing devices
+  announceDevices();
+}
+
+
+/// end vDC session
+void DeviceContainer::endContainerSession()
+{
+  // end pending announcement
+  MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
+  // end all device sessions
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    dev->announced = Never;
+    dev->announcing = Never;
+  }
+}
+
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define REGISTRATION_TIMEOUT (15*Second)
 
-// how long until a not acknowledged registration for a device is retried again for the same device
-#ifdef DEBUG
-  #warning "%%% HUGE registration timeout!"
-  #define REGISTRATION_RETRY_TIMEOUT (3600ll*Second)
-#else
-  #define REGISTRATION_RETRY_TIMEOUT (60*Second)
-#endif
+// how long until a not acknowledged announcement for a device is retried again for the same device
+#define REGISTRATION_RETRY_TIMEOUT (300*Second)
 
-
-void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
+/// announce all not-yet announced devices to the vdSM
+void DeviceContainer::announceDevices()
 {
-  if (registeringTicket==0 && vdsmJsonComm.connected()) {
-    // check all devices for unregistered ones and register those
+  if (!collecting && announcementTicket==0 && vdsmJsonComm.connected()) {
+    // check all devices for unnannounced ones and announce those
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (
-        dev->isPublicDS(), // only public ones
-        dev->registered<=aLastRegBefore && // no or outdated registration
-        (dev->registering==Never || MainLoop::now()>dev->registering+REGISTRATION_RETRY_TIMEOUT)
+        dev->isPublicDS() && // only public ones
+        dev->announced==Never &&
+        (dev->announcing==Never || MainLoop::now()>dev->announcing+REGISTRATION_RETRY_TIMEOUT)
       ) {
         // mark device as being in process of getting registered
-        dev->registering = MainLoop::now();
+        dev->announcing = MainLoop::now();
         // send registration request
+        #warning "// TODO: for new vDC API, replace this by "Announce" method
         if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
-          LOG(LOG_ERR, "Could not send registration message for device %s\n", dev->shortDesc().c_str());
-          dev->registering = Never; // not registering
+          LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
+          dev->announcing = Never; // not registering
         }
         else {
-          LOG(LOG_INFO, "Sent registration for device %s\n", dev->shortDesc().c_str());
+          LOG(LOG_INFO, "Sent announcement for device %s\n", dev->shortDesc().c_str());
         }
         // don't register too fast, prevent re-registering for a while
-        registeringTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::deviceRegistered, this), REGISTRATION_TIMEOUT);
+        announcementTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::deviceAnnounced, this), REGISTRATION_TIMEOUT);
         // done for now, continues after REGISTRATION_TIMEOUT or when registration acknowledged
         break;
       }
@@ -515,12 +570,12 @@ void DeviceContainer::registerDevices(MLMicroSeconds aLastRegBefore)
 }
 
 
-void DeviceContainer::deviceRegistered()
+void DeviceContainer::deviceAnnounced()
 {
-  MainLoop::currentMainLoop()->cancelExecutionTicket(registeringTicket);
-  registeringTicket = 0;
-  // try next registration
-  registerDevices();
+  MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
+  announcementTicket = 0;
+  // try next announcement
+  announceDevices();
 }
 
 

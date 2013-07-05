@@ -136,7 +136,8 @@ void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
     if (Error::isOK(aError)) {
       // check if all could be sent
       if (sentBytes<jsonSize) {
-        // enable callback for ready-for-send
+        // Not everything (or maybe nothing, transmitBytes() can return 0) was sent
+        // - enable callback for ready-for-send
         setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _2));
         // buffer the rest, canSendData handler will take care of writing it out
         transmitBuffer.assign(json_string.c_str()+sentBytes, jsonSize-sentBytes);

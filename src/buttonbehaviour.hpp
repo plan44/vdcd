@@ -160,6 +160,10 @@ namespace p44 {
 
     /// @name interface towards actual device hardware (or simulation)
 
+
+    /// set basic device color
+    virtual void setDeviceColor(DsGroup aColorGroup);
+
     /// set hardware button characteristics
     void setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal);
 
@@ -189,8 +193,7 @@ namespace p44 {
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none
     /// @return Error object if message generated an error
-    // TODO: delete if button does not need to handle any message
-    //virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
 
     /// get behaviour-specific parameter
     /// @param aParamName name of the parameter

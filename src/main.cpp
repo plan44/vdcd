@@ -51,8 +51,8 @@ class P44bridged : public Application
   // App status
   P44bridgeStatus appStatus;
 
-	// the device container
-	DeviceContainer deviceContainer;
+  // the device container
+  DeviceContainer deviceContainer;
 
   IndicatorOutput redLED;
   IndicatorOutput greenLED;
@@ -84,42 +84,45 @@ public:
   }
 
 
-	void usage(char *name)
-	{
-		fprintf(stderr, "usage:\n");
-		fprintf(stderr, "  %s [options]\n", name);
-		fprintf(stderr, "    -a dalipath : DALI serial port device or DALI proxy ipaddr\n");
-		fprintf(stderr, "    -A daliport : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
-		fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
-		fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
-		fprintf(stderr, "    -c vdsmhost : vdSM hostname/IP\n");
-		fprintf(stderr, "    -C vdsmport : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
-		fprintf(stderr, "    -g gpioname : add static GPIO button device\n");
-		fprintf(stderr, "    -d : fully daemonize\n");
-		fprintf(stderr, "    -w seconds : delay startup\n");
-		fprintf(stderr, "    -l loglevel : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
-		fprintf(stderr, "    -s dirpath : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
-	};
+  void usage(char *name)
+  {
+    fprintf(stderr, "usage:\n");
+    fprintf(stderr, "  %s [options]\n", name);
+    fprintf(stderr, "    -a dalipath    : DALI serial port device or DALI proxy ipaddr\n");
+    fprintf(stderr, "    -A daliport    : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
+    fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
+    fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+    fprintf(stderr, "    -c vdsmhost    : vdSM hostname/IP\n");
+    fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
+    fprintf(stderr, "    -d             : fully daemonize\n");
+    fprintf(stderr, "    -w seconds     : delay startup\n");
+    fprintf(stderr, "    -l loglevel    : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
+    fprintf(stderr, "    -s dirpath     : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
+    fprintf(stderr, "    -g gpio[:[!](in|out)] : add static GPIO input or output device\n");
+    fprintf(stderr, "                     use ! for inverted polarity (default is noninverted input)\n");
+    fprintf(stderr, "    -k name[:(in|out|io)] : add static device which reads and writes console\n");
+    fprintf(stderr, "                     (for inputs: first char of name=action key)\n");
+  };
 
-	virtual int main(int argc, char **argv)
-	{
-		if (argc<2) {
-			// show usage
-			usage(argv[0]);
-			exit(1);
-		}
-		bool daemonMode = false;
+  virtual int main(int argc, char **argv)
+  {
+    if (argc<2) {
+      // show usage
+      usage(argv[0]);
+      exit(1);
+    }
+    bool daemonMode = false;
 
-		char *daliname = NULL;
-		int daliport = DEFAULT_DALIPORT;
+    char *daliname = NULL;
+    int daliport = DEFAULT_DALIPORT;
 
-		char *enoceanname = NULL;
-		int enoceanport = DEFAULT_ENOCEANPORT;
+    char *enoceanname = NULL;
+    int enoceanport = DEFAULT_ENOCEANPORT;
 
-		char *vdsmname = NULL;
-		char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
-		
-		DeviceConfigMap staticDeviceConfigs;
+    char *vdsmname = NULL;
+    char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+    
+    DeviceConfigMap staticDeviceConfigs;
 
     const char *dbdir = DEFAULT_DBDIR;
 
@@ -127,60 +130,63 @@ public:
 
     int startupDelay = 0; // no delay
 
-		int c;
-		while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:l:s:w:")) != -1)
-		{
-			switch (c) {
-				case 'd':
-					daemonMode = true;
-					break;
-				case 'l':
-					loglevel = atoi(optarg);
-					break;
-				case 'a':
-					daliname = optarg;
-					break;
-				case 'A':
-					daliport = atoi(optarg);
-					break;
-				case 'b':
-					enoceanname = optarg;
-					break;
-				case 'B':
-					enoceanport = atoi(optarg);
-					break;
-				case 'c':
-					vdsmname = optarg;
-					break;
-				case 'C':
-					vdsmport = optarg;
-					break;
-				case 'g':
-					staticDeviceConfigs.insert(make_pair("gpio", optarg));
-					break;
-				case 's':
-					dbdir = optarg;
-					break;
+    int c;
+    while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:k:l:s:w:")) != -1)
+    {
+      switch (c) {
+        case 'd':
+          daemonMode = true;
+          break;
+        case 'l':
+          loglevel = atoi(optarg);
+          break;
+        case 'a':
+          daliname = optarg;
+          break;
+        case 'A':
+          daliport = atoi(optarg);
+          break;
+        case 'b':
+          enoceanname = optarg;
+          break;
+        case 'B':
+          enoceanport = atoi(optarg);
+          break;
+        case 'c':
+          vdsmname = optarg;
+          break;
+        case 'C':
+          vdsmport = optarg;
+          break;
+        case 'g':
+          staticDeviceConfigs.insert(make_pair("gpio", optarg));
+          break;
+        case 'k':
+          staticDeviceConfigs.insert(make_pair("console", optarg));
+          break;
+        case 's':
+          dbdir = optarg;
+          break;
         case 'w':
           startupDelay = atoi(optarg);
           break;
-				default:
-					exit(-1);
-			}
-		}
+        default:
+          exit(-1);
+      }
+    }
 
-		// daemonize now if requested and in proxy mode
-		if (daemonMode) {
-			LOG(LOG_NOTICE, "Starting background daemon\n");
-			daemonize();
+    // daemonize now if requested and in proxy mode
+    if (daemonMode) {
+      LOG(LOG_NOTICE, "Starting background daemon\n");
+      daemonize();
       if (loglevel<0) loglevel = DEFAULT_DAEMON_LOGLEVEL;
-		}
-		else {
-		  if (loglevel<0) loglevel = DEFAULT_LOGLEVEL;
-		}
+    }
+    else {
+      if (loglevel<0) loglevel = DEFAULT_LOGLEVEL;
+    }
 
-		// set log level
-		SETLOGLEVEL(loglevel);
+    // set log level
+    SETLOGLEVEL(loglevel);
 
     // before starting anything, delay
     if (startupDelay>0) {
@@ -196,28 +202,28 @@ public:
       deviceContainer.vdsmJsonComm.setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
     }
 
-		// Create static container structure
-		// - Add DALI devices class if DALI bridge serialport/host is specified
-		if (daliname) {
-			daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
-			daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
-			deviceContainer.addDeviceClassContainer(daliDeviceContainer);
-		}
-		// - Add enOcean devices class if enOcean modem serialport/host is specified
-		if (enoceanname) {
-			enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
-			enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
-			deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
-		}
-		// - Add static devices if we have collected any config from the command line
-		if (staticDeviceConfigs.size()>0) {
-			StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
-			deviceContainer.addDeviceClassContainer(staticDeviceContainer);
-		}
+    // Create static container structure
+    // - Add DALI devices class if DALI bridge serialport/host is specified
+    if (daliname) {
+      daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
+      daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
+      deviceContainer.addDeviceClassContainer(daliDeviceContainer);
+    }
+    // - Add enOcean devices class if enOcean modem serialport/host is specified
+    if (enoceanname) {
+      enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
+      enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
+      deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
+    }
+    // - Add static devices if we have collected any config from the command line
+    if (staticDeviceConfigs.size()>0) {
+      StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
+      deviceContainer.addDeviceClassContainer(staticDeviceContainer);
+    }
 
-		// app now ready to run
-		return run();
-	}
+    // app now ready to run
+    return run();
+  }
 
 
   // show global status on LEDs
@@ -283,8 +289,8 @@ public:
   }
 
 
-	virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeStamp)
-	{
+  virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeStamp)
+  {
     // TODO: %%% clean up, test hacks for now
     if (aNewState==false) {
       // released
@@ -301,32 +307,32 @@ public:
         }
       }
     }
-	  return true;
-	}
+    return true;
+  }
 
 
-	virtual void initialize()
-	{
+  virtual void initialize()
+  {
     // connect button
     button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
-		// initialize the device container
-		deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
-	}
-	
-	
-	virtual void initialized(ErrorPtr aError)
-	{
-		if (!Error::isOK(aError)) {
-			// cannot initialize, this is a fatal error
-			setAppStatus(status_fatalerror);
-			// TODO: what should happen next? Wait for restart?
-		}
-		else {
-			// initiate device collection
-			setAppStatus(status_busy);
-			deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
-		}
-	}
+    // initialize the device container
+    deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+  }
+  
+  
+  virtual void initialized(ErrorPtr aError)
+  {
+    if (!Error::isOK(aError)) {
+      // cannot initialize, this is a fatal error
+      setAppStatus(status_fatalerror);
+      // TODO: what should happen next? Wait for restart?
+    }
+    else {
+      // initiate device collection
+      setAppStatus(status_busy);
+      deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+    }
+  }
 
 
   void localSwitchOutputHandler(const dSID &aDsid, bool aOutputOn)
@@ -337,8 +343,8 @@ public:
   }
 
   
-	virtual void devicesCollected(ErrorPtr aError)
-	{
+  virtual void devicesCollected(ErrorPtr aError)
+  {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
       DBGLOG(LOG_INFO, deviceContainer.description().c_str());
@@ -347,17 +353,17 @@ public:
     }
     else
       setAppStatus(status_error);
-	}
+  }
 
 };
 
 
 int main(int argc, char **argv)
 {
-	// create the mainloop
-	SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
-	// create app with current mainloop
-	static P44bridged application;
-	// pass control
-	return application.main(argc, argv);
+  // create the mainloop
+  SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  // create app with current mainloop
+  static P44bridged application;
+  // pass control
+  return application.main(argc, argv);
 }

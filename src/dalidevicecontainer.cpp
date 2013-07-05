@@ -30,8 +30,8 @@ const char *DaliDeviceContainer::deviceClassIdentifier() const
 
 
 #ifdef DEBUG
-  #warning "%%% limiting number of devices"
-  #define MAX_DEVICES_COLLECTED 1
+//  #warning "%%% limiting number of devices"
+//  #define MAX_DEVICES_COLLECTED 1
 #endif
 
 class DaliDeviceCollector

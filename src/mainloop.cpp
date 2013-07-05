@@ -12,7 +12,6 @@
 #include <mach/mach_time.h>
 #endif
 #include <unistd.h>
-#include <sys/select.h>
 #include <sys/param.h>
 
 #pragma mark - MainLoop
@@ -250,57 +249,40 @@ SyncIOMainLoop::SyncIOMainLoop()
 
 
 
-void SyncIOMainLoop::syncIOHandlerForFd(int aFD, SyncIOHandler &h)
+void SyncIOMainLoop::registerPollHandler(int aFD, int aPollFlags, SyncIOCB aPollEventHandler)
+{
+  if (aPollEventHandler.empty())
+    unregisterPollHandler(aFD); // no handler means unregistering handler
+  // register new handler
+  SyncIOHandler h;
+  h.monitoredFD = aFD;
+  h.pollFlags = aPollFlags;
+  h.pollHandler = aPollEventHandler;
+	syncIOHandlers[aFD] = h;
+}
+
+
+void SyncIOMainLoop::changePollFlags(int aFD, int aSetPollFlags, int aClearPollFlags)
 {
   SyncIOHandlerMap::iterator pos = syncIOHandlers.find(aFD);
-  if (pos!=syncIOHandlers.end())
-    h = pos->second;
-  else {
-    h.monitoredFD = aFD;
-    h.readReadyCB = NULL;
-    h.writeReadyCB = NULL;
-    h.errorCB = NULL;
+  if (pos!=syncIOHandlers.end()) {
+    // found fd to set flags for
+    if (aClearPollFlags>=0) {
+      // read modify write
+      // - clear specified flags
+      pos->second.pollFlags &= ~aClearPollFlags;
+      pos->second.pollFlags |= aSetPollFlags;
+    }
+    else {
+      // just set
+      pos->second.pollFlags = aSetPollFlags;
+    }
   }
 }
 
 
-void SyncIOMainLoop::registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.readReadyCB = aReadReadyCB;
-	syncIOHandlers[aFD] = h;
-}
 
-void SyncIOMainLoop::registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.writeReadyCB = aWriteReadyCB;
-	syncIOHandlers[aFD] = h;
-}
-
-void SyncIOMainLoop::registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB)
-{
-  SyncIOHandler h;
-  syncIOHandlerForFd(aFD, h);
-  h.errorCB = aIOErrorCB;
-	syncIOHandlers[aFD] = h;
-}
-
-
-void SyncIOMainLoop::registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB)
-{
-  SyncIOHandler h;
-  h.monitoredFD = aFD;
-  h.readReadyCB = aReadCB;
-  h.writeReadyCB = aWriteCB;
-  h.errorCB = aErrorCB;
-	syncIOHandlers[aFD] = h;
-}
-
-
-void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
+void SyncIOMainLoop::unregisterPollHandler(int aFD)
 {
   syncIOHandlers.erase(aFD);
 }
@@ -309,35 +291,34 @@ void SyncIOMainLoop::unregisterSyncIOHandlers(int aFD)
 
 bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 {
-  // TODO: maybe use poll() instead of select()
-  fd_set readfs; // file descriptor set for read
-  fd_set writefs; // file descriptor set for write
-  fd_set errorfs; // file descriptor set for errors
-  // Create bitmap for select call
-  int numFDsToTest = 0; // number of file descriptors to test (max+1 of all used FDs)
+  // create poll structure
+  struct pollfd *pollFds = NULL;
+  size_t maxFDsToTest = syncIOHandlers.size();
+  if (maxFDsToTest>0) {
+    // allocate pollfd array (max, in case some are disabled, we'll need less)
+    pollFds = new struct pollfd[maxFDsToTest];
+  }
+  // fill poll structure
   SyncIOHandlerMap::iterator pos = syncIOHandlers.begin();
-  if (pos!=syncIOHandlers.end()) {
-    FD_ZERO(&readfs);
-    FD_ZERO(&writefs);
-    FD_ZERO(&errorfs);
-    // collect FDs
-    while (pos!=syncIOHandlers.end()) {
-      SyncIOHandler h = pos->second;
-      numFDsToTest = MAX(h.monitoredFD+1, numFDsToTest);
-      if (h.readReadyCB) FD_SET(h.monitoredFD, &readfs);
-      if (h.writeReadyCB) FD_SET(h.monitoredFD, &writefs);
-      if (h.errorCB) FD_SET(h.monitoredFD, &errorfs);
-      ++pos;
+  size_t numFDsToTest = 0;
+  // collect FDs
+  while (pos!=syncIOHandlers.end()) {
+    SyncIOHandler h = pos->second;
+    if (h.pollFlags) {
+      // don't include handlers that are currently disabled (no flags set)
+      struct pollfd *pollfdP = &pollFds[numFDsToTest];
+      pollfdP->fd = h.monitoredFD;
+      pollfdP->events = h.pollFlags;
+      pollfdP->revents = 0; // no event returned so far
+      ++numFDsToTest;
     }
+    ++pos;
   }
   // block until input becomes available or timeout
   int numReadyFDs = 0;
   if (numFDsToTest>0) {
     // actual FDs to test
-    struct timeval tv;
-    tv.tv_sec = aTimeout / 1000000;
-    tv.tv_usec = aTimeout % 1000000;
-    numReadyFDs = select(numFDsToTest, &readfs, &writefs, &errorfs, &tv);
+    numReadyFDs = poll(pollFds, (int)numFDsToTest, (int)(aTimeout/MilliSecond));
   }
   else {
     // nothing to test, just await timeout
@@ -345,21 +326,28 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
       usleep((useconds_t)aTimeout);
     }
   }
+  // call handlers
+  bool didHandle = false;
   if (numReadyFDs>0) {
-    // check the descriptor sets and call handlers when needed
+    // at least one of the flagged events has occurred in at least one FD
+    // - find the FDs that are affected and call their handlers when needed
     for (int i = 0; i<numFDsToTest; i++) {
-      bool readReady = FD_ISSET(i, &readfs);
-      bool writeReady = FD_ISSET(i, &writefs);
-      bool errorFound = FD_ISSET(i, &errorfs);
-      if (readReady || writeReady || errorFound) {
-        SyncIOHandler h = syncIOHandlers[i];
-        if (readReady) h.readReadyCB(this, cycleStartTime, i);
-        if (writeReady) h.writeReadyCB(this, cycleStartTime, i);
-        if (errorFound) h.errorCB(this, cycleStartTime, i);
+      struct pollfd *pollfdP = &pollFds[i];
+      if (pollfdP->revents) {
+        // an event has occurred for this FD
+        // - get handler, note that it might have been deleted in the meantime
+        SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
+        if (pos!=syncIOHandlers.end()) {
+          // - there is a handler
+          if (pos->second.pollHandler(this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+            didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
+        }
       }
     }
   }
-  // return true if we actually handled some I/O
+  // return the poll array
+  delete pollFds;
+  // return true if poll actually reported something (not just timed out)
   return numReadyFDs>0;
 }
 

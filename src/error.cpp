@@ -111,7 +111,7 @@ ErrorPtr SysError::errNo(const char *aContextMessage)
 {
   if (errno==0)
     return ErrorPtr(); // empty, no error
-  return ErrorPtr(new SysError::SysError(aContextMessage));
+  return ErrorPtr(new SysError(aContextMessage));
 }
 
 
@@ -119,6 +119,6 @@ ErrorPtr SysError::err(int aErrNo, const char *aContextMessage)
 {
   if (aErrNo==0)
     return ErrorPtr(); // empty, no error
-  return ErrorPtr(new SysError::SysError(aErrNo, aContextMessage));
+  return ErrorPtr(new SysError(aErrNo, aContextMessage));
 }
 

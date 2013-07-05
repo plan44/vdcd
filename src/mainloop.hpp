@@ -11,6 +11,8 @@
 
 #include "p44bridged_common.hpp"
 
+#include <sys/poll.h>
+
 using namespace std;
 
 namespace p44 {
@@ -112,7 +114,7 @@ namespace p44 {
   class SyncIOMainLoop;
 
   /// I/O callback
-  typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)> SyncIOCB;
+  typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
   typedef boost::shared_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
   /// A main loop with a Synchronous I/O multiplexer (select() call)
@@ -121,9 +123,8 @@ namespace p44 {
     typedef MainLoop inherited;
     typedef struct {
       int monitoredFD;
-      SyncIOCB readReadyCB;
-      SyncIOCB writeReadyCB;
-      SyncIOCB errorCB;
+      int pollFlags;
+      SyncIOCB pollHandler;
     } SyncIOHandler;
     typedef std::map<int, SyncIOHandler> SyncIOHandlerMap;
     SyncIOHandlerMap syncIOHandlers;
@@ -136,32 +137,22 @@ namespace p44 {
     /// @note creates a SyncIOMainLoop for the thread if no other type of mainloop already exists
     static SyncIOMainLoop *currentMainLoop();
 
-    /// register routine to be called when data gets available on specified file descriptor
-    /// @param aFD the file descriptor
-    /// @param aReadReadyCB the functor to be called when the file descriptor is ready for reading
-    void registerReadReadyHandler(int aFD, SyncIOCB aReadReadyCB);
+    /// register handler to be called for activity on specified file descriptor
+    /// @param aFD the file descriptor to poll
+    /// @param aPollFlags POLLxxx flags to specify events we want a callback for
+    /// @param aFdEventCB the functor to be called when poll() reports an event for one of the flags set in aPollFlags
+    void registerPollHandler(int aFD, int aPollFlags, SyncIOCB aPollEventHandler);
 
-    /// register routine to be called when specified file descriptor is ready to write data to
+    /// change the poll flags for an already registered handler
     /// @param aFD the file descriptor
-    /// @param aWriteReadyCB the functor to be called when the file descriptor is ready for writing
-    void registerWriteReadyHandler(int aFD, SyncIOCB aWriteReadyCB);
+    /// @param aPollFlags POLLxxx flags to specify events we want a callback for
+    void changePollFlags(int aFD, int aSetPollFlags, int aClearPollFlags=-1);
 
-    /// register routine to be called when IO error occurs on specified file descriptor
-    /// @param aFD the file descriptor
-    /// @param aIOErrorCB the functor to be called when the file descriptor has an error
-    void registerIOErrorHandler(int aFD, SyncIOCB aIOErrorCB);
-
-    /// register routines to be called for activity on specified file descriptor
-    /// @param aFD the file descriptor
-    /// @param aReadCB the functor to be called when the file descriptor is ready for reading
-    /// @param aWriteCB the functor to be called when the file descriptor is ready for writing
-    /// @param aErrorCB the functor to be called when the file descriptor has an error
-    void registerSyncIOHandlers(int aFD, SyncIOCB aReadCB, SyncIOCB aWriteCB, SyncIOCB aErrorCB);
 
     /// unregister all handlers registered by a given subscriber
     /// @param aSubscriberP a value identifying the subscriber
     /// @param aFD the file descriptor
-    void unregisterSyncIOHandlers(int aFD);
+    void unregisterPollHandler(int aFD);
 
     /// run the mainloop
     /// @return returns a exit code
