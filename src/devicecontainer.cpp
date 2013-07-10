@@ -216,8 +216,14 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
 void DeviceContainer::initiateVdsmConnection()
 {
-  LOG(LOG_DEBUG, ".............. Initiating connection to vdSM\n");
-  vdsmJsonComm.initiateConnection();
+  if (vdsmJsonComm.connectable()) {
+    LOG(LOG_DEBUG, ".............. Initiating connection to vdSM\n");
+    vdsmJsonComm.initiateConnection();
+  }
+  else {
+    // retry connection in a longer while
+    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 300*Second);
+  }
 }
 
 

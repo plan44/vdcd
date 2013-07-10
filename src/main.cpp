@@ -64,6 +64,9 @@ class P44bridged : public Application
   // Direct DALI control from enocean switches
   DaliDeviceContainerPtr daliDeviceContainer;
 
+  // Configuration API
+  SocketComm configApiServer;
+
 public:
 
   P44bridged() :
@@ -71,7 +74,8 @@ public:
     greenLED("ledgreen", false, false),
     button("button", true),
     appStatus(status_busy),
-    deviceLearning(false)
+    deviceLearning(false),
+    configApiServer(SyncIOMainLoop::currentMainLoop())
   {
     showAppStatus();
   }
@@ -98,6 +102,7 @@ public:
     fprintf(stderr, "    -w seconds     : delay startup\n");
     fprintf(stderr, "    -l loglevel    : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
     fprintf(stderr, "    -s dirpath     : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
+    fprintf(stderr, "    -W apiport     : server port number for web configuration JSON API (default=none)\n");
     fprintf(stderr, "    -g gpio[:[!](in|out)] : add static GPIO input or output device\n");
     fprintf(stderr, "                     use ! for inverted polarity (default is noninverted input)\n");
     fprintf(stderr, "    -k name[:(in|out|io)] : add static device which reads and writes console\n");
@@ -121,6 +126,9 @@ public:
 
     char *vdsmname = NULL;
     char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+
+    char *configApiPort = NULL;
+
     
     DeviceConfigMap staticDeviceConfigs;
 
@@ -131,7 +139,7 @@ public:
     int startupDelay = 0; // no delay
 
     int c;
-    while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:k:l:s:w:")) != -1)
+    while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:k:l:s:w:W:")) != -1)
     {
       switch (c) {
         case 'd':
@@ -157,6 +165,9 @@ public:
           break;
         case 'C':
           vdsmport = optarg;
+          break;
+        case 'W':
+          configApiPort = optarg;
           break;
         case 'g':
           staticDeviceConfigs.insert(make_pair("gpio", optarg));
@@ -197,9 +208,16 @@ public:
     // Set the persistent data directory
     deviceContainer.setPersistentDataDir(dbdir);
 
-    // Create JSON interface
+
+    // Create Web configuration JSON API server
+    if (configApiPort) {
+      configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
+      configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3, false);
+    }
+
+    // Create JSON interface to vdSM
     if (vdsmname) {
-      deviceContainer.vdsmJsonComm.setClientConnection(vdsmname, vdsmport, SOCK_STREAM);
+      deviceContainer.vdsmJsonComm.setConnectionParams(vdsmname, vdsmport, SOCK_STREAM);
     }
 
     // Create static container structure
@@ -253,7 +271,33 @@ public:
   }
 
 
-  
+  SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP)
+  {
+    JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
+    conn->setMessageHandler(boost::bind(&P44bridged::apiRequestHandler, this, _1, _2, _3));
+    return conn;
+  }
+
+
+  void apiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
+  {
+    ErrorPtr err;
+    // TODO: actually do something
+    JsonObjectPtr json = JsonObject::newObj();
+    if (Error::isOK(aError)) {
+      // %%% just show
+      LOG(LOG_DEBUG,"API request: %s", aJsonObject->c_strValue());
+      // %%% and return dummy response
+      json->add("Echo", aJsonObject);
+    }
+    else {
+      LOG(LOG_DEBUG,"Invalid JSON request");
+      json->add("Error", JsonObject::newString(aError->description()));
+    }
+    aJsonCommP->sendMessage(json, err);
+  }
+
+
 
 //  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
 //  {
