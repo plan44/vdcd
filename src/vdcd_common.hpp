@@ -16,6 +16,8 @@
 
 #define FAKE_REAL_DSD_IDS 1 // if set to 1, dsids will be made look like aizo devices (class 0)
 
+#define ALWAYS_DEBUG 1 // if set, logger statements will always be included, even in non-debug builds (but can be silenced via loglevel)
+
 #include "p44_common.hpp"
 
 #include "application.hpp"
