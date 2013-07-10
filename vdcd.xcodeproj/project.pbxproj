@@ -161,6 +161,52 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		ED3699B5178DA83800376405 /* p44utils */ = {
+			isa = PBXGroup;
+			children = (
+				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
+				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
+				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
+				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
+				EDCFE85F17203E47001D35F3 /* fnv.hpp */,
+				ED026D03171E94D700AD5FD6 /* error.cpp */,
+				ED026D04171E94D700AD5FD6 /* error.hpp */,
+				ED74563E1731B813001C9565 /* mainloop.cpp */,
+				ED74563F1731B813001C9565 /* mainloop.hpp */,
+				ED0E441C1732FE4F00C4C283 /* application.cpp */,
+				ED0E441D1732FE4F00C4C283 /* application.hpp */,
+				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
+				EDB2844C1733DE2A00EAE5DE /* gpio.hpp */,
+				ED36999C178DA01D00376405 /* i2c.cpp */,
+				ED36999D178DA01E00376405 /* i2c.hpp */,
+				ED369998178D6A2C00376405 /* iopin.cpp */,
+				ED369999178D6A2C00376405 /* iopin.hpp */,
+				ED369996178D5BD600376405 /* digitalio.cpp */,
+				ED369997178D5BE300376405 /* digitalio.hpp */,
+				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
+				EDC1166D177EDDDF00F27115 /* consolekey.hpp */,
+				ED17F4C61769F51D0076B47C /* persistentparams.cpp */,
+				ED17F4C71769F51D0076B47C /* persistentparams.hpp */,
+				ED5B2933174124D300334C71 /* sqlite3persistence.cpp */,
+				ED5B2934174124D400334C71 /* sqlite3persistence.hpp */,
+				EDB284421732965700EAE5DE /* operationqueue.cpp */,
+				EDB284431732965700EAE5DE /* operationqueue.hpp */,
+				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
+				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
+				EDB284481733B59500EAE5DE /* serialcomm.cpp */,
+				EDB284491733B59500EAE5DE /* serialcomm.hpp */,
+				ED55760B174CC03A00CCC4DD /* socketcomm.cpp */,
+				ED55760C174CC03A00CCC4DD /* socketcomm.hpp */,
+				ED557610174CFB3000CCC4DD /* jsoncomm.cpp */,
+				ED557611174CFB3100CCC4DD /* jsoncomm.hpp */,
+				ED5576131750B15E00CCC4DD /* jsonobject.cpp */,
+				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
+				ED36999F178DA0A300376405 /* p44_common.hpp */,
+			);
+			path = p44utils;
+			sourceTree = "<group>";
+		};
 		ED5AF9161741830200689E4B /* libs */ = {
 			isa = PBXGroup;
 			children = (
@@ -203,45 +249,8 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ED3699B5178DA83800376405 /* p44utils */,
 				ED5B291C1740E72100334C71 /* sqlite3pp */,
-				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
-				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
-				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
-				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
-				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
-				EDCFE85F17203E47001D35F3 /* fnv.hpp */,
-				ED026D03171E94D700AD5FD6 /* error.cpp */,
-				ED026D04171E94D700AD5FD6 /* error.hpp */,
-				ED74563E1731B813001C9565 /* mainloop.cpp */,
-				ED74563F1731B813001C9565 /* mainloop.hpp */,
-				ED0E441C1732FE4F00C4C283 /* application.cpp */,
-				ED0E441D1732FE4F00C4C283 /* application.hpp */,
-				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
-				EDB2844C1733DE2A00EAE5DE /* gpio.hpp */,
-				ED36999C178DA01D00376405 /* i2c.cpp */,
-				ED36999D178DA01E00376405 /* i2c.hpp */,
-				ED369998178D6A2C00376405 /* iopin.cpp */,
-				ED369999178D6A2C00376405 /* iopin.hpp */,
-				ED369996178D5BD600376405 /* digitalio.cpp */,
-				ED369997178D5BE300376405 /* digitalio.hpp */,
-				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
-				EDC1166D177EDDDF00F27115 /* consolekey.hpp */,
-				ED5B2933174124D300334C71 /* sqlite3persistence.cpp */,
-				ED5B2934174124D400334C71 /* sqlite3persistence.hpp */,
-				ED17F4C61769F51D0076B47C /* persistentparams.cpp */,
-				ED17F4C71769F51D0076B47C /* persistentparams.hpp */,
-				EDB284421732965700EAE5DE /* operationqueue.cpp */,
-				EDB284431732965700EAE5DE /* operationqueue.hpp */,
-				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
-				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
-				EDB284481733B59500EAE5DE /* serialcomm.cpp */,
-				EDB284491733B59500EAE5DE /* serialcomm.hpp */,
-				ED55760B174CC03A00CCC4DD /* socketcomm.cpp */,
-				ED55760C174CC03A00CCC4DD /* socketcomm.hpp */,
-				ED557610174CFB3000CCC4DD /* jsoncomm.cpp */,
-				ED557611174CFB3100CCC4DD /* jsoncomm.hpp */,
-				ED5576131750B15E00CCC4DD /* jsonobject.cpp */,
-				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsid.hpp */,
 				ED69C169176787FB00D9E596 /* dsdefs.h */,
@@ -278,7 +287,6 @@
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
-				ED36999F178DA0A300376405 /* p44_common.hpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -425,6 +433,7 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/Cellar/boost/1.53.0/include,
 					"/usr/local/Cellar/json-c/0.10/include",
+					"$(PROJECT_DIR)/src",
 				);
 				LIBRARY_SEARCH_PATHS = "\"/usr/local/Cellar/json-c/0.10/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
@@ -456,6 +465,7 @@
 				HEADER_SEARCH_PATHS = (
 					/usr/local/Cellar/boost/1.53.0/include,
 					"/usr/local/Cellar/json-c/0.10/include",
+					"$(PROJECT_DIR)/src",
 				);
 				LIBRARY_SEARCH_PATHS = "\"/usr/local/Cellar/json-c/0.10/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
