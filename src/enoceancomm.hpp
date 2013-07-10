@@ -9,7 +9,7 @@
 #ifndef __p44bridged__enoceancomm__
 #define __p44bridged__enoceancomm__
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 #include "serialcomm.hpp"
 

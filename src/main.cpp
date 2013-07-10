@@ -16,7 +16,7 @@
 
 #include "jsoncomm.hpp"
 
-#include "gpio.hpp"
+#include "digitalio.hpp"
 
 
 #define DEFAULT_DALIPORT 2101

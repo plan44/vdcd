@@ -1,6 +1,5 @@
 //
 //  consolekey.h
-//  p44bridged
 //
 //  Created by Lukas Zeller on 29.06.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -9,7 +8,7 @@
 #ifndef __p44bridged__consolekey__
 #define __p44bridged__consolekey__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 using namespace std;
 

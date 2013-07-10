@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:../p44staged/p44staged.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "container:vdcd.xcodeproj">
+   </FileRef>
+</Workspace>

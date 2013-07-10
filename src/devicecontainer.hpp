@@ -9,7 +9,7 @@
 #ifndef __p44bridged__devicecontainer__
 #define __p44bridged__devicecontainer__
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 #include "jsoncomm.hpp"
 #include "persistentparams.hpp"

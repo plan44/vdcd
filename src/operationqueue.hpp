@@ -1,6 +1,5 @@
 //
 //  operationqueue.hpp
-//  p44bridged
 //
 //  Created by Lukas Zeller on 02.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -9,7 +8,7 @@
 #ifndef __p44bridged__operationqueue__
 #define __p44bridged__operationqueue__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 
 using namespace std;

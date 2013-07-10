@@ -1,5 +1,5 @@
 /*
- * p44bridged_common.hpp
+ * vdcd_common.hpp
  *
  *  Created on: Apr 10, 2013
  *      Author: Lukas Zeller / luz@plan44.ch
@@ -16,19 +16,8 @@
 
 #define FAKE_REAL_DSD_IDS 1 // if set to 1, dsids will be made look like aizo devices (class 0)
 
-#include <list>
-#include <vector>
-#include <map>
+#include "p44_common.hpp"
 
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-#include <boost/function.hpp>
-#include <boost/bind.hpp>
-
-#include "logger.hpp"
-#include "utils.hpp"
-#include "error.hpp"
-#include "mainloop.hpp"
 #include "application.hpp"
 
 

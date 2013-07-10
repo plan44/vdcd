@@ -1,6 +1,5 @@
 //
 //  serialqueue.h
-//  p44bridged
 //
 //  Created by Lukas Zeller on 12.04.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -9,7 +8,7 @@
 #ifndef __p44bridged__serialqueue__
 #define __p44bridged__serialqueue__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 #include <time.h>
 

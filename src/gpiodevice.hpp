@@ -11,7 +11,7 @@
 
 #include "device.hpp"
 
-#include "gpio.hpp"
+#include "digitalio.hpp"
 
 using namespace std;
 

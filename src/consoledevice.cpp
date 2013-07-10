@@ -43,7 +43,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     setDSBehaviour(l);
   }
   else if (hasButton) {
-    // GPIO input as button
+    // console key input as button
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
     // set the behaviour
@@ -97,7 +97,7 @@ void ConsoleDevice::deriveDSID()
 	// - use class container's ID
 	string s = classContainerP->deviceClassContainerInstanceIdentifier();
 	hash.addBytes(s.size(), (uint8_t *)s.c_str());
-	// - add-in the GPIO name
+	// - add-in the console device name
   hash.addCStr(name.c_str());
   #if FAKE_REAL_DSD_IDS
   dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
