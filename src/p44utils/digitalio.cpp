@@ -83,7 +83,6 @@ DigitalIo::~DigitalIo()
 }
 
 
-
 bool DigitalIo::isSet()
 {
   return ioPin->getState() != inverted;

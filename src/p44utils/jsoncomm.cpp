@@ -31,7 +31,7 @@ JsonComm::~JsonComm()
 
 void JsonComm::setMessageHandler(JSonMessageCB aJsonMessageHandler)
 {
-  jsonMessageHandler= aJsonMessageHandler;
+  jsonMessageHandler = aJsonMessageHandler;
 }
 
 

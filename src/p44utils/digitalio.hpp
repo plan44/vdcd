@@ -36,6 +36,9 @@ namespace p44 {
 
 		/// get name
 		const char *getName() { return name.c_str(); };
+
+    /// check for output
+    bool isOutput() { return output; };
 		
     /// get state of GPIO
     /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
