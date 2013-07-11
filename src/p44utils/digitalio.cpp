@@ -17,11 +17,11 @@
 
 #include "iopin.hpp"
 #ifdef __APPLE__
-#warning "No hardware I/O supported on Apple platforms"
+#warning "No GPIO supported on Apple platforms"
 #else
-#include "gpio.h"
-#include "i2c.h"
+#include "gpio.hpp"
 #endif
+#include "i2c.hpp"
 
 #include "logger.hpp"
 #include "mainloop.hpp"
@@ -61,17 +61,17 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   #ifndef __APPLE__
   if (busName=="gpio") {
     // Linux GPIO
-    ioPin = IOPinPtr(new Gpio(pinName.c_str(), output, pinState));
-  }
-  else if (busName.substr(0,3)=="i2c") {
-    // i2c<busnum>.<devicespec>.<pinnum>
-    int busNumber = atoi(busName.c_str()+3);
-    int pinNumber = atoi(pinName.c_str());
-    ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, pinState));
+    ioPin = IOPinPtr(new Gpio(pinName.c_str(), output, aInitialState));
   }
   else
   #endif
-  {
+  if (busName.substr(0,3)=="i2c") {
+    // i2c<busnum>.<devicespec>.<pinnum>
+    int busNumber = atoi(busName.c_str()+3);
+    int pinNumber = atoi(pinName.c_str());
+    ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, aInitialState));
+  }
+  else {
     // default to simulated pin
     ioPin = IOPinPtr(new SimPin(name.c_str(), output, aInitialState!=inverted)); // set even for inputs
   }

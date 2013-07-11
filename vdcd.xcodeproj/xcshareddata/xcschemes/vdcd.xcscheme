@@ -111,7 +111,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-g testbutton:in -g testlamp:out"
+            argument = "-g testbutton:in -g testlamp:out -g i2c1.TCA9555@25.7:out"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
