@@ -10,7 +10,7 @@
 
 #include "p44_common.hpp"
 
-#include "digitalio.hpp"
+#include "iopin.hpp"
 
 #ifndef GPIO_DEVICES_BASEPATH
 #define GPIO_DEVICES_BASEPATH "/dev/gpio/"

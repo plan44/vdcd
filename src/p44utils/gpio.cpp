@@ -7,7 +7,7 @@
 
 #ifndef __APPLE__
 
-#include "digitalio.hpp"
+#include "gpio.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -28,7 +28,7 @@ using namespace p44;
 #pragma mark - GPIO
 
 
-Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInitialState) :
+GpioPin::GpioPin(const char* aGpioName, bool aOutput, bool aInitialState) :
   gpioFD(-1),
   pinState(false)
 {
@@ -54,7 +54,7 @@ Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInitialState) :
       return;
     }
     // set state immediately
-    set(pinState);
+    setState(pinState);
   }
   else {
     // input
@@ -66,7 +66,7 @@ Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInitialState) :
 }
 
 
-Gpio::~Gpio()
+GpioPin::~GpioPin()
 {
   if (gpioFD>0) {
     close(gpioFD);
@@ -75,7 +75,7 @@ Gpio::~Gpio()
 
 
 
-bool Gpio::getState()
+bool GpioPin::getState()
 {
   if (output)
     return pinState; // just return last set state
@@ -94,7 +94,7 @@ bool Gpio::getState()
 }
 
 
-void Gpio::setState(bool aState)
+void GpioPin::setState(bool aState)
 {
   if (!output) return; // non-outputs cannot be set
   if (gpioFD<0) return; // non-existing pins cannot be set
