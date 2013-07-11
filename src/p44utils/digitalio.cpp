@@ -61,7 +61,7 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   #ifndef __APPLE__
   if (busName=="gpio") {
     // Linux GPIO
-    ioPin = IOPinPtr(new Gpio(pinName.c_str(), output, aInitialState));
+    ioPin = IOPinPtr(new GpioPin(pinName.c_str(), output, aInitialState));
   }
   else
   #endif
