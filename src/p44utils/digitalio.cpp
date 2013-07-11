@@ -16,11 +16,7 @@
 #include <unistd.h>
 
 #include "iopin.hpp"
-#ifdef __APPLE__
-#warning "No GPIO supported on Apple platforms"
-#else
 #include "gpio.hpp"
-#endif
 #include "i2c.hpp"
 
 #include "logger.hpp"
@@ -58,13 +54,13 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     }
   }
   // now create appropriate pin
-  #ifndef __APPLE__
+//  #ifndef __APPLE__
   if (busName=="gpio") {
     // Linux GPIO
     ioPin = IOPinPtr(new GpioPin(pinName.c_str(), output, aInitialState));
   }
   else
-  #endif
+//  #endif
   if (busName.substr(0,3)=="i2c") {
     // i2c<busnum>.<devicespec>.<pinnum>
     int busNumber = atoi(busName.c_str()+3);

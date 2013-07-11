@@ -1,11 +1,9 @@
 //
-//  digitalio.cpp
+//  gpio.cpp
 //
 //  Created by Lukas Zeller on 03.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
-
-#ifndef __APPLE__
 
 #include "gpio.hpp"
 
@@ -17,7 +15,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "gpio.h" // Linux GPIO
+#include "gpio.h" // Linux GPIO, included in project
 
 #include "logger.hpp"
 #include "mainloop.hpp"
@@ -84,11 +82,16 @@ bool GpioPin::getState()
   else {
     // read from input
     int inval;
+    #ifndef __APPLE__
     int ret_val;
     if ((ret_val = ioctl(gpioFD, GPIO_READ_PIN_VAL, &inval)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_READ_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
+      LOG(LOG_ERR,"GPIO_READ_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
       return false;
     }
+    #else
+    DBGLOG(LOG_ERR,"ioctl(gpioFD, GPIO_READ_PIN_VAL, &dummy)\n");
+    inval = 0;
+    #endif
     return (bool)inval;
   }
 }
@@ -101,12 +104,13 @@ void GpioPin::setState(bool aState)
   pinState = aState;
   // - set value
   int setval = pinState;
+  #ifndef __APPLE__
   int ret_val;
   if ((ret_val = ioctl(gpioFD, GPIO_WRITE_PIN_VAL, &setval)) < 0) {
-    DBGLOG(LOG_ERR,"GPIO_WRITE_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
+    LOG(LOG_ERR,"GPIO_WRITE_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
     return;
   }
+  #else
+  DBGLOG(LOG_ERR,"ioctl(gpioFD, GPIO_WRITE_PIN_VAL, %d)\n", setval);
+  #endif
 }
-
-
-#endif // not __APPLE__
