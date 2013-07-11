@@ -1,6 +1,5 @@
 //
 //  jsonobject.hpp
-//  p44bridged
 //
 //  Created by Lukas Zeller on 25.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -9,7 +8,7 @@
 #ifndef __p44bridged__jsonobject__
 #define __p44bridged__jsonobject__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 #if DIGI_ESP
 #include "json.h"

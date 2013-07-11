@@ -1,6 +1,5 @@
 //
 //  socketclient.cpp
-//  p44bridged
 //
 //  Created by Lukas Zeller on 22.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -16,9 +15,12 @@ using namespace p44;
 SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
   connectionOpen(false),
   isConnecting(false),
+  serving(false),
   connectionFd(-1),
   addressInfoList(NULL),
   currentAddressInfo(NULL),
+  maxServerConnections(1),
+  serverConnection(NULL),
   mainLoopP(aMainLoopP)
 {
 }
@@ -30,15 +32,195 @@ SocketComm::~SocketComm()
 }
 
 
-void SocketComm::setClientConnection(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType, int aProtocolFamily, int aProtocol)
+void SocketComm::setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType, int aProtocolFamily, int aProtocol)
 {
   closeConnection();
-  hostNameOrAddress = aHostNameOrAddress;
-  serviceOrPortNo = aServiceOrPort;
+  hostNameOrAddress = nonNullCStr(aHostNameOrAddress);
+  serviceOrPortNo = nonNullCStr(aServiceOrPort);
   protocolFamily = aProtocolFamily;
   socketType = aSocketType;
   protocol = aProtocol;
 }
+
+
+#pragma mark - becoming a server
+
+ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, int aMaxConnections, bool aNonLocal)
+{
+  ErrorPtr err;
+
+  struct servent *pse;
+  struct sockaddr_in sin;
+  int proto;
+  int one = 1;
+  int socketFD = -1;
+
+  memset((char *) &sin, 0, sizeof(sin));
+  if (protocolFamily==AF_INET) {
+    sin.sin_family = (sa_family_t)protocolFamily;
+    // set listening socket address
+    if (aNonLocal)
+      sin.sin_addr.s_addr = htonl(INADDR_ANY);
+    else
+      sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    // get service / port
+    if ((pse = getservbyname(serviceOrPortNo.c_str(), NULL)) != NULL)
+      sin.sin_port = htons(ntohs((in_port_t)pse->s_port));
+    else if ((sin.sin_port = htons((in_port_t)atoi(serviceOrPortNo.c_str()))) == 0) {
+      err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve,"Unknown service/port name"));
+    }
+    // protocol derived from socket type
+    if (protocol==0) {
+      // determine protocol automatically from socket type
+      if (socketType==SOCK_STREAM)
+        proto = IPPROTO_TCP;
+      else
+        proto = IPPROTO_UDP;
+    }
+    else
+      proto = protocol;
+  }
+  else {
+    // TODO: implement other portocol families, in particular AF_INET6
+    err = ErrorPtr(new SocketCommError(SocketCommErrorUnsupported,"Unsupported protocol family"));
+  }
+  // now create and configure socket
+  if (Error::isOK(err)) {
+    socketFD = socket(PF_INET, socketType, proto);
+    if (socketFD<0) {
+      err = SysError::errNo("Cannot create server socket: ");
+    }
+    else {
+      // socket created, set options
+      if (setsockopt(socketFD,SOL_SOCKET,SO_REUSEADDR,(char *)&one,(int)sizeof(one)) == -1) {
+        err = SysError::errNo("Cannot SETSOCKOPT SO_REUSEADDR: ");
+      }
+      else {
+        // options ok, bind to address
+        if (::bind(socketFD, (struct sockaddr *) &sin, (int)sizeof(sin)) < 0) {
+          err = SysError::errNo("Cannot bind to port (server already running?): ");
+        }
+      }
+    }
+  }
+  // listen
+  if (Error::isOK(err)) {
+    if (socketType==SOCK_STREAM && listen(socketFD, maxServerConnections) < 0) {
+      err = SysError::errNo("Cannot listen on port: ");
+    }
+    else {
+      // listen ok or not needed, make non-blocking
+      int flags;
+      if ((flags = fcntl(socketFD, F_GETFL, 0))==-1)
+        flags = 0;
+      fcntl(socketFD, F_SETFL, flags | O_NONBLOCK);
+      // now socket is ready, register in mainloop to receive connections
+      connectionFd = socketFD;
+      serving = true;
+      serverConnectionHandler = aServerConnectionHandler;
+      // - install callback for when FD becomes writable (or errors out)
+      mainLoopP->registerPollHandler(
+        connectionFd,
+        POLLIN,
+        boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3, _4)
+      );
+    }
+  }
+
+  return err;
+}
+
+
+bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+{
+  ErrorPtr err;
+  if (aPollFlags & POLLIN) {
+    // server socket has data, means connection waiting to get accepted
+    socklen_t cnamelen;
+    struct sockaddr fsin;
+    int clientFD = -1;
+    cnamelen = sizeof(fsin);
+    clientFD = accept(connectionFd, (struct sockaddr *) &fsin, &cnamelen);
+    // TODO: report client's IP somehow
+    if (clientFD>0) {
+      // actually accepted
+      // - call handler to create child connection
+      SocketCommPtr clientComm;
+      if (serverConnectionHandler) {
+        clientComm = serverConnectionHandler(this);
+      }
+      if (clientComm) {
+        // - remember
+        clientConnections.push_back(clientComm);
+        LOG(LOG_DEBUG, "New client connection accepted (now %d connections)\n", clientConnections.size());
+        // - pass connection to child
+        clientComm->passClientConnection(clientFD, this);
+      }
+      else {
+        // can't handle connection, close immediately
+        LOG(LOG_NOTICE, "connection not accepted - shut down\n");
+        shutdown(clientFD, SHUT_RDWR);
+        close(clientFD);
+      }
+    }
+  }
+  // handled
+  return true;
+}
+
+
+void SocketComm::passClientConnection(int aFD, SocketComm *aServerConnectionP)
+{
+  // make non-blocking
+  int flags;
+  if ((flags = fcntl(aFD, F_GETFL, 0))==-1)
+    flags = 0;
+  fcntl(aFD, F_SETFL, flags | O_NONBLOCK);
+  // save and mark open
+  serverConnection = aServerConnectionP;
+  connectionFd = aFD;
+  isConnecting = false;
+  connectionOpen = true;
+  // call handler if defined
+  if (connectionStatusHandler) {
+    // connection ok
+    connectionStatusHandler(this, ErrorPtr());
+  }
+  // register handlers for operating open connection
+  mainLoopP->registerPollHandler(
+    connectionFd,
+    (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
+    (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
+    boost::bind(&SocketComm::dataMonitorHandler, this, _1, _2, _3, _4)
+  );
+}
+
+
+
+void SocketComm::returnClientConnection(SocketComm *aClientConnectionP)
+{
+  // remove the client connection from the list
+  for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
+    if (pos->get()==aClientConnectionP) {
+      // found, remove from list
+      clientConnections.erase(pos);
+      break;
+    }
+  }
+  LOG(LOG_DEBUG, "Client connection terminated (now %d connections)\n", clientConnections.size());
+}
+
+
+
+
+#pragma mark - connecting to a client
+
+
+bool SocketComm::connectable()
+{
+  return !hostNameOrAddress.empty();
+}
+
 
 
 ErrorPtr SocketComm::initiateConnection()
@@ -46,7 +228,7 @@ ErrorPtr SocketComm::initiateConnection()
   int res;
   ErrorPtr err;
 
-  if (!connectionOpen && !isConnecting) {
+  if (!connectionOpen && !isConnecting && !serverConnection) {
     freeAddressInfo();
     if (hostNameOrAddress.empty()) {
       err = ErrorPtr(new SocketCommError(SocketCommErrorNoParams,"Missing connection parameters"));
@@ -62,7 +244,7 @@ ErrorPtr SocketComm::initiateConnection()
     res = getaddrinfo(hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), &hint, &addressInfoList);
     if (res!=0) {
       // error
-      err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolveHost, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
+      err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
       goto done;
     }
     // now try all addresses in the list
@@ -106,7 +288,7 @@ ErrorPtr SocketComm::connectNextAddress()
     err.reset();
     socketFD = socket(currentAddressInfo->ai_family, currentAddressInfo->ai_socktype, currentAddressInfo->ai_protocol);
     if (socketFD==-1) {
-      err = SysError::errNo("Cannot create socket: ");
+      err = SysError::errNo("Cannot create client socket: ");
     }
     else {
       // usable address found, socket created
@@ -226,6 +408,74 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
 }
 
 
+void SocketComm::setConnectionStatusHandler(SocketCommCB aConnectedHandler)
+{
+  // set handler
+  connectionStatusHandler = aConnectedHandler;
+}
+
+
+
+void SocketComm::closeConnection()
+{
+  if (connectionOpen) {
+    // close the connection
+    internalCloseConnection();
+    // report to handler
+    if (connectionStatusHandler) {
+      // connection ok
+      ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
+      connectionStatusHandler(this, err);
+      LOG(LOG_NOTICE, "Connection to %s:%s explicitly closed\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    }
+  }
+}
+
+
+void SocketComm::internalCloseConnection()
+{
+  // unregister from main loop
+  if (serving) {
+    // serving socket
+    // - close listening socket
+    mainLoopP->unregisterPollHandler(connectionFd);
+    close(connectionFd);
+    connectionFd = -1;
+    serving = false;
+    // - close all child connections
+    for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
+      (*pos)->closeConnection();
+    }
+  }
+  else if (connectionOpen || isConnecting) {
+    mainLoopP->unregisterPollHandler(connectionFd);
+    close(connectionFd);
+    connectionFd = -1;
+    connectionOpen = false;
+    isConnecting = false;
+    // if this was a client connection to our server, let server know
+    if (serverConnection) {
+      serverConnection->returnClientConnection(this);
+      serverConnection = NULL;
+    }
+  }
+}
+
+
+bool SocketComm::connected()
+{
+  return connectionOpen;
+}
+
+
+bool SocketComm::connecting()
+{
+  return isConnecting;
+}
+
+
+#pragma mark - handling data
+
 
 bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
@@ -259,55 +509,6 @@ bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aC
   return true;
 }
 
-
-
-void SocketComm::setConnectionStatusHandler(SocketCommCB aConnectedHandler)
-{
-  // set handler
-  connectionStatusHandler = aConnectedHandler;
-}
-
-
-
-void SocketComm::closeConnection()
-{
-  if (connectionOpen) {
-    // close the connection
-    internalCloseConnection();
-    // report to handler
-    if (connectionStatusHandler) {
-      // connection ok
-      ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
-      connectionStatusHandler(this, err);
-      LOG(LOG_NOTICE, "Connection to %s:%s explicitly closed\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
-    }
-  }
-}
-
-
-void SocketComm::internalCloseConnection()
-{
-  // unregister from main loop
-  if (connectionOpen || isConnecting) {
-    mainLoopP->unregisterPollHandler(connectionFd);
-    close(connectionFd);
-    connectionFd = -1;
-    connectionOpen = false;
-    isConnecting = false;
-  }
-}
-
-
-bool SocketComm::connected()
-{
-  return connectionOpen;
-}
-
-
-bool SocketComm::connecting()
-{
-  return isConnecting;
-}
 
 
 

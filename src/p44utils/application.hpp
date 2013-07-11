@@ -9,7 +9,7 @@
 #ifndef __p44bridged__application__
 #define __p44bridged__application__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 using namespace std;
 

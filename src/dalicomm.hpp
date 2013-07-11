@@ -10,7 +10,7 @@
 #ifndef DALICOMM_H_
 #define DALICOMM_H_
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 #include "serialcomm.hpp"
 

@@ -1,6 +1,5 @@
 //
 //  sqlite3persistence.hpp
-//  p44bridged
 //
 //  Created by Lukas Zeller on 13.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -9,7 +8,7 @@
 #ifndef __p44bridged__sqlite3persistence__
 #define __p44bridged__sqlite3persistence__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 #include "sqlite3pp/sqlite3pp.h"
 

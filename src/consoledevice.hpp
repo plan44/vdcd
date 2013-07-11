@@ -11,8 +11,6 @@
 
 #include "device.hpp"
 
-#include "gpio.hpp"
-
 #include "consolekey.hpp"
 
 using namespace std;

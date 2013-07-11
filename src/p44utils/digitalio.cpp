@@ -1,12 +1,11 @@
 //
-//  gpio.cpp
+//  digitalio.cpp
 //  p44bridged
 //
-//  Created by Lukas Zeller on 03.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#include "gpio.hpp"
+#include "digitalio.hpp"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -16,140 +15,95 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "gpio.h"
+#include "iopin.hpp"
+#include "gpio.hpp"
+#include "i2c.hpp"
 
 #include "logger.hpp"
-
 #include "mainloop.hpp"
 
 using namespace p44;
 
 
-#pragma mark - GPIO
-
-
-Gpio::Gpio(const char* aGpioName, bool aOutput, bool aInverted, bool aInitialState) :
-  gpioFD(-1),
-  pinState(false)
+DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInitialState)
 {
   // save params
   output = aOutput;
   inverted = aInverted;
-  name = aGpioName;
-  pinState = aInitialState!=inverted; // set even for inputs
-
-  #if GPIO_SIMULATION
-  static char nextGpioSimKey = 'a';
-  printf("Initialized GPIO %s as %s%s with initial state %s\n", name.c_str(), aInverted ? "inverted " : "", aOutput ? "output" : "input", pinState ? "HI" : "LO");
-  if (!output) {
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(
-      nextGpioSimKey++,
-      name.c_str(),
-      pinState
-    );
-  }
-  #else
-  int ret_val;
-  // open device
-  //#if 0
-  #ifdef __APPLE__
-  DBGLOG(LOG_ERR,"No GPIOs supported on Mac OS X\n");
-  #else
-  string gpiopath(GPIO_DEVICES_BASEPATH);
-  gpiopath.append(name);
-  gpioFD = open(gpiopath.c_str(), O_RDWR);
-  if (gpioFD<0) {
-    DBGLOG(LOG_ERR,"Cannot open GPIO device %s: %s\n", name.c_str(), strerror(errno));
-    return;
-  }
-  // configure
-  if (output) {
-    // output
-    if ((ret_val = ioctl(gpioFD, GPIO_CONFIG_AS_OUT)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_CONFIG_AS_OUT failed for %s: %s\n", name.c_str(), strerror(errno));
-      return;
-    }
-    // set state immediately
-    set(aInitialState);
+  name = aName;
+  // dissect name into bus, device, pin
+  string busName;
+  string deviceName;
+  string pinName;
+  size_t i = name.find_first_of('.');
+  if (i==string::npos) {
+    // no structured name, assume GPIO
+    busName = "gpio";
   }
   else {
-    // input
-    if ((ret_val = ioctl(gpioFD, GPIO_CONFIG_AS_INP)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_CONFIG_AS_INP failed for %s: %s\n", name.c_str(), strerror(errno));
-      return;
+    busName = name.substr(0,i);
+    // rest is device + pinname or just pinname
+    pinName = name.substr(i+1,string::npos);
+    i = pinName.find_first_of('.');
+    if (i!=string::npos) {
+      // separate device and pin names
+      // - extract device name
+      deviceName = pinName.substr(0,i);
+      // - remove device name from pin name string
+      pinName.erase(0,i+1);
     }
   }
-  #endif // Apple
-  #endif
-}
-
-
-Gpio::~Gpio()
-{
-  #if !GPIO_SIMULATION
-  if (gpioFD>0) {
-    close(gpioFD);
+  // now create appropriate pin
+//  #ifndef __APPLE__
+  if (busName=="gpio") {
+    // Linux GPIO
+    ioPin = IOPinPtr(new GpioPin(pinName.c_str(), output, aInitialState));
   }
-  #endif
-}
-
-
-bool Gpio::isSet()
-{
-  if (output)
-    return pinState != inverted; // just return last set state
-  #if GPIO_SIMULATION
-  return (bool)consoleKey->isSet() != inverted;
-  #else
-  if (gpioFD<0)
-    return false; // non-working pins always return false
+  else
+//  #endif
+  if (busName.substr(0,3)=="i2c") {
+    // i2c<busnum>.<devicespec>.<pinnum>
+    int busNumber = atoi(busName.c_str()+3);
+    int pinNumber = atoi(pinName.c_str());
+    ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, aInitialState));
+  }
   else {
-    // read from input
-    int inval;
-    int ret_val;
-    if ((ret_val = ioctl(gpioFD, GPIO_READ_PIN_VAL, &inval)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_READ_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
-      return false;
-    }
-    return (bool)inval != inverted;
+    // default to simulated pin
+    ioPin = IOPinPtr(new SimPin(name.c_str(), output, aInitialState!=inverted)); // set even for inputs
   }
-  #endif
 }
 
 
-void Gpio::set(bool aState)
+DigitalIo::~DigitalIo()
 {
-  if (!output) return; // non-outputs cannot be set
-  #if GPIO_SIMULATION
-  pinState = aState != inverted;
-  printf(">>> GPIO %s set to %s\n", name.c_str(), pinState ? "HI" : "LO");
-  #else
-  if (gpioFD<0) return; // non-existing pins cannot be set
-  pinState = aState != inverted;
-  // - set value
-  int setval = pinState;
-  int ret_val;
-  if ((ret_val = ioctl(gpioFD, GPIO_WRITE_PIN_VAL, &setval)) < 0) {
-    DBGLOG(LOG_ERR,"GPIO_WRITE_PIN_VAL failed for %s: %s\n", name.c_str(), strerror(errno));
-    return;
-  }
-  #endif
 }
 
 
-void Gpio::on()
+bool DigitalIo::isSet()
+{
+  return ioPin->getState() != inverted;
+}
+
+
+void DigitalIo::set(bool aState)
+{
+  ioPin->setState(aState!=inverted);
+}
+
+
+void DigitalIo::on()
 {
   set(true);
 }
 
 
-void Gpio::off()
+void DigitalIo::off()
 {
   set(false);
 }
 
 
-bool Gpio::toggle()
+bool DigitalIo::toggle()
 {
   bool state = isSet();
   if (output) {
@@ -163,8 +117,8 @@ bool Gpio::toggle()
 #pragma mark - Button input
 
 
-ButtonInput::ButtonInput(const char* aGpioName, bool aInverted) :
-  Gpio(aGpioName, false, aInverted, false)
+ButtonInput::ButtonInput(const char* aName, bool aInverted) :
+  DigitalIo(aName, false, aInverted, false)
 {
   // save params
   lastState = false; // assume inactive to start with
@@ -213,8 +167,8 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
 
 #pragma mark - Indicator output
 
-IndicatorOutput::IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn) :
-  Gpio(aGpioName, true, aInverted, aInitiallyOn),
+IndicatorOutput::IndicatorOutput(const char* aName, bool aInverted, bool aInitiallyOn) :
+  DigitalIo(aName, true, aInverted, aInitiallyOn),
   switchOffAt(Never),
   blinkOnTime(Never),
   blinkOffTime(Never)

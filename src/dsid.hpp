@@ -9,7 +9,7 @@
 #ifndef __p44bridged__dsid__
 #define __p44bridged__dsid__
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 #define DSID_OBJECTCLASS_DSDEVICE 0x000000
 #define DSID_OBJECTCLASS_DSMETER 0x000001

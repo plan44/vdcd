@@ -9,7 +9,7 @@
 #ifndef __p44bridged__dsparams__
 #define __p44bridged__dsparams__
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 using namespace std;
 

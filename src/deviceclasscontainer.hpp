@@ -9,7 +9,7 @@
 #ifndef __p44bridged__deviceclasscontainer__
 #define __p44bridged__deviceclasscontainer__
 
-#include "p44bridged_common.hpp"
+#include "vdcd_common.hpp"
 
 #include "devicecontainer.hpp"
 

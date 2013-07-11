@@ -1,58 +1,44 @@
 //
-//  gpio.hpp
+//  digitalio.hpp
 //  p44bridged
 //
-//  Created by Lukas Zeller on 03.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__gpio__
-#define __p44bridged__gpio__
+#ifndef __p44bridged__digitalio__
+#define __p44bridged__digitalio__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
-#ifndef GPIO_DEVICES_BASEPATH
-#define GPIO_DEVICES_BASEPATH "/dev/gpio/"
-#endif
-
-
-#ifdef __APPLE__
-#define GPIO_SIMULATION 1
-#endif
-
-#if GPIO_SIMULATION
-#include "consolekey.hpp"
-#endif
-
-
+#include "iopin.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  /// Wrapper for General Purpose I/O pin accessed via SysFS from Userland
-  class Gpio
+  /// Generic digital I/O
+  class DigitalIo
   {
-    int gpioFD;
-    bool pinState;
+    IOPinPtr ioPin; ///< the actual hardware interface to the pin
+
+    string name;
     bool output;
     bool inverted;
-    string name;
-    #if GPIO_SIMULATION
-    ConsoleKeyPtr consoleKey;
-    #endif
   public:
     /// Create general purpose I/O
-    /// @param aGpioName name of the GPIO (files found in GPIO_DEVICES_BASEPATH)
+    /// @param aGpioName name of the IO (in form bus.device.pin, where bus & device can be omitted for normal GPIOs)
     /// @param aOutput use as output
     /// @param aInverted inverted polarity (output high level is treated as logic false)
     /// @param aInitialState initial state (to set for output, to expect without triggering change for input)
     ///   Note: aInitialState is logic state (pin state will be inverse if aInverted is set)
-    Gpio(const char* aGpioName, bool aOutput, bool aInverted = false, bool aInitialState = false);
-    virtual ~Gpio();
+    DigitalIo(const char* aName, bool aOutput, bool aInverted = false, bool aInitialState = false);
+    virtual ~DigitalIo();
 
 		/// get name
 		const char *getName() { return name.c_str(); };
+
+    /// check for output
+    bool isOutput() { return output; };
 		
     /// get state of GPIO
     /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
@@ -72,14 +58,14 @@ namespace p44 {
     /// @return new state of output after toggling (for inputs, just returns state like isSet() does)
     bool toggle();
   };
-	typedef boost::shared_ptr<Gpio> GpioPtr;
+	typedef boost::shared_ptr<DigitalIo> DigitalIoPtr;
 	
 	
 
   /// GPIO used as pushbutton
-  class ButtonInput : public Gpio
+  class ButtonInput : public DigitalIo
   {
-    typedef Gpio inherited;
+    typedef DigitalIo inherited;
 
   public:
     /// button event handler
@@ -118,9 +104,9 @@ namespace p44 {
 	
 	
   /// GPIO used for indicator (e.g. LED)
-  class IndicatorOutput : public Gpio
+  class IndicatorOutput : public DigitalIo
   {
-    typedef Gpio inherited;
+    typedef DigitalIo inherited;
 
     MLMicroSeconds switchOffAt;
     MLMicroSeconds blinkOnTime;
@@ -157,4 +143,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__p44bridged__gpio__) */
+#endif /* defined(__p44bridged__digitalio__) */

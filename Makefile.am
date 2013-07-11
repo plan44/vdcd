@@ -3,14 +3,54 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd
 vdcd_SOURCES = \
-  src/application.cpp \
-  src/application.hpp \
+  src/p44utils/application.cpp \
+  src/p44utils/application.hpp \
+  src/p44utils/consolekey.cpp \
+  src/p44utils/consolekey.hpp \
+  src/p44utils/digitalio.cpp \
+  src/p44utils/digitalio.hpp \
+  src/p44utils/error.cpp \
+  src/p44utils/error.hpp \
+  src/p44utils/fnv.cpp \
+  src/p44utils/fnv.hpp \
+  src/p44utils/gpio.cpp \
+  src/p44utils/gpio.h \
+  src/p44utils/gpio.hpp \
+  src/p44utils/i2c.cpp \
+  src/p44utils/i2c.hpp \
+  src/p44utils/iopin.cpp \
+  src/p44utils/iopin.hpp \
+  src/p44utils/jsoncomm.cpp \
+  src/p44utils/jsoncomm.hpp \
+  src/p44utils/jsonobject.cpp \
+  src/p44utils/jsonobject.hpp \
+  src/p44utils/logger.cpp \
+  src/p44utils/logger.hpp \
+  src/p44utils/mainloop.cpp \
+  src/p44utils/mainloop.hpp \
+  src/p44utils/operationqueue.cpp \
+  src/p44utils/operationqueue.hpp \
+  src/p44utils/persistentparams.cpp \
+  src/p44utils/persistentparams.hpp \
+  src/p44utils/serialcomm.cpp \
+  src/p44utils/serialcomm.hpp \
+  src/p44utils/serialqueue.cpp \
+  src/p44utils/serialqueue.hpp \
+  src/p44utils/socketcomm.cpp \
+  src/p44utils/socketcomm.hpp \
+  src/p44utils/sqlite3persistence.cpp \
+  src/p44utils/sqlite3persistence.hpp \
+  src/p44utils/utils.cpp \
+  src/p44utils/utils.hpp \
+  src/p44utils/p44_common.hpp \
+  src/sqlite3pp/sqlite3pp.cpp \
+  src/sqlite3pp/sqlite3pp.h \
+  src/sqlite3pp/sqlite3ppext.cpp \
+  src/sqlite3pp/sqlite3ppext.h \
   src/buttonbehaviour.cpp \
   src/buttonbehaviour.hpp \
   src/consoledevice.cpp \
   src/consoledevice.hpp \
-  src/consolekey.cpp \
-  src/consolekey.hpp \
   src/dalicomm.cpp \
   src/dalicomm.hpp \
   src/dalidefs.h \
@@ -35,44 +75,12 @@ vdcd_SOURCES = \
   src/enoceandevice.hpp \
   src/enoceandevicecontainer.cpp \
   src/enoceandevicecontainer.hpp \
-  src/error.cpp \
-  src/error.hpp \
-  src/fnv.cpp \
-  src/fnv.hpp \
-  src/gpio.cpp \
-  src/gpio.h \
-  src/gpio.hpp \
   src/gpiodevice.cpp \
   src/gpiodevice.hpp \
-  src/jsoncomm.cpp \
-  src/jsoncomm.hpp \
-  src/jsonobject.cpp \
-  src/jsonobject.hpp \
   src/lightbehaviour.cpp \
   src/lightbehaviour.hpp \
-  src/logger.cpp \
-  src/logger.hpp \
-  src/main.cpp \
-  src/mainloop.cpp \
-  src/mainloop.hpp \
-  src/operationqueue.cpp \
-  src/operationqueue.hpp \
-  src/p44bridged_common.hpp \
-  src/persistentparams.cpp \
-  src/persistentparams.hpp \
-  src/serialcomm.cpp \
-  src/serialcomm.hpp \
-  src/serialqueue.cpp \
-  src/serialqueue.hpp \
-  src/socketcomm.cpp \
-  src/socketcomm.hpp \
-  src/sqlite3persistence.cpp \
-  src/sqlite3persistence.hpp \
   src/staticdevicecontainer.cpp \
   src/staticdevicecontainer.hpp \
-  src/utils.cpp \
-  src/utils.hpp \
-  src/sqlite3pp/sqlite3pp.cpp \
-  src/sqlite3pp/sqlite3pp.h \
-  src/sqlite3pp/sqlite3ppext.cpp \
-  src/sqlite3pp/sqlite3ppext.h
+  src/vdcd_common.hpp \
+  src/main.cpp
+

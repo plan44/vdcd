@@ -8,8 +8,7 @@ Release/
 
 # XCode specifics
 *.xcuserstate
-vdcd.xcodeproj/xcuserdata/*
-vdcd.xcodeproj/project.xcworkspace/xcuserdata/*
+xcuserdata/
 
 # Autotools specifics
 *.o
@@ -23,10 +22,8 @@ config.log
 config.status
 configure
 configure_aux/
-src/.deps/
-src/.dirstamp
-src/sqlite3pp/.deps/
-stamp-h1
 .dirstamp
+.deps/
+stamp-h1
 vdcd
 

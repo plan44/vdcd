@@ -9,7 +9,7 @@
 #ifndef __p44bridged__dcerror__
 #define __p44bridged__dcerror__
 
-#include "p44bridged_common.hpp"
+#include "p44_common.hpp"
 
 using namespace std;
 

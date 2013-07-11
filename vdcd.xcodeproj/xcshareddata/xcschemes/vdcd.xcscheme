@@ -72,6 +72,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-c localhost"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-W 8090"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -96,23 +100,23 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.210"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.223"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b /dev/cu.usbserial-FTVEQ3US"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-g testbutton:in -g testlamp:out"
-            isEnabled = "NO">
+            argument = "-g testbutton:in -g testlamp:out -g i2c1.TCA9555@25.7:out"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:in -k testout:out"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

@@ -34,7 +34,7 @@ void Logger::log(int aErrlevel, const char *aFmt, ... )
     va_list ap;
     pthread_mutex_lock(&reportMutex);
 
-    strncpy(buf, "p44bridged: ", LOGBUFSIZ);
+    strncpy(buf, ": ", LOGBUFSIZ);
     va_start(ap, aFmt);
     vsnprintf(buf + strlen(buf), sizeof(buf)-strlen(buf), aFmt, ap);
     va_end(ap);

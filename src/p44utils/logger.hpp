@@ -26,8 +26,6 @@
 
 #include <syslog.h>
 
-#define ALWAYS_DEBUG 1
-
 #if defined(DEBUG) || ALWAYS_DEBUG
 #define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define DBGLOG(lvl,...) globalLogger.log(lvl,##__VA_ARGS__)
