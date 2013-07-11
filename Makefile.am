@@ -2,6 +2,9 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd
+
+vdcd_CPPFLAGS = -I src/p44utils
+
 vdcd_SOURCES = \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
