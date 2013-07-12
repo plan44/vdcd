@@ -124,9 +124,9 @@ bool I2CBus::readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
   #ifndef DISABLE_I2C
   int res = i2c_smbus_read_byte_data(busFD, aRegister);
   #else
-  LOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X)\n", aRegister);
   int res = 0x42; // dummy
   #endif
+  DBGLOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -140,9 +140,10 @@ bool I2CBus::readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
   int res = i2c_smbus_read_word_data(busFD, aRegister);
   if (res<0) return false;
   #else
-  LOG(LOG_DEBUG,"i2c_smbus_read_word_data(0x%02X)\n", aRegister);
   int res = 0x4242; // dummy
   #endif
+  DBGLOG(LOG_DEBUG,"i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
+  if (res<0) return false;
   aWord = (uint16_t)res;
   return true;
 }
@@ -154,9 +155,9 @@ bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
   #ifndef DISABLE_I2C
   int res = i2c_smbus_write_byte_data(busFD, aRegister, aByte);
   #else
-  LOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X)\n", aRegister, aByte);
   int res = 1; // ok
   #endif
+  LOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
   return (res>=0);
 }
 
@@ -167,9 +168,9 @@ bool I2CBus::writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
   #ifndef DISABLE_I2C
   int res = i2c_smbus_write_word_data(busFD, aRegister, aWord);
   #else
-  LOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X)\n", aRegister, aWord);
   int res = 1; // ok
   #endif
+  LOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
   return (res>=0);
 }
 
@@ -188,9 +189,8 @@ bool I2CBus::accessDevice(I2CDevice *aDeviceP)
     lastDeviceAddress = -1; // invalidate
     return false;
   }
-  #else
-  LOG(LOG_DEBUG,"ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
   #endif
+  DBGLOG(LOG_DEBUG,"ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
   // remember
   lastDeviceAddress = aDeviceP->deviceAddress;
   return true; // ok
@@ -210,9 +210,9 @@ bool I2CBus::accessBus()
     return false;
   }
   #else
-  LOG(LOG_DEBUG,"open(\"%s\", O_RDWR)\n", busDevName.c_str());
   busFD = 1; // dummy, signalling open
   #endif
+  LOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
   return true;
 }
 
