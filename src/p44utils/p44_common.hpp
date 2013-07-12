@@ -22,5 +22,4 @@
 #include "error.hpp"
 #include "mainloop.hpp"
 
-
 #endif /* P44_COMMON_HPP_ */

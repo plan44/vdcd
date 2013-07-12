@@ -7,10 +7,14 @@
 
 #include "i2c.hpp"
 
-#ifndef __APPLE__
+#if defined(__APPLE__) || defined(DIGI_ESP)
+#define DISABLE_I2C 1
+#endif
+
+#ifndef DISABLE_I2C
 #include <linux/i2c-dev.h>
 #else
-#warning "No i2C supported on Apple platforms - just showing calls in output"
+#warning "No i2C supported on this platform - just showing calls in output"
 #endif
 
 using namespace p44;
@@ -117,7 +121,7 @@ I2CDevicePtr I2CBus::getDevice(const char *aDeviceID)
 bool I2CBus::readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot read
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   int res = i2c_smbus_read_byte_data(busFD, aRegister);
   #else
   LOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X)\n", aRegister);
@@ -132,7 +136,7 @@ bool I2CBus::readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
 bool I2CBus::readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot read
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   int res = i2c_smbus_read_word_data(busFD, aRegister);
   if (res<0) return false;
   #else
@@ -147,7 +151,7 @@ bool I2CBus::readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
 bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot write
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   int res = i2c_smbus_write_byte_data(busFD, aRegister, aByte);
   #else
   LOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X)\n", aRegister, aByte);
@@ -160,7 +164,7 @@ bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
 bool I2CBus::writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot write
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   int res = i2c_smbus_write_word_data(busFD, aRegister, aWord);
   #else
   LOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X)\n", aRegister, aWord);
@@ -178,7 +182,7 @@ bool I2CBus::accessDevice(I2CDevice *aDeviceP)
   if (aDeviceP->deviceAddress == lastDeviceAddress)
     return true; // already set to access that device
   // address the device
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   if (ioctl(busFD, I2C_SLAVE, aDeviceP->deviceAddress) < 0) {
     LOG(LOG_ERR,"Error: Cannot access device '%s' on bus %d\n", aDeviceP->deviceID().c_str(), busNumber);
     lastDeviceAddress = -1; // invalidate
@@ -199,7 +203,7 @@ bool I2CBus::accessBus()
     return true; // already open
   // need to open
   string busDevName = string_format("/dev/i2c-%d", busNumber);
-  #ifndef __APPLE__
+  #ifndef DISABLE_I2C
   busFD = open(busDevName.c_str(), O_RDWR);
   if (busFD<0) {
     LOG(LOG_ERR,"Error: Cannot open i2c bus device '%s'\n",busDevName.c_str());

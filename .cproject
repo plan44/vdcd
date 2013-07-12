@@ -51,6 +51,7 @@
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
 <listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 <listOptionValue builtIn="false" value="DIGI_ESP=1"/>
+<listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.1587132294" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
@@ -1061,6 +1062,7 @@
 <listOptionValue builtIn="false" value="WCHAR_MAX=__WCHAR_MAX__"/>
 <listOptionValue builtIn="false" value="BOOST_NO_INTRINSIC_WCHAR_T=1"/>
 <listOptionValue builtIn="false" value="DIGI_ESP=1"/>
+<listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.219824697" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
