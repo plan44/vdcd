@@ -361,7 +361,7 @@ void TCA9555::updateOutputs(int aForBitNo)
   if (aForBitNo>15) return;
   uint8_t port = aForBitNo >> 3; // calculate port No
   uint8_t shift = 8*port;
-  i2cbus->writeByte(this, port, (outputStateMask >> shift) & 0xFF); // write output byte
+  i2cbus->writeByte(this, port+2, (outputStateMask >> shift) & 0xFF); // write output byte
 }
 
 
