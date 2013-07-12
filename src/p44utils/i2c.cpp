@@ -69,6 +69,8 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
   // - device address (hex)
   int deviceAddress = 0;
   sscanf(s.c_str(), "%x", &deviceAddress);
+  // reconstruct fully qualified device name for searching
+  s = string_format("%s@%02X", typeString.c_str(), deviceAddress);
   // get possibly already existing device of correct type at that address
   I2CDevicePtr dev = bus->getDevice(s.c_str());
   if (!dev) {
