@@ -71,7 +71,13 @@ namespace p44 {
     void add(const char* aKey, JsonObjectPtr aObj);
 
     /// get object by key
+    /// @note to distingusih between having no such key and having the key with
+    ///   a NULL object, use get(aKey,aJsonObject) instead
     JsonObjectPtr get(const char *aKey);
+
+    /// get object by key
+    /// @return true if key exists (but aJsonObject might still be empty in case of a NULL object)
+    bool get(const char *aKey, JsonObjectPtr &aJsonObject);
 
     /// delete object by key
     void del(const char *aKey);

@@ -105,17 +105,31 @@ void JsonObject::add(const char* aKey, JsonObjectPtr aObj)
 }
 
 
+bool JsonObject::get(const char *aKey, JsonObjectPtr &aJsonObject)
+{
+  json_object *weakObjRef = NULL;
+  if (json_object_object_get_ex(json_obj, aKey, &weakObjRef)) {
+    // found object, but can be the NULL object (which will return no JsonObjectPtr
+    if (weakObjRef==NULL) {
+      aJsonObject = JsonObjectPtr(); // no object
+    }
+    else {
+      // - claim ownership as json_object_object_get_ex does not do that automatically
+      json_object_get(weakObjRef);
+      // - create wrapper
+      aJsonObject = newObj(weakObjRef);
+    }
+    return true; // key exists, but returned object might still be NULL
+  }
+  return false; // key does not exist, aJsonObject unchanged
+}
+
+
+
 JsonObjectPtr JsonObject::get(const char *aKey)
 {
   JsonObjectPtr p;
-  json_object *weakObjRef = NULL;
-  if (json_object_object_get_ex(json_obj, aKey, &weakObjRef)) {
-    // found object
-    // - claim ownership as json_object_object_get_ex does not do that automatically
-    json_object_get(weakObjRef);
-    // - return wrapper
-    p = newObj(weakObjRef);
-  }
+  get(aKey, p);
   return p;
 }
 
