@@ -43,6 +43,8 @@
 <listOptionValue builtIn="false" value="../boost_1_53_0"/>
 <listOptionValue builtIn="false" value="../."/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="../src"/>
+<listOptionValue builtIn="false" value="../src/p44utils"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.104925405" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -1052,6 +1054,7 @@
 <listOptionValue builtIn="false" value="../."/>
 <listOptionValue builtIn="false" value="../src"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="../src/p44utils"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1780290498" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
