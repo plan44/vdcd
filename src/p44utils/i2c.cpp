@@ -159,7 +159,7 @@ bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
   #else
   int res = 1; // ok
   #endif
-  LOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
+  DBGLOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
   return (res>=0);
 }
 
@@ -172,7 +172,7 @@ bool I2CBus::writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
   #else
   int res = 1; // ok
   #endif
-  LOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
+  DBGLOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
   return (res>=0);
 }
 
@@ -214,7 +214,7 @@ bool I2CBus::accessBus()
   #else
   busFD = 1; // dummy, signalling open
   #endif
-  LOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
+  DBGLOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
   return true;
 }
 
@@ -354,7 +354,7 @@ void TCA9555::updateInputState(int aForBitNo)
   uint8_t shift = 8*port;
   uint8_t data;
   i2cbus->readByte(this, port, data); // get input byte
-  pinStateMask = (pinStateMask & (~((uint32_t)0xFF) << shift)) || ((uint32_t)data << shift);
+  pinStateMask = (pinStateMask & (~((uint32_t)0xFF) << shift)) | ((uint32_t)data << shift);
 }
 
 
