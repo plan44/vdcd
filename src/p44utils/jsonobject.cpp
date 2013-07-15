@@ -16,38 +16,13 @@
 using namespace p44;
 
 
-#pragma mark - intrusive pointer refcount management
-
-namespace p44 {
-
-  void intrusive_ptr_add_ref(JsonObject* p)
-  {
-    json_object_get(p->json_obj); // increment ref count
-  }
-
-  void intrusive_ptr_release(JsonObject* p)
-  {
-    if (p->json_obj->_ref_count==1) {
-      // will reach zero
-      json_object_put(p->json_obj); // will delete object
-      delete p; // delete this object with it
-    }
-    else {
-      // just decerement
-      json_object_put(p->json_obj);
-    }
-  }
-
-} // namespace
-
-
 #pragma mark - private constructors / destructor
 
 
-// construct from raw json_object
-JsonObject::JsonObject(struct json_object *aObj)
+// construct from raw json_object, passing ownership
+JsonObject::JsonObject(struct json_object *aObjPassingOwnership)
 {
-  json_obj = aObj;
+  json_obj = aObjPassingOwnership;
 }
 
 
@@ -101,7 +76,10 @@ string JsonObject::json_str(int aFlags)
 
 void JsonObject::add(const char* aKey, JsonObjectPtr aObj)
 {
-  json_object_object_add(json_obj, aKey, aObj->json_obj);
+  // json_object_object_add assumes caller relinquishing ownership,
+  // so we must compensate this by retaining (getting) the object
+  // as the object still belongs to us
+  json_object_object_add(json_obj, aKey, json_object_get(aObj->json_obj));
 }
 
 

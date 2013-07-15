@@ -26,23 +26,20 @@ namespace p44 {
 
   class JsonObject;
 
-  /// intrusive pointer for JSON object
-  typedef boost::intrusive_ptr<JsonObject> JsonObjectPtr;
-
+  /// shared pointer for JSON object
+  typedef boost::shared_ptr<JsonObject> JsonObjectPtr;
 
 
   /// wrapper around json-c / libjson0 object
   class JsonObject
   {
-    friend void intrusive_ptr_add_ref(JsonObject* p);
-    friend void intrusive_ptr_release(JsonObject* p);
     friend class JsonComm;
 
     struct json_object *json_obj;
 
     /// construct object as wrapper of json-c json_object.
     /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
-    JsonObject(struct json_object *aObj);
+    JsonObject(struct json_object *aObjPassingOwnership);
 
     /// factory to return smart pointer to new wrapper of a newly created json_object
     /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
@@ -51,10 +48,10 @@ namespace p44 {
     /// construct empty object
     JsonObject();
 
+  public:
+
     /// destructor, releases internally kept json_object (which is possibly owned by other objects)
     virtual ~JsonObject();
-
-  public:
 
     /// get type
     json_type type();

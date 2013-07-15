@@ -88,8 +88,10 @@ void JsonComm::gotData(ErrorPtr aError)
             }
             else {
               // got JSON object
+              JsonObjectPtr message = JsonObject::newObj(o);
               if (jsonMessageHandler) {
-                jsonMessageHandler(this, ErrorPtr(), JsonObject::newObj(o));
+                // pass json_object into handler, will consume it
+                jsonMessageHandler(this, ErrorPtr(), message);
               }
               ignoreUntilNextEOM = true;
               json_tokener_reset(tokener);
@@ -105,9 +107,8 @@ void JsonComm::gotData(ErrorPtr aError)
           // now eom becomes the new bom
           bom = eom;
         } // while data to process
-        // all ok, nothing to report
-        return;
       } // no read error
+      free(buf); buf = NULL;
     } // some data seems to be ready
   } // no connection error
   if (!Error::isOK(aError)) {
