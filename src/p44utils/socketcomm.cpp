@@ -479,6 +479,7 @@ bool SocketComm::connecting()
 
 bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
+  DBGLOG(LOG_DEBUG, "SocketComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)", aCycleStartTime, aFD, aPollFlags);
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
     // - close my end
