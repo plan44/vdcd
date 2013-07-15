@@ -479,7 +479,7 @@ bool SocketComm::connecting()
 
 bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "SocketComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)", aCycleStartTime, aFD, aPollFlags);
+  DBGLOG(LOG_DEBUG, "SocketComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFD, aPollFlags);
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
     // - close my end
@@ -490,7 +490,22 @@ bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aC
     }
   }
   else if ((aPollFlags & POLLIN) && receiveHandler) {
-    receiveHandler(this, ErrorPtr());
+    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN
+    if (numBytesReady()>0)
+      receiveHandler(this, ErrorPtr());
+    else {
+      // alerted for read, but nothing to read any more: assume connection closed
+      ErrorPtr err = connectionError();
+      if (Error::isOK(err))
+        err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
+      LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      // - shut down
+      internalCloseConnection();
+      if (connectionStatusHandler) {
+        // report reason for closing
+        connectionStatusHandler(this, err);
+      }
+    }
   }
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
     transmitHandler(this, ErrorPtr());
