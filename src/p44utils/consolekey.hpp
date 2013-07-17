@@ -23,9 +23,9 @@ namespace p44 {
 
   public:
     /// button event handler
-    /// @param aButtonP the button
-    /// @param aNewState the current state of the button (relevant when handler was installed with aPressAndRelease set)
-    /// @param aTimestamp the main loop timestamp of the button action
+    /// @param aConsoleKeyP the consolekey object
+    /// @param aNewState the current state of the key
+    /// @param aTimestamp the main loop timestamp of the key action
     typedef boost::function<void (ConsoleKey *aConsoleKeyP, bool aNewState, MLMicroSeconds aTimestamp)> ConsoleKeyHandlerCB;
 
   private:
@@ -63,19 +63,35 @@ namespace p44 {
 
   typedef std::map<char, ConsoleKeyPtr> ConsoleKeyMap;
 
+
+
   /// manager of console keys
   class ConsoleKeyManager
   {
     friend class ConsoleKey;
+  public:
+    /// button event handler
+    /// @param aConsoleKeyManagerP the console key manager
+    /// @param aKeyPress key pressed
+    /// @param aTimestamp the main loop timestamp of the button action
+    /// @return true if fully handled already
+    typedef boost::function<bool (ConsoleKeyManager *aConsoleKeyManagerP, char aKeyPress)> ConsoleKeyPressCB;
+
+  private:
 
     ConsoleKeyMap keyMap;
     bool termInitialized;
+    ConsoleKeyPressCB keyPressHandler;
 
     ConsoleKeyManager();
     virtual ~ConsoleKeyManager();
 
   public:
     static ConsoleKeyManager *sharedKeyManager();
+
+    /// install a callback for when a key is pressed
+    /// @param handler to call when a key is pressed on the console
+    void setKeyPressHandler(ConsoleKeyPressCB aHandler);
 
     /// create a new console key
     /// @param aKeyCode ASCII-code of the key. A-Z are special, as

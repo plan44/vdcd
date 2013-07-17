@@ -147,6 +147,15 @@ ConsoleKeyPtr ConsoleKeyManager::newConsoleKey(char aKeyCode, const char *aDescr
 }
 
 
+void ConsoleKeyManager::setKeyPressHandler(ConsoleKeyPressCB aHandler)
+{
+  keyPressHandler = aHandler;
+}
+
+
+
+
+
 
 int ConsoleKeyManager::kbHit()
 {
@@ -174,25 +183,32 @@ bool ConsoleKeyManager::consoleKeyPoll()
   // process all pending console input
   while (kbHit()>0) {
     char  c = getchar();
-    bool toggle = false;
-    // A..Z are special "sticky" toggle variants of a..z
-    if (c>='A' && c<='Z') {
-      // make lowercase
-      c = tolower(c);
-      // toggle
-      toggle = true;
+    bool handled = false;
+    if (keyPressHandler) {
+      // call custom keypress handler
+      handled = keyPressHandler(this, c);
     }
-    // search key in map
-    ConsoleKeyMap::iterator keypos = keyMap.find(c);
-    if (keypos!=keyMap.end()) {
-      // key is mapped
-      if (toggle) {
-        // toggle state
-        keypos->second->toggle();
+    if (!handled) {
+      bool toggle = false;
+      // A..Z are special "sticky" toggle variants of a..z
+      if (c>='A' && c<='Z') {
+        // make lowercase
+        c = tolower(c);
+        // toggle
+        toggle = true;
       }
-      else {
-        // pulse
-        keypos->second->pulse();
+      // search key in map
+      ConsoleKeyMap::iterator keypos = keyMap.find(c);
+      if (keypos!=keyMap.end()) {
+        // key is mapped
+        if (toggle) {
+          // toggle state
+          keypos->second->toggle();
+        }
+        else {
+          // pulse
+          keypos->second->pulse();
+        }
       }
     }
   }
