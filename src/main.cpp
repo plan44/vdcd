@@ -70,9 +70,9 @@ class P44bridged : public Application
 public:
 
   P44bridged() :
-    redLED("ledred", false, false),
-    greenLED("ledgreen", false, false),
-    button("button", true),
+    redLED("gpioNS9XXXX.ledred", false, false),
+    greenLED("gpioNS9XXXX.ledgreen", false, false),
+    button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
     deviceLearning(false),
     configApiServer(SyncIOMainLoop::currentMainLoop())

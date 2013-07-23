@@ -54,11 +54,20 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     }
   }
   // now create appropriate pin
+  #ifndef __APPLE__
   if (busName=="gpio") {
-    // Linux GPIO
+    // Linux generic GPIO
+    // gpio.<gpionumber>
     ioPin = IOPinPtr(new GpioPin(pinName.c_str(), output, aInitialState));
   }
-  else if (busName.substr(0,3)=="i2c") {
+  if (busName=="gpioNS9XXXX") {
+    // gpioNS9XXXX.<pinname>
+    // NS9XXX driver based GPIO (Digi ME 9210 LX)
+    ioPin = IOPinPtr(new GpioNS9XXXPin(pinName.c_str(), output, aInitialState));
+  }
+  else
+  #endif
+  if (busName.substr(0,3)=="i2c") {
     // i2c<busnum>.<devicespec>.<pinnum>
     int busNumber = atoi(busName.c_str()+3);
     int pinNumber = atoi(pinName.c_str());
