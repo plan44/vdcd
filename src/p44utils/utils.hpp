@@ -30,6 +30,12 @@ namespace p44 {
 	/// @return the input string if it is non-NULL, or an empty string
 	const char *nonNullCStr(const char *aNULLOrCStr);
 
+  /// return simple (non locale aware) ASCII lowercase version of string
+  /// @param aString a string
+  /// @return lowercase (char by char tolower())
+  string lowerCase(const char *aString);
+  string lowerCase(const string &aString);
+
 } // namespace p44
 
 #endif /* defined(__p44bridged__utils__) */
