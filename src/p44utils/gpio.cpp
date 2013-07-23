@@ -15,7 +15,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-#include "gpio.h" // Linux GPIO, included in project
+#include "gpio.h" // NS9XXX GPIO header, included in project
 
 #include "logger.hpp"
 #include "mainloop.hpp"
