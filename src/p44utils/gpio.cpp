@@ -46,7 +46,7 @@ GpioPin::GpioPin(int aGpioNo, bool aOutput, bool aInitialState) :
   // save base path
   string basePath = string_format("%s/gpio%d", GPIO_SYS_CLASS_PATH, aGpioNo);
   // configure
-  name = basePath.append("/direction");
+  name = basePath + "/direction";
   tempFd = open(name.c_str(), O_RDWR);
   if (tempFd<0) { LOG(LOG_ERR,"Cannot open GPIO direction file %s: %s\n", name.c_str(), strerror(errno)); return; }
   if (output) {
@@ -63,7 +63,7 @@ GpioPin::GpioPin(int aGpioNo, bool aOutput, bool aInitialState) :
   }
   close(tempFd);
   // now keep the value FD open
-  name = basePath.append("/value");
+  name = basePath + "/value";
   gpioFD = open(name.c_str(), O_RDWR);
   if (gpioFD<0) { LOG(LOG_ERR,"Cannot open GPIO value file %s: %s\n", name.c_str(), strerror(errno)); return; }
 }
