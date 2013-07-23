@@ -58,7 +58,8 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   if (busName=="gpio") {
     // Linux generic GPIO
     // gpio.<gpionumber>
-    ioPin = IOPinPtr(new GpioPin(pinName.c_str(), output, aInitialState));
+    int pinNumber = atoi(pinName.c_str())
+    ioPin = IOPinPtr(new GpioPin(pinNumber, output, aInitialState));
   }
   if (busName=="gpioNS9XXXX") {
     // gpioNS9XXXX.<pinname>

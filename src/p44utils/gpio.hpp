@@ -12,8 +12,8 @@
 
 #include "iopin.hpp"
 
-#ifndef GPIO_DEVICES_BASEPATH
-#define GPIO_DEVICES_BASEPATH "/dev/gpio/"
+#ifndef GPION9XXX_DEVICES_BASEPATH
+#define GPION9XXX_DEVICES_BASEPATH "/dev/gpio/"
 #endif
 
 
@@ -28,14 +28,15 @@ namespace p44 {
   {
     bool pinState;
     bool output;
-    string name;
+    int gpioNo;
+    int gpioFD;
   public:
 
     /// Create general purpose I/O pin
     /// @param aGpioName name of the GPIO (files found in GPIO_DEVICES_BASEPATH)
     /// @param aOutput use as output
     /// @param aInitialState initial state assumed for inputs and enforced for outputs
-    GpioPin(const char* aGpioName, bool aOutput, bool aInitialState);
+    GpioPin(int aGpioNo, bool aOutput, bool aInitialState);
     virtual ~GpioPin();
 
     /// get state of GPIO
