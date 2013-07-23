@@ -78,3 +78,19 @@ const char *p44::nonNullCStr(const char *aNULLOrCStr)
 	return aNULLOrCStr;
 }
 
+
+string p44::lowerCase(const char *aString)
+{
+  string s;
+  while (char c=*aString++) {
+    s += tolower(c);
+  }
+  return s;
+}
+
+
+string p44::lowerCase(const string &aString)
+{
+  return lowerCase(aString.c_str());
+}
+
