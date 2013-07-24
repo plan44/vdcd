@@ -94,3 +94,27 @@ string p44::lowerCase(const string &aString)
   return lowerCase(aString.c_str());
 }
 
+
+string p44::shellQuote(const char *aString)
+{
+  string s = "\"";
+  while (char c=*aString++) {
+    if (c=='"' || c=='\\') s += '\\'; // escape double quotes and backslashes
+    s += c;
+  }
+  s += '"';
+  return s;
+}
+
+
+string p44::shellQuote(const string &aString)
+{
+  return shellQuote(aString.c_str());
+}
+
+
+
+
+
+
+

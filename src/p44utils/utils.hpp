@@ -36,6 +36,12 @@ namespace p44 {
   string lowerCase(const char *aString);
   string lowerCase(const string &aString);
 
+  /// return string quoted such that it works as a single shell argument
+  /// @param aString a string
+  /// @return quoted string
+  string shellQuote(const char *aString);
+  string shellQuote(const string &aString);
+
 } // namespace p44
 
 #endif /* defined(__p44bridged__utils__) */
