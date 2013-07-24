@@ -89,6 +89,7 @@ bool GpioPin::getState()
     else {
       // read from input
       char buf[2];
+      lseek(gpioFD, 0, SEEK_SET);
       if (read(gpioFD, buf, 1)>0) {
         return buf[0]!='0';
       }
