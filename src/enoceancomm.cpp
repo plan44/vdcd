@@ -429,7 +429,7 @@ EnoceanProfile Esp3Packet::eep_profile()
       if (eep_hasTeachInfo()) {
         profile =
           (rorg<<16) |
-          (((EnoceanProfile)(radio_userData()[0])<<6) & 0x3F) | // 6 FUNC bits, shifted to bit 8..13
+          (((EnoceanProfile)(radio_userData()[0])<<6) & 0x3F00) | // 6 FUNC bits, shifted to bit 8..13
           (((EnoceanProfile)(radio_userData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
           (((EnoceanProfile)(radio_userData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
       }
