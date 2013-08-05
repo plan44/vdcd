@@ -333,33 +333,37 @@ public:
   }
 
 
-  virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeSincePreviousChange)
+  virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
     // TODO: %%% clean up, test hacks for now
-    if (aNewState==false) {
-      // released
-      if (aTimeSincePreviousChange>15*Second) {
+    if (aState==true && !aHasChanged) {
+      // keypress reported again, check for very long keypress
+      if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
+        LOG(LOG_WARNING,"Very long button press detected -> exit(3) in 2 seconds\n");
+        sleep(2);
         exit(3); // %%% for now, so starting script knows why we exit
       }
-      else if (aTimeSincePreviousChange>5*Second) {
+    }
+    if (aState==false) {
+      // keypress release
+      if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_error);
+        LOG(LOG_WARNING,"Long button press detected -> exit(2) in 2 seconds\n");
+        sleep(2);
         exit(2); // %%% for now, so starting script knows why we exit
       }
-      else {
-        // normal keypress
-        if (enoceanDeviceContainer) {
-          if (!enoceanDeviceContainer->isLearning()) {
-            // start device learning
-            setAppStatus(status_interaction);
-            enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
-          }
-          else {
-            // abort device learning
-            enoceanDeviceContainer->stopLearning();
-          }
+      if (enoceanDeviceContainer) {
+        if (!enoceanDeviceContainer->isLearning()) {
+          // start device learning
+          setAppStatus(status_interaction);
+          enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+        }
+        else {
+          // abort device learning
+          enoceanDeviceContainer->stopLearning();
         }
       }
     }
@@ -370,7 +374,7 @@ public:
   virtual void initialize()
   {
     // connect button
-    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3), true);
+    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
     // initialize the device container
     deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
   }
@@ -391,21 +395,11 @@ public:
   }
 
 
-  void localSwitchOutputHandler(const dSID &aDsid, bool aOutputOn)
-  {
-    if (daliDeviceContainer) {
-      daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, !aOutputOn ? 0 : 254);
-    }
-  }
-
-  
   virtual void devicesCollected(ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
       DBGLOG(LOG_INFO, deviceContainer.description().c_str());
-      /// TODO: %%% q&d: install local toggle handler
-      deviceContainer.setLocalSwitchOutputHandler(boost::bind(&P44bridged::localSwitchOutputHandler, this, _1, _2));
     }
     else
       setAppStatus(status_error);

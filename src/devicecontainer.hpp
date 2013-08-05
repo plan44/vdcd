@@ -50,11 +50,6 @@ namespace p44 {
   /// generic callback for signalling completion (with success/error reporting)
   typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 
-
-  /// TODO: %%% q&d only
-  typedef boost::function<void (const dSID &aDsid, bool aOutputOn)> LocalSwitchOutputCB;
-
-
   /// persistence for digitalSTROM paramters
   class DsParamStore : public ParamStore
   {
@@ -86,10 +81,13 @@ namespace p44 {
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
     string persistentDataDir;
-    LocalSwitchOutputCB localSwitchOutputCallback;
 
     bool collecting;
     long announcementTicket;
+    long periodicTaskTicket;
+
+    long localDimTicket;
+    bool localDimDown;
 
   private:
 
@@ -185,19 +183,15 @@ namespace p44 {
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
-    /// TODO: %%% handle "local" button presses
-    void localSwitchOutput(const dSID &aDsid, bool aNewOutState);
-
-    /// TODO: %%% set local toggle handler
-    void setLocalSwitchOutputHandler(LocalSwitchOutputCB aLocalSwitchOutputHandler) { localSwitchOutputCallback = aLocalSwitchOutputHandler; };
-
-
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
 
   private:
-  
+
+    void handleClickLocally(int aClickType, int aKeyID);
+    void localDimHandler();
+
     void deviceAnnounced();
 
     void initiateVdsmConnection();

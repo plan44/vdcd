@@ -52,8 +52,8 @@ namespace p44 {
   {
     typedef DSBehaviour inherited;
 
-  private:
-
+  public:
+  
     // dS enums
 
     // - click types
@@ -84,6 +84,8 @@ namespace p44 {
       key_local_2way_A = 5, ///< two way rocker switch, lower
       key_local_2way_B = 6, ///< two way rocker switch, upper
     } KeyId;
+
+  private:
 
     // button state machine v2.01
 

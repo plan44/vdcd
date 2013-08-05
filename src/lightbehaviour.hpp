@@ -169,6 +169,10 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
+    /// direct scene handling for
+    /// TODO: integrate more nicely
+    void callScene(SceneNo aSceneNo);
+
     /// handle message from vdSM
     /// @param aOperation the operation keyword
     /// @param aParams the parameters object, or NULL if none

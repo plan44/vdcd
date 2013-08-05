@@ -63,7 +63,7 @@ namespace p44 {
 		
 	private:
 
-    void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
+    void buttonHandler(bool aState, MLMicroSeconds aTimeStamp);
 		
   };
 

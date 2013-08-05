@@ -57,11 +57,11 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
 }
 
 
-void ConsoleDevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
+void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 {
 	ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
 	if (b) {
-		b->buttonAction(aNewState, false);
+		b->buttonAction(aState, false);
 	}
 }
 

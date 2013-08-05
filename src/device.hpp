@@ -143,7 +143,7 @@ namespace p44 {
     /// @return the behaviour. If NULL, the device ist not yet set up and cannot be operated
     DSBehaviour *getDSBehaviour() { return behaviourP; };
 
-    /// get pointer to device container
+    /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
 
     /// check if device is public dS device (which should be registered with vdSM)

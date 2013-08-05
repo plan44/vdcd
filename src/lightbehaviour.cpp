@@ -608,6 +608,66 @@ uint8_t LightBehaviour::buttonIdGroup()
 #pragma mark - interaction with digitalSTROM system
 
 
+// call scene
+void LightBehaviour::callScene(SceneNo aSceneNo)
+{
+  // TODO: area scenes are missing for now
+  if (aSceneNo==DEC_S || aSceneNo==INC_S) {
+    // dimming up/down special scenes
+    //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
+    if (isLocigallyOn && !localPriority) {
+      Brightness b = getLogicalBrightness();
+      Brightness nb = b;
+      if (aSceneNo==DEC_S) {
+        // dim down
+        // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
+        // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
+        nb = nb>11 ? nb-11 : 1; // never below 1
+        // also make sure we don't go below minDim
+        if (nb<lightSettings.minDim)
+          nb = lightSettings.minDim;
+      }
+      else {
+        // dim up
+        nb = nb<255-11 ? nb+11 : 255;
+        // also make sure we don't go above maxDim
+        if (nb>lightSettings.maxDim)
+          nb = lightSettings.maxDim;
+      }
+      if (nb!=b) {
+        isLocigallyOn = nb!=0; // TODO: is this correct?
+        // TODO: pass correct transition time
+        setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
+        LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
+      }
+    }
+  }
+  else if (aSceneNo==STOP_S) {
+    // stop dimming
+    // TODO: when fine tuning dimming, we'll need to actually stop ongoing DALI dimming. For now, it's just a NOP
+  }
+  else if (aSceneNo==MIN_S) {
+    // TODO: this is a duplicate implementation of "callscenemin"
+    Brightness b = lightSettings.minDim;
+    isLocigallyOn = true; // mindim always turns on light
+    // TODO: pass correct transition time
+    setLogicalBrightness(b, 0);
+    LOG(LOG_NOTICE,"- CallScene(MIN_S): setting minDim %d\n", b);
+  }
+  else {
+    LightScenePtr scene = lightSettings.getScene(aSceneNo);
+    if (!scene->dontCare && (!localPriority || scene->ignoreLocalPriority)) {
+      // apply to output
+      Brightness b = scene->sceneValue;
+      isLocigallyOn = b!=0; // TODO: is this correct?
+      // TODO: pass correct transition time
+      setLogicalBrightness(b, 0);
+      LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", aSceneNo, b);
+    }
+  }
+}
+
+
 // handle message from vdSM
 ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
@@ -636,47 +696,7 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
     }
     else {
       SceneNo sceneNo = o->int32Value();
-      if (sceneNo==DEC_S || sceneNo==INC_S) {
-        // dimming up/down special scenes
-        //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
-        if (isLocigallyOn && !localPriority) {
-          Brightness b = getLogicalBrightness();
-          Brightness nb = b;
-          if (sceneNo==DEC_S) {
-            // dim down
-            // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
-            // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
-            nb = nb>11 ? nb-11 : 1; // never below 1
-            // also make sure we don't go below minDim
-            if (nb<lightSettings.minDim)
-              nb = lightSettings.minDim;
-          }
-          else {
-            // dim up
-            nb = nb<255-11 ? nb+11 : 255;
-            // also make sure we don't go above maxDim
-            if (nb>lightSettings.maxDim)
-              nb = lightSettings.maxDim;
-          }
-          if (nb!=b) {
-            isLocigallyOn = nb!=0; // TODO: is this correct?
-            // TODO: pass correct transition time
-            setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-            LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
-          }
-        }
-      }
-      else {
-        LightScenePtr scene = lightSettings.getScene(sceneNo);
-        if (!scene->dontCare && (!localPriority || scene->ignoreLocalPriority)) {
-          // apply to output
-          Brightness b = scene->sceneValue;
-          isLocigallyOn = b!=0; // TODO: is this correct?
-          // TODO: pass correct transition time
-          setLogicalBrightness(b, 0);
-          LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", sceneNo, b);
-        }
-      }
+      callScene(sceneNo);
     }
   }
   else if (aOperation=="callscenemin") {

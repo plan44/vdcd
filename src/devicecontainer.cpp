@@ -20,13 +20,21 @@
 
 #include "fnv.hpp"
 
+// for local behaviour
+#include "buttonbehaviour.hpp"
+#include "lightbehaviour.hpp"
+
+
 using namespace p44;
 
 
 DeviceContainer::DeviceContainer() :
   vdsmJsonComm(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
-  announcementTicket(0)
+  announcementTicket(0),
+  periodicTaskTicket(0),
+  localDimTicket(0),
+  localDimDown(false)
 {
   vdsmJsonComm.setMessageHandler(boost::bind(&DeviceContainer::vdsmMessageHandler, this, _2, _3));
   #warning "// TODO: %%%% use final dsid scheme"
@@ -392,7 +400,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 {
   // cancel any pending executions
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop()->cancelExecutionTicket(periodicTaskTicket);
   if (!collecting) {
     // check for devices that need registration
     announceDevices();
@@ -402,7 +410,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
     }
   }
   // schedule next run
-  MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+  periodicTaskTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
 }
 
 
@@ -475,8 +483,95 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
 }
 
 
+void DeviceContainer::localDimHandler()
+{
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+    if (lightBehaviour) {
+      lightBehaviour->callScene(localDimDown ? DEC_S : INC_S);
+    }
+  }
+  localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+}
+
+
+void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
+{
+  // TODO: Not really conforming to ds-light yet...
+  int scene = -1; // none
+  int direction = aKeyID==ButtonBehaviour::key_2way_A ? 1 : (aKeyID==ButtonBehaviour::key_2way_B ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  switch (aClickType) {
+    case ButtonBehaviour::ct_tip_1x:
+      scene = T0_S1;
+      break;
+    case ButtonBehaviour::ct_tip_2x:
+      scene = T0_S2;
+      break;
+    case ButtonBehaviour::ct_tip_3x:
+      scene = T0_S3;
+      break;
+    case ButtonBehaviour::ct_tip_4x:
+      scene = T0_S4;
+      break;
+    case ButtonBehaviour::ct_hold_start:
+      scene = direction>0 ? MIN_S : INC_S;
+      localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+      if (direction!=0)
+        localDimDown = direction<0;
+      else {
+        localDimDown = !localDimDown; // just toggle direction
+        direction = localDimDown ? -1 : 1; // adjust direction as well
+      }
+      break;
+    case ButtonBehaviour::ct_hold_end:
+      MainLoop::currentMainLoop()->cancelExecutionTicket(localDimTicket); // stop dimming
+      scene = STOP_S; // stop any still ongoing dimming
+      direction = 1; // really send STOP, not main off!
+      break;
+  }
+  if (scene>=0) {
+    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+      DevicePtr dev = pos->second;
+      LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+      if (lightBehaviour) {
+        // this is a light
+        if (direction==0) {
+          // get direction from current value of first encountered light
+          direction = lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
+        }
+        // determine the scene to call
+        int effScene = scene;
+        if (scene==INC_S) {
+          // dimming
+          if (direction<0) effScene = DEC_S;
+        }
+        else {
+          // switching
+          if (direction<0) effScene = T0_S0; // main off
+        }
+        // call the effective scene
+        lightBehaviour->callScene(effScene);
+      }
+    }
+  }
+}
+
+
 bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 {
+  // TODO: %%% cleaner implementation for this, q&d hack for now only
+  if (!vdsmJsonComm.connectable()) {
+    // not connectable, check some messages to interpret locally for standalone mode
+    if (strcmp(aOperation,"DeviceButtonClick")==0) {
+      // handle button clicks locally
+      int c = aParams->get("click")->int32Value();
+      int k = aParams->get("key")->int32Value();
+      handleClickLocally(c, k);
+    }
+    // not really sent
+    return false;
+  }
   JsonObjectPtr req = JsonObject::newObj();
   req->add("operation", JsonObject::newString(aOperation));
   if (aParams) {
@@ -491,17 +586,6 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
   }
   return true;
 }
-
-
-// TODO: %%% hack implementation only
-void DeviceContainer::localSwitchOutput(const dSID &aDsid, bool aNewOutState)
-{
-  if (localSwitchOutputCallback) {
-    localSwitchOutputCallback(aDsid, aNewOutState);
-  }
-}
-
-
 
 
 #pragma mark - session management
