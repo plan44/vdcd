@@ -333,21 +333,33 @@ public:
   }
 
 
-  virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeStamp)
+  virtual bool buttonHandler(bool aNewState, MLMicroSeconds aTimeSincePreviousChange)
   {
     // TODO: %%% clean up, test hacks for now
     if (aNewState==false) {
       // released
-      // TODO: check for long press
-      if (enoceanDeviceContainer) {
-        if (!enoceanDeviceContainer->isLearning()) {
-          // start device learning
-          setAppStatus(status_interaction);
-          enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
-        }
-        else {
-          // abort device learning
-          enoceanDeviceContainer->stopLearning();
+      if (aTimeSincePreviousChange>15*Second) {
+        // very long press (labelled "Factory reset" on the case)
+        setAppStatus(status_error);
+        exit(3); // %%% for now, so starting script knows why we exit
+      }
+      else if (aTimeSincePreviousChange>5*Second) {
+        // long press (labelled "Software Update" on the case)
+        setAppStatus(status_error);
+        exit(2); // %%% for now, so starting script knows why we exit
+      }
+      else {
+        // normal keypress
+        if (enoceanDeviceContainer) {
+          if (!enoceanDeviceContainer->isLearning()) {
+            // start device learning
+            setAppStatus(status_interaction);
+            enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+          }
+          else {
+            // abort device learning
+            enoceanDeviceContainer->stopLearning();
+          }
         }
       }
     }
