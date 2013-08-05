@@ -70,15 +70,18 @@ namespace p44 {
   public:
     /// button event handler
     /// @param aButtonP the button
-    /// @param aNewState the current state of the button (relevant when handler was installed with aPressAndRelease set)
+    /// @param aState the current state of the button (relevant when handler was installed with aPressAndRelease set)
+    /// @param aHasChanged set when reporting a state change, cleared when reporting the same state again (when repeatActiveReport set)
     /// @param aTimeSincePreviousChange time passed since previous button state change (to easily detect long press actions etc.)
-    typedef boost::function<void (ButtonInput *aButtonP, bool aNewState, MLMicroSeconds aTimeSincePreviousChange)> ButtonHandlerCB;
+    typedef boost::function<void (ButtonInput *aButtonP, bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)> ButtonHandlerCB;
 
   private:
     bool lastState;
     MLMicroSeconds lastChangeTime;
     bool reportPressAndRelease;
     ButtonHandlerCB buttonHandler;
+    MLMicroSeconds repeatActiveReport;
+    MLMicroSeconds lastActiveReport;
 
     bool poll(MLMicroSeconds aTimestamp);
     
@@ -96,7 +99,8 @@ namespace p44 {
     /// @param aButtonHandler handler for pushbutton events
     /// @param aPressAndRelease if set, both pressing and releasing button generates event.
     ///   Otherwise, only one event is issued per button press (on button release)
-    void setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease);
+    /// @param aRepeatActiveReport time after which a still pressed button is reported again
+    void setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease, MLMicroSeconds aRepeatActiveReport=p44::Never);
     
   };
 	typedef boost::shared_ptr<ButtonInput> ButtonInputPtr;

@@ -126,7 +126,9 @@ bool DigitalIo::toggle()
 
 
 ButtonInput::ButtonInput(const char* aName, bool aInverted) :
-  DigitalIo(aName, false, aInverted, false)
+  DigitalIo(aName, false, aInverted, false),
+  repeatActiveReport(p44::Never),
+  lastActiveReport(p44::Never)
 {
   // save params
   lastState = false; // assume inactive to start with
@@ -140,9 +142,10 @@ ButtonInput::~ButtonInput()
 }
 
 
-void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease)
+void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease, MLMicroSeconds aRepeatActiveReport)
 {
   reportPressAndRelease = aPressAndRelease;
+  repeatActiveReport = aRepeatActiveReport;
   buttonHandler = aButtonHandler;
   if (buttonHandler) {
     MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _2));
@@ -162,11 +165,22 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
   if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
     // report if needed
     if (!newState || reportPressAndRelease) {
-      buttonHandler(this, newState, aTimestamp-lastChangeTime);
+      buttonHandler(this, newState, true, aTimestamp-lastChangeTime);
     }
     // consider this a state change
     lastState = newState;
     lastChangeTime = aTimestamp;
+    // active state reported now
+    if (newState) lastActiveReport = aTimestamp;
+  }
+  else {
+    // no state change
+    // - check if re-reporting pressed button state is required
+    if (lastState && repeatActiveReport!=Never && aTimestamp-lastActiveReport>=repeatActiveReport) {
+      lastActiveReport = aTimestamp;
+      // re-report pressed state
+      buttonHandler(this, true, false, aTimestamp-lastChangeTime);
+    }
   }
   return true;
 }
