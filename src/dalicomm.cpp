@@ -292,7 +292,7 @@ void DaliComm::daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, Dal
 void DaliComm::daliSendDtrAndConfigCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB, int aWithDelay)
 {
   daliSend(DALICMD_SET_DTR, aDTRValue);
-  daliSendTwice(aAddress, aCommand, aStatusCB, aWithDelay);
+  daliSendConfigCommand(aAddress, aCommand, aStatusCB, aWithDelay);
 }
 
 
