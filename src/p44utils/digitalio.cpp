@@ -160,13 +160,13 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
 {
   bool newState = isSet();
   if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
+    // report if needed
+    if (!newState || reportPressAndRelease) {
+      buttonHandler(this, newState, aTimestamp-lastChangeTime);
+    }
     // consider this a state change
     lastState = newState;
     lastChangeTime = aTimestamp;
-    // report if needed
-    if (!newState || reportPressAndRelease) {
-      buttonHandler(this, newState, aTimestamp);
-    }
   }
   return true;
 }
