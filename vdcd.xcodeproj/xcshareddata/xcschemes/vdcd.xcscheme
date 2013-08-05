@@ -100,11 +100,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.210"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b 192.168.59.223"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-b /dev/cu.usbserial-FTVEQ3US"
@@ -112,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-g testbutton:in -g testlamp:out -g i2c1.TCA9555@25.7:out"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:in -k testout:out"
