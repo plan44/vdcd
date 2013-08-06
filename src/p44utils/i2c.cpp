@@ -11,6 +11,8 @@
 #define DISABLE_I2C 1
 #endif
 
+#define DISABLE_I2C 1
+
 #ifndef DISABLE_I2C
 #include <linux/i2c-dev.h>
 #else
