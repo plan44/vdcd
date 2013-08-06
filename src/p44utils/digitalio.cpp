@@ -62,7 +62,10 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     int pinNumber = atoi(pinName.c_str());
     ioPin = IOPinPtr(new GpioPin(pinNumber, output, aInitialState));
   }
-  else if (busName=="gpioNS9XXXX") {
+  else
+  #endif
+  #ifdef DIGI_ESP
+  if (busName=="gpioNS9XXXX") {
     // gpioNS9XXXX.<pinname>
     // NS9XXX driver based GPIO (Digi ME 9210 LX)
     ioPin = IOPinPtr(new GpioNS9XXXPin(pinName.c_str(), output, aInitialState));
@@ -127,8 +130,8 @@ bool DigitalIo::toggle()
 
 ButtonInput::ButtonInput(const char* aName, bool aInverted) :
   DigitalIo(aName, false, aInverted, false),
-  repeatActiveReport(p44::Never),
-  lastActiveReport(p44::Never)
+  repeatActiveReport(Never),
+  lastActiveReport(Never)
 {
   // save params
   lastState = false; // assume inactive to start with
@@ -176,7 +179,7 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
   else {
     // no state change
     // - check if re-reporting pressed button state is required
-    if (lastState && repeatActiveReport!=Never && aTimestamp-lastActiveReport>=repeatActiveReport) {
+    if (newState && repeatActiveReport!=Never && aTimestamp-lastActiveReport>=repeatActiveReport) {
       lastActiveReport = aTimestamp;
       // re-report pressed state
       buttonHandler(this, true, false, aTimestamp-lastChangeTime);
