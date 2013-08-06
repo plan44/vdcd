@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd
 
-vdcd_CPPFLAGS = -I src/p44utils
+vdcd_CPPFLAGS = -I src/p44utils -I src
 
 vdcd_SOURCES = \
   src/p44utils/application.cpp \
