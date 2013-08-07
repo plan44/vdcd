@@ -343,6 +343,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
   if (!collecting) {
     collecting = true;
+    endContainerSession(); // end the session
     dSDevices.clear(); // forget existing ones
     DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
   }
