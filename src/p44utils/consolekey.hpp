@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__consolekey__
-#define __p44bridged__consolekey__
+#ifndef __p44utils__consolekey__
+#define __p44utils__consolekey__
 
 #include "p44_common.hpp"
 
@@ -110,4 +110,4 @@ namespace p44 {
 } // namespace
 
 
-#endif /* defined(__p44bridged__consolekey__) */
+#endif /* defined(__p44utils__consolekey__) */

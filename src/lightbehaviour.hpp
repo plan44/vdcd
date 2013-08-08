@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__lightbehaviour__
-#define __p44bridged__lightbehaviour__
+#ifndef __vdcd__lightbehaviour__
+#define __vdcd__lightbehaviour__
 
 #include "device.hpp"
 
@@ -219,4 +219,4 @@ namespace p44 {
 
 }
 
-#endif /* defined(__p44bridged__lightbehaviour__) */
+#endif /* defined(__vdcd__lightbehaviour__) */

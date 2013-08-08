@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __vdcd__i2c__
-#define __vdcd__i2c__
+#ifndef __p44utils__i2c__
+#define __p44utils__i2c__
 
 #include "p44_common.hpp"
 
@@ -215,4 +215,4 @@ namespace p44 {
   
 } // namespace
 
-#endif /* defined(__vdcd__i2c__) */
+#endif /* defined(__p44utils__i2c__) */

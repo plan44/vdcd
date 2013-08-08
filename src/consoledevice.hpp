@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__consoledevice__
-#define __p44bridged__consoledevice__
+#ifndef __vdcd__consoledevice__
+#define __vdcd__consoledevice__
 
 #include "device.hpp"
 
@@ -69,4 +69,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__p44bridged__consoledevice__) */
+#endif /* defined(__vdcd__consoledevice__) */

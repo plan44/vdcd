@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__dsid__
-#define __p44bridged__dsid__
+#ifndef __vdcd__dsid__
+#define __vdcd__dsid__
 
 #include "vdcd_common.hpp"
 
@@ -94,4 +94,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__p44bridged__dsid__) */
+#endif /* defined(__vdcd__dsid__) */

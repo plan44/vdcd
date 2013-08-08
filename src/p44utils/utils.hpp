@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__utils__
-#define __p44bridged__utils__
+#ifndef __p44utils__utils__
+#define __p44utils__utils__
 
 #include <string>
 
@@ -44,4 +44,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__p44bridged__utils__) */
+#endif /* defined(__p44utils__utils__) */

@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__jsonobject__
-#define __p44bridged__jsonobject__
+#ifndef __p44utils__jsonobject__
+#define __p44utils__jsonobject__
 
 #include "p44_common.hpp"
 
@@ -131,4 +131,4 @@ namespace p44 {
 
 } // namespace
 
-#endif /* defined(__p44bridged__jsonobject__) */
+#endif /* defined(__p44utils__jsonobject__) */

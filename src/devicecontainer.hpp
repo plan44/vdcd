@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__devicecontainer__
-#define __p44bridged__devicecontainer__
+#ifndef __vdcd__devicecontainer__
+#define __vdcd__devicecontainer__
 
 #include "vdcd_common.hpp"
 
@@ -201,4 +201,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__p44bridged__devicecontainer__) */
+#endif /* defined(__vdcd__devicecontainer__) */

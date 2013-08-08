@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__jsoncomm__
-#define __p44bridged__jsoncomm__
+#ifndef __p44utils__jsoncomm__
+#define __p44utils__jsoncomm__
 
 #include "socketcomm.hpp"
 
@@ -72,4 +72,4 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__p44bridged__jsoncomm__) */
+#endif /* defined(__p44utils__jsoncomm__) */

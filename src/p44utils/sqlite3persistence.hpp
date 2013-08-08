@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__sqlite3persistence__
-#define __p44bridged__sqlite3persistence__
+#ifndef __p44utils__sqlite3persistence__
+#define __p44utils__sqlite3persistence__
 
 #include "p44_common.hpp"
 
@@ -64,4 +64,4 @@ namespace p44 {
 }
 
 
-#endif /* defined(__p44bridged__sqlite3persistence__) */
+#endif /* defined(__p44utils__sqlite3persistence__) */

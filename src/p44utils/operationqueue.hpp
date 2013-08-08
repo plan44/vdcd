@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__operationqueue__
-#define __p44bridged__operationqueue__
+#ifndef __p44utils__operationqueue__
+#define __p44utils__operationqueue__
 
 #include "p44_common.hpp"
 
@@ -119,4 +119,4 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__p44bridged__operationqueue__) */
+#endif /* defined(__p44utils__operationqueue__) */

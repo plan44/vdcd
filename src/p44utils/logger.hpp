@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__logger__
-#define __p44bridged__logger__
+#ifndef __p44utils__logger__
+#define __p44utils__logger__
 
 #include <sys/time.h>
 #include <netinet/in.h>
@@ -65,4 +65,4 @@ extern p44::Logger globalLogger;
 
 
 
-#endif /* defined(__p44bridged__logger__) */
+#endif /* defined(__p44utils__logger__) */

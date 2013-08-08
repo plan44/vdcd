@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__enoceancomm__
-#define __p44bridged__enoceancomm__
+#ifndef __vdcd__enoceancomm__
+#define __vdcd__enoceancomm__
 
 #include "vdcd_common.hpp"
 
@@ -268,4 +268,4 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__p44bridged__enoceancomm__) */
+#endif /* defined(__vdcd__enoceancomm__) */

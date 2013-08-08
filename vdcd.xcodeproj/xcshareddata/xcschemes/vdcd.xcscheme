@@ -91,7 +91,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-a 192.168.59.223"
+            argument = "-a 192.168.59.225"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -103,7 +103,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-b 192.168.59.223"
+            argument = "-b 192.168.59.225"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

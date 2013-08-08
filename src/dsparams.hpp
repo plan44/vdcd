@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__dsparams__
-#define __p44bridged__dsparams__
+#ifndef __vdcd__dsparams__
+#define __vdcd__dsparams__
 
 #include "vdcd_common.hpp"
 
@@ -44,4 +44,4 @@ namespace p44 {
 }
 
 
-#endif /* defined(__p44bridged__dsparams__) */
+#endif /* defined(__vdcd__dsparams__) */

@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__gpio__
-#define __p44bridged__gpio__
+#ifndef __p44utils__gpio__
+#define __p44utils__gpio__
 
 #include "p44_common.hpp"
 
@@ -81,4 +81,4 @@ namespace p44 {
 	
 } // namespace p44
 
-#endif /* defined(__p44bridged__gpio__) */
+#endif /* defined(__p44utils__gpio__) */

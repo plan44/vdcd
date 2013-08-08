@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44bridged__buttonbehaviour__
-#define __p44bridged__buttonbehaviour__
+#ifndef __vdcd__buttonbehaviour__
+#define __vdcd__buttonbehaviour__
 
 #include "device.hpp"
 
@@ -243,4 +243,4 @@ namespace p44 {
 }
 
 
-#endif /* defined(__p44bridged__buttonbehaviour__) */
+#endif /* defined(__vdcd__buttonbehaviour__) */

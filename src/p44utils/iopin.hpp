@@ -5,8 +5,8 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __vdcd__iopin__
-#define __vdcd__iopin__
+#ifndef __p44utils__iopin__
+#define __p44utils__iopin__
 
 #include "p44_common.hpp"
 
@@ -57,4 +57,4 @@ namespace p44 {
 
 } // namespace
 
-#endif /* defined(__vdcd__iopin__) */
+#endif /* defined(__p44utils__iopin__) */
