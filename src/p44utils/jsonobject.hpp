@@ -76,6 +76,11 @@ namespace p44 {
     /// @return true if key exists (but aJsonObject might still be empty in case of a NULL object)
     bool get(const char *aKey, JsonObjectPtr &aJsonObject);
 
+    /// get object's string value by key
+    /// @return NULL if key does not exists or actually has NULL value, string object otherwise
+    /// @note the returned C string pointer is valid only as long as the object is not deleted
+    const char *getCString(const char *aKey);
+
     /// delete object by key
     void del(const char *aKey);
 

@@ -122,8 +122,9 @@ void JsonComm::gotData(ErrorPtr aError)
 }
 
 
-void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
+ErrorPtr JsonComm::sendMessage(JsonObjectPtr aJsonObject)
 {
+  ErrorPtr err;
   string json_string = aJsonObject->json_c_str();
   json_string.append("\n");
   size_t jsonSize = json_string.size();
@@ -133,8 +134,8 @@ void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
   }
   else {
     // nothing in buffer yet, start new send
-    size_t sentBytes = transmitBytes(jsonSize, (uint8_t *)json_string.c_str(), aError);
-    if (Error::isOK(aError)) {
+    size_t sentBytes = transmitBytes(jsonSize, (uint8_t *)json_string.c_str(), err);
+    if (Error::isOK(err)) {
       // check if all could be sent
       if (sentBytes<jsonSize) {
         // Not everything (or maybe nothing, transmitBytes() can return 0) was sent
@@ -150,6 +151,7 @@ void JsonComm::sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError)
 			}
     }
   }
+  return err;
 }
 
 

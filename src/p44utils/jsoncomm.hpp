@@ -25,7 +25,7 @@ namespace p44 {
   public:
     static const char *domain() { return "JsonComm"; }
     virtual const char *getErrorDomain() const { return JsonCommError::domain(); };
-    JsonCommError(JsonCommErrors aError) : Error(ErrorCode(aError)) {};
+    JsonCommError(JsonCommErrors aError) : Error(ErrorCode(aError), json_tokener_error_desc(aError)) {};
     JsonCommError(JsonCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
   };
 
@@ -33,7 +33,7 @@ namespace p44 {
   class JsonComm;
 
 
-  /// generic callback for signalling completion (with success/error reporting)
+  /// generic callback for delivering a received JSON object or an error occurred when receiving JSON
   typedef boost::function<void (JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)> JSonMessageCB;
 
   typedef boost::shared_ptr<JsonComm> JsonCommPtr;
@@ -56,12 +56,14 @@ namespace p44 {
     JsonComm(SyncIOMainLoop *aMainLoopP);
     virtual ~JsonComm();
 
-    /// install callback for data becoming ready to read
-    /// @param aCallBack will be called when data is ready for reading (receiveBytes()) or an asynchronous error occurs on the connection
+    /// install callback for received JSON messages
+    /// @param aJsonMessageHandler will be called when a JSON message has been received
     void setMessageHandler(JSonMessageCB aJsonMessageHandler);
 
     /// send a JSON message
-    void sendMessage(JsonObjectPtr aJsonObject, ErrorPtr &aError);
+    /// @param aJsonObject the JSON that is to be sent
+    /// @result empty or Error object in case of error sending message
+    ErrorPtr sendMessage(JsonObjectPtr aJsonObject);
 
   private:
     void gotData(ErrorPtr aError);

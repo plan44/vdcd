@@ -24,7 +24,7 @@ Error::Error(ErrorCode aErrorCode)
 }
 
 
-Error::Error(ErrorCode aErrorCode, std::string aErrorMessage)
+Error::Error(ErrorCode aErrorCode, const std::string &aErrorMessage)
 {
   errorCode = aErrorCode;
   errorMessage = aErrorMessage;
@@ -62,16 +62,26 @@ std::string Error::description() const
 }
 
 
+
 bool Error::isError(const char *aDomain, ErrorCode aErrorCode) const
 {
-  return aErrorCode==errorCode && (aDomain==NULL || strcmp(aDomain, getErrorDomain())==0);
+  return aErrorCode==errorCode && (aDomain==NULL || isDomain(aDomain));
 }
+
+
+
+bool Error::isDomain(const char *aDomain) const
+{
+  return strcmp(aDomain, getErrorDomain())==0;
+}
+
 
 
 bool Error::isOK(ErrorPtr aError)
 {
   return (aError==NULL || aError->getErrorCode()==0);
 }
+
 
 
 bool Error::isError(ErrorPtr aError, const char *aDomain, ErrorCode aErrorCode)
@@ -89,10 +99,13 @@ const char *SysError::domain()
   return "System";
 }
 
+
+
 const char *SysError::getErrorDomain() const
 {
   return SysError::domain();
 }
+
 
 
 SysError::SysError(const char *aContextMessage) :
@@ -101,10 +114,12 @@ SysError::SysError(const char *aContextMessage) :
 }
 
 
+
 SysError::SysError(int aErrNo, const char *aContextMessage) :
   Error(aErrNo, nonNullCStr(strerror(aErrNo)))
 {
 }
+
 
 
 ErrorPtr SysError::errNo(const char *aContextMessage)
@@ -113,6 +128,7 @@ ErrorPtr SysError::errNo(const char *aContextMessage)
     return ErrorPtr(); // empty, no error
   return ErrorPtr(new SysError(aContextMessage));
 }
+
 
 
 ErrorPtr SysError::err(int aErrNo, const char *aContextMessage)

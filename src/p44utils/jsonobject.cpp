@@ -112,6 +112,16 @@ JsonObjectPtr JsonObject::get(const char *aKey)
 }
 
 
+const char *JsonObject::getCString(const char *aKey)
+{
+  JsonObjectPtr p = get(aKey);
+  if (p)
+    return p->c_strValue();
+  return NULL;
+}
+
+
+
 void JsonObject::del(const char *aKey)
 {
   json_object_object_del(json_obj, aKey);

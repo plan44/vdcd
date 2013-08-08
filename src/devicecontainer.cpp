@@ -577,8 +577,7 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
   if (aParams) {
     req->add("parameter", aParams);
   }
-  ErrorPtr err;
-  vdsmJsonComm.sendMessage(req, err);
+  ErrorPtr err = vdsmJsonComm.sendMessage(req);
   LOG(LOG_DEBUG, "Sent vdSM API message: %s\n", req->json_c_str());
   if (!Error::isOK(err)) {
     LOG(LOG_INFO, "Error sending JSON message: %s\n", err->description().c_str());

@@ -294,7 +294,7 @@ public:
       LOG(LOG_DEBUG,"Invalid JSON request");
       json->add("Error", JsonObject::newString(aError->description()));
     }
-    aJsonCommP->sendMessage(json, err);
+    aJsonCommP->sendMessage(json);
   }
 
 
