@@ -29,14 +29,13 @@ using namespace p44;
 
 
 DeviceContainer::DeviceContainer() :
-  vdsmJsonComm(SyncIOMainLoop::currentMainLoop()),
+  vdcApiServer(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimTicket(0),
   localDimDown(false)
 {
-  vdsmJsonComm.setMessageHandler(boost::bind(&DeviceContainer::vdsmMessageHandler, this, _2, _3));
   #warning "// TODO: %%%% use final dsid scheme"
   // create a hash of the deviceContainerInstanceIdentifier
   string s = deviceContainerInstanceIdentifier();
@@ -207,10 +206,8 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // install a connection handler
-  vdsmJsonComm.setConnectionStatusHandler(boost::bind(&DeviceContainer::vdsmConnStatusHandler, this, _2));
-  // try to initiate connection to vdsm, connectionStatusHandler will take care of retries etc.
-  initiateVdsmConnection();
+  // start the API server
+  vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
@@ -222,36 +219,20 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
 
 
-void DeviceContainer::initiateVdsmConnection()
+SocketCommPtr DeviceContainer::vdcApiConnectionHandler(SocketComm *aServerSocketCommP)
 {
-  if (vdsmJsonComm.connectable()) {
-    LOG(LOG_DEBUG, ".............. Initiating connection to vdSM\n");
-    vdsmJsonComm.initiateConnection();
-  }
-  else {
-    // retry connection in a longer while
-    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 300*Second);
-  }
+  JsonRpcCommPtr conn = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
+  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
+  return conn;
 }
 
 
-void DeviceContainer::vdsmConnStatusHandler(ErrorPtr aError)
+void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
-  if (Error::isOK(aError)) {
-    // vdSM connection successfully opened
-    LOG(LOG_NOTICE, "++++++++++++++ Connection to vdSM established\n");
-    // start container session
-    startContainerSession();
-  }
-  else {
-    // error on vdSM connection, was closed
-    LOG(LOG_NOTICE, "-------------- Connection to vdSM terminated: %s\n\n", aError->description().c_str());
-    // end container session
-    endContainerSession();
-    // re-initiate connection in a while
-    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::initiateVdsmConnection,this), 10*Second);
-  }
+  LOG(LOG_DEBUG,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
+  aJsonRpcComm->sendError(aJsonRpcId, JSONRPC_METHOD_NOT_FOUND, "API not yet implemented");
 }
+
 
 
 
@@ -561,6 +542,7 @@ void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
 bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 {
   // TODO: %%% cleaner implementation for this, q&d hack for now only
+  /*
   if (!vdsmJsonComm.connectable()) {
     // not connectable, check some messages to interpret locally for standalone mode
     if (strcmp(aOperation,"DeviceButtonClick")==0) {
@@ -583,6 +565,7 @@ bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
     LOG(LOG_INFO, "Error sending JSON message: %s\n", err->description().c_str());
     return false;
   }
+  */
   return true;
 }
 
@@ -629,6 +612,7 @@ void DeviceContainer::endContainerSession()
 /// announce all not-yet announced devices to the vdSM
 void DeviceContainer::announceDevices()
 {
+  /*
   if (!collecting && announcementTicket==0 && vdsmJsonComm.connected()) {
     // check all devices for unnannounced ones and announce those
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
@@ -656,6 +640,7 @@ void DeviceContainer::announceDevices()
       }
     }
   }
+  */
 }
 
 

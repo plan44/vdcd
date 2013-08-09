@@ -14,7 +14,7 @@
 #include "enoceandevicecontainer.hpp"
 #include "staticdevicecontainer.hpp"
 
-#include "jsoncomm.hpp"
+#include "jsonrpccomm.hpp"
 
 #include "digitalio.hpp"
 
@@ -96,8 +96,8 @@ public:
     fprintf(stderr, "    -A daliport    : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
     fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
     fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
-    fprintf(stderr, "    -c vdsmhost    : vdSM hostname/IP\n");
-    fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM (default=%s)\n", DEFAULT_VDSMSERVICE);
+    fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM to connect to (default=%s)\n", DEFAULT_VDSMSERVICE);
+    fprintf(stderr, "    -i             : allow connections from non-local clients (vDC API and config API)\n");
     fprintf(stderr, "    -d             : fully daemonize\n");
     fprintf(stderr, "    -w seconds     : delay startup\n");
     fprintf(stderr, "    -l loglevel    : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
@@ -124,11 +124,11 @@ public:
     char *enoceanname = NULL;
     int enoceanport = DEFAULT_ENOCEANPORT;
 
-    char *vdsmname = NULL;
     char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
 
     char *configApiPort = NULL;
 
+    bool allowNonLocal = false;
     
     DeviceConfigMap staticDeviceConfigs;
 
@@ -139,7 +139,7 @@ public:
     int startupDelay = 0; // no delay
 
     int c;
-    while ((c = getopt(argc, argv, "da:A:b:B:c:C:g:k:l:s:w:W:")) != -1)
+    while ((c = getopt(argc, argv, "da:A:b:B:C:ig:k:l:s:w:W:")) != -1)
     {
       switch (c) {
         case 'd':
@@ -160,11 +160,11 @@ public:
         case 'B':
           enoceanport = atoi(optarg);
           break;
-        case 'c':
-          vdsmname = optarg;
-          break;
         case 'C':
           vdsmport = optarg;
+          break;
+        case 'i':
+          allowNonLocal = true;
           break;
         case 'W':
           configApiPort = optarg;
@@ -212,13 +212,13 @@ public:
     // Create Web configuration JSON API server
     if (configApiPort) {
       configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-      configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3, false);
+      configApiServer.setAllowNonlocalConnections(allowNonLocal);
+      configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
     }
 
-    // Create JSON interface to vdSM
-    if (vdsmname) {
-      deviceContainer.vdsmJsonComm.setConnectionParams(vdsmname, vdsmport, SOCK_STREAM);
-    }
+    // set parameter for server vdSM will connect to
+    deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+    deviceContainer.vdcApiServer.setAllowNonlocalConnections(allowNonLocal);
 
     // Create static container structure
     // - Add DALI devices class if DALI bridge serialport/host is specified

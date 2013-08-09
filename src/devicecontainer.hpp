@@ -11,7 +11,7 @@
 
 #include "vdcd_common.hpp"
 
-#include "jsoncomm.hpp"
+#include "jsonrpccomm.hpp"
 #include "persistentparams.hpp"
 #include "dsid.hpp"
 
@@ -104,8 +104,8 @@ namespace p44 {
     /// the list of containers
     ContainerList deviceClassContainers;
 
-    /// JSON communication with vdsm
-    JsonComm vdsmJsonComm;
+    /// API for vdSM
+    SocketComm vdcApiServer;
 
     /// add a device class container
     /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
@@ -194,8 +194,8 @@ namespace p44 {
 
     void deviceAnnounced();
 
-    void initiateVdsmConnection();
-    void vdsmConnStatusHandler(ErrorPtr aError);
+    SocketCommPtr vdcApiConnectionHandler(SocketComm *aServerSocketCommP);
+    void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
 
   };
 

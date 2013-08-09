@@ -42,6 +42,28 @@
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
 		EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
+		EDB5BBFF17B4ED31004DB38D /* jsonrpctool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */; };
+		EDB5BC0517B4ED92004DB38D /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
+		EDB5BC0617B4ED92004DB38D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
+		EDB5BC0717B4ED92004DB38D /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
+		EDB5BC0817B4ED92004DB38D /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
+		EDB5BC0917B4ED92004DB38D /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
+		EDB5BC0A17B4ED92004DB38D /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		EDB5BC0B17B4ED92004DB38D /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
+		EDB5BC0C17B4ED92004DB38D /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
+		EDB5BC0D17B4ED92004DB38D /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
+		EDB5BC0E17B4ED92004DB38D /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
+		EDB5BC0F17B4ED92004DB38D /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
+		EDB5BC1217B4ED92004DB38D /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
+		EDB5BC1317B4ED92004DB38D /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
+		EDB5BC1417B4ED92004DB38D /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
+		EDB5BC1517B4ED92004DB38D /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
+		EDB5BC1617B4ED92004DB38D /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
+		EDB5BC1717B4ED92004DB38D /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
+		EDB5BC1817B4ED92004DB38D /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
+		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
+		EDB5BC1C17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
+		EDB5BC1D17B52683004DB38D /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
@@ -52,6 +74,15 @@
 
 /* Begin PBXCopyFilesBuildPhase section */
 		ED6D7BD91716B63A005DED18 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		EDB5BBFA17B4ED31004DB38D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -135,6 +166,10 @@
 		EDB284491733B59500EAE5DE /* serialcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = serialcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB2844B1733DE2900EAE5DE /* gpio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gpio.cpp; sourceTree = "<group>"; };
 		EDB2844C1733DE2A00EAE5DE /* gpio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = gpio.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDB5BBFC17B4ED31004DB38D /* jsonrpctool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = jsonrpctool; sourceTree = BUILT_PRODUCTS_DIR; };
+		EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jsonrpctool.cpp; sourceTree = "<group>"; };
+		EDB5BC1917B50E79004DB38D /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fdcomm.cpp; sourceTree = "<group>"; };
+		EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fdcomm.hpp; sourceTree = "<group>"; };
 		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = consoledevice.cpp; sourceTree = "<group>"; };
 		EDC1166B177EDC1800F27115 /* consoledevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consoledevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166C177EDDDF00F27115 /* consolekey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consolekey.cpp; sourceTree = "<group>"; };
@@ -158,6 +193,14 @@
 			files = (
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
 				ED55760F174CFAEC00CCC4DD /* libjson.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EDB5BBF917B4ED31004DB38D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDB5BC1D17B52683004DB38D /* libjson.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -199,6 +242,8 @@
 				ED6D7BF717180766005DED18 /* serialqueue.hpp */,
 				EDB284481733B59500EAE5DE /* serialcomm.cpp */,
 				EDB284491733B59500EAE5DE /* serialcomm.hpp */,
+				EDB5BC1917B50E79004DB38D /* fdcomm.cpp */,
+				EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */,
 				ED55760B174CC03A00CCC4DD /* socketcomm.cpp */,
 				ED55760C174CC03A00CCC4DD /* socketcomm.hpp */,
 				ED557610174CFB3000CCC4DD /* jsoncomm.cpp */,
@@ -239,6 +284,7 @@
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
 				ED5AF9161741830200689E4B /* libs */,
+				EDB5BBFD17B4ED31004DB38D /* jsonrpctool */,
 				ED6D7BDC1716B63A005DED18 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -247,6 +293,7 @@
 			isa = PBXGroup;
 			children = (
 				ED6D7BDB1716B63A005DED18 /* vdcd */,
+				EDB5BBFC17B4ED31004DB38D /* jsonrpctool */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -296,6 +343,14 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		EDB5BBFD17B4ED31004DB38D /* jsonrpctool */ = {
+			isa = PBXGroup;
+			children = (
+				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
+			);
+			path = jsonrpctool;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
@@ -333,6 +388,23 @@
 			productReference = ED6D7BDB1716B63A005DED18 /* vdcd */;
 			productType = "com.apple.product-type.tool";
 		};
+		EDB5BBFB17B4ED31004DB38D /* jsonrpctool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EDB5BC0417B4ED31004DB38D /* Build configuration list for PBXNativeTarget "jsonrpctool" */;
+			buildPhases = (
+				EDB5BBF817B4ED31004DB38D /* Sources */,
+				EDB5BBF917B4ED31004DB38D /* Frameworks */,
+				EDB5BBFA17B4ED31004DB38D /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = jsonrpctool;
+			productName = jsonrpctool;
+			productReference = EDB5BBFC17B4ED31004DB38D /* jsonrpctool */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -356,6 +428,7 @@
 			targets = (
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
 				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
+				EDB5BBFB17B4ED31004DB38D /* jsonrpctool */,
 			);
 		};
 /* End PBXProject section */
@@ -374,6 +447,7 @@
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
 				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
+				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
@@ -404,6 +478,33 @@
 				ED4C1443174EB9550037ED0C /* gpiodevice.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 				ED0FA631175891F300FC0958 /* dsparams.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EDB5BBF817B4ED31004DB38D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EDB5BC1817B4ED92004DB38D /* jsonobject.cpp in Sources */,
+				EDB5BC0C17B4ED92004DB38D /* i2c.cpp in Sources */,
+				EDB5BC0B17B4ED92004DB38D /* gpio.cpp in Sources */,
+				EDB5BC0917B4ED92004DB38D /* mainloop.cpp in Sources */,
+				EDB5BC0F17B4ED92004DB38D /* consolekey.cpp in Sources */,
+				EDB5BC1317B4ED92004DB38D /* serialqueue.cpp in Sources */,
+				EDB5BC0617B4ED92004DB38D /* utils.cpp in Sources */,
+				EDB5BBFF17B4ED31004DB38D /* jsonrpctool.cpp in Sources */,
+				EDB5BC1417B4ED92004DB38D /* serialcomm.cpp in Sources */,
+				EDB5BC0717B4ED92004DB38D /* fnv.cpp in Sources */,
+				EDB5BC0517B4ED92004DB38D /* logger.cpp in Sources */,
+				EDB5BC1717B4ED92004DB38D /* jsonrpccomm.cpp in Sources */,
+				EDB5BC1C17B50E79004DB38D /* fdcomm.cpp in Sources */,
+				EDB5BC1217B4ED92004DB38D /* operationqueue.cpp in Sources */,
+				EDB5BC1517B4ED92004DB38D /* socketcomm.cpp in Sources */,
+				EDB5BC0A17B4ED92004DB38D /* application.cpp in Sources */,
+				EDB5BC0817B4ED92004DB38D /* error.cpp in Sources */,
+				EDB5BC0E17B4ED92004DB38D /* digitalio.cpp in Sources */,
+				EDB5BC1617B4ED92004DB38D /* jsoncomm.cpp in Sources */,
+				EDB5BC0D17B4ED92004DB38D /* iopin.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -493,6 +594,51 @@
 			};
 			name = Release;
 		};
+		EDB5BC0217B4ED31004DB38D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/json-c/0.10/lib",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		EDB5BC0317B4ED31004DB38D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/json-c/0.10/lib",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		EDCFE863172125F7001D35F3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -534,6 +680,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		EDB5BC0417B4ED31004DB38D /* Build configuration list for PBXNativeTarget "jsonrpctool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EDB5BC0217B4ED31004DB38D /* Debug */,
+				EDB5BC0317B4ED31004DB38D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */ = {
 			isa = XCConfigurationList;
