@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
-bin_PROGRAMS = vdcd
+bin_PROGRAMS = vdcd jsonrpctool
 
 vdcd_CPPFLAGS = -I src/p44utils -I src
 
@@ -87,3 +87,30 @@ vdcd_SOURCES = \
   src/vdcd_common.hpp \
   src/main.cpp
 
+jsonrpctool_CPPFLAGS = -I src/p44utils -I src
+
+jsonrpctool_SOURCES = \
+  src/p44utils/application.cpp \
+  src/p44utils/application.hpp \
+  src/p44utils/error.cpp \
+  src/p44utils/error.hpp \
+  src/p44utils/jsoncomm.cpp \
+  src/p44utils/jsoncomm.hpp \
+  src/p44utils/jsonobject.cpp \
+  src/p44utils/jsonobject.hpp \
+  src/p44utils/logger.cpp \
+  src/p44utils/logger.hpp \
+  src/p44utils/mainloop.cpp \
+  src/p44utils/mainloop.hpp \
+  src/p44utils/operationqueue.cpp \
+  src/p44utils/operationqueue.hpp \
+  src/p44utils/serialcomm.cpp \
+  src/p44utils/serialcomm.hpp \
+  src/p44utils/serialqueue.cpp \
+  src/p44utils/serialqueue.hpp \
+  src/p44utils/socketcomm.cpp \
+  src/p44utils/socketcomm.hpp \
+  src/p44utils/utils.cpp \
+  src/p44utils/utils.hpp \
+  src/p44utils/p44_common.hpp \
+  src/jsonrpctool.cpp
