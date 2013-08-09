@@ -1,27 +1,19 @@
 //
 //  socketcomm.hpp
+//  p44utils
 //
 //  Created by Lukas Zeller on 22.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __p44utils__socketclient__
-#define __p44utils__socketclient__
+#ifndef __p44utils__socketcomm__
+#define __p44utils__socketcomm__
 
 #include "p44_common.hpp"
 
+#include "fdcomm.hpp"
+
 // unix I/O and network
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <sys/param.h>
-#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -69,25 +61,23 @@ namespace p44 {
 
 
   /// A class providing socket communication (client and server)
-  class SocketComm 
+  class SocketComm : public FdComm
   {
-    // mainloop
-    SyncIOMainLoop *mainLoopP;
     // connection parameter
     string hostNameOrAddress;
     string serviceOrPortNo;
     int protocolFamily;
     int socketType;
     int protocol;
+    bool nonLocal;
+    // connection making fd (for server to listen, for clients or server handlers for opening connection)
+    int connectionFd;
     // client connection internals
     struct addrinfo *addressInfoList; ///< list of possible connection addresses
     struct addrinfo *currentAddressInfo; ///< address currently connecting to
     bool isConnecting; ///< in progress of opening connection
     bool connectionOpen; ///< regular data connection is open
     bool serving; ///< is serving socket
-    int connectionFd;
-    SocketCommCB receiveHandler;
-    SocketCommCB transmitHandler;
     SocketCommCB connectionStatusHandler;
     // server connection internals
     int maxServerConnections;
@@ -107,13 +97,17 @@ namespace p44 {
     /// @param aProtocol defaults to 0
     void setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType = SOCK_STREAM, int aProtocolFamily = AF_UNSPEC, int aProtocol = 0);
 
+    /// Set if server may accept non-local connections
+    /// @param aAllow if set, server accepts non-local connections
+    void setAllowNonlocalConnections(bool aAllow) { nonLocal = aAllow; };
+
     /// start the server
     /// @param aConnectionStatusHandler will be called when a server connection is accepted
     ///   The SocketComm object passed in the handler is a new SocketComm object for that particular connection
     /// @param aMaxConnections max number of simultaneous server connections
     /// @param aNonLocal if set, connections from other hosts are allowed. Default is false, which means only
     ///   local connections are accepted
-    ErrorPtr startServer(ServerConnectionCB aServerConnectionHandler, int aMaxConnections, bool aNonLocal = false);
+    ErrorPtr startServer(ServerConnectionCB aServerConnectionHandler, int aMaxConnections);
 
     /// initiate the connection (non-blocking)
     /// This starts the connection process
@@ -149,48 +143,21 @@ namespace p44 {
     /// @note checking connected does not automatically try to establish a connection
     bool connected();
 
-
-    /// write data (non-blocking)
-    /// @param aNumBytes number of bytes to transfer
-    /// @param aBytes pointer to buffer to be sent
-    /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
-    /// @return number ob bytes actually written, can be 0 (e.g. if connection is still in process of opening)
-    size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
-
-    /// @return number of bytes ready for read
-    size_t numBytesReady();
-
-    /// read data (non-blocking)
-    /// @param aMaxBytes max number of bytes to receive
-    /// @param aBytes pointer to buffer to store received bytes
-    /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
-    /// @return number ob bytes actually read
-    size_t receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aError);
-
-    /// install callback for data becoming ready to read
-    /// @param aCallBack will be called when data is ready for reading (receiveBytes()) or an asynchronous error occurs on the connection
-    void setReceiveHandler(SocketCommCB aReceiveHandler);
-
-    /// install callback for connection ready for accepting new data to send
-    /// @param aCallBack will be called when connection is ready to transmit more data (using transmitBytes())
-    void setTransmitHandler(SocketCommCB aTransmitHandler);
-
-
   private:
     void freeAddressInfo();
-    ErrorPtr connectionError();
+    ErrorPtr socketError(int aSocketFd);
     ErrorPtr connectNextAddress();
-    bool connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void internalCloseConnection();
+    virtual void dataExceptionHandler(int aFd, int aPollFlags);
 
-    bool connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void passClientConnection(int aFD, SocketComm *aServerConnectionP); // used by listening SocketComm to pass accepted client connection to child SocketComm
     void returnClientConnection(SocketComm *aClientConnectionP); // used to notify listening SocketComm when client connection ends
 
-    bool dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
   };
   
 } // namespace p44
 
 
-#endif /* defined(__p44utils__socketclient__) */
+#endif /* defined(__p44utils__socketcomm__) */

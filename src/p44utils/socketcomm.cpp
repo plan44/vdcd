@@ -1,5 +1,6 @@
 //
-//  socketclient.cpp
+//  socketcomm.cpp
+//  p44utils
 //
 //  Created by Lukas Zeller on 22.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
@@ -13,15 +14,15 @@
 using namespace p44;
 
 SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
+  FdComm(aMainLoopP),
   connectionOpen(false),
   isConnecting(false),
   serving(false),
-  connectionFd(-1),
   addressInfoList(NULL),
   currentAddressInfo(NULL),
   maxServerConnections(1),
   serverConnection(NULL),
-  mainLoopP(aMainLoopP)
+  connectionFd(-1)
 {
 }
 
@@ -45,7 +46,7 @@ void SocketComm::setConnectionParams(const char* aHostNameOrAddress, const char*
 
 #pragma mark - becoming a server
 
-ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, int aMaxConnections, bool aNonLocal)
+ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, int aMaxConnections)
 {
   ErrorPtr err;
 
@@ -59,7 +60,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
   if (protocolFamily==AF_INET) {
     sin.sin_family = (sa_family_t)protocolFamily;
     // set listening socket address
-    if (aNonLocal)
+    if (nonLocal)
       sin.sin_addr.s_addr = htonl(INADDR_ANY);
     else
       sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -110,10 +111,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
     }
     else {
       // listen ok or not needed, make non-blocking
-      int flags;
-      if ((flags = fcntl(socketFD, F_GETFL, 0))==-1)
-        flags = 0;
-      fcntl(socketFD, F_SETFL, flags | O_NONBLOCK);
+      makeNonBlocking(socketFD);
       // now socket is ready, register in mainloop to receive connections
       connectionFd = socketFD;
       serving = true;
@@ -131,7 +129,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 }
 
 
-bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if (aPollFlags & POLLIN) {
@@ -169,16 +167,14 @@ bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSecon
 }
 
 
-void SocketComm::passClientConnection(int aFD, SocketComm *aServerConnectionP)
+void SocketComm::passClientConnection(int aFd, SocketComm *aServerConnectionP)
 {
   // make non-blocking
-  int flags;
-  if ((flags = fcntl(aFD, F_GETFL, 0))==-1)
-    flags = 0;
-  fcntl(aFD, F_SETFL, flags | O_NONBLOCK);
+  makeNonBlocking(aFd);
   // save and mark open
   serverConnection = aServerConnectionP;
-  connectionFd = aFD;
+  // set Fd and let FdComm base class install receive & transmit handlers
+  setFd(aFd);
   isConnecting = false;
   connectionOpen = true;
   // call handler if defined
@@ -186,13 +182,6 @@ void SocketComm::passClientConnection(int aFD, SocketComm *aServerConnectionP)
     // connection ok
     connectionStatusHandler(this, ErrorPtr());
   }
-  // register handlers for operating open connection
-  mainLoopP->registerPollHandler(
-    connectionFd,
-    (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
-    (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
-    boost::bind(&SocketComm::dataMonitorHandler, this, _1, _2, _3, _4)
-  );
 }
 
 
@@ -293,10 +282,7 @@ ErrorPtr SocketComm::connectNextAddress()
     else {
       // usable address found, socket created
       // - make socket non-blocking
-      int flags;
-      if ((flags = fcntl(socketFD, F_GETFL, 0))==-1)
-        flags = 0;
-      fcntl(socketFD, F_SETFL, flags | O_NONBLOCK);
+      makeNonBlocking(socketFD);
       // - initiate connection
       res = connect(socketFD, currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen);
       LOG(LOG_DEBUG, "- Attempting connection with address family = %d, protocol = %d\n", currentAddressInfo->ai_family, currentAddressInfo->ai_protocol);
@@ -337,12 +323,12 @@ ErrorPtr SocketComm::connectNextAddress()
 
 
 
-ErrorPtr SocketComm::connectionError()
+ErrorPtr SocketComm::socketError(int aSocketFd)
 {
   ErrorPtr err;
   int result;
   socklen_t result_len = sizeof(result);
-  if (getsockopt(connectionFd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0) {
+  if (getsockopt(aSocketFd, SOL_SOCKET, SO_ERROR, &result, &result_len) < 0) {
     // error, fail somehow, close socket
     err = SysError::errNo("Cant get socket error status: ");
   }
@@ -354,18 +340,18 @@ ErrorPtr SocketComm::connectionError()
 
 
 
-bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if ((aPollFlags & POLLOUT) && isConnecting) {
     // became writable, check status
-    err = connectionError();
+    err = socketError(aFd);
   }
   else if (aPollFlags & POLLHUP) {
     err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp, "Connection HUP while opening (= connection rejected)"));
   }
   else if (aPollFlags & POLLERR) {
-    err = connectionError();
+    err = socketError(aFd);
   }
   // now check if successful
   if (Error::isOK(err)) {
@@ -380,13 +366,8 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
       // connection ok
       connectionStatusHandler(this, ErrorPtr());
     }
-    // register handlers for operating open connection
-    mainLoopP->registerPollHandler(
-      connectionFd,
-      (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
-      (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
-      boost::bind(&SocketComm::dataMonitorHandler, this, _1, _2, _3, _4)
-    );
+    // let FdComm base class operate open connection (will install handlers)
+    setFd(aFd);
   }
   else {
     // this attempt has failed, try next (if any)
@@ -448,6 +429,9 @@ void SocketComm::internalCloseConnection()
     }
   }
   else if (connectionOpen || isConnecting) {
+    // stop monitoring data connection
+    setFd(-1);
+    // to make sure, also unregister handler for connectionFd (in case FdComm had no fd set yet)
     mainLoopP->unregisterPollHandler(connectionFd);
     close(connectionFd);
     connectionFd = -1;
@@ -474,12 +458,12 @@ bool SocketComm::connecting()
 }
 
 
-#pragma mark - handling data
+#pragma mark - handling data exception
 
 
-bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "SocketComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFD, aPollFlags);
+  DBGLOG(LOG_DEBUG, "FdComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
     // - close my end
@@ -489,30 +473,23 @@ bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aC
       connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
     }
   }
-  else if ((aPollFlags & POLLIN) && receiveHandler) {
-    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN
-    if (numBytesReady()>0)
-      receiveHandler(this, ErrorPtr());
-    else {
-      // alerted for read, but nothing to read any more: assume connection closed
-      ErrorPtr err = connectionError();
-      if (Error::isOK(err))
-        err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
-      LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-      // - shut down
-      internalCloseConnection();
-      if (connectionStatusHandler) {
-        // report reason for closing
-        connectionStatusHandler(this, err);
-      }
+  else if (aPollFlags & POLLIN) {
+    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
+    // alerted for read, but nothing to read any more: assume connection closed
+    ErrorPtr err = socketError(aFd);
+    if (Error::isOK(err))
+      err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
+    LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+    // - shut down
+    internalCloseConnection();
+    if (connectionStatusHandler) {
+      // report reason for closing
+      connectionStatusHandler(this, err);
     }
-  }
-  else if ((aPollFlags & POLLOUT) && transmitHandler) {
-    transmitHandler(this, ErrorPtr());
   }
   else if (aPollFlags & POLLERR) {
     // error
-    ErrorPtr err = connectionError();
+    ErrorPtr err = socketError(aFd);
     LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
     // - shut down
     internalCloseConnection();
@@ -521,99 +498,5 @@ bool SocketComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aC
       connectionStatusHandler(this, err);
     }
   }
-  // handled
-  return true;
-}
-
-
-
-
-void SocketComm::setReceiveHandler(SocketCommCB aReceiveHandler)
-{
-  if (receiveHandler.empty()!=aReceiveHandler.empty()) {
-    receiveHandler = aReceiveHandler;
-    if (connectionOpen) {
-      // If connected already, update poll flags to include data-ready-to-read
-      // (otherwise, flags will be set when connection opens)
-      if (receiveHandler.empty())
-        mainLoopP->changePollFlags(connectionFd, 0, POLLIN); // clear POLLIN
-      else
-        mainLoopP->changePollFlags(connectionFd, POLLIN, 0); // set POLLIN
-    }
-  }
-  receiveHandler = aReceiveHandler;
-}
-
-
-void SocketComm::setTransmitHandler(SocketCommCB aTransmitHandler)
-{
-  if (transmitHandler.empty()!=aTransmitHandler.empty()) {
-    transmitHandler = aTransmitHandler;
-    if (connectionOpen) {
-      // If connected already, update poll flags to include ready-for-transmit
-      // (otherwise, flags will be set when connection opens)
-      if (transmitHandler.empty())
-        mainLoopP->changePollFlags(connectionFd, 0, POLLOUT); // clear POLLOUT
-      else
-        mainLoopP->changePollFlags(connectionFd, POLLOUT, 0); // set POLLOUT
-    }
-  }
-}
-
-
-size_t SocketComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError)
-{
-  if (!connectionOpen) {
-    ErrorPtr err = initiateConnection();
-    if (!Error::isOK(err)) {
-      // initiation failed already
-      aError = err;
-      return 0; // nothing transmitted
-    }
-    // connection initiation ok
-  }
-  // if not connected now, we can't write
-  if (!connectionOpen) {
-    // waiting for connection to open
-    return 0; // cannot transmit data yet
-  }
-  // connection is open, write now
-  ssize_t res = write(connectionFd,aBytes,aNumBytes);
-  if (res<0) {
-    aError = SysError::errNo("SocketComm::transmitBytes: ");
-    return 0; // nothing transmitted
-  }
-  return res;
-}
-
-
-size_t SocketComm::receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aError)
-{
-  if (connectionOpen) {
-		// read
-    ssize_t res = 0;
-		if (aNumBytes>0) {
-			res = read(connectionFd,aBytes,aNumBytes); // read
-      if (res<0) {
-        if (errno==EWOULDBLOCK)
-          return 0; // nothing received
-        else {
-          aError = SysError::errNo("SocketComm::receiveBytes: ");
-          return 0; // nothing transmitted
-        }
-      }
-      return res;
-    }
-  }
-	return 0; // connection not open, nothing to read
-}
-
-
-size_t SocketComm::numBytesReady()
-{
-  // get number of bytes ready for reading
-	int numBytes; // must be int!! FIONREAD defines parameter as *int
-  int res = ioctl(connectionFd, FIONREAD, &numBytes);
-  return res!=0 ? 0 : numBytes;
 }
 
