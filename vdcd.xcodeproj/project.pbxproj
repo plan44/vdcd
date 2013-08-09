@@ -284,7 +284,6 @@
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
 				ED5AF9161741830200689E4B /* libs */,
-				EDB5BBFD17B4ED31004DB38D /* jsonrpctool */,
 				ED6D7BDC1716B63A005DED18 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -338,17 +337,10 @@
 				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
+				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 			);
 			path = src;
-			sourceTree = "<group>";
-		};
-		EDB5BBFD17B4ED31004DB38D /* jsonrpctool */ = {
-			isa = PBXGroup;
-			children = (
-				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
-			);
-			path = jsonrpctool;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
