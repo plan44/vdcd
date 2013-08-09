@@ -101,6 +101,9 @@ namespace p44 {
     /// create new empty object
     static JsonObjectPtr newObj();
 
+    /// create new object from text
+    static JsonObjectPtr objFromText(const char *aJsonText, ssize_t aMaxChars = -1);
+
     /// create new array object
     static JsonObjectPtr newArray();
 

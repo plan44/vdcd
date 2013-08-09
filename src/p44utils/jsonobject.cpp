@@ -79,7 +79,8 @@ void JsonObject::add(const char* aKey, JsonObjectPtr aObj)
   // json_object_object_add assumes caller relinquishing ownership,
   // so we must compensate this by retaining (getting) the object
   // as the object still belongs to us
-  json_object_object_add(json_obj, aKey, json_object_get(aObj->json_obj));
+  // Except if a NULL (no object) is passed
+  json_object_object_add(json_obj, aKey, aObj ? json_object_get(aObj->json_obj) : NULL);
 }
 
 
@@ -191,6 +192,21 @@ JsonObjectPtr JsonObject::newObj()
 {
   return JsonObjectPtr(new JsonObject());
 }
+
+
+JsonObjectPtr JsonObject::objFromText(const char *aJsonText, ssize_t aMaxChars)
+{
+  JsonObjectPtr obj;
+  if (aMaxChars<0) aMaxChars = strlen(aJsonText);
+  struct json_tokener* tokener = json_tokener_new();
+  struct json_object *o = json_tokener_parse_ex(tokener, aJsonText, (int)aMaxChars);
+  if (o) {
+    obj = JsonObject::newObj(o);
+  }
+  json_tokener_free(tokener);
+  return obj;
+}
+
 
 
 JsonObjectPtr JsonObject::newArray()
