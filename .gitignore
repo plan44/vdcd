@@ -26,4 +26,4 @@ configure_aux/
 .deps/
 stamp-h1
 vdcd
-
+jsonrpctool

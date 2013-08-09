@@ -258,7 +258,7 @@ public:
       }
       else {
         // empty input means no params
-        params = NULL;
+        params = JsonObjectPtr();
       }
       // ok, launch request
       if (sendNotification)
@@ -302,7 +302,7 @@ public:
       }
       else {
         // empty input means NULL result
-        result = NULL;
+        result = JsonObjectPtr();
       }
       // ok, send result
       jsonRpcComm->sendResult(lastId.c_str(), result);

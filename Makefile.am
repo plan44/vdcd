@@ -27,6 +27,8 @@ vdcd_SOURCES = \
   src/p44utils/jsoncomm.hpp \
   src/p44utils/jsonobject.cpp \
   src/p44utils/jsonobject.hpp \
+  src/p44utils/jsonrpccomm.cpp \
+  src/p44utils/jsonrpccomm.hpp \
   src/p44utils/logger.cpp \
   src/p44utils/logger.hpp \
   src/p44utils/mainloop.cpp \
@@ -39,6 +41,8 @@ vdcd_SOURCES = \
   src/p44utils/serialcomm.hpp \
   src/p44utils/serialqueue.cpp \
   src/p44utils/serialqueue.hpp \
+  src/p44utils/fdcomm.cpp \
+  src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
   src/p44utils/socketcomm.hpp \
   src/p44utils/sqlite3persistence.cpp \
@@ -96,6 +100,8 @@ jsonrpctool_SOURCES = \
   src/p44utils/error.hpp \
   src/p44utils/jsoncomm.cpp \
   src/p44utils/jsoncomm.hpp \
+  src/p44utils/jsonrpccomm.cpp \
+  src/p44utils/jsonrpccomm.hpp \
   src/p44utils/jsonobject.cpp \
   src/p44utils/jsonobject.hpp \
   src/p44utils/logger.cpp \
@@ -108,6 +114,8 @@ jsonrpctool_SOURCES = \
   src/p44utils/serialcomm.hpp \
   src/p44utils/serialqueue.cpp \
   src/p44utils/serialqueue.hpp \
+  src/p44utils/fdcomm.cpp \
+  src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
   src/p44utils/socketcomm.hpp \
   src/p44utils/utils.cpp \

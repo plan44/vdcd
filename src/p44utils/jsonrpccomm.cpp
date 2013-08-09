@@ -104,7 +104,7 @@ ErrorPtr JsonRpcComm::sendError(const char *aJsonRpcId, uint32_t aErrorCode, con
   // add the error object
   response->add("error", errorObj);
   // add the ID so the caller can associate with a previous request
-  response->add("id", aJsonRpcId ? JsonObject::newString(aJsonRpcId) : NULL);
+  response->add("id", aJsonRpcId ? JsonObject::newString(aJsonRpcId) : JsonObjectPtr());
   // now send
   DBGLOG(LOG_INFO,"Sending JSON-RPC 2.0 error message:\n  %s\n", response->c_strValue());
   return sendMessage(response);
