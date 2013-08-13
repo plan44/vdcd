@@ -533,11 +533,24 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   // retrigger session timout
   MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
-  if (method=="Hello") {
-    respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
+  if (aJsonRpcId) {
+    // Methods
+    if (method=="Hello") {
+      respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
+    }
+    else if (method=="Bye") {
+      respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
+    }
+    else {
+      // unknown method
+      respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND,"Unknown method"));
+    }
   }
-  else if (method=="Bye") {
-    respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
+  else {
+    // Notifications
+    {
+      respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND,"Unknown notification"));
+    }
   }
   // report back error if any
   if (!Error::isOK(respErr)) {
