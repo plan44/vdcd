@@ -536,6 +536,9 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   if (method=="Hello") {
     respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
   }
+  else if (method=="Bye") {
+    respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
+  }
   // report back error if any
   if (!Error::isOK(respErr)) {
     aJsonRpcComm->sendError(aJsonRpcId, respErr);
@@ -601,6 +604,11 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
         else {
           // not ok to start new session, reject
           respErr = ErrorPtr(new JsonRpcError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
+          aJsonRpcComm->sendError(aJsonRpcId, respErr);
+          // close after send
+          aJsonRpcComm->closeAfterSend();
+          // prevent sending error again
+          respErr.reset();
         }
       }
     }
@@ -608,6 +616,17 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
   return respErr;
 }
 
+
+
+
+ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
+{
+  aJsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
+  // close after send
+  aJsonRpcComm->closeAfterSend();
+  // success
+  return ErrorPtr();
+}
 
 
 

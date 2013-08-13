@@ -50,6 +50,7 @@ namespace p44 {
 
     // JSON sending
     string transmitBuffer;
+    bool closeWhenSent;
 
   public:
 
@@ -64,6 +65,11 @@ namespace p44 {
     /// @param aJsonObject the JSON that is to be sent
     /// @result empty or Error object in case of error sending message
     ErrorPtr sendMessage(JsonObjectPtr aJsonObject);
+
+
+    /// request closing connection after last message has been sent
+    void closeAfterSend();
+
 
   private:
     void gotData(ErrorPtr aError);

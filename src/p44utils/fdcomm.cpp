@@ -22,6 +22,8 @@ FdComm::FdComm(SyncIOMainLoop *aMainLoopP) :
 
 FdComm::~FdComm()
 {
+  // unregister handlers
+  setFd(-1);
 }
 
 
@@ -29,7 +31,7 @@ void FdComm::setFd(int aFd)
 {
   if (dataFd!=aFd) {
     if (dataFd>=0) {
-      // unregister pervious fd
+      // unregister previous fd
       mainLoopP->unregisterPollHandler(dataFd);
       dataFd = -1;
     }

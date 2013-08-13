@@ -14,7 +14,8 @@ using namespace p44;
 JsonComm::JsonComm(SyncIOMainLoop *aMainLoopP) :
   inherited(aMainLoopP),
   tokener(NULL),
-  ignoreUntilNextEOM(false)
+  ignoreUntilNextEOM(false),
+  closeWhenSent(false)
 {
   setReceiveHandler(boost::bind(&JsonComm::gotData, this, _2));
 }
@@ -155,6 +156,20 @@ ErrorPtr JsonComm::sendMessage(JsonObjectPtr aJsonObject)
 }
 
 
+void JsonComm::closeAfterSend()
+{
+  if (transmitBuffer.size()==0) {
+    // nothing buffered for later, close now
+    closeConnection();
+  }
+  else {
+    closeWhenSent = true;
+  }
+}
+
+
+
+
 void JsonComm::canSendData(ErrorPtr aError)
 {
   size_t bytesToSend = transmitBuffer.size();
@@ -171,6 +186,11 @@ void JsonComm::canSendData(ErrorPtr aError)
       else {
         // partially sent, remove sent bytes
         transmitBuffer.erase(0, sentBytes);
+      }
+      // check for closing connection when no data pending to be sent any more
+      if (closeWhenSent && transmitBuffer.size()==0) {
+        closeWhenSent = false; // done
+        closeConnection();
       }
     }
   }

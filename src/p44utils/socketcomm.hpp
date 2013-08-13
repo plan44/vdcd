@@ -97,6 +97,14 @@ namespace p44 {
     /// @param aProtocol defaults to 0
     void setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType = SOCK_STREAM, int aProtocolFamily = AF_UNSPEC, int aProtocol = 0);
 
+    /// get host name we are connected to (useful for server to query connecting client's address)
+    /// @return name or IP address of host (for server: actually connected, for client: as set with setConnectionParams())
+    const char *getHost() { return hostNameOrAddress.c_str(); };
+
+    /// get port or service name
+    /// @return port (for server: actually connected, for client: as set with setConnectionParams())
+    const char *getPort() { return serviceOrPortNo.c_str(); };
+
     /// Set if server may accept non-local connections
     /// @param aAllow if set, server accepts non-local connections
     void setAllowNonlocalConnections(bool aAllow) { nonLocal = aAllow; };
@@ -153,7 +161,7 @@ namespace p44 {
 
     bool connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void passClientConnection(int aFD, SocketComm *aServerConnectionP); // used by listening SocketComm to pass accepted client connection to child SocketComm
-    void returnClientConnection(SocketComm *aClientConnectionP); // used to notify listening SocketComm when client connection ends
+    SocketCommPtr returnClientConnection(SocketComm *aClientConnectionP); // used to notify listening SocketComm when client connection ends
 
   };
   

@@ -29,6 +29,7 @@ SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
 
 SocketComm::~SocketComm()
 {
+  DBGLOG(LOG_DEBUG, "SocketComm destructing\n");
   internalCloseConnection();
 }
 
@@ -134,13 +135,24 @@ bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSecon
   ErrorPtr err;
   if (aPollFlags & POLLIN) {
     // server socket has data, means connection waiting to get accepted
-    socklen_t cnamelen;
+    socklen_t fsinlen;
     struct sockaddr fsin;
     int clientFD = -1;
-    cnamelen = sizeof(fsin);
-    clientFD = accept(connectionFd, (struct sockaddr *) &fsin, &cnamelen);
-    // TODO: report client's IP somehow
+    fsinlen = sizeof(fsin);
+    clientFD = accept(connectionFd, (struct sockaddr *) &fsin, &fsinlen);
     if (clientFD>0) {
+      // get address and port of incoming connection
+      char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
+      int s = getnameinfo(
+        &fsin, fsinlen,
+        hbuf, sizeof hbuf,
+        sbuf, sizeof sbuf,
+        NI_NUMERICHOST | NI_NUMERICSERV
+      );
+      if (s!=0) {
+        strcpy(hbuf,"<unknown>");
+        strcpy(sbuf,"<unknown>");
+      }
       // actually accepted
       // - call handler to create child connection
       SocketCommPtr clientComm;
@@ -148,15 +160,18 @@ bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSecon
         clientComm = serverConnectionHandler(this);
       }
       if (clientComm) {
+        // - set host/port
+        clientComm->hostNameOrAddress = hbuf;
+        clientComm->serviceOrPortNo = sbuf;
         // - remember
         clientConnections.push_back(clientComm);
-        LOG(LOG_DEBUG, "New client connection accepted (now %d connections)\n", clientConnections.size());
+        LOG(LOG_DEBUG, "New client connection accepted from %s:%s (now %d connections)\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), clientConnections.size());
         // - pass connection to child
         clientComm->passClientConnection(clientFD, this);
       }
       else {
         // can't handle connection, close immediately
-        LOG(LOG_NOTICE, "connection not accepted - shut down\n");
+        LOG(LOG_NOTICE, "Connection not accepted from %s:%s - shut down\n", hbuf, sbuf);
         shutdown(clientFD, SHUT_RDWR);
         close(clientFD);
       }
@@ -175,6 +190,8 @@ void SocketComm::passClientConnection(int aFd, SocketComm *aServerConnectionP)
   serverConnection = aServerConnectionP;
   // set Fd and let FdComm base class install receive & transmit handlers
   setFd(aFd);
+  // save fd for my own use
+  connectionFd = aFd;
   isConnecting = false;
   connectionOpen = true;
   // call handler if defined
@@ -186,17 +203,22 @@ void SocketComm::passClientConnection(int aFd, SocketComm *aServerConnectionP)
 
 
 
-void SocketComm::returnClientConnection(SocketComm *aClientConnectionP)
+SocketCommPtr SocketComm::returnClientConnection(SocketComm *aClientConnectionP)
 {
+  SocketCommPtr endingConnection;
   // remove the client connection from the list
   for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
     if (pos->get()==aClientConnectionP) {
-      // found, remove from list
+      // found, keep around until really done with everything
+      endingConnection = *pos;
+      // remove from list
       clientConnections.erase(pos);
       break;
     }
   }
   LOG(LOG_DEBUG, "Client connection terminated (now %d connections)\n", clientConnections.size());
+  // return connection object to prevent premature deletion
+  return endingConnection;
 }
 
 
@@ -322,6 +344,8 @@ ErrorPtr SocketComm::connectNextAddress()
 }
 
 
+#pragma mark - general connection handling
+
 
 ErrorPtr SocketComm::socketError(int aSocketFd)
 {
@@ -377,11 +401,11 @@ bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeco
     if (err) {
       // no next attempt started, report error
       LOG(LOG_WARNING, "Connection to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-      internalCloseConnection();
       if (connectionStatusHandler) {
         connectionStatusHandler(this, err);
       }
       freeAddressInfo();
+      internalCloseConnection();
     }
   }
   // handled
@@ -400,15 +424,15 @@ void SocketComm::setConnectionStatusHandler(SocketCommCB aConnectedHandler)
 void SocketComm::closeConnection()
 {
   if (connectionOpen) {
-    // close the connection
-    internalCloseConnection();
     // report to handler
+    LOG(LOG_NOTICE, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     if (connectionStatusHandler) {
       // connection ok
       ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
       connectionStatusHandler(this, err);
-      LOG(LOG_NOTICE, "Connection to %s:%s explicitly closed\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     }
+    // close the connection
+    internalCloseConnection();
   }
 }
 
@@ -433,6 +457,9 @@ void SocketComm::internalCloseConnection()
     setFd(-1);
     // to make sure, also unregister handler for connectionFd (in case FdComm had no fd set yet)
     mainLoopP->unregisterPollHandler(connectionFd);
+    if (serverConnection) {
+      shutdown(connectionFd, SHUT_RDWR);
+    }
     close(connectionFd);
     connectionFd = -1;
     connectionOpen = false;
