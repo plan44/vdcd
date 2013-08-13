@@ -129,7 +129,7 @@ public:
     char *configApiPort = NULL;
 
     bool allowNonLocal = false;
-    
+
     DeviceConfigMap staticDeviceConfigs;
 
     const char *dbdir = DEFAULT_DBDIR;
@@ -338,7 +338,7 @@ public:
     // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
       // keypress reported again, check for very long keypress
-      if (aTimeSincePreviousChange>=15*Second) {
+      if (aTimeSincePreviousChange>=10*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> exit(3) in 2 seconds\n");
@@ -348,12 +348,13 @@ public:
     }
     if (aState==false) {
       // keypress release
-      if (aTimeSincePreviousChange>=5*Second) {
+      if (aTimeSincePreviousChange>=3*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Long button press detected -> exit(2) in 2 seconds\n");
-        sleep(2);
-        exit(2); // %%% for now, so starting script knows why we exit
+        LOG(LOG_WARNING,"Long button press detected -> collect devices (again)\n");
+        // collect devices again
+        collectDevices();
+        return true;
       }
       if (enoceanDeviceContainer) {
         if (!enoceanDeviceContainer->isLearning()) {
@@ -378,8 +379,8 @@ public:
     // initialize the device container
     deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
   }
-  
-  
+
+
   virtual void initialized(ErrorPtr aError)
   {
     if (!Error::isOK(aError)) {
@@ -388,10 +389,17 @@ public:
       // TODO: what should happen next? Wait for restart?
     }
     else {
-      // initiate device collection
-      setAppStatus(status_busy);
-      deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+      // collect devices
+      collectDevices();
     }
+  }
+
+
+  virtual void collectDevices()
+  {
+    // initiate device collection
+    setAppStatus(status_busy);
+    deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
   }
 
 
