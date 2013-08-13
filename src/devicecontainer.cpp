@@ -820,9 +820,11 @@ void DeviceContainer::announceDevices()
 
 void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
 {
-  // set device announced successfully
-  aDevice->announced = MainLoop::now();
-  aDevice->announcing = Never; // not announcing any more
+  if (Error::isOK(aError)) {
+    // set device announced successfully
+    aDevice->announced = MainLoop::now();
+    aDevice->announcing = Never; // not announcing any more
+  }
   // cancel retry timer
   MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
   announcementTicket = 0;
