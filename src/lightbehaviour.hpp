@@ -139,6 +139,9 @@ namespace p44 {
     /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
     Brightness getLogicalBrightness();
 
+    /// @return true if device is logically on
+    bool getLogicallyOn() { return isLocigallyOn; };
+
     /// set new brightness
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness

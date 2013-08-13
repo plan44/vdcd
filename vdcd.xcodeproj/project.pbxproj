@@ -680,6 +680,7 @@
 				EDB5BC0317B4ED31004DB38D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		EDCFE862172125F7001D35F3 /* Build configuration list for PBXLegacyTarget "vdcd doxygen" */ = {
 			isa = XCConfigurationList;

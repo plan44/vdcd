@@ -53,9 +53,6 @@ namespace p44 {
 
     virtual uint16_t version() { return 0xFFFF; }
 
-    /// Confirm registration
-    virtual void confirmRegistration(JsonObjectPtr aParams);
-
     /// @}
 
 

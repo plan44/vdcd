@@ -36,24 +36,6 @@ DSBehaviour::~DSBehaviour()
 }
 
 
-#warning "// TODO: remove when new vDC API is implemented"
-void DSBehaviour::confirmRegistration(JsonObjectPtr aParams)
-{
-  // - group membership
-  JsonObjectPtr o = aParams->get("GroupMemberships");
-  if (o) {
-    groupMembership = 0; // clear
-    for (int i=0; i<o->arrayLength(); i++) {
-      JsonObjectPtr elem = o->arrayGet(i);
-      if (elem) {
-        DsGroup grp = (DsGroup)elem->int32Value();
-        groupMembership |= ((DsGroupMask)1)<<grp;
-      }
-    }
-  }
-}
-
-
 
 void DSBehaviour::setDeviceColor(DsGroup aColorGroup)
 {
@@ -208,16 +190,6 @@ JsonObjectPtr Device::registrationParams()
   return req;
 }
 
-
-void Device::announcementAck(JsonObjectPtr aParams)
-{
-  // have behaviour look at this
-  // TODO: %%% prelim, not needed any more for new API
-  behaviourP->confirmRegistration(aParams);
-  // registered now
-  announced = MainLoop::now();
-  announcing = Never;
-}
 
 //  if request['operation'] == 'DeviceRegistrationAck':
 //      self.address = request['parameter']['BusAddress']

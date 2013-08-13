@@ -49,6 +49,13 @@ const char *Error::getErrorDomain() const
 }
 
 
+const char *Error::getErrorMessage() const
+{
+  return errorMessage.c_str();
+}
+
+
+
 std::string Error::description() const
 {
   std::string errorText;
@@ -56,7 +63,7 @@ std::string Error::description() const
     errorText = errorMessage;
   else
     errorText = "Error";
-  // create error message from code
+  // Append domain and code to message text
   string_format_append(errorText, " (%s:%ld)", getErrorDomain() , errorCode);
   return errorText;
 }

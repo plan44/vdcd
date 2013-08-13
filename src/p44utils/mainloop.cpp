@@ -345,7 +345,7 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
     }
   }
   // return the poll array
-  delete pollFds;
+  delete[] pollFds;
   // return true if poll actually reported something (not just timed out)
   return numReadyFDs>0;
 }

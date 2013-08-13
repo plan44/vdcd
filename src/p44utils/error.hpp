@@ -46,6 +46,11 @@ namespace p44 {
     ErrorCode getErrorCode() const;
 
     /// get error domain
+    /// @return the explicitly set error message, empty string if none is set.
+    /// @note use description() to get a text at least howing the error domain and code if no message is set
+    virtual const char *getErrorMessage() const;
+
+    /// get error domain
     /// @return the error domain constant string
     virtual const char *getErrorDomain() const;
 

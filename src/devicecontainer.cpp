@@ -34,7 +34,9 @@ DeviceContainer::DeviceContainer() :
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimTicket(0),
-  localDimDown(false)
+  localDimDown(false),
+  sessionActive(false),
+  sessionActivityTicket(0)
 {
   #warning "// TODO: %%%% use final dsid scheme"
   // create a hash of the deviceContainerInstanceIdentifier
@@ -219,23 +221,6 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 
 
 
-SocketCommPtr DeviceContainer::vdcApiConnectionHandler(SocketComm *aServerSocketCommP)
-{
-  JsonRpcCommPtr conn = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
-  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
-  return conn;
-}
-
-
-void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
-{
-  LOG(LOG_DEBUG,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
-  aJsonRpcComm->sendError(aJsonRpcId, JSONRPC_METHOD_NOT_FOUND, "API not yet implemented");
-}
-
-
-
-
 
 #pragma mark - collect devices
 
@@ -344,7 +329,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   // load the device's persistent params
   aDevice->load();
   // unless collecting now, register new device right away
-  if (!collecting) {
+  if (!collecting && sessionActive) {
     announceDevices();
   }
 }
@@ -383,8 +368,10 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
   // cancel any pending executions
   MainLoop::currentMainLoop()->cancelExecutionTicket(periodicTaskTicket);
   if (!collecting) {
-    // check for devices that need registration
-    announceDevices();
+    if (sessionActive) {
+      // check for devices that need to be announced
+      announceDevices();
+    }
     // do a save run as well
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       pos->second->save();
@@ -395,9 +382,237 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 }
 
 
+#pragma mark - local operation mode
 
-#pragma mark - message dispatcher
 
+void DeviceContainer::localDimHandler()
+{
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+    if (lightBehaviour) {
+      lightBehaviour->callScene(localDimDown ? DEC_S : INC_S);
+    }
+  }
+  localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+}
+
+
+void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
+{
+  // TODO: Not really conforming to ds-light yet...
+  int scene = -1; // none
+  int direction = aKeyID==ButtonBehaviour::key_2way_A ? 1 : (aKeyID==ButtonBehaviour::key_2way_B ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  switch (aClickType) {
+    case ButtonBehaviour::ct_tip_1x:
+      scene = T0_S1;
+      break;
+    case ButtonBehaviour::ct_tip_2x:
+      scene = T0_S2;
+      break;
+    case ButtonBehaviour::ct_tip_3x:
+      scene = T0_S3;
+      break;
+    case ButtonBehaviour::ct_tip_4x:
+      scene = T0_S4;
+      break;
+    case ButtonBehaviour::ct_hold_start:
+      scene = INC_S;
+      localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+      if (direction!=0)
+        localDimDown = direction<0;
+      else {
+        localDimDown = !localDimDown; // just toggle direction
+        direction = localDimDown ? -1 : 1; // adjust direction as well
+      }
+      break;
+    case ButtonBehaviour::ct_hold_end:
+      MainLoop::currentMainLoop()->cancelExecutionTicket(localDimTicket); // stop dimming
+      scene = STOP_S; // stop any still ongoing dimming
+      direction = 1; // really send STOP, not main off!
+      break;
+  }
+  if (scene>=0) {
+    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+      DevicePtr dev = pos->second;
+      LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+      if (lightBehaviour) {
+        // this is a light
+        if (direction==0) {
+          // get direction from current value of first encountered light
+          direction = lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
+        }
+        // determine the scene to call
+        int effScene = scene;
+        if (scene==INC_S) {
+          // dimming
+          if (direction<0)
+            effScene = DEC_S;
+          else {
+            // increment - check if we need to do a MIN_S first
+            if (!lightBehaviour->getLogicallyOn())
+              effScene = MIN_S; // after calling this once, light should be logically on
+          }
+        }
+        else {
+          // switching
+          if (direction<0) effScene = T0_S0; // main off
+        }
+        // call the effective scene
+        lightBehaviour->callScene(effScene);
+      }
+    }
+  }
+}
+
+
+
+#pragma mark - vDC API
+
+
+#define SESSION_TIMEOUT (60*Second) // one minute
+
+
+static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue)
+{
+  ErrorPtr err;
+  JsonObjectPtr o;
+  if (aParams)
+    o = aParams->get(aParamName);
+  if (!o)
+    err = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Invalid Parameters - missing '%s'",aParamName)));
+  else
+    aParamValue = o->stringValue();
+  return err;
+}
+
+
+void DeviceContainer::sessionTimeoutHandler()
+{
+  LOG(LOG_DEBUG,"vDC API session timed out -> ends here\n");
+  endContainerSession();
+  if (sessionComm) {
+    sessionComm->closeConnection();
+    sessionComm.reset();
+  }
+}
+
+
+
+SocketCommPtr DeviceContainer::vdcApiConnectionHandler(SocketComm *aServerSocketCommP)
+{
+  JsonRpcCommPtr conn = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
+  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
+  conn->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
+  // save in my own list of connections
+  apiConnections.push_back(conn);
+  return conn;
+}
+
+
+void DeviceContainer::vdcApiConnectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
+{
+  if (!Error::isOK(aError)) {
+    LOG(LOG_DEBUG,"vDC API connection ends due to %s\n", aError->description().c_str());
+    // connection failed/closed and we don't support reconnect yet -> end session
+    JsonRpcComm *connP = dynamic_cast<JsonRpcComm *>(aSocketComm);
+    endApiConnection(connP);
+  }
+  else {
+    LOG(LOG_DEBUG,"vDC API connection started\n");
+  }
+}
+
+
+
+void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+{
+  ErrorPtr respErr;
+  string method = aMethod;
+  LOG(LOG_DEBUG,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
+  // retrigger session timout
+  MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
+  sessionActivityTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
+  if (method=="Hello") {
+    respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
+  }
+  // report back error if any
+  if (!Error::isOK(respErr)) {
+    aJsonRpcComm->sendError(aJsonRpcId, respErr);
+  }
+}
+
+
+
+void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
+{
+  // remove from my list of connection
+  for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
+    if (pos->get()==aJsonRpcComm) {
+      if (*pos==sessionComm) {
+        // this is the current vDC session, end it
+        MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
+        endContainerSession();
+        sessionComm.reset();
+      }
+      // remove from my connections
+      apiConnections.erase(pos);
+      break;
+    }
+  }
+}
+
+
+
+
+ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
+{
+  ErrorPtr respErr;
+  string s;
+  // check API version
+  if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
+    if (s!="1.0")
+      respErr = ErrorPtr(new JsonRpcError(505, "Incompatible vDC API version - expected '1.0'"));
+    else {
+      // API version ok, check dsID
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSID", s))) {
+        dSID vdsmDsid = dSID(s);
+        // same vdSM can restart session any time. Others will be rejected
+        if (!sessionActive || vdsmDsid==connectedVdsm) {
+          // ok to start new session
+          // - start session with this vdSM
+          connectedVdsm = vdsmDsid;
+          // - create answer
+          JsonObjectPtr result = JsonObject::newObj();
+          result->add("dSID", JsonObject::newString(containerDsid.getString()));
+          result->add("allowDisconnect", JsonObject::newBool(false));
+          aJsonRpcComm->sendResult(aJsonRpcId, result);
+          // - remember the session's connection
+          for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
+            if (pos->get()==aJsonRpcComm) {
+              // remember the current session's communication object
+              sessionComm = *pos;
+              break;
+            }
+          }
+          // - start session, enable sending announces now
+          startContainerSession();
+        }
+        else {
+          // not ok to start new session, reject
+          respErr = ErrorPtr(new JsonRpcError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
+        }
+      }
+    }
+  }
+  return respErr;
+}
+
+
+
+
+
+/* old API
 void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
 {
   LOG(LOG_DEBUG, "Received vdSM API message: %s\n", aJsonObject->json_c_str());
@@ -462,83 +677,13 @@ void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObj
     sendMessage("Error", params);
   }
 }
+*/
 
 
-void DeviceContainer::localDimHandler()
-{
-  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-    DevicePtr dev = pos->second;
-    LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
-    if (lightBehaviour) {
-      lightBehaviour->callScene(localDimDown ? DEC_S : INC_S);
-    }
-  }
-  localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
-}
 
 
-void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
-{
-  // TODO: Not really conforming to ds-light yet...
-  int scene = -1; // none
-  int direction = aKeyID==ButtonBehaviour::key_2way_A ? 1 : (aKeyID==ButtonBehaviour::key_2way_B ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
-  switch (aClickType) {
-    case ButtonBehaviour::ct_tip_1x:
-      scene = T0_S1;
-      break;
-    case ButtonBehaviour::ct_tip_2x:
-      scene = T0_S2;
-      break;
-    case ButtonBehaviour::ct_tip_3x:
-      scene = T0_S3;
-      break;
-    case ButtonBehaviour::ct_tip_4x:
-      scene = T0_S4;
-      break;
-    case ButtonBehaviour::ct_hold_start:
-      scene = direction>0 ? MIN_S : INC_S;
-      localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
-      if (direction!=0)
-        localDimDown = direction<0;
-      else {
-        localDimDown = !localDimDown; // just toggle direction
-        direction = localDimDown ? -1 : 1; // adjust direction as well
-      }
-      break;
-    case ButtonBehaviour::ct_hold_end:
-      MainLoop::currentMainLoop()->cancelExecutionTicket(localDimTicket); // stop dimming
-      scene = STOP_S; // stop any still ongoing dimming
-      direction = 1; // really send STOP, not main off!
-      break;
-  }
-  if (scene>=0) {
-    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-      DevicePtr dev = pos->second;
-      LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
-      if (lightBehaviour) {
-        // this is a light
-        if (direction==0) {
-          // get direction from current value of first encountered light
-          direction = lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
-        }
-        // determine the scene to call
-        int effScene = scene;
-        if (scene==INC_S) {
-          // dimming
-          if (direction<0) effScene = DEC_S;
-        }
-        else {
-          // switching
-          if (direction<0) effScene = T0_S0; // main off
-        }
-        // call the effective scene
-        lightBehaviour->callScene(effScene);
-      }
-    }
-  }
-}
 
-
+#warning "%%% TODO: don't forget handleClickLocally()"
 bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
 {
   // TODO: %%% cleaner implementation for this, q&d hack for now only
@@ -578,13 +723,8 @@ void DeviceContainer::startContainerSession()
 {
   // end previous container session first (set all devices unannounced)
   endContainerSession();
-  // send Hello
-  JsonObjectPtr params = JsonObject::newObj();
-  params->add("dSidentifier", JsonObject::newString(containerDsid.getString()));
-  params->add("APIVersion", JsonObject::newInt32(1)); // TODO: %%% luz: must be 1=aizo, dsa cannot expand other ids so far
-  sendMessage("Hello", params);
-  #warning "For now, vdSM does not understand Hello, so we are not waiting for an answer yet"
-  // %%% continue with announcing devices
+  sessionActive = true;
+  // announce devices
   announceDevices();
 }
 
@@ -600,57 +740,64 @@ void DeviceContainer::endContainerSession()
     dev->announced = Never;
     dev->announcing = Never;
   }
+  // not active any more
+  sessionActive = false;
 }
 
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
-#define REGISTRATION_TIMEOUT (15*Second)
+#define ANNOUNCE_TIMEOUT (15*Second)
 
 // how long until a not acknowledged announcement for a device is retried again for the same device
-#define REGISTRATION_RETRY_TIMEOUT (300*Second)
+#define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
 /// announce all not-yet announced devices to the vdSM
 void DeviceContainer::announceDevices()
 {
-  /*
-  if (!collecting && announcementTicket==0 && vdsmJsonComm.connected()) {
+  if (!collecting && announcementTicket==0 && sessionActive) {
     // check all devices for unnannounced ones and announce those
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (
         dev->isPublicDS() && // only public ones
         dev->announced==Never &&
-        (dev->announcing==Never || MainLoop::now()>dev->announcing+REGISTRATION_RETRY_TIMEOUT)
+        (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
       ) {
-        // mark device as being in process of getting registered
+        // mark device as being in process of getting announced
         dev->announcing = MainLoop::now();
-        // send registration request
-        #warning "// TODO: for new vDC API, replace this by "Announce" method
-        if (!sendMessage("DeviceRegistration", dev->registrationParams())) {
+        // call announce method
+        JsonObjectPtr params = JsonObject::newObj();
+        params->add("dSID", JsonObject::newString(dev->dsid.getString()));
+        ErrorPtr err = sessionComm->sendRequest("Announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4));
+        if (!Error::isOK(err)) {
           LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
           dev->announcing = Never; // not registering
         }
         else {
           LOG(LOG_INFO, "Sent announcement for device %s\n", dev->shortDesc().c_str());
         }
-        // don't register too fast, prevent re-registering for a while
-        announcementTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::deviceAnnounced, this), REGISTRATION_TIMEOUT);
-        // done for now, continues after REGISTRATION_TIMEOUT or when registration acknowledged
+        // schedule a retry
+        announcementTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_TIMEOUT);
+        // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
         break;
       }
     }
   }
-  */
 }
 
 
-void DeviceContainer::deviceAnnounced()
+void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
 {
+  // set device announced successfully
+  aDevice->announced = MainLoop::now();
+  aDevice->announcing = Never; // not announcing any more
+  // cancel retry timer
   MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
   announcementTicket = 0;
   // try next announcement
   announceDevices();
 }
+
 
 
 #pragma mark - description

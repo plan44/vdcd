@@ -463,11 +463,10 @@ bool SocketComm::connecting()
 
 void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "FdComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
+  DBGLOG(LOG_DEBUG, "SocketComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
-    // - close my end
-    internalCloseConnection();
+    // - report
     if (connectionStatusHandler) {
       // report reason for closing
       connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
@@ -480,8 +479,7 @@ void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
     if (Error::isOK(err))
       err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
     LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    // - shut down
-    internalCloseConnection();
+    // - report
     if (connectionStatusHandler) {
       // report reason for closing
       connectionStatusHandler(this, err);
@@ -491,12 +489,17 @@ void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
     // error
     ErrorPtr err = socketError(aFd);
     LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    // - shut down
-    internalCloseConnection();
+    // - report
     if (connectionStatusHandler) {
       // report reason for closing
       connectionStatusHandler(this, err);
     }
   }
+  else {
+    // NOP
+    return;
+  }
+  // - shut down (Note: if nobody else retains the connection except the server SocketComm, this will delete the connection)
+  internalCloseConnection();
 }
 

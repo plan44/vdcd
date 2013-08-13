@@ -68,10 +68,9 @@ namespace p44 {
   class DeviceContainer;
   typedef boost::shared_ptr<DeviceContainer> DeviceContainerPtr;
   typedef list<DeviceClassContainerPtr> ContainerList;
-  typedef std::map<dSID, DevicePtr> DsDeviceMap;
+  typedef map<dSID, DevicePtr> DsDeviceMap;
 
-  typedef std::map<uint32_t, DevicePtr> BusAddressMap;
-
+  typedef list<JsonRpcCommPtr> ApiConnectionList;
 
   class DeviceContainer
   {
@@ -89,10 +88,12 @@ namespace p44 {
     long localDimTicket;
     bool localDimDown;
 
-  private:
-
-    /// vdSM API message handler
-    void vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject);
+    // vDC session
+    bool sessionActive;
+    dSID connectedVdsm;
+    long sessionActivityTicket;
+    ApiConnectionList apiConnections;
+    JsonRpcCommPtr sessionComm;
 
   public:
 
@@ -192,10 +193,16 @@ namespace p44 {
     void handleClickLocally(int aClickType, int aKeyID);
     void localDimHandler();
 
-    void deviceAnnounced();
-
     SocketCommPtr vdcApiConnectionHandler(SocketComm *aServerSocketCommP);
+    void vdcApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
+    void endApiConnection(JsonRpcComm *aJsonRpcComm);
     void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void sessionTimeoutHandler();
+
+    // method handlers
+    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams);
+    // response handlers
+    void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
   };
 
