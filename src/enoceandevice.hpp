@@ -38,6 +38,9 @@ namespace p44 {
     /// constructor, create device in container
     EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels);
 
+    /// get typed container reference
+    EnoceanDeviceContainer &getEnoceanDeviceContainer();
+
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
     /// @param aChannel channel number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
@@ -51,12 +54,20 @@ namespace p44 {
       int *aNumChannelsP = NULL
     );
 
+    /// disconnect device. For enOcean, this means breaking the pairing (learn-in) with the device
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
+
+
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
     /// @param aLearnInPacket the packet containing the EPP and possibly other learn-in relevant information
     /// @return number of devices created
     static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket);
-
+    
 
     /// set the enocean address identifying the device
     /// @param aAddress 32bit enocean device address/ID

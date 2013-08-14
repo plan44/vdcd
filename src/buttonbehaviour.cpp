@@ -453,6 +453,9 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
   params->add("key", JsonObject::newInt32(keyId));
   params->add("click", JsonObject::newInt32(aClickType));
   #warning "%%% TODO: replace by property push"
+
+  #warning "%%% TODO: more elegant solution for this"
+  deviceP->getDeviceContainer().checkForLocalClickHandling(*deviceP, aClickType, keyId);
 //  sendMessage("DeviceButtonClick", params);
 }
 

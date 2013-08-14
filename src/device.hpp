@@ -159,6 +159,33 @@ namespace p44 {
     virtual ErrorPtr forget();
 
 
+    typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
+
+    /// disconnect device. If presence is represented by data stored in the vDC rather than
+    /// detection of real physical presence on a bus, this call must clear the data that marks
+    /// the device as connected to this vDC (such as a learned-in enOcean button).
+    /// For devices where the vDC can be *absolutely certain* that they are still connected
+    /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
+    /// return false.
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    /// @note at the time aDisconnectResultHandler is called, the only owner left for the device object might be the
+    ///   aDevice argument to the DisconnectCB handler.
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
+
+
+    /// report that device has vanished (disconnected without being told so via vDC API)
+    /// This will call disconnect() on the device, and remove it from all vDC container lists
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @note this method should be called when bus scanning or other HW-side events detect disconnection
+    ///   of a device, such that it can be reported to the dS system.
+    /// @note calling hasVanished() might delete the object, so don't rely on 'this' after calling it unless you
+    ///   still hold a DevicePtr to it
+    void hasVanished(bool aForgetParams);
+
     /// @name DsAddressable API implementation
 
     /// @{
@@ -169,7 +196,7 @@ namespace p44 {
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSID parameter which has been
     ///   used already to route the method call to this device.
-    virtual ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
 
     /// called to let device handle device-level notification
     /// @param aMethod the notification
@@ -203,10 +230,6 @@ namespace p44 {
     /// @}
 
 
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
-
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
@@ -215,6 +238,10 @@ namespace p44 {
 
     virtual ErrorPtr getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
     virtual ErrorPtr setDeviceParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
+
+  private:
+
+    // method handlers
 
   };
 

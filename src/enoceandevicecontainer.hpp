@@ -97,14 +97,11 @@ namespace p44 {
     /// add newly learned device to enOcean container (and remember it in DB)
     virtual void addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
 
-    /// remove device
-    /// @param aDevice device to remove (possibly only part of a multi-function physical device)
-    virtual void removeDevice(DevicePtr aDevice, bool aForget);
-
-    /// remove devices by physical device address
-    /// @param aEnoceanAddress address for which to remove all physical devices
-    void removeDevicesByAddress(EnoceanAddress aEnoceanAddress);
-
+    /// un-pair devices by physical device address
+    /// @param aEnoceanAddress address for which to disconnect and forget all physical devices
+    /// @param aForgetParams if set, associated dS level configuration will be cleared such that
+    ///   after reconnect the device will appear with default config
+    void unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams);
 
     /// learn RPS device (repeated switch)
     /// Listen for switch device actions with high signal (i.e. which are physically nearby)
@@ -121,10 +118,9 @@ namespace p44 {
 
   protected:
 
-//    /// get device by Address
-//    /// @param aDeviceAddress enocean address
-//    /// @return the device having the specified Address or empty pointer
-//    EnoceanDevicePtr getDeviceByAddress(EnoceanAddress aDeviceAddress);
+    /// remove device
+    /// @param aDevice device to remove (possibly only part of a multi-function physical device)
+    virtual void removeDevice(DevicePtr aDevice, bool aForget);
 
   private:
 

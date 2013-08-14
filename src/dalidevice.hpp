@@ -39,7 +39,8 @@ namespace p44 {
   public:
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
-    DaliDeviceContainer *daliDeviceContainerP();
+    /// get typed container reference
+    DaliDeviceContainer &daliDeviceContainer();
 
     void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
 
@@ -57,10 +58,18 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
 
-    /// "pings" the device. Device should respond by sending back a "pong" shortly after (using pong())
-    /// base class just sends the pong, but derived classes which can actually ping their hardware should
-    /// do so and send the pong only if the hardware actually responds.
-    virtual void ping();
+    /// check presence of this addressable
+    /// @param aPresenceResultHandler will be called to report presence status
+    virtual void checkPresence(PresenceCB aPresenceResultHandler);
+
+
+    /// disconnect device. For DALI, we'll check if the device is still present on the bus, and only if not
+    /// we allow disconnection
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
     /// get currently set output value from device
     /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
@@ -97,12 +106,12 @@ namespace p44 {
 
   private:
 
-    void pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void checkPresenceResponse(PresenceCB aPresenceResultHandler, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
     void queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
-
     void queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
+    void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
 
   };
 

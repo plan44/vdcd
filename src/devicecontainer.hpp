@@ -55,6 +55,8 @@ namespace p44 {
     typedef DsAddressable inherited;
 
     friend class DeviceClassCollector;
+    friend class DeviceClassInitializer;
+    friend class DeviceClassContainer;
     friend class DsAddressable;
 
     DsDeviceMap dSDevices; ///< available devices by dSID
@@ -102,6 +104,7 @@ namespace p44 {
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
     void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
+
 		/// @name device detection and registration
     /// @{
 
@@ -112,30 +115,8 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
     void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    /// start vDC session (say Hello to the vdSM)
-    void startContainerSession();
-
-    /// end vDC session
-    void endContainerSession();
-
-    /// announce all not-yet announced devices to the vdSM
-    void announceDevices();
-
-    /// called by device class containers to add devices to the container-wide devices list
-    /// @param aDevice a device object which has a valid dsid
-    /// @note this can be called as part of a collectDevices scan, or when a new device is detected
-    ///   by other means than a scan/collect operation
-    void addDevice(DevicePtr aDevice);
-
-    /// called by device class containers to remove devices from the container-wide list
-    /// @param aDevice a device object which has a valid dsid
-    /// @param aForget if set, parameters stored for the device will be deleted
-    void removeDevice(DevicePtr aDevice, bool aForget);
-
-    /// periodic task
-    void periodicTask(MLMicroSeconds aCycleStartTime);
-
     /// @}
+
 
     /// @name persistence
     /// @{
@@ -157,30 +138,39 @@ namespace p44 {
     /// @name DsAddressable API implementation
     /// @{
 
-    virtual ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
     virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
 
     /// @}
 
+    /// have button clicks checked for local handling
+    void checkForLocalClickHandling(Device &aDevice, int aClickType, int aKeyID);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
 
-  private:
+  protected:
 
-    void handleClickLocally(int aClickType, int aKeyID);
-    void localDimHandler();
+    /// @name methods for DeviceClassContainers
+    /// @{
 
-    SocketCommPtr vdcApiConnectionHandler(SocketComm *aServerSocketCommP);
-    void vdcApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
-    void endApiConnection(JsonRpcComm *aJsonRpcComm);
-    void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
-    void sessionTimeoutHandler();
+    /// called by device class containers to add devices to the container-wide devices list
+    /// @param aDevice a device object which has a valid dsid
+    /// @note this can be called as part of a collectDevices scan, or when a new device is detected
+    ///   by other means than a scan/collect operation
+    void addDevice(DevicePtr aDevice);
 
-    // method and notification dispatching
-    ErrorPtr handleMethodForDsid(const string &aMethod, const char *aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams);
-    void handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams);
+    /// called by device class containers to remove devices from the container-wide list
+    /// @param aDevice a device object which has a valid dsid
+    /// @param aForget if set, parameters stored for the device will be deleted
+    void removeDevice(DevicePtr aDevice, bool aForget);
+
+    /// @}
+
+
+    /// @name methods for friend classes to send API messages
+    /// @{
 
     /// send a raw JSON-RPC method or notification to vdSM
     /// @param aMethod the method or notification
@@ -194,14 +184,51 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiResult(const char *aJsonRpcId, JsonObjectPtr aResult);
+    bool sendApiResult(const string &aJsonRpcId, JsonObjectPtr aResult);
+
+    /// send error from a method call back to the vdSM
+    /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
+    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
+    ///   of the JSON-RPC 2.0 error object.
+    /// @result empty or Error object in case of error sending error response
+    bool sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSend);
+
+    /// @}
+
+  private:
+
+    // local operation mode
+    void handleClickLocally(int aClickType, int aKeyID);
+    void localDimHandler();
+
+    // vDC API connection and session handling
+    SocketCommPtr vdcApiConnectionHandler(SocketComm *aServerSocketCommP);
+    void vdcApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
+    void endApiConnection(JsonRpcComm *aJsonRpcComm);
+    void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void sessionTimeoutHandler();
+    void startContainerSession();
+    void endContainerSession();
+
+    // method and notification dispatching
+    ErrorPtr handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams);
+    void handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams);
 
     // vDC level method and notification handlers
-    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams);
-    ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams);
+    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);
+    ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);
+    ErrorPtr removeHandler(DevicePtr aDevice, const string &aJsonRpcId);
+    void removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected);
 
-    // response handlers
+    // announcing devices
+    void announceDevices();
     void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
+
+  public:
+    // public for C++ limitation reasons only, semantically private
+
+    // periodic task
+    void periodicTask(MLMicroSeconds aCycleStartTime);
 
   };
 

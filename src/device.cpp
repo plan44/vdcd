@@ -139,11 +139,11 @@ bool Device::isPublicDS()
 #pragma mark - Device level vDC API
 
 
-ErrorPtr Device::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
 {
   ErrorPtr respErr;
 //  if (aMethod=="Gugus") {
-//    // do something
+//    // Do something
 //  }
 //  else
   {
@@ -151,6 +151,7 @@ ErrorPtr Device::handleMethod(const string &aMethod, const char *aJsonRpcId, Jso
   }
   return respErr;
 }
+
 
 
 void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
@@ -163,7 +164,6 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
     inherited::handleNotification(aMethod, aParams);
   }
 }
-
 
 
 
@@ -384,14 +384,29 @@ ErrorPtr Device::forget()
 
 
 
-#pragma mark - Device description/shortDesc
-
-string Device::shortDesc()
+void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
-  // short description is dsid
-  return dsid.getString();
+  // remove from container management
+  DevicePtr dev = classContainerP->getDevicePtrForInstance(this);
+  classContainerP->removeDevice(dev, aForgetParams);
+  // that's all for the base class
+  if (aDisconnectResultHandler)
+    aDisconnectResultHandler(dev, true);
 }
 
+
+void Device::hasVanished(bool aForgetParams)
+{
+  // have device send a vanish message
+  sendRequest("Vanish", JsonObjectPtr());
+  // then disconnect it in software
+  // Note that disconnect() might delete the Device object (so 'this' gets invalid)
+  disconnect(aForgetParams, NULL);
+}
+
+
+
+#pragma mark - Device description/shortDesc
 
 
 string Device::description()

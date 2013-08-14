@@ -341,7 +341,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
 }
 
 
-// remove a device
+// remove a device from container list (but does not disconnect it!)
 void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
   if (aForget) {
@@ -352,14 +352,10 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     // save, as we don't want to forget the settings associated with the device
     aDevice->save();
   }
-  // have device send a vanish message
-  aDevice->sendRequest("Vanish", JsonObjectPtr());
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
-  // TODO: maybe unregister from vdSM???
 }
-
 
 
 #pragma mark - periodic activity
@@ -399,6 +395,16 @@ void DeviceContainer::localDimHandler()
     }
   }
   localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+}
+
+
+
+void DeviceContainer::checkForLocalClickHandling(Device &aDevice, int aClickType, int aKeyID)
+{
+  if (!sessionActive) {
+    // not connected to a vdSM, handle clicks locally
+    handleClickLocally(aClickType, aKeyID);
+  }
 }
 
 
@@ -474,7 +480,7 @@ void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
 #pragma mark - vDC API
 
 
-#define SESSION_TIMEOUT (60*Second) // one minute
+#define SESSION_TIMEOUT (3*Minute) // 3 minutes
 
 
 
@@ -489,15 +495,28 @@ bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams,
 }
 
 
-bool DeviceContainer::sendApiResult(const char *aJsonRpcId, JsonObjectPtr aResult)
+bool DeviceContainer::sendApiResult(const string &aJsonRpcId, JsonObjectPtr aResult)
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
-    return Error::isOK(sessionComm->sendResult(aJsonRpcId, aResult));
+    return Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), aResult));
   }
   // cannot send
   return false;
 }
+
+
+bool DeviceContainer::sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSend)
+{
+  // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
+  if (sessionComm) {
+    return Error::isOK(sessionComm->sendError(aJsonRpcId.size()>0 ? aJsonRpcId.c_str() : NULL, aErrorToSend));
+  }
+  // cannot send
+  return false;
+}
+
+
 
 
 void DeviceContainer::sessionTimeoutHandler()
@@ -607,7 +626,7 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const char *aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams)
 {
   if (aDsid==dsid) {
     // container level method
@@ -619,7 +638,14 @@ ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const char 
     DsDeviceMap::iterator pos = dSDevices.find(aDsid);
     if (pos!=dSDevices.end()) {
       DevicePtr dev = pos->second;
-      return dev->handleMethod(aMethod, aJsonRpcId, aParams);
+      // check special case of Remove command - we must execute this because device should not try to remove itself
+      if (aMethod=="Remove") {
+        return removeHandler(dev, aJsonRpcId);
+      }
+      else {
+        // let device handle it
+        return dev->handleMethod(aMethod, aJsonRpcId, aParams);
+      }
     }
     else {
       return ErrorPtr(new JsonRpcError(404, "unknown dSID"));
@@ -654,7 +680,7 @@ void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSI
 
 
 
-ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams)
 {
   ErrorPtr respErr;
   string s;
@@ -690,7 +716,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
         else {
           // not ok to start new session, reject
           respErr = ErrorPtr(new JsonRpcError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
-          aJsonRpcComm->sendError(aJsonRpcId, respErr);
+          aJsonRpcComm->sendError(aJsonRpcId.c_str(), respErr);
           // close after send
           aJsonRpcComm->closeAfterSend();
           // prevent sending error again
@@ -703,10 +729,10 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
 }
 
 
-ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams)
 {
   // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (sessionComm might not be ready)
-  aJsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
+  aJsonRpcComm->sendResult(aJsonRpcId.c_str(), JsonObjectPtr());
   // close after send
   aJsonRpcComm->closeAfterSend();
   // success
@@ -714,7 +740,26 @@ ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJso
 }
 
 
-#warning "%%% TODO: don't forget handleClickLocally()"
+ErrorPtr DeviceContainer::removeHandler(DevicePtr aDevice, const string &aJsonRpcId)
+{
+  // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
+  // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete
+  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aJsonRpcId, _1, _2));
+  return ErrorPtr();
+}
+
+
+void DeviceContainer::removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected)
+{
+  if (aDisconnected)
+    aDevice->sendResult(aJsonRpcId, JsonObjectPtr()); // disconnected successfully
+  else
+    aDevice->sendError(aJsonRpcId, ErrorPtr(new JsonRpcError(403, "Device cannot be removed, is still connected")));
+}
+
+
+
+
 
 
 #pragma mark - session management
@@ -802,7 +847,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 
 #pragma mark - DsAddressable API implementation
 
-ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
 {
   return inherited::handleMethod(aMethod, aJsonRpcId, aParams);
 }

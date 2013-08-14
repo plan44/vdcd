@@ -72,7 +72,8 @@ void DeviceClassContainer::addDevice(DevicePtr aDevice)
 }
 
 
-// delete a device
+
+// remove a device
 void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
 	// find and remove from my list.
@@ -84,6 +85,21 @@ void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 	}
   // announce to global device container
   deviceContainerP->removeDevice(aDevice, aForget);
+}
+
+
+// get device by instance pointer
+DevicePtr DeviceClassContainer::getDevicePtrForInstance(Device *aDeviceP)
+{
+	// find shared pointer in my list
+  DevicePtr dev;
+	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+		if (pos->get()==aDeviceP) {
+      dev = *pos;
+			break;
+		}
+	}
+  return dev;
 }
 
 

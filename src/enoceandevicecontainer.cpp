@@ -152,7 +152,7 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   if (ed) {
     // - remove single device from superclass
     inherited::removeDevice(aDevice, aForget);
-    // - remove only selected channel from my own list
+    // - remove only selected channel from my own list, other channels might be other devices
     EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(ed->getAddress());
     while (pos!=enoceanDevices.upper_bound(ed->getAddress())) {
       if (pos->second->getChannel()==ed->getChannel()) {
@@ -162,23 +162,23 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
       }
       pos++;
     }
-    // also remove from DB
-    db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND channel=%d", ed->getAddress(), ed->getChannel());
   }
 }
 
 
-void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddress)
+void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams)
 {
-  // remove all logical devices with same physical address
-  // - remove from superclass (which sees these as completely separate devices)
+  // remove all logical devices with same physical enOcean address
+  typedef list<EnoceanDevicePtr> TbdList;
+  TbdList toBeDeleted;
+  // collect those we need to remove
   for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEnoceanAddress); pos!=enoceanDevices.upper_bound(aEnoceanAddress); ++pos) {
-    inherited::removeDevice(pos->second, true);
+    toBeDeleted.push_back(pos->second);
   }
-  // - remove all with that address from my own list
-  enoceanDevices.erase(aEnoceanAddress);
-  // also remove from DB
-  db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d", aEnoceanAddress);
+  // now call vanish (which will in turn remove devices from the container's list
+  for (TbdList::iterator pos = toBeDeleted.begin(); pos!=toBeDeleted.end(); ++pos) {
+    (*pos)->hasVanished(aForgetParams);
+  }
 }
 
 
@@ -192,7 +192,10 @@ void EnoceanDeviceContainer::removeDevicesByAddress(EnoceanAddress aEnoceanAddre
 //#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
 //#endif
 
-#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
+#define MIN_LEARN_DBM -50 
+// -50 = for experimental luz v1 patched bridge: within approx one meter of the TCM310
+// -50 = for v2 bridge 223: very close to device, about 10-20cm
+// -55 = for v2 bridge 223: within approx one meter of the TCM310
 
 
 
@@ -222,8 +225,9 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
           }
         }
         else {
-          // device learned out, remove it
-          removeDevicesByAddress(aEsp3PacketPtr->radio_sender()); // remove all logical devices in this physical device
+          // device learned out, un-pair all logical dS devices it has represented
+          // but keep dS level config in case it is reconnected
+          unpairDevicesByAddress(aEsp3PacketPtr->radio_sender(), false);
           learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
         }
         // - end learning if actually learned or unlearned something

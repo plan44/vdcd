@@ -48,7 +48,7 @@ namespace p44 {
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSID parameter which has been
     ///   used already to route the method call to this DsAddressable.
-    virtual ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
 
     /// called by DeviceContainer to handle notifications directed to a dSID
     /// @param aMethod the notification
@@ -70,7 +70,14 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendResult(const char *aJsonRpcId, JsonObjectPtr aResult);
+    bool sendResult(const string &aJsonRpcId, JsonObjectPtr aResult);
+
+    /// send error from a method call back to the vdSM
+    /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
+    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
+    ///   of the JSON-RPC 2.0 error object.
+    /// @result empty or Error object in case of error sending error response
+    bool sendError(const string &aJsonRpcId, ErrorPtr aErrorToSend);
 
     /// @}
 
@@ -78,13 +85,11 @@ namespace p44 {
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 
-    /// "pings" the DsAddressable. DsAddressable should respond by sending back a "pong" shortly after (using pong())
-    /// base class just sends the pong, but derived classes which can actually ping their hardware should
-    /// do so and send the pong only if the hardware actually responds.
-    virtual void ping();
+    typedef boost::function<void (bool aPresent)> PresenceCB;
 
-    /// sends a "pong" back to the vdSM. Devices should call this as a response to ping()
-    void pong();
+    /// check presence of this addressable
+    /// @param aPresenceResultHandler will be called to report presence status
+    virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
     /// @}
 
@@ -95,6 +100,10 @@ namespace p44 {
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
+
+  private:
+
+    void presenceResultHandler(bool aIsPresent);
 
   };
   typedef boost::shared_ptr<DsAddressable> DsAddressablePtr;

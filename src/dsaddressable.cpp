@@ -43,7 +43,7 @@ ErrorPtr DsAddressable::checkStringParam(JsonObjectPtr aParams, const char *aPar
 
 
 
-ErrorPtr DsAddressable::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
 {
   ErrorPtr respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND, "unknown method"));
   return respErr;
@@ -54,7 +54,7 @@ void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aPar
 {
   if (aMethod=="Ping") {
     // issue device ping (which will issue a pong when device is reachable)
-    ping();
+    checkPresence(boost::bind(&DsAddressable::presenceResultHandler, this, _1));
   }
   else {
     // unknown notification
@@ -74,27 +74,40 @@ bool DsAddressable::sendRequest(const char *aMethod, JsonObjectPtr aParams, Json
 }
 
 
-bool DsAddressable::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
+bool DsAddressable::sendResult(const string &aJsonRpcId, JsonObjectPtr aResult)
 {
   return getDeviceContainer().sendApiResult(aJsonRpcId, aResult);
 }
 
 
-#pragma mark - interaction with subclasses
-
-
-void DsAddressable::ping()
+bool DsAddressable::sendError(const string &aJsonRpcId, ErrorPtr aErrorToSend)
 {
-  // base class just sends the pong, but derived classes which can actually ping their hardware should
-  // do so and send the pong only if the hardware actually responds.
-  pong();
+  return getDeviceContainer().sendApiError(aJsonRpcId, aErrorToSend);
 }
 
 
-void DsAddressable::pong()
+
+
+void DsAddressable::presenceResultHandler(bool aIsPresent)
 {
-  // send back Pong notification
-  sendRequest("Pong", JsonObjectPtr());
+  if (aIsPresent) {
+    // send back Pong notification
+    sendRequest("Pong", JsonObjectPtr());
+  }
+  else {
+    LOG(LOG_NOTICE,"Ping: %s is not present -> no Pong sent\n", shortDesc().c_str());
+  }
+}
+
+
+
+#pragma mark - interaction with subclasses
+
+
+void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
+{
+  // base class just assumes being present
+  aPresenceResultHandler(true);
 }
 
 

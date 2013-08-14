@@ -24,6 +24,12 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanCh
 }
 
 
+EnoceanDeviceContainer &EnoceanDevice::getEnoceanDeviceContainer()
+{
+  return *(static_cast<EnoceanDeviceContainer *>(classContainerP));
+}
+
+
 EnoceanAddress EnoceanDevice::getAddress()
 {
   return enoceanAddress;
@@ -112,6 +118,17 @@ string EnoceanDevice::description()
   );
   return s;
 }
+
+
+
+void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
+{
+  // clear learn-in data from DB
+  getEnoceanDeviceContainer().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND channel=%d", getAddress(), getChannel());
+  // disconnection is immediate, so we can call inherited right now
+  inherited::disconnect(aForgetParams, aDisconnectResultHandler);
+}
+
 
 
 #pragma mark - profile specific device subclasses

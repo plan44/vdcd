@@ -25,9 +25,9 @@ DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
 {
 }
 
-DaliDeviceContainer *DaliDevice::daliDeviceContainerP()
+DaliDeviceContainer &DaliDevice::daliDeviceContainer()
 {
-  return (DaliDeviceContainer *)classContainerP;
+  return *(static_cast<DaliDeviceContainer *>(classContainerP));
 }
 
 
@@ -47,7 +47,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query actual arc power level
-  daliDeviceContainerP()->daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm.daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_ACTUAL_LEVEL,
     boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
@@ -64,7 +64,7 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
     LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, cachedBrightness);
   }
   // query the minimum dimming level
-  daliDeviceContainerP()->daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm.daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_MIN_LEVEL,
     boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
@@ -103,7 +103,7 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
     }
     if (tr!=fadeTime || transitionTime==Infinite) {
       LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", tr);
-      daliDeviceContainerP()->daliComm.daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+      daliDeviceContainer().daliComm.daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       fadeTime = tr;
     }
     transitionTime = aTransitionTime;
@@ -111,23 +111,45 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 }
 
 
-void DaliDevice::ping()
+
+void DaliDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
-  daliDeviceContainerP()->daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm.daliSendQuery(
     deviceInfo.shortAddress, DALICMD_QUERY_CONTROL_GEAR,
-    boost::bind(&DaliDevice::pingResponse, this, _2, _3, _4)
+    boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _2, _3, _4)
   );
 }
 
 
-void DaliDevice::pingResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
-  if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, false)) {
-    // proper YES (without collision) received
-    pong();
+  // present if a proper YES (without collision) received
+  aPresenceResultHandler(DaliComm::isYes(aNoOrTimeout, aResponse, aError, false));
+}
+
+
+void DaliDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
+{
+  checkPresence(boost::bind(&DaliDevice::disconnectableHandler, this, aForgetParams, aDisconnectResultHandler, _1));
+}
+
+void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent)
+{
+  if (!aPresent) {
+    // call inherited disconnect
+    inherited::disconnect(aForgetParams, aDisconnectResultHandler);
+  }
+  else {
+    // not disconnectable
+    if (aDisconnectResultHandler) {
+      aDisconnectResultHandler(classContainerP->getDevicePtrForInstance(this), false);
+    }
   }
 }
+
+
+
 
 
 int16_t DaliDevice::getOutputValue(int aChannel)
@@ -148,7 +170,7 @@ void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTr
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(cachedBrightness);
     LOG(LOG_DEBUG, "DaliDevice: setting new brightness = %d, arc power = %d\n", cachedBrightness, power);
-    daliDeviceContainerP()->daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
+    daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
   }
   else
     return inherited::setOutputValue(aChannel, aValue); // let superclass handle this
