@@ -108,9 +108,9 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   announced(Never),
   announcing(Never),
   classContainerP(aClassContainerP),
+  DsAddressable(&aClassContainerP->getDeviceContainer()),
   behaviourP(NULL)
 {
-
 }
 
 
@@ -136,20 +136,6 @@ bool Device::isPublicDS()
 }
 
 
-void Device::ping()
-{
-  // base class just sends the pong, but derived classes which can actually ping their hardware should
-  // do so and send the pong only if the hardware actually responds.
-  pong();
-}
-
-
-void Device::pong()
-{
-  sendRequest("Pong", JsonObjectPtr());
-}
-
-
 #pragma mark - Device level vDC API
 
 
@@ -161,7 +147,7 @@ ErrorPtr Device::handleMethod(const string &aMethod, const char *aJsonRpcId, Jso
 //  }
 //  else
   {
-    respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND));
+    respErr = inherited::handleMethod(aMethod, aJsonRpcId, aParams);
   }
   return respErr;
 }
@@ -169,30 +155,14 @@ ErrorPtr Device::handleMethod(const string &aMethod, const char *aJsonRpcId, Jso
 
 void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 {
-  if (aMethod=="Ping") {
-    // issue device ping (which will issue a pong when device is reachable)
-    ping();
+  //  if (aMethod=="Gugus") {
+  //    // do something
+  //  }
+  //  else
+  {
+    inherited::handleNotification(aMethod, aParams);
   }
 }
-
-
-bool Device::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
-{
-  if (!aParams) {
-    // create params object because we need it for the dSID
-    aParams = JsonObject::newObj();
-  }
-  aParams->add("dSID", JsonObject::newString(dsid.getString()));
-  return getDeviceContainer().sendRequest(aMethod, aParams, aResponseHandler);
-}
-
-
-bool Device::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
-{
-  return getDeviceContainer().sendResult(aJsonRpcId, aResult);
-}
-
-
 
 
 

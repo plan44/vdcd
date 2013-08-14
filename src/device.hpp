@@ -107,8 +107,10 @@ namespace p44 {
   /// base class representing a virtual digitalSTROM device
   /// for each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
   /// the device class' specifics.
-  class Device
+  class Device : public DsAddressable
   {
+    typedef DsAddressable inherited;
+
     friend class DeviceContainer;
     
     MLMicroSeconds announced; ///< set when last announced to the vdSM
@@ -120,9 +122,6 @@ namespace p44 {
   public:
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
-
-    /// the digitalstrom ID
-    dSID dsid;
 
     /// get pointer to the behaviour
     /// @return the behaviour. If NULL, the device ist not yet set up and cannot be operated
@@ -160,10 +159,11 @@ namespace p44 {
     virtual ErrorPtr forget();
 
 
-    /// @name vDC API
+    /// @name DsAddressable API implementation
+
     /// @{
 
-    /// called by DeviceContainer to let device handle device-level methods
+    /// called to let device handle device-level methods
     /// @param aMethod the method
     /// @param aJsonRpcId the id parameter to be used in sendResult()
     /// @param aParams the parameters object
@@ -171,28 +171,13 @@ namespace p44 {
     ///   used already to route the method call to this device.
     virtual ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
 
-    /// called by DeviceContainer to let device handle device-level notification
+    /// called to let device handle device-level notification
     /// @param aMethod the notification
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSID parameter which has been
     ///   used already to route the notification to this device.
     virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
 
-    /// send a device-related method or notification to vdSM
-    /// @param aMethod the method or notification
-    /// @param aParams the parameters object, or NULL if none
-    /// @param aResponseHandler handler for response. If not set, request is sent as notification
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    /// @note the dSID will be automatically added to aParams (generating a params object if none was passed)
-    bool sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
-
-    /// send result from a method call back to the to vdSM
-    /// @param aJsonRpcId the id parameter from the method call
-    /// @param aParams the parameters object, or NULL if none
-    /// @param aResponseHandler handler for response. If not set, request is sent as notification
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendResult(const char *aJsonRpcId, JsonObjectPtr aResult);
-    
     /// @}
 
 
@@ -205,14 +190,6 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
-    /// "pings" the device. Device should respond by sending back a "pong" shortly after (using pong())
-    /// base class just sends the pong, but derived classes which can actually ping their hardware should
-    /// do so and send the pong only if the hardware actually responds.
-    virtual void ping();
-
-    /// sends a "pong" back to the vdSM. Devices should call this as a response to ping()
-    void pong();
-    
     /// get currently set output value from device
     /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
     virtual int16_t getOutputValue(int aChannel) { return 0; };

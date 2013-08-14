@@ -29,6 +29,7 @@ using namespace p44;
 
 
 DeviceContainer::DeviceContainer() :
+  DsAddressable(this),
   vdcApiServer(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
   announcementTicket(0),
@@ -44,13 +45,13 @@ DeviceContainer::DeviceContainer() :
   Fnv64 hash;
   hash.addBytes(s.size(), (uint8_t *)s.c_str());
   #if FAKE_REAL_DSD_IDS
-  containerDsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  containerDsid.setSerialNo(hash.getHash32());
+  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  dsid.setSerialNo(hash.getHash32());
   #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
   #else
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  containerDsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-  containerDsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
   #endif
 }
 
@@ -476,22 +477,8 @@ void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
 #define SESSION_TIMEOUT (60*Second) // one minute
 
 
-static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue)
-{
-  ErrorPtr err;
-  JsonObjectPtr o;
-  if (aParams)
-    o = aParams->get(aParamName);
-  if (!o)
-    err = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Invalid Parameters - missing '%s'",aParamName)));
-  else
-    aParamValue = o->stringValue();
-  return err;
-}
 
-
-
-bool DeviceContainer::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
+bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
 {
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (sessionComm) {
@@ -502,7 +489,7 @@ bool DeviceContainer::sendRequest(const char *aMethod, JsonObjectPtr aParams, Js
 }
 
 
-bool DeviceContainer::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
+bool DeviceContainer::sendApiResult(const char *aJsonRpcId, JsonObjectPtr aResult)
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
@@ -622,7 +609,7 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const char *aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams)
 {
-  if (aDsid==containerDsid) {
+  if (aDsid==dsid) {
     // container level method
     return handleMethod(aMethod, aJsonRpcId, aParams);
   }
@@ -641,17 +628,10 @@ ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const char 
 }
 
 
-ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
-{
-  return ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND, "unknown method for vDC"));
-}
-
-
-
 
 void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams)
 {
-  if (aDsid==containerDsid) {
+  if (aDsid==dsid) {
     // container level notification
     handleNotification(aMethod, aParams);
   }
@@ -670,19 +650,7 @@ void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSI
 }
 
 
-void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aParams)
-{
-  if (aMethod=="Ping") {
-    pingHandler(aParams);
-  }
-  else {
-    LOG(LOG_WARNING, "unknown notification '%s' for vDC", aMethod.c_str());
-  }
-}
-
-
-
-#pragma mark - vDC level method and notification handlers
+#pragma mark - vDC level session management methods and notifications
 
 
 
@@ -713,7 +681,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
           }
           // - create answer
           JsonObjectPtr result = JsonObject::newObj();
-          result->add("dSID", JsonObject::newString(containerDsid.getString()));
+          result->add("dSID", JsonObject::newString(dsid.getString()));
           result->add("allowDisconnect", JsonObject::newBool(false));
           sendResult(aJsonRpcId, result);
           // - start session, enable sending announces now
@@ -737,20 +705,13 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
 
 ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
+  // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (sessionComm might not be ready)
   aJsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
   // close after send
   aJsonRpcComm->closeAfterSend();
   // success
   return ErrorPtr();
 }
-
-
-void DeviceContainer::pingHandler(JsonObjectPtr aParams)
-{
-  // generate a Pong notification back
-  sendRequest("Pong", JsonObjectPtr());
-}
-
 
 
 #warning "%%% TODO: don't forget handleClickLocally()"
@@ -807,9 +768,7 @@ void DeviceContainer::announceDevices()
         // mark device as being in process of getting announced
         dev->announcing = MainLoop::now();
         // call announce method
-        JsonObjectPtr params = JsonObject::newObj();
-        params->add("dSID", JsonObject::newString(dev->dsid.getString()));
-        if (!sendRequest("Announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
+        if (!dev->sendRequest("Announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
           LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
           dev->announcing = Never; // not registering
         }
@@ -838,6 +797,20 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
   announcementTicket = 0;
   // try next announcement
   announceDevices();
+}
+
+
+#pragma mark - DsAddressable API implementation
+
+ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+{
+  return inherited::handleMethod(aMethod, aJsonRpcId, aParams);
+}
+
+
+void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+{
+  inherited::handleNotification(aMethod, aParams);
 }
 
 
