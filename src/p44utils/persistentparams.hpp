@@ -1,6 +1,6 @@
 //
 //  persistentparams.hpp
-//  p44bridged
+//  p44utils
 //
 //  Created by Lukas Zeller on 13.06.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.

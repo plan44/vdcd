@@ -1,6 +1,6 @@
 //
 //  digitalio.hpp
-//  p44bridged
+//  p44utils
 //
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //

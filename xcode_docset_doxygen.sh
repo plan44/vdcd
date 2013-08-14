@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #  doxygen_create.sh
-#  p44bridged
+#  vdcd
 #
 #  Created by Lukas Zeller on 19.04.13.
 #  Copyright (c) 2013 plan44.ch. All rights reserved.

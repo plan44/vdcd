@@ -1,13 +1,13 @@
 //
 //  dalidefs.h
-//  p44bridged
+//  vdcd
 //
 //  Created by Lukas Zeller on 16.04.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef p44bridged_dalidefs_h
-#define p44bridged_dalidefs_h
+#ifndef vdcd_dalidefs_h
+#define vdcd_dalidefs_h
 
 // ranges
 #define DALI_MAXDEVICES 64

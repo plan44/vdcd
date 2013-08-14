@@ -1,12 +1,13 @@
-/*
- * p44_common.hpp
- *
- *      Author: Lukas Zeller / luz@plan44.ch
- *   Copyright: 2012-2013 by plan44.ch/luz
- */
+//
+// p44_common.hpp
+// p44utils
+//
+// Author: Lukas Zeller / luz@plan44.ch
+// Copyright: 2012-2013 by plan44.ch/luz
+//
 
-#ifndef P44_COMMON_HPP_
-#define P44_COMMON_HPP_
+#ifndef __p44utils__common__
+#define __p44utils__common__
 
 #include <list>
 #include <vector>
@@ -22,4 +23,4 @@
 #include "error.hpp"
 #include "mainloop.hpp"
 
-#endif /* P44_COMMON_HPP_ */
+#endif /* __p44utils__common__ */

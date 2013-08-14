@@ -1,13 +1,13 @@
 //
 //  dsdefs.h
-//  p44bridged
+//  vdcd
 //
 //  Created by Lukas Zeller on 11.06.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef p44bridged_dsdefs_h
-#define p44bridged_dsdefs_h
+#ifndef vdcd_dsdefs_h
+#define vdcd_dsdefs_h
 
 /// scene numbers
 typedef enum {

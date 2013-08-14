@@ -1,6 +1,6 @@
 //
 //  enoceancomm.cpp
-//  p44bridged
+//  vdcd
 //
 //  Created by Lukas Zeller on 03.05.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
