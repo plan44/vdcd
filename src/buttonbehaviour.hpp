@@ -191,12 +191,6 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// handle message from vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return Error object if message generated an error
-    virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
-
     /// get behaviour-specific parameter
     /// @param aParamName name of the parameter
     /// @param aArrayIndex index of the parameter if the parameter is an array

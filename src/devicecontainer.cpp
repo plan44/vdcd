@@ -309,6 +309,10 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
   if (!collecting) {
     collecting = true;
+    if (sessionComm) {
+      // disconnect the vdSM
+      sessionComm->closeConnection();
+    }
     endContainerSession(); // end the session
     dSDevices.clear(); // forget existing ones
     DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
@@ -347,10 +351,8 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     // save, as we don't want to forget the settings associated with the device
     aDevice->save();
   }
-  // send vanish message
-  JsonObjectPtr params = JsonObject::newObj();
-  params->add("dSidentifier", JsonObject::newString(aDevice->dsid.getString()));
-  sendMessage("Vanish", params);
+  // have device send a vanish message
+  aDevice->sendRequest("Vanish", JsonObjectPtr());
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
@@ -362,7 +364,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 #pragma mark - periodic activity
 
 
-#define PERIODIC_TASK_INTERVAL (3*Second)
+#define PERIODIC_TASK_INTERVAL (5*Second)
 
 void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 {
@@ -488,6 +490,29 @@ static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, 
 }
 
 
+
+bool DeviceContainer::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
+{
+  // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
+  if (sessionComm) {
+    return Error::isOK(sessionComm->sendRequest(aMethod, aParams, aResponseHandler));
+  }
+  // cannot send
+  return false;
+}
+
+
+bool DeviceContainer::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
+{
+  // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
+  if (sessionComm) {
+    return Error::isOK(sessionComm->sendResult(aJsonRpcId, aResult));
+  }
+  // cannot send
+  return false;
+}
+
+
 void DeviceContainer::sessionTimeoutHandler()
 {
   LOG(LOG_DEBUG,"vDC API session timed out -> ends here\n");
@@ -535,7 +560,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
   if (aJsonRpcId) {
-    // Methods
+    // Check session init/end methods
     if (method=="Hello") {
       respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
     }
@@ -543,14 +568,28 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
       respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
     }
     else {
-      // unknown method
-      respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND,"Unknown method"));
+      if (!sessionActive) {
+        // all following methods must have an active session
+        respErr = ErrorPtr(new JsonRpcError(401,"no vDC session - cannot call method"));
+      }
+      else {
+        // session active - all commands need dSID parameter
+        string dsidstring;
+        if (Error::isOK(respErr = checkStringParam(aParams, "dSID", dsidstring))) {
+          // operation method
+          respErr = handleMethodForDsid(aMethod, aJsonRpcId, dSID(dsidstring), aParams);
+        }
+      }
     }
   }
   else {
     // Notifications
-    {
-      respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND,"Unknown notification"));
+    if (sessionActive) {
+      // out of session, notifications are simply ignored
+      string dsidstring;
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSID", dsidstring))) {
+        handleNotificationForDsid(aMethod, dSID(dsidstring), aParams);
+      }
     }
   }
   // report back error if any
@@ -581,6 +620,71 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 
 
+ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const char *aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams)
+{
+  if (aDsid==containerDsid) {
+    // container level method
+    return handleMethod(aMethod, aJsonRpcId, aParams);
+  }
+  else {
+    // Must be device level method
+    // - find device to handle it
+    DsDeviceMap::iterator pos = dSDevices.find(aDsid);
+    if (pos!=dSDevices.end()) {
+      DevicePtr dev = pos->second;
+      return dev->handleMethod(aMethod, aJsonRpcId, aParams);
+    }
+    else {
+      return ErrorPtr(new JsonRpcError(404, "unknown dSID"));
+    }
+  }
+}
+
+
+ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+{
+  return ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND, "unknown method for vDC"));
+}
+
+
+
+
+void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams)
+{
+  if (aDsid==containerDsid) {
+    // container level notification
+    handleNotification(aMethod, aParams);
+  }
+  else {
+    // Must be device level notification
+    // - find device to handle it
+    DsDeviceMap::iterator pos = dSDevices.find(aDsid);
+    if (pos!=dSDevices.end()) {
+      DevicePtr dev = pos->second;
+      dev->handleNotification(aMethod, aParams);
+    }
+    else {
+      LOG(LOG_WARNING, "Target device %s not found for notification '%s'", aDsid.getString().c_str(), aMethod.c_str());
+    }
+  }
+}
+
+
+void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+{
+  if (aMethod=="Ping") {
+    pingHandler(aParams);
+  }
+  else {
+    LOG(LOG_WARNING, "unknown notification '%s' for vDC", aMethod.c_str());
+  }
+}
+
+
+
+#pragma mark - vDC level method and notification handlers
+
+
 
 ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
@@ -599,11 +703,6 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
           // ok to start new session
           // - start session with this vdSM
           connectedVdsm = vdsmDsid;
-          // - create answer
-          JsonObjectPtr result = JsonObject::newObj();
-          result->add("dSID", JsonObject::newString(containerDsid.getString()));
-          result->add("allowDisconnect", JsonObject::newBool(false));
-          aJsonRpcComm->sendResult(aJsonRpcId, result);
           // - remember the session's connection
           for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
             if (pos->get()==aJsonRpcComm) {
@@ -612,6 +711,11 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
               break;
             }
           }
+          // - create answer
+          JsonObjectPtr result = JsonObject::newObj();
+          result->add("dSID", JsonObject::newString(containerDsid.getString()));
+          result->add("allowDisconnect", JsonObject::newBool(false));
+          sendResult(aJsonRpcId, result);
           // - start session, enable sending announces now
           startContainerSession();
         }
@@ -631,8 +735,6 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJ
 }
 
 
-
-
 ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
   aJsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
@@ -643,109 +745,15 @@ ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJso
 }
 
 
-
-
-/* old API
-void DeviceContainer::vdsmMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
+void DeviceContainer::pingHandler(JsonObjectPtr aParams)
 {
-  LOG(LOG_DEBUG, "Received vdSM API message: %s\n", aJsonObject->json_c_str());
-  ErrorPtr err;
-  JsonObjectPtr opObj = aJsonObject->get("operation");
-  if (!opObj) {
-    // no operation
-    err = ErrorPtr(new vdSMError(vdSMErrorMissingOperation, "missing 'operation'"));
-  }
-  else {
-    // get operation as lowercase string (to make comparisons case insensitive, we do all in lowercase)
-    string o = opObj->lowercaseStringValue();
-    // check for parameter addressing a device
-    DevicePtr dev;
-    JsonObjectPtr paramsObj = aJsonObject->get("parameter");
-    bool doesAddressDevice = false;
-    if (paramsObj) {
-      // first check for dSID
-      JsonObjectPtr dsidObj = paramsObj->get("dSidentifier");
-      if (dsidObj) {
-        string s = dsidObj->stringValue();
-        dSID dsid(s);
-        doesAddressDevice = true;
-        DsDeviceMap::iterator pos = dSDevices.find(dsid);
-        if (pos!=dSDevices.end())
-          dev = pos->second;
-      }
-    }
-    // dev now set to target device if one could be found
-    if (dev) {
-      // check operations targeting a device
-      if (o=="deviceregistrationack") {
-        dev->announcementAck(paramsObj);
-        // signal device registered, so next can be issued
-        deviceAnnounced();
-      }
-      else {
-        // just forward message to device
-        err = dev->handleMessage(o, paramsObj);
-      }
-    }
-    else {
-      // could not find a device to send the message to
-      if (doesAddressDevice) {
-        // if the message was actually targeting a device, this is an error
-        err = ErrorPtr(new vdSMError(vdSMErrorDeviceNotFound, "device not found"));
-      }
-      else {
-        // check operations not targeting a device
-        // TODO: add operations
-        // unknown operation
-        err = ErrorPtr(new vdSMError(vdSMErrorUnknownContainerOperation, string_format("unknown container operation '%s'", o.c_str())));
-      }
-    }
-  }
-  if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "vdSM message processing error: %s\n", err->description().c_str());
-    // send back error response
-    JsonObjectPtr params = JsonObject::newObj();
-    params->add("dSidentifier", JsonObject::newString(containerDsid.getString()));
-    params->add("Message", JsonObject::newString(err->description()));
-    sendMessage("Error", params);
-  }
+  // generate a Pong notification back
+  sendRequest("Pong", JsonObjectPtr());
 }
-*/
-
-
 
 
 
 #warning "%%% TODO: don't forget handleClickLocally()"
-bool DeviceContainer::sendMessage(const char *aOperation, JsonObjectPtr aParams)
-{
-  // TODO: %%% cleaner implementation for this, q&d hack for now only
-  /*
-  if (!vdsmJsonComm.connectable()) {
-    // not connectable, check some messages to interpret locally for standalone mode
-    if (strcmp(aOperation,"DeviceButtonClick")==0) {
-      // handle button clicks locally
-      int c = aParams->get("click")->int32Value();
-      int k = aParams->get("key")->int32Value();
-      handleClickLocally(c, k);
-    }
-    // not really sent
-    return false;
-  }
-  JsonObjectPtr req = JsonObject::newObj();
-  req->add("operation", JsonObject::newString(aOperation));
-  if (aParams) {
-    req->add("parameter", aParams);
-  }
-  ErrorPtr err = vdsmJsonComm.sendMessage(req);
-  LOG(LOG_DEBUG, "Sent vdSM API message: %s\n", req->json_c_str());
-  if (!Error::isOK(err)) {
-    LOG(LOG_INFO, "Error sending JSON message: %s\n", err->description().c_str());
-    return false;
-  }
-  */
-  return true;
-}
 
 
 #pragma mark - session management
@@ -801,8 +809,7 @@ void DeviceContainer::announceDevices()
         // call announce method
         JsonObjectPtr params = JsonObject::newObj();
         params->add("dSID", JsonObject::newString(dev->dsid.getString()));
-        ErrorPtr err = sessionComm->sendRequest("Announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4));
-        if (!Error::isOK(err)) {
+        if (!sendRequest("Announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
           LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
           dev->announcing = Never; // not registering
         }

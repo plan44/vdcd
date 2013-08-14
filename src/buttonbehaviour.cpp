@@ -452,7 +452,8 @@ void ButtonBehaviour::sendClick(ClickType aClickType)
   JsonObjectPtr params = JsonObject::newObj();
   params->add("key", JsonObject::newInt32(keyId));
   params->add("click", JsonObject::newInt32(aClickType));
-  sendMessage("DeviceButtonClick", params);
+  #warning "%%% TODO: replace by property push"
+//  sendMessage("DeviceButtonClick", params);
 }
 
 
@@ -564,6 +565,8 @@ uint8_t ButtonBehaviour::buttonIdGroup()
 #pragma mark - interaction with digitalSTROM system
 
 
+/* %%% old API
+
 // handle message from vdSM
 ErrorPtr ButtonBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
@@ -576,6 +579,8 @@ ErrorPtr ButtonBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParam
   }
   return err;
 }
+
+*/
 
 
 // LTNUMGRP0

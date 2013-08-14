@@ -68,12 +68,6 @@ namespace p44 {
     /// @name interaction with digitalSTROM system, to be implemented/used in concrete classes
     /// @{
 
-    /// handle message from vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return Error object if message generated an error
-    virtual ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
-
     /// get behaviour-specific parameter
     /// @param aParamName name of the parameter
     /// @param aArrayIndex index of the parameter if the parameter is an array
@@ -94,12 +88,6 @@ namespace p44 {
 
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
-
-    /// send message to vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
     /// @}
 
@@ -160,27 +148,6 @@ namespace p44 {
     /// @return index of button (0..getNumButtons()-1) of this sub-device within its physical device
     virtual int getButtonIndex() { return 0; }
 
-    /// Get the parameters for registering this device with the vdSM
-    /// @return JSON object containing the parameters
-    JsonObjectPtr registrationParams();
-
-    /// acknowledge announcement
-    void announcementAck(JsonObjectPtr aParams);
-
-
-    /// handle message from vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return Error object if message generated an error
-    ErrorPtr handleMessage(string &aOperation, JsonObjectPtr aParams);
-
-    /// send message to vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
-
-
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
     virtual ErrorPtr load();
@@ -191,6 +158,42 @@ namespace p44 {
 
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget();
+
+
+    /// @name vDC API
+    /// @{
+
+    /// called by DeviceContainer to let device handle device-level methods
+    /// @param aMethod the method
+    /// @param aJsonRpcId the id parameter to be used in sendResult()
+    /// @param aParams the parameters object
+    /// @note the parameters object always contains the dSID parameter which has been
+    ///   used already to route the method call to this device.
+    virtual ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+
+    /// called by DeviceContainer to let device handle device-level notification
+    /// @param aMethod the notification
+    /// @param aParams the parameters object
+    /// @note the parameters object always contains the dSID parameter which has been
+    ///   used already to route the notification to this device.
+    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
+
+    /// send a device-related method or notification to vdSM
+    /// @param aMethod the method or notification
+    /// @param aParams the parameters object, or NULL if none
+    /// @param aResponseHandler handler for response. If not set, request is sent as notification
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    /// @note the dSID will be automatically added to aParams (generating a params object if none was passed)
+    bool sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+
+    /// send result from a method call back to the to vdSM
+    /// @param aJsonRpcId the id parameter from the method call
+    /// @param aParams the parameters object, or NULL if none
+    /// @param aResponseHandler handler for response. If not set, request is sent as notification
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendResult(const char *aJsonRpcId, JsonObjectPtr aResult);
+    
+    /// @}
 
 
     /// @name interaction with subclasses, actually representing physical I/O

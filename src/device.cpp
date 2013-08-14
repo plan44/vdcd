@@ -48,19 +48,6 @@ void DSBehaviour::setDeviceColor(DsGroup aColorGroup)
 }
 
 
-ErrorPtr DSBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
-{
-  // base class behaviour does not support any operations
-  return ErrorPtr(new vdSMError(
-    vdSMErrorInvalidParameter,
-    string_format(
-      "unknown device behaviour operation '%s' for %s/%s",
-      aOperation.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
-    )
-  ));
-}
-
-
 ErrorPtr DSBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
 {
   ErrorPtr err;
@@ -78,8 +65,8 @@ ErrorPtr DSBehaviour::getBehaviourParam(const string &aParamName, int aArrayInde
   }
   else {
     aValue = 0;
-    err = ErrorPtr(new vdSMError(
-      vdSMErrorInvalidParameter,
+    err = ErrorPtr(new JsonRpcError(
+      JSONRPC_INVALID_PARAMS,
       string_format(
         "unknown device behaviour parameter '%s' for %s/%s",
         aParamName.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
@@ -101,8 +88,8 @@ ErrorPtr DSBehaviour::setBehaviourParam(const string &aParamName, int aArrayInde
     }
   }
   else {
-    err = ErrorPtr(new vdSMError(
-      vdSMErrorInvalidParameter,
+    err = ErrorPtr(new JsonRpcError(
+      JSONRPC_INVALID_PARAMS,
       string_format(
         "unknown device behaviour parameter '%s' for %s/%s",
         aParamName.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
@@ -112,14 +99,6 @@ ErrorPtr DSBehaviour::setBehaviourParam(const string &aParamName, int aArrayInde
   return err;
 }
 
-
-
-
-bool DSBehaviour::sendMessage(const char *aOperation, JsonObjectPtr aParams)
-{
-  // just forward to device
-  return deviceP->sendMessage(aOperation, aParams);
-}
 
 
 #pragma mark - Device
@@ -167,29 +146,58 @@ void Device::ping()
 
 void Device::pong()
 {
-  sendMessage("Pong", JsonObjectPtr());
+  sendRequest("Pong", JsonObjectPtr());
 }
 
 
+#pragma mark - Device level vDC API
 
-JsonObjectPtr Device::registrationParams()
+
+ErrorPtr Device::handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
-  // TODO: %%% prelim, not needed any more for new API
-  // create the registration request
-  JsonObjectPtr req = JsonObject::newObj();
-  // add the parameters
-  req->add("dSidentifier", JsonObject::newString(dsid.getString()));
-  req->add("VendorId", JsonObject::newInt32(1)); // TODO: %%% luz: must be 1=aizo, dsa cannot expand other ids so far
-  req->add("FunctionId", JsonObject::newInt32(behaviourP->functionId()));
-  req->add("ProductId", JsonObject::newInt32(behaviourP->productId()));
-  req->add("Version", JsonObject::newInt32(behaviourP->version()));
-  req->add("LTMode", JsonObject::newInt32(behaviourP->ltMode()));
-  req->add("Mode", JsonObject::newInt32(behaviourP->outputMode()));
-  req->add("buttonIdAndGroup", JsonObject::newInt32(behaviourP->buttonIdGroup()));
-  // return it
-  return req;
+  ErrorPtr respErr;
+//  if (aMethod=="Gugus") {
+//    // do something
+//  }
+//  else
+  {
+    respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND));
+  }
+  return respErr;
 }
 
+
+void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+{
+  if (aMethod=="Ping") {
+    // issue device ping (which will issue a pong when device is reachable)
+    ping();
+  }
+}
+
+
+bool Device::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
+{
+  if (!aParams) {
+    // create params object because we need it for the dSID
+    aParams = JsonObject::newObj();
+  }
+  aParams->add("dSID", JsonObject::newString(dsid.getString()));
+  return getDeviceContainer().sendRequest(aMethod, aParams, aResponseHandler);
+}
+
+
+bool Device::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
+{
+  return getDeviceContainer().sendResult(aJsonRpcId, aResult);
+}
+
+
+
+
+
+
+/* %%% old API
 
 //  if request['operation'] == 'DeviceRegistrationAck':
 //      self.address = request['parameter']['BusAddress']
@@ -334,6 +342,8 @@ ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
   return err;
 }
 
+*/
+
 
 
 ErrorPtr Device::getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
@@ -372,19 +382,6 @@ ErrorPtr Device::setDeviceParam(const string &aParamName, int aArrayIndex, uint3
     }
   }
   return err;
-}
-
-
-bool Device::sendMessage(const char *aOperation, JsonObjectPtr aParams)
-{
-  if (!aParams) {
-    // no parameters passed, create new parameter object
-    aParams = JsonObject::newObj();
-  }
-  // add dsid and bus address parameters
-  aParams->add("dSidentifier", JsonObject::newString(dsid.getString()));
-  // have device container send it
-  return classContainerP->getDeviceContainer().sendMessage(aOperation, aParams);
 }
 
 

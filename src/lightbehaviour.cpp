@@ -668,6 +668,7 @@ void LightBehaviour::callScene(SceneNo aSceneNo)
 }
 
 
+/* %%% old API
 // handle message from vdSM
 ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
 {
@@ -724,6 +725,8 @@ ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams
   }
   return err;
 }
+
+*/
 
 
 #define BLINK_HALF_PERIOD (500*MilliSecond)

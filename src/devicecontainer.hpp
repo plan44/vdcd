@@ -19,28 +19,6 @@ using namespace std;
 
 namespace p44 {
 
-  // Errors
-  typedef enum {
-    vdSMErrorOK,
-    vdSMErrorMissingOperation,
-    vdSMErrorMissingParameter,
-    vdSMErrorInvalidParameter,
-    vdSMErrorDeviceNotFound,
-    vdSMErrorUnknownDeviceOperation,
-    vdSMErrorUnknownContainerOperation,
-  } vdSMErrors;
-
-  class vdSMError : public Error
-  {
-  public:
-    static const char *domain() { return "vdSMAPI"; }
-    virtual const char *getErrorDomain() const { return vdSMError::domain(); };
-    vdSMError(vdSMErrors aError) : Error(ErrorCode(aError)) {};
-    vdSMError(vdSMErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  };
-
-
-
   class DeviceClassContainer;
   class Device;
   class dSID;
@@ -173,16 +151,28 @@ namespace p44 {
     /// get the dsParamStore
     DsParamStore &getDsParamStore() { return dsParamStore; }
 
-    /// save
+    /// @}
+
+
+    /// @name vDC API
+    /// @{
+
+    /// send a method or notification to vdSM
+    /// @param aMethod the method or notification
+    /// @param aParams the parameters object, or NULL if none
+    /// @param aResponseHandler handler for response. If not set, request is sent as notification
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+
+    /// send result from a method call back to the to vdSM
+    /// @param aJsonRpcId the id parameter from the method call
+    /// @param aParams the parameters object, or NULL if none
+    /// @param aResponseHandler handler for response. If not set, request is sent as notification
+    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
+    bool sendResult(const char *aJsonRpcId, JsonObjectPtr aResult);
 
     /// @}
 
-		
-    /// send message to vdSM
-    /// @param aOperation the operation keyword
-    /// @param aParams the parameters object, or NULL if none
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendMessage(const char *aOperation, JsonObjectPtr aParams);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -199,9 +189,17 @@ namespace p44 {
     void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
     void sessionTimeoutHandler();
 
-    // method handlers
+    // method and notification dispatching
+    ErrorPtr handleMethodForDsid(const string &aMethod, const char *aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams);
+    void handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams);
+    ErrorPtr handleMethod(const string &aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void handleNotification(const string &aMethod, JsonObjectPtr aParams);
+
+    // vDC level method and notification handlers
     ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams);
     ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void pingHandler(JsonObjectPtr aParams);
+
     // response handlers
     void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
