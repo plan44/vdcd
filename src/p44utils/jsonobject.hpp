@@ -36,7 +36,9 @@ namespace p44 {
   {
     friend class JsonComm;
 
-    struct json_object *json_obj;
+    struct json_object *json_obj; ///< the json-c object
+
+    struct lh_entry *nextEntryP; ///< iterator pointer for resetKeyIteration()/nextKeyValue()
 
     /// construct object as wrapper of json-c json_object.
     /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
@@ -97,6 +99,15 @@ namespace p44 {
 
     /// put at specific position in array
     void arrayPut(int aAtIndex, JsonObjectPtr aObj);
+
+
+    /// reset object iterator
+    /// @return false if object cannot be iterated
+    bool resetKeyIteration();
+
+    /// reset object iterator
+    /// @return false if no more key/values
+    bool nextKeyValue(string &aKey, JsonObjectPtr &aValue);
 
 
     /// create new empty object

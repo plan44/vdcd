@@ -21,7 +21,8 @@ using namespace p44;
 
 
 // construct from raw json_object, passing ownership
-JsonObject::JsonObject(struct json_object *aObjPassingOwnership)
+JsonObject::JsonObject(struct json_object *aObjPassingOwnership) :
+  nextEntryP(NULL)
 {
   json_obj = aObjPassingOwnership;
 }
@@ -177,6 +178,42 @@ void JsonObject::arrayPut(int aAtIndex, JsonObjectPtr aObj)
 }
 
 
+#pragma mark - object key/value iteration
+
+
+bool JsonObject::resetKeyIteration()
+{
+  if (isType(json_type_object)) {
+    nextEntryP = json_object_get_object(json_obj)->head;
+    return true; // can be iterated (but might still have zero key/values)
+  }
+  return false; // cannot be iterated
+}
+
+
+bool JsonObject::nextKeyValue(string &aKey, JsonObjectPtr &aValue)
+{
+  if (nextEntryP) {
+    // get key
+    aKey = (char*)nextEntryP->k;
+    // get value
+    json_object *weakObjRef = (struct json_object*)nextEntryP->v;
+    if (weakObjRef) {
+      // claim ownership
+      json_object_get(weakObjRef);
+      // - return wrapper
+      aValue = newObj(weakObjRef);
+    }
+    else {
+      aValue = JsonObjectPtr(); // NULL
+    }
+    // advance to next
+    nextEntryP = nextEntryP->next;
+    return true;
+  }
+  // no more entries
+  return false;
+}
 
 
 #pragma mark - factories and value getters

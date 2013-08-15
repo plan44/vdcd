@@ -67,6 +67,8 @@ vdcd_SOURCES = \
   src/dalidevicecontainer.hpp \
   src/device.cpp \
   src/device.hpp \
+  src/propertycontainer.cpp \
+  src/propertycontainer.hpp \
   src/dsaddressable.cpp \
   src/dsaddressable.hpp \
   src/deviceclasscontainer.cpp \

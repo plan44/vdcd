@@ -166,6 +166,13 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 }
 
 
+#pragma mark - property access
+
+#error "TODO: Add basic properties here"
+
+
+
+
 
 /* %%% old API
 

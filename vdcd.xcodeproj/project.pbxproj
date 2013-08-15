@@ -34,6 +34,7 @@
 		ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2933174124D300334C71 /* sqlite3persistence.cpp */; };
 		ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29391749446200334C71 /* lightbehaviour.cpp */; };
 		ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */; };
+		ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -148,6 +149,8 @@
 		ED5B293A1749446300334C71 /* lightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = lightbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsaddressable.cpp; sourceTree = "<group>"; };
 		ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsaddressable.hpp; sourceTree = "<group>"; };
+		ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = propertycontainer.cpp; sourceTree = "<group>"; };
+		ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = propertycontainer.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -310,6 +313,8 @@
 				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				ED0FA62F175891F200FC0958 /* dsparams.cpp */,
 				ED0FA630175891F300FC0958 /* dsparams.hpp */,
+				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
+				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
 				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
 				ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */,
 				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
@@ -445,6 +450,7 @@
 				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
+				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,

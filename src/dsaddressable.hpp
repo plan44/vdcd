@@ -11,6 +11,7 @@
 
 #include "dsid.hpp"
 #include "jsonrpccomm.hpp"
+#include "propertycontainer.hpp"
 
 using namespace std;
 
@@ -20,7 +21,7 @@ namespace p44 {
 
   /// base class representing a entity which is addressable with a dSID
   /// dS devices are most obvious addressables, but the vDC itself is also addressable and uses this base class
-  class DsAddressable
+  class DsAddressable : public PropertyContainer
   {
     friend class DeviceContainer;
 
@@ -39,8 +40,12 @@ namespace p44 {
     /// @name vDC API
     /// @{
 
+    /// convenience method to check for existence of a parameter and return appropriate error if not
+    static ErrorPtr checkParam(JsonObjectPtr aParams, const char *aParamName, JsonObjectPtr &aParam);
+
     /// convenience method to check for existence of a string value and if it does, return its value in one call
     static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue);
+
 
     /// called by DeviceContainer to handle methods directed to a dSID
     /// @param aMethod the method
