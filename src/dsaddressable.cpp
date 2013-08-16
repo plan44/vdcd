@@ -105,7 +105,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
-          sendResult(aJsonRpcId, NULL);
+          sendResult(aJsonRpcId, JsonObjectPtr());
         }
       }
     }
