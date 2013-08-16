@@ -197,8 +197,8 @@ static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperti
   { "model", ptype_charptr, false, model_key },
   { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key },
   { "hardwareVersion", ptype_charptr, false, hardwareVersion_key },
-  { "hardwareGUID", ptype_charptr, false, hardwareGUID_key },
-  { "oemGUID", ptype_charptr, false, oemGUID_key },
+  { "hardwareGuid", ptype_charptr, false, hardwareGUID_key },
+  { "oemGuid", ptype_charptr, false, oemGUID_key },
   { "name", ptype_charptr, false, name_key }
 };
 
