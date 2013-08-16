@@ -567,10 +567,10 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   sessionActivityTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
   if (aJsonRpcId) {
     // Check session init/end methods
-    if (method=="Hello") {
+    if (method=="hello") {
       respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
     }
-    else if (method=="Bye") {
+    else if (method=="bye") {
       respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
     }
     else {
@@ -639,7 +639,7 @@ ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const strin
     if (pos!=dSDevices.end()) {
       DevicePtr dev = pos->second;
       // check special case of Remove command - we must execute this because device should not try to remove itself
-      if (aMethod=="Remove") {
+      if (aMethod=="remove") {
         return removeHandler(dev, aJsonRpcId);
       }
       else {
@@ -813,7 +813,7 @@ void DeviceContainer::announceDevices()
         // mark device as being in process of getting announced
         dev->announcing = MainLoop::now();
         // call announce method
-        if (!dev->sendRequest("Announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
+        if (!dev->sendRequest("announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
           LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
           dev->announcing = Never; // not registering
         }
@@ -857,6 +857,75 @@ void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aP
 {
   inherited::handleNotification(aMethod, aParams);
 }
+
+
+
+#pragma mark - DsAddressable API implementation
+
+
+#pragma mark - property access
+
+enum {
+  devices_key,
+  numDsAddressableProperties
+};
+
+
+static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperties] = {
+  { "devices", ptype_object, true, devices_key }
+};
+
+
+int DeviceContainer::numProps(int aDomain)
+{
+  return inherited::numProps(aDomain)+numDsAddressableProperties;
+}
+
+
+const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
+{
+  int n = inherited::numProps(aDomain);
+  if (aPropIndex<n)
+    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  if (aPropIndex>=numDsAddressableProperties)
+    return NULL;
+  return &dsAddressableProperties[aPropIndex];
+}
+
+
+PropertyContainer *DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
+{
+  if (aPropertyDescriptor.accessKey==devices_key) {
+    // return the device by index
+    // TODO: slow and ugly
+    vector<DevicePtr> devVector;
+    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); pos++) {
+      devVector.push_back(pos->second);
+    }
+    if (aIndex<devVector.size())
+      return devVector[aIndex].get();
+    else
+      return NULL;
+  }
+  return inherited::getContainer(aPropertyDescriptor, aDomain);
+}
+
+
+bool DeviceContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aPropertyDescriptor.accessKey==devices_key) {
+    if (aIndex==PROP_ARRAY_SIZE) {
+      if (aForWrite) return false; // cannot write
+      // return size of array
+      aPropValue = JsonObject::newInt32((uint32_t)dSDevices.size());
+      return true;
+    }
+  }
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+}
+
+
 
 
 

@@ -113,6 +113,10 @@ namespace p44 {
     /// create new empty object
     static JsonObjectPtr newObj();
 
+    /// create new NULL object (does not embed a real JSON-C object, just a NULL pointer)
+    JsonObjectPtr newNull();
+
+
     /// create new object from text
     static JsonObjectPtr objFromText(const char *aJsonText, ssize_t aMaxChars = -1);
 
@@ -140,7 +144,7 @@ namespace p44 {
     /// create new string object
     static JsonObjectPtr newString(const char *aCStr);
     static JsonObjectPtr newString(const char *aCStr, size_t aLen);
-    static JsonObjectPtr newString(const string &aString);
+    static JsonObjectPtr newString(const string &aString, bool aEmptyIsNull = false);
     /// get string value
     const char *c_strValue();
     size_t stringLength();

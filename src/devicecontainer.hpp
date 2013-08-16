@@ -195,6 +195,38 @@ namespace p44 {
 
     /// @}
 
+
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "vDC virtual device controller"; }
+
+    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "vDC"; }
+
+    /// @return 0xMMmmrrrr digitalstrom Profile version (MM=major, mm=minor, rrrr=revision)
+    virtual uint32_t dsProfileVersion() { return 0; }
+
+    /// @return hardware version string or NULL if none
+    virtual string hardwareVersion() { return ""; }
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID() { return ""; }
+
+    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    virtual string oemGUID() { return ""; }
+    
+    /// @}
+
+  protected:
+
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex = 0);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
   private:
 
     // local operation mode

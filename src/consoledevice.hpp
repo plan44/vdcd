@@ -56,6 +56,13 @@ namespace p44 {
     /// @}
 
 
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "plan44 console-based debug device"; }
+
+    /// @}
 
   protected:
 

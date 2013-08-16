@@ -17,12 +17,17 @@ using namespace std;
 
 namespace p44 {
 
+  #define VDC_API_DOMAIN 0
+
+
   class DeviceContainer;
 
   /// base class representing a entity which is addressable with a dSID
   /// dS devices are most obvious addressables, but the vDC itself is also addressable and uses this base class
   class DsAddressable : public PropertyContainer
   {
+    typedef PropertyContainer inherited;
+
     friend class DeviceContainer;
 
   protected:
@@ -33,6 +38,9 @@ namespace p44 {
 
     /// the digitalstrom ID of this addressable entity
     dSID dsid;
+
+    /// the user-assignable name
+    string name;
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return *deviceContainerP; };
@@ -98,6 +106,32 @@ namespace p44 {
 
     /// @}
 
+
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "DsAddressable"; }
+
+    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "*"; }
+
+    /// @return 0xMMmmrrrr digitalstrom Profile version (MM=major, mm=minor, rrrr=revision)
+    virtual uint32_t dsProfileVersion() { return 0; }
+
+    /// @return hardware version string or NULL if none
+    virtual string hardwareVersion() { return ""; }
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID() { return ""; }
+
+    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    virtual string oemGUID() { return ""; }
+
+    /// @}
+
+
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
@@ -105,6 +139,14 @@ namespace p44 {
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
+
+  protected:
+
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
 
   private:
 

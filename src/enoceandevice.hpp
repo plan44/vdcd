@@ -106,6 +106,19 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
+
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "enOcean device"; }
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID();
+
+    /// @}
+
+
   protected:
 
     void deriveDSID();

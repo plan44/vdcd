@@ -13,7 +13,7 @@ using namespace p44;
 
 #pragma mark - property access API
 
-ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonObject, const string &aName, int aIndex, int aElementCount)
+ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonObject, const string &aName, int aDomain, int aIndex, int aElementCount)
 {
   ErrorPtr err;
   // TODO: separate dot notation name?
@@ -32,7 +32,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
         JsonObjectPtr value;
         while (aJsonObject->nextKeyValue(key, value)) {
           // write single field
-          err = accessProperty(true, value, key);
+          err = accessProperty(true, value, key, aDomain, PROP_ARRAY_SIZE, 0); // if array, write size (writing array is not supported)
           if (!Error::isOK(err))
             break;
         }
@@ -40,16 +40,17 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
     }
     else {
       // read: collect all fields of this container into a JSON object
-      JsonObjectPtr allFields = JsonObject::newObj();
+      aJsonObject = JsonObject::newObj();
       // - iterate over my own descriptors
-      for (int propIndex = 0; propIndex<numProps(); propIndex++) {
-        PropertyDescriptor *propDescP = getPropertyDescriptor(propIndex);
+      for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
+        const PropertyDescriptor *propDescP = getPropertyDescriptor(propIndex, aDomain);
         if (!propDescP) break; // safety only
         JsonObjectPtr propField;
-        err = accessPropertyByDescriptor(false, propField, *propDescP);
+        err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
         if (Error::isOK(err)) {
-          // add to resulting object
-          allFields->add(propDescP->propertyName, propField);
+          // add to resulting object, if not no object returned at all (explicit JsonObject::newNull()) will be returned!)
+          if (propField)
+            aJsonObject->add(propDescP->propertyName, propField);
         }
       }
     }
@@ -57,15 +58,15 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
   else {
     // single field from this container
     // - find descriptor
-    PropertyDescriptor *propDescP = NULL;
+    const PropertyDescriptor *propDescP = NULL;
     if (aName=="^") {
       // access first property (default property, internally used for ptype_proxy)
-      propDescP = getPropertyDescriptor(0);
+      propDescP = getPropertyDescriptor(0, aDomain);
     }
     else {
       // search for descriptor by name
-      for (int propIndex = 0; propIndex<numProps(); propIndex++) {
-        PropertyDescriptor *p = getPropertyDescriptor(propIndex);
+      for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
+        const PropertyDescriptor *p = getPropertyDescriptor(propIndex, aDomain);
         if (aName==p->propertyName) {
           propDescP = p;
           break;
@@ -79,7 +80,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
     }
     else {
       // access the property
-      err = accessPropertyByDescriptor(false, aJsonObject, *propDescP, aIndex, aElementCount);
+      err = accessPropertyByDescriptor(false, aJsonObject, *propDescP, aDomain, aIndex, aElementCount);
     }
   }
   return err;
@@ -87,7 +88,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
 
 
 
-ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjectPtr &aJsonObject, PropertyDescriptor &aPropertyDescriptor, int aIndex, int aElementCount)
+ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjectPtr &aJsonObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount)
 {
   ErrorPtr err;
   if (aPropertyDescriptor.isArray) {
@@ -99,7 +100,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjec
     }
     else {
       // single element or range?
-      if (aElementCount>0) {
+      if (aElementCount!=0) {
         // Range of elements: only allowed for reading
         if (aForWrite)
           err = ErrorPtr(new JsonRpcError(403,"Arrays can only be written one element at a time"));
@@ -109,14 +110,14 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjec
           for (int n = 0; n<aElementCount || aElementCount==PROP_ARRAY_SIZE; n++) {
             JsonObjectPtr elementObj;
             // - collect single element
-            err = accessPropertyByDescriptor(false, elementObj, aPropertyDescriptor, aIndex+n, 0);
+            err = accessPropertyByDescriptor(false, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
             if (Error::isError(err, JsonRpcError::domain(), 204)) {
               // array exhausted
               err.reset(); // is not a real error
               break; // but stop collecting elements
             }
-            else {
-              // error, stop collecting elements
+            else if(!Error::isOK(err)) {
+              // other error, stop collecting elements
               break;
             }
             // - got array element, add it to result array
@@ -126,30 +127,30 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjec
       }
       else {
         // Single element of the array
-        err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, aIndex);
+        err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, aDomain, aIndex);
       }
     }
   }
   else {
     // non-array property
-    err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, 0);
+    err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, aDomain, 0);
   }
   return err;
 }
 
 
 
-ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, JsonObjectPtr &aJsonObject, PropertyDescriptor &aPropertyDescriptor, int aIndex)
+ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, JsonObjectPtr &aJsonObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
 {
   ErrorPtr err;
   if (aPropertyDescriptor.propertyType==ptype_object || aPropertyDescriptor.propertyType==ptype_proxy) {
     // structured property with subproperties, get container
-    PropertyContainer *containerP = getContainer(aPropertyDescriptor, aIndex);
+    PropertyContainer *containerP = getContainer(aPropertyDescriptor, aDomain, aIndex);
     if (!containerP)
       err = ErrorPtr(new JsonRpcError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a object/proxy to return no container
     else {
       // access all fields of structured object (named "*"), or singe default field of proxied property (named "^")
-      err = containerP->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^");
+      err = containerP->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^", aDomain, PROP_ARRAY_SIZE, 0);
     }
   }
   else {
@@ -166,7 +167,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, JsonObject
 #pragma mark - default implementation of direct struct field access by basepointer+offset
 
 
-bool PropertyContainer::accessField(bool aForWrite, JsonObjectPtr aPropValue, PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool PropertyContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   // get base pointer
   uint8_t *recordPtr = (uint8_t *)dataStructBasePtr(aIndex);

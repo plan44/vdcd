@@ -240,6 +240,24 @@ void DaliDevice::deriveDSID()
 }
 
 
+string DaliDevice::hardwareGUID()
+{
+  // GTIN is 24bit company prefix + 20bit item reference, SGTIN adds a 48bit serial number as third element: urn:epc:id:sgtin:COMPANYPREFIX.ITEMREF.SERIALNO
+  if (deviceInfo.gtin==0)
+    return ""; // none
+  return string_format("urn:epc:id:sgtin:%ld.%ld.%lld", (deviceInfo.gtin>>20)&0xFFFFFF, deviceInfo.gtin&0xFFFFF, deviceInfo.serialNo);
+}
+
+
+string DaliDevice::oemGUID()
+{
+  if (deviceInfo.oem_gtin==0)
+    return ""; // none
+  // GTIN is 24bit company prefix + 20bit item reference, SGTIN adds a 48bit serial number as third element: urn:epc:id:sgtin:COMPANYPREFIX.ITEMREF.SERIALNO
+  return string_format("urn:epc:id:sgtin:%ld.%ld.%lld", (deviceInfo.oem_gtin>>20)&0xFFFFFF, deviceInfo.oem_gtin&0xFFFFF, deviceInfo.oem_serialNo);
+}
+
+
 string DaliDevice::description()
 {
   string s = inherited::description();

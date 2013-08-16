@@ -232,6 +232,13 @@ JsonObjectPtr JsonObject::newObj()
 }
 
 
+JsonObjectPtr JsonObject::newNull()
+{
+  // create wrapper with no embedded object (as a plain C NULL pointer represents NULL in JSON-C)
+  return JsonObjectPtr(new JsonObject(NULL));
+}
+
+
 JsonObjectPtr JsonObject::objFromText(const char *aJsonText, ssize_t aMaxChars)
 {
   JsonObjectPtr obj;
@@ -301,16 +308,19 @@ double JsonObject::doubleValue()
 
 JsonObjectPtr JsonObject::newString(const char *aCStr)
 {
+  if (!aCStr) return JsonObjectPtr();
   return newObj(json_object_new_string(aCStr));
 }
 
 JsonObjectPtr JsonObject::newString(const char *aCStr, size_t aLen)
 {
+  if (!aCStr) return JsonObjectPtr();
   return newObj(json_object_new_string_len(aCStr, (int)aLen));
 }
 
-JsonObjectPtr JsonObject::newString(const string &aString)
+JsonObjectPtr JsonObject::newString(const string &aString, bool aEmptyIsNull)
 {
+  if (aEmptyIsNull & aString.empty()) return JsonObjectPtr();
   return JsonObject::newString(aString.c_str());
 }
 

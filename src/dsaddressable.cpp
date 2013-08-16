@@ -60,15 +60,17 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
   ErrorPtr respErr;
   string name;
   int arrayIndex = 0;
-  int rangeSize = 0; // no range
+  int rangeSize = PROP_ARRAY_SIZE; // entire array by default if no "index" or "offset"/"count" is given
   JsonObjectPtr o;
   if (aMethod=="getProperty") {
     // name must be present
     if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
       // get optional index
       o = aParams->get("index");
-      if (o)
+      if (o) {
         arrayIndex = o->int32Value();
+        rangeSize = 0; // single element
+      }
       else {
         o = aParams->get("offset");
         if (o) {
@@ -78,13 +80,11 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
           o = aParams->get("count");
           if (o)
             rangeSize = o->int32Value();
-          else
-            rangeSize = PROP_ARRAY_SIZE; // entire array
         }
       }
       // now read
       JsonObjectPtr result;
-      respErr = accessProperty(false, result, name, arrayIndex, rangeSize);
+      respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result
         sendResult(aJsonRpcId, result);
@@ -102,7 +102,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         if (o)
           arrayIndex = o->int32Value();
         // now write
-        respErr = accessProperty(true, value, name, arrayIndex);
+        respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
           sendResult(aJsonRpcId, NULL);
@@ -175,6 +175,72 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // base class just assumes being present
   aPresenceResultHandler(true);
+}
+
+
+#pragma mark - property access
+
+enum {
+  dSID_key,
+  model_key,
+  dsProfileVersion_key,
+  hardwareVersion_key,
+  hardwareGUID_key,
+  oemGUID_key,
+  name_key,
+  numDsAddressableProperties
+};
+
+
+static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperties] = {
+  { "dSID", ptype_charptr, false, dSID_key },
+  { "model", ptype_charptr, false, model_key },
+  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key },
+  { "hardwareVersion", ptype_charptr, false, hardwareVersion_key },
+  { "hardwareGUID", ptype_charptr, false, hardwareGUID_key },
+  { "oemGUID", ptype_charptr, false, oemGUID_key },
+  { "name", ptype_charptr, false, name_key }
+};
+
+int DsAddressable::numProps(int aDomain)
+{
+  return inherited::numProps(aDomain)+numDsAddressableProperties;
+}
+
+
+const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
+{
+  int n = inherited::numProps(aDomain);
+  if (aPropIndex<n)
+    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  if (aPropIndex>=numDsAddressableProperties)
+    return NULL;
+  return &dsAddressableProperties[aPropIndex];
+}
+
+
+bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aForWrite) {
+    switch (aPropertyDescriptor.accessKey) {
+      case name_key: name = aPropValue->stringValue(); break;
+      default: return false; // no access
+    }
+  }
+  else {
+    switch (aPropertyDescriptor.accessKey) {
+      case dSID_key: aPropValue = JsonObject::newString(dsid.getString()); break;
+      case model_key: aPropValue = JsonObject::newString(modelName()); break;
+      case dsProfileVersion_key: aPropValue = JsonObject::newInt32(dsProfileVersion()); break;
+      case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); break;
+      case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); break;
+      case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); break;
+      case name_key: aPropValue = JsonObject::newString(name); break;
+      default: return false; // no access
+    }
+  }
+  return true;
 }
 
 

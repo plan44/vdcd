@@ -230,6 +230,18 @@ namespace p44 {
     /// @}
 
 
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "vdSD - virtual device"; }
+
+    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "vdSD"; }
+    
+    /// @}
+
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();

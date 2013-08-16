@@ -83,6 +83,20 @@ namespace p44 {
     
     /// @}
 
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "plan44 DALI device"; }
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID();
+
+    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    virtual string oemGUID();
+    
+    /// @}
+
 
   protected:
 

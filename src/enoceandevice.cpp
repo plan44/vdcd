@@ -104,6 +104,15 @@ void EnoceanDevice::deriveDSID()
 }
 
 
+string EnoceanDevice::hardwareGUID()
+{
+  // GTIN is 24bit company prefix + 20bit item reference, SGTIN adds a 48bit serial number as third element: urn:epc:id:sgtin:COMPANYPREFIX.ITEMREF.SERIALNO
+  // TODO: create a GTIN if there is an official scheme for it
+  return string_format("enoceanaddress:%ld", getAddress());
+}
+
+
+
 
 string EnoceanDevice::description()
 {

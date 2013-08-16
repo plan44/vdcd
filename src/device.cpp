@@ -168,7 +168,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 
 #pragma mark - property access
 
-#error "TODO: Add basic properties here"
+#warning "TODO: Add basic properties here"
 
 
 
@@ -405,7 +405,7 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
 void Device::hasVanished(bool aForgetParams)
 {
   // have device send a vanish message
-  sendRequest("Vanish", JsonObjectPtr());
+  sendRequest("vanish", JsonObjectPtr());
   // then disconnect it in software
   // Note that disconnect() might delete the Device object (so 'this' gets invalid)
   disconnect(aForgetParams, NULL);
