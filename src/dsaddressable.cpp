@@ -96,7 +96,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
     if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
       // value must be present
       JsonObjectPtr value;
-      if (Error::isOK(respErr = checkParam(aParams, "name", value))) {
+      if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
         // get optional index
         o = aParams->get("index");
         if (o)

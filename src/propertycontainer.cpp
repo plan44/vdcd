@@ -80,7 +80,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
     }
     else {
       // access the property
-      err = accessPropertyByDescriptor(false, aJsonObject, *propDescP, aDomain, aIndex, aElementCount);
+      err = accessPropertyByDescriptor(aForWrite, aJsonObject, *propDescP, aDomain, aIndex, aElementCount);
     }
   }
   return err;
