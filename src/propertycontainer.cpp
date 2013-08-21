@@ -44,7 +44,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
       // - iterate over my own descriptors
       for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
         const PropertyDescriptor *propDescP = getPropertyDescriptor(propIndex, aDomain);
-        if (!propDescP) break; // safety only
+        if (!propDescP) break; // safety only, propIndex should never be invalid
         JsonObjectPtr propField;
         err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
         if (Error::isOK(err)) {
@@ -61,7 +61,8 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, JsonObjectPtr &aJsonO
     const PropertyDescriptor *propDescP = NULL;
     if (aName=="^") {
       // access first property (default property, internally used for ptype_proxy)
-      propDescP = getPropertyDescriptor(0, aDomain);
+      if (numProps(aDomain)>0)
+        propDescP = getPropertyDescriptor(0, aDomain);
     }
     else {
       // search for descriptor by name
@@ -99,15 +100,25 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjec
       accessField(aForWrite, aJsonObject, aPropertyDescriptor, PROP_ARRAY_SIZE);
     }
     else {
+      // get size of array
+      JsonObjectPtr o;
+      accessField(false, o, aPropertyDescriptor, PROP_ARRAY_SIZE); // query size
+      int arrSz = o->int32Value();
       // single element or range?
       if (aElementCount!=0) {
         // Range of elements: only allowed for reading
         if (aForWrite)
           err = ErrorPtr(new JsonRpcError(403,"Arrays can only be written one element at a time"));
         else {
-          // collect range of elements into JSON array
+          // return array
           aJsonObject = JsonObject::newArray();
-          for (int n = 0; n<aElementCount || aElementCount==PROP_ARRAY_SIZE; n++) {
+          // limit range to actual array size
+          if (aIndex>arrSz)
+            aElementCount = 0; // invalid start index, return empty array
+          else if (aElementCount==PROP_ARRAY_SIZE || aIndex+aElementCount>arrSz)
+            aElementCount = arrSz-aIndex; // limit to number of elements from current index to end of array
+          // collect range of elements into JSON array
+          for (int n = 0; n<aElementCount; n++) {
             JsonObjectPtr elementObj;
             // - collect single element
             err = accessPropertyByDescriptor(false, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
@@ -127,7 +138,11 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, JsonObjec
       }
       else {
         // Single element of the array
-        err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, aDomain, aIndex);
+        // - check index
+        if (aIndex>=arrSz)
+          err = ErrorPtr(new JsonRpcError(204,"Invalid array index"));
+        else
+          err = accessElementByDescriptor(aForWrite, aJsonObject, aPropertyDescriptor, aDomain, aIndex);
       }
     }
   }
@@ -145,12 +160,13 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, JsonObject
   ErrorPtr err;
   if (aPropertyDescriptor.propertyType==ptype_object || aPropertyDescriptor.propertyType==ptype_proxy) {
     // structured property with subproperties, get container
-    PropertyContainer *containerP = getContainer(aPropertyDescriptor, aDomain, aIndex);
+    int containerDomain = aDomain;
+    PropertyContainer *containerP = getContainer(aPropertyDescriptor, containerDomain, aIndex);
     if (!containerP)
       err = ErrorPtr(new JsonRpcError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a object/proxy to return no container
     else {
       // access all fields of structured object (named "*"), or singe default field of proxied property (named "^")
-      err = containerP->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^", aDomain, PROP_ARRAY_SIZE, 0);
+      err = containerP->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0);
     }
   }
   else {

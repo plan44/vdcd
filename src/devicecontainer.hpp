@@ -11,8 +11,9 @@
 
 #include "vdcd_common.hpp"
 
-#include "persistentparams.hpp"
+#include "dsdefs.h"
 
+#include "persistentparams.hpp"
 #include "dsaddressable.hpp"
 
 using namespace std;
@@ -21,7 +22,9 @@ namespace p44 {
 
   class DeviceClassContainer;
   class Device;
+  class ButtonBehaviour;
   class dSID;
+
   typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef boost::shared_ptr<Device> DevicePtr;
 
@@ -144,7 +147,7 @@ namespace p44 {
     /// @}
 
     /// have button clicks checked for local handling
-    void checkForLocalClickHandling(Device &aDevice, int aClickType, int aKeyID);
+    void checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -224,13 +227,13 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex = 0);
+    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   private:
 
     // local operation mode
-    void handleClickLocally(int aClickType, int aKeyID);
+    void handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);
     void localDimHandler();
 
     // vDC API connection and session handling

@@ -32,9 +32,6 @@ namespace p44 {
   public:
     ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
-		/// single or no input
-		virtual int getNumButtons() { return hasButton ? 1 : 0; }
-
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

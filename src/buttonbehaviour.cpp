@@ -13,34 +13,42 @@ using namespace p44;
 
 #pragma mark - ButtonSettings
 
-ButtonSettings::ButtonSettings(ParamStore &aParamStore) :
-  inherited(aParamStore),
+ButtonSettings::ButtonSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
+  inherited(aParamStore, aBehaviour),
   buttonGroup(group_yellow_light), // default to light
-  buttonFunction(buttonfunc_room_preset0x), // default to regular room button
-  buttonMode(buttonmode_inactive) // none by default, hardware should set a default matching the actual HW capabilities
+  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  buttonFunc(buttonfunc_room_preset0x), // act as room button by default
+  setsLocalPriority(false),
+  callsPresent(false)
 {
-
 }
 
 
 // SQLIte3 table name to store these parameters to
 const char *ButtonSettings::tableName()
 {
-  return "dsButton";
+  return "dsButtonSettings";
 }
+
 
 /// data field definitions
 const FieldDefinition *ButtonSettings::getFieldDefs()
 {
   static const FieldDefinition dataDefs[] = {
     { "buttonMode", SQLITE_INTEGER },
+    { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
-    { "buttonFunction", SQLITE_INTEGER },
+    { "buttonFlags", SQLITE_INTEGER },
     { NULL, 0 },
   };
   return dataDefs;
 }
 
+
+enum {
+  buttonflag_setsLocalPriority = 0x0001,
+  buttonflag_callsPresent = 0x0002
+};
 
 /// load values from passed row
 void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
@@ -48,8 +56,12 @@ void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
+  buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
-  buttonFunction = (DsButtonFunc)aRow->get<int>(aIndex++);
+  int flags = aRow->get<bool>(aIndex++);
+  // decode the flags
+  setsLocalPriority = flags & buttonflag_setsLocalPriority;
+  callsPresent = flags & buttonflag_callsPresent;
 }
 
 
@@ -57,18 +69,16 @@ void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void ButtonSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // encode the flags
+  int flags = 0;
+  if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
+  if (callsPresent) flags |= buttonflag_callsPresent;
   // bind the fields
   aStatement.bind(aIndex++, buttonMode);
+  aStatement.bind(aIndex++, buttonFunc);
   aStatement.bind(aIndex++, buttonGroup);
-  aStatement.bind(aIndex++, buttonFunction);
+  aStatement.bind(aIndex++, flags);
 }
-
-
-bool ButtonSettings::isTwoWay()
-{
-  return buttonMode>=buttonmode_rockerDown1 && buttonMode<=buttonmode_rockerUpDown;
-}
-
 
 
 
@@ -97,96 +107,44 @@ static const char *ClickTypeNames[] {
 
 
 
-ButtonBehaviour::ButtonBehaviour(Device *aDeviceP) :
-  inherited(aDeviceP),
-  buttonSettings(aDeviceP->getDeviceContainer().getDsParamStore()),
-  hardwareButtonType(hwbuttontype_none), // undefined, actual device should set it
-  hasLocalButton(false)
+ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
+  inherited(aDevice, aIndex),
+  buttonSettings(aDevice.getDeviceContainer().getDsParamStore(), *this)
 {
-  buttonSettings.buttonGroup = deviceColorGroup; // default to overall color
+  // set default hrdware configuration
+  setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+  // reset the button state machine
   resetStateMachine();
 }
 
 
-
-void ButtonBehaviour::setDeviceColor(DsGroup aColorGroup)
+void ButtonBehaviour::setHardwareButtonType(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode)
 {
-  // have base class set color
-  inherited::setDeviceColor(aColorGroup);
-  // adjust default
-  if (deviceColorGroup==group_black_joker)
-    buttonSettings.buttonFunction = buttonfunc_app; // black devices have an App button by default
-  else
-    buttonSettings.buttonFunction = buttonfunc_room_preset0x; // all others are room button
-}
-
-
-
-void ButtonBehaviour::setHardwareButtonType(DsHardwareButtonType aButtonType, bool aFirstButtonLocal)
-{
-  hardwareButtonType = aButtonType;
-  hasLocalButton = aFirstButtonLocal;
-  // now set default button mode
-  if (hardwareButtonType==hwbuttontype_2way || hardwareButtonType==hwbuttontype_2x2way) {
-    // this is a 2-way hardware button (with single dsid)
-    buttonSettings.buttonMode = buttonmode_rockerUpDown;
+  buttonID = aButtonID;
+  buttonType = aType;
+  buttonElementID = aElement;
+  supportsLocalKeyMode = aSupportsLocalKeyMode;
+  // now derive default settings from hardware
+  // - default to standard mode
+  buttonSettings.buttonMode = buttonmode_standard;
+  // - modify for 2-way
+  if (buttonType==buttonType_2way) {
+    // part of a 2-way button
+    if (buttonElementID==buttonElement_up) {
+      buttonSettings.buttonMode = (DsButtonMode)((int)buttonmode_rockerDown1+aButtonID);
+    }
+    else if (buttonElementID==buttonElement_down) {
+      buttonSettings.buttonMode = (DsButtonMode)((int)buttonmode_rockerUp1+aButtonID);
+    }
   }
-  else if (hardwareButtonType==hwbuttontype_1way || hardwareButtonType==hwbuttontype_2x1way || hardwareButtonType==hwbuttontype_4x1way) {
-    // this is a 1-way hardware button
-    buttonSettings.buttonMode = buttonmode_standard;
-  }
-  else {
-    // no known button type, inactive until set via LTMODE param
-    buttonSettings.buttonMode = buttonmode_inactive;
-  }
-  buttonSettings.markDirty();
 }
 
 
 
-
-DsButtonMode ButtonBehaviour::getButtonMode()
-{
-  return buttonSettings.buttonMode;
-}
-
-
-void ButtonBehaviour::setButtonMode(DsButtonMode aButtonMode)
-{
-  // set mode
-  buttonSettings.buttonMode = aButtonMode;
-  buttonSettings.markDirty();
-}
-
-
-uint8_t ButtonBehaviour::getLTNUMGRP0()
-{
-  return (buttonSettings.buttonGroup<<4)+(buttonSettings.buttonFunction & 0xF);
-}
-
-
-void ButtonBehaviour::setLTNUMGRP0(uint8_t aLTNUMGRP0)
-{
-  buttonSettings.buttonGroup = (DsGroup)((aLTNUMGRP0>>4) & 0xF); // upper 4 bits
-  buttonSettings.buttonFunction = (DsButtonFunc)(aLTNUMGRP0 & 0xF); // lower 4 bits
-  buttonSettings.markDirty();
-}
-
-
-
-
-
-
-void ButtonBehaviour::buttonAction(bool aPressed, bool aSecondKey)
+void ButtonBehaviour::buttonAction(bool aPressed)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
-  if (state!=S0_idle && secondKey!=aSecondKey) {
-    // pressing the other key within a state machine run
-    // aborts the current operation and begins a new run
-    resetStateMachine();
-  }
-  secondKey = aSecondKey;
   checkStateMachine(true, MainLoop::now());
 }
 
@@ -251,7 +209,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
         state = S4_nextTipWait;
       }
       else if (aButtonChange && !buttonPressed && clickCounter>0) {
-        sendClick((ClickType)(ct_tip_1x+clickCounter-1));
+        sendClick((DsClickType)(ct_tip_1x+clickCounter-1));
         timerRef = aNow;
         state = S4_nextTipWait;
       }
@@ -402,21 +360,33 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 }
 
 
+DsButtonElement ButtonBehaviour::localFunctionElement()
+{
+  if (buttonType!=buttonType_undefined) {
+    // hardware defines the button
+    return buttonElementID;
+  }
+  // default to center
+  return buttonElement_center;
+}
+
+
+
 
 void ButtonBehaviour::localSwitchOutput()
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Local switch\n");
-  if (buttonSettings.isTwoWay()) {
-    // on or off depending on which side of the two-way switch was clicked
-    outputOn = secondKey;
-  }
-  else {
-    // one-way: toggle output
-    outputOn = !outputOn;
-  }
-  // TODO: actually switch output
-  // send status
-  sendClick(outputOn ? ct_local_on : ct_local_off);
+//  if (buttonSettings.isTwoWay()) {
+//    // on or off depending on which side of the two-way switch was clicked
+//    outputOn = secondKey;
+//  }
+//  else {
+//    // one-way: toggle output
+//    outputOn = !outputOn;
+//  }
+//  // TODO: actually switch output
+//  // send status
+//  sendClick(outputOn ? ct_local_on : ct_local_off);
   // pass on local toggle to device container
   #warning // TODO: tbd
 }
@@ -429,236 +399,192 @@ void ButtonBehaviour::localDim()
 }
 
 
-void ButtonBehaviour::setLocalButtonEnabled(bool aEnabled)
+
+void ButtonBehaviour::sendClick(DsClickType aClickType)
 {
-  localButtonEnabled = aEnabled;
-}
-
-
-
-
-
-void ButtonBehaviour::sendClick(ClickType aClickType)
-{
-  KeyId keyId = key_1way;
-  if (buttonSettings.isTwoWay()) {
-    keyId = secondKey ? key_2way_B : key_2way_A;
-  }
+  // update button state
+  clickType = aClickType;
   #ifdef DEBUG
-  LOG(LOG_NOTICE,"ButtonBehaviour: Sending KeyId %d, Click Type %d = %s\n", keyId, aClickType, ClickTypeNames[aClickType]);
+  LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %s, clickType %d/%s\n", buttonPressed ? "pressed" : "released", aClickType, ClickTypeNames[aClickType]);
   #else
-  LOG(LOG_NOTICE,"ButtonBehaviour: Sending KeyId %d, Click Type %d\n", keyId, aClickType);
+  LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
   #endif
-  JsonObjectPtr params = JsonObject::newObj();
-  params->add("key", JsonObject::newInt32(keyId));
-  params->add("click", JsonObject::newInt32(aClickType));
-  #warning "%%% TODO: replace by property push"
-
+  // issue a state porperty push
+  device.pushProperty("buttonInputStates", VDC_API_DOMAIN, (int)index);
+  // also let device container know for local click handling
   #warning "%%% TODO: more elegant solution for this"
-  deviceP->getDeviceContainer().checkForLocalClickHandling(*deviceP, aClickType, keyId);
+  device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
 //  sendMessage("DeviceButtonClick", params);
 }
 
 
 
+#pragma mark - persistent settings management
 
 
-#pragma mark - functional identification for digitalSTROM system
-
-// Standard group
-//  0 variable (all)
-//  1 Light (yellow)
-//  2 Blinds (grey)
-//  3 Climate (blue)
-//  4 Audio (cyan)
-//  5 Video (magenta)
-//  6 Security (red)
-//  7 Access (green)
-//  8 Joker (black)
-
-// Function ID:
-//
-//  1111 11
-//  5432 1098 76 543210
-//  gggg.cccc cc.xxxxxx
-//
-//  - gggg   : device group (color, class), 0..15
-//  - cccccc : device subclass
-//             - 000100 : dS-Standard R105 (current dS standard)
-//  - xxxxxx : class specific config
-//
-//  Light:
-//  - Xxxxxx : Bit 5 : if set, ramp time is variable and can be set in RAMPTIMEMAX
-//  - xXxxxx : Bit 4 : if set, device has a power output
-//  - xxXxxx : Bit 3 : if set, device has extra hardware features like extra binary inputs, sensors etc.
-//  - xxxXxx : Bit 2 : reserved
-//  - xxxxXX : Bit 0..1 : 0 = no button, 1 = one button, 2 = two buttons, 3 = four buttons
-
-//  Name,          FunctionId  ProductId,  ltMode, outputMode,   buttonIdGroup
-//  "GE-KM200",    0x1111,     200,        0,      16,           0x10
-//  "GE-TKM210",   0x1111,     1234,       0,      16,           0x15
-//  "GE-TKM220",   0x1101,     1244,       0,      0,            0x15
-//  "GE-TKM230",   0x1102,     1254,       0,      0,            0x15
-//  "GE-KL200",    0x1111,     3272,       0,      35,           0x10
-//  "GE-KL210",    0x1111,     5320,       0,      35,           0x10
-//  "GE-SDM200",   0x1111,     2248,       0,      16,           0x10
-//  "GE-SDS200",   0x1119,     6344,       0,      16,           0x10
-//  "GR-KL200",    0x2131,     3272,       0,      33,           0x20
-//  "GR-KL210",    0x2131,     3282,       0,      33,           0x20
-//  "GR-KL220",    0x2131,     3292,       0,      42,           0x20
-//  "GR-TKM200",   0x2101,     1224,       0,      0,            0x25
-//  "GR-TKM210",   0x2101,     1234,       0,      0,            0x25
-//  "RT-TKM200",   0x6001,     1224,       0,      16,           0
-//  "RT-SDM200",   0x6001,     2248,       0,      16,           0
-//  "GN-TKM200",   0x7050,     1224,       0,      16,           0
-//  "GN-TKM210",   0x6001,     1234,       0,      16,           0
-//  "GN-KM200",    0x6001,     200,        0,      16,           70
-//  "SW-KL200",    0x8111,     5320,       0,      41,           0
-//  "SW-KL210",    0x8111,     3273,       0,      40,           0
-//  "SW-TKM210",   0x8102,     1234,       0,      0,            0
-//  "SW-TKM200",   0x8103,     1224,       0,      0,            0
-
-
-uint16_t ButtonBehaviour::functionId()
-{
-  int i = deviceP->getNumButtons();
-  return
-    (deviceColorGroup<<12) +
-    (0x04 << 6) + // DS Standard R105
-    (0 << 4) + // no variable ramp time (B5), no output (B4)
-    (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
-}
-
-
-
-uint16_t ButtonBehaviour::productId()
-{
-#warning // TODO: just faking a SW-TKM210
-  return 1234; // SW-TKM210
-}
-
-
-uint16_t ButtonBehaviour::version()
-{
-#warning // TODO: just faking a 3.5.2 version because our real SW-TKM210 has that version
-  return 0x0352;
-}
-
-
-uint8_t ButtonBehaviour::ltMode()
-{
-  return buttonSettings.buttonMode; // standard button is 0, see DsButtonMode
-}
-
-
-uint8_t ButtonBehaviour::outputMode()
-{
-  return outputmode_none;
-}
-
-
-
-uint8_t ButtonBehaviour::buttonIdGroup()
-{
-  // LTNUMGRP0
-  return getLTNUMGRP0();
-}
-
-
-#pragma mark - interaction with digitalSTROM system
-
-
-/* %%% old API
-
-// handle message from vdSM
-ErrorPtr ButtonBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
-{
-  ErrorPtr err;
-  if (aOperation=="callscene") {
-    // NOP for button
-  }
-  else {
-    err = inherited::handleMessage(aOperation, aParams);
-  }
-  return err;
-}
-
-*/
-
-
-// LTNUMGRP0
-//  Bits 4..7: Button group/color
-//  Bits 0..3: Button function/id/number
-
-
-// get behaviour-specific parameter
-ErrorPtr ButtonBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
-{
-  if (aParamName=="LTMODE")
-    aValue = getButtonMode();
-  else if (aParamName=="LTNUMGRP0")
-    aValue = getLTNUMGRP0();
-  else if (aParamName=="KEYSTATE")
-    aValue = buttonPressed ? (secondKey ? 0x02 : 0x01) : 0;
-  else
-    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-  // done
-  return ErrorPtr();
-}
-
-
-// set behaviour-specific parameter
-ErrorPtr ButtonBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
-{
-  if (aParamName=="LTMODE")
-    setButtonMode((DsButtonMode)aValue);
-  else if (aParamName=="LTNUMGRP0")
-    setLTNUMGRP0(aValue);
-  else
-    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-  // set a local param, mark dirty
-  buttonSettings.markDirty();
-  return ErrorPtr();
-}
-
-
-// this is usually called from the device container when device is added (detected)
 ErrorPtr ButtonBehaviour::load()
 {
-  // load light settings (and scenes along with it)
-  return buttonSettings.loadFromStore(deviceP->dsid.getString().c_str());
+  // load button settings
+  return buttonSettings.load();
 }
 
 
-// this is usually called from the device container in regular intervals
 ErrorPtr ButtonBehaviour::save()
 {
-  // save light settings (and scenes along with it)
-  return buttonSettings.saveToStore(deviceP->dsid.getString().c_str());
+  // save button settings
+  return buttonSettings.save();
 }
 
 
 ErrorPtr ButtonBehaviour::forget()
 {
-  // delete light settings (and scenes along with it)
+  // delete button settings
   return buttonSettings.deleteFromStore();
+}
+
+
+
+#pragma mark - property access
+
+static char button_key;
+
+// description properties
+
+enum {
+  supportsLocalKeyMode_key,
+  buttonID_key,
+  buttonType_key,
+  buttonElementID_key,
+  numDescProperties
+};
+
+static const PropertyDescriptor descriptionProperties[numDescProperties] = {
+  { "supportsLocalKeyMode", ptype_int32, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
+  { "buttonID", ptype_int32, false, buttonID_key+descriptions_key_offset, &button_key },
+  { "buttonType", ptype_int32, false, buttonType_key+descriptions_key_offset, &button_key },
+  { "buttonElementID", ptype_int32, false, buttonElementID_key+descriptions_key_offset, &button_key },
+};
+
+int ButtonBehaviour::numDescProps() { return numDescProperties; }
+const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex) { return &descriptionProperties[aPropIndex]; }
+
+
+// settings properties
+
+enum {
+  group_key,
+  mode_key,
+  setsLocalPriority_key,
+  callsPresent_key,
+  numSettingsProperties
+};
+
+static const PropertyDescriptor settingsProperties[numSettingsProperties] = {
+  { "group", ptype_int32, false, group_key+settings_key_offset, &button_key },
+  { "mode", ptype_int32, false, mode_key+settings_key_offset, &button_key },
+  { "setsLocalPriority", ptype_int32, false, setsLocalPriority_key+settings_key_offset, &button_key },
+  { "callsPresent", ptype_int32, false, callsPresent_key+settings_key_offset, &button_key },
+};
+
+int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
+const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex) { return &settingsProperties[aPropIndex]; }
+
+// state properties
+
+enum {
+  value_key,
+  clickType_key,
+  numStateProperties
+};
+
+static const PropertyDescriptor stateProperties[numStateProperties] = {
+  { "value", ptype_int32, false, value_key+states_key_offset, &button_key },
+  { "clickType", ptype_int32, false, clickType_key+states_key_offset, &button_key },
+};
+
+int ButtonBehaviour::numStateProps() { return numStateProperties; }
+const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex) { return &stateProperties[aPropIndex]; }
+
+
+// access to all fields
+
+bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aPropertyDescriptor.objectKey==&button_key) {
+    if (!aForWrite) {
+      // read properties
+      switch (aPropertyDescriptor.accessKey) {
+        // Description properties
+        case supportsLocalKeyMode_key+descriptions_key_offset:
+          aPropValue = JsonObject::newBool(supportsLocalKeyMode);
+          return true;
+        case buttonID_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(buttonID);
+          return true;
+        case buttonType_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(buttonType);
+          return true;
+        case buttonElementID_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(buttonElementID);
+          return true;
+        // Settings properties
+        case group_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(buttonSettings.buttonGroup);
+          return true;
+        case mode_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(buttonSettings.buttonMode);
+          return true;
+        case setsLocalPriority_key+settings_key_offset:
+          aPropValue = JsonObject::newBool(buttonSettings.setsLocalPriority);
+          return true;
+        case callsPresent_key+settings_key_offset:
+          aPropValue = JsonObject::newBool(buttonSettings.callsPresent);
+          return true;
+        // States properties
+        case value_key+states_key_offset:
+          aPropValue = JsonObject::newInt32(buttonPressed ? 1 : 0);
+          return true;
+        case clickType_key+states_key_offset:
+          aPropValue = JsonObject::newInt32(clickType);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor.accessKey) {
+        // Settings properties
+        case group_key+settings_key_offset:
+          buttonSettings.buttonGroup = (DsGroup)aPropValue->int32Value();
+          buttonSettings.markDirty();
+          return true;
+        case mode_key+settings_key_offset:
+          buttonSettings.buttonMode = (DsButtonMode)aPropValue->int32Value();
+          buttonSettings.markDirty();
+          return true;
+        case setsLocalPriority_key+settings_key_offset:
+          buttonSettings.setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
+          buttonSettings.markDirty();
+          return true;
+        case callsPresent_key+settings_key_offset:
+          buttonSettings.callsPresent = (DsButtonMode)aPropValue->boolValue();
+          buttonSettings.markDirty();
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 
 #pragma mark - ButtonBehaviour description/shortDesc
 
 
-string ButtonBehaviour::shortDesc()
-{
-  return string("Button");
-}
-
-
 string ButtonBehaviour::description()
 {
-  string s = string_format("dS behaviour %s\n", shortDesc().c_str());
-  string_format_append(s, "- hardware button type: %d, %s local button\n", hardwareButtonType, hasLocalButton ? "has" : "no");
-  string_format_append(s, "- group: %d, function/number: %d, buttonmode/LTMODE: %d\n", buttonSettings.buttonGroup, buttonSettings.buttonFunction, buttonSettings.buttonMode);
+  string s = string_format("%s behaviour\n", shortDesc().c_str());
+  string_format_append(s, "- buttonID: %d, buttonType: %d, buttonElementID: %d\n", buttonID, buttonType, buttonElementID);
+  string_format_append(s, "- group: %d, fbuttonmode/LTMODE: %d\n", buttonSettings.buttonGroup, buttonSettings.buttonMode);
   s.append(inherited::description());
   return s;
 }

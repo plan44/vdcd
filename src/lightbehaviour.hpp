@@ -63,13 +63,14 @@ namespace p44 {
 
 
   /// the persistent parameters of a device with light behaviour
-  class LightSettings : public PersistentParams
+  class LightSettings : public DsBehaviourSettings
   {
-    typedef PersistentParams inherited;
+    typedef DsBehaviourSettings inherited;
+
     friend class LightScene;
     LightSceneMap scenes; ///< the user defined light scenes (default scenes will be created on the fly)
   public:
-    LightSettings(ParamStore &aParamStore);
+    LightSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour);
     bool isDimmable; ///< if set, ballast can be dimmed. If not set, ballast must not be dimmed, even if we have dimmer hardware
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
@@ -112,9 +113,9 @@ namespace p44 {
   };
 
 
-  class LightBehaviour : public DSBehaviour
+  class LightBehaviour : public OutputBehaviour
   {
-    typedef DSBehaviour inherited;
+    typedef OutputBehaviour inherited;
 
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
@@ -127,7 +128,7 @@ namespace p44 {
     int blinkCounter; ///< for generation of blink sequence
 
   public:
-    LightBehaviour(Device *aDeviceP);
+    LightBehaviour(Device &aDevice, size_t aIndex);
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{
@@ -176,18 +177,6 @@ namespace p44 {
     /// TODO: integrate more nicely
     void callScene(SceneNo aSceneNo);
 
-    /// get behaviour-specific parameter
-    /// @param aParamName name of the parameter
-    /// @param aArrayIndex index of the parameter if the parameter is an array
-    /// @param aValue will receive the current value
-    virtual ErrorPtr getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
-
-    /// set behaviour-specific parameter
-    /// @param aParamName name of the parameter
-    /// @param aArrayIndex index of the parameter if the parameter is an array
-    /// @param aValue the new value to set
-    virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
-
     /// load behaviour parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
     virtual ErrorPtr load();
@@ -213,6 +202,8 @@ namespace p44 {
 
     void nextBlink();
   };
+
+  typedef boost::shared_ptr<LightBehaviour> LightBehaviourPtr;
 
 }
 

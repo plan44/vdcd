@@ -54,8 +54,12 @@ vdcd_SOURCES = \
   src/sqlite3pp/sqlite3pp.h \
   src/sqlite3pp/sqlite3ppext.cpp \
   src/sqlite3pp/sqlite3ppext.h \
+  src/dsbehaviour.cpp \
+  src/dsbehaviour.hpp \
   src/buttonbehaviour.cpp \
   src/buttonbehaviour.hpp \
+  src/lightbehaviour.cpp \
+  src/lightbehaviour.hpp \
   src/consoledevice.cpp \
   src/consoledevice.hpp \
   src/dalicomm.cpp \
@@ -88,8 +92,6 @@ vdcd_SOURCES = \
   src/enoceandevicecontainer.hpp \
   src/gpiodevice.cpp \
   src/gpiodevice.hpp \
-  src/lightbehaviour.cpp \
-  src/lightbehaviour.hpp \
   src/staticdevicecontainer.cpp \
   src/staticdevicecontainer.hpp \
   src/vdcd_common.hpp \

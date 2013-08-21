@@ -38,20 +38,26 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   }
   if (hasOutput) {
     // Simulate light device
-    LightBehaviour *l = new LightBehaviour(this);
+    // - defaults to yellow (light)
+    primaryGroup = group_yellow_light;
+    // - create one output
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
     l->setHardwareDimmer(true); // Simulation
-    setDSBehaviour(l);
+    l->setHardwareName("console output");
+    outputs.push_back(l);
   }
   else if (hasButton) {
-    // console key input as button
+    // Simulate Button device
+    // - defaults to black (generic button)
+    primaryGroup = group_black_joker;
+    // - console key input as button
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
-    // set the behaviour
-    ButtonBehaviour *b = new ButtonBehaviour(this);
-    b->setHardwareButtonType(hwbuttontype_1way, false);
-    #warning default to SW-TKM for now
-    b->setDeviceColor(group_black_joker);
-    setDSBehaviour(b);
+    // - create one button input
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    b->setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+    b->setHardwareName(string_format("console key '%c'",name[0]));
+    buttons.push_back(b);
   }
 	deriveDSID();
 }
@@ -59,9 +65,9 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
 
 void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 {
-	ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
+	ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[0]);
 	if (b) {
-		b->buttonAction(aState, false);
+		b->buttonAction(aState);
 	}
 }
 

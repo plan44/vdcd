@@ -389,7 +389,9 @@ void DeviceContainer::localDimHandler()
 {
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
-    LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+    #warning "TODO: Need new way to get light output behaviours"
+    LightBehaviour *lightBehaviour = NULL;
+    //LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
     if (lightBehaviour) {
       lightBehaviour->callScene(localDimDown ? DEC_S : INC_S);
     }
@@ -399,34 +401,37 @@ void DeviceContainer::localDimHandler()
 
 
 
-void DeviceContainer::checkForLocalClickHandling(Device &aDevice, int aClickType, int aKeyID)
+void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
   if (!sessionActive) {
     // not connected to a vdSM, handle clicks locally
-    handleClickLocally(aClickType, aKeyID);
+    handleClickLocally(aButtonBehaviour, aClickType);
   }
 }
 
 
-void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
+void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
-  int direction = aKeyID==ButtonBehaviour::key_2way_A ? 1 : (aKeyID==ButtonBehaviour::key_2way_B ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
   switch (aClickType) {
-    case ButtonBehaviour::ct_tip_1x:
+    case ct_tip_1x:
+    case ct_click_1x:
       scene = T0_S1;
       break;
-    case ButtonBehaviour::ct_tip_2x:
+    case ct_tip_2x:
+    case ct_click_2x:
       scene = T0_S2;
       break;
-    case ButtonBehaviour::ct_tip_3x:
+    case ct_tip_3x:
+    case ct_click_3x:
       scene = T0_S3;
       break;
-    case ButtonBehaviour::ct_tip_4x:
+    case ct_tip_4x:
       scene = T0_S4;
       break;
-    case ButtonBehaviour::ct_hold_start:
+    case ct_hold_start:
       scene = INC_S;
       localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
       if (direction!=0)
@@ -436,7 +441,7 @@ void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
         direction = localDimDown ? -1 : 1; // adjust direction as well
       }
       break;
-    case ButtonBehaviour::ct_hold_end:
+    case ct_hold_end:
       MainLoop::currentMainLoop()->cancelExecutionTicket(localDimTicket); // stop dimming
       scene = STOP_S; // stop any still ongoing dimming
       direction = 1; // really send STOP, not main off!
@@ -445,7 +450,9 @@ void DeviceContainer::handleClickLocally(int aClickType, int aKeyID)
   if (scene>=0) {
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
-      LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
+      #warning "TODO: Need new way to get light output behaviours"
+      LightBehaviour *lightBehaviour = NULL;
+      //LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
       if (lightBehaviour) {
         // this is a light
         if (direction==0) {
@@ -834,6 +841,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
+    LOG(LOG_INFO, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
     aDevice->announced = MainLoop::now();
     aDevice->announcing = Never; // not announcing any more
   }
@@ -888,13 +896,11 @@ const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex,
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  if (aPropIndex>=numDsAddressableProperties)
-    return NULL;
   return &dsAddressableProperties[aPropIndex];
 }
 
 
-PropertyContainer *DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
+PropertyContainer *DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
 {
   if (aPropertyDescriptor.accessKey==devices_key) {
     // return the device by index

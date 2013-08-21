@@ -35,24 +35,25 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
     else if (mode=="out")
       isOutput = true;
   }
+  // basically act as black device so we can configure colors
+  primaryGroup = group_black_joker;
   if (isOutput) {
     // GPIO output as on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(gpioname.c_str(), inverted, false));
-    // set the behaviour
-    LightBehaviour *l = new LightBehaviour(this);
+    // Simulate light device
+    // - create one output
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
     l->setHardwareDimmer(false); // GPIOs are digital on/off
-    setDSBehaviour(l);
+    outputs.push_back(l);
   }
   else {
     // GPIO input as button
     buttonInput = ButtonInputPtr(new ButtonInput(gpioname.c_str(), inverted));
     buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
-    // set the behaviour
-    ButtonBehaviour *b = new ButtonBehaviour(this);
-    b->setHardwareButtonType(hwbuttontype_1way, false);
-    #warning default to GE-TKM for now
-    b->setDeviceColor(group_yellow_light);
-    setDSBehaviour(b);
+    // - create one button input
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    b->setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+    buttons.push_back(b);
   }
 	deriveDSID();
 }
@@ -60,9 +61,9 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
 
 void GpioDevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 {
-	ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
+	ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[0]);
 	if (b) {
-		b->buttonAction(aNewState, false);
+		b->buttonAction(aNewState);
 	}
 }
 

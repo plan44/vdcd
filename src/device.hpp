@@ -9,99 +9,15 @@
 #ifndef __vdcd__device__
 #define __vdcd__device__
 
-#include "deviceclasscontainer.hpp"
-
-#include "dsid.hpp"
-#include "dsdefs.h"
+#include "dsbehaviour.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  typedef uint8_t Brightness;
-  typedef uint8_t SceneNo;
-
-
   class Device;
-  class DSBehaviour;
 
-
-  /// a DSBehaviour represents and implements a device behaviour according to dS specs
-  /// (for example: the dS Light state machine). The interface of a DSBehaviour is generic
-  /// such that it can be used by different physical implementations (e.g. both DALI devices
-  /// and hue devices will make use of the dS light state machine behaviour.
-  class DSBehaviour
-  {
-  protected:
-
-    Device *deviceP;
-    DsGroup deviceColorGroup; ///< basic color of the device, as represented in the function ID
-    DsGroupMask groupMembership; ///< mask for groups the device is member of ("GRP" property)
-
-  public:
-    DSBehaviour(Device *aDeviceP);
-    virtual ~DSBehaviour();
-
-    /// @name functional identification for digitalSTROM system
-    /// @{
-
-    virtual uint16_t functionId() = 0;
-    virtual uint16_t productId() = 0;
-    virtual uint8_t ltMode() = 0;
-    virtual uint8_t outputMode() = 0;
-    virtual uint8_t buttonIdGroup() = 0;
-
-    virtual uint16_t version() { return 0xFFFF; }
-
-    /// @}
-
-
-    /// @name interface towards actual device hardware (or simulation)
-    /// @{
-
-    /// set basic device color to represent in identification for digitalSTROM system
-    virtual void setDeviceColor(DsGroup aColorGroup);
-
-    /// @}
-
-
-    /// @name interaction with digitalSTROM system, to be implemented/used in concrete classes
-    /// @{
-
-    /// get behaviour-specific parameter
-    /// @param aParamName name of the parameter
-    /// @param aArrayIndex index of the parameter if the parameter is an array
-    /// @param aValue will receive the current value
-    virtual ErrorPtr getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
-
-    /// set behaviour-specific parameter
-    /// @param aParamName name of the parameter
-    /// @param aArrayIndex index of the parameter if the parameter is an array
-    /// @param aValue the new value to set
-    virtual ErrorPtr setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
-
-    /// load behaviour parameters from persistent DB
-    virtual ErrorPtr load() { return ErrorPtr(); /* NOP in base class */ };
-
-    /// save unsaved behaviour parameters to persistent DB
-    virtual ErrorPtr save() { return ErrorPtr(); /* NOP in base class */ };
-
-    /// forget any parameters stored in persistent DB
-    virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
-
-    /// @}
-
-
-    /// description of object, mainly for debug and logging
-    /// @return textual description of object, may contain LFs
-    virtual string description() { return ""; /* empty string, to allow chaining descriptions for behaviour hierarchies */ };
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc() = 0;
-
-  };
-
+  typedef vector<DsBehaviourPtr> BehaviourVector;
 
   typedef boost::shared_ptr<Device> DevicePtr;
   /// base class representing a virtual digitalSTROM device
@@ -116,16 +32,53 @@ namespace p44 {
     MLMicroSeconds announced; ///< set when last announced to the vdSM
     MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
 
-    DSBehaviour *behaviourP; ///< private owned instance of the behaviour, set right after creation
   protected:
+
+    /// the class container
     DeviceClassContainer *classContainerP;
+
+    /// @name behaviours
+    /// @{
+    BehaviourVector buttons; ///< buttons and switches (user interaction)
+    BehaviourVector binaryInputs; ///< binary inputs (not for user interaction)
+    BehaviourVector outputs; ///< outputs (on/off as well as continuous ones like dimmer, positionals etc.)
+    BehaviourVector sensors; ///< sensors (measurements)
+    /// @}
+
+    // scenes
+    #warning "%%% TODO: add them"
+
+    // r/w properties
+    bool progMode;
+
+    // variables set by concrete devices (=hardware dependent)
+    DsGroup primaryGroup; ///< basic color of the device (can be black)
+    DsGroupMask groupMembership; ///< mask for groups the device is member of ("GRP" property)
+
   public:
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
 
-    /// get pointer to the behaviour
-    /// @return the behaviour. If NULL, the device ist not yet set up and cannot be operated
-    DSBehaviour *getDSBehaviour() { return behaviourP; };
+
+    /// @name interface towards actual device hardware (or simulation)
+    /// @{
+
+    /// set basic device color
+    /// @param aColorGroup color group number
+    void setPrimaryGroup(DsGroup aColorGroup);
+
+    /// check group membership
+    /// @param aColorGroup color group number to check
+    /// @return true if device is member of this group
+    bool isMember(DsGroup aColorGroup);
+
+    /// set group membership
+    /// @param aColorGroup color group number to check
+    /// @param aIsMember true to make device member of this group
+    void setGroupMembership(DsGroup aColorGroup, bool aIsMember);
+
+    /// @}
+
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
@@ -133,19 +86,6 @@ namespace p44 {
     /// check if device is public dS device (which should be registered with vdSM)
     /// @return true if device is registerable with vdSM
     virtual bool isPublicDS();
-
-    /// set the device behaviour
-    /// @param aBehaviour the behaviour. Ownership is passed to the Device.
-    void setDSBehaviour(DSBehaviour *aBehaviour);
-
-    /// number of buttons
-    /// @return returns total number of buttons the associated physical device has.
-    /// @note for each button, a separate logical device may exist with increasing serialNo part in the dsid
-    virtual int getNumButtons() { return 0; }
-
-    /// button index of this device
-    /// @return index of button (0..getNumButtons()-1) of this sub-device within its physical device
-    virtual int getButtonIndex() { return 0; }
 
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
@@ -245,11 +185,15 @@ namespace p44 {
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
-    
+
   protected:
 
-    virtual ErrorPtr getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue);
-    virtual ErrorPtr setDeviceParam(const string &aParamName, int aArrayIndex, uint32_t aValue);
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
 
   private:
 

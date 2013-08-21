@@ -17,7 +17,12 @@ using namespace std;
 
 namespace p44 {
 
-  #define VDC_API_DOMAIN 0
+  #define VDC_API_DOMAIN 0x0000
+  #define VDC_CFG_DOMAIN 0x1000
+
+  #define VDC_API_BHVR_DESC (VDC_API_DOMAIN+1)
+  #define VDC_API_BHVR_SETTINGS (VDC_API_DOMAIN+2)
+  #define VDC_API_BHVR_STATES (VDC_API_DOMAIN+3)
 
 
   class DeviceContainer;
@@ -89,8 +94,16 @@ namespace p44 {
     /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
     /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
     ///   of the JSON-RPC 2.0 error object.
-    /// @result empty or Error object in case of error sending error response
+    /// @return true if error could be sent, false otherwise (e.g. no vdSM connection)
     bool sendError(const string &aJsonRpcId, ErrorPtr aErrorToSend);
+
+    /// push property value
+    /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
+    ///   "^" to return the default property value (internally used for ptype_proxy).
+    /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
+    /// @param aIndex in case of array, the array element to push. Pass negative value for non-array properties
+    /// @return true if push could be sent, false otherwise (e.g. no vdSM connection)
+    bool pushProperty(const string &aName, int aDomain, int aIndex = -1);
 
     /// @}
 

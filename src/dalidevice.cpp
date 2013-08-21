@@ -38,9 +38,10 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   // derive the dSID
   deriveDSID();
   // set the behaviour
-  LightBehaviour *l = new LightBehaviour(this);
+  LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
   l->setHardwareDimmer(true); // DALI ballasts are always dimmable
-  setDSBehaviour(l);
+  l->setHardwareName(string_format("DALI %d",deviceInfo.shortAddress));
+  outputs.push_back(l);
 }
 
 
@@ -81,7 +82,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
     LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
-  static_cast<LightBehaviour *>(getDSBehaviour())->initBrightnessParams(cachedBrightness,minLevel,255);
+  boost::static_pointer_cast<LightBehaviour>(outputs[0])->initBrightnessParams(cachedBrightness,minLevel,255);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }

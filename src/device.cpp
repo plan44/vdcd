@@ -13,94 +13,6 @@
 using namespace p44;
 
 
-#pragma mark - digitalSTROM behaviour
-
-//  virtual uint16_t functionId() = 0;
-//  virtual uint16_t productId() = 0;
-//  virtual uint8_t ltMode() = 0;
-//  virtual uint8_t outputMode() = 0;
-//  virtual uint8_t buttonIdGroup() = 0;
-
-
-
-
-DSBehaviour::DSBehaviour(Device *aDeviceP) :
-  deviceP(aDeviceP),
-  deviceColorGroup(group_black_joker)
-{
-}
-
-
-DSBehaviour::~DSBehaviour()
-{
-}
-
-
-
-void DSBehaviour::setDeviceColor(DsGroup aColorGroup)
-{
-  // set primary color of the device
-  deviceColorGroup = aColorGroup;
-  // derive the initial group membership: primary color plus group 0
-  groupMembership =
-    ((DsGroupMask)1)<<aColorGroup | // primary color
-    0x1; // Group 0
-}
-
-
-ErrorPtr DSBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
-{
-  ErrorPtr err;
-  if (aParamName=="FID") {
-    aValue = functionId();
-  }
-  else if (aParamName=="PID") {
-    aValue = productId();
-  }
-  else if (aParamName=="GRP") {
-    if (aArrayIndex>7)
-      aValue = 0;
-    else
-      aValue = (groupMembership>>(8*aArrayIndex)) & 0xFF;
-  }
-  else {
-    aValue = 0;
-    err = ErrorPtr(new JsonRpcError(
-      JSONRPC_INVALID_PARAMS,
-      string_format(
-        "unknown device behaviour parameter '%s' for %s/%s",
-        aParamName.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
-      )
-    ));
-  }
-  return err;
-}
-
-
-ErrorPtr DSBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
-{
-  ErrorPtr err;
-  if (aParamName=="GRP") {
-    if (aArrayIndex<=7) {
-      DsGroupMask m = ((DsGroupMask)(aValue & 0xFF))<<(8*aArrayIndex);
-      groupMembership = groupMembership & ~(DsGroupMask)((DsGroupMask)0xFF<<(8*aArrayIndex));
-      groupMembership |= m;
-    }
-  }
-  else {
-    err = ErrorPtr(new JsonRpcError(
-      JSONRPC_INVALID_PARAMS,
-      string_format(
-        "unknown device behaviour parameter '%s' for %s/%s",
-        aParamName.c_str(), shortDesc().c_str(), deviceP->shortDesc().c_str()
-      )
-    ));
-  }
-  return err;
-}
-
-
-
 #pragma mark - Device
 
 
@@ -108,31 +20,49 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   announced(Never),
   announcing(Never),
   classContainerP(aClassContainerP),
-  DsAddressable(&aClassContainerP->getDeviceContainer()),
-  behaviourP(NULL)
+  DsAddressable(&aClassContainerP->getDeviceContainer())
 {
 }
 
 
 Device::~Device()
 {
-  setDSBehaviour(NULL);
-}
-
-
-void Device::setDSBehaviour(DSBehaviour *aBehaviour)
-{
-  if (behaviourP)
-    delete behaviourP;
-  behaviourP = aBehaviour;
+  buttons.clear();
+  binaryInputs.clear();
+  outputs.clear();
+  sensors.clear();
 }
 
 
 bool Device::isPublicDS()
 {
-  // base class assumes that devices with a dS behaviour are public
-  // (subclasses might decide otherwise)
-  return behaviourP!=NULL;
+  // base class assumes that all devices are public
+  return true;
+}
+
+
+void Device::setPrimaryGroup(DsGroup aColorGroup)
+{
+  primaryGroup = aColorGroup;
+}
+
+
+bool Device::isMember(DsGroup aColorGroup)
+{
+  return
+    aColorGroup==primaryGroup || // is always member of primary group
+    ((groupMembership & 0x1ll<<aColorGroup)!=0); // additional membership flag set
+}
+
+
+void Device::setGroupMembership(DsGroup aColorGroup, bool aIsMember)
+{
+  if (aIsMember) {
+    groupMembership |= (0x1ll<<aColorGroup);
+  }
+  else {
+    groupMembership &= ~(0x1ll<<aColorGroup);
+  }
 }
 
 
@@ -166,231 +96,6 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 }
 
 
-#pragma mark - property access
-
-#warning "TODO: Add basic properties here"
-
-
-
-
-
-/* %%% old API
-
-//  if request['operation'] == 'DeviceRegistrationAck':
-//      self.address = request['parameter']['BusAddress']
-//      self.zone = request['parameter']['Zone']
-//      self.groups = request['parameter']['GroupMemberships']
-//      print 'BusAddress:', request['parameter']['BusAddress']
-//      print 'Zone:', request['parameter']['Zone']
-//      print 'Groups:', request['parameter']['GroupMemberships']
-
-#define RETURN_ZERO_FOR_READ_ERRORS 1
-
-ErrorPtr Device::handleMessage(string &aOperation, JsonObjectPtr aParams)
-{
-  ErrorPtr err;
-
-  // check for generic device operations
-  if (aOperation=="ping") {
-    // ping hardware (if possible), creates pong now or after hardware was queried
-    ping();
-  }
-  else if (
-    aOperation=="getdeviceparameter" ||
-    aOperation=="setdeviceparameter"
-  ) {
-    // convert from Legacy bank/offset device parameter
-    bool write = aOperation=="setdeviceparameter";
-    uint8_t bank = 0;
-    uint8_t offset = 0;
-    JsonObjectPtr o = aParams->get("Bank");
-    if (o==NULL) {
-      err = ErrorPtr(new vdSMError(
-        vdSMErrorMissingParameter,
-        string_format("missing parameter 'Bank'")
-      ));
-    }
-    else {
-      bank = o->int32Value();
-      JsonObjectPtr o = aParams->get("Offset");
-      if (o==NULL) {
-        err = ErrorPtr(new vdSMError(
-          vdSMErrorMissingParameter,
-          string_format("missing parameter 'Offset'")
-        ));
-      }
-      else {
-        offset = o->int32Value();
-        // get param entry
-        LOG(LOG_NOTICE,"%s Bank=%d, Offset=%d\n", aOperation.c_str(), bank, offset);
-        const paramEntry *p = DsParams::paramEntryForBankOffset(bank, offset);
-        if (p==NULL) {
-          err = ErrorPtr(new vdSMError(
-            vdSMErrorInvalidParameter,
-            string_format("unknown parameter bank %d / offset %d", bank, offset)
-          ));
-        }
-        else {
-          // found named param
-          int arrayIndex = (offset-p->offset) / p->size;
-          uint8_t inFieldOffset = offset-p->offset-(arrayIndex*p->size);
-          uint32_t val;
-          LOG(LOG_NOTICE,"- accessing %s[%d] byte#%d\n", p->name, arrayIndex, (int)inFieldOffset);
-          err = getDeviceParam(p->name, arrayIndex, val);
-          if (Error::isOK(err)) {
-            LOG(LOG_NOTICE,"- current value : 0x%08X/%d\n", val, val);
-            if (inFieldOffset<p->size) {
-              // now handle read or write
-              if (write) {
-                // get new value
-                JsonObjectPtr o = aParams->get("Value");
-                if (o==NULL) {
-                  err = ErrorPtr(new vdSMError(
-                    vdSMErrorMissingParameter,
-                    string_format("missing parameter 'Value'")
-                  ));
-                }
-                else {
-                  // replace requested byte
-                  uint32_t newVal = o->int32Value();
-                  LOG(LOG_NOTICE,"- changing byte#%d to 0x%02X/%d\n", inFieldOffset, newVal, newVal);
-                  newVal = newVal << ((p->size-inFieldOffset-1)*8); // shift into position
-                  val &= ~(0xFF << ((p->size-inFieldOffset-1)*8)); // create mask
-                  val |= newVal;
-                  // modify param
-                  err = setDeviceParam(p->name, arrayIndex, val);
-                  LOG(LOG_NOTICE,"- updated value : 0x%08X/%d\n", val, val);
-                }
-              }
-              else {
-                // extract the requested byte
-                LOG(LOG_NOTICE,"- %s[%d] = %d/0x%X\n", p->name, arrayIndex, val, val);
-                val = (val >> ((p->size-inFieldOffset-1)*8)) & 0xFF;
-                LOG(LOG_NOTICE,"- extracting byte#%d = 0x%02X/%d\n", inFieldOffset, val, val);
-                // create json answer
-                // - re-use param
-                aParams->add("Value", JsonObject::newInt32(val));
-                sendMessage("DeviceParameter", aParams);
-              }
-            }
-            else {
-              LOG(LOG_NOTICE,"- %s[%d] : in-field offset %d exceeds field size (%d)\n", p->name, arrayIndex, inFieldOffset, p->size);
-              err = ErrorPtr(new vdSMError(
-                vdSMErrorInvalidParameter,
-                string_format("in-field offset %d exceeds field size (%d)", inFieldOffset, p->size)
-              ));
-            }
-          }
-        }
-      }
-    }
-    #if RETURN_ZERO_FOR_READ_ERRORS
-    // never error, just return 0 for params we don't know
-    if (!Error::isOK(err) && !write) {
-      // Error reading param -> just return zero value instead of error
-      LOG(LOG_ERR, "getdeviceparameter error: %s\n", err->description().c_str());
-      // - re-use param
-      aParams->add("Value", JsonObject::newInt32(0)); // zero
-      sendMessage("DeviceParameter", aParams);
-      err = ErrorPtr();
-    }
-    #endif
-  }
-  else if (aOperation=="pushsensorvalue") {
-    // TODO: implement PushSensorValue
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="setgroups") {
-    // TODO: implement SetGroups
-    LOG(LOG_NOTICE,"Called unimplemented %s on device %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else {
-    // no generic device operation, let behaviour handle it
-    if (behaviourP) {
-      err = behaviourP->handleMessage(aOperation, aParams);
-    }
-    else {
-      err = ErrorPtr(new vdSMError(
-        vdSMErrorUnknownDeviceOperation,
-        string_format("unknown device operation '%s' for %s", aOperation.c_str(), shortDesc().c_str())
-      ));
-    }
-  }
-  return err;
-}
-
-*/
-
-
-
-ErrorPtr Device::getDeviceParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
-{
-  ErrorPtr err;
-  // check common device parameters
-  if (aParamName=="DSID") {
-    // TODO: this only works for dsids in the dSD class
-    aValue = (uint32_t)dsid.getSerialNo();
-  }
-  else if (aParamName=="GRP") {
-    #warning "// TODO: what is the structure of this group membership mask"
-    aValue = 0; //%%% wrong
-  }
-  // check behaviour specific params
-  else {
-    if (behaviourP) {
-      err = behaviourP->getBehaviourParam(aParamName, aArrayIndex, aValue);
-    }
-  }
-  return err;
-}
-
-
-ErrorPtr Device::setDeviceParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
-{
-  ErrorPtr err;
-  // check common device parameters
-  if (false) {
-
-  }
-  // check behaviour specific params
-  else {
-    if (behaviourP) {
-      err = behaviourP->setBehaviourParam(aParamName, aArrayIndex, aValue);
-    }
-  }
-  return err;
-}
-
-
-ErrorPtr Device::save()
-{
-  if (behaviourP) {
-    return behaviourP->save();
-  }
-  return ErrorPtr();
-}
-
-
-ErrorPtr Device::load()
-{
-  if (behaviourP) {
-    behaviourP->load();
-    // show loaded behaviour
-    LOG(LOG_INFO, "Device %s: behaviour loaded:\n%s", shortDesc().c_str(), behaviourP->description().c_str());
-  }
-  return ErrorPtr();
-}
-
-
-ErrorPtr Device::forget()
-{
-  if (behaviourP)
-    behaviourP->forget();
-  return ErrorPtr();
-}
-
-
-
 void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // remove from container management
@@ -412,6 +117,230 @@ void Device::hasVanished(bool aForgetParams)
 }
 
 
+#pragma mark - persistent device params
+
+
+// load device settings - beaviours + scenes
+ErrorPtr Device::load()
+{
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->load();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->load();
+  return ErrorPtr();
+}
+
+
+ErrorPtr Device::save()
+{
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->save();
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->save();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->save();
+  return ErrorPtr();
+}
+
+
+ErrorPtr Device::forget()
+{
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->forget();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->forget();
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->forget();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->forget();
+  return ErrorPtr();
+}
+
+#pragma mark - property access
+
+enum {
+  // device level simple parameters
+  dsProfileVersion_key,
+  primaryGroup_key,
+  isMember_key,
+  progMode_key,
+  // the behaviour arrays
+  buttonInputDescriptions_key,
+  buttonInputSettings_key,
+  buttonInputStates_key,
+  binaryInputDescriptions_key,
+  binaryInputSettings_key,
+  binaryInputStates_key,
+  outputDescriptions_key,
+  outputSettings_key,
+  outputStates_key,
+  sensorDescriptions_key,
+  sensorSettings_key,
+  sensorStates_key,
+  numDeviceProperties
+};
+
+
+static char device_key;
+static const PropertyDescriptor deviceProperties[numDeviceProperties] = {
+  // common device properties
+  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &device_key },
+  { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
+  { "isMember", ptype_bool, true, isMember_key, &device_key },
+  { "progMode", ptype_bool, false, progMode_key, &device_key },
+  // the behaviour arrays
+  { "buttonInputDescriptions", ptype_object, true, buttonInputDescriptions_key, &device_key },
+  { "buttonInputSettings", ptype_object, true, buttonInputSettings_key, &device_key },
+  { "buttonInputStates", ptype_object, true, buttonInputStates_key, &device_key },
+  { "binaryInputDescriptions", ptype_object, true, binaryInputDescriptions_key, &device_key },
+  { "binaryInputSettings", ptype_object, true, binaryInputSettings_key, &device_key },
+  { "binaryInputStates", ptype_object, true, binaryInputStates_key, &device_key },
+  { "outputDescriptions", ptype_object, true, outputDescriptions_key, &device_key },
+  { "outputSettings", ptype_object, true, outputSettings_key, &device_key },
+  { "outputStates", ptype_object, true, outputStates_key, &device_key },
+  { "sensorDescriptions", ptype_object, true, sensorDescriptions_key, &device_key },
+  { "sensorSettings", ptype_object, true, sensorSettings_key, &device_key },
+  { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
+};
+
+int Device::numProps(int aDomain)
+{
+  return inherited::numProps(aDomain)+numDeviceProperties;
+}
+
+
+const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDomain)
+{
+  int n = inherited::numProps(aDomain);
+  if (aPropIndex<n)
+    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return &deviceProperties[aPropIndex];
+}
+
+
+
+PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
+{
+  if (aPropertyDescriptor.objectKey==&device_key) {
+    switch (aPropertyDescriptor.accessKey) {
+      // Note: domain is adjusted to differentiate between descriptions, settings and states of the same object
+      // buttons
+      case buttonInputDescriptions_key:
+        aDomain = VDC_API_BHVR_DESC;
+        goto buttons;
+      case buttonInputSettings_key:
+        aDomain = VDC_API_BHVR_SETTINGS;
+        goto buttons;
+      case buttonInputStates_key:
+        aDomain = VDC_API_BHVR_STATES;
+      buttons:
+        if (aIndex<buttons.size()) return buttons[aIndex].get();
+        break;
+      // binaryInputs
+      case binaryInputDescriptions_key:
+        aDomain = VDC_API_BHVR_DESC;
+        goto binaryInputs;
+      case binaryInputSettings_key:
+        aDomain = VDC_API_BHVR_SETTINGS;
+        goto binaryInputs;
+      case binaryInputStates_key:
+        aDomain = VDC_API_BHVR_STATES;
+      binaryInputs:
+        if (aIndex<binaryInputs.size()) return binaryInputs[aIndex].get();
+        break;
+      // outputs
+      case outputDescriptions_key:
+        aDomain = VDC_API_BHVR_DESC;
+        goto outputs;
+      case outputSettings_key:
+        aDomain = VDC_API_BHVR_SETTINGS;
+        goto outputs;
+      case outputStates_key:
+        aDomain = VDC_API_BHVR_STATES;
+      outputs:
+        if (aIndex<outputs.size()) return outputs[aIndex].get();
+        break;
+      // sensors
+      case sensorDescriptions_key:
+        aDomain = VDC_API_BHVR_DESC;
+        goto sensors;
+      case sensorSettings_key:
+        aDomain = VDC_API_BHVR_SETTINGS;
+        goto sensors;
+      case sensorStates_key:
+        aDomain = VDC_API_BHVR_STATES;
+      sensors:
+        if (aIndex<sensors.size()) return sensors[aIndex].get();
+        break;
+    }
+  }
+  // unknown here
+  return NULL;
+}
+
+
+
+bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aPropertyDescriptor.objectKey==&device_key) {
+    if (aIndex==PROP_ARRAY_SIZE && !aForWrite) {
+      // array size query
+      switch (aPropertyDescriptor.accessKey) {
+        // the isMember pseudo-array
+        case isMember_key:
+          aPropValue = JsonObject::newInt32(64); // max 64 groups
+          return true;
+        // the behaviour arrays
+        case buttonInputDescriptions_key:
+        case buttonInputSettings_key:
+        case buttonInputStates_key:
+          aPropValue = JsonObject::newInt32((int)buttons.size());
+          return true;
+        case binaryInputDescriptions_key:
+        case binaryInputSettings_key:
+        case binaryInputStates_key:
+          aPropValue = JsonObject::newInt32((int)binaryInputs.size());
+          return true;
+        case outputDescriptions_key:
+        case outputSettings_key:
+        case outputStates_key:
+          aPropValue = JsonObject::newInt32((int)outputs.size());
+          return true;
+        case sensorDescriptions_key:
+        case sensorSettings_key:
+        case sensorStates_key:
+          aPropValue = JsonObject::newInt32((int)sensors.size());
+          return true;
+      }
+    }
+    else if (!aForWrite) {
+      // read properties
+      switch (aPropertyDescriptor.accessKey) {
+        case dsProfileVersion_key:
+          aPropValue = JsonObject::newInt32(dsProfileVersion());
+          return true;
+        case primaryGroup_key:
+          aPropValue = JsonObject::newInt32(primaryGroup);
+          return true;
+        case isMember_key:
+          // test group bit
+          aPropValue = JsonObject::newBool(isMember((DsGroup)aIndex));
+          return true;
+        case progMode_key:
+          aPropValue = JsonObject::newBool(progMode);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor.accessKey) {
+        case isMember_key:
+          setGroupMembership((DsGroup)aIndex, aPropValue->boolValue());
+          return true;
+        case progMode_key:
+          progMode = aPropValue->boolValue();
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+}
 
 #pragma mark - Device description/shortDesc
 
@@ -424,8 +353,9 @@ string Device::description()
   else
     s.append(" (not yet announced)");
   s.append("\n");
-  if (behaviourP) {
-    string_format_append(s, "- Button: %d/%d, DSBehaviour : %s\n", getButtonIndex()+1, getNumButtons(), behaviourP->shortDesc().c_str());
-  }
+  if (buttons.size()>0) s.append(" Buttons: %d\n", buttons.size());
+  if (binaryInputs.size()>0) s.append(" Binary Inputs: %d\n", binaryInputs.size());
+  if (outputs.size()>0) s.append(" Outputs: %d\n", outputs.size());
+  if (sensors.size()>0) s.append(" Sensors: %d\n", sensors.size());
   return s;
 }

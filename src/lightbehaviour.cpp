@@ -265,8 +265,8 @@ void LightScene::setSceCon(uint8_t aSceCon)
 #pragma mark - LightSettings
 
 
-LightSettings::LightSettings(ParamStore &aParamStore) :
-  inherited(aParamStore),
+LightSettings::LightSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
+  inherited(aParamStore, aBehaviour),
   isDimmable(false),
   onThreshold(128),
   minDim(1),
@@ -429,14 +429,15 @@ void LightSettings::setOutputMode(DsOutputModes aOutputMode)
 
 #pragma mark - LightBehaviour
 
-LightBehaviour::LightBehaviour(Device *aDeviceP) :
-  inherited(aDeviceP),
-  lightSettings(aDeviceP->getDeviceContainer().getDsParamStore()),
+LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
+  inherited(aDevice, aIndex),
+  lightSettings(aDevice.getDeviceContainer().getDsParamStore(), *this),
   localPriority(false),
   isLocigallyOn(false),
   logicalBrightness(0)
 {
-  deviceColorGroup = group_yellow_light;
+  #warning "set default mode"
+  //deviceColorGroup = group_yellow_light;
 }
 
 
@@ -463,16 +464,16 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
     // device is logically ON
     if (lightSettings.isDimmable && hasDimmer) {
       // dimmable, 0=off, 1..255=brightness
-      deviceP->setOutputValue(0, logicalBrightness, aTransitionTime);
+      device.setOutputValue(0, logicalBrightness, aTransitionTime);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      deviceP->setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0, aTransitionTime);
+      device.setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0, aTransitionTime);
     }
   }
   else {
     // off is off
-    deviceP->setOutputValue(0, 0, aTransitionTime);
+    device.setOutputValue(0, 0, aTransitionTime);
   }
 }
 
@@ -552,7 +553,8 @@ void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, 
 
 uint16_t LightBehaviour::functionId()
 {
-  int i = deviceP->getNumButtons();
+//  int i = device.getNumButtons();
+  int i = 0;
   return
     (group_yellow_light<<12) + // always light
     (0x04 << 6) + // DS Standard R105
@@ -751,109 +753,107 @@ void LightBehaviour::nextBlink()
 }
 
 
-// get behaviour-specific parameter
-ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
-{
-  if (aParamName=="MODE")
-    aValue = lightSettings.getOutputMode();
-  else if (aParamName=="VAL") // current logical brightness value (actual output value might be different for non-dimmables)
-    aValue = getLogicalBrightness();
-  else if (aParamName=="MINDIM")
-    aValue = lightSettings.minDim;
-  else if (aParamName=="MAXDIM")
-    aValue = lightSettings.maxDim;
-  else if (aParamName=="SW_THR")
-    aValue = lightSettings.onThreshold;
-  else if (aParamName=="SW_THR")
-    aValue = lightSettings.onThreshold;
-  else if (aParamName=="DIMTIME0_UP")
-    aValue = lightSettings.dimUpTime[0];
-  else if (aParamName=="DIMTIME1_UP")
-    aValue = lightSettings.dimUpTime[1];
-  else if (aParamName=="DIMTIME2_UP")
-    aValue = lightSettings.dimUpTime[2];
-  else if (aParamName=="DIMTIME0_DOWN")
-    aValue = lightSettings.dimDownTime[0];
-  else if (aParamName=="DIMTIME1_DOWN")
-    aValue = lightSettings.dimDownTime[1];
-  else if (aParamName=="DIMTIME2_DOWN")
-    aValue = lightSettings.dimDownTime[2];
-  else if (aParamName=="STEP0_UP")
-    aValue = lightSettings.dimUpStep;
-  else if (aParamName=="STEP0_DOWN")
-    aValue = lightSettings.dimDownStep;
-  else if (aParamName=="SCE")
-    aValue = lightSettings.getScene(aArrayIndex)->sceneValue;
-  else if (aParamName=="SCECON")
-    aValue = lightSettings.getScene(aArrayIndex)->getSceCon();
-  else
-    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-  // done
-  return ErrorPtr();
-}
+//// get behaviour-specific parameter
+//ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
+//{
+//  if (aParamName=="MODE")
+//    aValue = lightSettings.getOutputMode();
+//  else if (aParamName=="VAL") // current logical brightness value (actual output value might be different for non-dimmables)
+//    aValue = getLogicalBrightness();
+//  else if (aParamName=="MINDIM")
+//    aValue = lightSettings.minDim;
+//  else if (aParamName=="MAXDIM")
+//    aValue = lightSettings.maxDim;
+//  else if (aParamName=="SW_THR")
+//    aValue = lightSettings.onThreshold;
+//  else if (aParamName=="SW_THR")
+//    aValue = lightSettings.onThreshold;
+//  else if (aParamName=="DIMTIME0_UP")
+//    aValue = lightSettings.dimUpTime[0];
+//  else if (aParamName=="DIMTIME1_UP")
+//    aValue = lightSettings.dimUpTime[1];
+//  else if (aParamName=="DIMTIME2_UP")
+//    aValue = lightSettings.dimUpTime[2];
+//  else if (aParamName=="DIMTIME0_DOWN")
+//    aValue = lightSettings.dimDownTime[0];
+//  else if (aParamName=="DIMTIME1_DOWN")
+//    aValue = lightSettings.dimDownTime[1];
+//  else if (aParamName=="DIMTIME2_DOWN")
+//    aValue = lightSettings.dimDownTime[2];
+//  else if (aParamName=="STEP0_UP")
+//    aValue = lightSettings.dimUpStep;
+//  else if (aParamName=="STEP0_DOWN")
+//    aValue = lightSettings.dimDownStep;
+//  else if (aParamName=="SCE")
+//    aValue = lightSettings.getScene(aArrayIndex)->sceneValue;
+//  else if (aParamName=="SCECON")
+//    aValue = lightSettings.getScene(aArrayIndex)->getSceCon();
+//  else
+//    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+//  // done
+//  return ErrorPtr();
+//}
+//
+//
+//// set behaviour-specific parameter
+//ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
+//{
+//  if (aParamName=="MODE")
+//    lightSettings.setOutputMode((DsOutputModes)aValue);
+//  else if (aParamName=="VAL") // set current logical brightness value. // TODO: this is redunant with SetOutval operation
+//    setLogicalBrightness(aValue);
+//  else if (aParamName=="MINDIM")
+//    lightSettings.minDim = aValue;
+//  else if (aParamName=="MAXDIM")
+//    lightSettings.maxDim = aValue;
+//  else if (aParamName=="SW_THR")
+//    lightSettings.onThreshold = aValue;
+//  else if (aParamName=="DIMTIME0_UP")
+//    lightSettings.dimUpTime[0] = aValue;
+//  else if (aParamName=="DIMTIME1_UP")
+//    lightSettings.dimUpTime[1] = aValue;
+//  else if (aParamName=="DIMTIME2_UP")
+//    lightSettings.dimUpTime[2] = aValue;
+//  else if (aParamName=="DIMTIME0_DOWN")
+//    lightSettings.dimDownTime[0] = aValue;
+//  else if (aParamName=="DIMTIME1_DOWN")
+//    lightSettings.dimDownTime[1] = aValue;
+//  else if (aParamName=="DIMTIME2_DOWN")
+//    lightSettings.dimDownTime[2] = aValue;
+//  else if (aParamName=="STEP0_UP")
+//    lightSettings.dimUpStep = aValue;
+//  else if (aParamName=="STEP0_DOWN")
+//    lightSettings.dimDownStep = aValue;
+//  else if (aParamName=="SCE") {
+//    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
+//    ls->sceneValue = aValue;
+//    lightSettings.updateScene(ls);
+//  }
+//  else if (aParamName=="SCECON") {
+//    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
+//    ls->setSceCon(aValue);
+//    lightSettings.updateScene(ls);
+//  }
+//  else
+//    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
+//  // set a local param, mark dirty
+//  lightSettings.markDirty();
+//  return ErrorPtr();
+//}
 
 
-// set behaviour-specific parameter
-ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
-{
-  if (aParamName=="MODE")
-    lightSettings.setOutputMode((DsOutputModes)aValue);
-  else if (aParamName=="VAL") // set current logical brightness value. // TODO: this is redunant with SetOutval operation
-    setLogicalBrightness(aValue);
-  else if (aParamName=="MINDIM")
-    lightSettings.minDim = aValue;
-  else if (aParamName=="MAXDIM")
-    lightSettings.maxDim = aValue;
-  else if (aParamName=="SW_THR")
-    lightSettings.onThreshold = aValue;
-  else if (aParamName=="DIMTIME0_UP")
-    lightSettings.dimUpTime[0] = aValue;
-  else if (aParamName=="DIMTIME1_UP")
-    lightSettings.dimUpTime[1] = aValue;
-  else if (aParamName=="DIMTIME2_UP")
-    lightSettings.dimUpTime[2] = aValue;
-  else if (aParamName=="DIMTIME0_DOWN")
-    lightSettings.dimDownTime[0] = aValue;
-  else if (aParamName=="DIMTIME1_DOWN")
-    lightSettings.dimDownTime[1] = aValue;
-  else if (aParamName=="DIMTIME2_DOWN")
-    lightSettings.dimDownTime[2] = aValue;
-  else if (aParamName=="STEP0_UP")
-    lightSettings.dimUpStep = aValue;
-  else if (aParamName=="STEP0_DOWN")
-    lightSettings.dimDownStep = aValue;
-  else if (aParamName=="SCE") {
-    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
-    ls->sceneValue = aValue;
-    lightSettings.updateScene(ls);
-  }
-  else if (aParamName=="SCECON") {
-    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
-    ls->setSceCon(aValue);
-    lightSettings.updateScene(ls);
-  }
-  else
-    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-  // set a local param, mark dirty
-  lightSettings.markDirty();
-  return ErrorPtr();
-}
 
-
-
-// this is usually called from the device container when device is added (detected)
 ErrorPtr LightBehaviour::load()
 {
   // load light settings (and scenes along with it)
-  return lightSettings.loadFromStore(deviceP->dsid.getString().c_str());
+  return lightSettings.load();
 }
 
 
-// this is usually called from the device container in regular intervals
 ErrorPtr LightBehaviour::save()
 {
   // save light settings (and scenes along with it)
-  return lightSettings.saveToStore(deviceP->dsid.getString().c_str());
+  return lightSettings.save();
 }
 
 

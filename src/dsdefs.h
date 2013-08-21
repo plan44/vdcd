@@ -101,6 +101,27 @@ typedef enum {
 typedef uint64_t DsGroupMask; ///< 64 bit mask, Bit0 = group 0, Bit63 = group 63
 
 
+/// button click types
+typedef enum {
+  ct_tip_1x = 0, ///< first tip
+  ct_tip_2x = 1, ///< second tip
+  ct_tip_3x = 2, ///< third tip
+  ct_tip_4x = 3, ///< fourth tip
+  ct_hold_start = 4, ///< hold start
+  ct_hold_repeat = 5, ///< hold repeat
+  ct_hold_end = 6, ///< hold end
+  ct_click_1x = 7, ///< short click
+  ct_click_2x = 8, ///< double click
+  ct_click_3x = 9, ///< triple click
+  ct_short_long = 10, ///< short/long = programming mode
+  ct_local_off = 11, ///< local button has turned device off
+  ct_local_on = 12, ///< local button has turned device on
+  ct_short_short_long = 13, ///< short/short/long = local programming mode
+  ct_local_stop = 14, ///< local stop
+  numClickTypes
+} DsClickType;
+
+
 /// button mode aka "LTMODE"
 typedef enum {
   buttonmode_standard = 0,
@@ -131,17 +152,30 @@ typedef enum {
 } DsButtonMode;
 
 
-/// hardware button type aka "button number"
+/// button types (for buttonDescriptions[].buttonType)
 typedef enum {
-  hwbuttontype_1way = 0,
-  hwbuttontype_2way = 1,
-  hwbuttontype_2x1way = 2,
-  hwbuttontype_4way = 3,
-  hwbuttontype_4x1way = 4,
-  hwbuttontype_2x2way = 5,
-  hwbuttontype_reserved = 6,
-  hwbuttontype_none = 7
-} DsHardwareButtonType;
+  buttonType_undefined, ///< kind of button not defined by device hardware
+  buttonType_single, ///< single pushbutton
+  buttonType_2way, ///< two-way pushbutton or rocker
+  buttonType_4way, ///< 4-way navigation button
+  buttonType_4wayWithCenter, ///< 4-way navigation with center button
+  buttonType_8wayWithCenter, ///< 8-way navigation with center button
+  buttonType_onOffSwitch, ///< On-Off switch
+} DsButtonType;
+
+
+/// button element IDs (for buttonDescriptions[].buttonElementID)
+typedef enum {
+  buttonElement_center, ///< center element / single button
+  buttonElement_down, ///< down, for 2,4,8-way
+  buttonElement_up, ///< up, for 2,4,8-way
+  buttonElement_left, ///< left, for 2,4,8-way
+  buttonElement_right, ///< right, for 2,4,8-way
+  buttonElement_upperLeft, ///< upper left, for 8-way
+  buttonElement_lowerLeft, ///< lower left, for 8-way
+  buttonElement_upperRight, ///< upper right, for 8-way
+  buttonElement_lowerRight, ///< lower right, for 8-way
+} DsButtonElement;
 
 
 /// button function aka "LTNUM" (lower 4 bits in LTNUMGRP0)

@@ -161,22 +161,18 @@ public:
   virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
   {
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
-    // set the behaviour
-    ButtonBehaviour *b = new ButtonBehaviour(this);
-    b->setHardwareButtonType(
-      // TODO: if ds defines 4-rocker, add it here
-      (getNumButtons()>1 ? hwbuttontype_2x2way : hwbuttontype_2way),
-      false // no local button
-    );
-    b->setDeviceColor(group_black_joker);
-    setDSBehaviour(b);
+    // create two behaviours, one for the up button, one for the down button
+    // - create button input for up key
+    ButtonBehaviourPtr bu = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    bu->setHardwareButtonType(0, buttonType_2way, buttonElement_up, false);
+    bu->setHardwareName("Up key");
+    buttons.push_back(bu);
+    // - create button input for down key
+    ButtonBehaviourPtr bd = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    bd->setHardwareButtonType(0, buttonType_2way, buttonElement_down, false);
+    bd->setHardwareName("Down key");
+    buttons.push_back(bd);
   };
-
-  // return number of buttons (of the emulated dS device)
-  virtual int getNumButtons() { return getNumChannels()>4 ? 4 : getNumChannels(); }
-
-  // the channel corresponds to the dS input
-  virtual int getButtonIndex() { return getChannel(); }
 
   // device specific radio packet handling
   virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
@@ -201,22 +197,18 @@ public:
     else {
       // U-Message
       uint8_t b = (data>>5) & 0x07;
-      uint8_t numAffectedRockers = 0;
+      bool affectsMe = false;
       if (status & status_T21) {
         // 2-rocker
-        if (b==0)
-          numAffectedRockers = getNumButtons(); // all affected
-        else if(b==3)
-          numAffectedRockers = 2; // 3 or 4 buttons -> both rockers affected
+        if (b==0 || b==3)
+          affectsMe = true; // all buttons or explicitly 3/4 affected
       }
       else {
         // 4-rocker
-        if (b==0)
-          numAffectedRockers = getNumButtons();
-        else
-          numAffectedRockers = (b+1)>>1; // half of buttons affected = switches affected
+        if (b==0 || ((b+1)>>1)>0)
+          affectsMe = true; // all or half of buttons affected = switches affected
       }
-      if (numAffectedRockers>0) {
+      if (affectsMe) {
         // releasing -> affect all
         // pressing -> ignore
         // Note: rationale is that pressing should create individual actions, while releasing does not
@@ -240,10 +232,10 @@ private:
     // only propagate real changes
     if (aPressed!=pressed[aIndex]) {
       // real change, propagate to behaviour
-      ButtonBehaviour *b = dynamic_cast<ButtonBehaviour *>(getDSBehaviour());
+      ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[aIndex]);
       if (b) {
         LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button[%d] changed state to %s\n", getAddress(), getChannel(), aIndex, aPressed ? "pressed" : "released");
-        b->buttonAction(aPressed, aIndex!=0);
+        b->buttonAction(aPressed);
       }
       // update cached status
       pressed[aIndex] = aPressed;

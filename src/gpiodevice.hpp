@@ -31,9 +31,6 @@ namespace p44 {
   public:
     GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
-		/// single or no input
-		virtual int getNumButtons() { return isOutput ? 0 : 1; }
-
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

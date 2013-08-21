@@ -97,7 +97,7 @@ public:
     fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
     fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
     fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM to connect to (default=%s)\n", DEFAULT_VDSMSERVICE);
-    fprintf(stderr, "    -i             : allow connections from non-local clients (vDC API and config API)\n");
+    fprintf(stderr, "    -i             : allow vdSM connections from non-local clients (vDC API and config API)\n");
     fprintf(stderr, "    -d             : fully daemonize\n");
     fprintf(stderr, "    -w seconds     : delay startup\n");
     fprintf(stderr, "    -l loglevel    : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
@@ -212,7 +212,7 @@ public:
     // Create Web configuration JSON API server
     if (configApiPort) {
       configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-      configApiServer.setAllowNonlocalConnections(allowNonLocal);
+      configApiServer.setAllowNonlocalConnections(false); // config port is always local (mg44 will expose it to outside if needed)
       configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
     }
 
@@ -274,19 +274,19 @@ public:
   SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP)
   {
     JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
-    conn->setMessageHandler(boost::bind(&P44bridged::apiRequestHandler, this, _1, _2, _3));
+    conn->setMessageHandler(boost::bind(&P44bridged::configApiRequestHandler, this, _1, _2, _3));
     return conn;
   }
 
 
-  void apiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
+  void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
   {
     ErrorPtr err;
     // TODO: actually do something
     JsonObjectPtr json = JsonObject::newObj();
     if (Error::isOK(aError)) {
       // %%% just show
-      LOG(LOG_DEBUG,"API request: %s", aJsonObject->c_strValue());
+      LOG(LOG_DEBUG,"Config API request: %s", aJsonObject->c_strValue());
       // %%% and return dummy response
       json->add("Echo", aJsonObject);
     }

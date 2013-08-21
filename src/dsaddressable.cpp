@@ -117,6 +117,26 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
 }
 
 
+bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
+{
+  // get the value
+  JsonObjectPtr value;
+  ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
+  if (Error::isOK(err)) {
+    JsonObjectPtr pushParams = JsonObject::newObj();
+    pushParams->add("name", JsonObject::newString(aName));
+    if (aIndex>=0) {
+      // array property push
+      pushParams->add("index", JsonObject::newInt32(aIndex));
+    }
+    pushParams->add("value", value);
+    return sendRequest("pushProperty", pushParams);
+  }
+  return false;
+}
+
+
+
 void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 {
   if (aMethod=="ping") {
@@ -192,15 +212,17 @@ enum {
 };
 
 
+static char dsAddressable_key;
 static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperties] = {
-  { "dSID", ptype_charptr, false, dSID_key },
-  { "model", ptype_charptr, false, model_key },
-  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key },
-  { "hardwareVersion", ptype_charptr, false, hardwareVersion_key },
-  { "hardwareGuid", ptype_charptr, false, hardwareGUID_key },
-  { "oemGuid", ptype_charptr, false, oemGUID_key },
-  { "name", ptype_charptr, false, name_key }
+  { "dSID", ptype_charptr, false, dSID_key, &dsAddressable_key },
+  { "model", ptype_charptr, false, model_key, &dsAddressable_key },
+  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &dsAddressable_key },
+  { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
+  { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
+  { "oemGuid", ptype_charptr, false, oemGUID_key, &dsAddressable_key },
+  { "name", ptype_charptr, false, name_key, &dsAddressable_key }
 };
+
 
 int DsAddressable::numProps(int aDomain)
 {
@@ -214,33 +236,33 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  if (aPropIndex>=numDsAddressableProperties)
-    return NULL;
   return &dsAddressableProperties[aPropIndex];
 }
 
 
 bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
-  if (aForWrite) {
-    switch (aPropertyDescriptor.accessKey) {
-      case name_key: name = aPropValue->stringValue(); break;
-      default: return false; // no access
+  if (aPropertyDescriptor.objectKey==&dsAddressable_key) {
+    if (aForWrite) {
+      switch (aPropertyDescriptor.accessKey) {
+        case name_key: name = aPropValue->stringValue(); return true;
+      }
+    }
+    else {
+      switch (aPropertyDescriptor.accessKey) {
+        case dSID_key: aPropValue = JsonObject::newString(dsid.getString()); return true;
+        case model_key: aPropValue = JsonObject::newString(modelName()); return true;
+        case dsProfileVersion_key: aPropValue = JsonObject::newInt32(dsProfileVersion()); return true;
+        case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
+        case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
+        case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); return true;
+        case name_key: aPropValue = JsonObject::newString(name); return true;
+      }
+      return true;
     }
   }
-  else {
-    switch (aPropertyDescriptor.accessKey) {
-      case dSID_key: aPropValue = JsonObject::newString(dsid.getString()); break;
-      case model_key: aPropValue = JsonObject::newString(modelName()); break;
-      case dsProfileVersion_key: aPropValue = JsonObject::newInt32(dsProfileVersion()); break;
-      case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); break;
-      case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); break;
-      case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); break;
-      case name_key: aPropValue = JsonObject::newString(name); break;
-      default: return false; // no access
-    }
-  }
-  return true;
+  // not my field, let base class handle it
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
 }
 
 

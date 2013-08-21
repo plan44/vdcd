@@ -66,6 +66,7 @@
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDB5BC1C17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDB5BC1D17B52683004DB38D /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
+		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
@@ -176,6 +177,8 @@
 		EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jsonrpctool.cpp; sourceTree = "<group>"; };
 		EDB5BC1917B50E79004DB38D /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fdcomm.cpp; sourceTree = "<group>"; };
 		EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fdcomm.hpp; sourceTree = "<group>"; };
+		EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsbehaviour.cpp; sourceTree = "<group>"; };
+		EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsbehaviour.hpp; sourceTree = "<group>"; };
 		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = consoledevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166B177EDC1800F27115 /* consoledevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consoledevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166C177EDDDF00F27115 /* consolekey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consolekey.cpp; sourceTree = "<group>"; };
@@ -321,12 +324,14 @@
 				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
 				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
-				EDCFE855171FE841001D35F3 /* device.cpp */,
-				EDCFE856171FE841001D35F3 /* device.hpp */,
+				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
+				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
 				ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */,
 				ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */,
 				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
+				EDCFE855171FE841001D35F3 /* device.cpp */,
+				EDCFE856171FE841001D35F3 /* device.hpp */,
 				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
 				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
 				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
@@ -480,6 +485,7 @@
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* gpiodevice.cpp in Sources */,
+				EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 				ED0FA631175891F300FC0958 /* dsparams.cpp in Sources */,
 			);
