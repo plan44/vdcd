@@ -449,7 +449,7 @@ void SocketComm::internalCloseConnection()
     serving = false;
     // - close all child connections
     for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
-      (*pos)->closeConnection();
+      if (*pos) (*pos)->closeConnection();
     }
   }
   else if (connectionOpen || isConnecting) {

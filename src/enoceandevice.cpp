@@ -162,16 +162,16 @@ public:
   {
     inherited::setEEPInfo(aEEProfile, aEEManufacturer);
     // create two behaviours, one for the up button, one for the down button
-    // - create button input for up key
-    ButtonBehaviourPtr bu = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
-    bu->setHardwareButtonType(0, buttonType_2way, buttonElement_up, false);
-    bu->setHardwareName("Up key");
-    buttons.push_back(bu);
     // - create button input for down key
     ButtonBehaviourPtr bd = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
     bd->setHardwareButtonType(0, buttonType_2way, buttonElement_down, false);
     bd->setHardwareName("Down key");
     buttons.push_back(bd);
+    // - create button input for up key
+    ButtonBehaviourPtr bu = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    bu->setHardwareButtonType(0, buttonType_2way, buttonElement_up, false);
+    bu->setHardwareName("Up key");
+    buttons.push_back(bu);
   };
 
   // device specific radio packet handling

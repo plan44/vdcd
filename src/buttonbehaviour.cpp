@@ -58,7 +58,7 @@ void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
-  int flags = aRow->get<bool>(aIndex++);
+  int flags = aRow->get<int>(aIndex++);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
