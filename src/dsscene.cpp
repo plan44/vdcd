@@ -118,10 +118,6 @@ enum {
 };
 
 
-static const PropertyDescriptor sceneProperties[numSceneProperties] = {
-  { "dontCare", ptype_bool, false, dontCare_key, &dsscene_key },
-  { "ignoreLocalPriority", ptype_bool, false, ignoreLocalPriority_key, &dsscene_key },
-};
 
 
 int DsScene::numProps(int aDomain)
@@ -132,11 +128,15 @@ int DsScene::numProps(int aDomain)
 
 const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numSceneProperties] = {
+    { "dontCare", ptype_bool, false, dontCare_key, &dsscene_key },
+    { "ignoreLocalPriority", ptype_bool, false, ignoreLocalPriority_key, &dsscene_key },
+  };
   int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
     return inheritedProps::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &sceneProperties[aPropIndex];
+  return &properties[aPropIndex];
 }
 
 

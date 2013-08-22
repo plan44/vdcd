@@ -109,13 +109,6 @@ enum {
 };
 
 
-static const PropertyDescriptor lightSceneProperties[numLightSceneProperties] = {
-  { "value", ptype_int8, false, value_key, &lightscene_key },
-  { "flashing", ptype_bool, false, flashing_key, &lightscene_key },
-  { "dimTimeSelector", ptype_int8, false, dimTimeSelector_key, &lightscene_key },
-};
-
-
 int LightScene::numProps(int aDomain)
 {
   return inherited::numProps(aDomain)+numLightSceneProperties;
@@ -124,11 +117,16 @@ int LightScene::numProps(int aDomain)
 
 const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numLightSceneProperties] = {
+    { "value", ptype_int8, false, value_key, &lightscene_key },
+    { "flashing", ptype_bool, false, flashing_key, &lightscene_key },
+    { "dimTimeSelector", ptype_int8, false, dimTimeSelector_key, &lightscene_key },
+  };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &lightSceneProperties[aPropIndex];
+  return &properties[aPropIndex];
 }
 
 

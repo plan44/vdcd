@@ -472,15 +472,18 @@ enum {
   numDescProperties
 };
 
-static const PropertyDescriptor descriptionProperties[numDescProperties] = {
-  { "supportsLocalKeyMode", ptype_int32, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
-  { "buttonID", ptype_int32, false, buttonID_key+descriptions_key_offset, &button_key },
-  { "buttonType", ptype_int32, false, buttonType_key+descriptions_key_offset, &button_key },
-  { "buttonElementID", ptype_int32, false, buttonElementID_key+descriptions_key_offset, &button_key },
-};
 
 int ButtonBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex) { return &descriptionProperties[aPropIndex]; }
+const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
+{
+  static const PropertyDescriptor properties[numDescProperties] = {
+    { "supportsLocalKeyMode", ptype_int32, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
+    { "buttonID", ptype_int32, false, buttonID_key+descriptions_key_offset, &button_key },
+    { "buttonType", ptype_int32, false, buttonType_key+descriptions_key_offset, &button_key },
+    { "buttonElementID", ptype_int32, false, buttonElementID_key+descriptions_key_offset, &button_key },
+  };
+  return &properties[aPropIndex];
+}
 
 
 // settings properties
@@ -493,15 +496,18 @@ enum {
   numSettingsProperties
 };
 
-static const PropertyDescriptor settingsProperties[numSettingsProperties] = {
-  { "group", ptype_int32, false, group_key+settings_key_offset, &button_key },
-  { "mode", ptype_int32, false, mode_key+settings_key_offset, &button_key },
-  { "setsLocalPriority", ptype_int32, false, setsLocalPriority_key+settings_key_offset, &button_key },
-  { "callsPresent", ptype_int32, false, callsPresent_key+settings_key_offset, &button_key },
-};
 
 int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex) { return &settingsProperties[aPropIndex]; }
+const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
+{
+  static const PropertyDescriptor properties[numSettingsProperties] = {
+    { "group", ptype_int32, false, group_key+settings_key_offset, &button_key },
+    { "mode", ptype_int32, false, mode_key+settings_key_offset, &button_key },
+    { "setsLocalPriority", ptype_int32, false, setsLocalPriority_key+settings_key_offset, &button_key },
+    { "callsPresent", ptype_int32, false, callsPresent_key+settings_key_offset, &button_key },
+  };
+  return &properties[aPropIndex];
+}
 
 // state properties
 
@@ -511,13 +517,16 @@ enum {
   numStateProperties
 };
 
-static const PropertyDescriptor stateProperties[numStateProperties] = {
-  { "value", ptype_int32, false, value_key+states_key_offset, &button_key },
-  { "clickType", ptype_int32, false, clickType_key+states_key_offset, &button_key },
-};
 
 int ButtonBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex) { return &stateProperties[aPropIndex]; }
+const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
+{
+  static const PropertyDescriptor properties[numStateProperties] = {
+    { "value", ptype_int32, false, value_key+states_key_offset, &button_key },
+    { "clickType", ptype_int32, false, clickType_key+states_key_offset, &button_key },
+  };
+  return &properties[aPropIndex];
+}
 
 
 // access to all fields

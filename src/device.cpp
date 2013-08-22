@@ -259,28 +259,6 @@ enum {
 
 
 static char device_key;
-static const PropertyDescriptor deviceProperties[numDeviceProperties] = {
-  // common device properties
-  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &device_key },
-  { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
-  { "isMember", ptype_bool, true, isMember_key, &device_key },
-  { "progMode", ptype_bool, false, progMode_key, &device_key },
-  // the behaviour arrays
-  { "buttonInputDescriptions", ptype_object, true, buttonInputDescriptions_key, &device_key },
-  { "buttonInputSettings", ptype_object, true, buttonInputSettings_key, &device_key },
-  { "buttonInputStates", ptype_object, true, buttonInputStates_key, &device_key },
-  { "binaryInputDescriptions", ptype_object, true, binaryInputDescriptions_key, &device_key },
-  { "binaryInputSettings", ptype_object, true, binaryInputSettings_key, &device_key },
-  { "binaryInputStates", ptype_object, true, binaryInputStates_key, &device_key },
-  { "outputDescriptions", ptype_object, true, outputDescriptions_key, &device_key },
-  { "outputSettings", ptype_object, true, outputSettings_key, &device_key },
-  { "outputStates", ptype_object, true, outputStates_key, &device_key },
-  { "sensorDescriptions", ptype_object, true, sensorDescriptions_key, &device_key },
-  { "sensorSettings", ptype_object, true, sensorSettings_key, &device_key },
-  { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
-  // the scenes array
-  { "scenes", ptype_object, true, scenes_key, &device_key },
-};
 
 int Device::numProps(int aDomain)
 {
@@ -290,11 +268,33 @@ int Device::numProps(int aDomain)
 
 const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numDeviceProperties] = {
+    // common device properties
+    { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &device_key },
+    { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
+    { "isMember", ptype_bool, true, isMember_key, &device_key },
+    { "progMode", ptype_bool, false, progMode_key, &device_key },
+    // the behaviour arrays
+    { "buttonInputDescriptions", ptype_object, true, buttonInputDescriptions_key, &device_key },
+    { "buttonInputSettings", ptype_object, true, buttonInputSettings_key, &device_key },
+    { "buttonInputStates", ptype_object, true, buttonInputStates_key, &device_key },
+    { "binaryInputDescriptions", ptype_object, true, binaryInputDescriptions_key, &device_key },
+    { "binaryInputSettings", ptype_object, true, binaryInputSettings_key, &device_key },
+    { "binaryInputStates", ptype_object, true, binaryInputStates_key, &device_key },
+    { "outputDescriptions", ptype_object, true, outputDescriptions_key, &device_key },
+    { "outputSettings", ptype_object, true, outputSettings_key, &device_key },
+    { "outputStates", ptype_object, true, outputStates_key, &device_key },
+    { "sensorDescriptions", ptype_object, true, sensorDescriptions_key, &device_key },
+    { "sensorSettings", ptype_object, true, sensorSettings_key, &device_key },
+    { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
+    // the scenes array
+    { "scenes", ptype_object, true, scenes_key, &device_key },
+  };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &deviceProperties[aPropIndex];
+  return &properties[aPropIndex];
 }
 
 

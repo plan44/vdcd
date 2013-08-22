@@ -213,16 +213,6 @@ enum {
 
 
 static char dsAddressable_key;
-static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperties] = {
-  { "dSID", ptype_charptr, false, dSID_key, &dsAddressable_key },
-  { "model", ptype_charptr, false, model_key, &dsAddressable_key },
-  { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &dsAddressable_key },
-  { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
-  { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
-  { "oemGuid", ptype_charptr, false, oemGUID_key, &dsAddressable_key },
-  { "name", ptype_charptr, false, name_key, &dsAddressable_key }
-};
-
 
 int DsAddressable::numProps(int aDomain)
 {
@@ -232,11 +222,20 @@ int DsAddressable::numProps(int aDomain)
 
 const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numDsAddressableProperties] = {
+    { "dSID", ptype_charptr, false, dSID_key, &dsAddressable_key },
+    { "model", ptype_charptr, false, model_key, &dsAddressable_key },
+    { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &dsAddressable_key },
+    { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
+    { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
+    { "oemGuid", ptype_charptr, false, oemGUID_key, &dsAddressable_key },
+    { "name", ptype_charptr, false, name_key, &dsAddressable_key }
+  };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &dsAddressableProperties[aPropIndex];
+  return &properties[aPropIndex];
 }
 
 

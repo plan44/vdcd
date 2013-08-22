@@ -876,10 +876,6 @@ enum {
 };
 
 
-static const PropertyDescriptor deviceContainerProperties[numDeviceContainerProperties] = {
-  { "devices", ptype_object, true, devices_key }
-};
-
 
 int DeviceContainer::numProps(int aDomain)
 {
@@ -889,11 +885,14 @@ int DeviceContainer::numProps(int aDomain)
 
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numDeviceContainerProperties] = {
+    { "devices", ptype_object, true, devices_key }
+  };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &deviceContainerProperties[aPropIndex];
+  return &properties[aPropIndex];
 }
 
 

@@ -85,11 +85,6 @@ enum {
 
 
 static char dsBehaviour_Key;
-static const PropertyDescriptor dsBehaviourDescProperties[numDsBehaviourDescProperties] = {
-  { "name", ptype_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
-  { "type", ptype_charptr, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
-};
-
 
 
 int DsBehaviour::numLocalProps(int aDomain)
@@ -111,6 +106,10 @@ int DsBehaviour::numProps(int aDomain)
 
 const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
+  static const PropertyDescriptor properties[numDsBehaviourDescProperties] = {
+    { "name", ptype_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
+    { "type", ptype_charptr, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
+  };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
@@ -121,7 +120,7 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
     case VDC_API_BHVR_DESC:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)
-        return &dsBehaviourDescProperties[aPropIndex];
+        return &properties[aPropIndex];
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific properties
       return getDescDescriptor(aPropIndex);
