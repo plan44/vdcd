@@ -43,11 +43,9 @@ namespace p44 {
 
   class DeviceClassContainer;
   typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
-  typedef boost::weak_ptr<DeviceClassContainer> DeviceClassContainerWeakPtr;
   typedef std::list<DevicePtr> DeviceList;
   class DeviceClassContainer
   {
-    DeviceClassContainerWeakPtr mySelf; ///< weak pointer to myself
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceList devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
