@@ -13,8 +13,8 @@ using namespace p44;
 
 #pragma mark - ButtonSettings
 
-ButtonSettings::ButtonSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
-  inherited(aParamStore, aBehaviour),
+ButtonSettings::ButtonSettings(DsBehaviour &aBehaviour) :
+  inherited(aBehaviour),
   buttonGroup(group_yellow_light), // default to light
   buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonFunc(buttonfunc_room_preset0x), // act as room button by default
@@ -27,21 +27,35 @@ ButtonSettings::ButtonSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour)
 // SQLIte3 table name to store these parameters to
 const char *ButtonSettings::tableName()
 {
-  return "dsButtonSettings";
+  return "ButtonSettings";
 }
 
 
-/// data field definitions
-const FieldDefinition *ButtonSettings::getFieldDefs()
+
+// data field definitions
+
+static const size_t numFields = 4;
+
+size_t ButtonSettings::numFieldDefs()
 {
-  static const FieldDefinition dataDefs[] = {
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *ButtonSettings::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
     { "buttonMode", SQLITE_INTEGER },
     { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
-    { "buttonFlags", SQLITE_INTEGER },
-    { NULL, 0 },
+    { "buttonFlags", SQLITE_INTEGER }
   };
-  return dataDefs;
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
 }
 
 
@@ -109,7 +123,7 @@ static const char *ClickTypeNames[] {
 
 ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
-  buttonSettings(aDevice.getDeviceContainer().getDsParamStore(), *this)
+  buttonSettings(*this)
 {
   // set default hrdware configuration
   setHardwareButtonType(0, buttonType_single, buttonElement_center, false);

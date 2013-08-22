@@ -14,8 +14,178 @@ using namespace p44;
 
 #pragma mark - LightScene
 
+
+LightScene::LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+  inherited(aSceneDeviceSettings, aSceneNo)
+{
+  sceneBrightness = 0;
+  specialBehaviour = false;
+  flashing = false;
+  dimTimeSelector = 0;
+}
+
+
+#pragma mark - Light Scene persistence
+
+// SQLIte3 table name to store these parameters to
+const char *LightScene::tableName()
+{
+  return "dsLightScenes";
+}
+
+
+
+// data field definitions
+
+static const size_t numFields = 3;
+
+size_t LightScene::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "brightness", SQLITE_INTEGER },
+    { "lightFlags", SQLITE_INTEGER },
+    { "dimTimeSelector", SQLITE_INTEGER }
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+enum {
+  lightflag_specialBehaviour = 0x0001,
+  lightflag_flashing = 0x0002
+};
+
+
+/// load values from passed row
+void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  sceneBrightness = aRow->get<int>(aIndex++);
+  int lightflags = aRow->get<int>(aIndex++);
+  dimTimeSelector = aRow->get<int>(aIndex++);
+  // decode the flags
+  specialBehaviour = lightflags & lightflag_specialBehaviour;
+  flashing = lightflags & lightflag_flashing;
+}
+
+
+/// bind values to passed statement
+void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // encode the flags
+  int lightflags = 0;
+  if (specialBehaviour) lightflags |= lightflag_specialBehaviour;
+  if (flashing) lightflags |= lightflag_flashing;
+  // bind the fields
+  aStatement.bind(aIndex++, sceneBrightness);
+  aStatement.bind(aIndex++, lightflags);
+  aStatement.bind(aIndex++, dimTimeSelector);
+}
+
+
+#pragma mark - Light scene property access
+
+
+static char lightscene_key;
+
+enum {
+  value_key,
+  flashing_key,
+  dimTimeSelector_key,
+  numLightSceneProperties
+};
+
+
+static const PropertyDescriptor lightSceneProperties[numLightSceneProperties] = {
+  { "value", ptype_int8, false, value_key, &lightscene_key },
+  { "flashing", ptype_bool, false, flashing_key, &lightscene_key },
+  { "dimTimeSelector", ptype_int8, false, dimTimeSelector_key, &lightscene_key },
+};
+
+
+int LightScene::numProps(int aDomain)
+{
+  return inherited::numProps(aDomain)+numLightSceneProperties;
+}
+
+
+const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+{
+  int n = inherited::numProps(aDomain);
+  if (aPropIndex<n)
+    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return &lightSceneProperties[aPropIndex];
+}
+
+
+bool LightScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aPropertyDescriptor.objectKey==&lightscene_key) {
+    if (!aForWrite) {
+      // read properties
+      switch (aPropertyDescriptor.accessKey) {
+        case value_key:
+          aPropValue = JsonObject::newInt32(sceneBrightness);
+          return true;
+        case flashing_key:
+          aPropValue = JsonObject::newBool(flashing);
+          return true;
+        case dimTimeSelector_key:
+          aPropValue = JsonObject::newInt32(dimTimeSelector);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor.accessKey) {
+        case value_key:
+          sceneBrightness = (Brightness)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case flashing_key:
+          flashing = aPropValue->boolValue();
+          markDirty();
+          return true;
+        case dimTimeSelector_key:
+          dimTimeSelector = aPropValue->int32Value();
+          markDirty();
+          return true;
+      }
+    }
+  }
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+}
+
+
+
+
+
+
+#pragma mark - LightDeviceSettings with default light scenes factory
+
+
+LightDeviceSettings::LightDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+};
+
+
 typedef struct {
-  Brightness sceneValue; ///< output value for this scene
+  Brightness brightness; ///< output value for this scene
   uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
   bool flashing; ///< flashing active for this scene
   bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
@@ -52,7 +222,7 @@ typedef struct {
 
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
-  // { sceneValue, dimTimeSelector, flashing, ignoreLocalPriority, dontCare, specialBehaviour }
+  // { brightness, dimTimeSelector, flashing, ignoreLocalPriority, dontCare, specialBehaviour }
   { 0, 1, false, false, false, false }, // 0 : Preset 0 - T0_S0
   { 0, 1, false, true, false, false }, // 1 : Area 1 Off - T1_S0
   { 0, 1, false, true, false, false }, // 2 : Area 2 Off - T2_S0
@@ -96,13 +266,13 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 0, 1, false, false, true, false }, // 40 : Reserved
   { 0, 1, false, false, true, false }, // 41 : Reserved
   { 0, 1, false, true, false, false }, // 42 : Area 1 Decrement - T1_DEC
-  { 0, 1, false, true, false, false }, // 43 : Area 1 Increment - T1_INC 
+  { 0, 1, false, true, false, false }, // 43 : Area 1 Increment - T1_INC
   { 0, 1, false, true, false, false }, // 44 : Area 2 Decrement - T2_DEC
-  { 0, 1, false, true, false, false }, // 45 : Area 2 Increment - T2_INC 
+  { 0, 1, false, true, false, false }, // 45 : Area 2 Increment - T2_INC
   { 0, 1, false, true, false, false }, // 46 : Area 3 Decrement - T3_DEC
   { 0, 1, false, true, false, false }, // 47 : Area 3 Increment - T3_INC
   { 0, 1, false, true, false, false }, // 48 : Area 4 Decrement - T4_DEC
-  { 0, 1, false, true, false, false }, // 49 : Area 4 Increment - T4_INC 
+  { 0, 1, false, true, false, false }, // 49 : Area 4 Increment - T4_INC
   { 0, 1, false, true, false, false }, // 50 : Device (Local Button) on : LOCAL_OFF
   { 255, 1, false, true, false, false }, // 51 : Device (Local Button) on : LOCAL_ON
   { 0, 1, false, true, false, false }, // 52 : Area 1 Stop - T1_STOP_S
@@ -139,134 +309,33 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
 };
 
 
-
-LightScene::LightScene(ParamStore &aParamStore, SceneNo aSceneNo) :
-  inherited(aParamStore),
-  sceneNo(aSceneNo)
+DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 {
   // fetch from defaults
   if (aSceneNo>NUMDEFAULTSCENES)
     aSceneNo = NUMDEFAULTSCENES; // last entry in the table is the default for all higher scene numbers
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
-  sceneValue = p.sceneValue;
-  dimTimeSelector = p.dimTimeSelector;
-  flashing = p.flashing;
-  ignoreLocalPriority = p.ignoreLocalPriority;
-  dontCare = p.dontCare;
-  specialBehaviour = p.specialBehaviour;
+  LightScenePtr lightScene = LightScenePtr(new LightScene(*this, aSceneNo));
+  // now set default values
+  // - common scene flags
+  lightScene->dontCare = p.dontCare;
+  lightScene->ignoreLocalPriority = p.ignoreLocalPriority;
+  // - light scene specifics
+  lightScene->sceneBrightness = p.brightness;
+  lightScene->dimTimeSelector = p.dimTimeSelector;
+  lightScene->flashing = p.flashing;
+  lightScene->specialBehaviour = p.specialBehaviour;
+  // return it
+  return lightScene;
 }
 
 
-// SQLIte3 table name to store these parameters to
-const char *LightScene::tableName()
-{
-  return "dsLightScenes";
-}
+
+#pragma mark - LightOutputSettings
 
 
-// primary key field definitions
-const FieldDefinition *LightScene::getKeyDefs()
-{
-  static const FieldDefinition keyDefs[] = {
-    { "parentID", SQLITE_INTEGER }, // not included in loadFromRow() and bindToStatement()
-    { "sceneNo", SQLITE_INTEGER }, // first field included in loadFromRow() and bindToStatement()
-    { NULL, 0 },
-  };
-  return keyDefs;
-}
-
-
-/// data field definitions
-const FieldDefinition *LightScene::getFieldDefs()
-{
-  static const FieldDefinition dataDefs[] = {
-    { "sceneValue", SQLITE_INTEGER },
-    { "sceneFlags", SQLITE_INTEGER },
-    { "dimTimeSelector", SQLITE_INTEGER },
-    { NULL, 0 },
-  };
-  return dataDefs;
-}
-
-
-enum {
-  LightSceneFlag_dontCare = 0x0001,
-  LightSceneFlag_ignoreLocalPriority = 0x0002,
-  LightSceneFlag_specialBehaviour = 0x0004,
-  LightSceneFlag_flashing = 0x0008,
-  LightSceneFlag_slowTransition = 0x0010,
-};
-
-
-/// load values from passed row
-void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
-{
-  inherited::loadFromRow(aRow, aIndex);
-  // get the fields
-  sceneNo = aRow->get<int>(aIndex++);
-  sceneValue = aRow->get<int>(aIndex++);
-  int flags = aRow->get<int>(aIndex++);
-  dimTimeSelector = aRow->get<int>(aIndex++);
-  // decode the flags
-  dontCare = flags & LightSceneFlag_dontCare;
-  ignoreLocalPriority = flags & LightSceneFlag_ignoreLocalPriority;
-  specialBehaviour = flags & LightSceneFlag_specialBehaviour;
-  flashing = flags & LightSceneFlag_flashing;
-}
-
-
-/// bind values to passed statement
-void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
-{
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // encode the flags
-  int flags = 0;
-  if (dontCare) flags |= LightSceneFlag_dontCare;
-  if (ignoreLocalPriority) flags |= LightSceneFlag_ignoreLocalPriority;
-  if (specialBehaviour) flags |= LightSceneFlag_specialBehaviour;
-  if (flashing) flags |= LightSceneFlag_flashing;
-  // bind the fields
-  aStatement.bind(aIndex++, sceneNo);
-  aStatement.bind(aIndex++, sceneValue);
-  aStatement.bind(aIndex++, flags);
-  aStatement.bind(aIndex++, dimTimeSelector);
-}
-
-
-// SCECON
-//  Bit0: Don't care flag. Wenn 1 wird der Ausgang nicht verändert
-//  Bit1: Lokale Priorisierung ignorieren
-//  Bit2: Spezialverhalten aktiv (INC/DEC/STOP/meinCLICK)
-//  Bit3: Flashen für diese Szene aktiv
-//  Bit4-5 : 0 LED Konfiguration nicht verändern, 1-3 LEDCON0..2 verwenden
-//  Bit6-7 : 0 DIMTIME Konfiguration nicht verändern 1-3 DIMTIME0..2 verwenden
-
-uint8_t LightScene::getSceCon()
-{
-  return
-    (dontCare ? 0x01 : 0) +
-    (ignoreLocalPriority ? 0x02 : 0) +
-    (specialBehaviour ? 0x04 : 0) +
-    (flashing ? 0x08 : 0) +
-    (dimTimeSelector<<6) & 0xC0;
-}
-
-
-void LightScene::setSceCon(uint8_t aSceCon)
-{
-  dontCare = aSceCon & 0x01;
-  ignoreLocalPriority = aSceCon & 0x02;
-  specialBehaviour = aSceCon & 0x04;
-  flashing = aSceCon & 0x08;
-  dimTimeSelector = (aSceCon>>6) & 0x03;
-}
-
-
-#pragma mark - LightSettings
-
-
-LightSettings::LightSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
-  inherited(aParamStore, aBehaviour),
+LightOutputSettings::LightOutputSettings(DsBehaviour &aBehaviour) :
+  inherited(aBehaviour),
   isDimmable(false),
   onThreshold(128),
   minDim(1),
@@ -284,43 +353,15 @@ LightSettings::LightSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
 
 
 
-LightScenePtr LightSettings::getScene(SceneNo aSceneNo)
+
+const char *LightOutputSettings::tableName()
 {
-  // check if we have modified from default data
-  LightSceneMap::iterator pos = scenes.find(aSceneNo);
-  if (pos!=scenes.end()) {
-    // found scene params in map
-    return pos->second;
-  }
-  else {
-    // just return default values for this scene
-    return LightScenePtr(new LightScene(paramStore, aSceneNo));
-  }
+  return "LightOutputSettings";
 }
 
-
-void LightSettings::updateScene(LightScenePtr aScene)
-{
-  if (aScene->rowid==0) {
-    // unstored so far, add to map of non-default scenes
-    scenes[aScene->sceneNo] = aScene;
-  }
-  // anyway, mark scene dirty
-  aScene->markDirty();
-  // as we need the ROWID of the lightsettings as parentID, make sure we get saved if we don't have one
-  if (rowid==0) markDirty();
-}
-
-
-
-// SQLIte3 table name to store these parameters to
-const char *LightSettings::tableName()
-{
-  return "dsLight";
-}
 
 /// data field definitions
-const FieldDefinition *LightSettings::getFieldDefs()
+const FieldDefinition *LightOutputSettings::getFieldDefs()
 {
   static const FieldDefinition dataDefs[] = {
     { "isDimmable", SQLITE_INTEGER },
@@ -334,7 +375,7 @@ const FieldDefinition *LightSettings::getFieldDefs()
 
 
 /// load values from passed row
-void LightSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void LightOutputSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
@@ -346,7 +387,7 @@ void LightSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 // bind values to passed statement
-void LightSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void LightOutputSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the fields
@@ -357,81 +398,12 @@ void LightSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aInde
 }
 
 
-// load child parameters (scenes)
-ErrorPtr LightSettings::loadChildren()
-{
-  ErrorPtr err;
-  // my own ROWID is the parent key for the children
-  string parentID = string_format("%d",rowid);
-  // create a template
-  LightScenePtr scene = LightScenePtr(new LightScene(paramStore, 0));
-  // get the query
-  sqlite3pp::query * queryP = scene->newLoadAllQuery(parentID.c_str());
-  if (queryP==NULL) {
-    // real error preparing query
-    err = paramStore.error();
-  }
-  else {
-    for (sqlite3pp::query::iterator row = queryP->begin(); row!=queryP->end(); ++row) {
-      // got record
-      // - load record fields into scene object
-      int index = 0;
-      scene->loadFromRow(row, index);
-      // - put scene into map of non-default scenes
-      scenes[scene->sceneNo] = scene;
-      // - fresh object for next row
-      scene = LightScenePtr(new LightScene(paramStore, 0));
-    }
-  }
-  return err;
-}
-
-// save child parameters (scenes)
-ErrorPtr LightSettings::saveChildren()
-{
-  ErrorPtr err;
-  // Cannot save children before I have my own rowID
-  if (rowid!=0) {
-    // my own ROWID is the parent key for the children
-    string parentID = string_format("%d",rowid);
-    // save all elements of the map (only dirty ones will be actually stored to DB
-    for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
-      err = pos->second->saveToStore(parentID.c_str());
-    }
-  }
-  return err;
-}
-
-
-// save child parameters (scenes)
-ErrorPtr LightSettings::deleteChildren()
-{
-  ErrorPtr err;
-  for (LightSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
-    err = pos->second->deleteFromStore();
-  }
-  return err;
-}
-
-
-DsOutputModes LightSettings::getOutputMode()
-{
-  return isDimmable ? outputmode_dim_phase_trailing_char : outputmode_switch;
-}
-
-
-void LightSettings::setOutputMode(DsOutputModes aOutputMode)
-{
-  isDimmable = aOutputMode>=outputmode_dim_eff && aOutputMode<=outputmode_dim_pwm_char;
-}
-
-
 
 #pragma mark - LightBehaviour
 
 LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
-  lightSettings(aDevice.getDeviceContainer().getDsParamStore(), *this),
+  lightOutputSettings(*this),
   localPriority(false),
   isLocigallyOn(false),
   logicalBrightness(0)
@@ -445,7 +417,7 @@ void LightBehaviour::setHardwareDimmer(bool aAvailable)
 {
   hasDimmer = aAvailable;
   // default to dimming mode if we have a dimmer, not dimming otherwise
-  lightSettings.isDimmable = hasDimmer;
+  lightOutputSettings.isDimmable = hasDimmer;
 }
 
 
@@ -462,18 +434,18 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
   logicalBrightness = aBrightness;
   if (isLocigallyOn) {
     // device is logically ON
-    if (lightSettings.isDimmable && hasDimmer) {
+    if (lightOutputSettings.isDimmable && hasDimmer) {
       // dimmable, 0=off, 1..255=brightness
-      device.setOutputValue(0, logicalBrightness, aTransitionTime);
+      device.setOutputValue(*this, logicalBrightness, aTransitionTime);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      device.setOutputValue(0, logicalBrightness>=lightSettings.onThreshold ? 255 : 0, aTransitionTime);
+      device.setOutputValue(*this, logicalBrightness>=lightOutputSettings.onThreshold ? 255 : 0, aTransitionTime);
     }
   }
   else {
     // off is off
-    device.setOutputValue(0, 0, aTransitionTime);
+    device.setOutputValue(*this, 0, aTransitionTime);
   }
 }
 
@@ -484,251 +456,96 @@ void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, 
   logicalBrightness = aCurrent;
   if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
 
-  if (aMin!=lightSettings.minDim || aMax!=lightSettings.maxDim) {
-    lightSettings.maxDim = aMax;
-    lightSettings.minDim = aMin>0 ? aMin : 1; // never below 1
-    lightSettings.markDirty();
+  if (aMin!=lightOutputSettings.minDim || aMax!=lightOutputSettings.maxDim) {
+    lightOutputSettings.maxDim = aMax;
+    lightOutputSettings.minDim = aMin>0 ? aMin : 1; // never below 1
+    lightOutputSettings.markDirty();
   }
 }
-
-
-
-
-#pragma mark - functional identification for digitalSTROM system
-
-// Standard group
-//  0 variable (all)
-//  1 Light (yellow)
-//  2 Blinds (grey)
-//  3 Climate (blue)
-//  4 Audio (cyan)
-//  5 Video (magenta)
-//  6 Security (red)
-//  7 Access (green)
-//  8 Joker (black)
-
-// Function ID:
-//
-//  1111 11
-//  5432 1098 76 543210
-//  gggg.cccc cc.xxxxxx
-//
-//  - gggg   : device group (color, class), 0..15
-//  - cccccc : device subclass
-//             - 000100 : dS-Standard R105 (current dS standard)
-//  - xxxxxx : class specific config
-//
-//  Light:
-//  - Xxxxxx : Bit 5 : if set, ramp time is variable and can be set in RAMPTIMEMAX
-//  - xXxxxx : Bit 4 : if set, device has a power output
-//  - xxXxxx : Bit 3 : if set, device has extra hardware features like extra binary inputs, sensors etc.
-//  - xxxXxx : Bit 2 : reserved
-//  - xxxxXX : Bit 0..1 : 0 = no button, 1 = one button, 2 = two buttons, 3 = four buttons
-
-//  Name,          FunctionId  ProductId,  ltMode, outputMode,   buttonIdGroup
-//  "GE-KM200",    0x1111,     200,        0,      16,           0x10
-//  "GE-TKM210",   0x1111,     1234,       0,      16,           0x15
-//  "GE-TKM220",   0x1101,     1244,       0,      0,            0x15
-//  "GE-TKM230",   0x1102,     1254,       0,      0,            0x15
-//  "GE-KL200",    0x1111,     3272,       0,      35,           0x10
-//  "GE-KL210",    0x1111,     5320,       0,      35,           0x10
-//  "GE-SDM200",   0x1111,     2248,       0,      16,           0x10
-//  "GE-SDS200",   0x1119,     6344,       0,      16,           0x10
-//  "GR-KL200",    0x2131,     3272,       0,      33,           0x20
-//  "GR-KL210",    0x2131,     3282,       0,      33,           0x20
-//  "GR-KL220",    0x2131,     3292,       0,      42,           0x20
-//  "GR-TKM200",   0x2101,     1224,       0,      0,            0x25
-//  "GR-TKM210",   0x2101,     1234,       0,      0,            0x25
-//  "RT-TKM200",   0x6001,     1224,       0,      16,           0
-//  "RT-SDM200",   0x6001,     2248,       0,      16,           0
-//  "GN-TKM200",   0x7050,     1224,       0,      16,           0
-//  "GN-TKM210",   0x6001,     1234,       0,      16,           0
-//  "GN-KM200",    0x6001,     200,        0,      16,           70
-//  "SW-KL200",    0x8111,     5320,       0,      41,           0
-//  "SW-KL210",    0x8111,     3273,       0,      40,           0
-//  "SW-TKM210",   0x8102,     1234,       0,      0,            0
-//  "SW-TKM200",   0x8103,     1224,       0,      0,            0
-
-
-
-uint16_t LightBehaviour::functionId()
-{
-//  int i = device.getNumButtons();
-  int i = 0;
-  return
-    (group_yellow_light<<12) + // always light
-    (0x04 << 6) + // DS Standard R105
-    (0 << 5) + // no variable ramp time
-    (0 << 5) + // no variable ramp time
-    (1 << 4) + // light always has power output
-    (i>3 ? 3 : i); // 0 = no inputs, 1..2 = 1..2 inputs, 3 = 4 inputs
-}
-
-
-
-uint16_t LightBehaviour::productId()
-{
-  return 200;
-}
-
-
-uint16_t LightBehaviour::groupMemberShip()
-{
-  return group_yellow_light; // fixed to Light
-}
-
-
-uint16_t LightBehaviour::version()
-{
-  #warning // TODO: just faking a real GE-KM200's version for now
-  return 0x0314;
-}
-
-
-
-uint8_t LightBehaviour::ltMode()
-{
-  return buttonmode_inactive; // TODO: Really parametrize this
-}
-
-
-uint8_t LightBehaviour::outputMode()
-{
-  return lightSettings.getOutputMode();
-}
-
-
-
-uint8_t LightBehaviour::buttonIdGroup()
-{
-  return group_yellow_light<<4 + buttonfunc_device; // TODO: Really parametrize this
-}
-
 
 
 
 #pragma mark - interaction with digitalSTROM system
 
 
-// call scene
-void LightBehaviour::callScene(SceneNo aSceneNo)
+// apply scene
+void LightBehaviour::applyScene(DsScenePtr aScene)
 {
-  // TODO: area scenes are missing for now
-  if (aSceneNo==DEC_S || aSceneNo==INC_S) {
-    // dimming up/down special scenes
-    //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
-    if (isLocigallyOn && !localPriority) {
-      Brightness b = getLogicalBrightness();
-      Brightness nb = b;
-      if (aSceneNo==DEC_S) {
-        // dim down
-        // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
-        // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
-        nb = nb>11 ? nb-11 : 1; // never below 1
-        // also make sure we don't go below minDim
-        if (nb<lightSettings.minDim)
-          nb = lightSettings.minDim;
-      }
-      else {
-        // dim up
-        nb = nb<255-11 ? nb+11 : 255;
-        // also make sure we don't go above maxDim
-        if (nb>lightSettings.maxDim)
-          nb = lightSettings.maxDim;
-      }
-      if (nb!=b) {
-        isLocigallyOn = nb!=0; // TODO: is this correct?
-        // TODO: pass correct transition time
-        setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-        LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
+  // we can only handle light scenes
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene) {
+    SceneNo sceneNo = lightScene->sceneNo;
+    if (sceneNo==DEC_S || sceneNo==INC_S) {
+      // dimming up/down special scenes
+      //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
+      if (isLocigallyOn && !localPriority) {
+        Brightness b = getLogicalBrightness();
+        Brightness nb = b;
+        if (sceneNo==DEC_S) {
+          // dim down
+          // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
+          // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
+          nb = nb>11 ? nb-11 : 1; // never below 1
+          // also make sure we don't go below minDim
+          if (nb<lightOutputSettings.minDim)
+            nb = lightOutputSettings.minDim;
+        }
+        else {
+          // dim up
+          nb = nb<255-11 ? nb+11 : 255;
+          // also make sure we don't go above maxDim
+          if (nb>lightOutputSettings.maxDim)
+            nb = lightOutputSettings.maxDim;
+        }
+        if (nb!=b) {
+          isLocigallyOn = nb!=0; // TODO: is this correct?
+          // TODO: pass correct transition time
+          setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
+          LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
+        }
       }
     }
-  }
-  else if (aSceneNo==STOP_S) {
-    // stop dimming
-    // TODO: when fine tuning dimming, we'll need to actually stop ongoing DALI dimming. For now, it's just a NOP
-  }
-  else if (aSceneNo==MIN_S) {
-    // TODO: this is a duplicate implementation of "callscenemin"
-    Brightness b = lightSettings.minDim;
-    isLocigallyOn = true; // mindim always turns on light
-    // TODO: pass correct transition time
-    setLogicalBrightness(b, 0);
-    LOG(LOG_NOTICE,"- CallScene(MIN_S): setting minDim %d\n", b);
-  }
-  else {
-    LightScenePtr scene = lightSettings.getScene(aSceneNo);
-    if (!scene->dontCare && (!localPriority || scene->ignoreLocalPriority)) {
-      // apply to output
-      Brightness b = scene->sceneValue;
-      isLocigallyOn = b!=0; // TODO: is this correct?
+    else if (sceneNo==STOP_S) {
+      // stop dimming
+      // TODO: when fine tuning dimming, we'll need to actually stop ongoing DALI dimming. For now, it's just a NOP
+    }
+    else if (sceneNo==MIN_S) {
+      // TODO: this is a duplicate implementation of "callscenemin"
+      Brightness b = lightOutputSettings.minDim;
+      isLocigallyOn = true; // mindim always turns on light
       // TODO: pass correct transition time
       setLogicalBrightness(b, 0);
-      LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", aSceneNo, b);
+      LOG(LOG_NOTICE,"- CallScene(MIN_S): setting minDim %d\n", b);
+    }
+    else {
+      if (!lightScene->dontCare && (!localPriority || lightScene->ignoreLocalPriority)) {
+        // apply to output
+        Brightness b = lightScene->sceneBrightness;
+        isLocigallyOn = b!=0; // TODO: is this correct?
+        // TODO: pass correct transition time
+        setLogicalBrightness(b, 0);
+        LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", sceneNo, b);
+      }
     }
   }
 }
 
 
-/* %%% old API
-// handle message from vdSM
-ErrorPtr LightBehaviour::handleMessage(string &aOperation, JsonObjectPtr aParams)
+// capture scene
+void LightBehaviour::captureScene(DsScenePtr aScene)
 {
-  ErrorPtr err;
-  if (aOperation=="setoutval") {
-    JsonObjectPtr o = aParams->get("Outval");
-    if (o==NULL) {
-      err = ErrorPtr(new vdSMError(
-        vdSMErrorMissingParameter,
-        string_format("missing parameter 'Outval'")
-      ));
-    }
-    else {
-      Brightness b = o->int32Value();
-      isLocigallyOn = b!=0; // TODO: is this correct?
-      setLogicalBrightness(b);
+  // we can only handle light scenes
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene) {
+    // just capture the output value
+    if (lightScene->sceneBrightness != getLogicalBrightness()) {
+      lightScene->sceneBrightness = getLogicalBrightness();
+      lightScene->markDirty();
     }
   }
-  else if (aOperation=="callscene") {
-    JsonObjectPtr o = aParams->get("Scene");
-    if (o==NULL) {
-      err = ErrorPtr(new vdSMError(
-        vdSMErrorMissingParameter,
-        string_format("missing parameter 'Scene'")
-      ));
-    }
-    else {
-      SceneNo sceneNo = o->int32Value();
-      callScene(sceneNo);
-    }
-  }
-  else if (aOperation=="callscenemin") {
-    Brightness b = lightSettings.minDim;
-    isLocigallyOn = true; // mindim always turns on light
-    // TODO: pass correct transition time
-    setLogicalBrightness(b, 0);
-    LOG(LOG_NOTICE,"- CallSceneMin: setting minDim %d\n", b);
-  }
-  else if (aOperation=="undoscenenumber") {
-    // TODO: implement undoscenenumber
-    LOG(LOG_NOTICE,"Called unimplemented %s on behaviour %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="undoscene") {
-    // TODO: implement undoscene
-    LOG(LOG_NOTICE,"Called unimplemented %s on behaviour %s\n", aOperation.c_str(), shortDesc().c_str());
-  }
-  else if (aOperation=="blink") {
-    blinkCounter = 3;
-    setLogicalBrightness(1,0); // not entirely off to avoid multiple ignition
-    nextBlink();
-  }
-  else {
-    err = inherited::handleMessage(aOperation, aParams);
-  }
-  return err;
 }
 
-*/
+
 
 
 #define BLINK_HALF_PERIOD (500*MilliSecond)
@@ -753,114 +570,25 @@ void LightBehaviour::nextBlink()
 }
 
 
-//// get behaviour-specific parameter
-//ErrorPtr LightBehaviour::getBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t &aValue)
-//{
-//  if (aParamName=="MODE")
-//    aValue = lightSettings.getOutputMode();
-//  else if (aParamName=="VAL") // current logical brightness value (actual output value might be different for non-dimmables)
-//    aValue = getLogicalBrightness();
-//  else if (aParamName=="MINDIM")
-//    aValue = lightSettings.minDim;
-//  else if (aParamName=="MAXDIM")
-//    aValue = lightSettings.maxDim;
-//  else if (aParamName=="SW_THR")
-//    aValue = lightSettings.onThreshold;
-//  else if (aParamName=="SW_THR")
-//    aValue = lightSettings.onThreshold;
-//  else if (aParamName=="DIMTIME0_UP")
-//    aValue = lightSettings.dimUpTime[0];
-//  else if (aParamName=="DIMTIME1_UP")
-//    aValue = lightSettings.dimUpTime[1];
-//  else if (aParamName=="DIMTIME2_UP")
-//    aValue = lightSettings.dimUpTime[2];
-//  else if (aParamName=="DIMTIME0_DOWN")
-//    aValue = lightSettings.dimDownTime[0];
-//  else if (aParamName=="DIMTIME1_DOWN")
-//    aValue = lightSettings.dimDownTime[1];
-//  else if (aParamName=="DIMTIME2_DOWN")
-//    aValue = lightSettings.dimDownTime[2];
-//  else if (aParamName=="STEP0_UP")
-//    aValue = lightSettings.dimUpStep;
-//  else if (aParamName=="STEP0_DOWN")
-//    aValue = lightSettings.dimDownStep;
-//  else if (aParamName=="SCE")
-//    aValue = lightSettings.getScene(aArrayIndex)->sceneValue;
-//  else if (aParamName=="SCECON")
-//    aValue = lightSettings.getScene(aArrayIndex)->getSceCon();
-//  else
-//    return inherited::getBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-//  // done
-//  return ErrorPtr();
-//}
-//
-//
-//// set behaviour-specific parameter
-//ErrorPtr LightBehaviour::setBehaviourParam(const string &aParamName, int aArrayIndex, uint32_t aValue)
-//{
-//  if (aParamName=="MODE")
-//    lightSettings.setOutputMode((DsOutputModes)aValue);
-//  else if (aParamName=="VAL") // set current logical brightness value. // TODO: this is redunant with SetOutval operation
-//    setLogicalBrightness(aValue);
-//  else if (aParamName=="MINDIM")
-//    lightSettings.minDim = aValue;
-//  else if (aParamName=="MAXDIM")
-//    lightSettings.maxDim = aValue;
-//  else if (aParamName=="SW_THR")
-//    lightSettings.onThreshold = aValue;
-//  else if (aParamName=="DIMTIME0_UP")
-//    lightSettings.dimUpTime[0] = aValue;
-//  else if (aParamName=="DIMTIME1_UP")
-//    lightSettings.dimUpTime[1] = aValue;
-//  else if (aParamName=="DIMTIME2_UP")
-//    lightSettings.dimUpTime[2] = aValue;
-//  else if (aParamName=="DIMTIME0_DOWN")
-//    lightSettings.dimDownTime[0] = aValue;
-//  else if (aParamName=="DIMTIME1_DOWN")
-//    lightSettings.dimDownTime[1] = aValue;
-//  else if (aParamName=="DIMTIME2_DOWN")
-//    lightSettings.dimDownTime[2] = aValue;
-//  else if (aParamName=="STEP0_UP")
-//    lightSettings.dimUpStep = aValue;
-//  else if (aParamName=="STEP0_DOWN")
-//    lightSettings.dimDownStep = aValue;
-//  else if (aParamName=="SCE") {
-//    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
-//    ls->sceneValue = aValue;
-//    lightSettings.updateScene(ls);
-//  }
-//  else if (aParamName=="SCECON") {
-//    LightScenePtr ls = lightSettings.getScene(aArrayIndex);
-//    ls->setSceCon(aValue);
-//    lightSettings.updateScene(ls);
-//  }
-//  else
-//    return inherited::setBehaviourParam(aParamName, aArrayIndex, aValue); // none of my params, let parent handle it
-//  // set a local param, mark dirty
-//  lightSettings.markDirty();
-//  return ErrorPtr();
-//}
-
-
 
 ErrorPtr LightBehaviour::load()
 {
   // load light settings (and scenes along with it)
-  return lightSettings.load();
+  return lightOutputSettings.load();
 }
 
 
 ErrorPtr LightBehaviour::save()
 {
   // save light settings (and scenes along with it)
-  return lightSettings.save();
+  return lightOutputSettings.save();
 }
 
 
 ErrorPtr LightBehaviour::forget()
 {
   // delete light settings (and scenes along with it)
-  return lightSettings.deleteFromStore();
+  return lightOutputSettings.deleteFromStore();
 }
 
 
@@ -879,7 +607,7 @@ string LightBehaviour::description()
   string s = string_format("dS behaviour %s\n", shortDesc().c_str());
   string_format_append(s, "- hardware: %s\n", hasDimmer ? "dimmer" : "switch");
   string_format_append(s, "- logical brightness = %d, logical on = %d, localPriority = %d\n", logicalBrightness, isLocigallyOn, localPriority);
-  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", lightSettings.isDimmable, lightSettings.minDim, lightSettings.maxDim, lightSettings.onThreshold);
+  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", lightOutputSettings.isDimmable, lightOutputSettings.minDim, lightOutputSettings.maxDim, lightOutputSettings.onThreshold);
   s.append(inherited::description());
   return s;
 }

@@ -161,12 +161,16 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, JsonObject
   if (aPropertyDescriptor.propertyType==ptype_object || aPropertyDescriptor.propertyType==ptype_proxy) {
     // structured property with subproperties, get container
     int containerDomain = aDomain;
-    PropertyContainer *containerP = getContainer(aPropertyDescriptor, containerDomain, aIndex);
-    if (!containerP)
+    PropertyContainerPtr container = getContainer(aPropertyDescriptor, containerDomain, aIndex);
+    if (!container)
       err = ErrorPtr(new JsonRpcError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a object/proxy to return no container
     else {
       // access all fields of structured object (named "*"), or singe default field of proxied property (named "^")
-      err = containerP->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0);
+      err = container->accessProperty(aForWrite, aJsonObject, aPropertyDescriptor.propertyType==ptype_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0);
+      if (aForWrite && Error::isOK(err)) {
+        // give this container a chance to post-process write access
+        err = writtenProperty(aPropertyDescriptor, aDomain, aIndex, container);
+      }
     }
   }
   else {

@@ -40,14 +40,14 @@ namespace p44 {
     /// @{
 
     /// get currently set output value from device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    virtual int16_t getOutputValue(int aChannel);
+    /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
+    virtual int16_t getOutputValue(OutputBehaviour &aOutputBehaviour);
 
     /// set new output value on device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    /// @param aOutputBehaviour the output behaviour which wants to set the hardware output value
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime=0);
+    virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0);
 
     /// @}
 

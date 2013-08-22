@@ -14,12 +14,11 @@
 #include "dsid.hpp"
 #include "dsdefs.h"
 
+#include "dsscene.hpp"
+
 using namespace std;
 
 namespace p44 {
-
-  typedef uint8_t Brightness;
-  typedef uint8_t SceneNo;
 
   // offset to differentiate property keys for descriptions, settings and states
   enum {
@@ -50,7 +49,7 @@ namespace p44 {
     DsBehaviour &behaviour;
 
   public:
-    DsBehaviourSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour);
+    DsBehaviourSettings(DsBehaviour &aBehaviour);
 
     /// load behaviour settings from store
     ErrorPtr load();
@@ -62,6 +61,11 @@ namespace p44 {
     string getDbKey();
   };
 
+
+  #warning "TODO: fold behavioursettings into DsBehaviour, if multiple inheritance works ok"
+
+
+  #warning "TODO: Separete OutputBehaviour and implement properties"
 
 
   /// a DsBehaviour represents and implements a device behaviour according to dS specs
@@ -118,6 +122,10 @@ namespace p44 {
     virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
 
     /// @}
+
+    /// get the index value
+    /// @return index of this behaviour in one of the owning device's behaviour lists
+    size_t getIndex() { return index; };
 
     /// textual representation of getType()
     /// @return type string
@@ -198,7 +206,22 @@ namespace p44 {
     OutputBehaviour(Device &aDevice, size_t aIndex)
     : inherited(aDevice, aIndex) {};
 
+    /// @name interaction with digitalSTROM system
+    /// @{
+
+    /// apply scene to output
+    /// @param aScene the scene to apply to the output
+    virtual void applyScene(DsScenePtr aScene) = 0;
+
+    /// capture current state into passed scene object
+    /// @param aScene the scene object to update
+    virtual void captureScene(DsScenePtr aScene) = 0;
+
+    /// @}
+
   };
+  typedef boost::shared_ptr<OutputBehaviour> OutputBehaviourPtr;
+
 
   class BinaryInputBehaviour : public DsBehaviour
   {
@@ -219,6 +242,7 @@ namespace p44 {
     : inherited(aDevice, aIndex) {};
     
   };
+  typedef boost::shared_ptr<BinaryInputBehaviour> BinaryInputBehaviourPtr;
 
 
   class SensorBehaviour : public DsBehaviour
@@ -240,6 +264,7 @@ namespace p44 {
     : inherited(aDevice, aIndex) {};
     
   };
+  typedef boost::shared_ptr<SensorBehaviour> SensorBehaviourPtr;
 
 
 } // namespace p44

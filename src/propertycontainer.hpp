@@ -99,10 +99,19 @@ namespace p44 {
     /// @param aDomain the domain for which to access properties. Call might modify the domain such that it fits
     ///   to the accessed container. For example, one container might support different sets of properties
     ///   (like description/settings/states for DsBehaviours)
-    /// @param aIndex, for array properties the element to access (0..size)
+    /// @param aIndex for array properties the element to access (0..size)
     /// @return PropertyContainer representing the property or property array element
     /// @note base class always returns NULL, which means no structured or proxy properties
-    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0) { return NULL; };
+    virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0) { return NULL; };
+
+    /// post-process written properties in subcontainers. This is called when a property write access was
+    /// delegated via getContainer(), and can be used to commit a container write transaction or similar
+    /// @param aPropertyDescriptor decriptor for a structured (object) property or a ptype_proxy property
+    /// @param aDomain the domain in which the write access happened
+    /// @param aIndex for array properties the element to access (0..size)
+    /// @param aContainer the container object that was accessed
+    virtual ErrorPtr writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer) { return ErrorPtr(); }
+
 
     /// get base pointer for accessing scalar fields in a struct by adding accessKey from the descriptor to it
     virtual void *dataStructBasePtr(int aIndex = 0) { return NULL; }

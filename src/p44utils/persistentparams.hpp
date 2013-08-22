@@ -39,23 +39,33 @@ namespace p44 {
     /// @name interface to be implemented for specific parameter sets in subclasses
     /// @{
 
-    /// return table name
+    /// get name of DB table to store persistent parameters in
     /// @return table name
+    /// @note derived classes might extend an existing table (as long as base class' fields
+    ///   are supported) or define a separate table to store the derived objects.
     virtual const char *tableName() = 0;
 
+    /// @return number of key field definitions
+    virtual size_t numKeyDefs();
+
     /// get primary key field definitions
-    /// @return array of FieldDefinition structs, terminated by entry with fieldName==NULL
-    ///   these fields together build the primary key, which must be unique (only one record with a given
+    /// @param aIndex the field definition index, 0..numKeyDefs().
+    /// @return pointer to FieldDefinition, NULL if index is out of range.
+    ///   These fields together build the primary key, which must be unique (only one record with a given
     ///   combination of key values may exist in the DB)
     /// @note the first field must be the one which identifies the parent.
     //    Other key fields may be needed if parent can have more than one child
     /// @note for the base class, this returns a single string field named "parentID",
-    ///   which is usually the dsid of the device for which this is the parameter set
-    virtual const FieldDefinition *getKeyDefs();
+    ///   which is usually an ID for the entity for which this is the parameter set
+    virtual const FieldDefinition *getKeyDef(size_t aIndex);
+
+    /// @return number of data field definitions
+    virtual size_t numFieldDefs() { return 0; };
 
     /// get data field definitions
-    /// @return array of FieldDefinition structs, terminated by entry with fieldName==NULL
-    virtual const FieldDefinition *getFieldDefs() = 0;
+    /// @param aIndex the field definition index, 0..numFieldDefs().
+    /// @return pointer to FieldDefinition, NULL if index is out of range.
+    virtual const FieldDefinition *getFieldDef(size_t aIndex) { return NULL; }
 
     /// load values from passed row
     /// @param aRow result row to get parameter values from
@@ -109,6 +119,8 @@ namespace p44 {
   private:
     /// check and update schema to hold the parameters
     void checkAndUpdateSchema();
+    /// append field list
+    size_t appendfieldList(string &sql, bool keyFields, bool aAppendFields, bool aWithParamAssignment);
 
   };
   

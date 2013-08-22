@@ -389,11 +389,8 @@ void DeviceContainer::localDimHandler()
 {
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
-    #warning "TODO: Need new way to get light output behaviours"
-    LightBehaviour *lightBehaviour = NULL;
-    //LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
-    if (lightBehaviour) {
-      lightBehaviour->callScene(localDimDown ? DEC_S : INC_S);
+    if (dev->isMember(group_yellow_light)) {
+      dev->callScene(localDimDown ? DEC_S : INC_S, true);
     }
   }
   localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
@@ -450,14 +447,14 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
   if (scene>=0) {
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
-      #warning "TODO: Need new way to get light output behaviours"
-      LightBehaviour *lightBehaviour = NULL;
-      //LightBehaviour *lightBehaviour = dynamic_cast<LightBehaviour *>(dev->behaviourP);
-      if (lightBehaviour) {
+      if (dev->isMember(group_yellow_light)) {
         // this is a light
+        LightBehaviourPtr lightBehaviour;
+        if (dev->outputs.size()>0)
+          lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->outputs[0]);
         if (direction==0) {
           // get direction from current value of first encountered light
-          direction = lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
+          direction = lightBehaviour && lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
         }
         // determine the scene to call
         int effScene = scene;
@@ -467,7 +464,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
             effScene = DEC_S;
           else {
             // increment - check if we need to do a MIN_S first
-            if (!lightBehaviour->getLogicallyOn())
+            if (lightBehaviour && !lightBehaviour->getLogicallyOn())
               effScene = MIN_S; // after calling this once, light should be logically on
           }
         }
@@ -476,7 +473,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
           if (direction<0) effScene = T0_S0; // main off
         }
         // call the effective scene
-        lightBehaviour->callScene(effScene);
+        dev->callScene(effScene, true);
       }
     }
   }
@@ -875,18 +872,18 @@ void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aP
 
 enum {
   devices_key,
-  numDsAddressableProperties
+  numDeviceContainerProperties
 };
 
 
-static const PropertyDescriptor dsAddressableProperties[numDsAddressableProperties] = {
+static const PropertyDescriptor deviceContainerProperties[numDeviceContainerProperties] = {
   { "devices", ptype_object, true, devices_key }
 };
 
 
 int DeviceContainer::numProps(int aDomain)
 {
-  return inherited::numProps(aDomain)+numDsAddressableProperties;
+  return inherited::numProps(aDomain)+numDeviceContainerProperties;
 }
 
 
@@ -896,11 +893,11 @@ const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex,
   if (aPropIndex<n)
     return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &dsAddressableProperties[aPropIndex];
+  return &deviceContainerProperties[aPropIndex];
 }
 
 
-PropertyContainer *DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
+PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
 {
   if (aPropertyDescriptor.accessKey==devices_key) {
     // return the device by index
@@ -910,7 +907,7 @@ PropertyContainer *DeviceContainer::getContainer(const PropertyDescriptor &aProp
       devVector.push_back(pos->second);
     }
     if (aIndex<devVector.size())
-      return devVector[aIndex].get();
+      return devVector[aIndex];
     else
       return NULL;
   }

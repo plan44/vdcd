@@ -10,67 +10,79 @@
 #define __vdcd__lightbehaviour__
 
 #include "device.hpp"
-
-#include "persistentparams.hpp"
+#include "dsscene.hpp"
 
 using namespace std;
 
 namespace p44 {
 
+  typedef uint8_t Brightness;
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
 
   class LightSettings;
 
-  class LightScene : public PersistentParams
+  class LightScene : public DsScene
   {
-    typedef PersistentParams inherited;
+    typedef DsScene inherited;
   public:
-    LightScene(ParamStore &aParamStore, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+    LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
 
-    SceneNo sceneNo; ///< scene number
-    Brightness sceneValue; ///< output value for this scene
-    bool dontCare; ///< if set, applying this scene does not change the output value
-    bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
+    /// @name light scene specific values
+    /// @{
+
+    Brightness sceneBrightness; ///< saved brightness value for this scene
     bool specialBehaviour; ///< special behaviour active
     bool flashing; ///< flashing active for this scene
     uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
 
-    /// Legacy: get scene flags encoded as SCECON byte
-    uint8_t getSceCon();
-    /// Legacy: set scene flags encoded as SCECON byte
-    void setSceCon(uint8_t aSceCon);
+    /// @}
 
+  protected:
 
-    /// @name PersistentParams methods which implement actual storage
-    /// @{
-
-    /// SQLIte3 table name to store these parameters to
+    // persistence implementation
     virtual const char *tableName();
-    /// primary key field definitions
-    virtual const FieldDefinition *getKeyDefs();
-    /// data field definitions
-    virtual const FieldDefinition *getFieldDefs();
-    /// load values from passed row
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    /// bind values to passed statement
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
-    /// @}
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
   };
   typedef boost::shared_ptr<LightScene> LightScenePtr;
   typedef map<SceneNo, LightScenePtr> LightSceneMap;
 
 
 
+
+  /// the persistent parameters of a light scene device (including scene table)
+  class LightDeviceSettings : public SceneDeviceSettings
+  {
+    typedef SceneDeviceSettings inherited;
+
+  public:
+    LightDeviceSettings(Device &aDevice);
+
+  protected:
+
+    /// factory method to create the correct subclass type of DsScene with default values
+    /// @param aSceneNo the scene number to create a scene object with proper default values for.
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+
+  };
+
+
+
   /// the persistent parameters of a device with light behaviour
-  class LightSettings : public DsBehaviourSettings
+  class LightOutputSettings : public DsBehaviourSettings
   {
     typedef DsBehaviourSettings inherited;
 
-    friend class LightScene;
-    LightSceneMap scenes; ///< the user defined light scenes (default scenes will be created on the fly)
   public:
-    LightSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour);
+    LightOutputSettings(DsBehaviour &aBehaviour);
     bool isDimmable; ///< if set, ballast can be dimmed. If not set, ballast must not be dimmed, even if we have dimmer hardware
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
@@ -80,37 +92,15 @@ namespace p44 {
     Brightness dimUpStep; ///< size of dim up steps
     Brightness dimDownStep; ///< size of dim down steps
 
-    /// get the parameters for the scene
-    LightScenePtr getScene(SceneNo aSceneNo);
-
-    /// update scene (mark dirty, add to list of non-default scene objects)
-    void updateScene(LightScenePtr aScene);
-
-    /// Get output MODE
-    DsOutputModes getOutputMode();
-    /// Set output MODE
-    void setOutputMode(DsOutputModes aOutputMode);
-
-    /// @name PersistentParams methods which implement actual storage
-    /// @{
-
-    /// SQLIte3 table name to store these parameters to
+    // persistence implementation
     virtual const char *tableName();
-    /// data field definitions
     virtual const FieldDefinition *getFieldDefs();
-    /// load values from passed row
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    /// bind values to passed statement
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-    /// load child parameters (if any)
-    virtual ErrorPtr loadChildren();
-    /// save child parameters (if any)
-    virtual ErrorPtr saveChildren();
-    /// delete child parameters (if any)
-    virtual ErrorPtr deleteChildren();
 
     /// @}
   };
+
 
 
   class LightBehaviour : public OutputBehaviour
@@ -120,7 +110,7 @@ namespace p44 {
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
-    LightSettings lightSettings; ///< the persistent params of this lighting device
+    LightOutputSettings lightOutputSettings; ///< the persistent params of this light output
 
     // - hardware params
     bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
@@ -157,25 +147,17 @@ namespace p44 {
     /// @}
 
 
-    /// @name functional identification for digitalSTROM system
-    /// @{
-
-    virtual uint16_t functionId();
-    virtual uint16_t productId();
-    virtual uint16_t groupMemberShip();
-    virtual uint8_t ltMode();
-    virtual uint8_t outputMode();
-    virtual uint8_t buttonIdGroup();
-    virtual uint16_t version();
-
-    /// @}
-
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// direct scene handling for
-    /// TODO: integrate more nicely
-    void callScene(SceneNo aSceneNo);
+    /// apply scene to output
+    /// @param aScene the scene to apply to the output
+    virtual void applyScene(DsScenePtr aScene);
+
+    /// capture current state into passed scene object
+    /// @param aScene the scene object to update
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void captureScene(DsScenePtr aScene);
 
     /// load behaviour parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
@@ -205,6 +187,6 @@ namespace p44 {
 
   typedef boost::shared_ptr<LightBehaviour> LightBehaviourPtr;
 
-}
+} // namespace p44
 
 #endif /* defined(__vdcd__lightbehaviour__) */

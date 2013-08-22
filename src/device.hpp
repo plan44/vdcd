@@ -11,6 +11,8 @@
 
 #include "dsbehaviour.hpp"
 
+#include "dsscene.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -45,8 +47,10 @@ namespace p44 {
     BehaviourVector sensors; ///< sensors (measurements)
     /// @}
 
-    // scenes
-    #warning "%%% TODO: add them"
+    /// device global parameters (for all behaviours), in particular the scene table
+    /// @note devices assign this with a derived class which is specialized
+    ///   for the device type and, if needed, proper type of scenes (light, blinds, RGB light etc. have different scene tables)
+    DeviceSettingsPtr deviceSettings;
 
     // r/w properties
     bool progMode;
@@ -126,6 +130,16 @@ namespace p44 {
     ///   still hold a DevicePtr to it
     void hasVanished(bool aForgetParams);
 
+
+    /// call scene on this device
+    /// @param aSceneNo the scene to call.
+    void callScene(SceneNo aSceneNo, bool aForce);
+
+    /// save scene on this device
+    /// @param aSceneNo the scene to save current state into
+    void saveScene(SceneNo aSceneNo);
+
+
     /// @name DsAddressable API implementation
 
     /// @{
@@ -157,15 +171,15 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
-    /// get currently set output value from device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    virtual int16_t getOutputValue(int aChannel) { return 0; };
+    /// get currently set output value from device hardware
+    /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
+    virtual int16_t getOutputValue(OutputBehaviour &aOutputBehaviour) { return 0; };
 
     /// set new output value on device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
+    /// @param aOutputBehaviour the output behaviour which wants to set the hardware output value
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime=0) { /* NOP */ };
+    virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0) { /* NOP */ };
 
     /// @}
 
@@ -191,7 +205,8 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual PropertyContainer *getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
+    virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
+    virtual ErrorPtr writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer);
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
 

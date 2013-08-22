@@ -20,14 +20,21 @@ PersistentParams::PersistentParams(ParamStore &aParamStore) :
 
 
 
+static const size_t numKeys = 1;
 
-const FieldDefinition *PersistentParams::getKeyDefs()
+size_t PersistentParams::numKeyDefs()
 {
-  static const FieldDefinition keyDefs[] = {
-    { "parentID", SQLITE_TEXT },
-    { NULL, 0 },
+  return numKeys;
+}
+
+const FieldDefinition *PersistentParams::getKeyDef(size_t aIndex)
+{
+  static const FieldDefinition keyDefs[numKeys] = {
+    { "parentID", SQLITE_TEXT }
   };
-  return keyDefs;
+  if (aIndex<numKeys)
+    return &keyDefs[aIndex];
+  return NULL;
 }
 
 
@@ -57,14 +64,16 @@ void PersistentParams::checkAndUpdateSchema()
     sql = string_format("CREATE TABLE %s (", tableName());
     bool firstfield = true;
     // - key fields
-    for (const FieldDefinition *fd = getKeyDefs(); fd->fieldName!=NULL; ++fd) {
+    for (size_t i=0; i<numKeyDefs(); ++i) {
+      const FieldDefinition *fd = getKeyDef(i);
       if (!firstfield)
         sql += ", ";
       sql += fieldDeclaration(fd);
       firstfield = false;
     }
     // - data fields
-    for (const FieldDefinition *fd = getFieldDefs(); fd->fieldName!=NULL; ++fd) {
+    for (size_t i=0; i<numFieldDefs(); ++i) {
+      const FieldDefinition *fd = getFieldDef(i);
       sql += ", ";
       sql += fieldDeclaration(fd);
     }
@@ -72,15 +81,16 @@ void PersistentParams::checkAndUpdateSchema()
     // - create it
     sqlite3pp::command cmd(paramStore, sql.c_str());
     cmd.execute();
-    // create index for parentID (first field on getKeyDefs()
-    sql = string_format("CREATE INDEX %s_parentIndex ON %s (%s)", tableName(), tableName(), getKeyDefs()->fieldName);
+    // create index for parentID (first field, getKeyDef(0))
+    sql = string_format("CREATE INDEX %s_parentIndex ON %s (%s)", tableName(), tableName(), getKeyDef(0)->fieldName);
     cmd.prepare(sql.c_str());
     cmd.execute();
   }
   else {
     // table exists, but maybe not all fields
     // - just try to add each of them. SQLite will not accept duplicates anyway
-    for (const FieldDefinition *fd = getFieldDefs(); fd->fieldName!=NULL; ++fd) {
+    for (size_t i=0; i<numFieldDefs(); ++i) {
+      const FieldDefinition *fd = getFieldDef(i);
       sql = string_format("ALTER TABLE %s ADD ", tableName());
       sql += fieldDeclaration(fd);
       sqlite3pp::command cmd(paramStore, sql.c_str());
@@ -91,18 +101,17 @@ void PersistentParams::checkAndUpdateSchema()
 
 
 
-static int appendfieldList(string &sql, const FieldDefinition *aDefinitions, bool aAppendFields, bool aWithParamAssignment)
+size_t PersistentParams::appendfieldList(string &sql, bool keyFields, bool aAppendFields, bool aWithParamAssignment)
 {
-  int numfields = 0;
-  while(aDefinitions->fieldName!=NULL) {
+  size_t numfields = keyFields ? numKeyDefs() : numFieldDefs();
+  for (int i=0; i<numfields; ++i) {
+    const FieldDefinition *fd = keyFields ? getKeyDef(i) : getFieldDef(i);
     if (aAppendFields)
-    sql += ", ";
-    sql += aDefinitions->fieldName;
+      sql += ", ";
+    sql += fd->fieldName;
     if (aWithParamAssignment)
       sql += "=?";
     aAppendFields = true; // from second field on, always append
-    aDefinitions++; // next
-    numfields++; // count the field
   }
   return numfields;
 }
@@ -114,10 +123,11 @@ sqlite3pp::query *PersistentParams::newLoadAllQuery(const char *aParentIdentifie
   sqlite3pp::query * queryP = new sqlite3pp::query(paramStore);
   string sql = "SELECT ROWID";
   // key fields
-  appendfieldList(sql, getKeyDefs(), true, false);
+  appendfieldList(sql, true , true, false);
   // other fields
-  appendfieldList(sql, getFieldDefs(), true, false);
-  string_format_append(sql, " FROM %s WHERE %s='%s'", tableName(), getKeyDefs()->fieldName, aParentIdentifier);
+  appendfieldList(sql, false, true, false);
+  // limit to entries linked to parent
+  string_format_append(sql, " FROM %s WHERE %s='%s'", tableName(), getKeyDef(0)->fieldName, aParentIdentifier);
   // now execute query
   if (queryP->prepare(sql.c_str())!=SQLITE_OK) {
     // - error could mean schema is not up to date
@@ -196,8 +206,8 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
       // already exists in the DB, just update
       sql = string_format("UPDATE %s SET ", tableName());
       // - update all fields, even key fields may change (as long as they don't collide with another entry)
-      appendfieldList(sql, getKeyDefs(), false, true);
-      appendfieldList(sql, getFieldDefs(), true, true);
+      appendfieldList(sql, true, false, true);
+      appendfieldList(sql, false, true, true);
       string_format_append(sql, " WHERE ROWID=%lld", rowid);
       // now execute command
       if (cmd.prepare(sql.c_str())!=SQLITE_OK) {
@@ -222,8 +232,8 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier)
     else {
       // seems new, insert. But use INSERT OR REPLACE to make sure key constraints are enforced
       sql = string_format("INSERT OR REPLACE INTO %s (", tableName());;
-      int numFields = appendfieldList(sql, getKeyDefs(), false, false);
-      numFields += appendfieldList(sql, getFieldDefs(), true, false);
+      size_t numFields = appendfieldList(sql, true, false, false);
+      numFields += appendfieldList(sql, false, true, false);
       sql += ") VALUES (";
       bool first = true;
       for (int i=0; i<numFields; i++) {

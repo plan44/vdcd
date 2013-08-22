@@ -37,6 +37,8 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceInfo = aDeviceInfo; // copy
   // derive the dSID
   deriveDSID();
+  // use light settings, which include a scene table
+  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
   l->setHardwareDimmer(true); // DALI ballasts are always dimmable
@@ -153,19 +155,19 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 
 
 
-int16_t DaliDevice::getOutputValue(int aChannel)
+int16_t DaliDevice::getOutputValue(OutputBehaviour &aOutputBehaviour)
 {
-  if (aChannel==0)
+  if (aOutputBehaviour.getIndex()==0)
     return cachedBrightness;
   else
-    return inherited::getOutputValue(aChannel); // let superclass handle this
+    return inherited::getOutputValue(aOutputBehaviour); // let superclass handle this
 }
 
 
 
-void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime)
+void DaliDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime)
 {
-  if (aChannel==0) {
+  if (aOutputBehaviour.getIndex()==0) {
     setTransitionTime(aTransitionTime);
     cachedBrightness = aValue;
     // update actual dimmer value
@@ -174,7 +176,7 @@ void DaliDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTr
     daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
   }
   else
-    return inherited::setOutputValue(aChannel, aValue); // let superclass handle this
+    return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
 }
 
 

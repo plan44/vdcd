@@ -40,6 +40,8 @@
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
+		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
+		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
@@ -165,6 +167,10 @@
 		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dalidefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED74563E1731B813001C9565 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mainloop.cpp; sourceTree = "<group>"; };
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mainloop.hpp; sourceTree = "<group>"; };
+		ED81337117C644AE003982CC /* dsscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsscene.cpp; sourceTree = "<group>"; };
+		ED81337217C644AE003982CC /* dsscene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = dsscene.hpp; sourceTree = "<group>"; };
+		ED81337417C65F7E003982CC /* devicesettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = devicesettings.cpp; sourceTree = "<group>"; };
+		ED81337517C65F7E003982CC /* devicesettings.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = devicesettings.hpp; sourceTree = "<group>"; };
 		EDB284421732965700EAE5DE /* operationqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = operationqueue.cpp; sourceTree = "<group>"; };
 		EDB284431732965700EAE5DE /* operationqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = operationqueue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceancomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -330,6 +336,10 @@
 				ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */,
 				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
+				ED81337117C644AE003982CC /* dsscene.cpp */,
+				ED81337217C644AE003982CC /* dsscene.hpp */,
+				ED81337417C65F7E003982CC /* devicesettings.cpp */,
+				ED81337517C65F7E003982CC /* devicesettings.hpp */,
 				EDCFE855171FE841001D35F3 /* device.cpp */,
 				EDCFE856171FE841001D35F3 /* device.hpp */,
 				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
@@ -446,6 +456,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
+				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
@@ -459,6 +470,7 @@
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
+				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
 				EDCFE85D171FFAF6001D35F3 /* dsid.cpp in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,

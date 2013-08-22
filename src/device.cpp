@@ -86,11 +86,37 @@ ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, J
 
 void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
 {
-  //  if (aMethod=="Gugus") {
-  //    // do something
-  //  }
-  //  else
-  {
+  ErrorPtr err;
+  if (aMethod=="callScene") {
+    // call scene
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "scene", o))) {
+      SceneNo sceneNo = (SceneNo)o->int32Value();
+      bool force = false;
+      // check for force flag
+      if (Error::isOK(err = checkParam(aParams, "force", o))) {
+        force = o->boolValue();
+      }
+      // now call
+      callScene(sceneNo, force);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "callScene error: %s\n", err->description().c_str());
+    }
+  }
+  else if (aMethod=="saveScene") {
+    // save scene
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "scene", o))) {
+      SceneNo sceneNo = (SceneNo)o->int32Value();
+      // now save
+      saveScene(sceneNo);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "saveScene error: %s\n", err->description().c_str());
+    }
+  }
+  else {
     inherited::handleNotification(aMethod, aParams);
   }
 }
@@ -117,12 +143,62 @@ void Device::hasVanished(bool aForgetParams)
 }
 
 
+
+void Device::callScene(SceneNo aSceneNo, bool aForce)
+{
+  // see if we have a scene table at all
+  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  if (scenes) {
+    // we have a device-wide scene table, get the scene object
+    DsScenePtr scene = scenes->getScene(aSceneNo);
+    if (scene) {
+      // scene found, now apply to all of our outputs
+      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+        OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+        if (output) {
+          output->applyScene(scene);
+        }
+      }
+    }
+  }
+}
+
+
+void Device::saveScene(SceneNo aSceneNo)
+{
+  // see if we have a scene table at all
+  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  if (scenes) {
+    // we have a device-wide scene table, get the scene object
+    DsScenePtr scene = scenes->getScene(aSceneNo);
+    if (scene) {
+      // scene found, now capture to all of our outputs
+      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+        OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+        if (output) {
+          // capture value from this output
+          output->captureScene(scene);
+        }
+      }
+      // save updated scene if any modifications found
+      if (scene->isDirty()) {
+        scenes->updateScene(scene);
+      }
+    }
+  }
+}
+
+
+
 #pragma mark - persistent device params
 
 
 // load device settings - beaviours + scenes
 ErrorPtr Device::load()
 {
+  // load the device settings
+  if (deviceSettings) deviceSettings->loadFromStore(dsid.getString().c_str());
+  // load the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->load();
@@ -133,6 +209,9 @@ ErrorPtr Device::load()
 
 ErrorPtr Device::save()
 {
+  // save the device settings
+  if (deviceSettings) deviceSettings->saveToStore(dsid.getString().c_str());
+  // save the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->save();
@@ -143,6 +222,9 @@ ErrorPtr Device::save()
 
 ErrorPtr Device::forget()
 {
+  // delete the device settings
+  if (deviceSettings) deviceSettings->deleteFromStore();
+  // delete the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->forget();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->forget();
   for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->forget();
@@ -171,6 +253,7 @@ enum {
   sensorDescriptions_key,
   sensorSettings_key,
   sensorStates_key,
+  scenes_key,
   numDeviceProperties
 };
 
@@ -195,6 +278,8 @@ static const PropertyDescriptor deviceProperties[numDeviceProperties] = {
   { "sensorDescriptions", ptype_object, true, sensorDescriptions_key, &device_key },
   { "sensorSettings", ptype_object, true, sensorSettings_key, &device_key },
   { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
+  // the scenes array
+  { "scenes", ptype_object, true, scenes_key, &device_key },
 };
 
 int Device::numProps(int aDomain)
@@ -214,7 +299,7 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
 
 
 
-PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
+PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&device_key) {
     switch (aPropertyDescriptor.accessKey) {
@@ -229,7 +314,7 @@ PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescr
       case buttonInputStates_key:
         aDomain = VDC_API_BHVR_STATES;
       buttons:
-        if (aIndex<buttons.size()) return buttons[aIndex].get();
+        if (aIndex<buttons.size()) return buttons[aIndex];
         break;
       // binaryInputs
       case binaryInputDescriptions_key:
@@ -241,7 +326,7 @@ PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescr
       case binaryInputStates_key:
         aDomain = VDC_API_BHVR_STATES;
       binaryInputs:
-        if (aIndex<binaryInputs.size()) return binaryInputs[aIndex].get();
+        if (aIndex<binaryInputs.size()) return binaryInputs[aIndex];
         break;
       // outputs
       case outputDescriptions_key:
@@ -253,7 +338,7 @@ PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescr
       case outputStates_key:
         aDomain = VDC_API_BHVR_STATES;
       outputs:
-        if (aIndex<outputs.size()) return outputs[aIndex].get();
+        if (aIndex<outputs.size()) return outputs[aIndex];
         break;
       // sensors
       case sensorDescriptions_key:
@@ -265,13 +350,40 @@ PropertyContainer *Device::getContainer(const PropertyDescriptor &aPropertyDescr
       case sensorStates_key:
         aDomain = VDC_API_BHVR_STATES;
       sensors:
-        if (aIndex<sensors.size()) return sensors[aIndex].get();
+        if (aIndex<sensors.size()) return sensors[aIndex];
         break;
+      // scenes
+      case scenes_key: {
+        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+        if (scenes) {
+          return scenes->getScene(aIndex);
+        }
+      }
     }
   }
   // unknown here
   return NULL;
 }
+
+
+ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer)
+{
+  if (aPropertyDescriptor.objectKey==&device_key) {
+    switch (aPropertyDescriptor.accessKey) {
+      case scenes_key: {
+        // scene was written, update needed if dirty
+        DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
+        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+        if (scenes && scene && scene->isDirty()) {
+          scenes->updateScene(scene);
+          return ErrorPtr();
+        }
+      }
+    }
+  }
+  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aIndex, aContainer);
+}
+
 
 
 
@@ -305,6 +417,12 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
         case sensorSettings_key:
         case sensorStates_key:
           aPropValue = JsonObject::newInt32((int)sensors.size());
+          return true;
+        case scenes_key:
+          if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
+            aPropValue = JsonObject::newInt32(MAX_SCENE_NO);
+          else
+            aPropValue = JsonObject::newInt32(0); // no scene table
           return true;
       }
     }

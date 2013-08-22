@@ -40,6 +40,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // Simulate light device
     // - defaults to yellow (light)
     primaryGroup = group_yellow_light;
+    // - use light settings, which include a scene table
+    deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
     l->setHardwareDimmer(true); // Simulation
@@ -73,24 +75,24 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 
 
 
-int16_t ConsoleDevice::getOutputValue(int aChannel)
+int16_t ConsoleDevice::getOutputValue(OutputBehaviour &aOutputBehaviour)
 {
-  if (aChannel==0)
+  if (aOutputBehaviour.getIndex()==0)
     return outputValue;
   else
-    return inherited::getOutputValue(aChannel); // let superclass handle this
+    return inherited::getOutputValue(aOutputBehaviour); // let superclass handle this
 }
 
 
 
-void ConsoleDevice::setOutputValue(int aChannel, int16_t aValue, MLMicroSeconds aTransitionTime)
+void ConsoleDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime)
 {
-  if (aChannel==0) {
+  if (aOutputBehaviour.getIndex()==0) {
     outputValue = aValue;
     printf(">>> Console device %s: output set to %d\n", name.c_str(), outputValue);
   }
   else
-    return inherited::setOutputValue(aChannel, aValue); // let superclass handle this
+    return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
 }
 
 

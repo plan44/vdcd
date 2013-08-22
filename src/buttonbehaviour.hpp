@@ -28,18 +28,15 @@ namespace p44 {
     bool setsLocalPriority; ///< button should set local priority
     bool callsPresent; ///< button should call "present" scene
 
-    ButtonSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour);
+    ButtonSettings(DsBehaviour &aBehaviour);
 
-    /// @name PersistentParams methods which implement actual storage
-    /// @{
+  protected:
 
-    /// SQLIte3 table name to store these parameters to
+    // persistence implementation
     virtual const char *tableName();
-    /// data field definitions
-    virtual const FieldDefinition *getFieldDefs();
-    /// load values from passed row
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    /// bind values to passed statement
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
     
     /// @}

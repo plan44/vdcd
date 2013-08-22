@@ -17,8 +17,8 @@ using namespace p44;
 
 #pragma mark - DsBehaviourSettings
 
-DsBehaviourSettings::DsBehaviourSettings(ParamStore &aParamStore, DsBehaviour &aBehaviour) :
-  inherited(aParamStore),
+DsBehaviourSettings::DsBehaviourSettings(DsBehaviour &aBehaviour) :
+  inherited(aBehaviour.device.getDeviceContainer().getDsParamStore()),
   behaviour(aBehaviour)
 {
 }

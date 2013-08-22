@@ -56,6 +56,8 @@ vdcd_SOURCES = \
   src/sqlite3pp/sqlite3ppext.h \
   src/dsbehaviour.cpp \
   src/dsbehaviour.hpp \
+  src/dsscene.cpp \
+  src/dsscene.hpp \
   src/buttonbehaviour.cpp \
   src/buttonbehaviour.hpp \
   src/lightbehaviour.cpp \
@@ -71,6 +73,8 @@ vdcd_SOURCES = \
   src/dalidevicecontainer.hpp \
   src/device.cpp \
   src/device.hpp \
+  src/devicesettings.cpp \
+  src/devicesettings.hpp \
   src/propertycontainer.cpp \
   src/propertycontainer.hpp \
   src/dsaddressable.cpp \

@@ -81,7 +81,7 @@ typedef enum {
   ABSENT = (START_APARTMENT_SCENES + 8),          /**< not at home */
   SIG_BELL = (START_APARTMENT_SCENES + 9),        /**< bell */
   SIG_ALARM = (START_APARTMENT_SCENES + 10),      /**< alarm/fire */
-} DsScene;
+} DsSceneNumber;
 
 /// group/color (upper 4 bits in LTNUMGRP0)
 typedef enum {
