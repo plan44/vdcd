@@ -19,7 +19,6 @@ namespace p44 {
   typedef uint8_t Brightness;
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
 
-  class LightSettings;
 
   class LightScene : public DsScene
   {
@@ -76,13 +75,19 @@ namespace p44 {
 
 
 
-  /// the persistent parameters of a device with light behaviour
-  class LightOutputSettings : public DsBehaviourSettings
+  class LightBehaviour : public OutputBehaviour
   {
-    typedef DsBehaviourSettings inherited;
+    typedef OutputBehaviour inherited;
 
-  public:
-    LightOutputSettings(DsBehaviour &aBehaviour);
+
+    /// @name hardware derived parameters (constant during operation)
+    /// @{
+    bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
+    /// @}
+
+
+    /// @name persistent settings
+    /// @{
     bool isDimmable; ///< if set, ballast can be dimmed. If not set, ballast must not be dimmed, even if we have dimmer hardware
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     Brightness minDim; ///< minimal dimming value, dimming down will not go below this
@@ -91,31 +96,16 @@ namespace p44 {
     DimmingTime dimDownTime[3]; ///< dimming down time
     Brightness dimUpStep; ///< size of dim up steps
     Brightness dimDownStep; ///< size of dim down steps
-
-    // persistence implementation
-    virtual const char *tableName();
-    virtual const FieldDefinition *getFieldDefs();
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
     /// @}
-  };
 
 
-
-  class LightBehaviour : public OutputBehaviour
-  {
-    typedef OutputBehaviour inherited;
-
+    /// @name internal volatile state
+    /// @{
+    int blinkCounter; ///< for generation of blink sequence
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
-    LightOutputSettings lightOutputSettings; ///< the persistent params of this light output
-
-    // - hardware params
-    bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
-
-    int blinkCounter; ///< for generation of blink sequence
+    /// @}
 
   public:
     LightBehaviour(Device &aDevice, size_t aIndex);
@@ -158,17 +148,6 @@ namespace p44 {
     /// @param aScene the scene object to update
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
     virtual void captureScene(DsScenePtr aScene);
-
-    /// load behaviour parameters from persistent DB
-    /// @note this is usually called from the device container when device is added (detected)
-    virtual ErrorPtr load();
-
-    /// save unsaved behaviourparameters to persistent DB
-    /// @note this is usually called from the device container in regular intervals
-    virtual ErrorPtr save();
-
-    /// forget any behaviour parameters stored in persistent DB
-    virtual ErrorPtr forget();
     
     /// @}
 
@@ -179,6 +158,15 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+  protected:
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual const FieldDefinition *getFieldDefs();
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+
 
   private:
 

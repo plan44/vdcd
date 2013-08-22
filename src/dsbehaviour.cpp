@@ -15,23 +15,11 @@
 using namespace p44;
 
 
-#pragma mark - DsBehaviourSettings
-
-DsBehaviourSettings::DsBehaviourSettings(DsBehaviour &aBehaviour) :
-  inherited(aBehaviour.device.getDeviceContainer().getDsParamStore()),
-  behaviour(aBehaviour)
-{
-}
-
-
-string parentID();
-
-
-
 
 #pragma mark - DsBehaviour
 
 DsBehaviour::DsBehaviour(Device &aDevice, size_t aIndex) :
+  inheritedParams(aDevice.getDeviceContainer().getDsParamStore()),
   index(aIndex),
   device(aDevice),
   hardwareName("<undefined>")
@@ -44,21 +32,27 @@ DsBehaviour::~DsBehaviour()
 }
 
 
-string DsBehaviourSettings::getDbKey()
+string DsBehaviour::getDbKey()
 {
-  return string_format("%s_%d",behaviour.device.dsid.getString().c_str(),behaviour.index);
+  return string_format("%s_%d",device.dsid.getString().c_str(),index);
 }
 
 
-ErrorPtr DsBehaviourSettings::load()
+ErrorPtr DsBehaviour::load()
 {
   return loadFromStore(getDbKey().c_str());
 }
 
 
-ErrorPtr DsBehaviourSettings::save()
+ErrorPtr DsBehaviour::save()
 {
   return saveToStore(getDbKey().c_str());
+}
+
+
+ErrorPtr DsBehaviour::forget()
+{
+  return deleteFromStore();
 }
 
 
@@ -83,9 +77,7 @@ enum {
   numDsBehaviourDescProperties
 };
 
-
 static char dsBehaviour_Key;
-
 
 int DsBehaviour::numLocalProps(int aDomain)
 {
@@ -100,7 +92,7 @@ int DsBehaviour::numLocalProps(int aDomain)
 
 int DsBehaviour::numProps(int aDomain)
 {
-  return inherited::numProps(aDomain)+numLocalProps(aDomain);
+  return inheritedProps::numProps(aDomain)+numLocalProps(aDomain);
 }
 
 
@@ -110,9 +102,9 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
     { "name", ptype_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
     { "type", ptype_charptr, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
   };
-  int n = inherited::numProps(aDomain);
+  int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inheritedProps::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
   if (aPropIndex>=numLocalProps(aDomain))
     return NULL;
@@ -145,7 +137,7 @@ bool DsBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const P
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inheritedProps::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
 }
 
 

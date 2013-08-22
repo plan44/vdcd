@@ -16,35 +16,6 @@ using namespace std;
 namespace p44 {
 
 
-  /// the persistent parameters of a device with light behaviour
-  class ButtonSettings : public DsBehaviourSettings
-  {
-    typedef DsBehaviourSettings inherited;
-
-  public:
-    DsButtonMode buttonMode; ///< the button mode (LTMODE)
-    DsButtonFunc buttonFunc; ///< the button function (LTNUM)
-    DsGroup buttonGroup; ///< the group/color of the button
-    bool setsLocalPriority; ///< button should set local priority
-    bool callsPresent; ///< button should call "present" scene
-
-    ButtonSettings(DsBehaviour &aBehaviour);
-
-  protected:
-
-    // persistence implementation
-    virtual const char *tableName();
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-    
-    /// @}
-  };
-
-
-
-
   class ButtonBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
@@ -53,38 +24,31 @@ namespace p44 {
 
   protected:
 
-    /// @name button behaviour description
+    /// @name hardware derived parameters (constant during operation)
     ///   fixed constants or values set ONCE by device implementations when adding a ButtonBehaviour.
     ///   These need to remain constant after device initialisation is complete!
     /// @{
-
-    virtual BehaviourType getType() { return behaviour_button; };
-
+    virtual BehaviourType getType() { return behaviour_button; }; ///< the behaviour type
     bool supportsLocalKeyMode; ///< set if this button can act as local button
     int buttonID; ///< the ID grouping all inputs of a hardware button (which can have multiple elements)
     DsButtonType buttonType; ///< type of button
     DsButtonElement buttonElementID; ///< identifies element of a multi-input button hardware-button
-
     /// @}
 
-    /// @name Button behaviour settings
+    /// @name persistent settings
     /// @{
-
-    /// the button's persistent settings
-    ButtonSettings buttonSettings;
-
+    DsButtonMode buttonMode; ///< the button mode (LTMODE)
+    DsButtonFunc buttonFunc; ///< the button function (LTNUM)
+    DsGroup buttonGroup; ///< the group/color of the button
+    bool setsLocalPriority; ///< button should set local priority
+    bool callsPresent; ///< button should call "present" scene
     /// @}
 
 
-    /// @name button behaviour state
+    /// @name internal volatile state
     /// @{
-
-    /// set if button is currently pressed
-    bool buttonPressed;
-
-    /// set to last click type of button
-    DsClickType clickType;
-
+    bool buttonPressed; ///< set if button is currently pressed
+    DsClickType clickType; ///< set to last click type of button
     /// @}
 
   public:
@@ -107,22 +71,6 @@ namespace p44 {
 
     /// @}
 
-
-    /// @name persistent settings management
-    /// @{
-
-    /// load behaviour settings from persistent DB
-    /// @note this is usually called from the device container when device is added (detected)
-    virtual ErrorPtr load();
-
-    /// save unsaved behaviour settings to persistent DB
-    /// @note this is usually called from the device container in regular intervals
-    virtual ErrorPtr save();
-
-    /// forget any behaviour settings stored in persistent DB
-    virtual ErrorPtr forget();
-    
-    /// @}
     
     /// @return button element that defines the function of this button in local operation modes
     DsButtonElement localFunctionElement();
@@ -140,8 +88,15 @@ namespace p44 {
     virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
     virtual int numStateProps();
     virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
-
+    // combined field access for all types of properties
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
   private:
 

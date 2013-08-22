@@ -41,41 +41,17 @@ namespace p44 {
   class DsBehaviour;
 
 
-  /// DsBehaviourSettings wraps the settings for a behaviour
-  class DsBehaviourSettings : public PersistentParams
-  {
-    typedef PersistentParams inherited;
-
-    DsBehaviour &behaviour;
-
-  public:
-    DsBehaviourSettings(DsBehaviour &aBehaviour);
-
-    /// load behaviour settings from store
-    ErrorPtr load();
-    /// save behaviour settings to store
-    ErrorPtr save();
-
-  private:
-
-    string getDbKey();
-  };
-
-
-  #warning "TODO: fold behavioursettings into DsBehaviour, if multiple inheritance works ok"
-
-
-  #warning "TODO: Separete OutputBehaviour and implement properties"
+  #warning "TODO: Separate OutputBehaviour and implement properties"
 
 
   /// a DsBehaviour represents and implements a device behaviour according to dS specs
   /// (for example: the dS Light state machine). The interface of a DsBehaviour is generic
   /// such that it can be used by different physical implementations (e.g. both DALI devices
   /// and hue devices will make use of the dS light state machine behaviour.
-  class DsBehaviour : public PropertyContainer
+  class DsBehaviour : public PropertyContainer, public PersistentParams
   {
-    typedef PropertyContainer inherited;
-    friend class DsBehaviourSettings;
+    typedef PropertyContainer inheritedProps;
+    typedef PersistentParams inheritedParams;
 
   protected:
 
@@ -113,13 +89,13 @@ namespace p44 {
     /// @{
 
     /// load behaviour parameters from persistent DB
-    virtual ErrorPtr load() { return ErrorPtr(); /* NOP in base class */ };
+    ErrorPtr load();
 
     /// save unsaved behaviour parameters to persistent DB
-    virtual ErrorPtr save() { return ErrorPtr(); /* NOP in base class */ };
+    ErrorPtr save();
 
     /// forget any parameters stored in persistent DB
-    virtual ErrorPtr forget() { return ErrorPtr(); /* NOP in base class */ };
+    ErrorPtr forget();
 
     /// @}
 
@@ -177,6 +153,9 @@ namespace p44 {
     /// @}
 
   private:
+
+    // key for saving this behaviour in the DB
+    string getDbKey();
 
     // property access basic dispatcher implementation
     virtual int numProps(int aDomain);

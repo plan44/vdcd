@@ -11,94 +11,6 @@
 using namespace p44;
 
 
-#pragma mark - ButtonSettings
-
-ButtonSettings::ButtonSettings(DsBehaviour &aBehaviour) :
-  inherited(aBehaviour),
-  buttonGroup(group_yellow_light), // default to light
-  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
-  buttonFunc(buttonfunc_room_preset0x), // act as room button by default
-  setsLocalPriority(false),
-  callsPresent(false)
-{
-}
-
-
-// SQLIte3 table name to store these parameters to
-const char *ButtonSettings::tableName()
-{
-  return "ButtonSettings";
-}
-
-
-
-// data field definitions
-
-static const size_t numFields = 4;
-
-size_t ButtonSettings::numFieldDefs()
-{
-  return inherited::numFieldDefs()+numFields;
-}
-
-
-const FieldDefinition *ButtonSettings::getFieldDef(size_t aIndex)
-{
-  static const FieldDefinition dataDefs[numFields] = {
-    { "buttonMode", SQLITE_INTEGER },
-    { "buttonFunc", SQLITE_INTEGER },
-    { "buttonGroup", SQLITE_INTEGER },
-    { "buttonFlags", SQLITE_INTEGER }
-  };
-  if (aIndex<inherited::numFieldDefs())
-    return inherited::getFieldDef(aIndex);
-  aIndex -= inherited::numFieldDefs();
-  if (aIndex<numFields)
-    return &dataDefs[aIndex];
-  return NULL;
-}
-
-
-enum {
-  buttonflag_setsLocalPriority = 0x0001,
-  buttonflag_callsPresent = 0x0002
-};
-
-/// load values from passed row
-void ButtonSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
-{
-  inherited::loadFromRow(aRow, aIndex);
-  // get the fields
-  buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
-  buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
-  buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
-  int flags = aRow->get<int>(aIndex++);
-  // decode the flags
-  setsLocalPriority = flags & buttonflag_setsLocalPriority;
-  callsPresent = flags & buttonflag_callsPresent;
-}
-
-
-// bind values to passed statement
-void ButtonSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
-{
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // encode the flags
-  int flags = 0;
-  if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
-  if (callsPresent) flags |= buttonflag_callsPresent;
-  // bind the fields
-  aStatement.bind(aIndex++, buttonMode);
-  aStatement.bind(aIndex++, buttonFunc);
-  aStatement.bind(aIndex++, buttonGroup);
-  aStatement.bind(aIndex++, flags);
-}
-
-
-
-#pragma mark - ButtonBehaviour
-
-
 #ifdef DEBUG
 static const char *ClickTypeNames[] {
   "ct_tip_1x",
@@ -123,7 +35,12 @@ static const char *ClickTypeNames[] {
 
 ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
-  buttonSettings(*this)
+  // persistent settings
+  buttonGroup(group_yellow_light), // default to light
+  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  buttonFunc(buttonfunc_room_preset0x), // act as room button by default
+  setsLocalPriority(false),
+  callsPresent(false)
 {
   // set default hrdware configuration
   setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
@@ -140,15 +57,15 @@ void ButtonBehaviour::setHardwareButtonType(int aButtonID, DsButtonType aType, D
   supportsLocalKeyMode = aSupportsLocalKeyMode;
   // now derive default settings from hardware
   // - default to standard mode
-  buttonSettings.buttonMode = buttonmode_standard;
+  buttonMode = buttonmode_standard;
   // - modify for 2-way
   if (buttonType==buttonType_2way) {
     // part of a 2-way button
     if (buttonElementID==buttonElement_up) {
-      buttonSettings.buttonMode = (DsButtonMode)((int)buttonmode_rockerDown1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonmode_rockerDown1+aButtonID);
     }
     else if (buttonElementID==buttonElement_down) {
-      buttonSettings.buttonMode = (DsButtonMode)((int)buttonmode_rockerUp1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonmode_rockerUp1+aButtonID);
     }
   }
 }
@@ -390,7 +307,7 @@ DsButtonElement ButtonBehaviour::localFunctionElement()
 void ButtonBehaviour::localSwitchOutput()
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Local switch\n");
-//  if (buttonSettings.isTwoWay()) {
+//  if (isTwoWay()) {
 //    // on or off depending on which side of the two-way switch was clicked
 //    outputOn = secondKey;
 //  }
@@ -433,27 +350,77 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
 
 
 
-#pragma mark - persistent settings management
+#pragma mark - persistence implementation
 
 
-ErrorPtr ButtonBehaviour::load()
+// SQLIte3 table name to store these parameters to
+const char *ButtonBehaviour::tableName()
 {
-  // load button settings
-  return buttonSettings.load();
+  return "ButtonSettings";
 }
 
 
-ErrorPtr ButtonBehaviour::save()
+
+// data field definitions
+
+static const size_t numFields = 4;
+
+size_t ButtonBehaviour::numFieldDefs()
 {
-  // save button settings
-  return buttonSettings.save();
+  return inherited::numFieldDefs()+numFields;
 }
 
 
-ErrorPtr ButtonBehaviour::forget()
+const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
 {
-  // delete button settings
-  return buttonSettings.deleteFromStore();
+  static const FieldDefinition dataDefs[numFields] = {
+    { "buttonMode", SQLITE_INTEGER },
+    { "buttonFunc", SQLITE_INTEGER },
+    { "buttonGroup", SQLITE_INTEGER },
+    { "buttonFlags", SQLITE_INTEGER }
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+enum {
+  buttonflag_setsLocalPriority = 0x0001,
+  buttonflag_callsPresent = 0x0002
+};
+
+/// load values from passed row
+void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
+  buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
+  buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
+  int flags = aRow->get<int>(aIndex++);
+  // decode the flags
+  setsLocalPriority = flags & buttonflag_setsLocalPriority;
+  callsPresent = flags & buttonflag_callsPresent;
+}
+
+
+// bind values to passed statement
+void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // encode the flags
+  int flags = 0;
+  if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
+  if (callsPresent) flags |= buttonflag_callsPresent;
+  // bind the fields
+  aStatement.bind(aIndex++, buttonMode);
+  aStatement.bind(aIndex++, buttonFunc);
+  aStatement.bind(aIndex++, buttonGroup);
+  aStatement.bind(aIndex++, flags);
 }
 
 
@@ -552,16 +519,16 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // Settings properties
         case group_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(buttonSettings.buttonGroup);
+          aPropValue = JsonObject::newInt32(buttonGroup);
           return true;
         case mode_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(buttonSettings.buttonMode);
+          aPropValue = JsonObject::newInt32(buttonMode);
           return true;
         case setsLocalPriority_key+settings_key_offset:
-          aPropValue = JsonObject::newBool(buttonSettings.setsLocalPriority);
+          aPropValue = JsonObject::newBool(setsLocalPriority);
           return true;
         case callsPresent_key+settings_key_offset:
-          aPropValue = JsonObject::newBool(buttonSettings.callsPresent);
+          aPropValue = JsonObject::newBool(callsPresent);
           return true;
         // States properties
         case value_key+states_key_offset:
@@ -577,20 +544,20 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       switch (aPropertyDescriptor.accessKey) {
         // Settings properties
         case group_key+settings_key_offset:
-          buttonSettings.buttonGroup = (DsGroup)aPropValue->int32Value();
-          buttonSettings.markDirty();
+          buttonGroup = (DsGroup)aPropValue->int32Value();
+          markDirty();
           return true;
         case mode_key+settings_key_offset:
-          buttonSettings.buttonMode = (DsButtonMode)aPropValue->int32Value();
-          buttonSettings.markDirty();
+          buttonMode = (DsButtonMode)aPropValue->int32Value();
+          markDirty();
           return true;
         case setsLocalPriority_key+settings_key_offset:
-          buttonSettings.setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
-          buttonSettings.markDirty();
+          setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
+          markDirty();
           return true;
         case callsPresent_key+settings_key_offset:
-          buttonSettings.callsPresent = (DsButtonMode)aPropValue->boolValue();
-          buttonSettings.markDirty();
+          callsPresent = (DsButtonMode)aPropValue->boolValue();
+          markDirty();
           return true;
       }
     }
@@ -600,14 +567,14 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
 }
 
 
-#pragma mark - ButtonBehaviour description/shortDesc
+#pragma mark - description/shortDesc
 
 
 string ButtonBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- buttonID: %d, buttonType: %d, buttonElementID: %d\n", buttonID, buttonType, buttonElementID);
-  string_format_append(s, "- group: %d, fbuttonmode/LTMODE: %d\n", buttonSettings.buttonGroup, buttonSettings.buttonMode);
+  string_format_append(s, "- group: %d, fbuttonmode/LTMODE: %d\n", buttonGroup, buttonMode);
   s.append(inherited::description());
   return s;
 }

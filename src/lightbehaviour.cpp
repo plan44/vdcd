@@ -171,8 +171,6 @@ bool LightScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Pr
 
 
 
-
-
 #pragma mark - LightDeviceSettings with default light scenes factory
 
 
@@ -329,16 +327,27 @@ DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 
 
-#pragma mark - LightOutputSettings
+
+#pragma mark - LightBehaviour
 
 
-LightOutputSettings::LightOutputSettings(DsBehaviour &aBehaviour) :
-  inherited(aBehaviour),
+LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
+  inherited(aDevice, aIndex),
+  // hardware derived parameters
+  // persistent settings
   isDimmable(false),
   onThreshold(128),
   minDim(1),
-  maxDim(255)
+  maxDim(255),
+  // volatile state
+  localPriority(false),
+  isLocigallyOn(false),
+  logicalBrightness(0)
 {
+  // hardware derived parameters
+  #warning "set default mode"
+  //deviceColorGroup = group_yellow_light;
+  // persistent settings
   dimUpTime[0] = 0x0F; // 100mS
   dimUpTime[1] = 0x3F; // 800mS
   dimUpTime[2] = 0x2F; // 400mS
@@ -350,72 +359,11 @@ LightOutputSettings::LightOutputSettings(DsBehaviour &aBehaviour) :
 }
 
 
-
-
-const char *LightOutputSettings::tableName()
-{
-  return "LightOutputSettings";
-}
-
-
-/// data field definitions
-const FieldDefinition *LightOutputSettings::getFieldDefs()
-{
-  static const FieldDefinition dataDefs[] = {
-    { "isDimmable", SQLITE_INTEGER },
-    { "onThreshold", SQLITE_INTEGER },
-    { "minDim", SQLITE_INTEGER },
-    { "maxDim", SQLITE_INTEGER },
-    { NULL, 0 },
-  };
-  return dataDefs;
-}
-
-
-/// load values from passed row
-void LightOutputSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
-{
-  inherited::loadFromRow(aRow, aIndex);
-  // get the fields
-  isDimmable = aRow->get<bool>(aIndex++);
-  onThreshold = aRow->get<int>(aIndex++);
-  minDim = aRow->get<int>(aIndex++);
-  maxDim = aRow->get<int>(aIndex++);
-}
-
-
-// bind values to passed statement
-void LightOutputSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
-{
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // bind the fields
-  aStatement.bind(aIndex++, isDimmable);
-  aStatement.bind(aIndex++, onThreshold);
-  aStatement.bind(aIndex++, minDim);
-  aStatement.bind(aIndex++, maxDim);
-}
-
-
-
-#pragma mark - LightBehaviour
-
-LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
-  inherited(aDevice, aIndex),
-  lightOutputSettings(*this),
-  localPriority(false),
-  isLocigallyOn(false),
-  logicalBrightness(0)
-{
-  #warning "set default mode"
-  //deviceColorGroup = group_yellow_light;
-}
-
-
 void LightBehaviour::setHardwareDimmer(bool aAvailable)
 {
   hasDimmer = aAvailable;
   // default to dimming mode if we have a dimmer, not dimming otherwise
-  lightOutputSettings.isDimmable = hasDimmer;
+  isDimmable = hasDimmer;
 }
 
 
@@ -432,13 +380,13 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
   logicalBrightness = aBrightness;
   if (isLocigallyOn) {
     // device is logically ON
-    if (lightOutputSettings.isDimmable && hasDimmer) {
+    if (isDimmable && hasDimmer) {
       // dimmable, 0=off, 1..255=brightness
       device.setOutputValue(*this, logicalBrightness, aTransitionTime);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      device.setOutputValue(*this, logicalBrightness>=lightOutputSettings.onThreshold ? 255 : 0, aTransitionTime);
+      device.setOutputValue(*this, logicalBrightness>=onThreshold ? 255 : 0, aTransitionTime);
     }
   }
   else {
@@ -454,16 +402,16 @@ void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, 
   logicalBrightness = aCurrent;
   if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
 
-  if (aMin!=lightOutputSettings.minDim || aMax!=lightOutputSettings.maxDim) {
-    lightOutputSettings.maxDim = aMax;
-    lightOutputSettings.minDim = aMin>0 ? aMin : 1; // never below 1
-    lightOutputSettings.markDirty();
+  if (aMin!=minDim || aMax!=maxDim) {
+    maxDim = aMax;
+    minDim = aMin>0 ? aMin : 1; // never below 1
+    markDirty();
   }
 }
 
 
 
-#pragma mark - interaction with digitalSTROM system
+#pragma mark - behaviour interaction with digitalSTROM system
 
 
 // apply scene
@@ -485,15 +433,15 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
           // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
           nb = nb>11 ? nb-11 : 1; // never below 1
           // also make sure we don't go below minDim
-          if (nb<lightOutputSettings.minDim)
-            nb = lightOutputSettings.minDim;
+          if (nb<minDim)
+            nb = minDim;
         }
         else {
           // dim up
           nb = nb<255-11 ? nb+11 : 255;
           // also make sure we don't go above maxDim
-          if (nb>lightOutputSettings.maxDim)
-            nb = lightOutputSettings.maxDim;
+          if (nb>maxDim)
+            nb = maxDim;
         }
         if (nb!=b) {
           isLocigallyOn = nb!=0; // TODO: is this correct?
@@ -509,7 +457,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     }
     else if (sceneNo==MIN_S) {
       // TODO: this is a duplicate implementation of "callscenemin"
-      Brightness b = lightOutputSettings.minDim;
+      Brightness b = minDim;
       isLocigallyOn = true; // mindim always turns on light
       // TODO: pass correct transition time
       setLogicalBrightness(b, 0);
@@ -545,7 +493,6 @@ void LightBehaviour::captureScene(DsScenePtr aScene)
 
 
 
-
 #define BLINK_HALF_PERIOD (500*MilliSecond)
 
 void LightBehaviour::nextBlink()
@@ -568,30 +515,53 @@ void LightBehaviour::nextBlink()
 }
 
 
+#pragma mark - persistence implementation
 
-ErrorPtr LightBehaviour::load()
+const char *LightBehaviour::tableName()
 {
-  // load light settings (and scenes along with it)
-  return lightOutputSettings.load();
+  return "LightOutputSettings";
 }
 
 
-ErrorPtr LightBehaviour::save()
+/// data field definitions
+const FieldDefinition *LightBehaviour::getFieldDefs()
 {
-  // save light settings (and scenes along with it)
-  return lightOutputSettings.save();
+  static const FieldDefinition dataDefs[] = {
+    { "isDimmable", SQLITE_INTEGER },
+    { "onThreshold", SQLITE_INTEGER },
+    { "minDim", SQLITE_INTEGER },
+    { "maxDim", SQLITE_INTEGER },
+    { NULL, 0 },
+  };
+  return dataDefs;
 }
 
 
-ErrorPtr LightBehaviour::forget()
+/// load values from passed row
+void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
-  // delete light settings (and scenes along with it)
-  return lightOutputSettings.deleteFromStore();
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  isDimmable = aRow->get<bool>(aIndex++);
+  onThreshold = aRow->get<int>(aIndex++);
+  minDim = aRow->get<int>(aIndex++);
+  maxDim = aRow->get<int>(aIndex++);
 }
 
 
+// bind values to passed statement
+void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  aStatement.bind(aIndex++, isDimmable);
+  aStatement.bind(aIndex++, onThreshold);
+  aStatement.bind(aIndex++, minDim);
+  aStatement.bind(aIndex++, maxDim);
+}
 
-#pragma mark - ButtonBehaviour description/shortDesc
+
+#pragma mark - description/shortDesc
 
 
 string LightBehaviour::shortDesc()
@@ -605,7 +575,7 @@ string LightBehaviour::description()
   string s = string_format("dS behaviour %s\n", shortDesc().c_str());
   string_format_append(s, "- hardware: %s\n", hasDimmer ? "dimmer" : "switch");
   string_format_append(s, "- logical brightness = %d, logical on = %d, localPriority = %d\n", logicalBrightness, isLocigallyOn, localPriority);
-  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", lightOutputSettings.isDimmable, lightOutputSettings.minDim, lightOutputSettings.maxDim, lightOutputSettings.onThreshold);
+  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable, minDim, maxDim, onThreshold);
   s.append(inherited::description());
   return s;
 }
