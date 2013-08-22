@@ -164,7 +164,7 @@ namespace p44 {
 
   };
 
-  typedef boost::shared_ptr<DsBehaviour> DsBehaviourPtr;
+  typedef boost::intrusive_ptr<DsBehaviour> DsBehaviourPtr;
 
 
   class OutputBehaviour : public DsBehaviour
@@ -199,7 +199,7 @@ namespace p44 {
     /// @}
 
   };
-  typedef boost::shared_ptr<OutputBehaviour> OutputBehaviourPtr;
+  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
 
 
   class BinaryInputBehaviour : public DsBehaviour
@@ -221,7 +221,7 @@ namespace p44 {
     : inherited(aDevice, aIndex) {};
     
   };
-  typedef boost::shared_ptr<BinaryInputBehaviour> BinaryInputBehaviourPtr;
+  typedef boost::intrusive_ptr<BinaryInputBehaviour> BinaryInputBehaviourPtr;
 
 
   class SensorBehaviour : public DsBehaviour
@@ -243,7 +243,7 @@ namespace p44 {
     : inherited(aDevice, aIndex) {};
     
   };
-  typedef boost::shared_ptr<SensorBehaviour> SensorBehaviourPtr;
+  typedef boost::intrusive_ptr<SensorBehaviour> SensorBehaviourPtr;
 
 
 } // namespace p44

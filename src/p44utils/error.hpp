@@ -24,8 +24,9 @@ namespace p44 {
 
   /// error base class
   class Error;
-  typedef boost::shared_ptr<Error> ErrorPtr;
-  class Error {
+  typedef boost::intrusive_ptr<Error> ErrorPtr;
+  class Error : public P44Obj
+  {
     ErrorCode errorCode;
     std::string errorMessage;
   public:

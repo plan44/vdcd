@@ -57,7 +57,7 @@ namespace p44 {
   const DaliAddress DaliGroupMask = 0x0F; // address mask
 
   /// DALI device information record
-  class DaliDeviceInfo
+  class DaliDeviceInfo : public P44Obj
   {
   public:
     DaliDeviceInfo();
@@ -79,7 +79,7 @@ namespace p44 {
 
 
 
-  typedef boost::shared_ptr<DaliComm> DaliCommPtr;
+  typedef boost::intrusive_ptr<DaliComm> DaliCommPtr;
 
   /// A class providing low level access to the DALI bus
   class DaliComm : public SerialComm
@@ -229,7 +229,7 @@ namespace p44 {
     void daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes);
 
 
-    typedef boost::shared_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
+    typedef boost::intrusive_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
 
     /// callback function for daliReadDeviceInfo
     typedef boost::function<void (DaliComm *aDaliCommP, DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;

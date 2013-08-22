@@ -19,7 +19,7 @@ namespace p44 {
 
   class StaticDeviceContainer;
   class GpioDevice;
-  typedef boost::shared_ptr<GpioDevice> GpioDevicePtr;
+  typedef boost::intrusive_ptr<GpioDevice> GpioDevicePtr;
   class GpioDevice : public Device
   {
     typedef Device inherited;

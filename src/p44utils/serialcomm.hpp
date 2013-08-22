@@ -55,7 +55,7 @@ namespace p44 {
 
 
   class SerialComm;
-  typedef boost::shared_ptr<SerialComm> SerialCommPtr;
+  typedef boost::intrusive_ptr<SerialComm> SerialCommPtr;
 
   /// A class providing low level access to the DALI bus
   class SerialComm : public SerialOperationQueue

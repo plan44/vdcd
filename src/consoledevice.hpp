@@ -19,7 +19,7 @@ namespace p44 {
 
   class StaticDeviceContainer;
   class ConsoleDevice;
-  typedef boost::shared_ptr<ConsoleDevice> ConsoleDevicePtr;
+  typedef boost::intrusive_ptr<ConsoleDevice> ConsoleDevicePtr;
   class ConsoleDevice : public Device
   {
     typedef Device inherited;

@@ -20,7 +20,7 @@ using namespace std;
 
 namespace p44 {
 
-  class dSID
+  class dSID : public P44Obj
   {
   public:
     static const uint8_t GID96Header = 0x35; ///< GID96 8bit header byte

@@ -29,7 +29,8 @@ namespace p44 {
   } bankEntry;
 
 
-  class DsParams {
+  class DsParams : public P44Obj
+  {
 
     static const paramEntry *paramEntryForOffset(const paramEntry *aBankTable, uint8_t aOffset);
 

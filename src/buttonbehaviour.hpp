@@ -153,7 +153,7 @@ namespace p44 {
 
   };
 
-  typedef boost::shared_ptr<ButtonBehaviour> ButtonBehaviourPtr;
+  typedef boost::intrusive_ptr<ButtonBehaviour> ButtonBehaviourPtr;
 
 }
 

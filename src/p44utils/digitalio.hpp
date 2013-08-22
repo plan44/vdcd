@@ -17,7 +17,7 @@ using namespace std;
 namespace p44 {
 
   /// Generic digital I/O
-  class DigitalIo
+  class DigitalIo : public P44Obj
   {
     IOPinPtr ioPin; ///< the actual hardware interface to the pin
 
@@ -58,7 +58,7 @@ namespace p44 {
     /// @return new state of output after toggling (for inputs, just returns state like isSet() does)
     bool toggle();
   };
-	typedef boost::shared_ptr<DigitalIo> DigitalIoPtr;
+	typedef boost::intrusive_ptr<DigitalIo> DigitalIoPtr;
 	
 	
 
@@ -103,7 +103,7 @@ namespace p44 {
     void setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease, MLMicroSeconds aRepeatActiveReport=p44::Never);
     
   };
-	typedef boost::shared_ptr<ButtonInput> ButtonInputPtr;
+	typedef boost::intrusive_ptr<ButtonInput> ButtonInputPtr;
 
 	
 	
@@ -141,7 +141,7 @@ namespace p44 {
     void stop();
 
   };
-	typedef boost::shared_ptr<IndicatorOutput> IndicatorOutputPtr;
+	typedef boost::intrusive_ptr<IndicatorOutput> IndicatorOutputPtr;
 
 
 

@@ -27,7 +27,7 @@ namespace p44 {
   class Device;
   class DeviceSettings;
 
-  class DsScene : public PersistentParams, public PropertyContainer
+  class DsScene : public PropertyContainer, public PersistentParams
   {
     typedef PersistentParams inheritedParams;
     typedef PropertyContainer inheritedProps;
@@ -44,6 +44,7 @@ namespace p44 {
 
   public:
     DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, creates empty scene
+    virtual ~DsScene() {}; // important for multiple inheritance!
 
     /// @name common scene values (available in all scene objects)
     /// @{
@@ -74,7 +75,7 @@ namespace p44 {
 
     /// @}
   };
-  typedef boost::shared_ptr<DsScene> DsScenePtr;
+  typedef boost::intrusive_ptr<DsScene> DsScenePtr;
   typedef map<SceneNo, DsScenePtr> DsSceneMap;
 
 
@@ -127,7 +128,7 @@ namespace p44 {
     
     /// @}
   };
-  typedef boost::shared_ptr<SceneDeviceSettings> SceneDeviceSettingsPtr;
+  typedef boost::intrusive_ptr<SceneDeviceSettings> SceneDeviceSettingsPtr;
 
 
 } // namespace p44

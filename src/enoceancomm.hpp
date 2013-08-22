@@ -79,9 +79,9 @@ namespace p44 {
 	class EnoceanComm;
 
   class Esp3Packet;
-	typedef boost::shared_ptr<Esp3Packet> Esp3PacketPtr;
+	typedef boost::intrusive_ptr<Esp3Packet> Esp3PacketPtr;
 	/// ESP3 packet object with byte stream parser and generator
-  class Esp3Packet
+  class Esp3Packet : public P44Obj
   {
   public:
     typedef enum {
@@ -228,7 +228,7 @@ namespace p44 {
 
   typedef boost::function<void (EnoceanComm *aEnoceanCommP, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
 
-  typedef boost::shared_ptr<EnoceanComm> EnoceanCommPtr;
+  typedef boost::intrusive_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication
 	class EnoceanComm : public SerialComm
 	{

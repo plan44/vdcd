@@ -26,6 +26,8 @@
 
 #include <syslog.h>
 
+#include "p44obj.hpp"
+
 #if defined(DEBUG) || ALWAYS_DEBUG
 #define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define DBGLOG(lvl,...) globalLogger.log(lvl,##__VA_ARGS__)
@@ -47,7 +49,8 @@
 
 namespace p44 {
 
-  class Logger {
+  class Logger : public P44Obj
+  {
     pthread_mutex_t reportMutex;
     int logLevel;
   public:

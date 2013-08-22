@@ -21,7 +21,7 @@ namespace p44 {
 
   typedef vector<DsBehaviourPtr> BehaviourVector;
 
-  typedef boost::shared_ptr<Device> DevicePtr;
+  typedef boost::intrusive_ptr<Device> DevicePtr;
   /// base class representing a virtual digitalSTROM device
   /// for each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
   /// the device class' specifics.

@@ -43,9 +43,9 @@ namespace p44 {
   } PropertyDescriptor;
 
 
-  typedef boost::shared_ptr<PropertyContainer> PropertyContainerPtr;
+  typedef boost::intrusive_ptr<PropertyContainer> PropertyContainerPtr;
 
-  class PropertyContainer
+  class PropertyContainer : public P44Obj
   {
 
   public:

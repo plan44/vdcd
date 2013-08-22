@@ -27,6 +27,7 @@ namespace p44 {
   };
 
 
+  /// @note this class does NOT derive from P44Obj, so it can be added as "interface" using multiple-inheritance
   class PersistentParams
   {
     bool dirty; ///< if set, means that values need to be saved

@@ -20,7 +20,7 @@ namespace p44 {
   class I2CManager;
   class I2CBus;
 
-  class I2CDevice
+  class I2CDevice : public P44Obj
   {
     friend class I2CBus;
   protected:
@@ -44,7 +44,7 @@ namespace p44 {
     I2CDevice(uint8_t aDeviceAddress, I2CBus *aBusP);
 
   };
-  typedef boost::shared_ptr<I2CDevice> I2CDevicePtr;
+  typedef boost::intrusive_ptr<I2CDevice> I2CDevicePtr;
 
   typedef std::map<string, I2CDevicePtr> I2CDeviceMap;
 
@@ -81,7 +81,7 @@ namespace p44 {
     void setAsOutput(int aBitNo, bool aOutput, bool aInitialState);
 
   };
-  typedef boost::shared_ptr<I2CBitPortDevice> I2CBitPortDevicePtr;
+  typedef boost::intrusive_ptr<I2CBitPortDevice> I2CBitPortDevicePtr;
 
 
 
@@ -114,7 +114,7 @@ namespace p44 {
 
 
 
-  class I2CBus
+  class I2CBus : public P44Obj
   {
     friend class I2CManager;
 
@@ -164,13 +164,13 @@ namespace p44 {
     void closeBus();
 
   };
-  typedef boost::shared_ptr<I2CBus> I2CBusPtr;
+  typedef boost::intrusive_ptr<I2CBus> I2CBusPtr;
 
 
 
   typedef std::map<int, I2CBusPtr> I2CBusMap;
 
-  class I2CManager
+  class I2CManager : public P44Obj
   {
     I2CBusMap busMap;
 

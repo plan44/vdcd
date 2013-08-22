@@ -53,7 +53,7 @@ namespace p44 {
   typedef boost::function<void (JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)> JsonRpcResponseCB;
 
 
-  typedef boost::shared_ptr<JsonRpcComm> JsonRpcCommPtr;
+  typedef boost::intrusive_ptr<JsonRpcComm> JsonRpcCommPtr;
   /// A class providing low level access to the DALI bus
   class JsonRpcComm : public JsonComm
   {

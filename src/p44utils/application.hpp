@@ -17,7 +17,7 @@ namespace p44 {
 
   class MainLoop;
 
-  class Application
+  class Application : public P44Obj
   {
     MainLoop *mainLoopP;
   public:

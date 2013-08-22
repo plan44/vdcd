@@ -379,7 +379,7 @@ DaliAddress DaliComm::addressFromDaliResponse(uint8_t aResponse)
 
 // Scan bus for active devices (returns list of short addresses)
 
-class DaliBusScanner
+class DaliBusScanner : public P44Obj
 {
   DaliComm *daliComm;
   DaliComm::DaliBusScanCB callback;
@@ -494,7 +494,7 @@ void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 
 #define MAX_RESTARTS 3
 
-class DaliFullBusScanner
+class DaliFullBusScanner : public P44Obj
 {
   DaliComm *daliComm;
   DaliComm::DaliBusScanCB callback;
@@ -758,7 +758,7 @@ void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeed
 
 #pragma mark - DALI memory access / device info reading
 
-class DaliMemoryReader
+class DaliMemoryReader : public P44Obj
 {
   DaliComm *daliComm;
   DaliComm::DaliReadMemoryCB callback;
@@ -824,7 +824,7 @@ void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, 
 
 // read device info of a DALI device
 
-class DaliDeviceInfoReader
+class DaliDeviceInfoReader : public P44Obj
 {
   DaliComm *daliComm;
   DaliComm::DaliDeviceInfoCB callback;

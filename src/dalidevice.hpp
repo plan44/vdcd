@@ -20,7 +20,7 @@ namespace p44 {
 
   class DaliDeviceContainer;
   class DaliDevice;
-  typedef boost::shared_ptr<DaliDevice> DaliDevicePtr;
+  typedef boost::intrusive_ptr<DaliDevice> DaliDevicePtr;
   class DaliDevice : public Device
   {
     typedef Device inherited;

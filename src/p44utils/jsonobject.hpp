@@ -28,11 +28,11 @@ namespace p44 {
   class JsonObject;
 
   /// shared pointer for JSON object
-  typedef boost::shared_ptr<JsonObject> JsonObjectPtr;
+  typedef boost::intrusive_ptr<JsonObject> JsonObjectPtr;
 
 
   /// wrapper around json-c / libjson0 object
-  class JsonObject
+  class JsonObject : public P44Obj
   {
     friend class JsonComm;
 

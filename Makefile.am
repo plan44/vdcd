@@ -6,6 +6,8 @@ bin_PROGRAMS = vdcd jsonrpctool
 vdcd_CPPFLAGS = -I src/p44utils -I src
 
 vdcd_SOURCES = \
+  src/p44utils/p44obj.cpp \
+  src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
   src/p44utils/consolekey.cpp \
@@ -104,6 +106,8 @@ vdcd_SOURCES = \
 jsonrpctool_CPPFLAGS = -I src/p44utils -I src
 
 jsonrpctool_SOURCES = \
+  src/p44utils/p44obj.cpp \
+  src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
   src/p44utils/error.cpp \

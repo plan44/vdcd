@@ -21,7 +21,7 @@ namespace p44 {
 
 
   /// common settings for devices, can be used when device does not need a scene table, but has some global settings
-  class DeviceSettings : public PersistentParams
+  class DeviceSettings : public PersistentParams, public P44Obj
   {
     typedef PersistentParams inherited;
 
@@ -34,6 +34,7 @@ namespace p44 {
 
   public:
     DeviceSettings(Device &aDevice);
+    virtual ~DeviceSettings() {}; // important for multiple inheritance!
 
     // persistence implementation
     virtual const char *tableName();
@@ -45,7 +46,7 @@ namespace p44 {
     /// @}
 
   };
-  typedef boost::shared_ptr<DeviceSettings> DeviceSettingsPtr;
+  typedef boost::intrusive_ptr<DeviceSettings> DeviceSettingsPtr;
 
   
 } // namespace p44

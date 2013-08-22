@@ -34,7 +34,7 @@ namespace p44 {
 
 
   /// A main loop for a thread
-  class MainLoop
+  class MainLoop : public P44Obj
   {
     typedef struct {
       void *subscriberP;
@@ -116,7 +116,7 @@ namespace p44 {
   /// I/O callback
   typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
-  typedef boost::shared_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
+  typedef boost::intrusive_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
   /// A main loop with a Synchronous I/O multiplexer (select() call)
   class SyncIOMainLoop : public MainLoop
   {

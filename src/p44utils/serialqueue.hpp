@@ -48,7 +48,7 @@ namespace p44 {
 
 
   /// Serial operation
-  typedef boost::shared_ptr<SerialOperation> SerialOperationPtr;
+  typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
   class SerialOperation : public Operation
   {
   protected:
@@ -86,7 +86,7 @@ namespace p44 {
 
     virtual bool initiate();
   };
-  typedef boost::shared_ptr<SerialOperationSend> SerialOperationSendPtr;
+  typedef boost::intrusive_ptr<SerialOperationSend> SerialOperationSendPtr;
 
 
   /// receive operation
@@ -110,7 +110,7 @@ namespace p44 {
     virtual bool hasCompleted();
     virtual void abortOperation(ErrorPtr aError);
   };
-  typedef boost::shared_ptr<SerialOperationReceive> SerialOperationReceivePtr;
+  typedef boost::intrusive_ptr<SerialOperationReceive> SerialOperationReceivePtr;
 
 
   /// send operation which automatically inserts a receive operation after completion

@@ -50,7 +50,7 @@ namespace p44 {
   class SocketComm;
 
 
-  typedef boost::shared_ptr<SocketComm> SocketCommPtr;
+  typedef boost::intrusive_ptr<SocketComm> SocketCommPtr;
   typedef std::list<SocketCommPtr> SocketCommList;
 
   /// callback for signalling ready for receive or transmit, or error

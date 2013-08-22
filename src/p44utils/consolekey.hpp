@@ -18,7 +18,7 @@ namespace p44 {
   class ConsoleKeyManager;
 
   /// Wrapper to use single keys on the console as simulated buttons
-  class ConsoleKey
+  class ConsoleKey : public P44Obj
   {
     friend class ConsoleKeyManager;
 
@@ -59,7 +59,7 @@ namespace p44 {
     void reportState();
 
   };
-	typedef boost::shared_ptr<ConsoleKey> ConsoleKeyPtr;
+	typedef boost::intrusive_ptr<ConsoleKey> ConsoleKeyPtr;
 
 
   typedef std::map<char, ConsoleKeyPtr> ConsoleKeyMap;

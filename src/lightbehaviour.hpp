@@ -51,7 +51,7 @@ namespace p44 {
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   };
-  typedef boost::shared_ptr<LightScene> LightScenePtr;
+  typedef boost::intrusive_ptr<LightScene> LightScenePtr;
   typedef map<SceneNo, LightScenePtr> LightSceneMap;
 
 
@@ -173,7 +173,7 @@ namespace p44 {
     void nextBlink();
   };
 
-  typedef boost::shared_ptr<LightBehaviour> LightBehaviourPtr;
+  typedef boost::intrusive_ptr<LightBehaviour> LightBehaviourPtr;
 
 } // namespace p44
 

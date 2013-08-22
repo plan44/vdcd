@@ -20,7 +20,7 @@ using namespace std;
 namespace p44 {
 
   class DaliDeviceContainer;
-  typedef boost::shared_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
+  typedef boost::intrusive_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
   class DaliDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;

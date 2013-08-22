@@ -18,7 +18,7 @@ using namespace std;
 namespace p44 {
 
   /// abstract wrapper class for digital I/O pin
-  class IOPin
+  class IOPin : public P44Obj
   {
   public:
 
@@ -30,7 +30,7 @@ namespace p44 {
     /// @param aState new state to set output to
     virtual void setState(bool aState) = 0;
   };
-  typedef boost::shared_ptr<IOPin> IOPinPtr;
+  typedef boost::intrusive_ptr<IOPin> IOPinPtr;
   
   
 

@@ -33,14 +33,14 @@ namespace p44 {
   class FdComm;
 
 
-  typedef boost::shared_ptr<FdComm> FdCommPtr;
+  typedef boost::intrusive_ptr<FdComm> FdCommPtr;
 
   /// callback for signalling ready for receive or transmit, or error
   typedef boost::function<void (FdComm *aFdCommP, ErrorPtr aError)> FdCommCB;
 
 
   /// A class providing socket communication (client and server)
-  class FdComm
+  class FdComm : public P44Obj
   {
     FdCommCB receiveHandler;
     FdCommCB transmitHandler;

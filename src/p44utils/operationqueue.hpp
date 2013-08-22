@@ -41,8 +41,8 @@ namespace p44 {
   typedef boost::function<void (Operation *, OperationQueue *, ErrorPtr)> OperationFinalizeCB;
 
   /// Operation
-  typedef boost::shared_ptr<Operation> OperationPtr;
-  class Operation
+  typedef boost::intrusive_ptr<Operation> OperationPtr;
+  class Operation : public P44Obj
   {
   protected:
     OperationFinalizeCB finalizeCallback;
@@ -88,7 +88,7 @@ namespace p44 {
 
 
   /// Operation queue
-  class OperationQueue
+  class OperationQueue : public P44Obj
   {
     MainLoop *mainLoopP;
   protected:

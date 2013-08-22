@@ -20,7 +20,7 @@ namespace p44 {
 	typedef std::multimap<string, string> DeviceConfigMap;
 	
   class StaticDeviceContainer;
-  typedef boost::shared_ptr<StaticDeviceContainer> StaticDeviceContainerPtr;
+  typedef boost::intrusive_ptr<StaticDeviceContainer> StaticDeviceContainerPtr;
   class StaticDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;

@@ -25,8 +25,8 @@ namespace p44 {
   class ButtonBehaviour;
   class dSID;
 
-  typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
-  typedef boost::shared_ptr<Device> DevicePtr;
+  typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
+  typedef boost::intrusive_ptr<Device> DevicePtr;
 
   /// generic callback for signalling completion (with success/error reporting)
   typedef boost::function<void (ErrorPtr aError)> CompletedCB;
@@ -47,7 +47,7 @@ namespace p44 {
   /// - contains one or multiple device class containers
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer;
-  typedef boost::shared_ptr<DeviceContainer> DeviceContainerPtr;
+  typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
   typedef list<DeviceClassContainerPtr> ContainerList;
   typedef map<dSID, DevicePtr> DsDeviceMap;
 

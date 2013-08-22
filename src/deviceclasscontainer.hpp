@@ -38,13 +38,13 @@ namespace p44 {
 	
   class Device;
 
-  typedef boost::shared_ptr<Device> DevicePtr;
+  typedef boost::intrusive_ptr<Device> DevicePtr;
 
 
   class DeviceClassContainer;
-  typedef boost::shared_ptr<DeviceClassContainer> DeviceClassContainerPtr;
+  typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef std::list<DevicePtr> DeviceList;
-  class DeviceClassContainer
+  class DeviceClassContainer : public P44Obj
   {
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceList devices; ///< the devices of this class

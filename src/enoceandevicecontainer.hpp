@@ -62,7 +62,7 @@ namespace p44 {
 
 
   class EnoceanDeviceContainer;
-  typedef boost::shared_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
+  typedef boost::intrusive_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
   class EnoceanDeviceContainer : public DeviceClassContainer
   {
     friend class EnoceanDevice;

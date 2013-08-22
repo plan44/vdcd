@@ -13,10 +13,12 @@
 #include <vector>
 #include <map>
 
+#include <boost/intrusive_ptr.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 
+#include "p44obj.hpp"
 #include "logger.hpp"
 #include "utils.hpp"
 #include "error.hpp"

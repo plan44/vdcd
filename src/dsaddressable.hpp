@@ -166,7 +166,7 @@ namespace p44 {
     void presenceResultHandler(bool aIsPresent);
 
   };
-  typedef boost::shared_ptr<DsAddressable> DsAddressablePtr;
+  typedef boost::intrusive_ptr<DsAddressable> DsAddressablePtr;
 
   
 } // namespace p44

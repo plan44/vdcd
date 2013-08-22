@@ -23,7 +23,7 @@ namespace p44 {
 
   class EnoceanDeviceContainer;
   class EnoceanDevice;
-  typedef boost::shared_ptr<EnoceanDevice> EnoceanDevicePtr;
+  typedef boost::intrusive_ptr<EnoceanDevice> EnoceanDevicePtr;
   class EnoceanDevice : public Device
   {
     typedef Device inherited;
