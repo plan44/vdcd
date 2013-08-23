@@ -32,12 +32,12 @@ bool Logger::logEnabled(int aErrlevel)
 void Logger::log(int aErrlevel, const char *aFmt, ... )
 {
   if (logEnabled(aErrlevel)) {
-    va_list args;
     pthread_mutex_lock(&reportMutex);
+    va_list args;
+    va_start(args, aFmt);
     // format the message
     string message;
-    va_start(args, aFmt);
-    string_format_v(message, aFmt, false, args);
+    string_format_v(message, false, aFmt, args);
     va_end(args);
     // escape non-printables and detect multiline
     bool isMultiline = false;
