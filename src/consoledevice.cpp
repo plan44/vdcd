@@ -44,7 +44,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
-    l->setHardwareDimmer(true); // Simulation
+    l->setHardwareOutputConfig(outputFunction_dimmer, true, -1);
     l->setHardwareName("console output");
     outputs.push_back(l);
   }
@@ -57,7 +57,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
-    b->setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
     b->setHardwareName(string_format("console key '%c'",name[0]));
     buttons.push_back(b);
   }

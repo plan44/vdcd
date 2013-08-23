@@ -37,19 +37,19 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
   // persistent settings
   buttonGroup(group_yellow_light), // default to light
-  buttonMode(buttonmode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
-  buttonFunc(buttonfunc_room_preset0x), // act as room button by default
+  buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
   callsPresent(false)
 {
   // set default hrdware configuration
-  setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+  setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
   // reset the button state machine
   resetStateMachine();
 }
 
 
-void ButtonBehaviour::setHardwareButtonType(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode)
+void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode)
 {
   buttonID = aButtonID;
   buttonType = aType;
@@ -57,15 +57,15 @@ void ButtonBehaviour::setHardwareButtonType(int aButtonID, DsButtonType aType, D
   supportsLocalKeyMode = aSupportsLocalKeyMode;
   // now derive default settings from hardware
   // - default to standard mode
-  buttonMode = buttonmode_standard;
+  buttonMode = buttonMode_standard;
   // - modify for 2-way
   if (buttonType==buttonType_2way) {
     // part of a 2-way button
     if (buttonElementID==buttonElement_up) {
-      buttonMode = (DsButtonMode)((int)buttonmode_rockerDown1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonMode_rockerDown1+aButtonID);
     }
     else if (buttonElementID==buttonElement_down) {
-      buttonMode = (DsButtonMode)((int)buttonmode_rockerUp1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonMode_rockerUp1+aButtonID);
     }
   }
 }

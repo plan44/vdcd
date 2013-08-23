@@ -23,7 +23,7 @@ DeviceSettings::DeviceSettings(Device &aDevice) :
 // SQLIte3 table name to store these parameters to
 const char *DeviceSettings::tableName()
 {
-  return "dsDeviceSettings";
+  return "DeviceSettings";
 }
 
 

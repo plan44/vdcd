@@ -18,6 +18,11 @@ namespace p44 {
   /// printf-style format into std::string
   /// @param aFormat printf-style format string
   /// @return formatted string
+  void string_format_v(std::string &aStringObj, const char *aFormat, bool aAppend, va_list aArgs);
+
+  /// printf-style format into std::string
+  /// @param aFormat printf-style format string
+  /// @return formatted string
   std::string string_format(const char *aFormat, ...);
 
   /// printf-style format appending to std::string

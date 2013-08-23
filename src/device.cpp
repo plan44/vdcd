@@ -8,7 +8,11 @@
 
 #include "device.hpp"
 
-#include "dsparams.hpp"
+#include "buttonbehaviour.hpp"
+#include "outputbehaviour.hpp"
+#include "sensorbehaviour.hpp"
+#include "binaryinputbehaviour.cpp"
+
 
 using namespace p44;
 

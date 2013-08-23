@@ -21,8 +21,8 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string gpioname = aDeviceConfig;
-  isOutput = false;
-  inverted = false;
+  bool inverted = false;
+  bool output = false;
   if (i!=string::npos) {
     gpioname = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
@@ -30,20 +30,22 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
       inverted = true;
       mode.erase(0,1);
     }
-    if (mode=="in")
-      isOutput = false;
-    else if (mode=="out")
-      isOutput = true;
+    if (mode=="in") {
+      output = false;
+    }
+    else if (mode=="out") {
+      output = true;
+    }
   }
   // basically act as black device so we can configure colors
   primaryGroup = group_black_joker;
-  if (isOutput) {
+  if (output) {
     // GPIO output as on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(gpioname.c_str(), inverted, false));
     // Simulate light device
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
-    l->setHardwareDimmer(false); // GPIOs are digital on/off
+    l->setHardwareOutputConfig(outputFunction_switch, false, -1);
     outputs.push_back(l);
   }
   else {
@@ -52,7 +54,7 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
     buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
-    b->setHardwareButtonType(0, buttonType_single, buttonElement_center, false);
+    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
     buttons.push_back(b);
   }
 	deriveDSID();

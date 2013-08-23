@@ -8,6 +8,8 @@
 
 #include "logger.hpp"
 
+#include "utils.hpp"
+
 using namespace p44;
 
 p44::Logger globalLogger;
@@ -18,7 +20,7 @@ Logger::Logger()
   logLevel = LOGGER_DEFAULT_LOGLEVEL;
 }
 
-#define LOGBUFSIZ 4096
+#define LOGBUFSIZ 8192
 
 
 bool Logger::logEnabled(int aErrlevel)
@@ -30,28 +32,38 @@ bool Logger::logEnabled(int aErrlevel)
 void Logger::log(int aErrlevel, const char *aFmt, ... )
 {
   if (logEnabled(aErrlevel)) {
-    char buf[LOGBUFSIZ];
-    va_list ap;
+    va_list args;
     pthread_mutex_lock(&reportMutex);
-
-    strncpy(buf, ": ", LOGBUFSIZ);
-    va_start(ap, aFmt);
-    vsnprintf(buf + strlen(buf), sizeof(buf)-strlen(buf), aFmt, ap);
-    va_end(ap);
-
-    char buf2[LOGBUFSIZ], *sp, tsbuf[30];
+    // format the message
+    string message;
+    va_start(args, aFmt);
+    string_format_v(message, aFmt, false, args);
+    va_end(args);
+    // escape non-printables and detect multiline
+    bool isMultiline = false;
+    string::size_type i=0;
+    while (i<message.length()) {
+      char c = message[i];
+      if (c=='\n') {
+        if (i!=message.length()-1)
+          isMultiline = true; // not just trailing LF
+      }
+      else if (!isprint(c))
+        message.replace(i, 1, string_format("\\x%02x", (unsigned)c));
+      i++;
+    }
+    // create date
+    char tsbuf[30];
     struct timeval t;
     gettimeofday(&t, NULL);
     strftime(tsbuf, sizeof(tsbuf), "%Y-%m-%d %H:%M:%S", localtime(&t.tv_sec));
-    (void)snprintf(buf2, LOGBUFSIZ, "[%s.%03d] ", tsbuf, (int)t.tv_usec / 1000);
-    for (sp = buf; *sp != '\0'; sp++)
-//      if (isprint(*sp) || (isspace(*sp) && (sp[1]=='\0' || sp[2]=='\0')))
-      if (isprint(*sp) || (*sp=='\n')) // printable and LFs are oj
-        (void)snprintf(buf2+strlen(buf2), 2, "%c", *sp);
-      else
-        (void)snprintf(buf2+strlen(buf2), 6, "\\x%02x", (unsigned)*sp); // rest is shown C-escaped
-    (void)fputs(buf2, stderr);
-
+    // output
+    fputs(tsbuf, stderr);
+    if (isMultiline)
+      fputs(":\n", stderr);
+    else
+      fputs(": ", stderr);
+    fputs(message.c_str(), stderr);
     pthread_mutex_unlock(&reportMutex);
   }
 }

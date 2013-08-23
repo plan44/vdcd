@@ -27,27 +27,24 @@ LightScene::LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aScene
 
 #pragma mark - Light Scene persistence
 
-// SQLIte3 table name to store these parameters to
 const char *LightScene::tableName()
 {
-  return "dsLightScenes";
+  return "LightScenes";
 }
-
-
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numSceneFields = 3;
 
 size_t LightScene::numFieldDefs()
 {
-  return inherited::numFieldDefs()+numFields;
+  return inherited::numFieldDefs()+numSceneFields;
 }
 
 
 const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
 {
-  static const FieldDefinition dataDefs[numFields] = {
+  static const FieldDefinition dataDefs[numSceneFields] = {
     { "brightness", SQLITE_INTEGER },
     { "lightFlags", SQLITE_INTEGER },
     { "dimTimeSelector", SQLITE_INTEGER }
@@ -55,7 +52,7 @@ const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
   aIndex -= inherited::numFieldDefs();
-  if (aIndex<numFields)
+  if (aIndex<numSceneFields)
     return &dataDefs[aIndex];
   return NULL;
 }
@@ -335,10 +332,9 @@ LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
   // hardware derived parameters
   // persistent settings
-  isDimmable(false),
   onThreshold(128),
-  minDim(1),
-  maxDim(255),
+  minBrightness(1),
+  maxBrightness(255),
   // volatile state
   localPriority(false),
   isLocigallyOn(false),
@@ -348,24 +344,13 @@ LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
   #warning "set default mode"
   //deviceColorGroup = group_yellow_light;
   // persistent settings
-  dimUpTime[0] = 0x0F; // 100mS
-  dimUpTime[1] = 0x3F; // 800mS
-  dimUpTime[2] = 0x2F; // 400mS
-  dimDownTime[0] = 0x0F; // 100mS
-  dimDownTime[1] = 0x3F; // 800mS
-  dimDownTime[2] = 0x2F; // 400mS
-  dimUpStep = 11;
-  dimDownStep = 11;
+  dimTimeUp[0] = 0x0F; // 100mS
+  dimTimeUp[1] = 0x3F; // 800mS
+  dimTimeUp[2] = 0x2F; // 400mS
+  dimTimeDown[0] = 0x0F; // 100mS
+  dimTimeDown[1] = 0x3F; // 800mS
+  dimTimeDown[2] = 0x2F; // 400mS
 }
-
-
-void LightBehaviour::setHardwareDimmer(bool aAvailable)
-{
-  hasDimmer = aAvailable;
-  // default to dimming mode if we have a dimmer, not dimming otherwise
-  isDimmable = hasDimmer;
-}
-
 
 
 Brightness LightBehaviour::getLogicalBrightness()
@@ -380,7 +365,7 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
   logicalBrightness = aBrightness;
   if (isLocigallyOn) {
     // device is logically ON
-    if (isDimmable && hasDimmer) {
+    if (isDimmable()) {
       // dimmable, 0=off, 1..255=brightness
       device.setOutputValue(*this, logicalBrightness, aTransitionTime);
     }
@@ -402,9 +387,9 @@ void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, 
   logicalBrightness = aCurrent;
   if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
 
-  if (aMin!=minDim || aMax!=maxDim) {
-    maxDim = aMax;
-    minDim = aMin>0 ? aMin : 1; // never below 1
+  if (aMin!=minBrightness || aMax!=maxBrightness) {
+    maxBrightness = aMax;
+    minBrightness = aMin>0 ? aMin : 1; // never below 1
     markDirty();
   }
 }
@@ -433,15 +418,15 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
           // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
           nb = nb>11 ? nb-11 : 1; // never below 1
           // also make sure we don't go below minDim
-          if (nb<minDim)
-            nb = minDim;
+          if (nb<minBrightness)
+            nb = minBrightness;
         }
         else {
           // dim up
           nb = nb<255-11 ? nb+11 : 255;
           // also make sure we don't go above maxDim
-          if (nb>maxDim)
-            nb = maxDim;
+          if (nb>maxBrightness)
+            nb = maxBrightness;
         }
         if (nb!=b) {
           isLocigallyOn = nb!=0; // TODO: is this correct?
@@ -457,7 +442,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     }
     else if (sceneNo==MIN_S) {
       // TODO: this is a duplicate implementation of "callscenemin"
-      Brightness b = minDim;
+      Brightness b = minBrightness;
       isLocigallyOn = true; // mindim always turns on light
       // TODO: pass correct transition time
       setLogicalBrightness(b, 0);
@@ -517,23 +502,38 @@ void LightBehaviour::nextBlink()
 
 #pragma mark - persistence implementation
 
+
 const char *LightBehaviour::tableName()
 {
   return "LightOutputSettings";
 }
 
 
-/// data field definitions
-const FieldDefinition *LightBehaviour::getFieldDefs()
+// data field definitions
+
+static const size_t numFields = 5;
+
+size_t LightBehaviour::numFieldDefs()
 {
-  static const FieldDefinition dataDefs[] = {
-    { "isDimmable", SQLITE_INTEGER },
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
     { "onThreshold", SQLITE_INTEGER },
     { "minDim", SQLITE_INTEGER },
     { "maxDim", SQLITE_INTEGER },
-    { NULL, 0 },
+    { "dimUpTimes", SQLITE_INTEGER },
+    { "dimDownTimes", SQLITE_INTEGER },
   };
-  return dataDefs;
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
 }
 
 
@@ -542,10 +542,18 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  isDimmable = aRow->get<bool>(aIndex++);
   onThreshold = aRow->get<int>(aIndex++);
-  minDim = aRow->get<int>(aIndex++);
-  maxDim = aRow->get<int>(aIndex++);
+  minBrightness = aRow->get<int>(aIndex++);
+  maxBrightness = aRow->get<int>(aIndex++);
+  uint32_t du = aRow->get<int>(aIndex++);
+  uint32_t dd = aRow->get<int>(aIndex++);
+  // dissect dimming times
+  dimTimeUp[0] = du & 0xFF;
+  dimTimeUp[1] = (du>>8) & 0xFF;
+  dimTimeUp[2] = (du>>16) & 0xFF;
+  dimTimeDown[0] = dd & 0xFF;
+  dimTimeDown[1] = (dd>>8) & 0xFF;
+  dimTimeDown[2] = (dd>>16) & 0xFF;
 }
 
 
@@ -553,11 +561,125 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // create dimming time fields
+  uint32_t du =
+    dimTimeUp[0] |
+    (dimTimeUp[1]<<8) |
+    (dimTimeUp[2]<<16);
+  uint32_t dd =
+    dimTimeDown[0] |
+    (dimTimeDown[1]<<8) |
+    (dimTimeDown[2]<<16);
   // bind the fields
-  aStatement.bind(aIndex++, isDimmable);
   aStatement.bind(aIndex++, onThreshold);
-  aStatement.bind(aIndex++, minDim);
-  aStatement.bind(aIndex++, maxDim);
+  aStatement.bind(aIndex++, minBrightness);
+  aStatement.bind(aIndex++, maxBrightness);
+  aStatement.bind(aIndex++, (int)du);
+  aStatement.bind(aIndex++, (int)dd);
+}
+
+
+
+#pragma mark - property access
+
+
+static char light_key;
+
+// settings properties
+
+enum {
+  onThreshold_key,
+  minBrightness_key,
+  maxBrightness_key,
+  dimTimeUp_key,
+  dimTimeDown_key,
+  dimTimeUpAlt1_key,
+  dimTimeDownAlt1_key,
+  dimTimeUpAlt2_key,
+  dimTimeDownAlt2_key,
+  numSettingsProperties
+};
+
+
+int LightBehaviour::numSettingsProps() { return numSettingsProperties; }
+const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
+{
+  static const PropertyDescriptor properties[numSettingsProperties] = {
+    { "onThreshold", ptype_int8, false, onThreshold_key+settings_key_offset, &light_key },
+    { "minBrightness", ptype_int8, false, minBrightness_key+settings_key_offset, &light_key },
+    { "maxBrightness", ptype_int8, false, maxBrightness_key+settings_key_offset, &light_key },
+    { "dimTimeUp", ptype_int8, false, dimTimeUp_key+settings_key_offset, &light_key },
+    { "dimTimeUpAlt1", ptype_int8, false, dimTimeUpAlt1_key+settings_key_offset, &light_key },
+    { "dimTimeUpAlt2", ptype_int8, false, dimTimeUpAlt2_key+settings_key_offset, &light_key },
+    { "dimTimeDown", ptype_int8, false, dimTimeDown_key+settings_key_offset, &light_key },
+    { "dimTimeDownAlt1", ptype_int8, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
+    { "dimTimeDownAlt2", ptype_int8, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
+  };
+  return &properties[aPropIndex];
+}
+
+
+// access to all fields
+
+bool LightBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (aPropertyDescriptor.objectKey==&light_key) {
+    if (!aForWrite) {
+      // read properties
+      switch (aPropertyDescriptor.accessKey) {
+        // Settings properties
+        case onThreshold_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(onThreshold);
+          return true;
+        case minBrightness_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(minBrightness);
+          return true;
+        case maxBrightness_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(maxBrightness);
+          return true;
+        case dimTimeUp_key+settings_key_offset:
+        case dimTimeUpAlt1_key+settings_key_offset:
+        case dimTimeUpAlt2_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)]);
+          return true;
+        case dimTimeDown_key+settings_key_offset:
+        case dimTimeDownAlt1_key+settings_key_offset:
+        case dimTimeDownAlt2_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)]);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor.accessKey) {
+          // Settings properties
+        case onThreshold_key+settings_key_offset:
+          onThreshold = (Brightness)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case minBrightness_key+settings_key_offset:
+          minBrightness = (Brightness)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case maxBrightness_key+settings_key_offset:
+          minBrightness = (Brightness)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case dimTimeUp_key+settings_key_offset:
+        case dimTimeUpAlt1_key+settings_key_offset:
+        case dimTimeUpAlt2_key+settings_key_offset:
+          dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          return true;
+        case dimTimeDown_key+settings_key_offset:
+        case dimTimeDownAlt1_key+settings_key_offset:
+        case dimTimeDownAlt2_key+settings_key_offset:
+          dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 
@@ -572,10 +694,9 @@ string LightBehaviour::shortDesc()
 
 string LightBehaviour::description()
 {
-  string s = string_format("dS behaviour %s\n", shortDesc().c_str());
-  string_format_append(s, "- hardware: %s\n", hasDimmer ? "dimmer" : "switch");
+  string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- logical brightness = %d, logical on = %d, localPriority = %d\n", logicalBrightness, isLocigallyOn, localPriority);
-  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable, minDim, maxDim, onThreshold);
+  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable(), minBrightness, maxBrightness, onThreshold);
   s.append(inherited::description());
   return s;
 }

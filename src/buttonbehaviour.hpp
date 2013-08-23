@@ -37,9 +37,9 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsButtonMode buttonMode; ///< the button mode (LTMODE)
-    DsButtonFunc buttonFunc; ///< the button function (LTNUM)
     DsGroup buttonGroup; ///< the group/color of the button
+    DsButtonFunc buttonFunc; ///< the button function (LTNUM)
+    DsButtonMode buttonMode; ///< the button mode (LTMODE)
     bool setsLocalPriority; ///< button should set local priority
     bool callsPresent; ///< button should call "present" scene
     /// @}
@@ -59,7 +59,7 @@ namespace p44 {
     /// initialisation of hardware-specific constants for this button input
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareButtonType(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode);
+    void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode);
 
 
     /// @name interface towards actual device hardware (or simulation)

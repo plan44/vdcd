@@ -25,8 +25,6 @@ namespace p44 {
     typedef Device inherited;
 		ButtonInputPtr buttonInput;
     IndicatorOutputPtr indicatorOutput;
-    bool isOutput;
-    bool inverted;
 
   public:
     GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);

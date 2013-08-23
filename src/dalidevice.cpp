@@ -41,7 +41,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
-  l->setHardwareDimmer(true); // DALI ballasts are always dimmable
+  l->setHardwareOutputConfig(outputFunction_dimmer, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
   l->setHardwareName(string_format("DALI %d",deviceInfo.shortAddress));
   outputs.push_back(l);
 }
@@ -178,6 +178,19 @@ void DaliDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValu
   else
     return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
 }
+
+
+
+DsOutputError DaliDevice::getOutputError(OutputBehaviour &aOutputBehaviour)
+{
+  if (aOutputBehaviour.getIndex()==0) {
+    // TODO: return actual error status here
+    return outputError_none;
+  }
+  else
+    return inherited::getOutputError(aOutputBehaviour); // let superclass handle this
+}
+
 
 
 

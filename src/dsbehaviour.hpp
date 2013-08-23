@@ -38,10 +38,13 @@ namespace p44 {
 
 
   class Device;
+
   class DsBehaviour;
 
-
-  #warning "TODO: Separate OutputBehaviour and implement properties"
+  class ButtonBehaviour;
+  class OutputBehaviour;
+  class BinaryInputBehaviour;
+  class SensorBehaviour;
 
 
   /// a DsBehaviour represents and implements a device behaviour according to dS specs
@@ -167,39 +170,6 @@ namespace p44 {
   typedef boost::intrusive_ptr<DsBehaviour> DsBehaviourPtr;
 
 
-  class OutputBehaviour : public DsBehaviour
-  {
-    typedef DsBehaviour inherited;
-
-  protected:
-
-    /// @name behaviour description, constants or variables
-    ///   set by device implementations when adding a Behaviour.
-    /// @{
-
-    virtual BehaviourType getType() { return behaviour_output; };
-
-    /// @}
-
-  public:
-    OutputBehaviour(Device &aDevice, size_t aIndex)
-    : inherited(aDevice, aIndex) {};
-
-    /// @name interaction with digitalSTROM system
-    /// @{
-
-    /// apply scene to output
-    /// @param aScene the scene to apply to the output
-    virtual void applyScene(DsScenePtr aScene) = 0;
-
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    virtual void captureScene(DsScenePtr aScene) = 0;
-
-    /// @}
-
-  };
-  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
 
 
   class BinaryInputBehaviour : public DsBehaviour

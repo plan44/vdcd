@@ -181,6 +181,11 @@ namespace p44 {
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
     virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0) { /* NOP */ };
 
+    /// get current output error/status
+    /// @param aOutputBehaviour the output behaviour to get the hardware error status for
+    virtual DsOutputError getOutputError(OutputBehaviour &aOutputBehaviour) { return outputError_none; };
+
+
     /// @}
 
 

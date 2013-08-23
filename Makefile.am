@@ -60,7 +60,13 @@ vdcd_SOURCES = \
   src/dsbehaviour.hpp \
   src/dsscene.cpp \
   src/dsscene.hpp \
+  src/outputbehaviour.cpp \
+  src/outputbehaviour.hpp \
   src/buttonbehaviour.cpp \
+  src/sensorbehaviour.hpp \
+  src/sensorbehaviour.cpp \
+  src/binaryinputbehaviour.hpp \
+  src/binaryinputbehaviour.cpp \
   src/buttonbehaviour.hpp \
   src/lightbehaviour.cpp \
   src/lightbehaviour.hpp \
@@ -88,8 +94,6 @@ vdcd_SOURCES = \
   src/dsdefs.h \
   src/dsid.cpp \
   src/dsid.hpp \
-  src/dsparams.cpp \
-  src/dsparams.hpp \
   src/enoceancomm.cpp \
   src/enoceancomm.hpp \
   src/enoceandevice.cpp \

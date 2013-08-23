@@ -11,6 +11,7 @@
 
 #include "device.hpp"
 #include "dsscene.hpp"
+#include "outputbehaviour.hpp"
 
 using namespace std;
 
@@ -82,20 +83,16 @@ namespace p44 {
 
     /// @name hardware derived parameters (constant during operation)
     /// @{
-    bool hasDimmer; ///< has dimmer hardware, i.e. can vary output level (not just switch)
     /// @}
 
 
     /// @name persistent settings
     /// @{
-    bool isDimmable; ///< if set, ballast can be dimmed. If not set, ballast must not be dimmed, even if we have dimmer hardware
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
-    Brightness minDim; ///< minimal dimming value, dimming down will not go below this
-    Brightness maxDim; ///< maximum dimming value, dimming up will not go above this
-    DimmingTime dimUpTime[3]; ///< dimming up time
-    DimmingTime dimDownTime[3]; ///< dimming down time
-    Brightness dimUpStep; ///< size of dim up steps
-    Brightness dimDownStep; ///< size of dim down steps
+    Brightness minBrightness; ///< minimal brightness, dimming down will not go below this
+    Brightness maxBrightness; ///< maximal brightness, dimming down will not go below this
+    DimmingTime dimTimeUp[3]; ///< dimming up time
+    DimmingTime dimTimeDown[3]; ///< dimming down time
     /// @}
 
 
@@ -113,12 +110,13 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
-    /// Configure if output can dim or not
-    void setHardwareDimmer(bool aAvailable);
-
     /// Get the current logical brightness
     /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
     Brightness getLogicalBrightness();
+
+    /// @return true if device is dimmable
+    bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
+
 
     /// @return true if device is logically on
     bool getLogicallyOn() { return isLocigallyOn; };
@@ -161,9 +159,20 @@ namespace p44 {
 
   protected:
 
+    // property access implementation for descriptor/settings/states
+    //virtual int numDescProps();
+    //virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);
+    virtual int numSettingsProps();
+    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
+    //virtual int numStateProps();
+    //virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
+    // combined field access for all types of properties
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
     // persistence implementation
     virtual const char *tableName();
-    virtual const FieldDefinition *getFieldDefs();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
