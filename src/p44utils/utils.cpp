@@ -9,13 +9,12 @@
 #include "utils.hpp"
 
 #include <string.h>
-#include <stdarg.h>
 #include <stdio.h>
 
 using namespace p44;
 
 // old-style C-formatted output into string object
-void p44::string_format_v(std::string &aStringObj, const char *aFormat, bool aAppend, va_list aArgs)
+void p44::string_format_v(std::string &aStringObj, bool aAppend, const char *aFormat, va_list aArgs)
 {
   const size_t bufsiz=128;
   ssize_t actualsize;
@@ -54,7 +53,7 @@ std::string p44::string_format(const char *aFormat, ...)
   va_start(args, aFormat);
   std::string s;
   // now make the string
-  string_format_v(s,aFormat,false,args);
+  string_format_v(s, false, aFormat, args);
   va_end(args);
   return s;
 } // string_format
@@ -67,7 +66,7 @@ void p44::string_format_append(std::string &aStringToAppendTo, const char *aForm
 
   va_start(args, aFormat);
   // now make the string
-  string_format_v(aStringToAppendTo,aFormat,true,args);
+  string_format_v(aStringToAppendTo, true, aFormat, args);
   va_end(args);
 } // string_format_append
 
