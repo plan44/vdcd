@@ -34,7 +34,6 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsGroup outputGroup; ///< the group of the output
     DsOutputMode outputMode; ///< the mode of the output
     bool pushChanges; ///< if set, local changes to output will be pushed upstreams
     /// @}

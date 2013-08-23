@@ -37,7 +37,6 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsGroup buttonGroup; ///< the group/color of the button
     DsButtonFunc buttonFunc; ///< the button function (LTNUM)
     DsButtonMode buttonMode; ///< the button mode (LTMODE)
     bool setsLocalPriority; ///< button should set local priority

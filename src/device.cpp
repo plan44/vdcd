@@ -24,7 +24,8 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   announced(Never),
   announcing(Never),
   classContainerP(aClassContainerP),
-  DsAddressable(&aClassContainerP->getDeviceContainer())
+  DsAddressable(&aClassContainerP->getDeviceContainer()),
+  groupMembership(0)
 {
 }
 
@@ -475,9 +476,9 @@ string Device::description()
   else
     s.append(" (not yet announced)");
   s.append("\n");
-  if (buttons.size()>0) s.append(" Buttons: %d\n", buttons.size());
-  if (binaryInputs.size()>0) s.append(" Binary Inputs: %d\n", binaryInputs.size());
-  if (outputs.size()>0) s.append(" Outputs: %d\n", outputs.size());
-  if (sensors.size()>0) s.append(" Sensors: %d\n", sensors.size());
+  if (buttons.size()>0) string_format_append(s, "- Buttons: %d\n", buttons.size());
+  if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %d\n", binaryInputs.size());
+  if (outputs.size()>0) string_format_append(s, "- Outputs: %d\n", outputs.size());
+  if (sensors.size()>0) string_format_append(s, "- Sensors: %d\n", sensors.size());
   return s;
 }

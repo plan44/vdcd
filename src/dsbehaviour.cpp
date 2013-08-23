@@ -32,6 +32,17 @@ DsBehaviour::~DsBehaviour()
 }
 
 
+void DsBehaviour::setGroup(DsGroup aGroup)
+{
+  if (group!=aGroup) {
+    device.setGroupMembership(group, false);
+    group = aGroup;
+    device.setGroupMembership(group, true);
+  }
+}
+
+
+
 string DsBehaviour::getDbKey()
 {
   return string_format("%s_%d",device.dsid.getString().c_str(),index);
@@ -56,6 +67,59 @@ ErrorPtr DsBehaviour::forget()
 }
 
 
+#pragma mark - persistence implementation
+
+
+// Note: no tablename - this is an abstract class
+
+// data field definitions
+
+static const size_t numFields = 1;
+
+size_t DsBehaviour::numFieldDefs()
+{
+  return inheritedParams::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *DsBehaviour::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "dsGroup", SQLITE_INTEGER } // Note: don't call a SQL field "group"!
+  };
+  if (aIndex<inheritedParams::numFieldDefs())
+    return inheritedParams::getFieldDef(aIndex);
+  aIndex -= inheritedParams::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+enum {
+  buttonflag_setsLocalPriority = 0x0001,
+  buttonflag_callsPresent = 0x0002
+};
+
+/// load values from passed row
+void DsBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inheritedParams::loadFromRow(aRow, aIndex);
+  // get the fields
+  group  = (DsGroup)aRow->get<int>(aIndex++);
+}
+
+
+// bind values to passed statement
+void DsBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  aStatement.bind(aIndex++, group);
+}
+
+
+
 #pragma mark - property access
 
 
@@ -77,13 +141,20 @@ enum {
   numDsBehaviourDescProperties
 };
 
+
+enum {
+  group_key,
+  numDsBehaviourSettingsProperties
+};
+
+
 static char dsBehaviour_Key;
 
 int DsBehaviour::numLocalProps(int aDomain)
 {
   switch (aDomain) {
     case VDC_API_BHVR_DESC: return numDescProps()+numDsBehaviourDescProperties;
-    case VDC_API_BHVR_SETTINGS: return numSettingsProps();
+    case VDC_API_BHVR_SETTINGS: return numSettingsProps()+numDsBehaviourSettingsProperties;
     case VDC_API_BHVR_STATES: return numStateProps();
     default: return 0;
   }
@@ -98,9 +169,12 @@ int DsBehaviour::numProps(int aDomain)
 
 const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
-  static const PropertyDescriptor properties[numDsBehaviourDescProperties] = {
+  static const PropertyDescriptor descProperties[numDsBehaviourDescProperties] = {
     { "name", ptype_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
     { "type", ptype_charptr, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
+  };
+  static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
+    { "group", ptype_int8, false, group_key+settings_key_offset, &dsBehaviour_Key },
   };
   int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
@@ -112,12 +186,16 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
     case VDC_API_BHVR_DESC:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)
-        return &properties[aPropIndex];
+        return &descProperties[aPropIndex];
       aPropIndex -= numDsBehaviourDescProperties;
-      // check type-specific properties
+      // check type-specific descriptions
       return getDescDescriptor(aPropIndex);
     case VDC_API_BHVR_SETTINGS:
-      // settings are always type-specific
+      // check for generic settings properties
+      if (aPropIndex<numDsBehaviourSettingsProperties)
+        return &settingsProperties[aPropIndex];
+      aPropIndex -= numDsBehaviourSettingsProperties;
+      // check type-specific settings
       return getSettingsDescriptor(aPropIndex);
     case VDC_API_BHVR_STATES:
       // states are always type-specific
@@ -132,9 +210,22 @@ bool DsBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const P
   if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
     if (!aForWrite) {
       switch (aPropertyDescriptor.accessKey) {
+        // descriptions
         case name_key+descriptions_key_offset: aPropValue = JsonObject::newString(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue = JsonObject::newString(getTypeName()); return true;
+        // settings
+        case group_key+settings_key_offset: aPropValue = JsonObject::newInt32(group); return true;
       }
+    }
+    else {
+      switch (aPropertyDescriptor.accessKey) {
+        // settings
+        case group_key+settings_key_offset:
+          setGroup((DsGroup)aPropValue->int32Value());
+          markDirty();
+          return true;
+      }
+
     }
   }
   return inheritedProps::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it

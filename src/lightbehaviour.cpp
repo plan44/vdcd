@@ -340,9 +340,8 @@ LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
   isLocigallyOn(false),
   logicalBrightness(0)
 {
-  // hardware derived parameters
-  #warning "set default mode"
-  //deviceColorGroup = group_yellow_light;
+  // should always be a member of the light group
+  setGroup(group_yellow_light);
   // persistent settings
   dimTimeUp[0] = 0x0F; // 100mS
   dimTimeUp[1] = 0x3F; // 800mS

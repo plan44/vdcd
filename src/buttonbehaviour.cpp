@@ -36,7 +36,6 @@ static const char *ClickTypeNames[] {
 ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
   // persistent settings
-  buttonGroup(group_yellow_light), // default to light
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
@@ -44,6 +43,8 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
 {
   // set default hrdware configuration
   setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
+  // default group
+  setGroup(group_yellow_light);
   // reset the button state machine
   resetStateMachine();
 }
@@ -363,7 +364,7 @@ const char *ButtonBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 4;
+static const size_t numFields = 3;
 
 size_t ButtonBehaviour::numFieldDefs()
 {
@@ -374,7 +375,6 @@ size_t ButtonBehaviour::numFieldDefs()
 const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
-    { "buttonMode", SQLITE_INTEGER },
     { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
     { "buttonFlags", SQLITE_INTEGER }
@@ -400,7 +400,6 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   // get the fields
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
-  buttonGroup  = (DsGroup)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
@@ -419,7 +418,6 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   // bind the fields
   aStatement.bind(aIndex++, buttonMode);
   aStatement.bind(aIndex++, buttonFunc);
-  aStatement.bind(aIndex++, buttonGroup);
   aStatement.bind(aIndex++, flags);
 }
 
@@ -444,10 +442,10 @@ int ButtonBehaviour::numDescProps() { return numDescProperties; }
 const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
-    { "supportsLocalKeyMode", ptype_int32, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
-    { "buttonID", ptype_int32, false, buttonID_key+descriptions_key_offset, &button_key },
-    { "buttonType", ptype_int32, false, buttonType_key+descriptions_key_offset, &button_key },
-    { "buttonElementID", ptype_int32, false, buttonElementID_key+descriptions_key_offset, &button_key },
+    { "supportsLocalKeyMode", ptype_bool, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
+    { "buttonID", ptype_int8, false, buttonID_key+descriptions_key_offset, &button_key },
+    { "buttonType", ptype_int8, false, buttonType_key+descriptions_key_offset, &button_key },
+    { "buttonElementID", ptype_int8, false, buttonElementID_key+descriptions_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -456,7 +454,6 @@ const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
 // settings properties
 
 enum {
-  group_key,
   mode_key,
   setsLocalPriority_key,
   callsPresent_key,
@@ -468,10 +465,9 @@ int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "group", ptype_int32, false, group_key+settings_key_offset, &button_key },
-    { "mode", ptype_int32, false, mode_key+settings_key_offset, &button_key },
-    { "setsLocalPriority", ptype_int32, false, setsLocalPriority_key+settings_key_offset, &button_key },
-    { "callsPresent", ptype_int32, false, callsPresent_key+settings_key_offset, &button_key },
+    { "mode", ptype_int8, false, mode_key+settings_key_offset, &button_key },
+    { "setsLocalPriority", ptype_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
+    { "callsPresent", ptype_bool, false, callsPresent_key+settings_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -489,8 +485,8 @@ int ButtonBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", ptype_int32, false, value_key+states_key_offset, &button_key },
-    { "clickType", ptype_int32, false, clickType_key+states_key_offset, &button_key },
+    { "value", ptype_int8, false, value_key+states_key_offset, &button_key },
+    { "clickType", ptype_int8, false, clickType_key+states_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -518,9 +514,6 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           aPropValue = JsonObject::newInt32(buttonElementID);
           return true;
         // Settings properties
-        case group_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(buttonGroup);
-          return true;
         case mode_key+settings_key_offset:
           aPropValue = JsonObject::newInt32(buttonMode);
           return true;
@@ -543,10 +536,6 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       // write properties
       switch (aPropertyDescriptor.accessKey) {
         // Settings properties
-        case group_key+settings_key_offset:
-          buttonGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
-          return true;
         case mode_key+settings_key_offset:
           buttonMode = (DsButtonMode)aPropValue->int32Value();
           markDirty();
@@ -574,7 +563,7 @@ string ButtonBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- buttonID: %d, buttonType: %d, buttonElementID: %d\n", buttonID, buttonType, buttonElementID);
-  string_format_append(s, "- group: %d, fbuttonmode/LTMODE: %d\n", buttonGroup, buttonMode);
+  string_format_append(s, "- buttonFunc: %d, buttonmode/LTMODE: %d\n", buttonFunc, buttonMode);
   s.append(inherited::description());
   return s;
 }

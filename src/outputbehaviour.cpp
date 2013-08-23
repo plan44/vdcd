@@ -13,12 +13,13 @@ using namespace p44;
 OutputBehaviour::OutputBehaviour(Device &aDevice, size_t aIndex) :
   inherited(aDevice, aIndex),
   // persistent settings
-  outputGroup(group_yellow_light), // default to light
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
   pushChanges(false) // do not push changes
 {
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, false, -1);
+  // default to light
+  setGroup(group_yellow_light);
 }
 
 
@@ -51,7 +52,7 @@ const char *OutputBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numFields = 2;
 
 size_t OutputBehaviour::numFieldDefs()
 {
@@ -62,7 +63,6 @@ size_t OutputBehaviour::numFieldDefs()
 const FieldDefinition *OutputBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
-    { "outputGroup", SQLITE_INTEGER },
     { "outputMode", SQLITE_INTEGER },
     { "outputFlags", SQLITE_INTEGER }
   };
@@ -84,7 +84,6 @@ void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  outputGroup  = (DsGroup)aRow->get<int>(aIndex++);
   outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
   // decode the flags
@@ -100,7 +99,6 @@ void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   int flags = 0;
   if (pushChanges) flags |= outputflag_pushChanges;
   // bind the fields
-  aStatement.bind(aIndex++, outputGroup);
   aStatement.bind(aIndex++, outputMode);
   aStatement.bind(aIndex++, flags);
 }
@@ -136,7 +134,6 @@ const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 // settings properties
 
 enum {
-  group_key,
   mode_key,
   pushChanges_key,
   numSettingsProperties
@@ -147,7 +144,6 @@ int OutputBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "group", ptype_int8, false, group_key+settings_key_offset, &output_key },
     { "mode", ptype_int8, false, mode_key+settings_key_offset, &output_key },
     { "pushChanges_key", ptype_bool, false, pushChanges_key+settings_key_offset, &output_key },
   };
@@ -193,9 +189,6 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           aPropValue = JsonObject::newDouble(maxPower);
           return true;
         // Settings properties
-        case group_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(outputGroup);
-          return true;
         case mode_key+settings_key_offset:
           aPropValue = JsonObject::newInt32(outputMode);
           return true;
@@ -215,10 +208,6 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       // write properties
       switch (aPropertyDescriptor.accessKey) {
         // Settings properties
-        case group_key+settings_key_offset:
-          outputGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
-          return true;
         case mode_key+settings_key_offset:
           outputMode = (DsOutputMode)aPropValue->int32Value();
           markDirty();
@@ -246,8 +235,8 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
 string OutputBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- hardware function: %d (%s)\n", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
-  string_format_append(s, "- group: %d, output mode: %d\n", outputGroup, outputMode);
+  string_format_append(s, "- hardware output function: %d (%s)\n", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
+  string_format_append(s, "- output mode: %d\n", outputMode);
   s.append(inherited::description());
   return s;
 }

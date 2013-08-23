@@ -69,13 +69,13 @@ namespace p44 {
     /// @name behaviour description, constants or variables
     ///   set by device implementations when adding a Behaviour.
     /// @{
+    virtual BehaviourType getType() { return behaviour_undefined; }; ///< type of behaviour
+    string hardwareName; ///< name that identifies this behaviour among others for the human user (terminal label text etc)
+    /// @}
 
-    /// type of behaviour
-    virtual BehaviourType getType() { return behaviour_undefined; };
-
-    /// name that identifies this behaviour among others for the human user (terminal label text etc)
-    string hardwareName;
-
+    /// @name persistent settings
+    /// @{
+    DsGroup group; ///< the group this behaviour belongs to
     /// @}
 
 
@@ -88,8 +88,14 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };
 
+
     /// @name persistent settings management
     /// @{
+
+    /// set group for this behaviour
+    /// @param aGroup group to assign
+    /// @note this will also update the device's isMember() information
+    void setGroup(DsGroup aGroup);
 
     /// load behaviour parameters from persistent DB
     ErrorPtr load();
@@ -154,6 +160,13 @@ namespace p44 {
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
     /// @}
+
+    // persistence implementation
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+
 
   private:
 
