@@ -233,6 +233,24 @@ uint8_t *Esp3Packet::optData()
 
 
 
+void Esp3Packet::finalize()
+{
+  // force creation of payload (usually already done, but to make sure to avoid crashes)
+  data();
+  // set sync byte
+  header[0] = 0x55;
+  // assign header CRC
+  header[ESP3_HEADERBYTES-1] = headerCRC();
+  // assign payload CRC
+  if (payloadP) {
+    payloadP[payloadSize-1] = payloadCRC();
+  }
+  // packet is complete now
+  state = ps_complete;
+}
+
+
+
 #pragma mark - radio telegram specifics
 
 
@@ -243,7 +261,7 @@ uint8_t *Esp3Packet::optData()
 //  6    : security level: 0 = unencrypted, 1..F = type of encryption
 
 
-uint8_t Esp3Packet::radio_subtelegrams()
+uint8_t Esp3Packet::radioSubtelegrams()
 {
   uint8_t *o = optData();
   if (!o || optDataLength()<7) return 0;
@@ -251,7 +269,7 @@ uint8_t Esp3Packet::radio_subtelegrams()
 }
 
 
-EnoceanAddress Esp3Packet::radio_destination()
+EnoceanAddress Esp3Packet::radioDestination()
 {
   uint8_t *o = optData();
   if (!o || optDataLength()<7) return 0;
@@ -263,7 +281,19 @@ EnoceanAddress Esp3Packet::radio_destination()
 }
 
 
-int Esp3Packet::radio_dBm()
+void Esp3Packet::setRadioDestination(EnoceanAddress aEnoceanAddress)
+{
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return;
+  o[1] = (aEnoceanAddress>>24) & 0xFF;
+  o[2] = (aEnoceanAddress>>16) & 0xFF;
+  o[3] = (aEnoceanAddress>>8) & 0xFF;
+  o[4] = aEnoceanAddress & 0xFF;
+}
+
+
+
+int Esp3Packet::radioDBm()
 {
   uint8_t *o = optData();
   if (!o || optDataLength()<7) return 0;
@@ -271,7 +301,7 @@ int Esp3Packet::radio_dBm()
 }
 
 
-uint8_t Esp3Packet::radio_security_level()
+uint8_t Esp3Packet::radioSecurityLevel()
 {
   uint8_t *o = optData();
   if (!o || optDataLength()<7) return 0;
@@ -279,9 +309,17 @@ uint8_t Esp3Packet::radio_security_level()
 }
 
 
-uint8_t Esp3Packet::radio_status()
+void Esp3Packet::setRadioSecurityLevel(uint8_t aSecLevel)
 {
-  RadioOrg rorg = eep_rorg();
+  uint8_t *o = optData();
+  if (!o || optDataLength()<7) return;
+  o[6] = aSecLevel;
+}
+
+
+uint8_t Esp3Packet::radioStatus()
+{
+  RadioOrg rorg = eepRorg();
   int statusoffset = 0;
   if (rorg!=rorg_invalid) {
     statusoffset = (int)dataLength()-1; // last byte is status...
@@ -294,10 +332,10 @@ uint8_t Esp3Packet::radio_status()
 
 
 
-size_t Esp3Packet::radio_userDataLength()
+size_t Esp3Packet::radioUserDataLength()
 {
   if (packetType()!=pt_radio) return 0; // no data
-  RadioOrg rorg = eep_rorg();
+  RadioOrg rorg = eepRorg();
   int bytes = (int)dataLength(); // start with actual length
   bytes -= 1; // RORG byte
   bytes -= 1; // one status byte
@@ -307,17 +345,32 @@ size_t Esp3Packet::radio_userDataLength()
 }
 
 
-uint8_t *Esp3Packet::radio_userData()
+void Esp3Packet::setRadioUserDataLength(size_t aSize)
 {
-  if (radio_userDataLength()==0) return NULL;
+  if (packetType()!=pt_radio) return; // is not radio packet
+  RadioOrg rorg = eepRorg();
+  // add extra length needed for fixed fields in radio packet
+  aSize += 1; // RORG byte
+  aSize += 1; // one status byte
+  aSize += 4; // 4 bytes for sender
+  if (rorg==rorg_VLD) aSize += 1; // extra CRC
+  // this is the complete data length
+  setDataLength(aSize);
+}
+
+
+
+uint8_t *Esp3Packet::radioUserData()
+{
+  if (radioUserDataLength()==0) return NULL;
   uint8_t *d = data();
   return d+1;
 }
 
 
-EnoceanAddress Esp3Packet::radio_sender()
+EnoceanAddress Esp3Packet::radioSender()
 {
-  size_t l = radio_userDataLength();
+  size_t l = radioUserDataLength(); // returns 0 for non-radio packets
   if (l>0) {
     uint8_t *d = data()+1+l; // skip RORG and userdata
     return
@@ -331,6 +384,57 @@ EnoceanAddress Esp3Packet::radio_sender()
 }
 
 
+void Esp3Packet::setRadioSender(EnoceanAddress aEnoceanAddress)
+{
+  size_t l = radioUserDataLength(); // returns 0 for non-radio packets
+  if (l>0) {
+    uint8_t *d = data()+1+l; // skip RORG and userdata
+    d[0] = (aEnoceanAddress>>24) & 0xFF;
+    d[1] = (aEnoceanAddress>>16) & 0xFF;
+    d[2] = (aEnoceanAddress>>8) & 0xFF;
+    d[3] = aEnoceanAddress & 0xFF;
+  }
+}
+
+
+
+
+void Esp3Packet::initForRorg(RadioOrg aRadioOrg, size_t aVLDsize)
+{
+  clear(); // init
+  // set as radio telegram
+  setPacketType(pt_radio);
+  // radio telegrams always have 7 fields of optional data
+  setOptDataLength(7);
+  // depending on radio org, set payload size
+  switch (aRadioOrg) {
+    case rorg_RPS:
+    case rorg_1BS:
+      setRadioUserDataLength(1);
+      break;
+    case rorg_4BS:
+      setRadioUserDataLength(4);
+      break;
+    case rorg_VLD:
+      if (aVLDsize>14) aVLDsize=14; // limit to max
+      else if (aVLDsize<1) aVLDsize=1; // limit to min
+      setRadioUserDataLength(aVLDsize);
+      break;
+    default:
+      break;
+  }
+  // now set optional data defaults
+  uint8_t *o = optData();
+  // - subTelegramNo for sending is always 3
+  o[0] = 3;
+  // - dBm for sending is always 0xFF
+  o[5] = 0xFF;
+  // default to no security
+  setRadioSecurityLevel(0);
+}
+
+
+
 #pragma mark - Enocean Eqipment Profile (EEP) information extraction
 
 
@@ -341,7 +445,7 @@ EnoceanAddress Esp3Packet::radio_sender()
 //  n+5      : status
 //  n+6      : for VLD only: CRC
 
-RadioOrg Esp3Packet::eep_rorg()
+RadioOrg Esp3Packet::eepRorg()
 {
   if (packetType()!=pt_radio) return rorg_invalid; // no radio
   uint8_t *d = data();
@@ -390,17 +494,17 @@ RadioOrg Esp3Packet::eep_rorg()
 //  Req  Manufacturer|   EEP No.    |dBm |    Repeater ID    |       Sender ID       |     |
 
 
-EnoceanProfile Esp3Packet::eep_profile()
+EnoceanProfile Esp3Packet::eepProfile()
 {
   // default: unknown signature
   EnoceanProfile profile = eep_profile_unknown;
-  RadioOrg rorg = eep_rorg();
+  RadioOrg rorg = eepRorg();
   if (rorg!=rorg_invalid) {
     // valid rorg
     if (rorg==rorg_RPS) {
       // RPS have no learn mode, EEP signature can be derived from bits (not completely, but usable approximation)
-      uint8_t status = radio_status();
-      uint8_t data = radio_userData()[0];
+      uint8_t status = radioStatus();
+      uint8_t data = radioUserData()[0];
       if ((status & status_T21)!=0) {
         // Win handle or 2-Rocker (or key card, but we can't distinguish that, so we default to 2-Rocker)
         if ((data & 0x80)!=0 && (status & status_NU)==0) {
@@ -419,27 +523,27 @@ EnoceanProfile Esp3Packet::eep_profile()
     }
     else if (rorg==rorg_1BS) {
       // 1BS has a learn bit
-      if (eep_hasTeachInfo()) {
+      if (eepHasTeachInfo()) {
         // As per March 2013, only one EEP is defined for 1BS: single contact
         profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x00<<8) | (0x01); // FUNC = contacts and switches, TYPE = single contact
       }
     }
     else if (rorg==rorg_4BS) {
       // 4BS has separate LRN telegrams
-      if (eep_hasTeachInfo()) {
+      if (eepHasTeachInfo()) {
         profile =
           (rorg<<16) |
-          (((EnoceanProfile)(radio_userData()[0])<<6) & 0x3F00) | // 6 FUNC bits, shifted to bit 8..13
-          (((EnoceanProfile)(radio_userData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
-          (((EnoceanProfile)(radio_userData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
+          (((EnoceanProfile)(radioUserData()[0])<<6) & 0x3F00) | // 6 FUNC bits, shifted to bit 8..13
+          (((EnoceanProfile)(radioUserData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
+          (((EnoceanProfile)(radioUserData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
       }
     }
     else if (rorg==rorg_SM_LRN_REQ) {
       // Smart Ack Learn Request
       profile =
-        (((EnoceanProfile)radio_userData()[2])<<16) | // RORG field
-        (((EnoceanProfile)radio_userData()[3])<<8) | // FUNC field
-        radio_userData()[4]; // TYPE field
+        (((EnoceanProfile)radioUserData()[2])<<16) | // RORG field
+        (((EnoceanProfile)radioUserData()[3])<<8) | // FUNC field
+        radioUserData()[4]; // TYPE field
     }
   } // valid rorg
   // return it
@@ -447,20 +551,20 @@ EnoceanProfile Esp3Packet::eep_profile()
 }
 
 
-EnoceanManufacturer Esp3Packet::eep_manufacturer()
+EnoceanManufacturer Esp3Packet::eepManufacturer()
 {
   EnoceanManufacturer man = manufacturer_unknown;
-  RadioOrg rorg = eep_rorg();
-  if (eep_hasTeachInfo()) {
+  RadioOrg rorg = eepRorg();
+  if (eepHasTeachInfo()) {
     if (rorg==rorg_4BS) {
       man =
-        ((((EnoceanManufacturer)radio_userData()[1])<<8) & 0x07) |
-        radio_userData()[2];
+        ((((EnoceanManufacturer)radioUserData()[1])<<8) & 0x07) |
+        radioUserData()[2];
     }
     else if (rorg==rorg_SM_LRN_REQ) {
       man =
-        ((((EnoceanManufacturer)radio_userData()[0])&0x07)<<8) |
-        radio_userData()[1];
+        ((((EnoceanManufacturer)radioUserData()[0])&0x07)<<8) |
+        radioUserData()[1];
     }
   }
   // return it
@@ -468,24 +572,51 @@ EnoceanManufacturer Esp3Packet::eep_manufacturer()
 }
 
 
-#define LRN_BIT_MASK 0x08 // Bit 3
 
-bool Esp3Packet::eep_hasTeachInfo()
+bool Esp3Packet::eepHasTeachInfo()
 {
-  RadioOrg rorg = eep_rorg();
+  RadioOrg rorg = eepRorg();
   switch (rorg) {
     case rorg_RPS:
       return true; // RPS telegrams always have (somewhat limited) signature that can be used for teach-in
     case rorg_1BS:
-      return (radio_userData()[0] & LRN_BIT_MASK)==0; // 1BS telegrams have teach-in info if LRN bit is *cleared*
+      return (radioUserData()[0] & LRN_BIT_MASK)==0; // 1BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_4BS:
-      return (radio_userData()[3] & LRN_BIT_MASK)==0; // 4BS telegrams have teach-in info if LRN bit is *cleared*
+      return (radioUserData()[3] & LRN_BIT_MASK)==0; // 4BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_SM_LRN_REQ:
       return true; // smart ack learn requests are by definition teach-in commands and have full EEP signature
     default:
       return false; // no learn-in, regular data 
   }
 }
+
+
+#pragma mark - 4BS comminication specifics
+
+
+uint32_t Esp3Packet::get4BSdata()
+{
+  if (eepRorg()==rorg_4BS) {
+    return
+      (radioUserData()[0]<<24) |
+      (radioUserData()[1]<<16) |
+      (radioUserData()[2]<<8) |
+      radioUserData()[3];
+  }
+  return 0;
+}
+
+
+void Esp3Packet::set4BSdata(uint32_t a4BSdata)
+{
+  if (eepRorg()==rorg_4BS) {
+    radioUserData()[0] = (a4BSdata<<24) & 0xFF;
+    radioUserData()[1] = (a4BSdata<<16) & 0xFF;
+    radioUserData()[2] = (a4BSdata<<8) & 0xFF;
+    radioUserData()[3] = a4BSdata & 0xFF;
+  }
+}
+
 
 
 
@@ -502,22 +633,22 @@ string Esp3Packet::description()
       string_format_append(t,
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08lX, status=0x%02X\n"
         "- subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d\n",
-        eep_rorg(),
-        radio_sender(),
-        radio_status(),
-        radio_subtelegrams(),
-        radio_destination(),
-        radio_dBm(),
-        radio_security_level()
+        eepRorg(),
+        radioSender(),
+        radioStatus(),
+        radioSubtelegrams(),
+        radioDestination(),
+        radioDBm(),
+        radioSecurityLevel()
       );
       // EEP info if any
-      if (eep_hasTeachInfo()) {
+      if (eepHasTeachInfo()) {
         string_format_append(t,
           "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer Code = %03X\n",
-          (eep_profile()>>16) & 0xFF,
-          (eep_profile()>>8) & 0xFF,
-          eep_profile() & 0xFF,
-          eep_manufacturer()
+          (eepProfile()>>16) & 0xFF,
+          (eepProfile()>>8) & 0xFF,
+          eepProfile() & 0xFF,
+          eepManufacturer()
         );
       }
     }
@@ -673,6 +804,18 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
   }
 }
 
+
+
+void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
+{
+  // finalize, calc CRC
+  aPacket->finalize();
+  // transmit
+  // - fixed header
+  transmitBytes(ESP3_HEADERBYTES, aPacket->header);
+  // - payload
+  transmitBytes(aPacket->payloadSize, aPacket->payloadP);
+}
 
 
 

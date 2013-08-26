@@ -149,7 +149,6 @@ Enocean4bsHandler::Enocean4bsHandler(EnoceanDevice &aDevice) :
 }
 
 
-
 EnoceanDevicePtr Enocean4bsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
@@ -241,23 +240,50 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
 // handle incoming data from device and extract data for this channel
 void Enocean4bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  if (!aEsp3PacketPtr->eep_hasTeachInfo()) {
+  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
     // only look at non-teach-in packets
-    if (aEsp3PacketPtr->eep_rorg()==rorg_4BS && aEsp3PacketPtr->radio_userDataLength()==4) {
+    if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
       // only look at 4BS packets of correct length
       if (channelDescriptorP && channelDescriptorP->bitFieldHandler) {
         // create 32bit data word
-        uint32_t data =
-          (aEsp3PacketPtr->radio_userData()[0]<<24) |
-          (aEsp3PacketPtr->radio_userData()[1]<<16) |
-          (aEsp3PacketPtr->radio_userData()[2]<<8) |
-          aEsp3PacketPtr->radio_userData()[3];
+        uint32_t data = aEsp3PacketPtr->get4BSdata();
         // call bit field handler, will pass result to behaviour
         channelDescriptorP->bitFieldHandler(*this, false, data);
       }
     }
   }
 };
+
+
+
+/// collect data for outgoing message from this channel
+/// @param aEsp3PacketPtr must be set to a suitable packet if it is empty, or packet data must be augmented with
+///   channel's data when packet already exists
+/// @note non-outputs will do nothing in this method
+void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr)
+{
+  OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
+  if (ob) {
+    // create packet if none created already
+    uint32_t data;
+    if (!aEsp3PacketPtr) {
+      aEsp3PacketPtr = Esp3PacketPtr(new Esp3Packet());
+      aEsp3PacketPtr->initForRorg(rorg_4BS);
+      // new packet, start with zero data except for LRN bit (D0.3) which must be set for non-learn data
+      data = LRN_BIT_MASK;
+    }
+    else {
+      // packet exists, get already collected data to modify
+      data = aEsp3PacketPtr->get4BSdata();
+    }
+    // call bit field handler, will insert the bits into the output
+    channelDescriptorP->bitFieldHandler(*this, true, data);
+    // save data
+    aEsp3PacketPtr->set4BSdata(data);
+    // value from this channel is applied to the outgoing telegram
+    ob->outputValueApplied();
+  }
+}
 
 
 

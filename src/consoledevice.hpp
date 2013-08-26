@@ -27,7 +27,7 @@ namespace p44 {
     bool hasOutput;
     string name;
     ConsoleKeyPtr consoleKey;
-    uint16_t outputValue;
+    int32_t outputValue;
 
   public:
     ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -40,15 +40,11 @@ namespace p44 {
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 
-    /// get currently set output value from device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    virtual int16_t getOutputValue(OutputBehaviour &aOutputBehaviour);
-
     /// set new output value on device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    /// @param aValue the new output value
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0);
+    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// @note depending on how the actual device communication works, the implementation might need to consult all
+    ///   output behaviours to collect data for an outgoing message.
+    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
 
     /// @}
 

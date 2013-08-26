@@ -55,6 +55,12 @@ namespace p44 {
     /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
     virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) = 0;
 
+    /// collect data for outgoing message from this channel
+    /// @param aEsp3PacketPtr must be set to a suitable packet if it is empty, or packet data must be augmented with
+    ///   channel's data when packet already exists
+    /// @note non-outputs will do nothing in this method
+    virtual void collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr) { /* NOP */ };
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
@@ -113,6 +119,11 @@ namespace p44 {
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
+    /// set new output value on device
+    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// @note depending on how the actual device communication works, the implementation might need to consult all
+    ///   output behaviours to collect data for an outgoing message.
+    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
 
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
@@ -181,6 +192,11 @@ namespace p44 {
 
     /// derive dSID from hardware address
     void deriveDSID();
+
+  private:
+
+    /// get handler associated with a behaviour
+    EnoceanChannelHandlerPtr channelForBehaviour(const DsBehaviour *aBehaviourP);
 
   };
   

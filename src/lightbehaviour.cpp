@@ -366,26 +366,23 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
     // device is logically ON
     if (isDimmable()) {
       // dimmable, 0=off, 1..255=brightness
-      device.setOutputValue(*this, logicalBrightness, aTransitionTime);
+      setOutputValue(logicalBrightness, aTransitionTime);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      device.setOutputValue(*this, logicalBrightness>=onThreshold ? 255 : 0, aTransitionTime);
+      setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, aTransitionTime);
     }
   }
   else {
     // off is off
-    device.setOutputValue(*this, 0, aTransitionTime);
+    setOutputValue(0, aTransitionTime);
   }
 }
 
 
-void LightBehaviour::initBrightnessParams(Brightness aCurrent, Brightness aMin, Brightness aMax)
+void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
 {
-  // save current brightness
-  logicalBrightness = aCurrent;
-  if (aCurrent>0) isLocigallyOn = true; // logically on if physically on
-
+  // save max and min
   if (aMin!=minBrightness || aMax!=maxBrightness) {
     maxBrightness = aMax;
     minBrightness = aMin>0 ? aMin : 1; // never below 1

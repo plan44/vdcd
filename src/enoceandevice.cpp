@@ -12,6 +12,7 @@
 
 #include "buttonbehaviour.hpp"
 #include "sensorbehaviour.hpp"
+#include "outputbehaviour.hpp"
 
 #include "enoceanrps.hpp"
 //#include "enocean1bs.hpp"
@@ -193,29 +194,6 @@ string EnoceanDevice::manufacturerName()
 }
 
 
-
-
-string EnoceanDevice::description()
-{
-  string s = inherited::description();
-  string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
-  string_format_append(s,
-    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
-    (eeProfile>>16) & 0xFF,
-    (eeProfile>>8) & 0xFF,
-    eeProfile & 0xFF,
-    manufacturerName().c_str(),
-    eeManufacturer
-  );
-  // show channels
-  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    string_format_append(s, "- channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
-  }
-  return s;
-}
-
-
-
 void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // clear learn-in data from DB
@@ -238,6 +216,39 @@ void EnoceanDevice::addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler)
 
 
 
+
+EnoceanChannelHandlerPtr EnoceanDevice::channelForBehaviour(const DsBehaviour *aBehaviourP)
+{
+  EnoceanChannelHandlerPtr handler;
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    if ((*pos)->behaviour.get()==static_cast<const DsBehaviour *>(aBehaviourP)) {
+      handler = *pos;
+      break;
+    }
+  }
+  return handler;
+}
+
+
+
+void EnoceanDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+{
+  // collect data from all channels to compose an outgoing message
+  Esp3PacketPtr outgoingEsp3Packet;
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    (*pos)->collectOutgoingMessageData(outgoingEsp3Packet);
+  }
+  if (outgoingEsp3Packet) {
+    // set destination
+    outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
+    // send it
+    getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
+  }
+  inherited::updateOutputValue(aOutputBehaviour);
+}
+
+
+
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   // pass to every channel
@@ -246,6 +257,25 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   }
 }
 
+
+string EnoceanDevice::description()
+{
+  string s = inherited::description();
+  string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
+  string_format_append(s,
+    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    (eeProfile>>16) & 0xFF,
+    (eeProfile>>8) & 0xFF,
+    eeProfile & 0xFF,
+    manufacturerName().c_str(),
+    eeManufacturer
+  );
+  // show channels
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    string_format_append(s, "- channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
+  }
+  return s;
+}
 
 
 #pragma mark - device factory
@@ -289,8 +319,8 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
   while (subDevice<totalSubDevices) {
     EnoceanDevicePtr newDev = newDevice(
       aClassContainerP,
-      aLearnInPacket->radio_sender(), subDevice,
-      aLearnInPacket->eep_profile(), aLearnInPacket->eep_manufacturer(),
+      aLearnInPacket->radioSender(), subDevice,
+      aLearnInPacket->eepProfile(), aLearnInPacket->eepManufacturer(),
       &totalSubDevices // possibly update total
     );
     if (!newDev) {

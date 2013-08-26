@@ -75,24 +75,18 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 
 
 
-int16_t ConsoleDevice::getOutputValue(OutputBehaviour &aOutputBehaviour)
-{
-  if (aOutputBehaviour.getIndex()==0)
-    return outputValue;
-  else
-    return inherited::getOutputValue(aOutputBehaviour); // let superclass handle this
-}
-
-
-
-void ConsoleDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime)
+void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 {
   if (aOutputBehaviour.getIndex()==0) {
-    outputValue = aValue;
-    printf(">>> Console device %s: output set to %d\n", name.c_str(), outputValue);
+    outputValue = aOutputBehaviour.valueForHardware();
+    printf(
+      ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
+      name.c_str(), outputValue,
+      (double)aOutputBehaviour.transitionTimeForHardware()/Second
+    );
   }
   else
-    return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
+    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
 }
 
 

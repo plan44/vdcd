@@ -216,13 +216,13 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
   // check learning mode
   if (isLearning()) {
     // in learn mode, check if strong signal and if so, learn/unlearn
-    if (aEsp3PacketPtr->radio_dBm()>MIN_LEARN_DBM)
+    if (aEsp3PacketPtr->radioDBm()>MIN_LEARN_DBM)
     {
       // no learn/unlearn actions detected so far
       // - check if we know that device address already. If so, it is a learn-out
-      bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radio_sender())==enoceanDevices.end();
+      bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
       // now add/remove the device (if the action is a valid learn/unlearn)
-      if (aEsp3PacketPtr->eep_hasTeachInfo()) {
+      if (aEsp3PacketPtr->eepHasTeachInfo()) {
         // This is actually a valid learn action
         ErrorPtr learnStatus;
         if (learnIn) {
@@ -235,7 +235,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
         else {
           // device learned out, un-pair all logical dS devices it has represented
           // but keep dS level config in case it is reconnected
-          unpairDevicesByAddress(aEsp3PacketPtr->radio_sender(), false);
+          unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
           learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
         }
         // - end learning if actually learned or unlearned something
@@ -246,7 +246,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
   }
   else {
     // not learning, dispatch packet to all devices known for that address
-    for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radio_sender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radio_sender()); ++pos) {
+    for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
       pos->second->handleRadioPacket(aEsp3PacketPtr);
     }
   }

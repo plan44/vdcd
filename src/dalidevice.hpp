@@ -28,12 +28,8 @@ namespace p44 {
     /// the device info
     DaliDeviceInfo deviceInfo;
 
-    /// cached brightness
-    Brightness cachedBrightness;
-
     /// currently set transition time
     MLMicroSeconds transitionTime;
-
     /// currently set DALI fade rate
     uint8_t fadeTime;
 
@@ -72,15 +68,11 @@ namespace p44 {
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// get currently set output value from device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    virtual int16_t getOutputValue(OutputBehaviour &aOutputBehaviour);
-
     /// set new output value on device
-    /// @param aChannel the output channel. Traditional dS devices have one single output only, but future devices might have many
-    /// @param aValue the new output value
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0);
+    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// @note depending on how the actual device communication works, the implementation might need to consult all
+    ///   output behaviours to collect data for an outgoing message.
+    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
 
     /// @}
 

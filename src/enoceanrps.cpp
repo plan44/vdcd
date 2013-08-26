@@ -17,8 +17,7 @@ EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
   inherited(aDevice)
 {
   switchIndex = 0; // default to first
-  pressed[0] = false;
-  pressed[1] = false;
+  pressed = false;
 }
 
 
@@ -70,8 +69,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
 void EnoceanRpsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   // extract payload data
-  uint8_t data = aEsp3PacketPtr->radio_userData()[0];
-  uint8_t status = aEsp3PacketPtr->radio_status();
+  uint8_t data = aEsp3PacketPtr->radioUserData()[0];
+  uint8_t status = aEsp3PacketPtr->radioStatus();
   // decode
   if (status & status_NU) {
     // N-Message
@@ -82,7 +81,9 @@ void EnoceanRpsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         break; // no second action
       if (((a>>1) & 0x03)==switchIndex) {
         // querying this subdevice/rocker
-        setButtonState((data & 0x10)!=0, (a & 0x01) ? 1 : 0);
+        if (((a & 0x01)!=0) == ((channel & 0x1)!=0))
+          // my half of the rocker
+          setButtonState((data & 0x10)!=0);
       }
     }
   }
@@ -110,27 +111,25 @@ void EnoceanRpsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       }
       else {
         // released
-        // assume both buttons (both sides of the rocker) released
-        setButtonState(false, 0);
-        setButtonState(false, 1);
+        setButtonState(false);
       }
     }
   }
 }
 
 
-void EnoceanRpsHandler::setButtonState(bool aPressed, int aIndex)
+void EnoceanRpsHandler::setButtonState(bool aPressed)
 {
   // only propagate real changes
-  if (aPressed!=pressed[aIndex]) {
+  if (aPressed!=pressed) {
     // real change, propagate to behaviour
     ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(behaviour);
     if (b) {
-      LOG(LOG_NOTICE,"RpsEnoceanDevice %08X, subDevice %d, channel %d: Button[%d] changed state to %s\n", device.getAddress(), device.getSubDevice(), channel, aIndex, aPressed ? "pressed" : "released");
+      LOG(LOG_NOTICE,"RpsEnoceanDevice %08X, subDevice %d, channel %d: changed state to %s\n", device.getAddress(), device.getSubDevice(), channel, aPressed ? "pressed" : "released");
       b->buttonAction(aPressed);
     }
     // update cached status
-    pressed[aIndex] = aPressed;
+    pressed = aPressed;
   }
 }
 

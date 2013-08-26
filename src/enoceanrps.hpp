@@ -26,7 +26,7 @@ namespace p44 {
     /// private constructor, create new channels using factory static method
     EnoceanRpsHandler(EnoceanDevice &aDevice);
 
-    bool pressed[2]; ///< true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
+    bool pressed; ///< true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
     int switchIndex; ///< which switch within the device (0..3)
 
 
@@ -54,7 +54,7 @@ namespace p44 {
     virtual string shortDesc();
 
   private:
-    void setButtonState(bool aPressed, int aIndex);
+    void setButtonState(bool aPressed);
 
   };
   typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;

@@ -175,16 +175,11 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
-    /// get currently set output value from device hardware
-    /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
-    virtual int16_t getOutputValue(OutputBehaviour &aOutputBehaviour) { return 0; };
-
     /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which wants to set the hardware output value
-    /// @param aValue the new output value
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0) { /* NOP */ };
-
+    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// @note depending on how the actual device communication works, the implementation might need to consult all
+    ///   output behaviours to collect data for an outgoing message.
+    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour) { /* NOP */ };
 
     /// @}
 

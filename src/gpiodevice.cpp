@@ -71,23 +71,13 @@ void GpioDevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 
 
 
-int16_t GpioDevice::getOutputValue(OutputBehaviour &aOutputBehaviour)
-{
-  if (aOutputBehaviour.getIndex()==0 && indicatorOutput)
-    return indicatorOutput->isSet() ? 255 : 0;
-  else
-    return inherited::getOutputValue(aOutputBehaviour); // let superclass handle this
-}
-
-
-
-void GpioDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime)
+void GpioDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 {
   if (aOutputBehaviour.getIndex()==0 && indicatorOutput) {
-    indicatorOutput->set(aValue>0);
+    indicatorOutput->set(aOutputBehaviour.valueForHardware()>0);
   }
   else
-    return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
+    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
 }
 
 

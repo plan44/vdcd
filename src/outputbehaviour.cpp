@@ -14,6 +14,9 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
+  cachedOutputValue(0), // output value cache
+  outputLastSent(Never), // we don't known nor have we sent the output state
+  nextTransitionTime(0), // none
   pushChanges(false) // do not push changes
 {
   // set default hardware default configuration
@@ -37,6 +40,37 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
     default:
       outputMode = outputmode_disabled;
   }
+}
+
+
+int32_t OutputBehaviour::getOutputValue()
+{
+  return cachedOutputValue;
+}
+
+
+// only used at startup to get the inital value FROM the hardware
+// NOT to be used to change the hardware output value
+void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
+{
+  cachedOutputValue = aActualOutputValue;
+  outputValueApplied(); // now we know that we are in sync
+}
+
+
+void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
+{
+  cachedOutputValue = aNewValue;
+  nextTransitionTime = aTransitionTime;
+  outputLastSent = Never; // flag changed, should be reset by actually sending data
+  // let device know to hardware can update actual output
+  device.updateOutputValue(*this);
+}
+
+
+void OutputBehaviour::outputValueApplied()
+{
+  outputLastSent = MainLoop::now(); // now we know that we are in sync
 }
 
 
@@ -195,7 +229,7 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // States properties
         case value_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(device.getOutputValue(*this));
+          aPropValue = JsonObject::newInt32(getOutputValue());
           return true;
       }
     }
@@ -213,7 +247,7 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // States properties
         case value_key+states_key_offset:
-          device.setOutputValue(*this, aPropValue->int32Value());
+          setOutputValue(aPropValue->int32Value());
           return true;
       }
     }

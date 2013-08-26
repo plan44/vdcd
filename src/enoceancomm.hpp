@@ -64,10 +64,15 @@ namespace p44 {
   const EepType eep_type_unknown = 0xFF;
   const EnoceanProfile eep_profile_unknown = (rorg_invalid<<16) + (eep_func_unknown<<8) + eep_type_unknown;
   const EnoceanProfile eep_ignore_type_mask = 0xFFFF00;
-  // access macros
+
+  // EEP access macros
   #define EEP_RORG(eep) ((RadioOrg)(((EnoceanProfile)eep>>16)&0xFF))
   #define EEP_FUNC(eep) ((EepFunc)(((EnoceanProfile)eep>>8)&0xFF))
   #define EEP_TYPE(eep) ((EepType)((EnoceanProfile)eep&0xFF))
+
+  // learn bit
+  #define LRN_BIT_MASK 0x08 // Bit 3, Byte 0 (4th data byte)
+
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;
@@ -89,6 +94,10 @@ namespace p44 {
 	/// ESP3 packet object with byte stream parser and generator
   class Esp3Packet : public P44Obj
   {
+    typedef P44Obj inherited;
+
+    friend class EnoceanComm;
+
   public:
     typedef enum {
       ps_syncwait,
@@ -99,11 +108,13 @@ namespace p44 {
 
 
   private:
-    PacketState state;
-    uint8_t header[6];
-    size_t dataIndex;
-    uint8_t *payloadP;
-    size_t payloadSize;
+    // packet contents
+    uint8_t header[6]; ///< the ESP3 header
+    uint8_t *payloadP; ///< the payload or NULL if none defined
+    size_t payloadSize; ///< the payload size
+    // scanner
+    PacketState state; ///< scanning state
+    size_t dataIndex; ///< data scanner index
 
     
   public:
@@ -123,7 +134,8 @@ namespace p44 {
     /// @return updated CRC
     static uint8_t crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue = 0);
 
-    /// clear the packet, re-start accepting bytes and looking for packet start
+    /// clear the packet so that we can re-start accepting bytes and looking for packet start or
+    /// start filling in information for creating an outgoing packet
     void clear();
     /// clear only the payload data/optdata (implicitly happens at setDataLength() and setOptDataLength()
     void clearData();
@@ -136,6 +148,10 @@ namespace p44 {
     /// @param aBytes pointer to bytes buffer
     /// @return number of bytes operation could accept, 0 if none (means that packet is already complete)
     size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+
+
+    /// finalize packet to make it ready for sending (complete header fields, calculate CRCs)
+    void finalize();
 
 
     /// @name access to header fields
@@ -179,29 +195,49 @@ namespace p44 {
     /// @name access to generic radio telegram fields
     /// @{
 
+    /// initialize packet for specific radio telegram
+    /// @param aRadioOrg the radio organisation type for the packet
+    /// @param aVLDsize only for variable length packets, length of the radio data
+    /// @note this initializes payload storage such that it can be accessed at radio_userData()
+    void initForRorg(RadioOrg aRadioOrg, size_t aVLDsize=0);
+
     /// @return subtelegram number
-    uint8_t radio_subtelegrams();
+    uint8_t radioSubtelegrams();
 
     /// @return destination address
-    EnoceanAddress radio_destination();
+    EnoceanAddress radioDestination();
+
+    /// @param aEnoceanAddress the destination address to set
+    void setRadioDestination(EnoceanAddress aEnoceanAddress);
 
     /// @return RSSI in dBm (negative, higher (more near zero) values = better signal)
-    int radio_dBm();
+    int radioDBm();
 
     /// @return security level
-    uint8_t radio_security_level();
+    uint8_t radioSecurityLevel();
+
+    /// @return security level
+    void setRadioSecurityLevel(uint8_t aSecLevel);
 
     /// @return radio status byte
-    uint8_t radio_status();
+    uint8_t radioStatus();
 
     /// @return sender's address
-    EnoceanAddress radio_sender();
+    EnoceanAddress radioSender();
+
+    /// @param radio sender's address to set
+    /// @note enOcean modules will normally insert their native address here,
+    ///   so usually there's no point in setting this
+    void setRadioSender(EnoceanAddress aEnoceanAddress);
 
     /// @return the number of radio user data bytes
-    size_t radio_userDataLength();
+    size_t radioUserDataLength();
+
+    /// @param the number of radio user data bytes
+    void setRadioUserDataLength(size_t aSize);
 
     /// @return pointer to the radio user data
-    uint8_t *radio_userData();
+    uint8_t *radioUserData();
 
     /// @}
 
@@ -210,18 +246,30 @@ namespace p44 {
     /// @{
 
     /// @return RORG (radio telegram organisation, valid for all telegrams)
-    RadioOrg eep_rorg();
+    RadioOrg eepRorg();
 
     /// @return true if at least eep_func() has some valid information that can be used for teach-in
     ///   (is the case for specific teach-in telegrams in 1BS, 4BS, VLD, as well as all RPS telegrams)
-    bool eep_hasTeachInfo();
+    bool eepHasTeachInfo();
 
     /// @return EEP signature as 0x00rrfftt (rr=RORG, ff=FUNC, tt=TYPE)
     ///   ff and tt can be func_unknown or type_unknown if not extractable from telegram
-    EnoceanProfile eep_profile();
+    EnoceanProfile eepProfile();
 
     /// @return EEP manufacturer code (11 bit), or manufacturer_unknown if not known
-    EnoceanManufacturer eep_manufacturer();
+    EnoceanManufacturer eepManufacturer();
+
+    /// @}
+
+
+    /// @name 4BS four byte data packet communication
+    /// @{
+
+    /// @return radioUserData()[0..3] as 32bit value
+    uint32_t get4BSdata();
+
+    /// @param a4BSdata radioUserData()[0..3] as 32bit value
+    void set4BSdata(uint32_t a4BSdata);
 
     /// @}
 
@@ -261,6 +309,11 @@ namespace p44 {
 
     /// set callback to handle received radio packets 
     void setRadioPacketHandler(RadioPacketCB aRadioPacketCB);
+
+    /// send a packet
+    /// @param aPacket a Esp4Packet which must be ready for being finalize()d
+    void sendPacket(Esp3PacketPtr aPacket);
+
 
   protected:
 

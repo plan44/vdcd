@@ -41,6 +41,9 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    int32_t cachedOutputValue; ///< the cached output value
+    MLMicroSeconds outputLastSent; ///< Never if the cachedOutputValue is not yet applied to the hardware, otherwise when it was sent
+    MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next output value change
     /// @}
 
   public:
@@ -52,6 +55,23 @@ namespace p44 {
 
     /// Configure hardware parameters of the output
     void setHardwareOutputConfig(DsOutputFunction aOutputFunction, bool aVariableRamp, double aMaxPower);
+
+    /// set actual current output value as read from the device on startup, to update local cache value
+    /// @param aActualOutputValue the value as read from the device
+    /// @note only used at startup to get the inital value FROM the hardware.
+    ///   NOT to be used to change the hardware output value!
+    void initOutputValue(uint32_t aActualOutputValue);
+
+    /// the value to be set in the hardware
+    /// @return value to be set in actual hardware
+    int32_t valueForHardware() { return cachedOutputValue; };
+
+    /// the transition time to use to change value in the hardware
+    /// @return transition time
+    MLMicroSeconds transitionTimeForHardware() { return nextTransitionTime; };
+
+    /// to be called when output value has been successfully applied to hardware
+    void outputValueApplied();
 
     /// @}
 
@@ -67,6 +87,17 @@ namespace p44 {
     /// @param aScene the scene object to update
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
     virtual void captureScene(DsScenePtr aScene) { /* NOP in base class */ };
+
+    /// get currently set output value from device hardware
+    /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
+    virtual int32_t getOutputValue();
+
+    /// set new output value on device
+    /// @param aOutputBehaviour the output behaviour which wants to set the hardware output value
+    /// @param aValue the new output value
+    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
+    virtual void setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime=0);
+
 
     /// @}
 

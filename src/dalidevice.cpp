@@ -20,7 +20,6 @@ using namespace p44;
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   Device((DeviceClassContainer *)aClassContainerP),
-  cachedBrightness(0),
   transitionTime(Infinite) // invalid
 {
 }
@@ -60,11 +59,11 @@ void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 
 void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
-  cachedBrightness = 0; // default to 0
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
-    cachedBrightness = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, cachedBrightness);
+    int32_t bri = arcpowerToBrightness(aResponse);
+    boost::static_pointer_cast<LightBehaviour>(outputs[0])->initOutputValue(bri);
+    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, bri);
   }
   // query the minimum dimming level
   daliDeviceContainer().daliComm.daliSendQuery(
@@ -84,7 +83,8 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
     LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
-  boost::static_pointer_cast<LightBehaviour>(outputs[0])->initBrightnessParams(cachedBrightness,minLevel,255);
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
+  l->initBrightnessParams(minLevel,255);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
@@ -94,6 +94,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
 
 void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 {
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
   if (transitionTime==Infinite || transitionTime!=aTransitionTime) {
     uint8_t tr = 0; // default to 0
     if (aTransitionTime>0) {
@@ -153,30 +154,17 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 
 
 
-
-
-int16_t DaliDevice::getOutputValue(OutputBehaviour &aOutputBehaviour)
-{
-  if (aOutputBehaviour.getIndex()==0)
-    return cachedBrightness;
-  else
-    return inherited::getOutputValue(aOutputBehaviour); // let superclass handle this
-}
-
-
-
-void DaliDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime)
+void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 {
   if (aOutputBehaviour.getIndex()==0) {
-    setTransitionTime(aTransitionTime);
-    cachedBrightness = aValue;
+    setTransitionTime(aOutputBehaviour.transitionTimeForHardware());
     // update actual dimmer value
-    uint8_t power = brightnessToArcpower(cachedBrightness);
-    LOG(LOG_DEBUG, "DaliDevice: setting new brightness = %d, arc power = %d\n", cachedBrightness, power);
+    uint8_t power = brightnessToArcpower(aOutputBehaviour.valueForHardware());
+    LOG(LOG_DEBUG, "DaliDevice: setting new brightness = %d, arc power = %d\n", aOutputBehaviour.valueForHardware(), power);
     daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
   }
   else
-    return inherited::setOutputValue(aOutputBehaviour, aValue); // let superclass handle this
+    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
 }
 
 
