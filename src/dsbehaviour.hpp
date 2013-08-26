@@ -192,41 +192,9 @@ namespace p44 {
     int numLocalProps(int aDomain);
 
   };
-
   typedef boost::intrusive_ptr<DsBehaviour> DsBehaviourPtr;
 
-
-
-
-  class BinaryInputBehaviour : public DsBehaviour
-  {
-    typedef DsBehaviour inherited;
-
-  protected:
-
-    /// @name behaviour description, constants or variables
-    ///   set by device implementations when adding a Behaviour.
-    /// @{
-
-    virtual BehaviourType getType() { return behaviour_binaryinput; };
-    
-    /// @}
-
-  public:
-    BinaryInputBehaviour(Device &aDevice) :
-      inherited(aDevice)
-    {};
-    
-  };
-  typedef boost::intrusive_ptr<BinaryInputBehaviour> BinaryInputBehaviourPtr;
-
-
-
 } // namespace p44
-
-
-
-
 
 
 #endif /* defined(__vdcd__dsbehaviour__) */

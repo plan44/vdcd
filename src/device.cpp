@@ -9,9 +9,9 @@
 #include "device.hpp"
 
 #include "buttonbehaviour.hpp"
+#include "binaryinputbehaviour.hpp"
 #include "outputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
-#include "binaryinputbehaviour.cpp"
 
 
 using namespace p44;

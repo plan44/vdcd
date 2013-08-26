@@ -9,7 +9,6 @@
 #ifndef __vdcd__sensorbehaviour__
 #define __vdcd__sensorbehaviour__
 
-
 #include "device.hpp"
 
 using namespace std;
@@ -51,7 +50,7 @@ namespace p44 {
     /// constructor
     SensorBehaviour(Device &aDevice);
 
-    /// initialisation of hardware-specific constants for this button input
+    /// initialisation of hardware-specific constants for this sensor
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
     void setHardwareSensorConfig(DsSensorType aType, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
@@ -59,7 +58,7 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
-    /// button action occurred
+    /// sensor value change occurred
     /// @param aEngineeringValue the engineering value from the sensor.
     ///   The state value will be adjusted and scaled according to min/max/resolution
     void updateEngineeringValue(long aEngineeringValue);

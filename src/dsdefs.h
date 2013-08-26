@@ -250,7 +250,7 @@ typedef enum {
 } DsSensorType;
 
 
-/// binary input types
+/// binary input types (sensor functions)
 typedef enum {
   binInpType_none, ///< no system function
   binInpType_presence, ///< Presence
