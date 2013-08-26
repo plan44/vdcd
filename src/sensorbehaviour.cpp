@@ -10,8 +10,8 @@
 
 using namespace p44;
 
-SensorBehaviour::SensorBehaviour(Device &aDevice, size_t aIndex) :
-  inherited(aDevice, aIndex),
+SensorBehaviour::SensorBehaviour(Device &aDevice) :
+  inherited(aDevice),
   // persistent settings
   minPushInterval(15*Second),
   // state
@@ -40,7 +40,7 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 {
   double newCurrentValue = min+(aEngineeringValue*resolution);
   LOG(LOG_INFO,
-    "Sensor %s in device %s received engineering value %d = physical units value %.3f\n",
+    "Sensor %s in device %s received engineering value %d = physical units value %0.3f\n",
     hardwareName.c_str(),  device.shortDesc().c_str(), aEngineeringValue, newCurrentValue
   );
   if (newCurrentValue!=currentValue) {
@@ -245,7 +245,7 @@ bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
 string SensorBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- sensor type: %d, min: %.1f, max: %.1f, resulution: %.3f, interval: %d mS\n", sensorType, min, max, updateInterval/MilliSecond);
+  string_format_append(s, "- sensor type: %d, min: %0.1f, max: %0.1f, resulution: %0.3f, interval: %d mS\n", sensorType, min, max, updateInterval/MilliSecond);
   string_format_append(s, "- minimal interval between pushes: %d mS\n", minPushInterval/MilliSecond);
   s.append(inherited::description());
   return s;

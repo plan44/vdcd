@@ -38,6 +38,8 @@
 		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
+		ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */; };
+		ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
@@ -165,6 +167,10 @@
 		ED6D7BEF1716EAA6005DED18 /* logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = logger.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BF617180766005DED18 /* serialqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialqueue.cpp; sourceTree = "<group>"; };
 		ED6D7BF717180766005DED18 /* serialqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = serialqueue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceanrps.cpp; sourceTree = "<group>"; };
+		ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceanrps.hpp; sourceTree = "<group>"; };
+		ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean4bs.cpp; sourceTree = "<group>"; };
+		ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean4bs.hpp; sourceTree = "<group>"; };
 		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dalidefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED74563E1731B813001C9565 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mainloop.cpp; sourceTree = "<group>"; };
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -376,6 +382,10 @@
 				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
 				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
+				ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */,
+				ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */,
+				ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */,
+				ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
 				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
@@ -479,6 +489,7 @@
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* devicecontainer.cpp in Sources */,
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
+				ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */,
 				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
@@ -511,6 +522,7 @@
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
+				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */,

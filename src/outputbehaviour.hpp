@@ -45,7 +45,7 @@ namespace p44 {
 
   public:
 
-    OutputBehaviour(Device &aDevice, size_t aIndex);
+    OutputBehaviour(Device &aDevice);
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{

@@ -105,7 +105,7 @@ namespace p44 {
     /// @}
 
   public:
-    LightBehaviour(Device &aDevice, size_t aIndex);
+    LightBehaviour(Device &aDevice);
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{

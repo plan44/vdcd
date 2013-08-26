@@ -214,6 +214,10 @@ namespace p44 {
     virtual ErrorPtr writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer);
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
+    /// add a behaviour and set its index
+    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
+    ///   array and given the correct index value
+    void addBehaviour(DsBehaviourPtr aBehaviour);
 
   private:
 

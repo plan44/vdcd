@@ -56,12 +56,18 @@ namespace p44 {
 
   /// Enocean EEP profile number (RORG/FUNC/TYPE)
   typedef uint32_t EnoceanProfile;
+  typedef uint8_t EepFunc;
+  typedef uint8_t EepType;
+
   // unknown markers
-  const uint8_t eep_func_unknown = 0xFF;
-  const uint8_t eep_type_unknown = 0xFF;
+  const EepFunc eep_func_unknown = 0xFF;
+  const EepType eep_type_unknown = 0xFF;
   const EnoceanProfile eep_profile_unknown = (rorg_invalid<<16) + (eep_func_unknown<<8) + eep_type_unknown;
   const EnoceanProfile eep_ignore_type_mask = 0xFFFF00;
-
+  // access macros
+  #define EEP_RORG(eep) ((RadioOrg)(((EnoceanProfile)eep>>16)&0xFF))
+  #define EEP_FUNC(eep) ((EepFunc)(((EnoceanProfile)eep>>8)&0xFF))
+  #define EEP_TYPE(eep) ((EepType)((EnoceanProfile)eep&0xFF))
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;

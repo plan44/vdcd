@@ -56,6 +56,8 @@ namespace p44 {
     typedef PropertyContainer inheritedProps;
     typedef PersistentParams inheritedParams;
 
+    friend class Device;
+
   protected:
 
     /// the device this behaviour belongs to
@@ -85,7 +87,7 @@ namespace p44 {
 
 
   public:
-    DsBehaviour(Device &aDevice, size_t aIndex);
+    DsBehaviour(Device &aDevice);
     virtual ~DsBehaviour();
 
     /// initialisation of hardware-specific constants for this button input
@@ -211,8 +213,8 @@ namespace p44 {
     /// @}
 
   public:
-    BinaryInputBehaviour(Device &aDevice, size_t aIndex) :
-      inherited(aDevice, aIndex)
+    BinaryInputBehaviour(Device &aDevice) :
+      inherited(aDevice)
     {};
     
   };

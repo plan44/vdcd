@@ -43,10 +43,10 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // - use light settings, which include a scene table
     deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
     // - create one output
-    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_dimmer, true, -1);
     l->setHardwareName("console output");
-    outputs.push_back(l);
+    addBehaviour(l);
   }
   else if (hasButton) {
     // Simulate Button device
@@ -56,10 +56,10 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
     // - create one button input
-    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
     b->setHardwareName(string_format("console key '%c'",name[0]));
-    buttons.push_back(b);
+    addBehaviour(b);
   }
 	deriveDSID();
 }

@@ -44,18 +44,18 @@ GpioDevice::GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aD
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(gpioname.c_str(), inverted, false));
     // Simulate light device
     // - create one output
-    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, false, -1);
-    outputs.push_back(l);
+    addBehaviour(l);
   }
   else {
     // GPIO input as button
     buttonInput = ButtonInputPtr(new ButtonInput(gpioname.c_str(), inverted));
     buttonInput->setButtonHandler(boost::bind(&GpioDevice::buttonHandler, this, _2, _3), true);
     // - create one button input
-    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
-    buttons.push_back(b);
+    addBehaviour(b);
   }
 	deriveDSID();
 }
@@ -115,6 +115,19 @@ void GpioDevice::deriveDSID()
   #endif
   // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
 }
+
+
+string GpioDevice::modelName()
+{
+  if (buttonInput)
+    return string_format("Digital Input @ %s", buttonInput->getName());
+  else if (indicatorOutput)
+    return string_format("Digital Output @ %s", indicatorOutput->getName());
+  return "Digital I/O";
+}
+
+
+
 
 
 string GpioDevice::description()

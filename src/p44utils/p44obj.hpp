@@ -9,6 +9,7 @@
 #ifndef __vdcd__p44obj__
 #define __vdcd__p44obj__
 
+using namespace std;
 
 namespace p44 {
 

@@ -22,38 +22,89 @@ namespace p44 {
   typedef uint64_t EnoceanDeviceID;
 
   class EnoceanDeviceContainer;
+  class EnoceanChannelHandler;
   class EnoceanDevice;
+
+  /// EnOcean subdevice
+  typedef uint8_t EnoceanSubDevice;
+
+
+  typedef boost::intrusive_ptr<EnoceanChannelHandler> EnoceanChannelHandlerPtr;
+
+  /// single enOcean device channel, abstract class
+  class EnoceanChannelHandler : public P44Obj
+  {
+    typedef P44Obj inherited;
+
+    friend class EnoceanDevice;
+
+  protected:
+
+    EnoceanDevice &device; ///< the associated enocean device
+
+    /// private constructor
+    /// @note create new channels using factory static methods of specialized subclasses
+    EnoceanChannelHandler(EnoceanDevice &aDevice);
+
+  public:
+
+    DsBehaviourPtr behaviour; ///< the associated behaviour
+    EnoceanChannel channel; ///< channel number
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) = 0;
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc() = 0;
+
+  };
+
+
+
+  typedef vector<EnoceanChannelHandlerPtr> EnoceanChannelHandlerVector;
+
   typedef boost::intrusive_ptr<EnoceanDevice> EnoceanDevicePtr;
 
+  /// digitalstrom device representing one or multiple enOcean device channels
   class EnoceanDevice : public Device
   {
     typedef Device inherited;
 
-    EnoceanAddress enoceanAddress;
-    EnoceanProfile eeProfile;
-    EnoceanManufacturer eeManufacturer;
-    EnoceanChannel channel; ///< channel number this logical device represents (out of possibly multiple channels in this physical device)
-		EnoceanChannel numChannels; ///< number of channels in the physical device (of which this logical device represents one channel)
+    friend class EnoceanChannelHandler;
+
+    EnoceanAddress enoceanAddress; ///< the enocean device address
+    EnoceanProfile eeProfile; ///< the EEP (RORG/FUNC/TYPE)
+    EnoceanManufacturer eeManufacturer; ///< the manufacturer ID
+    EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical enOcean device is represented as multiple vdSDs)
+		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
+
+    EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
   public:
     /// constructor, create device in container
-    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels);
+    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
 
     /// get typed container reference
     EnoceanDeviceContainer &getEnoceanDeviceContainer();
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
-    /// @param aChannel channel number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDevice subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aNumChannels if not NULL, total number of channels is returned here
+    /// @param aNumSubdevicesP if not NULL, total number of subdevices is returned here
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
-      EnoceanAddress aAddress, EnoceanChannel aChannel,
+      EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      int *aNumChannelsP = NULL
+      EnoceanSubDevice *aNumSubdevicesP = NULL
     );
+
+    /// add channel handler and register behaviour
+    /// @param aChannelHandler a handler for a channel (including a suitable behaviour)
+    void addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler);
 
     /// disconnect device. For enOcean, this means breaking the pairing (learn-in) with the device
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
@@ -79,14 +130,14 @@ namespace p44 {
     /// @return enOcean device ID/address
     EnoceanAddress getAddress();
 
-    /// get the enocean channel that identifies this logical device among other logical devices in the same
+    /// get the enocean subdevice number that identifies this logical device among other logical devices in the same
     ///   physical enOcean device (having the same enOcean deviceID/address)
     /// @return enOcean device ID/address
-    EnoceanChannel getChannel();
+    EnoceanSubDevice getSubDevice();
 
-		/// get number of channels in the physical device (of which this logical device represents one channel)
-		/// @return number of channels
-		EnoceanChannel getNumChannels();
+		/// get number of subdevices in the physical device (of which this logical device represents one subdevice)
+		/// @return number of subdevices
+		EnoceanChannel getTotalSubDevices();
 		
 
     /// set EEP information
@@ -97,15 +148,17 @@ namespace p44 {
     /// @return RORG/FUNC/TYPE EEP profile number 
     EnoceanProfile getEEProfile();
 
-    /// @return TYPE from EEP profile
-    uint8_t getEEPType() { return getEEProfile() & 0xFF; };
-
-
     /// @return manufacturer code
     EnoceanManufacturer getEEManufacturer();
 
     /// device specific radio packet handling
-    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) = 0;
+    /// @note base class implementation passes packet to all registered channels
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+
+    /// description of object, mainly for debug and logging
+    /// @return manufacturer name according to EPP
+    string manufacturerName();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -116,7 +169,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "enOcean device"; }
+    virtual string modelName();
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
@@ -126,7 +179,9 @@ namespace p44 {
 
   protected:
 
+    /// derive dSID from hardware address
     void deriveDSID();
+
   };
   
 } // namespace p44

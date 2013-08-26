@@ -29,7 +29,7 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 #pragma mark - DB and initialisation
 
 
-#define ENOCEAN_SCHEMA_VERSION 3
+#define ENOCEAN_SCHEMA_VERSION 4
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -42,10 +42,10 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
     sql.append(
 			"CREATE TABLE knownDevices ("
 			" enoceanAddress INTEGER,"
-      " channel INTEGER,"
+      " subdevice INTEGER,"
       " eeProfile INTEGER,"
       " eeManufacturer INTEGER,"
-      " PRIMARY KEY (enoceanAddress, channel)"
+      " PRIMARY KEY (enoceanAddress, subdevice)"
 			");"
 		);
     // reached final version in one step
@@ -63,8 +63,16 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
     // V2->V3: channel added
     sql =
       "ALTER TABLE knownDevices ADD channel INTEGER;";
-    // reached version 2
+    // reached version 3
     aToVersion = 3;
+  }
+  else if (aFromVersion==3) {
+    // V3->V4: added subdevice (channel gets obsolete but SQLite cannot delete columns, so
+    // leave it here. It's ok as the vDCd is not yet in real field use.
+    sql =
+    "ALTER TABLE knownDevices ADD subdevice INTEGER;";
+    // reached version 4
+    aToVersion = 4;
   }
   return sql;
 }
@@ -97,11 +105,11 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
   forgetDevices();
   // - read learned-in enOcean button IDs from DB
   sqlite3pp::query qry(db);
-  if (qry.prepare("SELECT enoceanAddress, channel, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
+  if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
     for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
       EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
         this,
-        i->get<int>(0), i->get<int>(1), // address / channel
+        i->get<int>(0), i->get<int>(1), // address / subdevice
         i->get<int>(2), i->get<int>(3) // profile / manufacturer
       );
       if (newdev) {
@@ -110,8 +118,8 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
       }
       else {
         LOG(LOG_ERR,
-          "EnOcean device could not be created for addr=%08X, channel=%d, profile=%06X, manufacturer=%d",
-          i->get<int>(0), i->get<int>(1), // address / channel
+          "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%06X, manufacturer=%d",
+          i->get<int>(0), i->get<int>(1), // address / subdevice
           i->get<int>(2), i->get<int>(3) // profile / manufacturer
         );
       }
@@ -135,11 +143,11 @@ void EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice
   addKnownDevice(aEnoceanDevice);
   // save enocean ID to DB
   sqlite3pp::query qry(db);
-  // - check if this channel is already stored
+  // - check if this subdevice is already stored
   db.executef(
-    "INSERT OR REPLACE INTO knownDevices (enoceanAddress, channel, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
+    "INSERT OR REPLACE INTO knownDevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
     aEnoceanDevice->getAddress(),
-    aEnoceanDevice->getChannel(),
+    aEnoceanDevice->getSubDevice(),
     aEnoceanDevice->getEEProfile(),
     aEnoceanDevice->getEEManufacturer()
   );
@@ -152,11 +160,11 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   if (ed) {
     // - remove single device from superclass
     inherited::removeDevice(aDevice, aForget);
-    // - remove only selected channel from my own list, other channels might be other devices
+    // - remove only selected subdevice from my own list, other subdevices might be other devices
     EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(ed->getAddress());
     while (pos!=enoceanDevices.upper_bound(ed->getAddress())) {
-      if (pos->second->getChannel()==ed->getChannel()) {
-        // this is the channel we want deleted
+      if (pos->second->getSubDevice()==ed->getSubDevice()) {
+        // this is the subdevice we want deleted
         enoceanDevices.erase(pos);
         break; // done
       }

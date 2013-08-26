@@ -98,6 +98,10 @@ vdcd_SOURCES = \
   src/enoceancomm.hpp \
   src/enoceandevice.cpp \
   src/enoceandevice.hpp \
+  src/enoceanrps.cpp \
+  src/enoceanrps.hpp \
+  src/enocean4bs.cpp \
+  src/enocean4bs.hpp \
   src/enoceandevicecontainer.cpp \
   src/enoceandevicecontainer.hpp \
   src/gpiodevice.cpp \

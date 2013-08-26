@@ -82,6 +82,38 @@ void Device::setGroupMembership(DsGroup aColorGroup, bool aIsMember)
 }
 
 
+void Device::addBehaviour(DsBehaviourPtr aBehaviour)
+{
+  if (aBehaviour) {
+    switch (aBehaviour->getType()) {
+      case behaviour_button:
+        aBehaviour->index = buttons.size();
+        buttons.push_back(aBehaviour);
+        break;
+      case behaviour_binaryinput:
+        aBehaviour->index = binaryInputs.size();
+        binaryInputs.push_back(aBehaviour);
+        break;
+      case behaviour_sensor:
+        aBehaviour->index = sensors.size();
+        sensors.push_back(aBehaviour);
+        break;
+      case behaviour_output:
+        aBehaviour->index = outputs.size();
+        outputs.push_back(aBehaviour);
+        break;
+      default:
+        LOG(LOG_ERR,"Device::addBehaviour: unknown behaviour type\n");
+    }
+  }
+  else {
+    LOG(LOG_ERR,"Device::addBehaviour: NULL behaviour passed\n");
+  }
+}
+
+
+
+
 #pragma mark - Device level vDC API
 
 

@@ -52,7 +52,7 @@ namespace p44 {
   public:
   
     /// constructor
-    ButtonBehaviour(Device &aDevice, size_t aIndex);
+    ButtonBehaviour(Device &aDevice);
 
     /// initialisation of hardware-specific constants for this button input
     /// @note this must be called once before the device gets added to the device container. Implementation might

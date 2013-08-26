@@ -9,6 +9,5 @@
 #ifndef __vdcd__binaryinputbehaviour__
 #define __vdcd__binaryinputbehaviour__
 
-#include <iostream>
 
 #endif /* defined(__vdcd__binaryinputbehaviour__) */

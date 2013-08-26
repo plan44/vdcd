@@ -40,10 +40,10 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   // use light settings, which include a scene table
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
-  LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this,outputs.size()));
+  LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   l->setHardwareOutputConfig(outputFunction_dimmer, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
   l->setHardwareName(string_format("DALI %d",deviceInfo.shortAddress));
-  outputs.push_back(l);
+  addBehaviour(l);
 }
 
 

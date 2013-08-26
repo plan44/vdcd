@@ -328,8 +328,8 @@ DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 #pragma mark - LightBehaviour
 
 
-LightBehaviour::LightBehaviour(Device &aDevice, size_t aIndex) :
-  inherited(aDevice, aIndex),
+LightBehaviour::LightBehaviour(Device &aDevice) :
+  inherited(aDevice),
   // hardware derived parameters
   // persistent settings
   onThreshold(128),

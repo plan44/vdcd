@@ -33,8 +33,8 @@ static const char *ClickTypeNames[] {
 
 
 
-ButtonBehaviour::ButtonBehaviour(Device &aDevice, size_t aIndex) :
-  inherited(aDevice, aIndex),
+ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
+  inherited(aDevice),
   // persistent settings
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default

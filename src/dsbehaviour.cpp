@@ -18,9 +18,9 @@ using namespace p44;
 
 #pragma mark - DsBehaviour
 
-DsBehaviour::DsBehaviour(Device &aDevice, size_t aIndex) :
+DsBehaviour::DsBehaviour(Device &aDevice) :
   inheritedParams(aDevice.getDeviceContainer().getDsParamStore()),
-  index(aIndex),
+  index(0),
   device(aDevice),
   hardwareName("<undefined>"),
   hardwareError(hardwareError_none),

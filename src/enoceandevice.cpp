@@ -13,15 +13,73 @@
 #include "buttonbehaviour.hpp"
 #include "sensorbehaviour.hpp"
 
+#include "enoceanrps.hpp"
+//#include "enocean1bs.hpp"
+#include "enocean4bs.hpp"
+//#include "enoceanVld.hpp"
+
 
 using namespace p44;
 
 
-EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels) :
-  Device((DeviceClassContainer *)aClassContainerP),
+#pragma mark - EnoceanChannelHandler
+
+EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
+  device(aDevice)
+{
+}
+
+
+#pragma mark - Manufacturer names
+
+typedef struct {
+  EnoceanManufacturer manufacturerID;
+  const char *name;
+} EnoceanManufacturerDesc;
+
+
+static const EnoceanManufacturerDesc manufacturerDescriptions[] = {
+  { 0x001, "Peha" },
+  { 0x002, "Thermokon" },
+  { 0x003, "Servodan" },
+  { 0x004, "EchoFlex Solutions" },
+  { 0x005, "Omnio AG" },
+  { 0x006, "Hardmeier electronics" },
+  { 0x007, "Regulvar Inc" },
+  { 0x008, "Ad Hoc Electronics" },
+  { 0x009, "Distech Controls" },
+  { 0x00A, "Kieback + Peter" },
+  { 0x00B, "EnOcean GmbH" },
+  { 0x00C, "Probare" },
+  { 0x00D, "Eltako" },
+  { 0x00E, "Leviton" },
+  { 0x00F, "Honeywell" },
+  { 0x010, "Spartan Peripheral Devices" },
+  { 0x011, "Siemens" },
+  { 0x012, "T-Mac" },
+  { 0x013, "Reliable Controls Corporation" },
+  { 0x014, "Elsner Elektronik GmbH" },
+  { 0x015, "Diehl Controls" },
+  { 0x016, "BSC Computer" },
+  { 0x017, "S+S Regeltechnik GmbH" },
+  { 0x018, "Masco Corporation" },
+  { 0x019, "Intesis Software SL" },
+  { 0x01A, "Res." },
+  { 0x01B, "Lutuo Technology" },
+  { 0x01C, "CAN2GO" },
+  { 0x7FF, "Multi user Manufacturer ID" },
+  { 0, NULL /* NULL string terminates list */ }
+};
+
+
+#pragma mark - EnoceanDevice
+
+EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
+  Device(aClassContainerP),
   eeProfile(eep_profile_unknown),
   eeManufacturer(manufacturer_unknown),
-	numChannels(aNumChannels)
+	totalSubdevices(aTotalSubdevices),
+  subDevice(0)
 {
 }
 
@@ -38,23 +96,23 @@ EnoceanAddress EnoceanDevice::getAddress()
 }
 
 
-EnoceanChannel EnoceanDevice::getChannel()
+EnoceanSubDevice EnoceanDevice::getSubDevice()
 {
-  return channel;
+  return subDevice;
 }
 
 
-EnoceanChannel EnoceanDevice::getNumChannels()
+EnoceanSubDevice EnoceanDevice::getTotalSubDevices()
 {
-	return numChannels;
+	return totalSubdevices;
 }
 
 
 
-void EnoceanDevice::setAddressingInfo(EnoceanAddress aAddress, EnoceanChannel aChannel)
+void EnoceanDevice::setAddressingInfo(EnoceanAddress aAddress, EnoceanSubDevice aSubDevice)
 {
   enoceanAddress = aAddress;
-  channel = aChannel;
+  subDevice = aSubDevice;
   deriveDSID();
 }
 
@@ -85,7 +143,7 @@ void EnoceanDevice::deriveDSID()
   dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
   dsid.setSerialNo(
     ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
-    (getChannel()&0x0F) // 4 lower bits for up to 16 channels
+    (getSubDevice()&0x0F) // 4 lower bits for up to 16 subdevices
   );
   #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
   #else
@@ -94,13 +152,13 @@ void EnoceanDevice::deriveDSID()
   // - bits 48..51 set to 6
   // - bits 40..47 unused
   // - enOcean address encoded into bits 8..39
-  // - channel encoded into bits 0..7 (max 255 channels)
+  // - subdevice encoded into bits 0..7 (max 255 subdevices)
 	//   Note: this conforms to the dS convention which mandates that multi-input physical
 	//   devices (up to 4) must have adjacent dsids.
   dsid.setSerialNo(
     0x6000000000000ll+
     ((uint64_t)getAddress()<<8) +
-    (getChannel()&0xFF)
+    (getSubDevice()&0xFF)
   );
   #endif
 }
@@ -114,19 +172,45 @@ string EnoceanDevice::hardwareGUID()
 }
 
 
+string EnoceanDevice::modelName()
+{
+  return string_format("%s enOcean device", manufacturerName().c_str());
+}
+
+
+
+string EnoceanDevice::manufacturerName()
+{
+  const EnoceanManufacturerDesc *manP = manufacturerDescriptions;
+  while (manP->name) {
+    if (manP->manufacturerID==eeManufacturer) {
+      return manP->name;
+    }
+    manP++;
+  }
+  // none found
+  return "<unknown>";
+}
+
+
 
 
 string EnoceanDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Enocean Address = 0x%08lX, channel=%d\n", enoceanAddress, channel);
+  string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
   string_format_append(s,
-    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer Code = %03X\n",
+    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
     (eeProfile>>16) & 0xFF,
     (eeProfile>>8) & 0xFF,
     eeProfile & 0xFF,
+    manufacturerName().c_str(),
     eeManufacturer
   );
+  // show channels
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    string_format_append(s, "- channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
+  }
   return s;
 }
 
@@ -135,229 +219,32 @@ string EnoceanDevice::description()
 void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // clear learn-in data from DB
-  getEnoceanDeviceContainer().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND channel=%d", getAddress(), getChannel());
+  getEnoceanDeviceContainer().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND subdevice=%d", getAddress(), getSubDevice());
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
 
 
 
-#pragma mark - RpsEnoceanDevice - rocker switches (RPS = Repeated Switch)
-
-
-/// RPS switches
-class RpsEnoceanDevice : public EnoceanDevice
+void EnoceanDevice::addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler)
 {
-  typedef EnoceanDevice inherited;
-  
-  bool pressed[2]; // true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
+  // create channel number
+  aChannelHandler->channel = channels.size();
+  // add to my local list
+  channels.push_back(aChannelHandler);
+  // register behaviour of the channel with the device
+  addBehaviour(aChannelHandler->behaviour);
+}
 
-public:
-  RpsEnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanChannel aNumChannels) :
-    inherited(aClassContainerP, aNumChannels)
-  {
-    pressed[0] = false;
-    pressed[1] = false;
-  };
 
-  virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
-  {
-    inherited::setEEPInfo(aEEProfile, aEEManufacturer);
-    // create two behaviours, one for the up button, one for the down button
-    // - create button input for down key
-    ButtonBehaviourPtr bd = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
-    bd->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false);
-    bd->setHardwareName("Down key");
-    buttons.push_back(bd);
-    // - create button input for up key
-    ButtonBehaviourPtr bu = ButtonBehaviourPtr(new ButtonBehaviour(*this,buttons.size()));
-    bu->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false);
-    bu->setHardwareName("Up key");
-    buttons.push_back(bu);
-  };
 
-  // device specific radio packet handling
-  virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
-  {
-    // extract payload data
-    uint8_t data = aEsp3PacketPtr->radio_userData()[0];
-    uint8_t status = aEsp3PacketPtr->radio_status();
-    // decode
-    if (status & status_NU) {
-      // N-Message
-      // collect action(s)
-      for (int ai=1; ai>=0; ai--) {
-        uint8_t a = (data >> (4*ai+1)) & 0x07;
-        if (ai==0 && (data&0x01)==0)
-          break; // no second action
-        if (((a>>1) & 0x03)==getChannel()) {
-          // querying this channel/rocker
-          setButtonState((data & 0x10)!=0, (a & 0x01) ? 1 : 0);
-        }
-      }
-    }
-    else {
-      // U-Message
-      uint8_t b = (data>>5) & 0x07;
-      bool affectsMe = false;
-      if (status & status_T21) {
-        // 2-rocker
-        if (b==0 || b==3)
-          affectsMe = true; // all buttons or explicitly 3/4 affected
-      }
-      else {
-        // 4-rocker
-        if (b==0 || ((b+1)>>1)>0)
-          affectsMe = true; // all or half of buttons affected = switches affected
-      }
-      if (affectsMe) {
-        // releasing -> affect all
-        // pressing -> ignore
-        // Note: rationale is that pressing should create individual actions, while releasing does not
-        if ((data & 0x10)!=0) {
-          // pressed
-          // NOP, ignore ambiguous pressing of more buttons
-        }
-        else {
-          // released
-          // assume both buttons (both sides of the rocker) released
-          setButtonState(false, 0);
-          setButtonState(false, 1);
-        }
-      }
-    }
-  };
-
-private:
-  void setButtonState(bool aPressed, int aIndex)
-  {
-    // only propagate real changes
-    if (aPressed!=pressed[aIndex]) {
-      // real change, propagate to behaviour
-      ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[aIndex]);
-      if (b) {
-        LOG(LOG_NOTICE,"RpsEnoceanDevice %08X channel %d: Button[%d] changed state to %s\n", getAddress(), getChannel(), aIndex, aPressed ? "pressed" : "released");
-        b->buttonAction(aPressed);
-      }
-      // update cached status
-      pressed[aIndex] = aPressed;
-    }
+void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+{
+  // pass to every channel
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    (*pos)->handleRadioPacket(aEsp3PacketPtr);
   }
-
-};
-
-
-#pragma mark - TempSensorEnoceanDevice - single temperature sensors
-
-typedef const struct {
-  uint8_t type; ///< enocean type
-  float min; ///< min temperature in degrees celsius
-  float max; ///< max temperature in degrees celsius
-  uint8_t numbits; ///< number of bits used for the range
-} TempSensorDesc;
-
-static const TempSensorDesc tempSensorDesc[] = {
-  // 40 degree range
-  { 0x01, -40, 0, 8 },
-  { 0x02, -30, 10, 8 },
-  { 0x03, -20, 20, 8 },
-  { 0x04, -10, 30, 8 },
-  { 0x05, 0, 40, 8 },
-  { 0x06, 10, 50, 8 },
-  { 0x07, 20, 60, 8 },
-  { 0x08, 30, 70, 8 },
-  { 0x09, 40, 80, 8 },
-  { 0x0A, 50, 90, 8 },
-  { 0x0B, 60, 100, 8 },
-  // 80 degree range
-  { 0x10, -60, 20, 8 },
-  { 0x11, -50, 30, 8 },
-  { 0x12, -40, 40, 8 },
-  { 0x13, -30, 50, 8 },
-  { 0x14, -20, 60, 8 },
-  { 0x15, -10, 70, 8 },
-  { 0x16, 0, 80, 8 },
-  { 0x17, 10, 90, 8 },
-  { 0x18, 20, 100, 8 },
-  { 0x19, 30, 110, 8 },
-  { 0x1A, 40, 120, 8 },
-  { 0x1B, 50, 130, 8 },
-  // 10 bit
-  { 0x20, -10, 42.2, 10 },
-  { 0x30, -40, 62.3, 10 },
-  { 0, 0, 0, 0 } // terminator
-};
-
-/// Temperature sensors
-class TempSensorEnoceanDevice : public EnoceanDevice
-{
-  typedef EnoceanDevice inherited;
-
-
-public:
-  TempSensorEnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
-    inherited(aClassContainerP, 1)
-  {
-    // temp sensor devices are climate-related
-    setPrimaryGroup(group_blue_climate);
-  };
-
-  virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
-  {
-    inherited::setEEPInfo(aEEProfile, aEEManufacturer);
-    // create one sensor behaviour
-    SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*this,sensors.size()));
-    // find the ranges
-    const TempSensorDesc *tP = tempSensorDesc;
-    while (tP->numbits!=0) {
-      if (tP->type == getEEPType())
-        break; // found
-      tP++;
-    }
-    if (tP->numbits!=0) {
-      // found sensor type
-      double resolution = (tP->max-tP->min) / ((1<<tP->numbits)-1); // units per LSB
-      sb->setHardwareSensorConfig(sensorType_temperature, tP->min, tP->max, resolution, 15*Second);
-      sb->setGroup(group_blue_climate); 
-    }
-    sb->setHardwareName(string_format("Temperature %d..%d °C",(int)tP->min,(int)tP->max));
-    sensors.push_back(sb);
-  };
-
-  // device specific radio packet handling
-  virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
-  {
-    if (!aEsp3PacketPtr->eep_hasTeachInfo()) {
-      // only look at non-teach-in packets
-      // extract payload data
-      uint16_t engValue;
-      if (getEEPType()>=0x20) {
-        // 10 bit sensors with MSB in data[1] and LSB in data[2]
-        engValue =
-          (~aEsp3PacketPtr->radio_userData()[2] & 0xFF) +
-          (((uint16_t)(~aEsp3PacketPtr->radio_userData()[1] & 0x03))<<8);
-      }
-      else {
-        // 8 bit sensors with inverted value in data[2]
-        engValue = (~aEsp3PacketPtr->radio_userData()[2])&0xFF;
-      }
-      // report value
-      LOG(LOG_DEBUG,"Temperature sensor reported engineering value %d\n", engValue);
-      if (sensors.size()>0) {
-        SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0]);
-        if (sb) {
-          sb->updateEngineeringValue(engValue);
-        }
-      }
-    }
-  };
-
-};
-
-
-#pragma mark - RoompanelSensorEnoceanDevice - room operating panel devices
-
-
+}
 
 
 
@@ -366,50 +253,45 @@ public:
 
 EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
-  EnoceanAddress aAddress, EnoceanChannel aChannel,
+  EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  int *aNumChannelsP
+  EnoceanSubDevice *aNumSubdevicesP
 ) {
-  int numChannels = 1; // default to one
   EnoceanDevicePtr newDev;
-  EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
-  if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    // 2 or 4 rocker switch = 2 or 4 dsDevices
-    numChannels = functionProfile==0xF60300 ? 4 : 2;
-    // create device
-    newDev = EnoceanDevicePtr(new RpsEnoceanDevice(aClassContainerP, numChannels));
+  RadioOrg rorg = EEP_RORG(aEEProfile);
+  // dispatch to factory according to RORG
+  switch (rorg) {
+    case rorg_RPS:
+      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+      break;
+//    case rorg_1BS:
+//      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+//      break;
+    case rorg_4BS:
+      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+      break;
+//    case rorg_VLD:
+//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+//      break;
+    default:
+      LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
+      break;
   }
-  else if (functionProfile==0xA50200) {
-    // temperature sensors are single channel
-    numChannels = 1;
-    // temperature sensor devices
-    newDev = EnoceanDevicePtr(new TempSensorEnoceanDevice(aClassContainerP));
-  }
-  // now assign
-  if (newDev) {
-    // assign channel and address
-    newDev->setAddressingInfo(aAddress, aChannel);
-    // assign EPP information, device derives behaviour from this
-    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-  }
-  // return updated total of channels
-  if (aNumChannelsP) *aNumChannelsP = numChannels;
   // return device (or empty if none created)
   return newDev;
 }
 
 
-
 int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket)
 {
-  int totalChannels = 1; // at least one
-  int channel = 0;
-  while (channel<totalChannels) {
+  EnoceanSubDevice totalSubDevices = 1; // at least one
+  EnoceanSubDevice subDevice = 0;
+  while (subDevice<totalSubDevices) {
     EnoceanDevicePtr newDev = newDevice(
       aClassContainerP,
-      aLearnInPacket->radio_sender(), channel,
+      aLearnInPacket->radio_sender(), subDevice,
       aLearnInPacket->eep_profile(), aLearnInPacket->eep_manufacturer(),
-      &totalChannels // possibly update total
+      &totalSubDevices // possibly update total
     );
     if (!newDev) {
       // could not create a device
@@ -419,9 +301,9 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
     // - add it to the container
     aClassContainerP->addAndRemeberDevice(newDev);
     // - count it
-    channel++;
+    subDevice++;
   }
   // return number of devices created
-  return channel;
+  return subDevice;
 }
 

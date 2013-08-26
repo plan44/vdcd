@@ -10,8 +10,8 @@
 
 using namespace p44;
 
-OutputBehaviour::OutputBehaviour(Device &aDevice, size_t aIndex) :
-  inherited(aDevice, aIndex),
+OutputBehaviour::OutputBehaviour(Device &aDevice) :
+  inherited(aDevice),
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
   pushChanges(false) // do not push changes

@@ -49,7 +49,7 @@ namespace p44 {
   public:
 
     /// constructor
-    SensorBehaviour(Device &aDevice, size_t aIndex);
+    SensorBehaviour(Device &aDevice);
 
     /// initialisation of hardware-specific constants for this button input
     /// @note this must be called once before the device gets added to the device container. Implementation might
