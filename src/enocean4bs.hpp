@@ -26,12 +26,13 @@ namespace p44 {
   {
     typedef EnoceanChannelHandler inherited;
 
-    const Enocean4BSDescriptor *channelDescriptorP;
-
     /// private constructor, create new channels using factory static method
     Enocean4bsHandler(EnoceanDevice &aDevice);
 
   public:
+
+    /// the channel descriptor
+    const Enocean4BSDescriptor *channelDescriptorP;
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
