@@ -154,7 +154,6 @@ const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 
 enum {
   value_key,
-  error_key,
   numStateProperties
 };
 
@@ -164,7 +163,6 @@ const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
     { "value", ptype_int32, false, value_key+states_key_offset, &output_key },
-    { "error", ptype_int32, false, error_key+states_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }
@@ -198,9 +196,6 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
         // States properties
         case value_key+states_key_offset:
           aPropValue = JsonObject::newInt32(device.getOutputValue(*this));
-          return true;
-        case error_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(device.getOutputError(*this));
           return true;
       }
     }

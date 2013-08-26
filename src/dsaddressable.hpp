@@ -35,8 +35,13 @@ namespace p44 {
 
     friend class DeviceContainer;
 
+    /// the user-assignable name
+    string name;
+
   protected:
     DeviceContainer *deviceContainerP;
+
+
   public:
     DsAddressable(DeviceContainer *aDeviceContainerP);
     virtual ~DsAddressable();
@@ -44,11 +49,16 @@ namespace p44 {
     /// the digitalstrom ID of this addressable entity
     dSID dsid;
 
-    /// the user-assignable name
-    string name;
-
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return *deviceContainerP; };
+
+    /// get user assigned name of the addressable
+    /// @return name string
+    string getName() { return name; };
+
+    /// set user assignable name
+    /// @param new name of the addressable entity
+    virtual void setName(const string &aName) { name = aName; };
 
     /// @name vDC API
     /// @{

@@ -46,6 +46,17 @@ bool Device::isPublicDS()
 }
 
 
+void Device::setName(const string &aName)
+{
+  if (aName!=getName()) {
+    // has changed
+    inherited::setName(aName);
+    // make sure it will be saved
+    deviceSettings->markDirty();
+  }
+}
+
+
 void Device::setPrimaryGroup(DsGroup aColorGroup)
 {
   primaryGroup = aColorGroup;
@@ -280,6 +291,8 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
     { "isMember", ptype_bool, true, isMember_key, &device_key },
     { "progMode", ptype_bool, false, progMode_key, &device_key },
     // the behaviour arrays
+    // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
+    //   getTypeName() of the behaviours.
     { "buttonInputDescriptions", ptype_object, true, buttonInputDescriptions_key, &device_key },
     { "buttonInputSettings", ptype_object, true, buttonInputSettings_key, &device_key },
     { "buttonInputStates", ptype_object, true, buttonInputStates_key, &device_key },
@@ -471,6 +484,8 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
 string Device::description()
 {
   string s = string_format("Device %s", shortDesc().c_str());
+  if (getName().length()>0)
+    string_format_append(s, " named '%s'", getName().c_str());
   if (announced!=Never)
     string_format_append(s, " (Announced %lld)", announced);
   else

@@ -219,13 +219,52 @@ typedef enum {
   outputmode_gradual, ///< gradual output value (dimmer, positional etc.)
 } DsOutputMode;
 
-/// output error status
+/// hardware error status
 typedef enum {
-  outputError_none, ///< output is ok
-  outputError_lampBroken, ///< lamp is broken
-  outputError_overload, ///< short circuit or overload
-  outputError_deviceError, ///< other device error
-} DsOutputError;
+  hardwareError_none, ///< hardware is ok
+  hardwareError_openCircuit, ///< input or output open circuit  (eg. bulb burnt)
+  hardwareError_shortCircuit, ///< input or output short circuit
+  hardwareError_overload, ///< output overload
+  hardwareError_busConnection, ///< third party device bus problem (such as DALI short-circuit)
+  hardwareError_lowBattery, ///< third party device has low battery
+  hardwareError_deviceError, ///< other device error
+} DsHardwareError;
+
+
+/// sensor types
+typedef enum {
+  sensorType_none,
+  sensorType_temperature, ///< temperature in degrees celsius
+  sensorType_humitity, ///< relative humitity in %
+  sensorType_illumination, ///< illumination in lux
+  sensorType_supplyVoltage, ///< supply voltage level in Volts
+  sensorType_gas_CO, ///< CO concentration in ppm
+  sensorType_gas_radon, ///< Radon activity in Bq/m3
+  sensorType_gas_type, ///< gas type sensor
+  sensorType_dust_PM10, ///< particles <10µm in μg/m3
+  sensorType_dust_PM2_5, ///< particles <2.5µm in μg/m3
+  sensorType_dust_PM1, ///< particles <1µm in μg/m3
+  sensorType_set_point, ///< room operating panel set point, 0..1
+  sensorType_fan_speed, ///< fan speed, 0..1 (0=off, <0=auto)
+  sensorType_wind_speed, ///< wind speed in m/s
+} DsSensorType;
+
+
+/// binary input types
+typedef enum {
+  binInpType_none, ///< no system function
+  binInpType_presence, ///< Presence
+  binInpType_light, ///< Light
+  binInpType_presenceInDarkness, ///< Presence in darkness
+  binInpType_twilight, ///< twilight
+  binInpType_motion, ///< motion
+  binInpType_motionInDarkness, ///< motion in darkness
+  binInpType_smoke, ///< smoke
+  binInpType_wind, ///< wind
+  binInpType_rain, ///< rain
+  binInpType_sun, ///< solar radiation
+  binInpType_thermostat, ///< thermostat
+} DsBinaryInputType;
 
 
 #endif

@@ -97,6 +97,10 @@ namespace p44 {
     /// @return RORG/FUNC/TYPE EEP profile number 
     EnoceanProfile getEEProfile();
 
+    /// @return TYPE from EEP profile
+    uint8_t getEEPType() { return getEEProfile() & 0xFF; };
+
+
     /// @return manufacturer code
     EnoceanManufacturer getEEManufacturer();
 

@@ -67,6 +67,10 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+    /// set user assignable name
+    /// @param new name of the addressable entity
+    virtual void setName(const string &aName);
+
     /// set basic device color
     /// @param aColorGroup color group number
     void setPrimaryGroup(DsGroup aColorGroup);
@@ -180,10 +184,6 @@ namespace p44 {
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
     virtual void setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValue, MLMicroSeconds aTransitionTime=0) { /* NOP */ };
-
-    /// get current output error/status
-    /// @param aOutputBehaviour the output behaviour to get the hardware error status for
-    virtual DsOutputError getOutputError(OutputBehaviour &aOutputBehaviour) { return outputError_none; };
 
 
     /// @}

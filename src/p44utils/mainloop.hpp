@@ -97,7 +97,8 @@ namespace p44 {
     void cancelExecutionsFrom(void *aSubmitterP);
 
     /// cancel pending execution by ticket number
-    void cancelExecutionTicket(long aTicketNo);
+    /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
+    void cancelExecutionTicket(long &aTicketNo);
 
     /// terminate the mainloop
     void terminate();

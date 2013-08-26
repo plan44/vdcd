@@ -181,16 +181,7 @@ void DaliDevice::setOutputValue(OutputBehaviour &aOutputBehaviour, int16_t aValu
 
 
 
-DsOutputError DaliDevice::getOutputError(OutputBehaviour &aOutputBehaviour)
-{
-  if (aOutputBehaviour.getIndex()==0) {
-    // TODO: return actual error status here
-    return outputError_none;
-  }
-  else
-    return inherited::getOutputError(aOutputBehaviour); // let superclass handle this
-}
-
+#warning "// TODO: add error status polling and use DsBehaviour::setHardwareError() to report it"
 
 
 

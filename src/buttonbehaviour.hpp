@@ -28,7 +28,6 @@ namespace p44 {
     ///   fixed constants or values set ONCE by device implementations when adding a ButtonBehaviour.
     ///   These need to remain constant after device initialisation is complete!
     /// @{
-    virtual BehaviourType getType() { return behaviour_button; }; ///< the behaviour type
     bool supportsLocalKeyMode; ///< set if this button can act as local button
     int buttonID; ///< the ID grouping all inputs of a hardware button (which can have multiple elements)
     DsButtonType buttonType; ///< type of button
@@ -79,6 +78,9 @@ namespace p44 {
     virtual string description();
 
   protected:
+
+    /// the behaviour type
+    virtual BehaviourType getType() { return behaviour_button; };
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();

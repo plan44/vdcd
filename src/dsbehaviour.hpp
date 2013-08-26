@@ -69,13 +69,18 @@ namespace p44 {
     /// @name behaviour description, constants or variables
     ///   set by device implementations when adding a Behaviour.
     /// @{
-    virtual BehaviourType getType() { return behaviour_undefined; }; ///< type of behaviour
     string hardwareName; ///< name that identifies this behaviour among others for the human user (terminal label text etc)
     /// @}
 
     /// @name persistent settings
     /// @{
     DsGroup group; ///< the group this behaviour belongs to
+    /// @}
+
+    /// @name internal volatile state
+    /// @{
+    DsHardwareError hardwareError; ///< hardware error
+    MLMicroSeconds hardwareErrorUpdated; ///< when was hardware error last updated
     /// @}
 
 
@@ -88,6 +93,9 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };
 
+
+    /// update of hardware status
+    void setHardwareError(DsHardwareError aHardwareError);
 
     /// @name persistent settings management
     /// @{
@@ -113,18 +121,21 @@ namespace p44 {
     size_t getIndex() { return index; };
 
     /// textual representation of getType()
-    /// @return type string
+    /// @return type string, which is the string used to prefix the xxxDescriptions, xxxSettings and xxxStates properties
     const char *getTypeName();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
-    virtual string description() { return ""; /* empty string, to allow chaining descriptions for behaviour hierarchies */ };
+    virtual string description();
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() { return getTypeName(); }
 
   protected:
+
+    /// type of behaviour
+    virtual BehaviourType getType() = 0;
 
     /// @name property access implementation for descriptor/settings/states
     /// @{
@@ -200,33 +211,13 @@ namespace p44 {
     /// @}
 
   public:
-    BinaryInputBehaviour(Device &aDevice, size_t aIndex)
-    : inherited(aDevice, aIndex) {};
+    BinaryInputBehaviour(Device &aDevice, size_t aIndex) :
+      inherited(aDevice, aIndex)
+    {};
     
   };
   typedef boost::intrusive_ptr<BinaryInputBehaviour> BinaryInputBehaviourPtr;
 
-
-  class SensorBehaviour : public DsBehaviour
-  {
-    typedef DsBehaviour inherited;
-
-  protected:
-
-    /// @name behaviour description, constants or variables
-    ///   set by device implementations when adding a Behaviour.
-    /// @{
-
-    virtual BehaviourType getType() { return behaviour_sensor; };
-    
-    /// @}
-
-  public:
-    SensorBehaviour(Device &aDevice, size_t aIndex)
-    : inherited(aDevice, aIndex) {};
-    
-  };
-  typedef boost::intrusive_ptr<SensorBehaviour> SensorBehaviourPtr;
 
 
 } // namespace p44

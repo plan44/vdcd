@@ -148,7 +148,7 @@ void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
 }
 
 
-void MainLoop::cancelExecutionTicket(long aTicketNo)
+void MainLoop::cancelExecutionTicket(long &aTicketNo)
 {
   if (aTicketNo==0) return; // no ticket, NOP
   for (OnetimeHandlerList::iterator pos = onetimeHandlers.begin(); pos!=onetimeHandlers.end(); ++pos) {
@@ -157,6 +157,8 @@ void MainLoop::cancelExecutionTicket(long aTicketNo)
       break;
 		}
 	}
+  // reset the ticket
+  aTicketNo = 0;
 }
 
 

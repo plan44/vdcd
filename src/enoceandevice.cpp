@@ -9,7 +9,9 @@
 #include "enoceandevice.hpp"
 
 #include "enoceandevicecontainer.hpp"
+
 #include "buttonbehaviour.hpp"
+#include "sensorbehaviour.hpp"
 
 
 using namespace p44;
@@ -140,7 +142,7 @@ void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResul
 
 
 
-#pragma mark - profile specific device subclasses
+#pragma mark - RpsEnoceanDevice - rocker switches (RPS = Repeated Switch)
 
 
 /// RPS switches
@@ -245,6 +247,116 @@ private:
 };
 
 
+#pragma mark - TempSensorEnoceanDevice - single temperature sensors
+
+typedef const struct {
+  uint8_t type; ///< enocean type
+  float min; ///< min temperature in degrees celsius
+  float max; ///< max temperature in degrees celsius
+  uint8_t numbits; ///< number of bits used for the range
+} TempSensorDesc;
+
+static const TempSensorDesc tempSensorDesc[] = {
+  // 40 degree range
+  { 0x01, -40, 0, 8 },
+  { 0x02, -30, 10, 8 },
+  { 0x03, -20, 20, 8 },
+  { 0x04, -10, 30, 8 },
+  { 0x05, 0, 40, 8 },
+  { 0x06, 10, 50, 8 },
+  { 0x07, 20, 60, 8 },
+  { 0x08, 30, 70, 8 },
+  { 0x09, 40, 80, 8 },
+  { 0x0A, 50, 90, 8 },
+  { 0x0B, 60, 100, 8 },
+  // 80 degree range
+  { 0x10, -60, 20, 8 },
+  { 0x11, -50, 30, 8 },
+  { 0x12, -40, 40, 8 },
+  { 0x13, -30, 50, 8 },
+  { 0x14, -20, 60, 8 },
+  { 0x15, -10, 70, 8 },
+  { 0x16, 0, 80, 8 },
+  { 0x17, 10, 90, 8 },
+  { 0x18, 20, 100, 8 },
+  { 0x19, 30, 110, 8 },
+  { 0x1A, 40, 120, 8 },
+  { 0x1B, 50, 130, 8 },
+  // 10 bit
+  { 0x20, -10, 42.2, 10 },
+  { 0x30, -40, 62.3, 10 },
+  { 0, 0, 0, 0 } // terminator
+};
+
+/// Temperature sensors
+class TempSensorEnoceanDevice : public EnoceanDevice
+{
+  typedef EnoceanDevice inherited;
+
+
+public:
+  TempSensorEnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
+    inherited(aClassContainerP, 1)
+  {
+  };
+
+  virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
+  {
+    inherited::setEEPInfo(aEEProfile, aEEManufacturer);
+    // create one sensor behaviour
+    SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*this,sensors.size()));
+    // find the ranges
+    const TempSensorDesc *tP = tempSensorDesc;
+    while (tP->numbits!=0) {
+      if (tP->type == getEEPType())
+        break; // found
+      tP++;
+    }
+    if (tP->numbits!=0) {
+      // found sensor type
+      double resolution = (tP->max-tP->min) / ((1<<tP->numbits)-1); // units per LSB
+      sb->setHardwareSensorConfig(sensorType_temperature, tP->min, tP->max, resolution, 15*Second);
+    }
+    sb->setHardwareName(string_format("Temperature %d..%d °C",(int)tP->min,(int)tP->max));
+    sensors.push_back(sb);
+  };
+
+  // device specific radio packet handling
+  virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+  {
+    if (!aEsp3PacketPtr->eep_hasTeachInfo()) {
+      // only look at non-teach-in packets
+      // extract payload data
+      uint16_t engValue;
+      if (getEEPType()>=0x20) {
+        // 10 bit sensors with MSB in data[1] and LSB in data[2]
+        engValue =
+          (~aEsp3PacketPtr->radio_userData()[2] & 0xFF) +
+          (((uint16_t)(~aEsp3PacketPtr->radio_userData()[1] & 0x03))<<8);
+      }
+      else {
+        // 8 bit sensors with inverted value in data[2]
+        engValue = (~aEsp3PacketPtr->radio_userData()[2])&0xFF;
+      }
+      // report value
+      LOG(LOG_DEBUG,"Temperature sensor reported engineering value %d\n", engValue);
+      if (sensors.size()>0) {
+        SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0]);
+        if (sb) {
+          sb->updateEngineeringValue(engValue);
+        }
+      }
+    }
+  };
+
+};
+
+
+#pragma mark - RoompanelSensorEnoceanDevice - room operating panel devices
+
+
+
+
 
 #pragma mark - device factories
 
@@ -263,12 +375,23 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
     numChannels = functionProfile==0xF60300 ? 4 : 2;
     // create device
     newDev = EnoceanDevicePtr(new RpsEnoceanDevice(aClassContainerP, numChannels));
+  }
+  else if (functionProfile==0xA50200) {
+    // temperature sensors are single channel
+    numChannels = 1;
+    // temperature sensor devices
+    newDev = EnoceanDevicePtr(new TempSensorEnoceanDevice(aClassContainerP));
+  }
+  // now assign
+  if (newDev) {
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aChannel);
     // assign EPP information, device derives behaviour from this
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
   }
+  // return updated total of channels
   if (aNumChannelsP) *aNumChannelsP = numChannels;
+  // return device (or empty if none created)
   return newDev;
 }
 

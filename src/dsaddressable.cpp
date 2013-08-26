@@ -244,7 +244,7 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
   if (aPropertyDescriptor.objectKey==&dsAddressable_key) {
     if (aForWrite) {
       switch (aPropertyDescriptor.accessKey) {
-        case name_key: name = aPropValue->stringValue(); return true;
+        case name_key: setName(aPropValue->stringValue()); return true;
       }
     }
     else {
@@ -255,7 +255,7 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
         case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
         case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
         case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); return true;
-        case name_key: aPropValue = JsonObject::newString(name); return true;
+        case name_key: aPropValue = JsonObject::newString(getName()); return true;
       }
       return true;
     }

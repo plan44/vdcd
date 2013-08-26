@@ -844,7 +844,6 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
   }
   // cancel retry timer
   MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
-  announcementTicket = 0;
   // try next announcement
   announceDevices();
 }

@@ -22,13 +22,27 @@ DsBehaviour::DsBehaviour(Device &aDevice, size_t aIndex) :
   inheritedParams(aDevice.getDeviceContainer().getDsParamStore()),
   index(aIndex),
   device(aDevice),
-  hardwareName("<undefined>")
+  hardwareName("<undefined>"),
+  hardwareError(hardwareError_none),
+  hardwareErrorUpdated(p44::Never)
 {
 }
 
 
 DsBehaviour::~DsBehaviour()
 {
+}
+
+
+void DsBehaviour::setHardwareError(DsHardwareError aHardwareError)
+{
+  if (aHardwareError!=hardwareError) {
+    // error status has changed
+    hardwareError = aHardwareError;
+    hardwareErrorUpdated = MainLoop::now();
+    // push the error status change
+    device.pushProperty(string(getTypeName()).append("States"), VDC_API_DOMAIN, (int)index);
+  }
 }
 
 
@@ -125,8 +139,9 @@ void DsBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex,
 
 const char *DsBehaviour::getTypeName()
 {
+  // Note: this must be the prefix for the xxxDescriptions, xxxSettings and xxxStates properties
   switch (getType()) {
-    case behaviour_button : return "button";
+    case behaviour_button : return "buttonInput";
     case behaviour_binaryinput : return "binaryInput";
     case behaviour_output : return "output";
     case behaviour_sensor : return "sensor";
@@ -148,6 +163,13 @@ enum {
 };
 
 
+enum {
+  error_key,
+  numDsStateSettingsProperties
+};
+
+
+
 static char dsBehaviour_Key;
 
 int DsBehaviour::numLocalProps(int aDomain)
@@ -155,7 +177,7 @@ int DsBehaviour::numLocalProps(int aDomain)
   switch (aDomain) {
     case VDC_API_BHVR_DESC: return numDescProps()+numDsBehaviourDescProperties;
     case VDC_API_BHVR_SETTINGS: return numSettingsProps()+numDsBehaviourSettingsProperties;
-    case VDC_API_BHVR_STATES: return numStateProps();
+    case VDC_API_BHVR_STATES: return numStateProps()+numDsStateSettingsProperties;
     default: return 0;
   }
 }
@@ -175,6 +197,9 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
   };
   static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
     { "group", ptype_int8, false, group_key+settings_key_offset, &dsBehaviour_Key },
+  };
+  static const PropertyDescriptor stateProperties[numDsStateSettingsProperties] = {
+    { "error", ptype_int8, false, error_key+states_key_offset, &dsBehaviour_Key },
   };
   int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
@@ -198,9 +223,14 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
       // check type-specific settings
       return getSettingsDescriptor(aPropIndex);
     case VDC_API_BHVR_STATES:
-      // states are always type-specific
+      // check for generic state properties
+      if (aPropIndex<numDsStateSettingsProperties)
+        return &stateProperties[aPropIndex];
+      aPropIndex -= numDsStateSettingsProperties;
+      // check type-specific states
       return getStateDescriptor(aPropIndex);
-    default: return NULL;
+    default:
+      return NULL;
   }
 }
 
@@ -209,15 +239,19 @@ bool DsBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const P
 {
   if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
     if (!aForWrite) {
+      // Read
       switch (aPropertyDescriptor.accessKey) {
         // descriptions
         case name_key+descriptions_key_offset: aPropValue = JsonObject::newString(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue = JsonObject::newString(getTypeName()); return true;
         // settings
         case group_key+settings_key_offset: aPropValue = JsonObject::newInt32(group); return true;
+        // state
+        case error_key+states_key_offset: aPropValue = JsonObject::newInt32(hardwareError); return true;
       }
     }
     else {
+      // Write
       switch (aPropertyDescriptor.accessKey) {
         // settings
         case group_key+settings_key_offset:
@@ -233,6 +267,15 @@ bool DsBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const P
 
 
 
+#pragma mark - description/shortDesc
+
+
+string DsBehaviour::description()
+{
+  string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());
+  string_format_append(s, "- group: %d, hardwareError: %d\n", group, hardwareError);
+  return s;
+}
 
 
 

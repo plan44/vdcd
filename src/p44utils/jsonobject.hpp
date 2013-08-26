@@ -114,7 +114,7 @@ namespace p44 {
     static JsonObjectPtr newObj();
 
     /// create new NULL object (does not embed a real JSON-C object, just a NULL pointer)
-    JsonObjectPtr newNull();
+    static JsonObjectPtr newNull();
 
 
     /// create new object from text

@@ -48,8 +48,10 @@ void Logger::log(int aErrlevel, const char *aFmt, ... )
         if (i!=message.length()-1)
           isMultiline = true; // not just trailing LF
       }
-      else if (!isprint(c))
-        message.replace(i, 1, string_format("\\x%02x", (unsigned)c));
+      else if (!isprint(c) && (uint8_t)c<0x80) {
+        // ASCII control character, but not bit 7 set (UTF8 component char)
+        message.replace(i, 1, string_format("\\x%02x", (unsigned)(c & 0xFF)));
+      }
       i++;
     }
     // create date

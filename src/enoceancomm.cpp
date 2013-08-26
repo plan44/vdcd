@@ -477,9 +477,9 @@ bool Esp3Packet::eep_hasTeachInfo()
     case rorg_RPS:
       return true; // RPS telegrams always have (somewhat limited) signature that can be used for teach-in
     case rorg_1BS:
-      return (radio_userData()[0] & LRN_BIT_MASK)!=0; // 1BS telegrams have teach-in info if LRN bit is set
+      return (radio_userData()[0] & LRN_BIT_MASK)==0; // 1BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_4BS:
-      return (radio_userData()[3] & LRN_BIT_MASK)!=0; // 4BS telegrams have teach-in info if LRN bit is set
+      return (radio_userData()[3] & LRN_BIT_MASK)==0; // 4BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_SM_LRN_REQ:
       return true; // smart ack learn requests are by definition teach-in commands and have full EEP signature
     default:

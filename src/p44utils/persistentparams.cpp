@@ -169,8 +169,8 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
     if (row!=queryP->end()) {
       // got record
       int index = 0;
-      loadFromRow(row, index);
-      dirty = false; // just loaded: clean
+      loadFromRow(row, index); // might set dirty when assigning properties...
+      dirty = false; // ...so: just loaded: make clean
     }
   }
   if (Error::isOK(err)) {

@@ -29,7 +29,7 @@ const char *DeviceSettings::tableName()
 
 // data field definitions
 
-static const size_t numFields = 1;
+static const size_t numFields = 2;
 
 size_t DeviceSettings::numFieldDefs()
 {
@@ -40,7 +40,8 @@ size_t DeviceSettings::numFieldDefs()
 const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
-    { "deviceFlags", SQLITE_INTEGER }
+    { "deviceFlags", SQLITE_INTEGER },
+    { "deviceName", SQLITE_TEXT }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -57,6 +58,7 @@ void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the flags
   deviceFlags = aRow->get<int>(aIndex++);
+  device.setName(aRow->get<string>(aIndex++));
 }
 
 
@@ -66,4 +68,5 @@ void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the flags
   aStatement.bind(aIndex++, deviceFlags);
+  aStatement.bind(aIndex++, device.getName().c_str());
 }
