@@ -298,6 +298,8 @@ public:
   TempSensorEnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
     inherited(aClassContainerP, 1)
   {
+    // temp sensor devices are climate-related
+    setPrimaryGroup(group_blue_climate);
   };
 
   virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer)
@@ -316,6 +318,7 @@ public:
       // found sensor type
       double resolution = (tP->max-tP->min) / ((1<<tP->numbits)-1); // units per LSB
       sb->setHardwareSensorConfig(sensorType_temperature, tP->min, tP->max, resolution, 15*Second);
+      sb->setGroup(group_blue_climate); 
     }
     sb->setHardwareName(string_format("Temperature %d..%d °C",(int)tP->min,(int)tP->max));
     sensors.push_back(sb);
@@ -358,7 +361,7 @@ public:
 
 
 
-#pragma mark - device factories
+#pragma mark - device factory
 
 
 EnoceanDevicePtr EnoceanDevice::newDevice(
