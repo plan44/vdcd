@@ -35,10 +35,13 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
   switch (outputFunction) {
     case outputFunction_switch:
       outputMode = outputmode_binary;
+      break;
     case outputFunction_dimmer:
       outputMode = outputmode_gradual;
+      break;
     default:
       outputMode = outputmode_disabled;
+      break;
   }
 }
 

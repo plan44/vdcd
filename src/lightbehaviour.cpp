@@ -648,7 +648,7 @@ bool LightBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, cons
     else {
       // write properties
       switch (aPropertyDescriptor.accessKey) {
-          // Settings properties
+        // Settings properties
         case onThreshold_key+settings_key_offset:
           onThreshold = (Brightness)aPropValue->int32Value();
           markDirty();
