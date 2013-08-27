@@ -53,7 +53,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     EnoceanRpsHandlerPtr upHandler = EnoceanRpsHandlerPtr(new EnoceanRpsHandler(*newDev.get()));
     upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
     ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-    upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false);
+    upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false);
     upBhvr->setHardwareName("Up key");
     upHandler->behaviour = upBhvr;
     newDev->addChannelHandler(upHandler);
