@@ -125,6 +125,7 @@ namespace p44 {
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void sendTeachInResponseFor(Esp3PacketPtr aEsp3TeachInQuery);
     void endLearning(ErrorPtr aError);
 
   };

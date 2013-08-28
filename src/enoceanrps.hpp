@@ -42,7 +42,8 @@ namespace p44 {
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      EnoceanSubDevice *aNumSubdevicesP
+      EnoceanSubDevice &aNumSubdevices,
+      bool aNeedsTeachInResponse
     );
 
     /// handle radio packet related to this channel

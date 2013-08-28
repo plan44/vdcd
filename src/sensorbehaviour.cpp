@@ -21,8 +21,8 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
 {
   // set dummy default hardware default configuration
   setHardwareSensorConfig(sensorType_none, 0, 100, 1, 15*Second);
-  // default to light
-  setGroup(group_yellow_light);
+  // default to joker
+  setGroup(group_black_joker);
 }
 
 

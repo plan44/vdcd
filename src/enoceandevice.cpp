@@ -40,6 +40,7 @@ typedef struct {
 
 
 static const EnoceanManufacturerDesc manufacturerDescriptions[] = {
+  { 0x000, "Manufacturer Reserved" },
   { 0x001, "Peha" },
   { 0x002, "Thermokon" },
   { 0x003, "Servodan" },
@@ -65,9 +66,23 @@ static const EnoceanManufacturerDesc manufacturerDescriptions[] = {
   { 0x017, "S+S Regeltechnik GmbH" },
   { 0x018, "Masco Corporation" },
   { 0x019, "Intesis Software SL" },
-  { 0x01A, "Res." },
+  { 0x01A, "Viessmann" },
   { 0x01B, "Lutuo Technology" },
   { 0x01C, "CAN2GO" },
+  { 0x01D, "Sauter" },
+  { 0x01E, "Boot-Up"  },
+  { 0x01F, "Osram Sylvania"  },
+  { 0x020, "Unotech"  },
+  { 0x022, "Unitronic AG" },
+  { 0x023, "NanoSense" },
+  { 0x024, "The S4 Ggroup" },
+  { 0x025, "MSR Solutions " },
+  { 0x027, "Maico" },
+  { 0x02A, "KM Controls" },
+  { 0x02B, "Ecologix Controls" },
+  { 0x02D, "Afriso Euro Index" },
+  { 0x030, "NEC AccessTechnica Ltd" },
+  { 0x031, "ITEC Corporation" },
   { 0x7FF, "Multi user Manufacturer ID" },
   { 0, NULL /* NULL string terminates list */ }
 };
@@ -285,23 +300,24 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  EnoceanSubDevice *aNumSubdevicesP
+  EnoceanSubDevice &aNumSubdevices,
+  bool aSendTeachInResponse
 ) {
   EnoceanDevicePtr newDev;
   RadioOrg rorg = EEP_RORG(aEEProfile);
   // dispatch to factory according to RORG
   switch (rorg) {
     case rorg_RPS:
-      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
       break;
 //    case rorg_1BS:
-//      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+//      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
 //      break;
     case rorg_4BS:
-      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
       break;
 //    case rorg_VLD:
-//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevicesP);
+//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
 //      break;
     default:
       LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
@@ -312,7 +328,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 }
 
 
-int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket)
+int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket, bool &aNeedsTeachInResponse)
 {
   EnoceanSubDevice totalSubDevices = 1; // at least one
   EnoceanSubDevice subDevice = 0;
@@ -321,7 +337,8 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
       aClassContainerP,
       aLearnInPacket->radioSender(), subDevice,
       aLearnInPacket->eepProfile(), aLearnInPacket->eepManufacturer(),
-      &totalSubDevices // possibly update total
+      totalSubDevices, // possibly update total
+      subDevice==0 // allow sending teach-in response for first subdevice only
     );
     if (!newDev) {
       // could not create a device

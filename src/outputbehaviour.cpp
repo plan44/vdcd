@@ -21,8 +21,8 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
 {
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, false, -1);
-  // default to light
-  setGroup(group_yellow_light);
+  // default to joker
+  setGroup(group_black_joker);
 }
 
 
@@ -232,7 +232,10 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // States properties
         case value_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(getOutputValue());
+          if (outputLastSent==Never)
+            aPropValue = JsonObject::newNull(); // no value known
+          else
+            aPropValue = JsonObject::newInt32(getOutputValue());
           return true;
       }
     }

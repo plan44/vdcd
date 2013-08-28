@@ -100,12 +100,15 @@ namespace p44 {
     /// @param aSubDevice subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aNumSubdevicesP if not NULL, total number of subdevices is returned here
+    /// @param aNumSubdevices total number of subdevices is returned here
+    /// @param aSendTeachInResponse if this is set, a teach-in response will be sent for profiles that need one
+    ///   (This is set to false when re-creating logical devices from DB)
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      EnoceanSubDevice *aNumSubdevicesP = NULL
+      EnoceanSubDevice &aNumSubdevices,
+      bool aSendTeachInResponse
     );
 
     /// add channel handler and register behaviour
@@ -128,8 +131,9 @@ namespace p44 {
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
     /// @param aLearnInPacket the packet containing the EPP and possibly other learn-in relevant information
+    /// @param aNeedsTeachInResponse will be set if any of the devices created needs a teach-in response
     /// @return number of devices created
-    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket);
+    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket, bool &aNeedsTeachInResponse);
     
 
     /// set the enocean address identifying the device
@@ -165,6 +169,10 @@ namespace p44 {
     /// device specific radio packet handling
     /// @note base class implementation passes packet to all registered channels
     virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// device specific teach in response
+    /// @note will be called from newDevice() when created device needs a teach-in response
+    virtual void sendTeachInResponse() { /* NOP in base class */ };
 
 
     /// description of object, mainly for debug and logging

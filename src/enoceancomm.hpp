@@ -271,6 +271,11 @@ namespace p44 {
     /// @param a4BSdata radioUserData()[0..3] as 32bit value
     void set4BSdata(uint32_t a4BSdata);
 
+
+    /// @param aEEProfile the EEP to represent in the 4BS telegram
+    void set4BSTeachInEEP(EnoceanProfile aEEProfile);
+
+
     /// @}
 
 

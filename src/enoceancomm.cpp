@@ -423,6 +423,8 @@ void Esp3Packet::initForRorg(RadioOrg aRadioOrg, size_t aVLDsize)
     default:
       break;
   }
+  // set the radio org
+  data()[0] = aRadioOrg;
   // now set optional data defaults
   uint8_t *o = optData();
   // - subTelegramNo for sending is always 3
@@ -610,13 +612,33 @@ uint32_t Esp3Packet::get4BSdata()
 void Esp3Packet::set4BSdata(uint32_t a4BSdata)
 {
   if (eepRorg()==rorg_4BS) {
-    radioUserData()[0] = (a4BSdata<<24) & 0xFF;
-    radioUserData()[1] = (a4BSdata<<16) & 0xFF;
-    radioUserData()[2] = (a4BSdata<<8) & 0xFF;
+    radioUserData()[0] = (a4BSdata>>24) & 0xFF;
+    radioUserData()[1] = (a4BSdata>>16) & 0xFF;
+    radioUserData()[2] = (a4BSdata>>8) & 0xFF;
     radioUserData()[3] = a4BSdata & 0xFF;
   }
 }
 
+
+// 4BS teach-in telegram
+//
+//       D[0]      |       D[1]      |       D[2]      |              D[3]
+// 7 6 5 4 3 2 1 0 | 7 6 5 4 3 2 1 0 | 7 6 5 4 3 2 1 0 |  7   6   5   4   3   2   1   0
+//
+// f f f f f f t t   t t t t t m m m   m m m m m m m m   LRN EEP LRN LRN LRN  x   x   x
+//    FUNC    |     TYPE      |      MANUFACTURER      | typ res res sta bit
+
+
+void Esp3Packet::set4BSTeachInEEP(EnoceanProfile aEEProfile)
+{
+  if (eepRorg()==rorg_4BS && EEP_RORG(aEEProfile)==rorg_4BS) {
+    radioUserData()[0] =
+      ((aEEProfile>>6) & 0xFC) | // 6 FUNC bits
+      ((aEEProfile>>5) & 0x03); // upper 2 TYPE bits
+    radioUserData()[1] =
+      ((aEEProfile<<3) & 0x1F); // lower 5 TYPE bits
+  }
+}
 
 
 
@@ -652,9 +674,9 @@ string Esp3Packet::description()
         );
       }
     }
-    else {
+    else if (packetType()==pt_response) {
       // non-radio ESP3 packet
-      string_format_append(t, "ESP3 packet of type %d\n", packetType());
+      string_format_append(t, "ESP3 response packet, return code = %d\n", data()[0]);
     }
     // raw data
     string_format_append(t, "- %3d data bytes: ", dataLength());
@@ -728,6 +750,7 @@ uint8_t Esp3Packet::crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue)
   }
   return aCRCValue;
 }
+
 
 
 #pragma mark - EnOcean communication handler

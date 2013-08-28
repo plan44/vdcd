@@ -26,16 +26,17 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  EnoceanSubDevice *aNumSubdevicesP
+  EnoceanSubDevice &aNumSubdevices,
+  bool aNeedsTeachInResponse
 ) {
   EnoceanDevicePtr newDev; // none so far
-  int numSubDevices = 1; // default to one
+  aNumSubdevices = 1; // default to one
   EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
   if (functionProfile==0xF60200 || functionProfile==0xF60300) {
     // 2 or 4 rocker switch = 2 or 4 dsDevices
-    numSubDevices = functionProfile==0xF60300 ? 4 : 2;
+    aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
     // create device, standard EnoceanDevice is ok for 4BS
-    newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, numSubDevices));
+    newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, aNumSubdevices));
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information
@@ -58,8 +59,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     upHandler->behaviour = upBhvr;
     newDev->addChannelHandler(upHandler);
   }
-  // return updated total of subdevices for this profile
-  if (aNumSubdevicesP) *aNumSubdevicesP = numSubDevices;
+  // RPS never needs a teach-in response
   // return device (or empty if none created)
   return newDev;
 }

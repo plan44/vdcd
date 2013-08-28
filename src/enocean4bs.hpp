@@ -44,7 +44,8 @@ namespace p44 {
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      EnoceanSubDevice *aNumSubdevicesP
+      EnoceanSubDevice &aNumSubdevices,
+      bool aSendTeachInResponse
     );
 
     /// handle radio packet related to this channel
@@ -62,6 +63,23 @@ namespace p44 {
 
   };
   typedef boost::intrusive_ptr<Enocean4bsHandler> Enocean4bsHandlerPtr;
+
+
+
+  class Enocean4BSDevice : public EnoceanDevice
+  {
+    typedef EnoceanDevice inherited;
+
+  public:
+
+    /// constructor
+    Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
+
+    /// device specific teach in response
+    /// @note will be called from newDevice() when created device needs a teach-in response
+    virtual void sendTeachInResponse();
+
+  };
 
 
 } // namespace p44

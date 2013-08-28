@@ -107,10 +107,13 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
   sqlite3pp::query qry(db);
   if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
     for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
+      EnoceanSubDevice numSubdevices;
       EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
         this,
         i->get<int>(0), i->get<int>(1), // address / subdevice
-        i->get<int>(2), i->get<int>(3) // profile / manufacturer
+        i->get<int>(2), i->get<int>(3), // profile / manufacturer
+        numSubdevices,
+        false // don't send teach-in responses
       );
       if (newdev) {
         // we fetched this from DB, so it is already known (don't save again!)
@@ -227,8 +230,15 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
         ErrorPtr learnStatus;
         if (learnIn) {
           // new device learned in, add logical devices for it
-          int numNewDevices = EnoceanDevice::createDevicesFromEEP(this,aEsp3PacketPtr);
+          bool needsTeachInResponse = false;
+          int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr, needsTeachInResponse);
           if (numNewDevices>0) {
+            // successfully learned at least one device
+            // - check if we need to send a teach-in response
+            if (needsTeachInResponse) {
+              sendTeachInResponseFor(aEsp3PacketPtr);
+            }
+            // - update learn status (device learned)
             learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceLearned));
           }
         }
@@ -250,6 +260,14 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       pos->second->handleRadioPacket(aEsp3PacketPtr);
     }
   }
+}
+
+
+void EnoceanDeviceContainer::sendTeachInResponseFor(Esp3PacketPtr aEsp3TeachInQuery)
+{
+  Esp3PacketPtr esp3TeachInResponse;
+  
+
 }
 
 
