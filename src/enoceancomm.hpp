@@ -248,9 +248,12 @@ namespace p44 {
     /// @return RORG (radio telegram organisation, valid for all telegrams)
     RadioOrg eepRorg();
 
+    /// @param aMinLearnDBm if!=0, learn-in info must have at least aMinLearnDBm radio signal strength
+    ///   for implicit learn-in information (RPS switches, window handle, key card)
+    /// @param aMinDBmForAll if set, all learn-in is considered valid only when aMinLearnDBm signal strength is found
     /// @return true if at least eep_func() has some valid information that can be used for teach-in
     ///   (is the case for specific teach-in telegrams in 1BS, 4BS, VLD, as well as all RPS telegrams)
-    bool eepHasTeachInfo();
+    bool eepHasTeachInfo(int aMinLearnDBm=0, bool aMinDBmForAll=false);
 
     /// @return EEP signature as 0x00rrfftt (rr=RORG, ff=FUNC, tt=TYPE)
     ///   ff and tt can be func_unknown or type_unknown if not extractable from telegram
@@ -318,6 +321,11 @@ namespace p44 {
     /// send a packet
     /// @param aPacket a Esp4Packet which must be ready for being finalize()d
     void sendPacket(Esp3PacketPtr aPacket);
+
+    /// manufacturer name lookup
+    /// @param aManufacturerCode EEP manufacturer code
+    /// @return manufacturer name string
+    static const char *manufacturerName(EnoceanManufacturer aManufacturerCode);
 
 
   protected:

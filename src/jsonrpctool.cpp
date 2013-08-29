@@ -323,12 +323,6 @@ public:
   }
 
 
-  virtual void initialized(ErrorPtr aError)
-  {
-  }
-
-
-
 };
 
 

@@ -31,63 +31,6 @@ EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
 }
 
 
-#pragma mark - Manufacturer names
-
-typedef struct {
-  EnoceanManufacturer manufacturerID;
-  const char *name;
-} EnoceanManufacturerDesc;
-
-
-static const EnoceanManufacturerDesc manufacturerDescriptions[] = {
-  { 0x000, "Manufacturer Reserved" },
-  { 0x001, "Peha" },
-  { 0x002, "Thermokon" },
-  { 0x003, "Servodan" },
-  { 0x004, "EchoFlex Solutions" },
-  { 0x005, "Omnio AG" },
-  { 0x006, "Hardmeier electronics" },
-  { 0x007, "Regulvar Inc" },
-  { 0x008, "Ad Hoc Electronics" },
-  { 0x009, "Distech Controls" },
-  { 0x00A, "Kieback + Peter" },
-  { 0x00B, "EnOcean GmbH" },
-  { 0x00C, "Probare" },
-  { 0x00D, "Eltako" },
-  { 0x00E, "Leviton" },
-  { 0x00F, "Honeywell" },
-  { 0x010, "Spartan Peripheral Devices" },
-  { 0x011, "Siemens" },
-  { 0x012, "T-Mac" },
-  { 0x013, "Reliable Controls Corporation" },
-  { 0x014, "Elsner Elektronik GmbH" },
-  { 0x015, "Diehl Controls" },
-  { 0x016, "BSC Computer" },
-  { 0x017, "S+S Regeltechnik GmbH" },
-  { 0x018, "Masco Corporation" },
-  { 0x019, "Intesis Software SL" },
-  { 0x01A, "Viessmann" },
-  { 0x01B, "Lutuo Technology" },
-  { 0x01C, "CAN2GO" },
-  { 0x01D, "Sauter" },
-  { 0x01E, "Boot-Up"  },
-  { 0x01F, "Osram Sylvania"  },
-  { 0x020, "Unotech"  },
-  { 0x022, "Unitronic AG" },
-  { 0x023, "NanoSense" },
-  { 0x024, "The S4 Ggroup" },
-  { 0x025, "MSR Solutions " },
-  { 0x027, "Maico" },
-  { 0x02A, "KM Controls" },
-  { 0x02B, "Ecologix Controls" },
-  { 0x02D, "Afriso Euro Index" },
-  { 0x030, "NEC AccessTechnica Ltd" },
-  { 0x031, "ITEC Corporation" },
-  { 0x7FF, "Multi user Manufacturer ID" },
-  { 0, NULL /* NULL string terminates list */ }
-};
-
-
 #pragma mark - EnoceanDevice
 
 EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
@@ -194,18 +137,9 @@ string EnoceanDevice::modelName()
 }
 
 
-
 string EnoceanDevice::manufacturerName()
 {
-  const EnoceanManufacturerDesc *manP = manufacturerDescriptions;
-  while (manP->name) {
-    if (manP->manufacturerID==eeManufacturer) {
-      return manP->name;
-    }
-    manP++;
-  }
-  // none found
-  return "<unknown>";
+  return EnoceanComm::manufacturerName(eeManufacturer);
 }
 
 

@@ -218,41 +218,38 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
   }
   // check learning mode
   if (isLearning()) {
-    // in learn mode, check if strong signal and if so, learn/unlearn
-    if (aEsp3PacketPtr->radioDBm()>MIN_LEARN_DBM)
-    {
-      // no learn/unlearn actions detected so far
-      // - check if we know that device address already. If so, it is a learn-out
-      bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
-      // now add/remove the device (if the action is a valid learn/unlearn)
-      if (aEsp3PacketPtr->eepHasTeachInfo()) {
-        // This is actually a valid learn action
-        ErrorPtr learnStatus;
-        if (learnIn) {
-          // new device learned in, add logical devices for it
-          bool needsTeachInResponse = false;
-          int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr, needsTeachInResponse);
-          if (numNewDevices>0) {
-            // successfully learned at least one device
-            // - check if we need to send a teach-in response
-            if (needsTeachInResponse) {
-              sendTeachInResponseFor(aEsp3PacketPtr);
-            }
-            // - update learn status (device learned)
-            learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceLearned));
+    // no learn/unlearn actions detected so far
+    // - check if we know that device address already. If so, it is a learn-out
+    bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
+    // now add/remove the device (if the action is a valid learn/unlearn)
+    // detect implicit (RPS) learn in only with sufficient radio strength, explicit ones are always recognized
+    if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false)) {
+      // This is actually a valid learn action
+      ErrorPtr learnStatus;
+      if (learnIn) {
+        // new device learned in, add logical devices for it
+        bool needsTeachInResponse = false;
+        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr, needsTeachInResponse);
+        if (numNewDevices>0) {
+          // successfully learned at least one device
+          // - check if we need to send a teach-in response
+          if (needsTeachInResponse) {
+            sendTeachInResponseFor(aEsp3PacketPtr);
           }
+          // - update learn status (device learned)
+          learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceLearned));
         }
-        else {
-          // device learned out, un-pair all logical dS devices it has represented
-          // but keep dS level config in case it is reconnected
-          unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
-          learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
-        }
-        // - end learning if actually learned or unlearned something
-        if (learnStatus)
-          endLearning(learnStatus);
-      } // learn action
-    } // strong enough signal for learning
+      }
+      else {
+        // device learned out, un-pair all logical dS devices it has represented
+        // but keep dS level config in case it is reconnected
+        unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
+        learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
+      }
+      // - end learning if actually learned or unlearned something
+      if (learnStatus)
+        endLearning(learnStatus);
+    } // learn action
   }
   else {
     // not learning, dispatch packet to all devices known for that address

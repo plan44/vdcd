@@ -26,7 +26,8 @@ typedef void (*BitFieldHandlerFunc)(const Enocean4bsHandler &aHandler, bool aFor
 /// descriptor flags
 typedef enum {
   dflag_none = 0,
-  dflag_NeedsTeachInResponse = 0x1
+  dflag_NeedsTeachInResponse = 0x1,
+  dflag_updateOutputs = 0x2, ///< update outputs after receiving input
 } DescriptorFlags;
 
 
@@ -173,7 +174,7 @@ static const Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // HVAC heating valve actuators
   // - e.g. thermokon SAB 02
   { 0x20, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature,   0,  40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse },
-  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 255, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
+  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 255, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", (DescriptorFlags)(dflag_NeedsTeachInResponse+dflag_updateOutputs) },
 
 
   // terminator
@@ -299,6 +300,13 @@ void Enocean4bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         // call bit field handler, will pass result to behaviour
         channelDescriptorP->bitFieldHandler(*this, false, data);
       }
+      // trigger output update when profile requests it
+      if (channelDescriptorP->flags & dflag_updateOutputs) {
+        OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
+        if (ob) {
+          device.updateOutputValue(*ob);
+        }
+      }
     }
   }
 };
@@ -318,7 +326,7 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
     if (!aEsp3PacketPtr) {
       aEsp3PacketPtr = Esp3PacketPtr(new Esp3Packet());
       aEsp3PacketPtr->initForRorg(rorg_4BS);
-      // new packet, start with zero data except for LRN bit (D0.3) which must be set for non-learn data
+      // new packet, start with zero data except for LRN bit (D0.3) which must be set for ALL non-learn data
       data = LRN_BIT_MASK;
     }
     else {

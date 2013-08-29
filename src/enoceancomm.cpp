@@ -575,18 +575,20 @@ EnoceanManufacturer Esp3Packet::eepManufacturer()
 
 
 
-bool Esp3Packet::eepHasTeachInfo()
+bool Esp3Packet::eepHasTeachInfo(int aMinLearnDBm, bool aMinDBmForAll)
 {
   RadioOrg rorg = eepRorg();
+  bool radioStrengthSufficient = aMinLearnDBm==0 || radioDBm()>aMinLearnDBm;
+  bool explicitLearnOK = !aMinDBmForAll || radioStrengthSufficient; // ok if no restriction on radio strength OR strength sufficient
   switch (rorg) {
     case rorg_RPS:
-      return true; // RPS telegrams always have (somewhat limited) signature that can be used for teach-in
+      return radioStrengthSufficient; // RPS telegrams always have (somewhat limited) signature that can be used for teach-in
     case rorg_1BS:
-      return (radioUserData()[0] & LRN_BIT_MASK)==0; // 1BS telegrams have teach-in info if LRN bit is *cleared*
+      return ((radioUserData()[0] & LRN_BIT_MASK)==0) && explicitLearnOK; // 1BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_4BS:
-      return (radioUserData()[3] & LRN_BIT_MASK)==0; // 4BS telegrams have teach-in info if LRN bit is *cleared*
+      return ((radioUserData()[3] & LRN_BIT_MASK)==0) && explicitLearnOK; // 4BS telegrams have teach-in info if LRN bit is *cleared*
     case rorg_SM_LRN_REQ:
-      return true; // smart ack learn requests are by definition teach-in commands and have full EEP signature
+      return explicitLearnOK; // smart ack learn requests are by definition teach-in commands and have full EEP signature
     default:
       return false; // no learn-in, regular data 
   }
@@ -666,10 +668,11 @@ string Esp3Packet::description()
       // EEP info if any
       if (eepHasTeachInfo()) {
         string_format_append(t,
-          "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer Code = %03X\n",
+          "- Is Learn-In packet: EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
           (eepProfile()>>16) & 0xFF,
           (eepProfile()>>8) & 0xFF,
           eepProfile() & 0xFF,
+          EnoceanComm::manufacturerName(eepManufacturer()),
           eepManufacturer()
         );
       }
@@ -749,6 +752,79 @@ uint8_t Esp3Packet::crc8(uint8_t *aDataP, size_t aNumBytes, uint8_t aCRCValue)
     aCRCValue = addToCrc8(aCRCValue, aDataP[i]);
   }
   return aCRCValue;
+}
+
+
+
+#pragma mark - Manufacturer names
+
+typedef struct {
+  EnoceanManufacturer manufacturerID;
+  const char *name;
+} EnoceanManufacturerDesc;
+
+
+static const EnoceanManufacturerDesc manufacturerDescriptions[] = {
+  { 0x000, "Manufacturer Reserved" },
+  { 0x001, "Peha" },
+  { 0x002, "Thermokon" },
+  { 0x003, "Servodan" },
+  { 0x004, "EchoFlex Solutions" },
+  { 0x005, "Omnio AG" },
+  { 0x006, "Hardmeier electronics" },
+  { 0x007, "Regulvar Inc" },
+  { 0x008, "Ad Hoc Electronics" },
+  { 0x009, "Distech Controls" },
+  { 0x00A, "Kieback + Peter" },
+  { 0x00B, "EnOcean GmbH" },
+  { 0x00C, "Probare" },
+  { 0x00D, "Eltako" },
+  { 0x00E, "Leviton" },
+  { 0x00F, "Honeywell" },
+  { 0x010, "Spartan Peripheral Devices" },
+  { 0x011, "Siemens" },
+  { 0x012, "T-Mac" },
+  { 0x013, "Reliable Controls Corporation" },
+  { 0x014, "Elsner Elektronik GmbH" },
+  { 0x015, "Diehl Controls" },
+  { 0x016, "BSC Computer" },
+  { 0x017, "S+S Regeltechnik GmbH" },
+  { 0x018, "Masco Corporation" },
+  { 0x019, "Intesis Software SL" },
+  { 0x01A, "Viessmann" },
+  { 0x01B, "Lutuo Technology" },
+  { 0x01C, "CAN2GO" },
+  { 0x01D, "Sauter" },
+  { 0x01E, "Boot-Up"  },
+  { 0x01F, "Osram Sylvania"  },
+  { 0x020, "Unotech"  },
+  { 0x022, "Unitronic AG" },
+  { 0x023, "NanoSense" },
+  { 0x024, "The S4 Ggroup" },
+  { 0x025, "MSR Solutions " },
+  { 0x027, "Maico" },
+  { 0x02A, "KM Controls" },
+  { 0x02B, "Ecologix Controls" },
+  { 0x02D, "Afriso Euro Index" },
+  { 0x030, "NEC AccessTechnica Ltd" },
+  { 0x031, "ITEC Corporation" },
+  { 0x7FF, "Multi user Manufacturer ID" },
+  { 0, NULL /* NULL string terminates list */ }
+};
+
+
+
+const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
+{
+  const EnoceanManufacturerDesc *manP = manufacturerDescriptions;
+  while (manP->name) {
+    if (manP->manufacturerID==aManufacturerCode) {
+      return manP->name;
+    }
+    manP++;
+  }
+  // none found
+  return "<unknown>";
 }
 
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0460"
+   LastUpgradeVersion = "0500"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
-               BuildableName = "vdcd"
-               BlueprintName = "vdcd"
+               BlueprintIdentifier = "ED5C8E9617CF3908002CC15F"
+               BuildableName = "jsonrpctool copy"
+               BlueprintName = "enoceantool"
                ReferencedContainer = "container:vdcd.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -32,9 +32,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
-            BuildableName = "vdcd"
-            BlueprintName = "vdcd"
+            BlueprintIdentifier = "ED5C8E9617CF3908002CC15F"
+            BuildableName = "jsonrpctool copy"
+            BlueprintName = "enoceantool"
             ReferencedContainer = "container:vdcd.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -51,72 +51,24 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
-            BuildableName = "vdcd"
-            BlueprintName = "vdcd"
+            BlueprintIdentifier = "ED5C8E9617CF3908002CC15F"
+            BuildableName = "jsonrpctool copy"
+            BlueprintName = "enoceantool"
             ReferencedContainer = "container:vdcd.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-w 3"
-            isEnabled = "NO">
+            argument = "-b 192.168.59.223"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 6"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-W 8090"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-A 12101 -a localhost"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-a 192.168.59.221"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-a 192.168.59.223"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-a 192.168.59.225"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-B 12102 -b localhost"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-b 192.168.59.210"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-b 192.168.59.223"
+            argument = "-4 22000008"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-b 192.168.59.225"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-b /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-g testbutton:in -g testlamp:out -g i2c1.TCA9555@25.7:out"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k testin:in -k testout:out"
-            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
@@ -131,9 +83,9 @@
       <BuildableProductRunnable>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
-            BuildableName = "vdcd"
-            BlueprintName = "vdcd"
+            BlueprintIdentifier = "ED5C8E9617CF3908002CC15F"
+            BuildableName = "jsonrpctool copy"
+            BlueprintName = "enoceantool"
             ReferencedContainer = "container:vdcd.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
