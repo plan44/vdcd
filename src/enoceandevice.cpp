@@ -38,6 +38,8 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSu
   eeProfile(eep_profile_unknown),
   eeManufacturer(manufacturer_unknown),
 	totalSubdevices(aTotalSubdevices),
+  alwaysUpdateable(false),
+  pendingDeviceUpdate(false),
   subDevice(0)
 {
 }
@@ -180,18 +182,32 @@ EnoceanChannelHandlerPtr EnoceanDevice::channelForBehaviour(const DsBehaviour *a
 
 
 
+void EnoceanDevice::sendOutgoingUpdate()
+{
+  pendingDeviceUpdate = true; // always send, for now (but nothing will be sent for devices without outputs)
+  if (pendingDeviceUpdate) {
+    // collect data from all channels to compose an outgoing message
+    Esp3PacketPtr outgoingEsp3Packet;
+    for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+      (*pos)->collectOutgoingMessageData(outgoingEsp3Packet);
+    }
+    if (outgoingEsp3Packet) {
+      // set destination
+      outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
+      // send it
+      getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
+    }
+    pendingDeviceUpdate = false; // done
+  }
+}
+
+
 void EnoceanDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 {
-  // collect data from all channels to compose an outgoing message
-  Esp3PacketPtr outgoingEsp3Packet;
-  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    (*pos)->collectOutgoingMessageData(outgoingEsp3Packet);
-  }
-  if (outgoingEsp3Packet) {
-    // set destination
-    outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
-    // send it
-    getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
+  pendingDeviceUpdate = true;
+  if (alwaysUpdateable) {
+    // send immediately
+    sendOutgoingUpdate();
   }
   inherited::updateOutputValue(aOutputBehaviour);
 }
@@ -203,6 +219,11 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
+  }
+  // if device cannot be update whenever output value change is requested, send updates after receiving a message
+  if (!alwaysUpdateable) {
+    // send updates, if any
+    sendOutgoingUpdate();
   }
 }
 

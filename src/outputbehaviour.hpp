@@ -41,6 +41,7 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    bool outputUpdatePending; ///< set if cachedOutputValue represents a value to be transmitted to the hardware
     int32_t cachedOutputValue; ///< the cached output value
     MLMicroSeconds outputLastSent; ///< Never if the cachedOutputValue is not yet applied to the hardware, otherwise when it was sent
     MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next output value change

@@ -88,6 +88,9 @@ namespace p44 {
 
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
+    bool alwaysUpdateable; ///< if set, device updates are sent immediately, otherwise, updates are only sent as response to a device message
+    bool pendingDeviceUpdate; ///< set when update to the device is pending
+
   public:
     /// constructor, create device in container
     EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
@@ -141,6 +144,10 @@ namespace p44 {
     /// @param aChannel channel number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     virtual void setAddressingInfo(EnoceanAddress aAddress, EnoceanChannel aChannel);
 
+    /// device and channel handler implementations can call this to enable immediate sending of output changes for the device
+    /// (otherwise, output changes are sent only withing 1sec after receiving a message from the device)
+    void setAlwaysUpdateable() { alwaysUpdateable = true; };
+
     /// get the enocean address identifying the hardware that contains this logical device
     /// @return enOcean device ID/address
     EnoceanAddress getAddress();
@@ -169,6 +176,11 @@ namespace p44 {
     /// device specific radio packet handling
     /// @note base class implementation passes packet to all registered channels
     virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// send outgoing packet updating outputs and device settings
+    /// @note this will be called shortly after an incoming packet was received
+    ///   when device updates are pending
+    void sendOutgoingUpdate();
 
     /// device specific teach in response
     /// @note will be called from newDevice() when created device needs a teach-in response

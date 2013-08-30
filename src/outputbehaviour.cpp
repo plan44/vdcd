@@ -14,6 +14,7 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
+  outputUpdatePending(false), // no output update pending
   cachedOutputValue(0), // output value cache
   outputLastSent(Never), // we don't known nor have we sent the output state
   nextTransitionTime(0), // none
@@ -53,7 +54,7 @@ int32_t OutputBehaviour::getOutputValue()
 
 
 // only used at startup to get the inital value FROM the hardware
-// NOT to be used to change the hardware output value
+// NOT to be used to change the hardware output value!
 void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 {
   cachedOutputValue = aActualOutputValue;
@@ -63,16 +64,20 @@ void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 
 void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
 {
-  cachedOutputValue = aNewValue;
-  nextTransitionTime = aTransitionTime;
-  outputLastSent = Never; // flag changed, should be reset by actually sending data
-  // let device know to hardware can update actual output
-  device.updateOutputValue(*this);
+  if (aNewValue!=cachedOutputValue) {
+    cachedOutputValue = aNewValue;
+    nextTransitionTime = aTransitionTime;
+    outputUpdatePending = true; // pending to be sent to the device
+    outputLastSent = Never; // cachedOutputValue is no longer applied (does not correspond with actual hardware)
+    // let device know to hardware can update actual output
+    device.updateOutputValue(*this);
+  }
 }
 
 
 void OutputBehaviour::outputValueApplied()
 {
+  outputUpdatePending = false; // applied
   outputLastSent = MainLoop::now(); // now we know that we are in sync
 }
 
@@ -191,6 +196,7 @@ const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 
 enum {
   value_key,
+  age_key,
   numStateProperties
 };
 
@@ -200,6 +206,7 @@ const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
     { "value", ptype_int32, false, value_key+states_key_offset, &output_key },
+    { "age", ptype_double, false, age_key+states_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }
@@ -232,10 +239,13 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // States properties
         case value_key+states_key_offset:
+          aPropValue = JsonObject::newInt32(getOutputValue());
+          return true;
+        case age_key+states_key_offset:
           if (outputLastSent==Never)
             aPropValue = JsonObject::newNull(); // no value known
           else
-            aPropValue = JsonObject::newInt32(getOutputValue());
+            aPropValue = JsonObject::newDouble(outputLastSent); // when value was last applied to hardware
           return true;
       }
     }

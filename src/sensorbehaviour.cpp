@@ -45,14 +45,14 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
   );
   if (newCurrentValue!=currentValue) {
     // changed value
-    currentValue = newCurrentValue;
     MLMicroSeconds now = MainLoop::now();
+    currentValue = newCurrentValue;
+    lastUpdate = now;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
       device.pushProperty("sensorStates", VDC_API_DOMAIN, (int)index);
       lastPush = now;
     }
-    lastUpdate = now;
   }
 }
 
@@ -218,7 +218,7 @@ bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           if (lastUpdate==Never)
             aPropValue = JsonObject::newNull();
           else
-            aPropValue = JsonObject::newDouble((MainLoop::now()-lastUpdate)/Second);
+            aPropValue = JsonObject::newDouble(((double)(MainLoop::now()-lastUpdate))/Second);
           return true;
       }
     }

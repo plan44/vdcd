@@ -27,7 +27,7 @@ typedef void (*BitFieldHandlerFunc)(const Enocean4bsHandler &aHandler, bool aFor
 typedef enum {
   dflag_none = 0,
   dflag_NeedsTeachInResponse = 0x1,
-  dflag_updateOutputs = 0x2, ///< update outputs after receiving input
+  dflag_alwaysUpdateable = 0x2, ///< device is always updateable (not only within 1sec after having sent a message)
 } DescriptorFlags;
 
 
@@ -174,7 +174,7 @@ static const Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // HVAC heating valve actuators
   // - e.g. thermokon SAB 02
   { 0x20, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature,   0,  40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse },
-  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 255, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", (DescriptorFlags)(dflag_NeedsTeachInResponse+dflag_updateOutputs) },
+  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 255, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
 
 
   // terminator
@@ -234,6 +234,10 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         // needs a teach-in response (will be created after installing handlers)
         needsTeachInResponse = true;
       }
+    }
+    // set updateable status
+    if (subdeviceDescP->flags & dflag_alwaysUpdateable) {
+      newDev->setAlwaysUpdateable();
     }
     // create channel handler
     Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new Enocean4bsHandler(*newDev.get()));
@@ -299,13 +303,6 @@ void Enocean4bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         uint32_t data = aEsp3PacketPtr->get4BSdata();
         // call bit field handler, will pass result to behaviour
         channelDescriptorP->bitFieldHandler(*this, false, data);
-      }
-      // trigger output update when profile requests it
-      if (channelDescriptorP->flags & dflag_updateOutputs) {
-        OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
-        if (ob) {
-          device.updateOutputValue(*ob);
-        }
       }
     }
   }
