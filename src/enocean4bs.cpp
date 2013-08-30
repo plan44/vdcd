@@ -172,10 +172,9 @@ static const Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x10, 0x06, 0, group_green_access, behaviour_binaryinput, sensorType_none,          0,   1, DB(0,0), DB(0,0),  100, &stdInputHandler, "Day/Night", "1", dflag_none },
 
   // HVAC heating valve actuators
-  // - e.g. thermokon SAB 02
+  // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
   { 0x20, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature,   0,  40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse },
-  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 255, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
-
+  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional,0, 100, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
 
   // terminator
   { 0, 0, 0, group_black_joker, behaviour_undefined, 0, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
