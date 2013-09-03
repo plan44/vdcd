@@ -22,6 +22,8 @@ DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   Device((DeviceClassContainer *)aClassContainerP),
   transitionTime(Infinite) // invalid
 {
+  // DALI devices are always light (in this implementation, at least)
+  setPrimaryGroup(group_yellow_light);
 }
 
 DaliDeviceContainer &DaliDevice::daliDeviceContainer()
