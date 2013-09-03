@@ -52,7 +52,9 @@ void Device::setName(const string &aName)
     // has changed
     inherited::setName(aName);
     // make sure it will be saved
-    deviceSettings->markDirty();
+    if (deviceSettings) {
+      deviceSettings->markDirty();
+    }
   }
 }
 

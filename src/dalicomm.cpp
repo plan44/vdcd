@@ -77,9 +77,9 @@ bool DaliComm::isBusy()
 
 
 
-void DaliComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo)
+void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
 {
-  inherited::setConnectionParameters(aConnectionPath, aPortNo, DALIBRIDGE_BAUDRATE);
+  inherited::setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
 }
 
 

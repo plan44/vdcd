@@ -126,6 +126,11 @@ CmdLineApp::CmdLineApp(MainLoop *aMainLoopP) :
 {
 }
 
+CmdLineApp::CmdLineApp() :
+  optionDescriptors(NULL)
+{
+}
+
 
 /// destructor
 CmdLineApp::~CmdLineApp()
@@ -134,108 +139,120 @@ CmdLineApp::~CmdLineApp()
 
 
 
-void CmdLineApp::setCommandDescriptors(const CmdLineOptionDescriptor *aOptionDescriptors, const char *aSynopsis)
+void CmdLineApp::setCommandDescriptors(const char *aSynopsis, const CmdLineOptionDescriptor *aOptionDescriptors)
 {
   optionDescriptors = aOptionDescriptors;
   synopsis = aSynopsis ? aSynopsis : "Usage: %1$s";
 }
 
 
-#define MAX_INDENT 20
+#define MAX_INDENT 40
 
 void CmdLineApp::showUsage()
 {
   // print synopsis
   fprintf(stderr, synopsis.c_str(), invocationName.c_str());
   // print options
+  int numDocumentedOptions = 0;
   // - calculate indent
-  size_t indent = 0;
+  ssize_t indent = 0;
   const CmdLineOptionDescriptor *optionDescP = optionDescriptors;
   bool anyShortOpts = false;
   while (optionDescP && (optionDescP->longOptionName!=NULL || optionDescP->shortOptionChar!='\x00')) {
-    if (optionDescP->shortOptionChar) {
-      anyShortOpts = true;
-    }
-    size_t n = 0;
-    if (optionDescP->longOptionName) {
-      n += strlen(optionDescP->longOptionName)+2; // "--XXXXX"
-    }
     const char *desc = optionDescP->optionDescription;
-    if (optionDescP->withArgument && desc) {
-      const char *p = strchr(desc, ':');
-      if (p) {
-        n += 1 + (p-desc); // add room for argument description
+    if (desc) {
+      // documented option
+      numDocumentedOptions++;
+      if (optionDescP->shortOptionChar) {
+        anyShortOpts = true;
       }
+      size_t n = 0;
+      if (optionDescP->longOptionName) {
+        n += strlen(optionDescP->longOptionName)+2; // "--XXXXX"
+      }
+      if (optionDescP->withArgument) {
+        const char *p = strchr(desc, ';');
+        if (p) {
+          n += 2 + (p-desc); // add room for argument description
+        }
+      }
+      if (n>indent) indent = n; // new max
     }
-    if (n>MAX_INDENT) n = MAX_INDENT;
-    if (n>indent) indent = n; // new max
     optionDescP++;
   }
   if (anyShortOpts) indent += 4; // "-X, " prefix
   indent += 2 + 2; // two at beginning, two at end
+  if (indent>MAX_INDENT) indent = MAX_INDENT;
   // - print options
-  fprintf(stderr, "Options:\n");
-  optionDescP = optionDescriptors;
-  while (optionDescP && (optionDescP->longOptionName!=NULL || optionDescP->shortOptionChar!='\x00')) {
-    size_t remaining = indent;
-    fprintf(stderr, "  "); // start indent
-    remaining -= 2;
-    if (anyShortOpts) {
-      // short names exist, print them for those options that have them
-      if (optionDescP->shortOptionChar)
-        fprintf(stderr, "-%c", optionDescP->shortOptionChar);
-      else
-        fprintf(stderr, "  ");
-      remaining -= 2;
-      if (optionDescP->longOptionName) {
-        // long option follows, fill up
-        if (optionDescP->shortOptionChar)
-          fprintf(stderr, ", ");
-        else
-          fprintf(stderr, "  ");
-        remaining -= 2;
-      }
-    }
-    // long name
-    if (optionDescP->longOptionName) {
-      fprintf(stderr, "--%s", optionDescP->longOptionName);
-      remaining -= strlen(optionDescP->longOptionName);
-    }
-    // argument
-    const char *desc = optionDescP->optionDescription;
-    if (optionDescP->withArgument) {
+  if (numDocumentedOptions>0) {
+    fprintf(stderr, "Options:\n");
+    optionDescP = optionDescriptors;
+    while (optionDescP && (optionDescP->longOptionName!=NULL || optionDescP->shortOptionChar!='\x00')) {
+      const char *desc = optionDescP->optionDescription;
       if (desc) {
-        const char *p = strchr(desc, ':');
-        if (p) {
-          size_t n = (p-desc);
-          string argDesc(desc,n);
-          fprintf(stderr, " %s", argDesc.c_str());
-          remaining -= argDesc.length()+1;
-          desc += n+1; // desc starts after colon
+        ssize_t remaining = indent;
+        fprintf(stderr, "  "); // start indent
+        remaining -= 2;
+        if (anyShortOpts) {
+          // short names exist, print them for those options that have them
+          if (optionDescP->shortOptionChar)
+            fprintf(stderr, "-%c", optionDescP->shortOptionChar);
+          else
+            fprintf(stderr, "  ");
+          remaining -= 2;
+          if (optionDescP->longOptionName) {
+            // long option follows, fill up
+            if (optionDescP->shortOptionChar)
+              fprintf(stderr, ", ");
+            else
+              fprintf(stderr, "  ");
+            remaining -= 2;
+          }
         }
+        // long name
+        if (optionDescP->longOptionName) {
+          fprintf(stderr, "--%s", optionDescP->longOptionName);
+          remaining -= strlen(optionDescP->longOptionName)+2;
+        }
+        // argument
+        if (optionDescP->withArgument) {
+          const char *p = strchr(desc, ';');
+          if (p) {
+            size_t n = (p-desc);
+            string argDesc(desc,n);
+            fprintf(stderr, "  %s", argDesc.c_str());
+            remaining -= argDesc.length()+2;
+            desc += n+1; // desc starts after semicolon
+          }
+        }
+        // complete first line indent
+        if (remaining>0)
+          while (remaining-- > 0) fprintf(stderr, " ");
+        else
+          fprintf(stderr, "  "); // just two spaces
+        // print option description, properly indented
+        if (desc) {
+          while (*desc) {
+            if (*desc=='\n') {
+              // next line
+              fprintf(stderr, "\n");
+              // indent
+              remaining = indent;
+              while (remaining-- > 0) fprintf(stderr, " ");
+            }
+            else {
+              fprintf(stderr, "%c", *desc);
+            }
+            desc++;
+          }
+        }
+        // end of option, next line
+        fprintf(stderr, "\n");
       }
+      // next option
+      optionDescP++;
     }
-    // complete first line indent
-    while (remaining>0) fprintf(stderr, " ");
-    // print option description, properly indented
-    if (desc) {
-      while (*desc) {
-        if (*desc=='\n') {
-          // next line
-          fprintf(stderr, "\n");
-          // indent
-          remaining = indent;
-          while (remaining>0) fprintf(stderr, " ");
-        }
-        else {
-          fprintf(stderr, "%c", *desc);
-        }
-        desc++;
-      }
-    }
-    // end of option, next line
-    fprintf(stderr, "\n");
-  }
+  } // if any options to show
   fprintf(stderr, "\n");
 }
 
@@ -259,18 +276,10 @@ void CmdLineApp::parseCommandLine(int aArgc, char **aArgv)
           // long option
           longOpt = true;
           optName = argP+1;
-          if (optName=="help") {
-            showUsage();
-            terminateApp(EXIT_SUCCESS);
-          }
         }
         else {
           // short option
           optName = argP;
-          if (optName=="h") {
-            showUsage();
-            terminateApp(EXIT_SUCCESS);
-          }
           if (optName.length()>1 && optName[1]!='=') {
             // option argument follows directly after single char option
             optArgFound = true; // is non-empty by definition
@@ -356,10 +365,17 @@ void CmdLineApp::parseCommandLine(int aArgc, char **aArgv)
 }
 
 
-size_t CmdLineApp::numArguments()
+bool CmdLineApp::processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
 {
-  return arguments.size();
+  // directly process "help" option (long name must be "help", short name can be anything but usually is 'h')
+  if (!aOptionDescriptor.withArgument && strcmp(aOptionDescriptor.longOptionName,"help")==0) {
+    showUsage();
+    terminateApp(EXIT_SUCCESS);
+  }
+  return false; // not processed
 }
+
+
 
 
 void CmdLineApp::resetCommandLine()
@@ -382,9 +398,56 @@ const char *CmdLineApp::getOption(const char *aOptionName)
 }
 
 
+bool CmdLineApp::getIntOption(const char *aOptionName, int &aInteger)
+{
+  const char *opt = getOption(aOptionName);
+  if (opt) {
+    return sscanf(opt, "%d", &aInteger)==1;
+  }
+  return false; // no such option
+}
+
+
+bool CmdLineApp::getStringOption(const char *aOptionName, const char *&aCString)
+{
+  const char *opt = getOption(aOptionName);
+  if (opt) {
+    aCString = opt;
+    return true;
+  }
+  return false; // no such option
+}
+
+
+bool CmdLineApp::getStringOption(const char *aOptionName, string &aString)
+{
+  const char *opt = getOption(aOptionName);
+  if (opt) {
+    aString = opt;
+    return true;
+  }
+  return false; // no such option
+}
+
+
+
+size_t CmdLineApp::numOptions()
+{
+  return options.size();
+}
+
+
 const char *CmdLineApp::getArgument(size_t aArgumentIndex)
 {
   if (aArgumentIndex>arguments.size()) return NULL;
   return arguments[aArgumentIndex].c_str();
 }
+
+
+size_t CmdLineApp::numArguments()
+{
+  return arguments.size();
+}
+
+
 

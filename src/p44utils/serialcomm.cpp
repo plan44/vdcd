@@ -31,6 +31,30 @@ SerialComm::~SerialComm()
 
 
 
+void SerialComm::setConnectionSpecification(const char* aConnectionSpec, uint16_t aDefaultPort, int aDefaultBaudRate)
+{
+  string path = aConnectionSpec;
+  if (path.length()>1) {
+    size_t n = path.find_first_of(':');
+    if (n!=string::npos) {
+      // explicit specification of baudrate or port
+      string opt = path.substr(n+1,string::npos);
+      path.erase(n,string::npos);
+      if (path[0]=='/') {
+        // device, get baud rate
+        sscanf(opt.c_str(), "%d", &aDefaultBaudRate);
+      }
+      else {
+        // host, get port
+        sscanf(opt.c_str(), "%hd", &aDefaultPort);
+      }
+    }
+  }
+  setConnectionParameters(path.c_str(), aDefaultPort, aDefaultBaudRate);
+}
+
+
+
 void SerialComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo, int aBaudRate)
 {
   closeConnection();

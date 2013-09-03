@@ -305,9 +305,9 @@ namespace p44 {
 		virtual ~EnoceanComm();
 		
     /// set the connection parameters to connect to the enOcean TCM310 modem
-    /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
-    /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)
-    void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo);
+    /// @param aConnectionSpec serial device path (/dev/...) or host name/address[:port] (1.2.3.4 or xxx.yy)
+    /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
+    void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort);
 		
     /// derived implementation: deliver bytes to the ESP3 parser
     /// @param aNumBytes number of bytes ready for accepting

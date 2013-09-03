@@ -38,8 +38,10 @@
 using namespace p44;
 
 
-class P44bridged : public Application
+class P44bridged : public CmdLineApp
 {
+  typedef CmdLineApp inherited;
+
   // status
   typedef enum {
     status_ok,  // ok, all normal
@@ -49,16 +51,21 @@ class P44bridged : public Application
     status_fatalerror  // fatal error that needs user interaction
   } P44bridgeStatus;
 
+  // command line defined devices
+  DeviceConfigMap staticDeviceConfigs;
+
   // App status
   P44bridgeStatus appStatus;
 
   // the device container
   DeviceContainer deviceContainer;
 
+  // indicators and button
   IndicatorOutput redLED;
   IndicatorOutput greenLED;
   ButtonInput button;
 
+  // learning
   long learningTimerTicket;
 
   // Configuration API
@@ -85,109 +92,69 @@ public:
   }
 
 
-  void usage(char *name)
+  virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
   {
-    fprintf(stderr, "usage:\n");
-    fprintf(stderr, "  %s [options]\n", name);
-    fprintf(stderr, "    -a dalipath    : DALI serial port device or DALI proxy ipaddr\n");
-    fprintf(stderr, "    -A daliport    : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
-    fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
-    fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
-    fprintf(stderr, "    -h             : enable hue support (attempt to discover hue bridges at learn-in)\n");
-    fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM to connect to (default=%s)\n", DEFAULT_VDSMSERVICE);
-    fprintf(stderr, "    -i             : allow vdSM connections from non-local clients (vDC API and config API)\n");
-    fprintf(stderr, "    -d             : fully daemonize\n");
-    fprintf(stderr, "    -w seconds     : delay startup\n");
-    fprintf(stderr, "    -l loglevel    : set loglevel (default = %d, daemon mode default=%d)\n", LOGGER_DEFAULT_LOGLEVEL, DEFAULT_DAEMON_LOGLEVEL);
-    fprintf(stderr, "    -s dirpath     : set SQLite DB directory (default = %s)\n", DEFAULT_DBDIR);
-    fprintf(stderr, "    -W apiport     : server port number for web configuration JSON API (default=none)\n");
-    fprintf(stderr, "    -g gpio[:[!](in|out)] : add static GPIO input or output device\n");
-    fprintf(stderr, "                     use ! for inverted polarity (default is noninverted input)\n");
-    fprintf(stderr, "    -k name[:(in|out|io)] : add static device which reads and writes console\n");
-    fprintf(stderr, "                     (for inputs: first char of name=action key)\n");
-  };
+    if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
+      staticDeviceConfigs.insert(make_pair("digitalio", aOptionValue));
+    }
+    else if (strcmp(aOptionDescriptor.longOptionName,"consoleio")==0) {
+      staticDeviceConfigs.insert(make_pair("console", aOptionValue));
+    }
+    else {
+      return inherited::processOption(aOptionDescriptor, aOptionValue);
+    }
+    return true;
+  }
+
 
   virtual int main(int argc, char **argv)
   {
-    if (argc<2) {
+    const char *usageText =
+      "Usage: %1$s [options]\n";
+    const CmdLineOptionDescriptor options[] = {
+      { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
+      { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
+      { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default=" DEFAULT_VDSMSERVICE ")" },
+      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
+      { 'd', "daemonize",     false, "fully daemonize after startup" },
+      { 'w', "startupdelay",  true,  "seconds;delay startup" },
+      { 'l', "loglevel",      true,  "level;set loglevel" },
+      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
+      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
+      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
+      { 'g', "digitalio",     true,  "ioname[:[!](in|out)];add static digital input or output device\n"
+                                     "Use ! for inverted polarity (default is noninverted input)\n"
+                                     "ioname is of form [bus.[device.]]pin:\n"
+                                     "- gpio.gpionumber : generic Linux GPIO\n"
+                                     "- i2cN.device@i2caddr.pinNumber : numbered pin of I2C device at i2caddr\n"
+                                     "  (supported for device : TCA9555" },
+      { 'k', "consoleio",     true,  "name[:(in|out|io)];add static debug device which reads and writes console\n"
+                                     "(for inputs: first char of name=action key)" },
+      { 'h', "help",          false, "show this text" },
+      { 0, NULL } // list terminator
+    };
+
+    // parse the command line, exits when syntax errors occur
+    setCommandDescriptors(usageText, options);
+    parseCommandLine(argc, argv);
+
+    if (numOptions()<1 || numArguments()>0) {
       // show usage
-      usage(argv[0]);
-      exit(1);
+      showUsage();
+      terminateApp(EXIT_SUCCESS);
     }
-    bool daemonMode = false;
 
-    char *daliname = NULL;
-    int daliport = DEFAULT_DALIPORT;
+    // daemon mode?
+    bool daemonMode = getOption("daemonize");
 
-    char *enoceanname = NULL;
-    int enoceanport = DEFAULT_ENOCEANPORT;
+    // log level?
+    int loglevel = -1; // none specified
+    getIntOption("loglevel", loglevel);
 
-    bool hueSupport = false;
-
-    char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
-
-    char *configApiPort = NULL;
-
-    bool allowNonLocal = false;
-
-    DeviceConfigMap staticDeviceConfigs;
-
-    const char *dbdir = DEFAULT_DBDIR;
-
-    int loglevel = -1; // use defaults
-
+    // startup delay?
     int startupDelay = 0; // no delay
-
-    int c;
-    while ((c = getopt(argc, argv, "dha:A:b:B:C:ig:k:l:s:w:W:")) != -1)
-    {
-      switch (c) {
-        case 'd':
-          daemonMode = true;
-          break;
-        case 'l':
-          loglevel = atoi(optarg);
-          break;
-        case 'a':
-          daliname = optarg;
-          break;
-        case 'A':
-          daliport = atoi(optarg);
-          break;
-        case 'b':
-          enoceanname = optarg;
-          break;
-        case 'B':
-          enoceanport = atoi(optarg);
-          break;
-        case 'h':
-          hueSupport = true;
-          break;
-        case 'C':
-          vdsmport = optarg;
-          break;
-        case 'i':
-          allowNonLocal = true;
-          break;
-        case 'W':
-          configApiPort = optarg;
-          break;
-        case 'g':
-          staticDeviceConfigs.insert(make_pair("gpio", optarg));
-          break;
-        case 'k':
-          staticDeviceConfigs.insert(make_pair("console", optarg));
-          break;
-        case 's':
-          dbdir = optarg;
-          break;
-        case 'w':
-          startupDelay = atoi(optarg);
-          break;
-        default:
-          exit(-1);
-      }
-    }
+    getIntOption("startupdelay", startupDelay);
 
     // daemonize now if requested and in proxy mode
     if (daemonMode) {
@@ -208,36 +175,42 @@ public:
       sleep(startupDelay);
     }
 
-    // Set the persistent data directory
+    // Create the device container root object
+    const char *dbdir = DEFAULT_DBDIR;
+    getStringOption("sqlitedir", dbdir);
     deviceContainer.setPersistentDataDir(dbdir);
 
-
     // Create Web configuration JSON API server
+    const char *configApiPort = getOption("cfgapiport");
     if (configApiPort) {
       configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
       configApiServer.setAllowNonlocalConnections(false); // config port is always local (mg44 will expose it to outside if needed)
       configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
     }
 
-    // set parameter for server vdSM will connect to
+    // set up server for vdSM to connect to
+    const char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+    getStringOption("vdsmport", vdsmport);
     deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-    deviceContainer.vdcApiServer.setAllowNonlocalConnections(allowNonLocal);
+    deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
     // Create static container structure
     // - Add DALI devices class if DALI bridge serialport/host is specified
+    const char *daliname = getOption("dali");
     if (daliname) {
       DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
-      daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
+      daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT);
       deviceContainer.addDeviceClassContainer(daliDeviceContainer);
     }
     // - Add enOcean devices class if enOcean modem serialport/host is specified
+    const char *enoceanname = getOption("enoceann");
     if (enoceanname) {
       EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
-      enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
+      enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
       deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
     }
     // - Add hue support
-    if (hueSupport) {
+    if (getOption("huelights")) {
       HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1));
       deviceContainer.addDeviceClassContainer(hueDeviceContainer);
     }
@@ -245,6 +218,7 @@ public:
     if (staticDeviceConfigs.size()>0) {
       StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
       deviceContainer.addDeviceClassContainer(staticDeviceContainer);
+      staticDeviceConfigs.clear(); // no longer needed, free memory
     }
 
     // app now ready to run

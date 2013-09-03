@@ -77,6 +77,12 @@ namespace p44 {
     SerialComm(SyncIOMainLoop *aMainLoopP);
     virtual ~SerialComm();
 
+    /// Specify the serial connection parameters as single string
+    /// @param aConnectionSpec "/dev[:baudrate]" or "hostname[:port]"
+    /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
+    /// @param aDefaultBaudRate default baud rate for serial connection (irrelevant for TCP connection)
+    void setConnectionSpecification(const char* aConnectionSpec, uint16_t aDefaultPort, int aDefaultBaudRate);
+
     /// Set the serial connection parameters
     /// @param aConnectionPath serial device path (/dev/...) or host name/address (1.2.3.4 or xxx.yy)
     /// @param aPortNo port number for TCP connection (irrelevant for direct serial device connection)

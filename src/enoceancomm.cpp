@@ -846,9 +846,9 @@ EnoceanComm::~EnoceanComm()
 }
 
 
-void EnoceanComm::setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo)
+void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
 {
-  inherited::setConnectionParameters(aConnectionPath, aPortNo, ENOCEAN_ESP3_BAUDRATE);
+  inherited::setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
 	// open connection so we can receive
 	establishConnection();
 }

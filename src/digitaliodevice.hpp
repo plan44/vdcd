@@ -1,13 +1,13 @@
 //
-//  GpioDevice.hpp
+//  digitalioDevice.hpp
 //  vdcd
 //
 //  Created by Lukas Zeller on 18.04.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#ifndef __vdcd__gpiodevice__
-#define __vdcd__gpiodevice__
+#ifndef __vdcd__digitaliodevice__
+#define __vdcd__digitaliodevice__
 
 #include "device.hpp"
 
@@ -18,16 +18,16 @@ using namespace std;
 namespace p44 {
 
   class StaticDeviceContainer;
-  class GpioDevice;
-  typedef boost::intrusive_ptr<GpioDevice> GpioDevicePtr;
-  class GpioDevice : public Device
+  class DigitalIODevice;
+  typedef boost::intrusive_ptr<DigitalIODevice> DigitalIODevicePtr;
+  class DigitalIODevice : public Device
   {
     typedef Device inherited;
 		ButtonInputPtr buttonInput;
     IndicatorOutputPtr indicatorOutput;
 
   public:
-    GpioDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -66,4 +66,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__gpiodevice__) */
+#endif /* defined(__vdcd__digitaliodevice__) */

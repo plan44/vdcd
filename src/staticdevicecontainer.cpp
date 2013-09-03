@@ -8,7 +8,7 @@
 
 #include "staticdevicecontainer.hpp"
 
-#include "gpiodevice.hpp"
+#include "digitaliodevice.hpp"
 #include "consoledevice.hpp"
 
 using namespace p44;
@@ -39,9 +39,9 @@ void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhau
 	for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
 		// create device of appropriate class
 		DevicePtr newDev;
-		if (pos->first=="gpio") {
-			// GPIO based device
-			newDev = DevicePtr(new GpioDevice(this, pos->second));
+		if (pos->first=="digitalio") {
+			// Digital IO based device
+			newDev = DevicePtr(new DigitalIODevice(this, pos->second));
 		}
     else if (pos->first=="console") {
       // console based simulated device
