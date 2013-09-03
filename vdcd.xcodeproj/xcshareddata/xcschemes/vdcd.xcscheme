@@ -64,11 +64,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--cfgapiport 8090"
@@ -84,7 +84,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.223"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.225"
@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.59.223"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.59.225"
@@ -120,7 +120,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:in -k testout:out"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

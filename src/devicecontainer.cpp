@@ -365,6 +365,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 void DeviceContainer::startLearning(LearnCB aLearnHandler)
 {
   // enable learning in all class containers
+  learnHandler = aLearnHandler;
   learningMode = true;
   for (ContainerList::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     (*pos)->setLearnMode(true);
@@ -379,6 +380,7 @@ void DeviceContainer::stopLearning()
     (*pos)->setLearnMode(false);
   }
   learningMode = false;
+  learnHandler.clear();
 }
 
 
