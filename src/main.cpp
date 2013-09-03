@@ -11,6 +11,7 @@
 #include "devicecontainer.hpp"
 
 #include "dalidevicecontainer.hpp"
+#include "huedevicecontainer.hpp"
 #include "enoceandevicecontainer.hpp"
 #include "staticdevicecontainer.hpp"
 
@@ -92,6 +93,7 @@ public:
     fprintf(stderr, "    -A daliport    : port number for DALI proxy ipaddr (default=%d)\n", DEFAULT_DALIPORT);
     fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
     fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+    fprintf(stderr, "    -h             : enable hue support (attempt to discover hue bridges at learn-in)\n");
     fprintf(stderr, "    -C vdsmport    : port number/service name for vdSM to connect to (default=%s)\n", DEFAULT_VDSMSERVICE);
     fprintf(stderr, "    -i             : allow vdSM connections from non-local clients (vDC API and config API)\n");
     fprintf(stderr, "    -d             : fully daemonize\n");
@@ -120,6 +122,8 @@ public:
     char *enoceanname = NULL;
     int enoceanport = DEFAULT_ENOCEANPORT;
 
+    bool hueSupport = false;
+
     char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
 
     char *configApiPort = NULL;
@@ -135,7 +139,7 @@ public:
     int startupDelay = 0; // no delay
 
     int c;
-    while ((c = getopt(argc, argv, "da:A:b:B:C:ig:k:l:s:w:W:")) != -1)
+    while ((c = getopt(argc, argv, "dha:A:b:B:C:ig:k:l:s:w:W:")) != -1)
     {
       switch (c) {
         case 'd':
@@ -155,6 +159,9 @@ public:
           break;
         case 'B':
           enoceanport = atoi(optarg);
+          break;
+        case 'h':
+          hueSupport = true;
           break;
         case 'C':
           vdsmport = optarg;
@@ -228,6 +235,11 @@ public:
       EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
       enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
       deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
+    }
+    // - Add hue support
+    if (hueSupport) {
+      HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1));
+      deviceContainer.addDeviceClassContainer(hueDeviceContainer);
     }
     // - Add static devices if we have collected any config from the command line
     if (staticDeviceConfigs.size()>0) {
