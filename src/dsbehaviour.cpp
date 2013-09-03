@@ -165,7 +165,7 @@ enum {
 
 enum {
   error_key,
-  numDsStateSettingsProperties
+  numDsBehaviourStateProperties
 };
 
 
@@ -177,7 +177,7 @@ int DsBehaviour::numLocalProps(int aDomain)
   switch (aDomain) {
     case VDC_API_BHVR_DESC: return numDescProps()+numDsBehaviourDescProperties;
     case VDC_API_BHVR_SETTINGS: return numSettingsProps()+numDsBehaviourSettingsProperties;
-    case VDC_API_BHVR_STATES: return numStateProps()+numDsStateSettingsProperties;
+    case VDC_API_BHVR_STATES: return numStateProps()+numDsBehaviourStateProperties;
     default: return 0;
   }
 }
@@ -198,7 +198,7 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
   static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
     { "group", ptype_int8, false, group_key+settings_key_offset, &dsBehaviour_Key },
   };
-  static const PropertyDescriptor stateProperties[numDsStateSettingsProperties] = {
+  static const PropertyDescriptor stateProperties[numDsBehaviourStateProperties] = {
     { "error", ptype_int8, false, error_key+states_key_offset, &dsBehaviour_Key },
   };
   int n = inheritedProps::numProps(aDomain);
@@ -224,9 +224,9 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
       return getSettingsDescriptor(aPropIndex);
     case VDC_API_BHVR_STATES:
       // check for generic state properties
-      if (aPropIndex<numDsStateSettingsProperties)
+      if (aPropIndex<numDsBehaviourStateProperties)
         return &stateProperties[aPropIndex];
-      aPropIndex -= numDsStateSettingsProperties;
+      aPropIndex -= numDsBehaviourStateProperties;
       // check type-specific states
       return getStateDescriptor(aPropIndex);
     default:
