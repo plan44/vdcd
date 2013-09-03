@@ -187,7 +187,7 @@ const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "mode", ptype_int8, false, mode_key+settings_key_offset, &output_key },
-    { "pushChanges_key", ptype_bool, false, pushChanges_key+settings_key_offset, &output_key },
+    { "pushChanges", ptype_bool, false, pushChanges_key+settings_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }

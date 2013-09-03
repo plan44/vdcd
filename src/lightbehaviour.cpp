@@ -597,7 +597,7 @@ enum {
 };
 
 
-int LightBehaviour::numSettingsProps() { return numSettingsProperties; }
+int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
 const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
@@ -611,6 +611,10 @@ const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
     { "dimTimeDownAlt1", ptype_int8, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
     { "dimTimeDownAlt2", ptype_int8, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
   };
+  int n = inherited::numSettingsProps();
+  if (aPropIndex<n)
+    return inherited::getSettingsDescriptor(aPropIndex);
+  aPropIndex -= n;
   return &properties[aPropIndex];
 }
 
