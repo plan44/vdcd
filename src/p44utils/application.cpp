@@ -319,7 +319,7 @@ void CmdLineApp::parseCommandLine(int aArgc, char **aArgv)
                 if (rawArgIndex<aArgc-1) {
                   // there is a next argument, use it as option argument
                   optArgFound = true;
-                  optArg = aArgv[rawArgIndex++];
+                  optArg = aArgv[++rawArgIndex];
                 }
               }
               if (!optArgFound) {

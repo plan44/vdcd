@@ -203,7 +203,7 @@ public:
       deviceContainer.addDeviceClassContainer(daliDeviceContainer);
     }
     // - Add enOcean devices class if enOcean modem serialport/host is specified
-    const char *enoceanname = getOption("enoceann");
+    const char *enoceanname = getOption("enocean");
     if (enoceanname) {
       EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
       enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
