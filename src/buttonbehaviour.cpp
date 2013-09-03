@@ -455,6 +455,7 @@ const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
 
 enum {
   mode_key,
+  function_key,
   setsLocalPriority_key,
   callsPresent_key,
   numSettingsProperties
@@ -466,6 +467,7 @@ const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "mode", ptype_int8, false, mode_key+settings_key_offset, &button_key },
+    { "function", ptype_int8, false, function_key+settings_key_offset, &button_key },
     { "setsLocalPriority", ptype_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
     { "callsPresent", ptype_bool, false, callsPresent_key+settings_key_offset, &button_key },
   };
@@ -517,6 +519,9 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
         case mode_key+settings_key_offset:
           aPropValue = JsonObject::newInt32(buttonMode);
           return true;
+        case function_key+settings_key_offset:
+          aPropValue = JsonObject::newInt32(buttonFunc);
+          return true;
         case setsLocalPriority_key+settings_key_offset:
           aPropValue = JsonObject::newBool(setsLocalPriority);
           return true;
@@ -538,6 +543,10 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
         // Settings properties
         case mode_key+settings_key_offset:
           buttonMode = (DsButtonMode)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case function_key+settings_key_offset:
+          buttonFunc = (DsButtonFunc)aPropValue->int32Value();
           markDirty();
           return true;
         case setsLocalPriority_key+settings_key_offset:
