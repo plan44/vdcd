@@ -47,6 +47,8 @@ vdcd_SOURCES = \
   src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
   src/p44utils/socketcomm.hpp \
+  src/p44utils/ssdpsearch.cpp \
+  src/p44utils/ssdpsearch.hpp \
   src/p44utils/sqlite3persistence.cpp \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
@@ -104,10 +106,14 @@ vdcd_SOURCES = \
   src/enocean4bs.hpp \
   src/enoceandevicecontainer.cpp \
   src/enoceandevicecontainer.hpp \
-  src/gpiodevice.cpp \
-  src/gpiodevice.hpp \
+  src/digitaliodevice.cpp \
+  src/digitaliodevice.hpp \
   src/staticdevicecontainer.cpp \
   src/staticdevicecontainer.hpp \
+  src/huedevicecontainer.cpp \
+  src/huedevicecontainer.hpp \
+  src/huedevice.cpp \
+  src/huedevice.hpp \
   src/vdcd_common.hpp \
   src/main.cpp
 
