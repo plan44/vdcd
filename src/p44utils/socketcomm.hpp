@@ -63,6 +63,8 @@ namespace p44 {
   /// A class providing socket communication (client and server)
   class SocketComm : public FdComm
   {
+    typedef FdComm inherited;
+
     // connection parameter
     string hostNameOrAddress;
     string serviceOrPortNo;
@@ -70,11 +72,14 @@ namespace p44 {
     int socketType;
     int protocol;
     bool nonLocal;
+    bool connectionLess;
     // connection making fd (for server to listen, for clients or server handlers for opening connection)
     int connectionFd;
     // client connection internals
     struct addrinfo *addressInfoList; ///< list of possible connection addresses
     struct addrinfo *currentAddressInfo; ///< address currently connecting to
+    struct sockaddr *currentSockAddrP; ///< address info as currently in use by open connection
+    socklen_t currentSockAddrLen; ///< length of current sockAddr struct
     bool isConnecting; ///< in progress of opening connection
     bool connectionOpen; ///< regular data connection is open
     bool serving; ///< is serving socket
@@ -149,7 +154,17 @@ namespace p44 {
     /// check if connected
     /// @return true if connected.
     /// @note checking connected does not automatically try to establish a connection
+    /// @note for connectionless sockets, connected() means "ready to transmit/receive data"
     bool connected();
+
+    /// write data (non-blocking)
+    /// @param aNumBytes number of bytes to transfer
+    /// @param aBytes pointer to buffer to be sent
+    /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
+    /// @return number ob bytes actually written, can be 0 (e.g. if connection is still in process of opening)
+    /// @note for UDP, the host/port specified in setConnectionParams() will be used to send datagrams to
+    virtual size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
+
 
   private:
     void freeAddressInfo();

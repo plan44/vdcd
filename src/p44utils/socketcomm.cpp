@@ -20,6 +20,7 @@ SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
   serving(false),
   addressInfoList(NULL),
   currentAddressInfo(NULL),
+  currentSockAddrP(NULL),
   maxServerConnections(1),
   serverConnection(NULL),
   connectionFd(-1)
@@ -42,6 +43,7 @@ void SocketComm::setConnectionParams(const char* aHostNameOrAddress, const char*
   protocolFamily = aProtocolFamily;
   socketType = aSocketType;
   protocol = aProtocol;
+  connectionLess = socketType==SOCK_DGRAM;
 }
 
 
@@ -294,8 +296,8 @@ ErrorPtr SocketComm::connectNextAddress()
   // try to create a socket
   int socketFD = -1;
   // as long as we have more addresses to check and not already connecting
-  bool connectingAgain = false;
-  while (currentAddressInfo && !connectingAgain) {
+  bool startedConnecting = false;
+  while (currentAddressInfo && !startedConnecting) {
     err.reset();
     socketFD = socket(currentAddressInfo->ai_family, currentAddressInfo->ai_socktype, currentAddressInfo->ai_protocol);
     if (socketFD==-1) {
@@ -305,37 +307,66 @@ ErrorPtr SocketComm::connectNextAddress()
       // usable address found, socket created
       // - make socket non-blocking
       makeNonBlocking(socketFD);
-      // - initiate connection
-      res = connect(socketFD, currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen);
-      LOG(LOG_DEBUG, "- Attempting connection with address family = %d, protocol = %d\n", currentAddressInfo->ai_family, currentAddressInfo->ai_protocol);
-      if (res==0 || errno==EINPROGRESS) {
-        // connection initiated (or already open, but connectionMonitorHandler will take care in both cases)
-        connectingAgain = true;
+      // Now we have a socket
+      if (connectionLess) {
+        // UDP: no connect phase
+        startedConnecting = true;
+        // save valid address info for later use (UDP needs it to send datagrams)
+        if (currentSockAddrP)
+          free(currentSockAddrP);
+        currentSockAddrLen = currentAddressInfo->ai_addrlen;
+        currentSockAddrP = (sockaddr *)malloc(currentSockAddrLen);
+        memcpy(currentSockAddrP, currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen);
       }
       else {
-        // immediate error connecting
-        err = SysError::errNo("Cannot connect: ");
+        // TCP: initiate connection
+        res = connect(socketFD, currentAddressInfo->ai_addr, currentAddressInfo->ai_addrlen);
+        LOG(LOG_DEBUG, "- Attempting connection with address family = %d, protocol = %d\n", currentAddressInfo->ai_family, currentAddressInfo->ai_protocol);
+        if (res==0 || errno==EINPROGRESS) {
+          // connection initiated (or already open, but connectionMonitorHandler will take care in both cases)
+          startedConnecting = true;
+        }
+        else {
+          // immediate error connecting
+          err = SysError::errNo("Cannot connect: ");
+        }
       }
     }
     // advance to next address
     currentAddressInfo = currentAddressInfo->ai_next;
   }
-  if (!connectingAgain) {
+  if (!startedConnecting) {
     // exhausted addresses without starting to connect
     if (!err) err = ErrorPtr(new SocketCommError(SocketCommErrorNoConnection, "No connection could be established"));
     LOG(LOG_DEBUG, "Cannot initiate connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
   }
   else {
-    // connection in progress
-    isConnecting = true;
-    // - save FD
-    connectionFd = socketFD;
-    // - install callback for when FD becomes writable (or errors out)
-    mainLoopP->registerPollHandler(
-      connectionFd,
-      POLLOUT,
-      boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
-    );
+    if (!connectionLess) {
+      // connection in progress
+      isConnecting = true;
+      // - save FD
+      connectionFd = socketFD;
+      // - install callback for when FD becomes writable (or errors out)
+      mainLoopP->registerPollHandler(
+        connectionFd,
+        POLLOUT,
+        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
+      );
+    }
+    else {
+      // UDP socket successfully created
+      LOG(LOG_DEBUG, "Connectionless socket ready for address family = %d, protocol = %d\n", protocolFamily, protocol);
+      connectionOpen = true;
+      isConnecting = false;
+      currentAddressInfo = NULL; // no more addresses to check
+      // immediately use socket for I/O
+      setFd(socketFD);
+      // call handler if defined
+      if (connectionStatusHandler) {
+        // connection ok
+        connectionStatusHandler(this, ErrorPtr());
+      }
+    }
   }
   // clean up if list processed
   freeAddressInfo();
@@ -470,6 +501,11 @@ void SocketComm::internalCloseConnection()
       serverConnection = NULL;
     }
   }
+  // free the address info
+  if (currentSockAddrP) {
+    free(currentSockAddrP);
+    currentSockAddrP = NULL;
+  }
 }
 
 
@@ -483,6 +519,28 @@ bool SocketComm::connecting()
 {
   return isConnecting;
 }
+
+
+#pragma mark - connectionless data exchange
+
+
+size_t SocketComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError)
+{
+  if (connectionLess) {
+    if (dataFd<0)
+      return 0; // not ready yet
+    ssize_t res = sendto(dataFd, aBytes, aNumBytes, 0, currentSockAddrP, currentSockAddrLen);
+    if (res<0) {
+      aError = SysError::errNo("SocketComm::transmitBytes (connectionless): ");
+      return 0; // nothing transmitted
+    }
+    return res;
+  }
+  else {
+    return inherited::transmitBytes(aNumBytes, aBytes, aError);
+  }
+}
+
 
 
 #pragma mark - handling data exception

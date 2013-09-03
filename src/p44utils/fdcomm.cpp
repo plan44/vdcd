@@ -136,6 +136,16 @@ size_t FdComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &
 }
 
 
+bool FdComm::transmitString(string &aString)
+{
+  ErrorPtr err;
+  size_t res = transmitBytes(aString.length(), (uint8_t *)aString.c_str(), err);
+  return Error::isOK(err) && res==aString.length(); // ok if no error and all bytes sent
+}
+
+
+
+
 size_t FdComm::receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aError)
 {
   if (dataFd>=0) {

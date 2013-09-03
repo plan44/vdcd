@@ -64,7 +64,15 @@ namespace p44 {
     /// @param aBytes pointer to buffer to be sent
     /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
     /// @return number ob bytes actually written, can be 0 (e.g. if connection is still in process of opening)
-    size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
+    virtual size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
+
+
+    /// transmit string
+    /// @param aString string to transmit
+    /// @return true if string could be sent in one single attempt, false if not (truncated, not ready, error)
+    /// @note intended for datagrams. Use transmitBytes to be able to handle partial transmission
+    bool transmitString(string &aString);
+
 
     /// @return number of bytes ready for read
     size_t numBytesReady();
