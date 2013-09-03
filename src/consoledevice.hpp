@@ -25,7 +25,6 @@ namespace p44 {
     typedef Device inherited;
     bool hasButton;
     bool hasOutput;
-    string name;
     ConsoleKeyPtr consoleKey;
     int32_t outputValue;
 

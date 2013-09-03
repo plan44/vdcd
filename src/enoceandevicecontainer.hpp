@@ -68,7 +68,8 @@ namespace p44 {
     friend class EnoceanDevice;
     typedef DeviceClassContainer inherited;
 
-    CompletedCB learningCompleteHandler;
+    bool learningMode;
+
     KeyEventHandlerCB keyEventHandler;
 
     EnoceanDeviceMap enoceanDevices; ///< local map linking EnoceanDeviceID to devices
@@ -76,6 +77,7 @@ namespace p44 {
 		EnoceanPersistence db;
 
   public:
+
     EnoceanDeviceContainer(int aInstanceNumber);
 		
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
@@ -91,6 +93,8 @@ namespace p44 {
     /// forget all devices (but don't delete learned-in devices, so next collect will add them again)
     virtual void forgetDevices();
 
+  protected:
+
     /// add device to container (already known device, already stored in DB)
     virtual void addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
 
@@ -103,18 +107,10 @@ namespace p44 {
     ///   after reconnect the device will appear with default config
     void unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams);
 
-    /// learn RPS device (repeated switch)
-    /// Listen for switch device actions with high signal (i.e. which are physically nearby)
-    /// and add them to the known switches (if already known)
-    /// @param aCompletedCB handler to call when learn-in (EnoceanDeviceLearned) or learn-out (EnoceanDeviceUnlearned)
-    ///   completes or learn mode times out (EnoceanLearnTimeout)
-    /// @param aLearnTimeout how long to wait for a keypress to learn in or out
-    void learnDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout);
-    /// @return true if currently in learn mode
-    bool isLearning();
-    /// stop learning
-    void stopLearning();
-
+    /// set container learn mode
+    /// @param aEnableLearning true to enable learning mode
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
+    virtual void setLearnMode(bool aEnableLearning);
 
   protected:
 
@@ -125,8 +121,6 @@ namespace p44 {
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
-    void sendTeachInResponseFor(Esp3PacketPtr aEsp3TeachInQuery);
-    void endLearning(ErrorPtr aError);
 
   };
 

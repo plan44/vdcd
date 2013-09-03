@@ -31,6 +31,12 @@ namespace p44 {
   /// generic callback for signalling completion (with success/error reporting)
   typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 
+  /// Callback for learn events
+  /// @param aLearnIn true if new device learned in, false if device learned out
+  /// @param aError error occurred during learn-in
+  typedef boost::function<void (bool aLearnIn, ErrorPtr aError)> LearnCB;
+
+
   /// persistence for digitalSTROM paramters
   class DsParamStore : public ParamStore
   {
@@ -81,6 +87,10 @@ namespace p44 {
     ApiConnectionList apiConnections;
     JsonRpcCommPtr sessionComm;
 
+    // learning
+    bool learningMode;
+    LearnCB learnHandler;
+
   public:
 
     DeviceContainer();
@@ -118,6 +128,16 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
     void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
+    /// Put device class controllers into learn-in mode
+    /// @param aCompletedCB handler to call when a learn-in action occurs
+    void startLearning(LearnCB aLearnHandler);
+
+    /// stop learning mode
+    void stopLearning();
+
+    /// @return true if currently in learn mode
+    bool isLearning() { return learningMode; };
+
     /// @}
 
 
@@ -153,10 +173,14 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
-  protected:
 
     /// @name methods for DeviceClassContainers
     /// @{
+
+    /// called by device class containers to report learn event
+    /// @param aLearnIn true if new device learned in, false if device learned out
+    /// @param aError error occurred during learn-in
+    void reportLearnEvent(bool aLearnIn, ErrorPtr aError);
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dsid
@@ -171,6 +195,7 @@ namespace p44 {
 
     /// @}
 
+  protected:
 
     /// @name methods for friend classes to send API messages
     /// @{

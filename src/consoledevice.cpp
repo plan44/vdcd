@@ -23,7 +23,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   outputValue(0)
 {
   size_t i = aDeviceConfig.find_first_of(':');
-  name = aDeviceConfig;
+  string name = aDeviceConfig;
   if (i!=string::npos) {
     name = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
@@ -36,6 +36,9 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       hasOutput = true;
     }
   }
+  // assign name
+  setName(name);
+  // create I/O
   if (hasOutput) {
     // Simulate light device
     // - defaults to yellow (light)
@@ -81,7 +84,7 @@ void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     outputValue = aOutputBehaviour.valueForHardware();
     printf(
       ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
-      name.c_str(), outputValue,
+      getName().c_str(), outputValue,
       (double)aOutputBehaviour.transitionTimeForHardware()/Second
     );
   }
@@ -100,7 +103,7 @@ void ConsoleDevice::deriveDSID()
 	string s = classContainerP->deviceClassContainerInstanceIdentifier();
 	hash.addBytes(s.size(), (uint8_t *)s.c_str());
 	// - add-in the console device name
-  hash.addCStr(name.c_str());
+  hash.addCStr(getName().c_str());
   #if FAKE_REAL_DSD_IDS
   dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
   dsid.setSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number

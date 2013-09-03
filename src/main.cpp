@@ -58,11 +58,7 @@ class P44bridged : public Application
   IndicatorOutput greenLED;
   ButtonInput button;
 
-  // Enocean device learning
-  EnoceanDeviceContainerPtr enoceanDeviceContainer;
-  bool deviceLearning;
-  // Direct DALI control from enocean switches
-  DaliDeviceContainerPtr daliDeviceContainer;
+  long learningTimerTicket;
 
   // Configuration API
   SocketComm configApiServer;
@@ -74,7 +70,7 @@ public:
     greenLED("gpioNS9XXXX.ledgreen", false, false),
     button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
-    deviceLearning(false),
+    learningTimerTicket(0),
     configApiServer(SyncIOMainLoop::currentMainLoop())
   {
     showAppStatus();
@@ -223,13 +219,13 @@ public:
     // Create static container structure
     // - Add DALI devices class if DALI bridge serialport/host is specified
     if (daliname) {
-      daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
+      DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
       daliDeviceContainer->daliComm.setConnectionParameters(daliname, daliport);
       deviceContainer.addDeviceClassContainer(daliDeviceContainer);
     }
     // - Add enOcean devices class if enOcean modem serialport/host is specified
     if (enoceanname) {
-      enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
+      EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
       enoceanDeviceContainer->enoceanComm.setConnectionParameters(enoceanname, enoceanport);
       deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
     }
@@ -298,39 +294,41 @@ public:
   }
 
 
-
-//  bool localKeyHandler(EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)
-//  {
-//    #warning // TODO: refine - now just switches all lamps on/off
-//    if (daliDeviceContainer) {
-//      if (aAction&rpsa_pressed) {
-//        daliDeviceContainer->daliComm.daliSendDirectPower(DaliBroadcast, (aAction&rpsa_offOrUp)!=0 ? 0 : 254);
-//      }
-//      return true;
-//    }
-//    return false;
-//  }
+  #define LEARN_TIMEOUT (20*Second)
 
 
-
-  void deviceLearnHandler(ErrorPtr aStatus)
+  void deviceLearnHandler(bool aLearnIn, ErrorPtr aError)
   {
     // back to normal...
     setAppStatus(status_ok);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
     MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
-    if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceLearned)) {
-      // show device learned
-      redLED.stop();
-      greenLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+    if (Error::isOK(aError)) {
+      if (aLearnIn) {
+        // show device learned
+        redLED.stop();
+        greenLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+      }
+      else {
+        // show device unlearned
+        greenLED.stop();
+        redLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+      }
     }
-    else if (Error::isError(aStatus,EnoceanError::domain(), EnoceanDeviceUnlearned)) {
-      // show device unlearned
-      greenLED.stop();
-      redLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+    else {
+      LOG(LOG_ERR,"Learning error: %s\n", aError->description().c_str());
     }
   }
+
+
+  void stopLearning()
+  {
+    deviceContainer.stopLearning();
+    MainLoop::currentMainLoop()->cancelExecutionTicket(learningTimerTicket);
+    setAppStatus(status_ok);
+  }
+
 
 
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
@@ -356,15 +354,17 @@ public:
         collectDevices();
         return true;
       }
-      if (enoceanDeviceContainer) {
-        if (!enoceanDeviceContainer->isLearning()) {
-          // start device learning
+      else {
+        // short press: start/stop learning
+        if (!learningTimerTicket) {
+          // start
           setAppStatus(status_interaction);
-          enoceanDeviceContainer->learnDevice(boost::bind(&P44bridged::deviceLearnHandler, this, _1), 10*Second);
+          learningTimerTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::stopLearning, this), LEARN_TIMEOUT);
+          deviceContainer.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
         }
         else {
-          // abort device learning
-          enoceanDeviceContainer->stopLearning();
+          // stop
+          stopLearning();
         }
       }
     }

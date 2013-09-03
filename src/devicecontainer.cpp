@@ -32,6 +32,7 @@ DeviceContainer::DeviceContainer() :
   DsAddressable(this),
   vdcApiServer(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
+  learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimTicket(0),
@@ -141,7 +142,7 @@ const char *DeviceContainer::getPersistentDataDir()
 class DeviceClassInitializer
 {
   CompletedCB callback;
-  list<DeviceClassContainerPtr>::iterator nextContainer;
+  ContainerList::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   bool factoryReset;
 public:
@@ -232,7 +233,7 @@ class DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
-  list<DeviceClassContainerPtr>::iterator nextContainer;
+  ContainerList::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
@@ -323,6 +324,8 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 } // namespace
 
 
+
+
 #pragma mark - adding/removing devices
 
 
@@ -356,6 +359,43 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   dSDevices.erase(aDevice->dsid);
   LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
 }
+
+
+
+void DeviceContainer::startLearning(LearnCB aLearnHandler)
+{
+  // enable learning in all class containers
+  learningMode = true;
+  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+    (*pos)->setLearnMode(true);
+  }
+}
+
+
+void DeviceContainer::stopLearning()
+{
+  // disable learning in all class containers
+  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+    (*pos)->setLearnMode(false);
+  }
+  learningMode = false;
+}
+
+
+void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aLearnIn)
+      LOG(LOG_NOTICE,"--- learned in (paired) new device(s)\n");
+    else
+      LOG(LOG_NOTICE,"--- learned out (unpaired) device(s)\n");
+  }
+  // report status
+  if (learnHandler) {
+    learnHandler(aLearnIn, aError);
+  }
+}
+
 
 
 #pragma mark - periodic activity

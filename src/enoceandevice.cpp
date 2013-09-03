@@ -283,7 +283,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 }
 
 
-int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket, bool &aNeedsTeachInResponse)
+int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket)
 {
   EnoceanSubDevice totalSubDevices = 1; // at least one
   EnoceanSubDevice subDevice = 0;

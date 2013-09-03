@@ -134,9 +134,8 @@ namespace p44 {
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
     /// @param aLearnInPacket the packet containing the EPP and possibly other learn-in relevant information
-    /// @param aNeedsTeachInResponse will be set if any of the devices created needs a teach-in response
     /// @return number of devices created
-    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket, bool &aNeedsTeachInResponse);
+    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket);
     
 
     /// set the enocean address identifying the device

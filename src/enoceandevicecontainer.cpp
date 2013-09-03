@@ -13,6 +13,7 @@ using namespace p44;
 
 EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber) :
   DeviceClassContainer(aInstanceNumber),
+  learningMode(false),
 	enoceanComm(SyncIOMainLoop::currentMainLoop())
 {
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _2, _3));
@@ -217,7 +218,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     return;
   }
   // check learning mode
-  if (isLearning()) {
+  if (learningMode) {
     // no learn/unlearn actions detected so far
     // - check if we know that device address already. If so, it is a learn-out
     bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
@@ -228,27 +229,19 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       ErrorPtr learnStatus;
       if (learnIn) {
         // new device learned in, add logical devices for it
-        bool needsTeachInResponse = false;
-        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr, needsTeachInResponse);
+        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr);
         if (numNewDevices>0) {
           // successfully learned at least one device
-          // - check if we need to send a teach-in response
-          if (needsTeachInResponse) {
-            sendTeachInResponseFor(aEsp3PacketPtr);
-          }
           // - update learn status (device learned)
-          learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceLearned));
+          getDeviceContainer().reportLearnEvent(true, ErrorPtr());
         }
       }
       else {
         // device learned out, un-pair all logical dS devices it has represented
         // but keep dS level config in case it is reconnected
         unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
-        learnStatus = ErrorPtr(new EnoceanError(EnoceanDeviceUnlearned));
+        getDeviceContainer().reportLearnEvent(false, ErrorPtr());
       }
-      // - end learning if actually learned or unlearned something
-      if (learnStatus)
-        endLearning(learnStatus);
     } // learn action
   }
   else {
@@ -260,49 +253,13 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
 }
 
 
-void EnoceanDeviceContainer::sendTeachInResponseFor(Esp3PacketPtr aEsp3TeachInQuery)
-{
-  Esp3PacketPtr esp3TeachInResponse;
-  
-
-}
-
-
-
 #pragma mark - learning / unlearning
 
 
-void EnoceanDeviceContainer::learnDevice(CompletedCB aCompletedCB, MLMicroSeconds aLearnTimeout)
+void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning)
 {
-  if (isLearning()) return; // already learning -> NOP
-  // start timer for timeout
-  learningCompleteHandler = aCompletedCB;
-  MainLoop::currentMainLoop()->executeOnce(boost::bind(&EnoceanDeviceContainer::stopLearning, this), aLearnTimeout);
+  learningMode = aEnableLearning;
 }
-
-
-bool EnoceanDeviceContainer::isLearning()
-{
-  return !learningCompleteHandler.empty();
-}
-
-
-void EnoceanDeviceContainer::stopLearning()
-{
-  endLearning(ErrorPtr(new EnoceanError(EnoceanLearnAborted)));
-}
-
-
-void EnoceanDeviceContainer::endLearning(ErrorPtr aError)
-{
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this); // cancel timeout
-  if (isLearning()) {
-    CompletedCB cb = learningCompleteHandler;
-    learningCompleteHandler = NULL;
-    cb(ErrorPtr(aError));
-  }
-}
-
 
 
 

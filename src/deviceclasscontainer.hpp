@@ -49,6 +49,7 @@ namespace p44 {
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceList devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
+
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsids for devices that don't have their own
@@ -100,7 +101,7 @@ namespace p44 {
     /// @}
 
 
-    /// @name device detection and registration
+    /// @name device collection and learning/pairing
     /// @{
 
     /// collect devices from this device classes
@@ -110,12 +111,30 @@ namespace p44 {
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive) = 0;
 
+    /// Forget all previously collected devices
+    virtual void forgetDevices();
+
+    /// set container learn mode
+    /// @param aEnableLearning true to enable learning mode
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
+    virtual void setLearnMode(bool aEnableLearning) { /* NOP in base class */ }
+
+    /// @}
+
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description();
+
+
+    /// @name services for actual device class controller implementations
+    /// @{
+
     /// Add device collected from hardware side (bus scan, etc.)
     /// @param aDevice a device object which has a valid dsid
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
     ///   by other means than a scan/collect operation
     virtual void addDevice(DevicePtr aDevice);
-
 
     /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
     /// @param aDevice a device object which has a valid dsid
@@ -123,18 +142,11 @@ namespace p44 {
     ///   the device is not disconnected (=unlearned) by this.
     virtual void removeDevice(DevicePtr aDevice, bool aForget = false);
 
-    /// Forget all previously collected devices
-    virtual void forgetDevices();
-
     /// get device smart pointer by instance pointer
     DevicePtr getDevicePtrForInstance(Device *aDeviceP);
 
 		/// @}
 
-
-    /// description of object, mainly for debug and logging
-    /// @return textual description of object
-    virtual string description();
 
   };
 
