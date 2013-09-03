@@ -25,6 +25,7 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   announcing(Never),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
+  primaryGroup(group_black_joker),
   groupMembership(0)
 {
 }

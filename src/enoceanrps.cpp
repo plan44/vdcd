@@ -41,12 +41,15 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    // RPS switches can be used for anything
+    newDev->setPrimaryGroup(group_black_joker);
     // Create two handlers, one for the up button, one for the down button
     // - create button input for down key
     EnoceanRpsHandlerPtr downHandler = EnoceanRpsHandlerPtr(new EnoceanRpsHandler(*newDev.get()));
     downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
     ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
     downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false);
+    downBhvr->setGroup(group_yellow_light); // pre-configure for light
     downBhvr->setHardwareName("Down key");
     downHandler->behaviour = downBhvr;
     newDev->addChannelHandler(downHandler);
@@ -54,6 +57,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     EnoceanRpsHandlerPtr upHandler = EnoceanRpsHandlerPtr(new EnoceanRpsHandler(*newDev.get()));
     upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
     ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+    upBhvr->setGroup(group_yellow_light); // pre-configure for light
     upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false);
     upBhvr->setHardwareName("Up key");
     upHandler->behaviour = upBhvr;
