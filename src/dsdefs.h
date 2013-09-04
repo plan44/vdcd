@@ -118,7 +118,7 @@ typedef enum {
   ct_local_on = 12, ///< local button has turned device on
   ct_short_short_long = 13, ///< short/short/long = local programming mode
   ct_local_stop = 14, ///< local stop
-  numClickTypes
+  ct_none = 255 ///< no click (for state)
 } DsClickType;
 
 

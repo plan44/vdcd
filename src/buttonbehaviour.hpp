@@ -47,6 +47,7 @@ namespace p44 {
     /// @{
     bool buttonPressed; ///< set if button is currently pressed
     DsClickType clickType; ///< set to last click type of button
+    MLMicroSeconds lastClick; ///< time of last clickType update
     /// @}
 
   public:

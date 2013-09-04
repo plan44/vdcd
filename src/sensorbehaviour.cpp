@@ -218,7 +218,7 @@ bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           if (lastUpdate==Never)
             aPropValue = JsonObject::newNull();
           else
-            aPropValue = JsonObject::newDouble(((double)(MainLoop::now()-lastUpdate))/Second);
+            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-lastUpdate)/Second);
           return true;
       }
     }

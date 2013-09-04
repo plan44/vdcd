@@ -212,7 +212,7 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue
           if (lastUpdate==Never)
             aPropValue = JsonObject::newNull();
           else
-            aPropValue = JsonObject::newDouble((MainLoop::now()-lastUpdate)/Second);
+            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-lastUpdate)/Second);
           return true;
       }
     }

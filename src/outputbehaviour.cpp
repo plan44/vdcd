@@ -245,7 +245,7 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           if (outputLastSent==Never)
             aPropValue = JsonObject::newNull(); // no value known
           else
-            aPropValue = JsonObject::newDouble(outputLastSent); // when value was last applied to hardware
+            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-outputLastSent)/Second);
           return true;
       }
     }

@@ -11,27 +11,6 @@
 using namespace p44;
 
 
-#ifdef DEBUG
-static const char *ClickTypeNames[] {
-  "ct_tip_1x",
-  "ct_tip_2x",
-  "ct_tip_3x",
-  "ct_tip_4x",
-  "ct_hold_start",
-  "ct_hold_repeat",
-  "ct_hold_end",
-  "ct_click_1x",
-  "ct_click_2x",
-  "ct_click_3x",
-  "ct_short_long",
-  "ct_local_off",
-  "ct_local_on",
-  "ct_short_short_long",
-  "ct_local_stop"
-};
-#endif
-
-
 
 ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   inherited(aDevice),
@@ -39,6 +18,9 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
+  clickType(ct_none),
+  buttonPressed(false),
+  lastClick(Never),
   callsPresent(false)
 {
   // set default hrdware configuration
@@ -335,12 +317,9 @@ void ButtonBehaviour::localDim()
 void ButtonBehaviour::sendClick(DsClickType aClickType)
 {
   // update button state
+  lastClick = MainLoop::now();
   clickType = aClickType;
-  #ifdef DEBUG
-  LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %s, clickType %d/%s\n", buttonPressed ? "pressed" : "released", aClickType, ClickTypeNames[aClickType]);
-  #else
   LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
-  #endif
   // issue a state porperty push
   device.pushProperty("buttonInputStates", VDC_API_DOMAIN, (int)index);
   // also let device container know for local click handling
@@ -479,6 +458,7 @@ const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
 enum {
   value_key,
   clickType_key,
+  age_key,
   numStateProperties
 };
 
@@ -489,6 +469,7 @@ const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
   static const PropertyDescriptor properties[numStateProperties] = {
     { "value", ptype_int8, false, value_key+states_key_offset, &button_key },
     { "clickType", ptype_int8, false, clickType_key+states_key_offset, &button_key },
+    { "age", ptype_double, false, age_key+states_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -534,6 +515,13 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         case clickType_key+states_key_offset:
           aPropValue = JsonObject::newInt32(clickType);
+          return true;
+        case age_key+states_key_offset:
+          // age
+          if (lastClick==Never)
+            aPropValue = JsonObject::newNull();
+          else
+            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-lastClick)/Second);
           return true;
       }
     }
