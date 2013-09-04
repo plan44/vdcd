@@ -58,7 +58,7 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 
 bool FdComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
+  //DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
     dataExceptionHandler(aFd, aPollFlags);

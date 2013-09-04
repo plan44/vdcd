@@ -48,6 +48,28 @@ namespace p44 {
   string shellQuote(const char *aString);
   string shellQuote(const string &aString);
 
+  /// return string with trailimg and/or leading spaces removed
+  /// @param aString a string
+  /// @param aLeading if set, remove leading spaces
+  /// @param aTrailing if set, remove trailing spaces
+  /// @return trimmed string
+  string trimWhiteSpace(const string &aString, bool aLeading=true, bool aTrailing=true);
+
+  /// return next line from buffer
+  /// @param aCursor at entry, must point to the beginning of a line. At exit, will point
+  ///   to the beginning of the next line or the terminating NUL
+  /// @param aLine the contents of the line, without any CR or LF chars
+  /// @return true if a line could be extracted, false if end of text
+  bool nextLine(const char * &aCursor, string &aLine);
+  bool nextLine(const string &aInput, size_t aCursor, string &aLine);
+
+  /// extract key and value from "KEY: VALUE" type header string
+  /// @param aInput the contents of the line to extract key/value from
+  /// @param aKey the key (everything before the first colon, stripped from surrounding whitespace)
+  /// @param aValue the value (everything after the first non-whitespace after the first colon)
+  /// @return true if key/value could be extracted
+  bool keyAndValue(const string &aInput, string &aKey, string &aValue);
+
 } // namespace p44
 
 #endif /* defined(__p44utils__utils__) */

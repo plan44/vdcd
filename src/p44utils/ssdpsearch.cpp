@@ -19,24 +19,42 @@ SsdpSearch::SsdpSearch(SyncIOMainLoop *aMainLoopP) :
 
 SsdpSearch::~SsdpSearch()
 {
+  stopSearch();
 }
+
+
+void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind)
+{
+  string searchTarget;
+  bool singleTarget = false;
+  if (!aUuidToFind) {
+    searchTarget = "upnp:rootdevice";
+  }
+  else {
+    singleTarget = true;
+    searchTarget = string_format("uuid:%s",aUuidToFind);
+  }
+  startSearchForTarget(aSearchResultHandler, searchTarget.c_str(), singleTarget);
+}
+
 
 
 // Search request:
 //  M-SEARCH * HTTP/1.1
 //  HOST: 239.255.255.250:1900
 //  MAN: "ssdp:discover"
-//  MX: 10
+//  MX: 5
 //  ST: upnp:rootdevice
 
 #define SSDP_BROADCAST_ADDR "239.255.255.250"
 #define SSDP_PORT "1900"
-#define SSDP_MX 5
+#define SSDP_MX 5 // not more than 5
 
 
-void SsdpSearch::startSearch(const string &aSearchTarget, SsdpSearchCB aSearchResultHandler)
+void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget)
 {
   // save params
+  singleTargetSearch = aSingleTarget;
   searchTarget = aSearchTarget;
   searchResultHandler = aSearchResultHandler;
   // close current socket
@@ -52,6 +70,8 @@ void SsdpSearch::startSearch(const string &aSearchTarget, SsdpSearchCB aSearchRe
 void SsdpSearch::socketStatusHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
+    // unregister socket status handler (or we'll get called when connection closes)
+    setConnectionStatusHandler(NULL);
     // send search request
     string ssdpSearch = string_format(
       "M-SEARCH * HTTP/1.1\n"
@@ -65,6 +85,8 @@ void SsdpSearch::socketStatusHandler(ErrorPtr aError)
       searchTarget.c_str()
     );
     transmitString(ssdpSearch);
+    // start timer (wait twice the MX for answers)
+    timeoutTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*2*Second);
   }
   else {
     // error starting search
@@ -75,24 +97,91 @@ void SsdpSearch::socketStatusHandler(ErrorPtr aError)
 }
 
 
+void SsdpSearch::searchTimedOut()
+{
+  stopSearch();
+  if (searchResultHandler) {
+    searchResultHandler(this, ErrorPtr(new SsdpError(SsdpErrorTimeout, "SSDP search timed out with no results")));
+  }
+}
 
 
-// Notify responses
-//  NOTIFY * HTTP/1.1
-//  HOST: 239.255.255.250:1900
+
+void SsdpSearch::stopSearch()
+{
+  MainLoop::currentMainLoop()->cancelExecutionTicket(timeoutTicket);
+  closeConnection();
+}
+
+
+
+// M-SEARCH response
+//  HTTP/1.1 200 OK
 //  CACHE-CONTROL: max-age=100
+//  EXT:
 //  LOCATION: http://192.168.59.107:80/description.xml
 //  SERVER: FreeRTOS/6.0.5, UPnP/1.0, IpBridge/0.1
-//  NTS: ssdp:alive
-//  NT: urn:schemas-upnp-org:device:basic:1
+//  ST: urn:schemas-upnp-org:device:basic:1
 //  USN: uuid:2f402f80-da50-11e1-9b23-0017880979ae
 
 
 
 void SsdpSearch::gotData(ErrorPtr aError)
 {
-  string s;
-  if (Error::isOK(receiveString(s))) {
-    puts(s.c_str());
+  if (Error::isOK(receiveString(response))) {
+    // extract uuid and location
+    const char *p = response.c_str();
+    string line;
+    bool locFound = false;
+    bool uuidFound = false;
+    bool serverFound = false;
+    while (nextLine(p, line)) {
+      string key, value;
+      if (keyAndValue(line, key, value)) {
+        if (key=="LOCATION") {
+          locationURL = value;
+          locFound = true;
+          //LOG(LOG_NOTICE,"Location: %s\n", locationURL.c_str());
+        }
+        else if (key=="USN") {
+          //LOG(LOG_NOTICE,"USN: %s\n", value.c_str());
+          // extract the UUID
+          string k,v;
+          if (keyAndValue(value, k, v)) {
+            if (k=="uuid") {
+              size_t i = v.find("::");
+              if (i!=string::npos)
+                uuid = v.substr(0,i);
+              else
+                uuid = v;
+              uuidFound = true;
+              //LOG(LOG_NOTICE,"uuid: %s\n", uuid.c_str());
+            }
+          }
+        }
+        else if (key=="SERVER") {
+          server = value;
+          serverFound = true;
+          //LOG(LOG_NOTICE,"SERVER: %s\n", server.c_str());
+        }
+      }
+    }
+    if (searchResultHandler) {
+      if (locFound && uuidFound && serverFound) {
+        // complete response -> call back
+        if (singleTargetSearch) {
+          stopSearch();
+        }
+        searchResultHandler(this, ErrorPtr());
+      }
+      else {
+        // invalid answer
+        searchResultHandler(this, ErrorPtr(new SsdpError(SsdpErrorInvalidAnswer, "incomplete SSDP search response")));
+      }
+    }
+  }
+  else {
+    // receiving problem, report it
+    searchResultHandler(this, aError);
   }
 }

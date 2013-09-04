@@ -94,6 +94,21 @@ string p44::lowerCase(const string &aString)
 }
 
 
+string p44::trimWhiteSpace(const string &aString, bool aLeading, bool aTrailing)
+{
+  size_t n = aString.length();
+  size_t s = 0;
+  size_t e = n;
+  if (aLeading) {
+    while (s<n && isspace(aString[s])) ++s;
+  }
+  if (aTrailing) {
+    while (e>0 && isspace(aString[e-1])) --e;
+  }
+  return aString.substr(s,e-s);
+}
+
+
 string p44::shellQuote(const char *aString)
 {
   string s = "\"";
@@ -113,7 +128,40 @@ string p44::shellQuote(const string &aString)
 
 
 
+bool p44::nextLine(const char * &aCursor, string &aLine)
+{
+  const char *p = aCursor;
+  if (!p || *p==0) return false; // no input or end of text -> no line
+  char c;
+  do {
+    c = *p;
+    if (c==0 || c=='\n' || c=='\r') {
+      // end of line or end of text
+      aLine.assign(aCursor,p-aCursor);
+      if (c) {
+        // skip line end
+        ++p;
+        if (c=='\r' && *p=='\n') ++p; // CRLF is ok as well
+      }
+      // p now at end of text or beginning of next line
+      aCursor = p;
+      return true;
+    }
+    ++p;
+  } while (true);
+}
 
+
+bool p44::keyAndValue(const string &aInput, string &aKey, string &aValue)
+{
+  size_t i = aInput.find_first_of(':');
+  if (i==string::npos) return false; // not a key: value line
+  // get key, trim whitespace
+  aKey = trimWhiteSpace(aInput.substr(0,i), true, true);
+  // get value, trim leading whitespace
+  aValue = trimWhiteSpace(aInput.substr(i+1,string::npos), true, false);
+  return aKey.length()>0; // valid key/value only if key is not zero length
+}
 
 
 

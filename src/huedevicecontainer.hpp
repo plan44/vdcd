@@ -26,7 +26,19 @@ namespace p44 {
   {
     typedef DeviceClassContainer inherited;
 
-    SsdpSearchPtr brigdeSearcher;
+    SsdpSearchPtr bridgeSearcher;
+    CompletedCB collectedHandler;
+
+    /// @name persistent parameters
+    /// @{
+
+    string ssdpUuid; ///< the UUID for searching the hue bridge via SSDP
+    string apiToken; ///< the API token
+
+    /// @}
+
+    // volatile vars
+    string baseURL;
 
   public:
     HueDeviceContainer(int aInstanceNumber);
@@ -35,9 +47,12 @@ namespace p44 {
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
+    void setLearnMode(bool aEnableLearning);
+
   private:
 
     void bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
+    void bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
 
   };
 

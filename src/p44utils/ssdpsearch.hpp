@@ -17,7 +17,9 @@ namespace p44 {
 
   // Errors
   typedef enum {
-
+    SsdpErrorOK,
+    SsdpErrorInvalidAnswer,
+    SsdpErrorTimeout,
   } SsdpErrors;
 
   class SsdpError : public Error
@@ -41,25 +43,43 @@ namespace p44 {
   {
     typedef SocketComm inherited;
 
+    // parameters
     SsdpSearchCB searchResultHandler;
     string searchTarget;
+    bool singleTargetSearch;
+    long timeoutTicket;
 
   public:
+
+    // results
+    string response; ///< will be set to the entire response string
+    string locationURL; ///< will be set to the location of the result
+    string uuid; ///< will be set to the uuid (extracted from USN header) of the result
+    string server; ///< will be set to the SERVER header
 
     SsdpSearch(SyncIOMainLoop *aMainLoopP);
     virtual ~SsdpSearch();
 
-    /// start a SSDP search
-    /// @param aSearchTarget search target string, like "ssdp:all" or "upnp:rootdevice"
-    /// @param aSearchResultHandler will be called when a Ssdp search result has been received, or a search times out
-    void startSearch(const string &aSearchTarget, SsdpSearchCB aSearchResultHandler);
+    /// start a SSDP search for a specific UUID or all root devices
+    /// @param aSearchResultHandler will be called whenever a Ssdp search result has been received, or a search times out
+    /// @param aUuidToFind the uuid to search for, or NULL to search for all root devices (target: "upnp:rootdevice")
+    void startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind = NULL);
 
+    /// start a SSDP search
+    /// @param aSearchResultHandler will be called whenever a Ssdp search result has been received, or a search times out
+    /// @param aSearchTarget search target string, like "ssdp:all" or "upnp:rootdevice"
+    /// @param aSingleTarget searching for single target, stop search once we got an answer
+    void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget);
+
+
+    /// stop SSDP search - result handler
+    void stopSearch();
 
 
   private:
     void gotData(ErrorPtr aError);
     void socketStatusHandler(ErrorPtr aError);
-    
+    void searchTimedOut();
   };
   
 } // namespace p44
