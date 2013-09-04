@@ -286,7 +286,7 @@ public:
   void deviceLearnHandler(bool aLearnIn, ErrorPtr aError)
   {
     // back to normal...
-    setAppStatus(status_ok);
+    stopLearning();
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
     MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)

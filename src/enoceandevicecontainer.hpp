@@ -73,7 +73,7 @@ namespace p44 {
     KeyEventHandlerCB keyEventHandler;
 
     EnoceanDeviceMap enoceanDevices; ///< local map linking EnoceanDeviceID to devices
-		
+
 		EnoceanPersistence db;
 
   public:

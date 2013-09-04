@@ -242,6 +242,9 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
         unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
         getDeviceContainer().reportLearnEvent(false, ErrorPtr());
       }
+      // - only allow one learn action (to prevent learning out device when
+      //   button is released or other repetition of radio packet)
+      learningMode = false;
     } // learn action
   }
   else {
