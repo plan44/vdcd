@@ -21,7 +21,9 @@ EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
 }
 
 
-static bool separateDevicesPerRockerDirection = true;
+// TODO: probably remove this setting. Separate devices per rocker direction result in inconsistent buttonInputDescriptions[]
+//   so most probably we'll completely avoid them.
+static bool separateDevicesPerRockerDirection = false;
 
 
 EnoceanDevicePtr EnoceanRpsHandler::newDevice(
@@ -53,7 +55,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       buttonHandler->switchIndex = aSubDevice>>1; // each switch HALF has its own subdevice
       buttonHandler->isBSide = isDown;
       ButtonBehaviourPtr buttonBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isDown ? buttonElement_down : buttonElement_up, false);
+      buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isDown ? buttonElement_down : buttonElement_up, false, isDown ? 1 : 0);
       buttonBhvr->setGroup(group_yellow_light); // pre-configure for light
       buttonBhvr->setHardwareName(isDown ? "Down key" : "Up key");
       buttonHandler->behaviour = buttonBhvr;
@@ -76,7 +78,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
       downHandler->isBSide = false;
       ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false);
+      downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
       downBhvr->setGroup(group_yellow_light); // pre-configure for light
       downBhvr->setHardwareName("Down key");
       downHandler->behaviour = downBhvr;
@@ -87,7 +89,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       upHandler->isBSide = true;
       ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
       upBhvr->setGroup(group_yellow_light); // pre-configure for light
-      upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false);
+      upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
       upBhvr->setHardwareName("Up key");
       upHandler->behaviour = upBhvr;
       newDev->addChannelHandler(upHandler);

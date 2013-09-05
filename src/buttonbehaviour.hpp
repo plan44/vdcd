@@ -56,9 +56,15 @@ namespace p44 {
     ButtonBehaviour(Device &aDevice);
 
     /// initialisation of hardware-specific constants for this button input
+    /// @param aButtonID the ID of the physical button (all inputs belonging to a single physical button
+    ///   like a 2-way rocker or a 4-way navigation button must have the same buttonID. Multiple physical buttons must have distinct IDs)
+    /// @param aType the physical button's type.
+    /// @param aElement the element of the physical button this input represents (like: up or down for a 2-way rocker)
+    /// @param aSupportsLocalKeyMode true if this button can be local key
+    /// @param aCounterPartIndex for 2-way buttons, this identifies the index of the counterpart input (needed for dS 1.0 LTMODE compatibility only)
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode);
+    void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex);
 
 
     /// @name interface towards actual device hardware (or simulation)

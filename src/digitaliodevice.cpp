@@ -54,7 +54,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _2, _3), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
+    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
     addBehaviour(b);
   }
 	deriveDSID();

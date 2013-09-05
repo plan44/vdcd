@@ -24,7 +24,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   callsPresent(false)
 {
   // set default hrdware configuration
-  setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false);
+  setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
   // default group
   setGroup(group_yellow_light);
   // reset the button state machine
@@ -32,7 +32,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
 }
 
 
-void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode)
+void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex)
 {
   buttonID = aButtonID;
   buttonType = aType;
@@ -43,12 +43,12 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
   buttonMode = buttonMode_standard;
   // - modify for 2-way
   if (buttonType==buttonType_2way) {
-    // part of a 2-way button
+    // part of a 2-way button.
     if (buttonElementID==buttonElement_up) {
-      buttonMode = (DsButtonMode)((int)buttonMode_rockerDown1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonMode_rockerUp_pairWith0+aCounterPartIndex);
     }
     else if (buttonElementID==buttonElement_down) {
-      buttonMode = (DsButtonMode)((int)buttonMode_rockerUp1+aButtonID);
+      buttonMode = (DsButtonMode)((int)buttonMode_rockerDown_pairWith0+aCounterPartIndex);
     }
   }
 }
