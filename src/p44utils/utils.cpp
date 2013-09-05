@@ -164,4 +164,97 @@ bool p44::keyAndValue(const string &aInput, string &aKey, string &aValue)
 }
 
 
+// split URL into protocol, hostname, document name and auth-info (user, password)
+void p44::splitURL(const char *aURI,string *aProtocol,string *aHost,string *aDoc,string *aUser, string *aPasswd)
+{
+  const char *p = aURI;
+  const char *q,*r;
 
+  if (!p) return; // safeguard
+  // extract protocol
+  q=strchr(p,':');
+  if (q) {
+    // protocol found
+    if (aProtocol) aProtocol->assign(p,q-p);
+    p=q+1; // past colon
+    while (*p=='/') p++; // past trailing slashes
+    // if protocol specified, check for auth info
+    q=strchr(p,'@');
+    if (q) {
+      r=strchr(p,':');
+      if (r && r<q) {
+        // user and password specified
+        if (aUser) aUser->assign(p,r-p);
+        if (aPasswd) aPasswd->assign(r+1,q-r-1);
+      }
+      else {
+        // only user, no password
+        if (aUser) aUser->assign(p,q-p);
+        if (aPasswd) aPasswd->erase();
+      }
+      p=q+1; // past "@"
+    }
+    else {
+      // no auth found
+      if (aUser) aUser->erase();
+      if (aPasswd) aPasswd->erase();
+    }
+  }
+  else {
+    // no protocol found
+    if (aProtocol) aProtocol->erase();
+    // no protocol, no auth
+    if (aUser) aUser->erase();
+    if (aPasswd) aPasswd->erase();
+  }
+  // separate hostname and document
+  // - assume path
+  q=strchr(p,'/');
+  // - if no path, check if there is a CGI param directly after the host name
+  if (!q) {
+    q=strchr(p,'?');
+    // in case of no docpath, but CGI, put '?' into docname
+    r=q;
+  }
+  else {
+    // in case of '/', do not put slash into docname
+    // except if docname would be empty otherwise
+    r=q+1; // exclude slash
+    if (*r==0) r=q; // nothing follows, include the slash
+  }
+  if (q) {
+    // document exists
+    if (aDoc) {
+      aDoc->erase();
+      if (*q=='?') (*aDoc)+='/'; // if doc starts with CGI, we are at root
+      aDoc->append(r); // till end of string
+    }
+    if (aHost) aHost->assign(p,q-p); // assign host (all up to / or ?)
+  }
+  else {
+    if (aDoc) aDoc->erase(); // empty document name
+    if (aHost) aHost->assign(p); // entire string is host
+  }
+} // splitURL
+
+
+
+void p44::splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNumber)
+{
+  const char *p = aHostSpec;
+  const char *q;
+
+  if (!p) return; // safeguard
+  q=strchr(p,':');
+  if (q) {
+    // there is a port specification
+    uint16_t port;
+    if (sscanf(q+1,"%hd", &port)==1) {
+      if (aPortNumber) *aPortNumber = port;
+    }
+    if (aHostName) aHostName->assign(p,q-p);
+  }
+  else {
+    if (aHostName) aHostName->assign(p);
+  }
+}

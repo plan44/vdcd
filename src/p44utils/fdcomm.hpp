@@ -39,7 +39,7 @@ namespace p44 {
   typedef boost::function<void (FdComm *aFdCommP, ErrorPtr aError)> FdCommCB;
 
 
-  /// A class providing socket communication (client and server)
+  /// wrapper for non-blocking I/O on a file descriptor
   class FdComm : public P44Obj
   {
     FdCommCB receiveHandler;
@@ -99,7 +99,7 @@ namespace p44 {
     void setTransmitHandler(FdCommCB aTransmitHandler);
 
     /// make non-blocking
-    /// @param aFd optional fd to switch to non-blocking, defaults to this FdConn's fd set with setFd()
+    /// @param aFd optional; fd to switch to non-blocking, defaults to this FdConn's fd set with setFd()
     void makeNonBlocking(int aFd = -1);
 
 

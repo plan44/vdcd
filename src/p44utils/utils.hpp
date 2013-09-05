@@ -70,6 +70,25 @@ namespace p44 {
   /// @return true if key/value could be extracted
   bool keyAndValue(const string &aInput, string &aKey, string &aValue);
 
+  /// split URL into its parts
+  /// @param aURI a URI in the [protocol:][//][user[:password]@]host[/doc] format
+  /// @param aProtocol if not NULL, returns the protocol (e.g. "http"), empty string if none
+  /// @param aHost if not NULL, returns the host (hostname only or host:port)
+  /// @param aDoc if not NULL, returns the document part (path and possibly query), empty string if none
+  /// @param aUser if not NULL, returns user, empty string if none
+  /// @param aPasswd if not NULL, returns password, empty string if none
+  void splitURL(const char *aURI,string *aProtocol,string *aHost,string *aDoc,string *aUser=NULL, string *aPasswd=NULL);
+
+
+  /// split host specification into hostname and port
+  /// @param aHostSpec a host specification in the host[:port] format
+  /// @param aHostName if not NULL, returns the host name/IP address, empty string if none
+  /// @param aPortNumber if not NULL, returns the port number. Is left untouched if no port number is specified
+  ///   (such that variable passed can be initialized with the default port to use beforehand)
+  void splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNumber);
+
+
+
 } // namespace p44
 
 #endif /* defined(__p44utils__utils__) */
