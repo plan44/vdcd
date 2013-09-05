@@ -40,13 +40,6 @@ Device::~Device()
 }
 
 
-bool Device::isPublicDS()
-{
-  // base class assumes that all devices are public
-  return true;
-}
-
-
 void Device::setName(const string &aName)
 {
   if (aName!=getName()) {
@@ -291,6 +284,7 @@ enum {
   primaryGroup_key,
   isMember_key,
   progMode_key,
+  idBlockSize_key,
   // the behaviour arrays
   buttonInputDescriptions_key,
   buttonInputSettings_key,
@@ -325,6 +319,7 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
     { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
     { "isMember", ptype_bool, true, isMember_key, &device_key },
     { "progMode", ptype_bool, false, progMode_key, &device_key },
+    { "idBlockSize", ptype_int8, false, idBlockSize_key, &device_key },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
@@ -494,6 +489,9 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
           return true;
         case progMode_key:
           aPropValue = JsonObject::newBool(progMode);
+          return true;
+        case idBlockSize_key:
+          aPropValue = JsonObject::newInt32(idBlockSize());
           return true;
       }
     }

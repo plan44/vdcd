@@ -40,8 +40,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     if (separateDevicesPerRockerDirection) {
       // 2 or 4 rocker switch = 4 or 8 dsDevices
       aNumSubdevices = functionProfile==0xF60300 ? 8 : 4;
-      // create device, standard EnoceanDevice is ok for 4BS
-      newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, aNumSubdevices));
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
       // assign channel and address
       newDev->setAddressingInfo(aAddress, aSubDevice);
       // assign EPP information
@@ -64,8 +64,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     else {
       // 2 or 4 rocker switch = 2 or 4 dsDevices
       aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
-      // create device, standard EnoceanDevice is ok for 4BS
-      newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, aNumSubdevices));
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
       // assign channel and address
       newDev->setAddressingInfo(aAddress, aSubDevice);
       // assign EPP information
@@ -174,6 +174,27 @@ void EnoceanRpsHandler::setButtonState(bool aPressed)
 string EnoceanRpsHandler::shortDesc()
 {
   return "Pushbutton";
+}
+
+
+#pragma mark - EnoceanRPSDevice
+
+int EnoceanRPSDevice::idBlockSize()
+{
+  // reserve another dSID so vdSM could split the 2-way button into two separate devices
+  return 2;
+}
+
+
+ssize_t EnoceanRPSDevice::numDevicesInHW()
+{
+  return getTotalSubDevices();
+}
+
+
+ssize_t EnoceanRPSDevice::deviceIndexInHW()
+{
+  return getSubDevice();
 }
 
 

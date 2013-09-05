@@ -63,6 +63,20 @@ namespace p44 {
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
 
+    /// @name identification and invariable properties of the device (can be overriden in subclasses)
+    /// @{
+
+    /// check if device is public dS device (which should be registered with vdSM)
+    /// @return true if device is registerable with vdSM
+    virtual bool isPublicDS() { return true; }; // base class assumes that all devices are public
+
+    /// @return size of dSID block (number of consecutive dSIDs) that is guaranteed reserved for this device
+    /// @note devices can
+    virtual int idBlockSize() { return 1; }; // normal devices only reserve one single ID (their own)
+
+    /// @}
+
+
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{
@@ -88,12 +102,10 @@ namespace p44 {
     /// @}
 
 
+
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
 
-    /// check if device is public dS device (which should be registered with vdSM)
-    /// @return true if device is registerable with vdSM
-    virtual bool isPublicDS();
 
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)

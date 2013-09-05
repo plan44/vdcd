@@ -104,7 +104,7 @@ void EnoceanDevice::deriveDSID()
   dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
   dsid.setSerialNo(
     ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
-    (getSubDevice()&0x0F) // 4 lower bits for up to 16 subdevices
+    ((getSubDevice()*idBlockSize()) & 0x0F) // 4 lower bits for up to 16 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
   );
   #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
   #else
@@ -119,7 +119,7 @@ void EnoceanDevice::deriveDSID()
   dsid.setSerialNo(
     0x6000000000000ll+
     ((uint64_t)getAddress()<<8) +
-    (getSubDevice()&0xFF)
+    ((getSubDevice()*idBlockSize()) & 0xFF) // 8 lower bits for up to 256 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
   );
   #endif
 }

@@ -61,6 +61,37 @@ namespace p44 {
   };
   typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;
 
+
+  class EnoceanRPSDevice : public EnoceanDevice
+  {
+    typedef EnoceanDevice inherited;
+
+  public:
+
+    /// constructor
+    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
+
+    /// @name dSID space and hardware grouping properties needed for dS 1.0 backwards compatibility
+    /// @{
+
+    /// @return size of dSID block (number of consecutive dSIDs) that is guaranteed reserved for this device
+    /// @note devices can
+    virtual int idBlockSize();
+
+    /// @return number of vdSDs (virtual devices represented by a separate dSID)
+    ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
+    virtual ssize_t numDevicesInHW();
+
+    /// @return index of this vdSDs (0..numDevicesInHW()-1) among all vdSDs in the same hardware device
+    ///   -1 means undefined
+    virtual ssize_t deviceIndexInHW();
+
+    /// @}
+
+  };
+
+
+
 }
 
 #endif /* defined(__vdcd__enoceanrps__) */

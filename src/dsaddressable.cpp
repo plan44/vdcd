@@ -206,6 +206,8 @@ enum {
   dsProfileVersion_key,
   hardwareVersion_key,
   hardwareGUID_key,
+  numDevicesInHW_key,
+  deviceIndexInHW_key,
   oemGUID_key,
   name_key,
   numDsAddressableProperties
@@ -228,6 +230,8 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
     { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &dsAddressable_key },
     { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
     { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
+    { "numDevicesInHW", ptype_int32, false, numDevicesInHW_key, &dsAddressable_key },
+    { "deviceIndexInHW", ptype_int32, false, deviceIndexInHW_key, &dsAddressable_key },
     { "oemGuid", ptype_charptr, false, oemGUID_key, &dsAddressable_key },
     { "name", ptype_charptr, false, name_key, &dsAddressable_key }
   };
@@ -256,6 +260,19 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
         case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
         case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); return true;
         case name_key: aPropValue = JsonObject::newString(getName()); return true;
+        // conditionally available
+        case numDevicesInHW_key:
+          if (numDevicesInHW()>=0) {
+            aPropValue = JsonObject::newInt32((int)numDevicesInHW());
+            return true;
+          }
+          break; // no such property
+        case deviceIndexInHW_key:
+          if (deviceIndexInHW()>=0) {
+            aPropValue = JsonObject::newInt32((int)deviceIndexInHW());
+            return true;
+          }
+          break; // no such property
       }
       return true;
     }

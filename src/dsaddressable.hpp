@@ -145,7 +145,17 @@ namespace p44 {
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; }
 
+    /// @return number of vdSDs (virtual devices represented by a separate dSID)
+    ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
+    virtual ssize_t numDevicesInHW() { return -1; }
+
+    /// @return index of this vdSDs (0..numDevicesInHW()-1) among all vdSDs in the same hardware device
+    ///   -1 means undefined
+    virtual ssize_t deviceIndexInHW() { return -1; }
+
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
+    ///   hardwareGUID() must return the same unique ID for the containing hardware device for all contained dSDs
     virtual string hardwareGUID() { return ""; }
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
