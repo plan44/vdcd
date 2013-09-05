@@ -11,6 +11,7 @@
 
 #include <string>
 #include <stdarg.h>
+#include <stdint.h>
 
 using namespace std;
 
