@@ -517,6 +517,7 @@ void ChildThreadWrapper::cancel()
 bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
 {
   ThreadSignals sig = threadSignalNone;
+  DBGLOG(LOG_DEBUG, "\nMAINTHREAD: signalPipeHandler with pollFlags=0x%X\n", aPollFlags);
   if (aPollFlags & POLLIN) {
     uint8_t sigByte;
     ssize_t res = read(parentSignalFd, &sigByte, 1); // read signal byte

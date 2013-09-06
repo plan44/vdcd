@@ -60,14 +60,17 @@ void HueDeviceContainer::bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr 
 // TODO: %%% remove, experimental
 void HueDeviceContainer::threadfunc(ChildThreadWrapper &aThread)
 {
+  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: sleep(3) now\n");
   sleep(3);
+  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: sleep(3) done, sending user signal\n");
   aThread.signalParentThread(threadSignalUserSignal);
+  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: user signal sent\n");
 }
 
 // TODO: %%% remove, experimental
 void HueDeviceContainer::threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
 {
-  DBGLOG(LOG_DEBUG,"Received signal from child thread: %d\n", aSignalCode);
+  DBGLOG(LOG_DEBUG,"\nMAIN THREAD: Received signal from child thread: %d\n", aSignalCode);
 }
 
 
