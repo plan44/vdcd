@@ -170,11 +170,9 @@ void HueDeviceContainer::processCurrentAuthCandidate()
     // try to authorize
     DBGLOG(LOG_DEBUG, "%%% auth candidate: uuid=%s, baseURL=%s", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
     JsonObjectPtr request = JsonObject::newObj();
-    request->add("username", JsonObject::newString(deviceClassContainerInstanceIdentifier()));
+    request->add("username", JsonObject::newString(getDeviceContainer().dsid.getString()));
     request->add("devicetype", JsonObject::newString(getDeviceContainer().modelName()));
-//    bridgeAPIComm.jsonRequest(currentAuthCandidate->second.c_str(), boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
-//    bridgeAPIComm.jsonRequest("http://localhost:8080/json/", boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
-    bridgeAPIComm.jsonRequest("http://localhost:8080/json/gugus/dada", boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "GET");
+    bridgeAPIComm.jsonRequest(currentAuthCandidate->second.c_str(), boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
   }
   else {
     // done with all candidates
