@@ -468,7 +468,6 @@ ChildThreadWrapper::~ChildThreadWrapper()
 void ChildThreadWrapper::terminated()
 {
   signalParentThread(threadSignalCompleted);
-  selfRef.reset(); // this will delete the wrapper if no other pointers exist
 }
 
 
@@ -478,7 +477,7 @@ void ChildThreadWrapper::terminated()
 void ChildThreadWrapper::signalParentThread(ThreadSignals aSignalCode)
 {
   uint8_t sigByte = aSignalCode;
-  write(childSignalFd, &sigByte, 1);
+  int res = write(childSignalFd, &sigByte, 1);
 }
 
 
@@ -517,7 +516,7 @@ void ChildThreadWrapper::cancel()
 bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
 {
   ThreadSignals sig = threadSignalNone;
-  DBGLOG(LOG_DEBUG, "\nMAINTHREAD: signalPipeHandler with pollFlags=0x%X\n", aPollFlags);
+  //DBGLOG(LOG_DEBUG, "\nMAINTHREAD: signalPipeHandler with pollFlags=0x%X\n", aPollFlags);
   if (aPollFlags & POLLIN) {
     uint8_t sigByte;
     ssize_t res = read(parentSignalFd, &sigByte, 1); // read signal byte
@@ -537,18 +536,15 @@ bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
       finalizeThreadExecution();
     }
     // got signal byte, call handler
-    if (parentSignalHandler)
+    if (parentSignalHandler) {
       parentSignalHandler(parentThreadMainLoop, *this, sig);
+    }
+    // in case nobody keeps this object any more, it might be deleted now
+    selfRef.reset();
     // handled some i/O
     return true;
   }
   return false; // did not handle any I/O
 }
-
-
-
-
-
-
 
 
