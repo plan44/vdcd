@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd jsonrpctool
 
-vdcd_CPPFLAGS = -I src/p44utils -I src
+vdcd_CPPFLAGS = -I src/p44utils -I src -I src/mongoose
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -114,6 +114,10 @@ vdcd_SOURCES = \
   src/huedevicecontainer.hpp \
   src/huedevice.cpp \
   src/huedevice.hpp \
+  src/mongoose/mongoose.c\
+  src/mongoose/mongoose.h\
+  src/p44utils/httpcomm.cpp\
+  src/p44utils/httpcomm.hpp\
   src/vdcd_common.hpp \
   src/main.cpp
 
