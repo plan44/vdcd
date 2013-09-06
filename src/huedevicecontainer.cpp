@@ -14,7 +14,8 @@ using namespace p44;
 
 
 HueDeviceContainer::HueDeviceContainer(int aInstanceNumber) :
-  inherited(aInstanceNumber)
+  inherited(aInstanceNumber),
+  bridgeAPIComm(SyncIOMainLoop::currentMainLoop())
 {
 }
 
@@ -56,17 +57,39 @@ void HueDeviceContainer::bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr 
 
 
 
+// TODO: %%% remove, experimental
+void HueDeviceContainer::threadfunc(ChildThreadWrapper &aThread)
+{
+  sleep(3);
+  aThread.signalParentThread(threadSignalUserSignal);
+}
+
+// TODO: %%% remove, experimental
+void HueDeviceContainer::threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
+{
+  DBGLOG(LOG_DEBUG,"Received signal from child thread: %d\n", aSignalCode);
+}
+
+
+
 void HueDeviceContainer::setLearnMode(bool aEnableLearning)
 {
   if (aEnableLearning) {
     // search for any device
     bridgeSearcher = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
     bridgeSearcher->startSearch(boost::bind(&HueDeviceContainer::bridgeDiscoveryHandler, this, _1, _2), NULL);
+
+    // TODO: %%% remove, experimental
+    SyncIOMainLoop::currentMainLoop()->executeInThread(boost::bind(&HueDeviceContainer::threadfunc, this, _1), boost::bind(&HueDeviceContainer::threadsignalfunc, this, _1, _2, _3));
+
   }
   else {
     // stop learning
-    bridgeSearcher->stopSearch();
-    bridgeSearcher.reset();
+    if (bridgeSearcher) {
+      // if discovery still active, stop it
+      bridgeSearcher->stopSearch();
+      bridgeSearcher.reset();
+    }
   }
 }
 
@@ -76,11 +99,26 @@ void HueDeviceContainer::bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorP
 {
   if (Error::isOK(aError)) {
     // check device for possibility of being a hue bridge
-    LOG(LOG_NOTICE, "candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
+    if (aSsdpSearchP->server.find("IpBridge")!=string::npos) {
+      LOG(LOG_NOTICE, "candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
+      // try to load
+      bridgeAPIComm.initiateRequest(aSsdpSearchP->locationURL.c_str(), boost::bind(&HueDeviceContainer::handleBridgeAnswer, this, _2));
+    }
   }
   else {
     LOG(LOG_NOTICE, "discovery failed, error = %s\n", aError->description().c_str());
     aSsdpSearchP->stopSearch();
     bridgeSearcher.reset();
+  }
+}
+
+
+void HueDeviceContainer::handleBridgeAnswer(ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    // try to read
+    uint8_t buffer[10000];
+    size_t gotBytes = bridgeAPIComm.receiveBytes(10000, buffer, aError);
+    DBGLOG(LOG_DEBUG, "Received %d bytes from bridge\n", gotBytes);
   }
 }

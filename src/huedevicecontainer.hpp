@@ -12,6 +12,7 @@
 #include "vdcd_common.hpp"
 
 #include "ssdpsearch.hpp"
+#include "httpcomm.hpp"
 
 #include "deviceclasscontainer.hpp"
 
@@ -28,6 +29,8 @@ namespace p44 {
 
     SsdpSearchPtr bridgeSearcher;
     CompletedCB collectedHandler;
+
+    HttpComm bridgeAPIComm;
 
     /// @name persistent parameters
     /// @{
@@ -53,6 +56,13 @@ namespace p44 {
 
     void bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
     void bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
+
+    void handleBridgeAnswer(ErrorPtr aError);
+
+    // TODO: remove, experimental only %%%
+    void threadfunc(ChildThreadWrapper &aThread);
+    void threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+
 
   };
 

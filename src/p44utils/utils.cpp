@@ -217,10 +217,8 @@ void p44::splitURL(const char *aURI,string *aProtocol,string *aHost,string *aDoc
     r=q;
   }
   else {
-    // in case of '/', do not put slash into docname
-    // except if docname would be empty otherwise
-    r=q+1; // exclude slash
-    if (*r==0) r=q; // nothing follows, include the slash
+    // has docpath beginning with slash
+    r=q; // include the slash
   }
   if (q) {
     // document exists
