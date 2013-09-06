@@ -70,17 +70,44 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
     // now issue request
     const size_t ebufSz = 100;
     char ebuf[ebufSz];
-    mgConn = mg_download(
-      host.c_str(),
-      port,
-      useSSL,
-      ebuf, ebufSz,
-      "%s %s HTTP/1.1\r\nHost: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
-      method.c_str(),
-      doc.c_str(),
-      host.c_str(),
-      requestBody.c_str()
-    );
+    if (requestBody.length()>0) {
+      // is a request which sends data in the HTTP message body (e.g. POST)
+      mgConn = mg_download(
+        host.c_str(),
+        port,
+        useSSL,
+        ebuf, ebufSz,
+        "%s %s HTTP/1.1\r\n"
+        "Host: %s\r\n"
+        "Content-Type: %s; charset=UTF-8\r\n"
+        "Content-Length: %ld\r\n"
+        "\r\n"
+        "%s",
+        method.c_str(),
+        doc.c_str(),
+        host.c_str(),
+        contentType.c_str(),
+        requestBody.length(),
+        requestBody.c_str()
+      );
+    }
+    else {
+      // no request body (e.g. GET)
+      mgConn = mg_download(
+        host.c_str(),
+        port,
+        useSSL,
+        ebuf, ebufSz,
+        "%s %s HTTP/1.1\r\n"
+        "Host: %s\r\n"
+//        "Content-Type: %s; charset=UTF-8\r\n"
+        "\r\n",
+        method.c_str(),
+        doc.c_str(),
+        host.c_str()
+//        ,contentType.c_str()
+      );
+    }
     if (!mgConn) {
       requestError = ErrorPtr(new HttpCommError(HttpCommError_mongooseError, ebuf));
     }
@@ -130,7 +157,7 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
 
 
 
-bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody)
+bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody, const char* aContentType)
 {
   if (requestInProgress || !aURL) return false; // blocked or no URL
 
@@ -138,6 +165,10 @@ bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const
   responseCallback = aResponseCallback;
   method = aMethod;
   requestBody = nonNullCStr(aRequestBody);
+  if (aContentType)
+    contentType = aContentType; // use specified content type
+  else
+    contentType = defaultContentType(); // use default for the class
   // now let subthread handle this
   requestInProgress = true;
   childThread = SyncIOMainLoop::currentMainLoop()->executeInThread(

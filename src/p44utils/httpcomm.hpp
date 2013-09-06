@@ -63,6 +63,7 @@ namespace p44 {
     // vars used in subthread, only access when !requestInProgress
     string requestURL;
     string method;
+    string contentType;
     string requestBody;
     struct mg_connection *mgConn; // mongoose connection
 
@@ -87,14 +88,17 @@ namespace p44 {
     /// @param responseCallback will be called when request completes, returning response or error
     /// @param aMethod the HTTP method to use (defaults to "GET")
     /// @param aRequestBody a C string containing the request body to send, or NULL if none
+    /// @param aContentType the content type for the body to send, or NULL to use default
     /// @return false if no request could be initiated (already busy with another request).
     ///   If false, aHttpCallback will not be called
-    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL);
+    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL, const char *aContentType = NULL);
 
     /// cancel request
     void cancelRequest();
 
   protected:
+    virtual const char *defaultContentType() { return "text/html"; };
+
     virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   private:
