@@ -389,3 +389,165 @@ int SyncIOMainLoop::run()
 	return EXIT_SUCCESS;
 }
 
+
+#pragma mark - execution in subthreads
+
+
+ChildThreadWrapperPtr SyncIOMainLoop::executeInThread(ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler)
+{
+  return ChildThreadWrapperPtr(new ChildThreadWrapper(*this, aThreadRoutine, aThreadSignalHandler));
+}
+
+
+#pragma mark - ChildThreadWrapper
+
+
+static void *thread_start_function(void *arg)
+{
+  // pass into method of wrapper
+  return static_cast<ChildThreadWrapper *>(arg)->startFunction();
+}
+
+
+void *ChildThreadWrapper::startFunction()
+{
+  // run the routine
+  threadRoutine(*this);
+  // signal termination
+  terminated();
+  return NULL;
+}
+
+
+
+ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler) :
+  parentThreadMainLoop(aParentThreadMainLoop),
+  threadRoutine(aThreadRoutine),
+  parentSignalHandler(aThreadSignalHandler),
+  threadRunning(false)
+{
+  // create a signal pipe
+  int pipeFdPair[2];
+  if (pipe(pipeFdPair)==0) {
+    // pipe could be created
+    // - save FDs
+    parentSignalFd = pipeFdPair[0]; // 0 is the reading end
+    childSignalFd = pipeFdPair[1]; // 1 is the writing end
+    // - install poll handler in the parent mainloop
+    parentThreadMainLoop.registerPollHandler(parentSignalFd, POLLIN, boost::bind(&ChildThreadWrapper::signalPipeHandler, this, _4));
+    // create a pthread (with default attrs for now
+    threadRunning = true; // before creating it, to make sure it is set when child starts to run
+    if (pthread_create(&pthread, NULL, thread_start_function, this)!=0) {
+      // error, could not create thread, fake a signal callback immediately
+      threadRunning = false;
+      if (parentSignalHandler)
+        parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+    }
+    else {
+      // thread created ok, keep wrapper object alive
+      selfRef = ChildThreadWrapperPtr(this);
+    }
+  }
+  else {
+    // pipe could not be created
+    if (parentSignalHandler)
+      parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+  }
+}
+
+
+ChildThreadWrapper::~ChildThreadWrapper()
+{
+  // cancel thread
+  cancel();
+}
+
+
+
+// called from child thread when terminated
+void ChildThreadWrapper::terminated()
+{
+  signalParentThread(threadSignalCompleted);
+  selfRef.reset(); // this will delete the wrapper if no other pointers exist
+}
+
+
+
+
+// called from child thread to send signal
+void ChildThreadWrapper::signalParentThread(ThreadSignals aSignalCode)
+{
+  uint8_t sigByte = aSignalCode;
+  write(childSignalFd, &sigByte, 1);
+}
+
+
+// cleanup, called from parent thread
+void ChildThreadWrapper::finalizeThreadExecution()
+{
+  // synchronize with actual end of thread execution
+  pthread_join(pthread, NULL);
+  threadRunning = false;
+  // unregister the handler
+  SyncIOMainLoop::currentMainLoop()->unregisterPollHandler(parentSignalFd);
+  // close the pipes
+  close(childSignalFd);
+  close(parentSignalFd);
+}
+
+
+
+// can be called from parent thread
+void ChildThreadWrapper::cancel()
+{
+  if (threadRunning) {
+    // cancel it
+    pthread_cancel(pthread);
+    // wait for cancellation to complete
+    finalizeThreadExecution();
+    // cancelled
+    if (parentSignalHandler)
+      parentSignalHandler(parentThreadMainLoop, *this, threadSignalCancelled);
+  }
+}
+
+
+
+// called on parent thread from SyncIOMainloop
+bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
+{
+  ThreadSignals sig = threadSignalNone;
+  if (aPollFlags & POLLIN) {
+    uint8_t sigByte;
+    ssize_t res = read(parentSignalFd, &sigByte, 1); // read signal byte
+    if (res==1) {
+      sig = (ThreadSignals)sigByte;
+    }
+  }
+  else if (aPollFlags & POLLHUP) {
+    // HUP means thread has terminated and closed the other end of the pipe already
+    // - treat like receiving a threadSignalCompleted
+    sig = threadSignalCompleted;
+  }
+  if (sig!=threadSignalNone) {
+    // check for thread terminated
+    if (sig==threadSignalCompleted) {
+      // finalize thread execution first
+      finalizeThreadExecution();
+    }
+    // got signal byte, call handler
+    if (parentSignalHandler)
+      parentSignalHandler(parentThreadMainLoop, *this, sig);
+    // handled some i/O
+    return true;
+  }
+  return false; // did not handle any I/O
+}
+
+
+
+
+
+
+
+
