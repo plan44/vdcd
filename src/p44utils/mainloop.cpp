@@ -477,7 +477,7 @@ void ChildThreadWrapper::terminated()
 void ChildThreadWrapper::signalParentThread(ThreadSignals aSignalCode)
 {
   uint8_t sigByte = aSignalCode;
-  int res = write(childSignalFd, &sigByte, 1);
+  write(childSignalFd, &sigByte, 1);
 }
 
 

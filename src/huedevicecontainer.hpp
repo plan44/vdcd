@@ -12,7 +12,7 @@
 #include "vdcd_common.hpp"
 
 #include "ssdpsearch.hpp"
-#include "httpcomm.hpp"
+#include "jsonwebclient.hpp"
 
 #include "deviceclasscontainer.hpp"
 
@@ -27,10 +27,18 @@ namespace p44 {
   {
     typedef DeviceClassContainer inherited;
 
-    SsdpSearchPtr bridgeSearcher;
     CompletedCB collectedHandler;
 
-    HttpComm bridgeAPIComm;
+    // discovery
+    SsdpSearchPtr bridgeSearcher;
+    typedef map<string, string> StringStringMap;
+    StringStringMap bridgeCandiates; ///< possible candidates for hue bridges, key=uuid, value=description URL
+    StringStringMap::iterator currentBridgeCandidate; ///< next candidate for bridge
+    StringStringMap authCandidates; ///< bridges to try auth with, key=uuid, value=baseURL
+    StringStringMap::iterator currentAuthCandidate; ///< next auth candiate
+
+    // HTTP communication object
+    JsonWebClient bridgeAPIComm;
 
     /// @name persistent parameters
     /// @{
@@ -41,7 +49,7 @@ namespace p44 {
     /// @}
 
     // volatile vars
-    string baseURL;
+    string baseURL; ///< base URL for API calls
 
   public:
     HueDeviceContainer(int aInstanceNumber);
@@ -57,11 +65,11 @@ namespace p44 {
     void bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
     void bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
 
-    void handleBridgeAnswer(ErrorPtr aError);
+    void processCurrentBridgeCandidate();
+    void handleBridgeDescriptionAnswer(const string &aResponse, ErrorPtr aError);
 
-    // TODO: remove, experimental only %%%
-    void threadfunc(ChildThreadWrapper &aThread);
-    void threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+    void processCurrentAuthCandidate();
+    void handleBridgeAuthAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
 
   };

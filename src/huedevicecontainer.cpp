@@ -57,34 +57,12 @@ void HueDeviceContainer::bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr 
 
 
 
-// TODO: %%% remove, experimental
-void HueDeviceContainer::threadfunc(ChildThreadWrapper &aThread)
-{
-  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: sleep(3) now\n");
-  sleep(3);
-  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: sleep(3) done, sending user signal\n");
-  aThread.signalParentThread(threadSignalUserSignal);
-  DBGLOG(LOG_DEBUG, "\nSUBTHREAD: user signal sent\n");
-}
-
-// TODO: %%% remove, experimental
-void HueDeviceContainer::threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
-{
-  DBGLOG(LOG_DEBUG,"\nMAIN THREAD: Received signal from child thread: %d\n", aSignalCode);
-}
-
-
-
 void HueDeviceContainer::setLearnMode(bool aEnableLearning)
 {
   if (aEnableLearning) {
     // search for any device
     bridgeSearcher = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
     bridgeSearcher->startSearch(boost::bind(&HueDeviceContainer::bridgeDiscoveryHandler, this, _1, _2), NULL);
-
-    // TODO: %%% remove, experimental
-    SyncIOMainLoop::currentMainLoop()->executeInThread(boost::bind(&HueDeviceContainer::threadfunc, this, _1), boost::bind(&HueDeviceContainer::threadsignalfunc, this, _1, _2, _3));
-
   }
   else {
     // stop learning
@@ -93,6 +71,12 @@ void HueDeviceContainer::setLearnMode(bool aEnableLearning)
       bridgeSearcher->stopSearch();
       bridgeSearcher.reset();
     }
+    #warning "for now, extend search beyond learning period"
+//    // forget all candidates
+//    currentBridgeCandidate = bridgeCandiates.end();
+//    currentAuthCandidate = authCandidates.end();
+//    authCandidates.clear();
+//    bridgeCandiates.clear();
   }
 }
 
@@ -103,25 +87,117 @@ void HueDeviceContainer::bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorP
   if (Error::isOK(aError)) {
     // check device for possibility of being a hue bridge
     if (aSsdpSearchP->server.find("IpBridge")!=string::npos) {
-      LOG(LOG_NOTICE, "candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
-      // try to load
-      bridgeAPIComm.initiateRequest(aSsdpSearchP->locationURL.c_str(), boost::bind(&HueDeviceContainer::handleBridgeAnswer, this, _2));
+      LOG(LOG_NOTICE, "hue bridge candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
+      // put into map
+      bridgeCandiates[aSsdpSearchP->uuid.c_str()] = aSsdpSearchP->locationURL.c_str();
     }
   }
   else {
-    LOG(LOG_NOTICE, "discovery failed, error = %s\n", aError->description().c_str());
+    DBGLOG(LOG_DEBUG, "discovery ended, error = %s (usually: timeout)\n", aError->description().c_str());
     aSsdpSearchP->stopSearch();
     bridgeSearcher.reset();
+    // now process the results
+    currentBridgeCandidate = bridgeCandiates.begin();
+    processCurrentBridgeCandidate();
   }
 }
 
 
-void HueDeviceContainer::handleBridgeAnswer(ErrorPtr aError)
+void HueDeviceContainer::processCurrentBridgeCandidate()
+{
+  if (currentBridgeCandidate!=bridgeCandiates.end()) {
+    // request description XML
+    bridgeAPIComm.httpRequest(
+      (currentBridgeCandidate->second).c_str(),
+      boost::bind(&HueDeviceContainer::handleBridgeDescriptionAnswer, this, _2, _3),
+      "GET"
+    );
+  }
+  else {
+    // done with all candidates
+    bridgeCandiates.clear();
+    // now attempt to authorize
+    currentAuthCandidate = authCandidates.begin();
+    processCurrentAuthCandidate();
+  }
+}
+
+
+
+void HueDeviceContainer::handleBridgeDescriptionAnswer(const string &aResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    // try to read
-    uint8_t buffer[10000];
-    size_t gotBytes = bridgeAPIComm.receiveBytes(10000, buffer, aError);
-    DBGLOG(LOG_DEBUG, "Received %d bytes from bridge\n", gotBytes);
+    // show
+    DBGLOG(LOG_DEBUG, "Received bridge description:\n%s\n", aResponse.c_str());
+    // TODO: this is poor man's XML scanning, use some real XML parser eventually
+    // do some basic checking for model
+    size_t i = aResponse.find("<manufacturer>Royal Philips Electronics</manufacturer>");
+    if (i!=string::npos) {
+      // is from Philips
+      // - check model number
+      i = aResponse.find("<modelNumber>929000226503</modelNumber>");
+      if (i!=string::npos) {
+        // is the right model
+        // - get base URL
+        string token = "<URLBase>";
+        i = aResponse.find(token);
+        if (i!=string::npos) {
+          i += token.size();
+          size_t e = aResponse.find("</URLBase>", i);
+          if (e!=string::npos) {
+            // create the base address for the API
+            string url = aResponse.substr(i,e-i) + "api";
+            // that's a hue bridge, remember it for trying to authorize
+            authCandidates[currentBridgeCandidate->first] = url;
+          }
+        }
+      }
+    }
+  }
+  else {
+    DBGLOG(LOG_DEBUG, "Error accessing bridge description: %s\n", aError->description().c_str());
+  }
+  // try next
+  ++currentBridgeCandidate;
+  processCurrentBridgeCandidate(); // process next, if any
+}
+
+
+
+void HueDeviceContainer::processCurrentAuthCandidate()
+{
+  if (currentAuthCandidate!=authCandidates.end()) {
+    // try to authorize
+    DBGLOG(LOG_DEBUG, "%%% auth candidate: uuid=%s, baseURL=%s", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
+    JsonObjectPtr request = JsonObject::newObj();
+    request->add("username", JsonObject::newString(deviceClassContainerInstanceIdentifier()));
+    request->add("devicetype", JsonObject::newString(getDeviceContainer().modelName()));
+//    bridgeAPIComm.jsonRequest(currentAuthCandidate->second.c_str(), boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
+//    bridgeAPIComm.jsonRequest("http://localhost:8080/json/", boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
+    bridgeAPIComm.jsonRequest("http://localhost:8080/json/gugus/dada", boost::bind(&HueDeviceContainer::handleBridgeAuthAnswer, this, _2, _3), "GET");
+  }
+  else {
+    // done with all candidates
+    authCandidates.clear();
   }
 }
+
+
+
+void HueDeviceContainer::handleBridgeAuthAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    // show
+    DBGLOG(LOG_DEBUG, "Received bridge auth answer:\n%s\n", aJsonResponse->json_c_str());
+  }
+  else {
+    DBGLOG(LOG_DEBUG, "Error doing bridge login: %s\n", aError->description().c_str());
+  }
+  // try next
+  ++currentAuthCandidate;
+  processCurrentAuthCandidate(); // process next, if any
+}
+
+
+
+

@@ -53,7 +53,13 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/httpcomm.cpp\
+  src/p44utils/httpcomm.hpp\
+  src/p44utils/jsonwebclient.cpp\
+  src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44_common.hpp \
+  src/mongoose/mongoose.c\
+  src/mongoose/mongoose.h\
   src/sqlite3pp/sqlite3pp.cpp \
   src/sqlite3pp/sqlite3pp.h \
   src/sqlite3pp/sqlite3ppext.cpp \
@@ -114,10 +120,6 @@ vdcd_SOURCES = \
   src/huedevicecontainer.hpp \
   src/huedevice.cpp \
   src/huedevice.hpp \
-  src/mongoose/mongoose.c\
-  src/mongoose/mongoose.h\
-  src/p44utils/httpcomm.cpp\
-  src/p44utils/httpcomm.hpp\
   src/vdcd_common.hpp \
   src/main.cpp
 

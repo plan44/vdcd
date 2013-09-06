@@ -14,6 +14,7 @@
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED07E25917D786A000889CC3 /* libmongoose.dylib */; };
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
+		ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
@@ -162,9 +163,11 @@
 		ED07E25417D786A000889CC3 /* mongoose.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = mongoose.xcodeproj; path = ../libmongoose/mongoose.xcodeproj; sourceTree = "<group>"; };
 		ED07E25B17D7878D00889CC3 /* httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = httpcomm.cpp; sourceTree = "<group>"; };
 		ED07E25C17D7878D00889CC3 /* httpcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = httpcomm.hpp; sourceTree = "<group>"; };
+		ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonwebclient.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED07E26117DA37BF00889CC3 /* jsonwebclient.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonwebclient.hpp; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsonrpccomm.cpp; sourceTree = "<group>"; };
+		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -343,6 +346,8 @@
 				ED5B2934174124D400334C71 /* sqlite3persistence.hpp */,
 				ED07E25B17D7878D00889CC3 /* httpcomm.cpp */,
 				ED07E25C17D7878D00889CC3 /* httpcomm.hpp */,
+				ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */,
+				ED07E26117DA37BF00889CC3 /* jsonwebclient.hpp */,
 				EDB284421732965700EAE5DE /* operationqueue.cpp */,
 				EDB284431732965700EAE5DE /* operationqueue.hpp */,
 				ED6D7BF617180766005DED18 /* serialqueue.cpp */,
@@ -654,6 +659,7 @@
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
+				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,

@@ -17,21 +17,7 @@ using namespace std;
 
 namespace p44 {
 
-  // Errors
-  typedef enum json_tokener_error JsonCommErrors;
-
-  class JsonCommError : public Error
-  {
-  public:
-    static const char *domain() { return "JsonComm"; }
-    virtual const char *getErrorDomain() const { return JsonCommError::domain(); };
-    JsonCommError(JsonCommErrors aError) : Error(ErrorCode(aError), json_tokener_error_desc(aError)) {};
-    JsonCommError(JsonCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
-  };
-
-
   class JsonComm;
-
 
   /// generic callback for delivering a received JSON object or an error occurred when receiving JSON
   typedef boost::function<void (JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)> JSonMessageCB;

@@ -44,21 +44,38 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<HttpComm> HttpCommPtr;
 
-  /// callback for signalling ready for receive or transmit, or error
-  typedef boost::function<void (HttpComm *aHttpCommP, ErrorPtr aError)> HttpCommCB;
+  /// callback for returning response data or reporting error
+  /// @param aHttpCommP the HttpComm object this callback comes from
+  /// @param aResponse the response string
+  /// @param aError an error object if an error occurred, empty pointer otherwise
+  typedef boost::function<void (HttpComm &aHttpComm, const string &aResponse, ErrorPtr aError)> HttpCommCB;
 
 
   /// wrapper for non-blocking http client communication
+  /// @note this class' implementation is not suitable for handling huge http requests and answers. It is
+  ///   intended for accessing web APIs with short messages.
   class HttpComm : public P44Obj
   {
-    HttpCommCB httpCallback;
+    typedef P44Obj inherited;
 
-    // mongoose
-    struct mg_connection *mgConn;
+    HttpCommCB responseCallback;
+
+    // vars used in subthread, only access when !requestInProgress
+    string requestURL;
+    string method;
+    string requestBody;
+    struct mg_connection *mgConn; // mongoose connection
 
   protected:
 
     SyncIOMainLoop *mainLoopP;
+
+    bool requestInProgress; ///< set when request is in progress and no new request can be issued
+
+    // vars used in subthread, only access when !requestInProgress
+    ChildThreadWrapperPtr childThread;
+    string response;
+    ErrorPtr requestError;
 
   public:
 
@@ -67,31 +84,24 @@ namespace p44 {
 
     /// send a HTTP or HTTPS request
     /// @param aURL the http or https URL to access
-    /// @param aHttpCallback will be called when data is ready to read or write, and on error
-    void initiateRequest(const char *aURL, HttpCommCB aHttpCallback);
+    /// @param responseCallback will be called when request completes, returning response or error
+    /// @param aMethod the HTTP method to use (defaults to "GET")
+    /// @param aRequestBody a C string containing the request body to send, or NULL if none
+    /// @return false if no request could be initiated (already busy with another request).
+    ///   If false, aHttpCallback will not be called
+    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL);
 
-    /// @return number of bytes ready for read
-    size_t numBytesReady();
+    /// cancel request
+    void cancelRequest();
 
-    /// read data (non-blocking)
-    /// @param aNumBytes max number of bytes to receive
-    /// @param aBytes pointer to buffer to store received bytes
-    /// @param aError reference to ErrorPtr. Will be left untouched if no error occurs
-    /// @return number ob bytes actually read
-    size_t receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aError);
-
-    /// close the connection
-    void closeConnection();
-
+  protected:
+    virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   private:
-    // TODO: remove, experimental only %%%
-    void threadfunc(ChildThreadWrapper &aThread);
-    void threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
-
-
+    void requestThread(ChildThreadWrapper &aThread);
 
   };
+
   
 } // namespace p44
 

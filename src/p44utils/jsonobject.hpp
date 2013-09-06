@@ -25,6 +25,21 @@ using namespace std;
 
 namespace p44 {
 
+
+  // Errors
+  typedef enum json_tokener_error JsonErrors;
+
+  class JsonError : public Error
+  {
+  public:
+    static const char *domain() { return "JsonObject"; }
+    virtual const char *getErrorDomain() const { return JsonError::domain(); };
+    JsonError(JsonErrors aError) : Error(ErrorCode(aError), json_tokener_error_desc(aError)) {};
+    JsonError(JsonErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+  };
+  
+  
+
   class JsonObject;
 
   /// shared pointer for JSON object
@@ -34,8 +49,6 @@ namespace p44 {
   /// wrapper around json-c / libjson0 object
   class JsonObject : public P44Obj
   {
-    friend class JsonComm;
-
     struct json_object *json_obj; ///< the json-c object
 
     struct lh_entry *nextEntryP; ///< iterator pointer for resetKeyIteration()/nextKeyValue()
@@ -44,10 +57,6 @@ namespace p44 {
     /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
     JsonObject(struct json_object *aObjPassingOwnership);
 
-    /// factory to return smart pointer to new wrapper of a newly created json_object
-    /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
-    static JsonObjectPtr newObj(struct json_object *aObjPassingOwnership);
-
     /// construct empty object
     JsonObject();
 
@@ -55,6 +64,10 @@ namespace p44 {
 
     /// destructor, releases internally kept json_object (which is possibly owned by other objects)
     virtual ~JsonObject();
+
+    /// factory to return smart pointer to new wrapper of a newly created json_object
+    /// @param obj json_object, ownership is passed into this JsonObject, caller looses ownership!
+    static JsonObjectPtr newObj(struct json_object *aObjPassingOwnership);
 
     /// get type
     json_type type();

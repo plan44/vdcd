@@ -13,6 +13,7 @@ using namespace p44;
 
 HttpComm::HttpComm(SyncIOMainLoop *aMainLoopP) :
   mainLoopP(aMainLoopP),
+  requestInProgress(false),
   mgConn(NULL)
 {
 }
@@ -20,7 +21,8 @@ HttpComm::HttpComm(SyncIOMainLoop *aMainLoopP) :
 
 HttpComm::~HttpComm()
 {
-  closeConnection();
+  responseCallback.clear(); // prevent calling back now
+  cancelRequest(); // make sure subthread is cancelled
 }
 
 
@@ -43,32 +45,14 @@ HttpComm::~HttpComm()
 
 
 
-// TODO: %%% remove, experimental
-void HttpComm::threadfunc(ChildThreadWrapper &aThread)
-{
-  sleep(10);
-  aThread.signalParentThread(threadSignalUserSignal);
-}
-
-// TODO: %%% remove, experimental
-void HttpComm::threadsignalfunc(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
-{
-  DBGLOG(LOG_DEBUG,"Received signal from child thread: %d", aSignalCode);
-}
-
-
-
-void HttpComm::initiateRequest(const char *aURL, HttpCommCB aHttpCallback)
+void HttpComm::requestThread(ChildThreadWrapper &aThread)
 {
   string protocol, hostSpec, host, doc;
   uint16_t port;
-  ErrorPtr err;
 
-//  // TODO: %%% remove, experimental
-//  SyncIOMainLoop::currentMainLoop()->executeInThread(boost::bind(&HttpComm::threadfunc, this, _1), boost::bind(&HttpComm::threadsignalfunc, this, _1, _2, _3));
-
-  httpCallback = aHttpCallback;
-  splitURL(aURL, &protocol, &hostSpec, &doc, NULL, NULL);
+  requestError.reset();
+  response.clear();
+  splitURL(requestURL.c_str(), &protocol, &hostSpec, &doc, NULL, NULL);
   bool useSSL;
   if (protocol=="http") {
     port = 80;
@@ -79,10 +63,10 @@ void HttpComm::initiateRequest(const char *aURL, HttpCommCB aHttpCallback)
     useSSL = true;
   }
   else {
-    err = ErrorPtr(new HttpCommError(HttpCommError_invalidParameters, "invalid protocol"));
+    requestError = ErrorPtr(new HttpCommError(HttpCommError_invalidParameters, "invalid protocol"));
   }
   splitHost(hostSpec.c_str(), &host, &port);
-  if (Error::isOK(err)) {
+  if (Error::isOK(requestError)) {
     // now issue request
     const size_t ebufSz = 100;
     char ebuf[ebufSz];
@@ -91,63 +75,84 @@ void HttpComm::initiateRequest(const char *aURL, HttpCommCB aHttpCallback)
       port,
       useSSL,
       ebuf, ebufSz,
-      "GET %s HTTP/1.1\r\nHost: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n",
+      "%s %s HTTP/1.1\r\nHost: %s\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n%s",
+      method.c_str(),
       doc.c_str(),
-      host.c_str()
+      host.c_str(),
+      requestBody.c_str()
     );
     if (!mgConn) {
-      err = ErrorPtr(new HttpCommError(HttpCommError_mongooseError, ebuf));
+      requestError = ErrorPtr(new HttpCommError(HttpCommError_mongooseError, ebuf));
     }
     else {
-      // successfully initiated connection, ready for mg_read
-      if (httpCallback) httpCallback(this, err);
+      // successfully initiated connection, now read from it
+      const size_t bufferSz = 2048;
+      uint8_t *bufferP = new uint8_t[bufferSz];
+      while (true) {
+        ssize_t res = mg_read(mgConn, bufferP, bufferSz);
+        if (res==0) {
+          // connection has closed, all bytes read
+          break;
+        }
+        else if (res<0) {
+          // read error
+          requestError = ErrorPtr(new HttpCommError(HttpCommError_read));
+          break;
+        }
+        else {
+          // data read
+          response.append((const char *)bufferP, (size_t)res);
+        }
+      }
+      delete bufferP;
+      mg_close_connection(mgConn);
     }
   }
-  if (!Error::isOK(err)) {
-    // abort early
-    if (httpCallback) httpCallback(this, err);
+  // ending the thread function will call the requestThreadSignal on the main thread
+}
+
+
+
+void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
+{
+  DBGLOG(LOG_DEBUG,"Received signal from child thread: %d", aSignalCode);
+  if (aSignalCode==threadSignalCompleted) {
+    requestInProgress = false; // thread completed
+    // call back with result of request
+    // Note: this callback might initiate another request already -
+    if (responseCallback)
+      responseCallback(*this, response, requestError);
+    // release child thread object now
+    responseCallback.clear();
+    childThread.reset();
   }
 }
 
 
 
-size_t HttpComm::numBytesReady()
+bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody)
 {
-  return 0;
+  if (requestInProgress || !aURL) return false; // blocked or no URL
+
+  requestURL = aURL;
+  responseCallback = aResponseCallback;
+  method = aMethod;
+  requestBody = nonNullCStr(aRequestBody);
+  // now let subthread handle this
+  requestInProgress = true;
+  childThread = SyncIOMainLoop::currentMainLoop()->executeInThread(
+    boost::bind(&HttpComm::requestThread, this, _1),
+    boost::bind(&HttpComm::requestThreadSignal, this, _1, _2, _3)
+  );
+  return true; // could be initiated (even if immediately ended due to error, but callback was called)
 }
 
 
-size_t HttpComm::receiveBytes(size_t aNumBytes, uint8_t *aBytes, ErrorPtr &aError)
+void HttpComm::cancelRequest()
 {
-  ssize_t res = 0;
-  if (mgConn) {
-    res = mg_read(mgConn, aBytes, aNumBytes);
-    if (res==0) {
-      // connection has closed, all bytes read
-      closeConnection();
-      return 0;
-    }
-    else if (res<0) {
-      // read error
-      aError = ErrorPtr(new HttpCommError(HttpCommError_read));
-      closeConnection();
-      return 0;
-    }
-    return res;
-  }
-  else {
-    aError = ErrorPtr(new HttpCommError(HttpCommError_noConnection));
-  }
-  return res;
-}
-
-
-
-void HttpComm::closeConnection()
-{
-  if (mgConn) {
-    mg_close_connection(mgConn);
-    mgConn = NULL;
+  if (requestInProgress && childThread) {
+    childThread->cancel();
+    requestInProgress = false; // prevent cancelling multiple times
   }
 }
 
