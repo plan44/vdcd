@@ -13,8 +13,8 @@
 using namespace p44;
 
 
-SerialComm::SerialComm(SyncIOMainLoop *aMainLoopP) :
-	inherited(aMainLoopP),
+SerialComm::SerialComm(SyncIOMainLoop &aMainLoop) :
+	inherited(aMainLoop),
   connectionPort(0),
   baudRate(9600),
   connectionOpen(false)

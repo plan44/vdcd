@@ -491,7 +491,7 @@ void LightBehaviour::nextBlink()
   // schedule next
   if (blinkCounter>0) {
     // schedule next blink
-    MainLoop::currentMainLoop()->executeOnce(boost::bind(&LightBehaviour::nextBlink, this), BLINK_HALF_PERIOD);
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::nextBlink, this), BLINK_HALF_PERIOD);
   }
 }
 

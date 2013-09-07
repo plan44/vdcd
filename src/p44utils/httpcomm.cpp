@@ -11,8 +11,8 @@
 
 using namespace p44;
 
-HttpComm::HttpComm(SyncIOMainLoop *aMainLoopP) :
-  mainLoopP(aMainLoopP),
+HttpComm::HttpComm(SyncIOMainLoop &aMainLoop) :
+  mainLoop(aMainLoop),
   requestInProgress(false),
   mgConn(NULL)
 {
@@ -171,7 +171,7 @@ bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const
     contentType = defaultContentType(); // use default for the class
   // now let subthread handle this
   requestInProgress = true;
-  childThread = SyncIOMainLoop::currentMainLoop()->executeInThread(
+  childThread = SyncIOMainLoop::currentMainLoop().executeInThread(
     boost::bind(&HttpComm::requestThread, this, _1),
     boost::bind(&HttpComm::requestThreadSignal, this, _1, _2, _3)
   );

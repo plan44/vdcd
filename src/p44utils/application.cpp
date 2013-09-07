@@ -25,16 +25,16 @@ Application *Application::sharedApplication()
 }
 
 
-Application::Application(MainLoop *aMainLoopP)
+Application::Application(MainLoop &aMainLoop) :
+  mainLoop(aMainLoop)
 {
-	mainLoopP = aMainLoopP;
   sharedApplicationP = this;
 }
 
 
-Application::Application()
+Application::Application() :
+  mainLoop(MainLoop::currentMainLoop())
 {
-	mainLoopP = MainLoop::currentMainLoop();
   sharedApplicationP = this;
 }
 
@@ -58,12 +58,10 @@ void Application::initialize()
 
 int Application::run()
 {
-	if (!mainLoopP)
-		terminateApp(EXIT_SUCCESS); // NOP App
 	// schedule the initialize() method as first mainloop method
-	mainLoopP->executeOnce(boost::bind(&Application::initialize, this));
+	mainLoop.executeOnce(boost::bind(&Application::initialize, this));
 	// run the mainloop
-	return mainLoopP->run();
+	return mainLoop.run();
 }
 
 
@@ -120,8 +118,8 @@ void Application::daemonize()
 
 
 /// constructor
-CmdLineApp::CmdLineApp(MainLoop *aMainLoopP) :
-  inherited(aMainLoopP),
+CmdLineApp::CmdLineApp(MainLoop &aMainLoop) :
+  inherited(aMainLoop),
   optionDescriptors(NULL)
 {
 }

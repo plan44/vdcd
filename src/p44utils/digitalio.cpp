@@ -141,7 +141,7 @@ ButtonInput::ButtonInput(const char* aName, bool aInverted) :
 
 ButtonInput::~ButtonInput()
 {
-  MainLoop::currentMainLoop()->unregisterIdleHandlers(this);
+  MainLoop::currentMainLoop().unregisterIdleHandlers(this);
 }
 
 
@@ -151,11 +151,11 @@ void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAn
   repeatActiveReport = aRepeatActiveReport;
   buttonHandler = aButtonHandler;
   if (buttonHandler) {
-    MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _2));
+    MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _2));
   }
   else {
     // unregister
-    MainLoop::currentMainLoop()->unregisterIdleHandlers(this);
+    MainLoop::currentMainLoop().unregisterIdleHandlers(this);
   }
 }
 
@@ -198,13 +198,13 @@ IndicatorOutput::IndicatorOutput(const char* aName, bool aInverted, bool aInitia
   blinkOnTime(Never),
   blinkOffTime(Never)
 {
-  MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _2));
+  MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _2));
 }
 
 
 IndicatorOutput::~IndicatorOutput()
 {
-  MainLoop::currentMainLoop()->unregisterIdleHandlers(this);
+  MainLoop::currentMainLoop().unregisterIdleHandlers(this);
 }
 
 

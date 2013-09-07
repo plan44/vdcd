@@ -74,7 +74,7 @@ namespace p44 {
     ErrorPtr unhandledError;
   public:
 
-    SerialComm(SyncIOMainLoop *aMainLoopP);
+    SerialComm(SyncIOMainLoop &aMainLoop);
     virtual ~SerialComm();
 
     /// Specify the serial connection parameters as single string

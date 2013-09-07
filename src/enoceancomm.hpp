@@ -301,7 +301,7 @@ namespace p44 {
 		
 	public:
 		
-		EnoceanComm(SyncIOMainLoop *aMainLoopP);
+		EnoceanComm(SyncIOMainLoop &aMainLoop);
 		virtual ~EnoceanComm();
 		
     /// set the connection parameters to connect to the enOcean TCM310 modem

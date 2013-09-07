@@ -142,7 +142,7 @@ namespace p44 {
   
 	public:
     /// create operation queue linked into specified Synchronous IO mainloop
-    SerialOperationQueue(SyncIOMainLoop *aMainLoopP);
+    SerialOperationQueue(SyncIOMainLoop &aMainLoop);
     /// destructor
     virtual ~SerialOperationQueue();
 
@@ -164,7 +164,7 @@ namespace p44 {
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// SyncIOMainloop handlers
-    bool pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
 
 
   };

@@ -69,7 +69,7 @@ namespace p44 {
 
   protected:
 
-    SyncIOMainLoop *mainLoopP;
+    SyncIOMainLoop &mainLoop;
 
     bool requestInProgress; ///< set when request is in progress and no new request can be issued
 
@@ -80,7 +80,7 @@ namespace p44 {
 
   public:
 
-    HttpComm(SyncIOMainLoop *aMainLoopP);
+    HttpComm(SyncIOMainLoop &aMainLoop);
     virtual ~HttpComm();
 
     /// send a HTTP or HTTPS request

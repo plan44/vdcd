@@ -50,13 +50,13 @@ static __thread MainLoop *currentMainLoopP = NULL;
 #endif
 
 // get the per-thread singleton mainloop
-MainLoop *MainLoop::currentMainLoop()
+MainLoop &MainLoop::currentMainLoop()
 {
 	if (currentMainLoopP==NULL) {
 		// need to create it
 		currentMainLoopP = new MainLoop();
 	}
-	return currentMainLoopP;
+	return *currentMainLoopP;
 }
 
 
@@ -205,7 +205,7 @@ void MainLoop::runOnetimeHandlers()
     if (terminated) return; // terminated means everything is considered complete
     OneTimeCB cb = pos->callback; // get handler
     pos = onetimeHandlers.erase(pos); // remove from queue
-    cb(this, cycleStartTime); // call handler
+    cb(*this, cycleStartTime); // call handler
     ++pos;
   }
 }
@@ -218,7 +218,7 @@ bool MainLoop::runIdleHandlers()
   while (pos!=idleHandlers.end()) {
     if (terminated) return true; // terminated means everything is considered complete
     IdleCB cb = pos->callback; // get handler
-    allCompleted = allCompleted && cb(this, cycleStartTime); // call handler
+    allCompleted = allCompleted && cb(*this, cycleStartTime); // call handler
 		++pos;
   }
   return allCompleted;
@@ -230,7 +230,7 @@ bool MainLoop::runIdleHandlers()
 
 
 // get the per-thread singleton Synchronous IO mainloop
-SyncIOMainLoop *SyncIOMainLoop::currentMainLoop()
+SyncIOMainLoop &SyncIOMainLoop::currentMainLoop()
 {
   SyncIOMainLoop *mlP = NULL;
 	if (currentMainLoopP==NULL) {
@@ -241,7 +241,8 @@ SyncIOMainLoop *SyncIOMainLoop::currentMainLoop()
   else {
     mlP = dynamic_cast<SyncIOMainLoop *>(currentMainLoopP);
   }
-	return mlP;
+  assert(mlP); // must exist now
+	return *mlP;
 }
 
 
@@ -341,7 +342,7 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
         SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
         if (pos!=syncIOHandlers.end()) {
           // - there is a handler
-          if (pos->second.pollHandler(this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+          if (pos->second.pollHandler(*this, cycleStartTime, pollfdP->fd, pollfdP->revents))
             didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
         }
       }
@@ -488,7 +489,7 @@ void ChildThreadWrapper::finalizeThreadExecution()
   pthread_join(pthread, NULL);
   threadRunning = false;
   // unregister the handler
-  SyncIOMainLoop::currentMainLoop()->unregisterPollHandler(parentSignalFd);
+  SyncIOMainLoop::currentMainLoop().unregisterPollHandler(parentSignalFd);
   // close the pipes
   close(childSignalFd);
   close(parentSignalFd);

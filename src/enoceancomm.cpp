@@ -835,8 +835,8 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 #define ENOCEAN_ESP3_BAUDRATE 57600
 
 
-EnoceanComm::EnoceanComm(SyncIOMainLoop *aMainLoopP) :
-	inherited(aMainLoopP)
+EnoceanComm::EnoceanComm(SyncIOMainLoop &aMainLoop) :
+	inherited(aMainLoop)
 {
 }
 

@@ -46,7 +46,7 @@ ConsoleKey::ConsoleKey(char aKeyCode, const char *aDescription, bool aInitialSta
 
 ConsoleKey::~ConsoleKey()
 {
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
 }
 
 
@@ -64,7 +64,7 @@ void ConsoleKey::setConsoleKeyHandler(ConsoleKeyHandlerCB aHandler)
 
 void ConsoleKey::setState(bool aState)
 {
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
   state = aState;
   printf("- Console input '%s' - changed to %d\n", description.c_str(), state);
   reportState();
@@ -73,7 +73,7 @@ void ConsoleKey::setState(bool aState)
 
 void ConsoleKey::toggle()
 {
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
   state = !state;
   printf("- Console input '%s' - toggled to %d\n", description.c_str(), state);
   reportState();
@@ -82,8 +82,8 @@ void ConsoleKey::toggle()
 
 void ConsoleKey::pulse()
 {
-  MainLoop::currentMainLoop()->cancelExecutionsFrom(this);
-  MainLoop::currentMainLoop()->executeOnce(boost::bind(&ConsoleKey::pulseEnd, this), 200*MilliSecond);
+  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&ConsoleKey::pulseEnd, this), 200*MilliSecond);
   if (state==initialState) {
     state = !initialState;
     reportState();
@@ -128,13 +128,13 @@ ConsoleKeyManager::ConsoleKeyManager() :
   termInitialized(false)
 {
   // install polling
-  MainLoop::currentMainLoop()->registerIdleHandler(this, boost::bind(&ConsoleKeyManager::consoleKeyPoll, this));
+  MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&ConsoleKeyManager::consoleKeyPoll, this));
 }
 
 
 ConsoleKeyManager::~ConsoleKeyManager()
 {
-  MainLoop::currentMainLoop()->unregisterIdleHandlers(this);
+  MainLoop::currentMainLoop().unregisterIdleHandlers(this);
 }
 
 

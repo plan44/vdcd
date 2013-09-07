@@ -48,11 +48,11 @@ namespace p44 {
   protected:
   
     int dataFd;
-    SyncIOMainLoop *mainLoopP;
+    SyncIOMainLoop &mainLoop;
 
   public:
 
-    FdComm(SyncIOMainLoop *aMainLoopP);
+    FdComm(SyncIOMainLoop &aMainLoop);
     virtual ~FdComm();
 
     /// Set file descriptor
@@ -110,7 +110,7 @@ namespace p44 {
 
   private:
 
-    bool dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
   };
   
 } // namespace p44

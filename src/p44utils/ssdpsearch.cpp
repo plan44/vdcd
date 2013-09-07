@@ -10,8 +10,8 @@
 
 using namespace p44;
 
-SsdpSearch::SsdpSearch(SyncIOMainLoop *aMainLoopP) :
-  inherited(aMainLoopP)
+SsdpSearch::SsdpSearch(SyncIOMainLoop &aMainLoop) :
+  inherited(aMainLoop)
 {
   setReceiveHandler(boost::bind(&SsdpSearch::gotData, this, _2));
 }
@@ -86,7 +86,7 @@ void SsdpSearch::socketStatusHandler(ErrorPtr aError)
     );
     transmitString(ssdpSearch);
     // start timer (wait twice the MX for answers)
-    timeoutTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*2*Second);
+    timeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*2*Second);
   }
   else {
     // error starting search
@@ -109,7 +109,7 @@ void SsdpSearch::searchTimedOut()
 
 void SsdpSearch::stopSearch()
 {
-  MainLoop::currentMainLoop()->cancelExecutionTicket(timeoutTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(timeoutTicket);
   closeConnection();
 }
 

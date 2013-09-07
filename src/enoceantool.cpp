@@ -117,7 +117,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static EnoceanTool application;
   // pass control

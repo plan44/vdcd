@@ -90,13 +90,13 @@ namespace p44 {
   /// Operation queue
   class OperationQueue : public P44Obj
   {
-    MainLoop *mainLoopP;
+    MainLoop &mainLoop;
   protected:
     typedef list<OperationPtr> OperationList;
     OperationList operationQueue;
   public:
     /// create operation queue linked into specified mainloop
-    OperationQueue(MainLoop *aMainLoopP);
+    OperationQueue(MainLoop &aMainLoop);
     /// destructor
     virtual ~OperationQueue();
 

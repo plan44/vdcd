@@ -198,8 +198,8 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 
 
 // Link into mainloop
-SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop *aMainLoopP) :
-  inherited(aMainLoopP),
+SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
+  inherited(aMainLoop),
   fdToMonitor(-1)
 {
 }
@@ -231,12 +231,12 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
   if (aFileDescriptor!=fdToMonitor) {
     // unregister previous one, if any
     if (fdToMonitor>=0) {
-      SyncIOMainLoop::currentMainLoop()->unregisterPollHandler(fdToMonitor);
+      SyncIOMainLoop::currentMainLoop().unregisterPollHandler(fdToMonitor);
     }
     // unregister new one, if any
     if (aFileDescriptor>=0) {
       // register
-      SyncIOMainLoop::currentMainLoop()->registerPollHandler(
+      SyncIOMainLoop::currentMainLoop().registerPollHandler(
         aFileDescriptor,
         POLLIN,
         boost::bind(&SerialOperationQueue::pollHandler, this, _1, _2, _3, _4)
@@ -250,7 +250,7 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
 
 #define RECBUFFER_SIZE 100
 
-bool SerialOperationQueue::pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+bool SerialOperationQueue::pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
@@ -263,14 +263,14 @@ bool SerialOperationQueue::pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds
 }
 
 
-//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
 //{
 //
 //  return true;
 //}
 //
 //
-//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
 //{
 //
 //  return true;

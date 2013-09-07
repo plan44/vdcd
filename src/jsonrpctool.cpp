@@ -267,7 +267,7 @@ public:
         jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3, _4)); // answer expected, add handler
       // and ask for next method
       inputState = waiting_for_method;
-      MainLoop::currentMainLoop()->executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
     }
     else if (inputState==waiting_for_errorcode) {
       if (text.size()>0) {
@@ -308,7 +308,7 @@ public:
       jsonRpcComm->sendResult(lastId.c_str(), result);
       // and ask for next method
       inputState = waiting_for_method;
-      MainLoop::currentMainLoop()->executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
     }
     else {
       // invalid
@@ -329,7 +329,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static JsonRpcTool application;
   // pass control

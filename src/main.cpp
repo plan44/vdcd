@@ -288,7 +288,7 @@ public:
     // back to normal...
     stopLearning();
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
-    MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isOK(aError)) {
       if (aLearnIn) {
@@ -311,7 +311,7 @@ public:
   void stopLearning()
   {
     deviceContainer.stopLearning();
-    MainLoop::currentMainLoop()->cancelExecutionTicket(learningTimerTicket);
+    MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
     setAppStatus(status_ok);
   }
 
@@ -345,7 +345,7 @@ public:
         if (!learningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&P44bridged::stopLearning, this), LEARN_TIMEOUT);
+          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this), LEARN_TIMEOUT);
           deviceContainer.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
         }
         else {
@@ -405,7 +405,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static P44bridged application;
   // pass control

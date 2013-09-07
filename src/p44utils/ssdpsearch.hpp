@@ -57,7 +57,7 @@ namespace p44 {
     string uuid; ///< will be set to the uuid (extracted from USN header) of the result
     string server; ///< will be set to the SERVER header
 
-    SsdpSearch(SyncIOMainLoop *aMainLoopP);
+    SsdpSearch(SyncIOMainLoop &aMainLoop);
     virtual ~SsdpSearch();
 
     /// start a SSDP search for a specific UUID or all root devices

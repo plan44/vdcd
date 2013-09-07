@@ -30,8 +30,8 @@ namespace p44 {
   const MLMicroSeconds Minute = 60*Second;
 
   /// Mainloop callback
-  typedef boost::function<bool (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
-  typedef boost::function<void (MainLoop *aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+  typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
 
 
   /// A main loop for a thread
@@ -60,8 +60,8 @@ namespace p44 {
     MainLoop();
   public:
 
-    /// returns the current thread's mainloop
-    static MainLoop *currentMainLoop();
+    /// returns or creates the current thread's mainloop
+    static MainLoop &currentMainLoop();
 
     /// returns the current microsecond
     static MLMicroSeconds now();
@@ -132,7 +132,7 @@ namespace p44 {
   /// @param aFD the file descriptor that was signalled and has caused this call
   /// @param aPollFlags the poll flags describing the reason for the callback
   /// @return should true if callback really handled some I/O, false if it only checked flags and found nothing to do
-  typedef boost::function<bool (SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
+  typedef boost::function<bool (SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
   /// thread routine, will be called on a separate thread
   /// @param aThreadWrapper the object that wraps the thread and allows sending signals to the parent thread
@@ -172,9 +172,9 @@ namespace p44 {
   public:
 
     /// returns the current thread's SyncIOMainLoop
-    /// @return the current SyncIOMainLoop. Returns NULL if current mainloop for this thread is not a SyncIOMainLoop
+    /// @return the current SyncIOMainLoop. raises an assertion if current mainloop is not a SyncIOMainLoop
     /// @note creates a SyncIOMainLoop for the thread if no other type of mainloop already exists
-    static SyncIOMainLoop *currentMainLoop();
+    static SyncIOMainLoop &currentMainLoop();
 
     /// register handler to be called for activity on specified file descriptor
     /// @param aFD the file descriptor to poll

@@ -128,11 +128,11 @@ void Operation::abortOperation(ErrorPtr aError)
 
 
 // create operation queue into specified mainloop
-OperationQueue::OperationQueue(MainLoop *aMainLoopP)
+OperationQueue::OperationQueue(MainLoop &aMainLoop) :
+  mainLoop(aMainLoop)
 {
-  mainLoopP = aMainLoopP; // remember mainloop
   // register with mainloop
-  mainLoopP->registerIdleHandler(this, boost::bind(&OperationQueue::idleHandler, this));
+  mainLoop.registerIdleHandler(this, boost::bind(&OperationQueue::idleHandler, this));
 }
 
 
@@ -140,7 +140,7 @@ OperationQueue::OperationQueue(MainLoop *aMainLoopP)
 OperationQueue::~OperationQueue()
 {
   // unregister from mainloop
-  mainLoopP->unregisterIdleHandlers(this);
+  mainLoop.unregisterIdleHandlers(this);
 }
 
 

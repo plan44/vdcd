@@ -12,8 +12,8 @@
 
 using namespace p44;
 
-JsonWebClient::JsonWebClient(SyncIOMainLoop *aMainLoopP) :
-  HttpComm(aMainLoopP)
+JsonWebClient::JsonWebClient(SyncIOMainLoop &aMainLoop) :
+  HttpComm(aMainLoop)
 {
 }
 
