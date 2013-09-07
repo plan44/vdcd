@@ -14,6 +14,7 @@
 #include "ssdpsearch.hpp"
 #include "jsonwebclient.hpp"
 
+#include "huecomm.hpp"
 #include "deviceclasscontainer.hpp"
 
 using namespace std;
@@ -27,18 +28,9 @@ namespace p44 {
   {
     typedef DeviceClassContainer inherited;
 
+    HueComm hueComm;
+
     CompletedCB collectedHandler;
-
-    // discovery
-    SsdpSearchPtr bridgeSearcher;
-    typedef map<string, string> StringStringMap;
-    StringStringMap bridgeCandiates; ///< possible candidates for hue bridges, key=uuid, value=description URL
-    StringStringMap::iterator currentBridgeCandidate; ///< next candidate for bridge
-    StringStringMap authCandidates; ///< bridges to try auth with, key=uuid, value=baseURL
-    StringStringMap::iterator currentAuthCandidate; ///< next auth candiate
-
-    // HTTP communication object
-    JsonWebClient bridgeAPIComm;
 
     /// @name persistent parameters
     /// @{
@@ -47,9 +39,6 @@ namespace p44 {
     string apiToken; ///< the API token
 
     /// @}
-
-    // volatile vars
-    string baseURL; ///< base URL for API calls
 
   public:
     HueDeviceContainer(int aInstanceNumber);
@@ -62,15 +51,8 @@ namespace p44 {
 
   private:
 
-    void bridgeDiscoveryHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
-    void bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
-
-    void processCurrentBridgeCandidate();
-    void handleBridgeDescriptionAnswer(const string &aResponse, ErrorPtr aError);
-
-    void processCurrentAuthCandidate();
-    void handleBridgeAuthAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError);
-
+    void refindResultHandler(ErrorPtr aError);
+    void learnResultHandler(ErrorPtr aError);
 
   };
 
