@@ -87,10 +87,10 @@ void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t 
 class BridgeResponseHandler
 {
   DaliComm::DaliBridgeResultCB callback;
-  DaliComm *daliComm;
+  DaliComm &daliComm;
 public:
-  BridgeResponseHandler(DaliComm *aDaliCommP, DaliComm::DaliBridgeResultCB aResultCB) :
-    daliComm(aDaliCommP),
+  BridgeResponseHandler(DaliComm &aDaliComm, DaliComm::DaliBridgeResultCB aResultCB) :
+    daliComm(aDaliComm),
     callback(aResultCB)
   {};
   void operator() (Operation *aOpP, OperationQueue *aQueueP, ErrorPtr aError) {
@@ -120,7 +120,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
   // deliver unhandled error
   if (unhandledError && aResultCB) {
     // return and clear last unhandled error
-    aResultCB(this, 0, 0, getLastUnhandledError());
+    aResultCB(*this, 0, 0, getLastUnhandledError());
   }
   else {
     SerialOperation *opP = NULL;
@@ -138,7 +138,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     }
     if (opP) {
       SerialOperationPtr op(opP);
-      op->setOperationCB(BridgeResponseHandler(this, aResultCB));
+      op->setOperationCB(BridgeResponseHandler(*this, aResultCB));
       if (aWithDelay>0)
         op->setInitiationDelay(aWithDelay);
       queueSerialOperation(op);
@@ -156,7 +156,7 @@ class DaliCommandStatusHandler
 {
   DaliComm::DaliCommandStatusCB callback;
 protected:
-  DaliComm *daliComm;
+  DaliComm &daliComm;
 
 public:
   static ErrorPtr checkBridgeResponse(uint8_t aResp1, uint8_t aResp2, ErrorPtr aError, bool &aNoOrTimeout)
@@ -187,12 +187,12 @@ public:
     return ErrorPtr(new DaliCommError(DaliCommErrorBridgeUnknown));
   }
 
-  DaliCommandStatusHandler(DaliComm *aDaliCommP, DaliComm::DaliCommandStatusCB aResultCB) :
-    daliComm(aDaliCommP),
+  DaliCommandStatusHandler(DaliComm &aDaliComm, DaliComm::DaliCommandStatusCB aResultCB) :
+    daliComm(aDaliComm),
     callback(aResultCB)
   { };
 
-  void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
+  void operator() (DaliComm &aDaliComm, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
   {
     bool noOrTimeout;
     aError = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
@@ -204,7 +204,7 @@ public:
     if (callback)
       callback(daliComm, aError);
     else
-      daliComm->setUnhandledError(aError);
+      daliComm.setUnhandledError(aError);
   }
 };
 
@@ -213,12 +213,12 @@ class DaliQueryResponseHandler : DaliCommandStatusHandler
 {
   DaliComm::DaliQueryResultCB callback;
 public:
-  DaliQueryResponseHandler(DaliComm *aDaliCommP, DaliComm::DaliQueryResultCB aResultCB) :
-    DaliCommandStatusHandler(aDaliCommP, NULL),
+  DaliQueryResponseHandler(DaliComm &aDaliComm, DaliComm::DaliQueryResultCB aResultCB) :
+    DaliCommandStatusHandler(aDaliComm, NULL),
     callback(aResultCB)
   { };
 
-  void operator() (DaliComm *aDaliCommP, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
+  void operator() (DaliComm &aDaliComm, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
   {
     bool noOrTimeout;
     aError = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
@@ -226,7 +226,7 @@ public:
     if (callback)
       callback(daliComm, noOrTimeout, aResp2, aError);
     else
-      daliComm->setUnhandledError(aError);
+      daliComm.setUnhandledError(aError);
   };
 };
 
@@ -252,7 +252,7 @@ void DaliComm::reset(DaliCommandStatusCB aStatusCB)
 
 void DaliComm::daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB, int aWithDelay)
 {
-  sendBridgeCommand(CMD_CODE_SEND16, aDali1, aDali2, DaliCommandStatusHandler(this, aStatusCB), aWithDelay);
+  sendBridgeCommand(CMD_CODE_SEND16, aDali1, aDali2, DaliCommandStatusHandler(*this, aStatusCB), aWithDelay);
 }
 
 void DaliComm::daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB, int aWithDelay)
@@ -280,7 +280,7 @@ void DaliComm::daliSendDtrAndCommand(DaliAddress aAddress, uint8_t aCommand, uin
 
 void DaliComm::daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB, int aWithDelay)
 {
-  sendBridgeCommand(CMD_CODE_2SEND16, aDali1, aDali2, DaliCommandStatusHandler(this, aStatusCB), aWithDelay);
+  sendBridgeCommand(CMD_CODE_2SEND16, aDali1, aDali2, DaliCommandStatusHandler(*this, aStatusCB), aWithDelay);
 }
 
 void DaliComm::daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB, int aWithDelay)
@@ -301,7 +301,7 @@ void DaliComm::daliSendDtrAndConfigCommand(DaliAddress aAddress, uint8_t aComman
 
 void DaliComm::daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB, int aWithDelay)
 {
-  sendBridgeCommand(CMD_CODE_SEND16_REC8, aDali1, aDali2, DaliQueryResponseHandler(this, aResultCB), aWithDelay);
+  sendBridgeCommand(CMD_CODE_SEND16_REC8, aDali1, aDali2, DaliQueryResponseHandler(*this, aResultCB), aWithDelay);
 }
 
 
@@ -381,30 +381,30 @@ DaliAddress DaliComm::addressFromDaliResponse(uint8_t aResponse)
 
 class DaliBusScanner : public P44Obj
 {
-  DaliComm *daliComm;
+  DaliComm &daliComm;
   DaliComm::DaliBusScanCB callback;
   DaliAddress shortAddress;
   DaliComm::ShortAddressListPtr activeDevicesPtr;
   bool probablyCollision;
   bool unconfiguredDevices;
 public:
-  static void scanBus(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB)
+  static void scanBus(DaliComm &aDaliComm, DaliComm::DaliBusScanCB aResultCB)
   {
     // create new instance, deletes itself when finished
-    new DaliBusScanner(aDaliCommP, aResultCB);
+    new DaliBusScanner(aDaliComm, aResultCB);
   };
 private:
-  DaliBusScanner(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB) :
+  DaliBusScanner(DaliComm &aDaliComm, DaliComm::DaliBusScanCB aResultCB) :
     callback(aResultCB),
-    daliComm(aDaliCommP),
+    daliComm(aDaliComm),
     probablyCollision(false),
     unconfiguredDevices(false),
     activeDevicesPtr(new std::list<DaliAddress>)
   {
-    daliComm->startProcedure();
+    daliComm.startProcedure();
     LOG(LOG_INFO, "DaliComm: starting quick bus scan (short address poll)\n");
     // reset the bus first
-    daliComm->reset(boost::bind(&DaliBusScanner::resetComplete, this, _2));
+    daliComm.reset(boost::bind(&DaliBusScanner::resetComplete, this, _2));
   }
 
   void resetComplete(ErrorPtr aError)
@@ -412,7 +412,7 @@ private:
     if (aError)
       return completed(aError);
     // check if there are devices without short address
-    daliComm->daliSendQuery(DaliBroadcast, DALICMD_QUERY_MISSING_SHORT_ADDRESS, boost::bind(&DaliBusScanner::handleMissingShortAddressResponse, this, _2, _3, _4));
+    daliComm.daliSendQuery(DaliBroadcast, DALICMD_QUERY_MISSING_SHORT_ADDRESS, boost::bind(&DaliBusScanner::handleMissingShortAddressResponse, this, _2, _3, _4));
   }
 
 
@@ -463,7 +463,7 @@ private:
   // query next device
   void queryNext()
   {
-    daliComm->daliSendQuery(shortAddress, DALICMD_QUERY_CONTROL_GEAR, boost::bind(&DaliBusScanner::handleScanResponse, this, _2, _3, _4));
+    daliComm.daliSendQuery(shortAddress, DALICMD_QUERY_CONTROL_GEAR, boost::bind(&DaliBusScanner::handleScanResponse, this, _2, _3, _4));
   }
 
   void completed(ErrorPtr aError)
@@ -472,7 +472,7 @@ private:
     if (!aError && (probablyCollision || unconfiguredDevices)) {
       aError = ErrorPtr(new DaliCommError(DaliCommErrorNeedFullScan,"Need full bus scan"));
     }
-    daliComm->endProcedure();
+    daliComm.endProcedure();
     callback(daliComm, activeDevicesPtr, aError);
     // done, delete myself
     delete this;
@@ -483,8 +483,8 @@ private:
 
 void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 {
-  if (isBusy()) { aResultCB(this, ShortAddressListPtr(), DaliComm::busyError()); return; }
-  DaliBusScanner::scanBus(this, aResultCB);
+  if (isBusy()) { aResultCB(*this, ShortAddressListPtr(), DaliComm::busyError()); return; }
+  DaliBusScanner::scanBus(*this, aResultCB);
 }
 
 
@@ -496,7 +496,7 @@ void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 
 class DaliFullBusScanner : public P44Obj
 {
-  DaliComm *daliComm;
+  DaliComm &daliComm;
   DaliComm::DaliBusScanCB callback;
   bool fullScanOnlyIfNeeded;
   uint32_t searchMax;
@@ -510,19 +510,19 @@ class DaliFullBusScanner : public P44Obj
   DaliComm::ShortAddressListPtr usedShortAddrsPtr;
   DaliAddress newAddress;
 public:
-  static void fullBusScan(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
+  static void fullBusScan(DaliComm &aDaliComm, DaliComm::DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
   {
     // create new instance, deletes itself when finished
-    new DaliFullBusScanner(aDaliCommP, aResultCB, aFullScanOnlyIfNeeded);
+    new DaliFullBusScanner(aDaliComm, aResultCB, aFullScanOnlyIfNeeded);
   };
 private:
-  DaliFullBusScanner(DaliComm *aDaliCommP, DaliComm::DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded) :
-    daliComm(aDaliCommP),
+  DaliFullBusScanner(DaliComm &aDaliComm, DaliComm::DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded) :
+    daliComm(aDaliComm),
     callback(aResultCB),
     fullScanOnlyIfNeeded(aFullScanOnlyIfNeeded),
     foundDevicesPtr(new DaliComm::ShortAddressList)
   {
-    daliComm->startProcedure();
+    daliComm.startProcedure();
     // first scan for used short addresses
     DaliBusScanner::scanBus(daliComm,boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _2, _3));
   }
@@ -542,10 +542,10 @@ private:
     usedShortAddrsPtr = aShortAddressListPtr;
     LOG(LOG_INFO, "DaliComm: starting full bus scan (random address binary search)\n");
     // Terminate any special modes first
-    daliComm->daliSend(DALICMD_TERMINATE, 0x00);
+    daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // initialize entire system for random address selection process
-    daliComm->daliSendTwice(DALICMD_INITIALISE, 0x00);
-    daliComm->daliSendTwice(DALICMD_RANDOMISE, 0x00);
+    daliComm.daliSendTwice(DALICMD_INITIALISE, 0x00);
+    daliComm.daliSendTwice(DALICMD_RANDOMISE, 0x00);
     // start search at lowest address
     newSearchUpFrom(0);
   };
@@ -600,23 +600,23 @@ private:
     uint8_t by = (searchAddr>>16) & 0xFF;
     if (by!=searchH || setLMH) {
       searchH = by;
-      daliComm->daliSend(DALICMD_SEARCHADDRH, searchH);
+      daliComm.daliSend(DALICMD_SEARCHADDRH, searchH);
     }
     // - searchM
     by = (searchAddr>>8) & 0xFF;
     if (by!=searchM || setLMH) {
       searchM = by;
-      daliComm->daliSend(DALICMD_SEARCHADDRM, searchM);
+      daliComm.daliSend(DALICMD_SEARCHADDRM, searchM);
     }
     // - searchL
     by = (searchAddr) & 0xFF;
     if (by!=searchL || setLMH) {
       searchL = by;
-      daliComm->daliSend(DALICMD_SEARCHADDRL, searchL);
+      daliComm.daliSend(DALICMD_SEARCHADDRL, searchL);
     }
     setLMH = false; // incremental from now on until flag is set again
     // - issue the compare command
-    daliComm->daliSendAndReceive(DALICMD_COMPARE, 0x00, boost::bind(&DaliFullBusScanner::handleCompareResult, this, _2, _3, _4));
+    daliComm.daliSendAndReceive(DALICMD_COMPARE, 0x00, boost::bind(&DaliFullBusScanner::handleCompareResult, this, _2, _3, _4));
   }
 
   void handleCompareResult(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
@@ -646,7 +646,7 @@ private:
       // found!
       LOG(LOG_INFO, "- Found device at 0x%06X\n", searchAddr);
       // read current short address
-      daliComm->daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _2, _3, _4));
+      daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _2, _3, _4));
     }
     else {
       // not yet - continue
@@ -698,8 +698,8 @@ private:
       // check if we need to re-assign the short address
       if (newAddress!=DaliBroadcast) {
         // new address must be assigned
-        daliComm->daliSend(DALICMD_PROGRAM_SHORT_ADDRESS, DaliComm::dali1FromAddress(newAddress)+1);
-        daliComm->daliSendAndReceive(
+        daliComm.daliSend(DALICMD_PROGRAM_SHORT_ADDRESS, DaliComm::dali1FromAddress(newAddress)+1);
+        daliComm.daliSendAndReceive(
           DALICMD_VERIFY_SHORT_ADDRESS, DaliComm::dali1FromAddress(newAddress)+1,
           boost::bind(&DaliFullBusScanner::handleNewShortAddressVerify, this, _2, _3, _4),
           1000 // delay one second before querying for new short address
@@ -730,7 +730,7 @@ private:
     // store short address
     foundDevicesPtr->push_back(aShortAddress);
     // withdraw this device from further searches
-    daliComm->daliSend(DALICMD_WITHDRAW, 0x00);
+    daliComm.daliSend(DALICMD_WITHDRAW, 0x00);
     // continue searching devices
     newSearchUpFrom(searchAddr+1);
   }
@@ -738,9 +738,9 @@ private:
   void completed(ErrorPtr aError)
   {
     // terminate
-    daliComm->daliSend(DALICMD_TERMINATE, 0x00);
+    daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // callback
-    daliComm->endProcedure();
+    daliComm.endProcedure();
     callback(daliComm, foundDevicesPtr, aError);
     // done, delete myself
     delete this;
@@ -750,8 +750,8 @@ private:
 
 void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
 {
-  if (isBusy()) { aResultCB(this, ShortAddressListPtr(), DaliComm::busyError()); return; }
-  DaliFullBusScanner::fullBusScan(this, aResultCB, aFullScanOnlyIfNeeded);
+  if (isBusy()) { aResultCB(*this, ShortAddressListPtr(), DaliComm::busyError()); return; }
+  DaliFullBusScanner::fullBusScan(*this, aResultCB, aFullScanOnlyIfNeeded);
 }
 
 
@@ -760,29 +760,29 @@ void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeed
 
 class DaliMemoryReader : public P44Obj
 {
-  DaliComm *daliComm;
+  DaliComm &daliComm;
   DaliComm::DaliReadMemoryCB callback;
   DaliAddress busAddress;
   DaliComm::MemoryVectorPtr memory;
   int bytesToRead;
 public:
-  static void readMemory(DaliComm *aDaliCommP, DaliComm::DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes)
+  static void readMemory(DaliComm &aDaliComm, DaliComm::DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes)
   {
     // create new instance, deletes itself when finished
-    new DaliMemoryReader(aDaliCommP, aResultCB, aAddress, aBank, aOffset, aNumBytes);
+    new DaliMemoryReader(aDaliComm, aResultCB, aAddress, aBank, aOffset, aNumBytes);
   };
 private:
-  DaliMemoryReader(DaliComm *aDaliCommP, DaliComm::DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes) :
-    daliComm(aDaliCommP),
+  DaliMemoryReader(DaliComm &aDaliComm, DaliComm::DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes) :
+    daliComm(aDaliComm),
     callback(aResultCB),
     busAddress(aAddress),
     memory(new std::vector<uint8_t>)
   {
-    daliComm->startProcedure();
+    daliComm.startProcedure();
     // set DTR1 = bank
-    daliComm->daliSend(DALICMD_SET_DTR1, aBank);
+    daliComm.daliSend(DALICMD_SET_DTR1, aBank);
     // set DTR = offset within bank
-    daliComm->daliSend(DALICMD_SET_DTR, aOffset);
+    daliComm.daliSend(DALICMD_SET_DTR, aOffset);
     // start reading
     bytesToRead = aNumBytes;
     readNextByte();
@@ -801,7 +801,7 @@ private:
       }
     }
     // read done, timeout or error, return memory to callback
-    daliComm->endProcedure();
+    daliComm.endProcedure();
     callback(daliComm, memory, aError);
     // done, delete myself
     delete this;
@@ -809,15 +809,15 @@ private:
 
   void readNextByte()
   {
-    daliComm->daliSendQuery(busAddress, DALICMD_READ_MEMORY_LOCATION, boost::bind(&DaliMemoryReader::handleResponse, this, _2, _3, _4));
+    daliComm.daliSendQuery(busAddress, DALICMD_READ_MEMORY_LOCATION, boost::bind(&DaliMemoryReader::handleResponse, this, _2, _3, _4));
   }
 };
 
 
 void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, uint8_t aBank, uint8_t aOffset, uint8_t aNumBytes)
 {
-  if (isBusy()) { aResultCB(this, MemoryVectorPtr(), DaliComm::busyError()); return; }
-  DaliMemoryReader::readMemory(this, aResultCB, aAddress, aBank, aOffset, aNumBytes);
+  if (isBusy()) { aResultCB(*this, MemoryVectorPtr(), DaliComm::busyError()); return; }
+  DaliMemoryReader::readMemory(*this, aResultCB, aAddress, aBank, aOffset, aNumBytes);
 }
 
 
@@ -826,23 +826,23 @@ void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, 
 
 class DaliDeviceInfoReader : public P44Obj
 {
-  DaliComm *daliComm;
+  DaliComm &daliComm;
   DaliComm::DaliDeviceInfoCB callback;
   DaliAddress busAddress;
   DaliComm::DaliDeviceInfoPtr deviceInfo;
 public:
-  static void readDeviceInfo(DaliComm *aDaliCommP, DaliComm::DaliDeviceInfoCB aResultCB, DaliAddress aAddress)
+  static void readDeviceInfo(DaliComm &aDaliComm, DaliComm::DaliDeviceInfoCB aResultCB, DaliAddress aAddress)
   {
     // create new instance, deletes itself when finished
-    new DaliDeviceInfoReader(aDaliCommP, aResultCB, aAddress);
+    new DaliDeviceInfoReader(aDaliComm, aResultCB, aAddress);
   };
 private:
-  DaliDeviceInfoReader(DaliComm *aDaliCommP, DaliComm::DaliDeviceInfoCB aResultCB, DaliAddress aAddress) :
-    daliComm(aDaliCommP),
+  DaliDeviceInfoReader(DaliComm &aDaliComm, DaliComm::DaliDeviceInfoCB aResultCB, DaliAddress aAddress) :
+    daliComm(aDaliComm),
     callback(aResultCB),
     busAddress(aAddress)
   {
-    daliComm->startProcedure();
+    daliComm.startProcedure();
     // read the memory
     DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0Data, this, _2, _3), busAddress, 0, 0, DALIMEM_BANK0_MINBYTES);
   };
@@ -943,7 +943,7 @@ private:
 
   void complete(ErrorPtr aError)
   {
-    daliComm->endProcedure();
+    daliComm.endProcedure();
     callback(daliComm, deviceInfo, aError);
     // done, delete myself
     delete this;
@@ -953,8 +953,8 @@ private:
 
 void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddress)
 {
-  if (isBusy()) { aResultCB(this, DaliDeviceInfoPtr(), DaliComm::busyError()); return; }
-  DaliDeviceInfoReader::readDeviceInfo(this, aResultCB, aAddress);
+  if (isBusy()) { aResultCB(*this, DaliDeviceInfoPtr(), DaliComm::busyError()); return; }
+  DaliDeviceInfoReader::readDeviceInfo(*this, aResultCB, aAddress);
 }
 
 
