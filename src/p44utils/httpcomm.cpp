@@ -131,7 +131,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
           response.append((const char *)bufferP, (size_t)res);
         }
       }
-      delete bufferP;
+      delete[] bufferP;
       mg_close_connection(mgConn);
     }
   }

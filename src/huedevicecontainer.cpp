@@ -46,7 +46,7 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
   }
   else {
     // not found (usually timeout)
-    LOG(LOG_NOTICE, "Error refinding hue bridge with uuid %s, error = %s\n", hueComm.ssdpUuid.c_str(), aError->description().c_str());
+    LOG(LOG_NOTICE, "Error refinding hue bridge with uuid %s, error = %s\n", hueComm.uuid.c_str(), aError->description().c_str());
     collectedHandler(ErrorPtr()); // no hue bridge to collect lights from (but this is not a collect error)
   }
 }
@@ -73,6 +73,15 @@ void HueDeviceContainer::learnResultHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // found and authenticated bridge
+    LOG(LOG_NOTICE,
+      "Hue bridge found and registered with it:\n"
+      "- uuid = %s\n",
+      "- userName = %s\n",
+      "- API base URL = %s\n",
+      hueComm.uuid.c_str(),
+      hueComm.userName.c_str(),
+      hueComm.baseURL.c_str()
+    );
     // TODO: persist hue parameters
 
     // TODO: now get lights
@@ -81,8 +90,7 @@ void HueDeviceContainer::learnResultHandler(ErrorPtr aError)
   }
   else {
     // not found (usually timeout)
-    LOG(LOG_NOTICE, "Error refinding hue bridge with uuid %s, error = %s\n", hueComm.ssdpUuid.c_str(), aError->description().c_str());
-    collectedHandler(ErrorPtr()); // no hue bridge to collect lights from (but this is not a collect error)
+    LOG(LOG_NOTICE, "No hue bridge found to register, error = %s\n", aError->description().c_str());
   }
 }
 

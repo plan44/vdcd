@@ -25,6 +25,7 @@ namespace p44 {
     HueCommErrorOK,
     HueCommErrorUuidNotFound, ///< bridge specified by ssdpUuid was not found
     HueCommErrorInvalidToken, ///< bridge did not accept the apiToken
+    HueCommErrorNoRegistration, ///< could not register with a bridge
   } HueCommErrors;
 
   class HueCommError : public Error
@@ -63,8 +64,8 @@ namespace p44 {
     /// @name settings
     /// @{
 
-    string ssdpUuid; ///< the UUID for searching the hue bridge via SSDP
-    string apiToken; ///< the API token
+    string uuid; ///< the UUID for searching the hue bridge via SSDP
+    string userName; ///< the user name
 
     /// @}
 
@@ -78,11 +79,12 @@ namespace p44 {
     typedef boost::function<void (HueComm &aHueComm, ErrorPtr aError)> HueBridgeFindCB;
 
     /// find and try to pair new hue bridge
-    /// @param aLoginName the login name for the hue bridge. Identifier without spaces and funny characters
-    /// @param aAppDescription a short description to identify the instance accessing the hue
+    /// @param aUserName the suggested user name for the hue bridge. Identifier without spaces and funny characters
+    ///   if bridge is not happy with the user name suggested, it will assign a hex string
+    /// @param aDeviceType a short description to identify the type of device/software accessing the hue bridge
     /// @param aAuthTimeWindow how long we should look for hue bridges with link button pressed among the candidates
     /// @note on success, the ssdpUuid, apiToken and baseURL string member variables will be set (when aFindHandler is called)
-    void findNewBridge(const char *aLoginName, const char *aAppDescription, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler);
+    void findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler);
 
     /// find an already known bridge again (might have different IP in DHCP environment)
     /// @param aFindHandler called to deliver find result

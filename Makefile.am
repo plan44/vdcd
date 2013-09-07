@@ -116,6 +116,8 @@ vdcd_SOURCES = \
   src/digitaliodevice.hpp \
   src/staticdevicecontainer.cpp \
   src/staticdevicecontainer.hpp \
+  src/huecomm.cpp \
+  src/huecomm.hpp \
   src/huedevicecontainer.cpp \
   src/huedevicecontainer.hpp \
   src/huedevice.cpp \
