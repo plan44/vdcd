@@ -150,7 +150,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // found and authenticated bridge
     LOG(LOG_NOTICE,
-      "Hue bridge found and registered with it:\n"
+      "Hue bridge found and logged in:\n"
       "- uuid = %s\n"
       "- userName = %s\n"
       "- API base URL = %s\n",
@@ -159,6 +159,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
       hueComm.baseURL.c_str()
     );
     // check if we found the already learned-in bridge
+    bool learnIn = false;
     if (hueComm.uuid==bridgeUuid) {
       // this is the bridge that was learned in previously. Learn it out
       // - delete it from the whitelist
@@ -168,6 +169,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
     }
     else {
       // new bridge found
+      learnIn = true;
       bridgeUuid = hueComm.uuid;
       bridgeUserName = hueComm.userName;
     }
@@ -177,10 +179,12 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
       bridgeUuid.c_str(),
       bridgeUserName.c_str()
     );
-    // TODO: now get lights
-
+    // now process the learn in/out
+    if (learnIn) {
+      // TODO: now get lights
+    }
     // report successful learn event
-    getDeviceContainer().reportLearnEvent(true, ErrorPtr());
+    getDeviceContainer().reportLearnEvent(learnIn, ErrorPtr());
   }
   else {
     // not found (usually timeout)
