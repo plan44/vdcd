@@ -48,7 +48,7 @@ void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUui
 
 #define SSDP_BROADCAST_ADDR "239.255.255.250"
 #define SSDP_PORT "1900"
-#define SSDP_MX 5 // not more than 5
+#define SSDP_MX 3 // should be sufficient (5 is max allowed)
 
 
 void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget)
@@ -86,7 +86,7 @@ void SsdpSearch::socketStatusHandler(ErrorPtr aError)
     );
     transmitString(ssdpSearch);
     // start timer (wait twice the MX for answers)
-    timeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*2*Second);
+    timeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*1500*MilliSecond);
   }
   else {
     // error starting search

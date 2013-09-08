@@ -23,8 +23,9 @@ namespace p44 {
   // Errors
   typedef enum {
     HueCommErrorOK,
-    HueCommErrorUuidNotFound, ///< bridge specified by ssdpUuid was not found
-    HueCommErrorInvalidToken, ///< bridge did not accept the apiToken
+    HueCommErrorUuidNotFound, ///< bridge specified by uuid was not found
+    HueCommErrorDescription, ///< SSDP by uuid did find a device, but XML description was inaccessible or invalid
+    HueCommErrorInvalidUser, ///< bridge did not allow accessing the API with the username
     HueCommErrorNoRegistration, ///< could not register with a bridge
   } HueCommErrors;
 

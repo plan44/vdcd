@@ -23,36 +23,57 @@ namespace p44 {
 
 
   class HueDeviceContainer;
+
+  /// persistence for enocean device container
+  class HuePersistence : public SQLite3Persistence
+  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
   typedef boost::intrusive_ptr<HueDeviceContainer> HueDeviceContainerPtr;
   class HueDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;
 
     HueComm hueComm;
+    HuePersistence db;
 
     CompletedCB collectedHandler;
 
     /// @name persistent parameters
     /// @{
 
-    string ssdpUuid; ///< the UUID for searching the hue bridge via SSDP
-    string apiToken; ///< the API token
+    string bridgeUuid; ///< the UUID for searching the hue bridge via SSDP
+    string bridgeUserName; ///< the user name registered with the bridge
 
     /// @}
 
   public:
     HueDeviceContainer(int aInstanceNumber);
 
+		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+
     virtual const char *deviceClassIdentifier() const;
 
+    /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
+    /// forget all devices (but don't delete learned-in devices, so next collect will add them again)
+    virtual void forgetDevices();
+
+    /// set container learn mode
+    /// @param aEnableLearning true to enable learning mode
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     void setLearnMode(bool aEnableLearning);
 
   private:
 
     void refindResultHandler(ErrorPtr aError);
-    void learnResultHandler(ErrorPtr aError);
+    void searchResultHandler(ErrorPtr aError);
 
   };
 

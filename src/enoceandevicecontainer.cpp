@@ -146,8 +146,6 @@ void EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice
 {
   addKnownDevice(aEnoceanDevice);
   // save enocean ID to DB
-  sqlite3pp::query qry(db);
-  // - check if this subdevice is already stored
   db.executef(
     "INSERT OR REPLACE INTO knownDevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
     aEnoceanDevice->getAddress(),

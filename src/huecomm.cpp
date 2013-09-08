@@ -23,6 +23,7 @@ class p44::BridgeFinder : public P44Obj
 public:
 
   // discovery
+  bool refind;
   SsdpSearch bridgeDetector;
   typedef map<string, string> StringStringMap;
   StringStringMap bridgeCandiates; ///< possible candidates for hue bridges, key=uuid, value=description URL
@@ -55,6 +56,7 @@ public:
 
   void findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueComm::HueBridgeFindCB aFindHandler)
   {
+    refind = false;
     callback = aFindHandler;
     userName = nonNullCStr(aUserName);
     deviceType = nonNullCStr(aDeviceType);
@@ -66,6 +68,7 @@ public:
 
   void refindBridge(HueComm::HueBridgeFindCB aFindHandler)
   {
+    refind = true;
     callback = aFindHandler;
     uuid = hueComm.uuid;;
     userName = hueComm.userName;
@@ -76,10 +79,21 @@ public:
 
   void bridgeRefindHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError)
   {
-    // TODO: implement %%%
-    //%%% return error and release, for now
-    callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorUuidNotFound)));
-    keepAlive.reset(); // will delete object if nobody else keeps it
+    if (!Error::isOK(aError)) {
+      // could not find bridge, return error
+      callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorUuidNotFound)));
+      keepAlive.reset(); // will delete object if nobody else keeps it
+      return; // done
+    }
+    else {
+      // found, now get description to get baseURL
+      // - put it into queue as the only candidate
+      bridgeCandiates.clear();
+      bridgeCandiates[aSsdpSearchP->uuid.c_str()] = aSsdpSearchP->locationURL.c_str();
+      // process the candidate
+      currentBridgeCandidate = bridgeCandiates.begin();
+      processCurrentBridgeCandidate();
+    }
   }
 
 
@@ -115,10 +129,19 @@ public:
     }
     else {
       // done with all candidates
-      bridgeCandiates.clear();
-      // now attempt to pair with one of the candidates
-      startedAuth = MainLoop::now();
-      attemptPairingWithCandidates();
+      if (refind) {
+        // failed getting description, return error
+        callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorDescription)));
+        keepAlive.reset(); // will delete object if nobody else keeps it
+        return; // done
+      }
+      else {
+        // finding new bridges - attempt user login
+        bridgeCandiates.clear();
+        // now attempt to pair with one of the candidates
+        startedAuth = MainLoop::now();
+        attemptPairingWithCandidates();
+      }
     }
   }
 
@@ -146,8 +169,17 @@ public:
             if (e!=string::npos) {
               // create the base address for the API
               string url = aResponse.substr(i,e-i) + "api";
-              // that's a hue bridge, remember it for trying to authorize
-              authCandidates[currentBridgeCandidate->first] = url;
+              if (refind) {
+                // that's my known hue bridge, save the URL and report success
+                hueComm.baseURL = url; // save it
+                callback(hueComm, ErrorPtr()); // success
+                keepAlive.reset(); // will delete object if nobody else keeps it
+                return; // done
+              }
+              else {
+                // that's a hue bridge, remember it for trying to authorize
+                authCandidates[currentBridgeCandidate->first] = url;
+              }
             }
           }
         }
@@ -216,9 +248,9 @@ public:
             // apparently successful, extract user name
             JsonObjectPtr u = responseParams->get("username");
             if (u) {
-              userName = u->stringValue();
-              uuid = currentAuthCandidate->first;
-              baseURL = currentAuthCandidate->second;
+              hueComm.userName = u->stringValue();
+              hueComm.uuid = currentAuthCandidate->first;
+              hueComm.baseURL = currentAuthCandidate->second;
               DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", uuid.c_str(), baseURL.c_str(), userName.c_str());
               // successfully registered with hue bridge, let caller know
               callback(hueComm, ErrorPtr());
