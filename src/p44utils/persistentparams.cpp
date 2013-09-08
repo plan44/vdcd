@@ -158,7 +158,7 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
 {
   ErrorPtr err;
   rowid = 0; // loading means that we'll get the rowid from the DB, so forget any previous one
-  sqlite3pp::query * queryP = newLoadAllQuery(aParentIdentifier);
+  sqlite3pp::query *queryP = newLoadAllQuery(aParentIdentifier);
   if (queryP==NULL) {
     // real error preparing query
     err = paramStore.error();
@@ -172,6 +172,7 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
       loadFromRow(row, index); // might set dirty when assigning properties...
       dirty = false; // ...so: just loaded: make clean
     }
+    delete queryP; queryP = NULL;
   }
   if (Error::isOK(err)) {
     err = loadChildren();
