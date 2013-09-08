@@ -58,7 +58,7 @@ void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the flags
   deviceFlags = aRow->get<int>(aIndex++);
-  device.setName(aRow->get<string>(aIndex++));
+  device.setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
 }
 
 
