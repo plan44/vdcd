@@ -40,13 +40,13 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
           if (err!=json_tokener_continue) {
             // real error
             requestError = ErrorPtr(new JsonError(err));
-            json_tokener_reset(tokener);
           }
         }
         else {
           // got JSON object
           message = JsonObject::newObj(o);
         }
+        json_tokener_free(tokener);
       }
       // call back with result of request
       // Note: this callback might initiate another request already
