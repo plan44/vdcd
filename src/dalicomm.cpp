@@ -93,8 +93,8 @@ public:
     daliComm(aDaliComm),
     callback(aResultCB)
   {};
-  void operator() (Operation *aOpP, OperationQueue *aQueueP, ErrorPtr aError) {
-    SerialOperationReceive *ropP = dynamic_cast<SerialOperationReceive *>(aOpP);
+  void operator() (Operation &aOperation, OperationQueue *aQueueP, ErrorPtr aError) {
+    SerialOperationReceive *ropP = dynamic_cast<SerialOperationReceive *>(&aOperation);
     if (ropP) {
       // get received data
       if (!aError && ropP->getDataSize()>=2) {
@@ -126,7 +126,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     SerialOperation *opP = NULL;
     if (aCmd<8) {
       // single byte command
-      opP = new SerialOperationSendAndReceive(1,&aCmd,2);
+      opP = new SerialOperationSendAndReceive(1, &aCmd, 2, BridgeResponseHandler(*this, aResultCB));
     }
     else {
       // 3 byte command
@@ -134,11 +134,10 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
       cmd3[0] = aCmd;
       cmd3[1] = aDali1;
       cmd3[2] = aDali2;
-      opP = new SerialOperationSendAndReceive(3,cmd3,2);
+      opP = new SerialOperationSendAndReceive(3, cmd3, 2, BridgeResponseHandler(*this, aResultCB));
     }
     if (opP) {
       SerialOperationPtr op(opP);
-      op->setOperationCB(BridgeResponseHandler(*this, aResultCB));
       if (aWithDelay>0)
         op->setInitiationDelay(aWithDelay);
       queueSerialOperation(op);

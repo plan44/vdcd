@@ -90,6 +90,7 @@ namespace p44 {
 
     virtual bool initiate();
     virtual bool hasCompleted();
+    virtual OperationPtr finalize(p44::OperationQueue *aQueueP);
     virtual void abortOperation(ErrorPtr aError);
 
   };
@@ -163,7 +164,7 @@ namespace p44 {
     /// @param aFindHandler called to deliver find result
     /// @note ssdpUuid and apiToken member variables must be set to the pre-know bridge's parameters before calling this
     void refindBridge(HueBridgeFindCB aFindHandler);
-    
+
   };
   
 } // namespace p44

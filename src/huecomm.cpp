@@ -91,9 +91,6 @@ void HueApiOperation::processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError
       }
     }
   }
-  // call back
-  if (resultHandler)
-    resultHandler(hueComm, data, error);
   // done
   completed = true;
   // have queue reprocessed
@@ -109,12 +106,28 @@ bool HueApiOperation::hasCompleted()
 
 
 
+OperationPtr HueApiOperation::finalize(p44::OperationQueue *aQueueP)
+{
+  if (resultHandler) {
+    resultHandler(hueComm, data, error);
+    resultHandler = NULL; // call once only
+  }
+  return OperationPtr(); // no operation to insert
+}
+
+
+
 void HueApiOperation::abortOperation(ErrorPtr aError)
 {
-  if (!completed) {
-    hueComm.bridgeAPIComm.cancelRequest();
+  if (!aborted) {
+    if (!completed) {
+      hueComm.bridgeAPIComm.cancelRequest();
+    }
+    if (resultHandler) {
+      resultHandler(hueComm, JsonObjectPtr(), aError);
+      resultHandler = NULL; // call once only
+    }
   }
-  inherited::abortOperation(aError);
 }
 
 

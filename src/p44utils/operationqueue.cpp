@@ -43,13 +43,6 @@ void Operation::setInitiatesAt(MLMicroSeconds aInitiatesAt)
 }
 
 
-// set callback to execute when operation completes
-void Operation::setOperationCB(OperationFinalizeCB aCallBack)
-{
-  finalizeCallback = aCallBack;
-}
-
-
 // check if can be initiated
 bool Operation::canInitiate()
 {
@@ -97,29 +90,6 @@ bool Operation::hasTimedOutAt(MLMicroSeconds aRefTime)
 {
   if (timesOutAt==0) return false;
   return aRefTime>=timesOutAt;
-}
-
-
-// call to execute after completion
-OperationPtr Operation::finalize(OperationQueue *aQueueP)
-{
-  if (finalizeCallback) {
-    finalizeCallback(*this,aQueueP,ErrorPtr());
-    finalizeCallback = NULL; // call once only
-  }
-  return OperationPtr();
-}
-
-
-
-// call to execute to abort operation
-void Operation::abortOperation(ErrorPtr aError)
-{
-  if (finalizeCallback && !aborted) {
-    aborted = true;
-    finalizeCallback(*this,NULL,aError);
-    finalizeCallback = NULL; // call once only
-  }
 }
 
 
