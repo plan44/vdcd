@@ -10,6 +10,116 @@
 
 using namespace p44;
 
+
+#pragma mark - HueApiOperation
+
+HueApiOperation::HueApiOperation(HueComm &aHueComm, HttpMethods aMethod, const char* aUrl, JsonObjectPtr aData, HueApiResultCB aResultHandler) :
+  hueComm(aHueComm),
+  method(aMethod),
+  url(aUrl),
+  data(aData),
+  resultHandler(aResultHandler),
+  completed(false)
+{
+}
+
+
+
+HueApiOperation::~HueApiOperation()
+{
+
+}
+
+
+
+bool HueApiOperation::initiate()
+{
+  if (!canInitiate()) return false;
+  // initiate the web request
+  const char *methodStr;
+  switch (method) {
+    case httpMethodPOST : methodStr = "POST"; break;
+    case httpMethodPUT : methodStr = "PUT"; break;
+    case httpMethodDELETE : methodStr = "DELETE"; break;
+    default : methodStr = "GET"; data.reset(); break;
+  }
+  hueComm.bridgeAPIComm.jsonRequest(url.c_str(), boost::bind(&HueApiOperation::processAnswer, this, _2, _3), methodStr, data);
+  // executed
+  return inherited::initiate();
+}
+
+
+
+void HueApiOperation::processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
+{
+  error = aError;
+  if (Error::isOK(error)) {
+    // pre-process response in case of non-GET
+    if (method!=httpMethodGET) {
+      // Expected:
+      //  [{"error":{"type":xxx,"address":"yyy","description":"zzz"}}]
+      // or
+      //  [{"success": { "xxx": "xxxxxxxx" }]
+      int errCode = HueCommErrorInvalidResponse;
+      string errMessage = "invalid response";
+      for (int i=0; i<aJsonResponse->arrayLength(); i++) {
+        JsonObjectPtr responseItem = aJsonResponse->arrayGet(i);
+        responseItem->resetKeyIteration();
+        JsonObjectPtr responseParams;
+        string statusToken;
+        if (responseItem->nextKeyValue(statusToken, responseParams)) {
+          if (statusToken=="success" && responseParams) {
+            // apparently successful, return success object
+            data = responseParams;
+            errCode = HueCommErrorOK; // ok
+            break;
+          }
+          else if (statusToken=="error" && responseParams) {
+            // make Error object out of it
+            JsonObjectPtr e = responseParams->get("type");
+            if (e)
+              errCode = e->int32Value();
+            e = responseParams->get("description");
+            if (e)
+              errMessage = e->stringValue();
+            break;
+          }
+        }
+      } // for
+      if (errCode!=HueCommErrorOK) {
+        error = ErrorPtr(new HueCommError(errCode, errMessage));
+      }
+    }
+  }
+  // call back
+  if (resultHandler)
+    resultHandler(hueComm, data, error);
+  // done
+  completed = true;
+  // have queue reprocessed
+  hueComm.processOperations();
+}
+
+
+
+bool HueApiOperation::hasCompleted()
+{
+  return completed;
+}
+
+
+
+void HueApiOperation::abortOperation(ErrorPtr aError)
+{
+  if (!completed) {
+    hueComm.bridgeAPIComm.cancelRequest();
+  }
+  inherited::abortOperation(aError);
+}
+
+
+
+
 #pragma mark - BridgeFinder
 
 
@@ -209,7 +319,7 @@ public:
       JsonObjectPtr request = JsonObject::newObj();
       request->add("username", JsonObject::newString(userName));
       request->add("devicetype", JsonObject::newString(deviceType));
-      hueComm.bridgeAPIComm.jsonRequest(currentAuthCandidate->second.c_str(), boost::bind(&BridgeFinder::handleBridgeAuthAnswer, this, _2, _3), "POST", request);
+      hueComm.apiAction(httpMethodPOST, currentAuthCandidate->second.c_str(), request, boost::bind(&BridgeFinder::handleBridgeAuthAnswer, this, _2, _3), true);
     }
     else {
       // done with all candidates
@@ -233,50 +343,23 @@ public:
   void handleBridgeAuthAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
-      DBGLOG(LOG_DEBUG, "Received bridge auth answer:\n%s\n", aJsonResponse->json_c_str());
-      // Expected:
-      //  [{"error":{"type":101,"address":"","description":"link button not pressed"}}]
-      // or
-      //  [{"success": { "username": "xxxxxxxx" }]
-      for (int i=0; i<aJsonResponse->arrayLength(); i++) {
-        JsonObjectPtr responseItem = aJsonResponse->arrayGet(i);
-        responseItem->resetKeyIteration();
-        JsonObjectPtr responseParams;
-        string statusToken;
-        if (responseItem->nextKeyValue(statusToken, responseParams)) {
-          if (statusToken=="success" && responseParams) {
-            // apparently successful, extract user name
-            JsonObjectPtr u = responseParams->get("username");
-            if (u) {
-              hueComm.userName = u->stringValue();
-              hueComm.uuid = currentAuthCandidate->first;
-              hueComm.baseURL = currentAuthCandidate->second;
-              DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", uuid.c_str(), baseURL.c_str(), userName.c_str());
-              // successfully registered with hue bridge, let caller know
-              callback(hueComm, ErrorPtr());
-              // done!
-              keepAlive.reset(); // will delete object if nobody else keeps it
-              return;
-            }
-          }
-          else if (statusToken=="error" && responseParams) {
-            // check for "link button not pressed" error
-            JsonObjectPtr e = responseParams->get("type");
-            if (e) {
-              int errCode = e->int32Value();
-              if (errCode==101) {
-                // link button not pressed
-                // - this is still a candidate, but needs to be checked again later, so keep iterating
-                DBGLOG(LOG_DEBUG, "Bridge %s @ %s: link button not pressed\n", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
-                break;
-              }
-            }
-          }
-        }
+      DBGLOG(LOG_DEBUG, "Received success answer:\n%s\n", aJsonResponse->json_c_str());
+      // apparently successful, extract user name
+      JsonObjectPtr u = aJsonResponse->get("username");
+      if (u) {
+        hueComm.userName = u->stringValue();
+        hueComm.uuid = currentAuthCandidate->first;
+        hueComm.baseURL = currentAuthCandidate->second;
+        DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", uuid.c_str(), baseURL.c_str(), userName.c_str());
+        // successfully registered with hue bridge, let caller know
+        callback(hueComm, ErrorPtr());
+        // done!
+        keepAlive.reset(); // will delete object if nobody else keeps it
+        return;
       }
     }
     else {
-      DBGLOG(LOG_DEBUG, "Error doing bridge login: %s\n", aError->description().c_str());
+      DBGLOG(LOG_DEBUG, "Error creating bridge user: %s\n", aError->description().c_str());
     }
     // try next
     ++currentAuthCandidate;
@@ -284,6 +367,7 @@ public:
   }
 
 }; // BridgeFinder
+
 
 
 #pragma mark - hueComm
@@ -299,6 +383,33 @@ HueComm::HueComm() :
 HueComm::~HueComm()
 {
 }
+
+
+void HueComm::apiQuery(const char* aUrlSuffix, HueApiResultCB aResultHandler)
+{
+  apiAction(httpMethodGET, aUrlSuffix, JsonObjectPtr(), aResultHandler);
+}
+
+
+void HueComm::apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectPtr aData, HueApiResultCB aResultHandler, bool aNoAutoURL)
+{
+  string url;
+  if (aNoAutoURL) {
+    url = aUrlSuffix;
+  }
+  else {
+    url = baseURL;
+    if (userName.length()>0)
+      url += "/" + userName;
+    url += nonNullCStr(aUrlSuffix);
+  }
+  HueApiOperationPtr op = HueApiOperationPtr(new HueApiOperation(*this, aMethod, url.c_str(), aData, aResultHandler));
+  queueOperation(op);
+  // process operations
+  processOperations();
+}
+
+
 
 
 void HueComm::findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler)

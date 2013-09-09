@@ -50,6 +50,7 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
       }
       // call back with result of request
       // Note: this callback might initiate another request already
+      DBGLOG(LOG_DEBUG,"JsonWebClient: <- received JSON answer:\n%s\n", message ? message->json_c_str() : "<none>");
       if (jsonResponseCallback)
         jsonResponseCallback(*this, message, requestError);
       // release child thread object now
@@ -74,7 +75,7 @@ bool JsonWebClient::jsonRequest(const char *aURL, JsonWebClientCB aResponseCallb
   if (aJsonRequest) {
     jsonstring = aJsonRequest->json_c_str();
   }
-  DBGLOG(LOG_DEBUG,"JsonWebClient: -> sending JSON request:\n%s", jsonstring.c_str());
+  DBGLOG(LOG_DEBUG,"JsonWebClient: -> sending JSON request:\n%s\n", jsonstring.c_str());
   return httpRequest(aURL, NULL, aMethod, jsonstring.c_str());
 }
 

@@ -23,11 +23,15 @@ namespace p44 {
   // Errors
   typedef enum {
     HueCommErrorOK,
-    HueCommErrorUuidNotFound, ///< bridge specified by uuid was not found
+    HueCommErrorReservedForBridge = 1, ///< 1..999 are native bridge error codes
+    HueCommErrorUuidNotFound = 1000, ///< bridge specified by uuid was not found
     HueCommErrorDescription, ///< SSDP by uuid did find a device, but XML description was inaccessible or invalid
     HueCommErrorInvalidUser, ///< bridge did not allow accessing the API with the username
     HueCommErrorNoRegistration, ///< could not register with a bridge
-  } HueCommErrors;
+    HueCommErrorInvalidResponse, ///< invalid response from bridge (malformed JSON)
+  };
+
+  typedef int HueCommErrors;
 
   class HueCommError : public Error
   {
@@ -37,14 +41,63 @@ namespace p44 {
     HueCommError(HueCommErrors aError) : Error(ErrorCode(aError)) {};
     HueCommError(HueCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
   };
-  
+
+
+  typedef enum {
+    httpMethodGET,
+    httpMethodPOST,
+    httpMethodPUT,
+    httpMethodDELETE
+  } HttpMethods;
+
 
   class BridgeFinder;
   typedef boost::intrusive_ptr<BridgeFinder> BridgeFinderPtr;
 
   class HueComm;
-
   typedef boost::intrusive_ptr<HueComm> HueCommPtr;
+
+
+  /// will be called to deliver api result
+  /// @param aHueComm the HueComm object
+  /// @param the result in case of success.
+  /// - In case of PUT, POST and DELETE requests, it is the contents of the "success" response object
+  /// - In case of GET requests, it is the entire answer object
+  /// @param aError error in case of failure, error code is either a HueCommErrors enum or the error code as
+  ///   delivered by the hue brigde itself ("
+  ///   send API commands
+  typedef boost::function<void (HueComm &aHueComm, JsonObjectPtr aResult, ErrorPtr aError)> HueApiResultCB;
+
+
+  class HueApiOperation : public Operation
+  {
+    typedef Operation inherited;
+
+    HueComm &hueComm;
+    HttpMethods method;
+    string url;
+    JsonObjectPtr data;
+    bool completed;
+    ErrorPtr error;
+    HueApiResultCB resultHandler;
+
+    void processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError);
+
+  public:
+
+    HueApiOperation(HueComm &aHueComm, HttpMethods aMethod, const char* aUrl, JsonObjectPtr aData, HueApiResultCB aResultHandler);
+    virtual ~HueApiOperation();
+
+    virtual bool initiate();
+    virtual bool hasCompleted();
+    virtual void abortOperation(ErrorPtr aError);
+
+  };
+  typedef boost::intrusive_ptr<HueApiOperation> HueApiOperationPtr;
+
+
+
+
   class HueComm : public OperationQueue
   {
     typedef OperationQueue inherited;
@@ -70,6 +123,25 @@ namespace p44 {
 
     /// @}
 
+    /// @name executing regular API calls
+    /// @{
+
+    /// Query information from the API
+    /// @param aUrlSuffix the suffix to append to the baseURL+userName (including leading slash)
+    /// @param aResultHandler will be called with the result
+    void apiQuery(const char* aUrlSuffix, HueApiResultCB aResultHandler);
+
+    /// Send information to the API
+    /// @param aMethod the HTTP method to use
+    /// @param aUrlSuffix the suffix to append to the baseURL+userName (including leading slash)
+    /// @param aData the data for the action to perform (JSON body of the request)
+    /// @param aResultHandler will be called with the result
+    /// @param aNoAutoURL if set, aUrlSuffix must be the complete URL (baseURL and userName will not be used automatically)
+    void apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectPtr aData, HueApiResultCB aResultHandler, bool aNoAutoURL = false);
+
+    /// @}
+
+
     /// @name discovery and pairing
     /// @{
 
@@ -91,6 +163,7 @@ namespace p44 {
     /// @param aFindHandler called to deliver find result
     /// @note ssdpUuid and apiToken member variables must be set to the pre-know bridge's parameters before calling this
     void refindBridge(HueBridgeFindCB aFindHandler);
+    
   };
   
 } // namespace p44

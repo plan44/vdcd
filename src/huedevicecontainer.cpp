@@ -113,6 +113,7 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
     );
+    // Note: there is a search lights command and a new lights command, might want to use these here?
 
 
     // TODO: %%% implement collecting lights
@@ -162,7 +163,8 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
     bool learnIn = false;
     if (hueComm.uuid==bridgeUuid) {
       // this is the bridge that was learned in previously. Learn it out
-      // - delete it from the whitelist
+      // TODO: - delete it from the whitelist
+      
       // - forget uuid + user name
       bridgeUuid.clear();
       bridgeUserName.clear();
@@ -182,6 +184,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
     // now process the learn in/out
     if (learnIn) {
       // TODO: now get lights
+      // Note: there is a search lights command and a new lights command, might want to use these on learn?
     }
     // report successful learn event
     getDeviceContainer().reportLearnEvent(learnIn, ErrorPtr());
