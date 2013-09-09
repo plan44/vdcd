@@ -112,7 +112,9 @@ namespace p44 {
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive) = 0;
 
     /// Forget all previously collected devices
-    virtual void forgetDevices();
+    /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
+    ///   the device is not disconnected (=unlearned) by this.
+    virtual void removeDevices(bool aForget);
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode

@@ -92,9 +92,9 @@ void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryR
 
 #pragma mark - collect devices
 
-void EnoceanDeviceContainer::forgetDevices()
+void EnoceanDeviceContainer::removeDevices(bool aForget)
 {
-  inherited::forgetDevices();
+  inherited::removeDevices(aForget);
   enoceanDevices.clear();
 }
 
@@ -103,7 +103,7 @@ void EnoceanDeviceContainer::forgetDevices()
 void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
   // start with zero
-  forgetDevices();
+  removeDevices(false);
   // - read learned-in enOcean button IDs from DB
   sqlite3pp::query qry(db);
   if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
@@ -146,6 +146,7 @@ void EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice
 {
   addKnownDevice(aEnoceanDevice);
   // save enocean ID to DB
+  // - check if this subdevice is already stored
   db.executef(
     "INSERT OR REPLACE INTO knownDevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
     aEnoceanDevice->getAddress(),
