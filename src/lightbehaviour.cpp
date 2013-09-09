@@ -442,20 +442,28 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       isLocigallyOn = true; // mindim always turns on light
       // TODO: pass correct transition time
       setLogicalBrightness(b, 0);
-      LOG(LOG_NOTICE,"- CallScene(MIN_S): setting minDim %d\n", b);
+      LOG(LOG_NOTICE,"CallScene(MIN_S): setting minDim %d\n", b);
     }
     else {
       if (!lightScene->dontCare && (!localPriority || lightScene->ignoreLocalPriority)) {
-        // apply to output
-        Brightness b = lightScene->sceneBrightness;
-        isLocigallyOn = b!=0; // TODO: is this correct?
-        // TODO: pass correct transition time
-        setLogicalBrightness(b, 0);
-        LOG(LOG_NOTICE,"- CallScene: Applied output value from scene %d : %d\n", sceneNo, b);
+        // apply stored scene value(s) to output(s)
+        recallScene(lightScene);
+        LOG(LOG_NOTICE,"CallScene: Applied output value(s) from scene %d\n", sceneNo);
       }
     }
   }
 }
+
+
+
+void LightBehaviour::recallScene(LightScenePtr aLightScene)
+{
+  Brightness b = aLightScene->sceneBrightness;
+  isLocigallyOn = b!=0; // TODO: is this correct?
+  // TODO: pass correct transition time
+  setLogicalBrightness(b, 0);
+}
+
 
 
 // capture scene

@@ -158,6 +158,12 @@ namespace p44 {
 
   protected:
 
+    /// called by applyScene to actually recall a scene from the scene table
+    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
+    /// additional values that were saved as captureScene()
+    virtual void recallScene(LightScenePtr aLightScene);
+
+
     // property access implementation for descriptor/settings/states
     //virtual int numDescProps();
     //virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);

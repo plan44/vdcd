@@ -23,6 +23,7 @@ namespace p44 {
 
 
   class HueDeviceContainer;
+  class HueDevice;
 
   /// persistence for enocean device container
   class HuePersistence : public SQLite3Persistence
@@ -38,6 +39,7 @@ namespace p44 {
   class HueDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;
+    friend class HueDevice;
 
     HueComm hueComm;
     HuePersistence db;
@@ -62,9 +64,6 @@ namespace p44 {
     /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    /// forget all devices (but don't delete learned-in devices, so next collect will add them again)
-    virtual void forgetDevices();
-
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
@@ -74,6 +73,8 @@ namespace p44 {
 
     void refindResultHandler(ErrorPtr aError);
     void searchResultHandler(ErrorPtr aError);
+    void collectLights();
+    void collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError);
 
   };
 

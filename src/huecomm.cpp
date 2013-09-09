@@ -34,7 +34,8 @@ HueApiOperation::~HueApiOperation()
 
 bool HueApiOperation::initiate()
 {
-  if (!canInitiate()) return false;
+  if (!canInitiate())
+    return false;
   // initiate the web request
   const char *methodStr;
   switch (method) {
@@ -89,6 +90,10 @@ void HueApiOperation::processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError
       if (errCode!=HueCommErrorOK) {
         error = ErrorPtr(new HueCommError(errCode, errMessage));
       }
+    }
+    else {
+      // GET, just return entire data
+      data = aJsonResponse;
     }
   }
   // done
@@ -246,7 +251,7 @@ public:
       // request description XML
       hueComm.bridgeAPIComm.httpRequest(
         (currentBridgeCandidate->second).c_str(),
-        boost::bind(&BridgeFinder::handleBridgeDescriptionAnswer, this, _2, _3),
+        boost::bind(&BridgeFinder::handleServiceDescriptionAnswer, this, _2, _3),
         "GET"
       );
     }
@@ -269,11 +274,12 @@ public:
   }
 
 
-  void handleBridgeDescriptionAnswer(const string &aResponse, ErrorPtr aError)
+  void handleServiceDescriptionAnswer(const string &aResponse, ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
       // show
-      DBGLOG(LOG_DEBUG, "Received bridge description:\n%s\n", aResponse.c_str());
+      //DBGLOG(LOG_DEBUG, "Received bridge description:\n%s\n", aResponse.c_str());
+      DBGLOG(LOG_DEBUG, "Received service description XML\n");
       // TODO: this is poor man's XML scanning, use some real XML parser eventually
       // do some basic checking for model
       size_t i = aResponse.find("<manufacturer>Royal Philips Electronics</manufacturer>");
@@ -301,6 +307,7 @@ public:
               }
               else {
                 // that's a hue bridge, remember it for trying to authorize
+                DBGLOG(LOG_DEBUG, "- Seems to be a hue bridge at %s\n", url.c_str());
                 authCandidates[currentBridgeCandidate->first] = url;
               }
             }
@@ -326,25 +333,26 @@ public:
 
   void processCurrentAuthCandidate()
   {
-    if (currentAuthCandidate!=authCandidates.end()) {
+    if (currentAuthCandidate!=authCandidates.end() && hueComm.findInProgress) {
       // try to authorize
       DBGLOG(LOG_DEBUG, "%%% auth candidate: uuid=%s, baseURL=%s", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
       JsonObjectPtr request = JsonObject::newObj();
       request->add("username", JsonObject::newString(userName));
       request->add("devicetype", JsonObject::newString(deviceType));
-      hueComm.apiAction(httpMethodPOST, currentAuthCandidate->second.c_str(), request, boost::bind(&BridgeFinder::handleBridgeAuthAnswer, this, _2, _3), true);
+      hueComm.apiAction(httpMethodPOST, currentAuthCandidate->second.c_str(), request, boost::bind(&BridgeFinder::handleCreateUserAnswer, this, _2, _3), true);
     }
     else {
-      // done with all candidates
-      if (authCandidates.size()>0 && MainLoop::now()<startedAuth+authTimeWindow) {
-        // we have still candidates and time to do a retry in a second
+      // done with all candidates (or find aborted in hueComm)
+      if (authCandidates.size()>0 && MainLoop::now()<startedAuth+authTimeWindow && hueComm.findInProgress) {
+        // we have still candidates and time to do a retry in a second, and find is not aborted
         retryLoginTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&BridgeFinder::attemptPairingWithCandidates, this), 1*Second);
         return;
       }
       else {
         // all candidates tried, nothing found in given time
         DBGLOG(LOG_DEBUG, "Could not register with a hue bridge\n");
-        callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorNoRegistration, "No hue bridge found ready to reigster")));
+        hueComm.findInProgress = false;
+        callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorNoRegistration, "No hue bridge found ready to register")));
         // done!
         keepAlive.reset(); // will delete object if nobody else keeps it
         return;
@@ -353,7 +361,7 @@ public:
   }
 
 
-  void handleBridgeAuthAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
+  void handleCreateUserAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
       DBGLOG(LOG_DEBUG, "Received success answer:\n%s\n", aJsonResponse->json_c_str());
@@ -363,7 +371,7 @@ public:
         hueComm.userName = u->stringValue();
         hueComm.uuid = currentAuthCandidate->first;
         hueComm.baseURL = currentAuthCandidate->second;
-        DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", uuid.c_str(), baseURL.c_str(), userName.c_str());
+        DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
         // successfully registered with hue bridge, let caller know
         callback(hueComm, ErrorPtr());
         // done!
@@ -388,7 +396,8 @@ public:
 
 HueComm::HueComm() :
   inherited(SyncIOMainLoop::currentMainLoop()),
-  bridgeAPIComm(SyncIOMainLoop::currentMainLoop())
+  bridgeAPIComm(SyncIOMainLoop::currentMainLoop()),
+  findInProgress(false)
 {
 }
 
@@ -427,9 +436,16 @@ void HueComm::apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectP
 
 void HueComm::findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler)
 {
+  findInProgress = true;
   BridgeFinderPtr bridgeFinder = BridgeFinderPtr(new BridgeFinder(*this, aFindHandler));
   bridgeFinder->findNewBridge(aUserName, aDeviceType, aAuthTimeWindow, aFindHandler);
 };
+
+
+void HueComm::stopFind()
+{
+  findInProgress = false;
+}
 
 
 void HueComm::refindBridge(HueBridgeFindCB aFindHandler)

@@ -92,7 +92,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
       );
     }
     else {
-      // no request body (e.g. GET)
+      // no request body (e.g. GET, DELETE)
       mgConn = mg_download(
         host.c_str(),
         port,
@@ -142,8 +142,9 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
 
 void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
 {
-  DBGLOG(LOG_DEBUG,"Received signal from child thread: %d", aSignalCode);
+  DBGLOG(LOG_DEBUG,"HttpComm: Received signal from child thread: %d\n", aSignalCode);
   if (aSignalCode==threadSignalCompleted) {
+    DBGLOG(LOG_DEBUG,"- HTTP subthread exited - request completed\n");
     requestInProgress = false; // thread completed
     // call back with result of request
     // Note: this callback might initiate another request already -
@@ -159,8 +160,8 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
 
 bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody, const char* aContentType)
 {
-  if (requestInProgress || !aURL) return false; // blocked or no URL
-
+  if (requestInProgress || !aURL)
+    return false; // blocked or no URL
   requestURL = aURL;
   responseCallback = aResponseCallback;
   method = aMethod;

@@ -97,13 +97,14 @@ namespace p44 {
   typedef boost::intrusive_ptr<HueApiOperation> HueApiOperationPtr;
 
 
-
+  class BridgeFinder;
 
   class HueComm : public OperationQueue
   {
     typedef OperationQueue inherited;
+    friend class BridgeFinder;
 
-    BridgeFinderPtr bridgeFinder;
+    bool findInProgress;
 
   public:
 
@@ -159,6 +160,9 @@ namespace p44 {
     /// @param aAuthTimeWindow how long we should look for hue bridges with link button pressed among the candidates
     /// @note on success, the ssdpUuid, apiToken and baseURL string member variables will be set (when aFindHandler is called)
     void findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler);
+
+    /// stop finding bridges
+    void stopFind();
 
     /// find an already known bridge again (might have different IP in DHCP environment)
     /// @param aFindHandler called to deliver find result

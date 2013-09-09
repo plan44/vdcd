@@ -62,21 +62,12 @@ void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
 #pragma mark - collect devices
 
 
-void HueDeviceContainer::forgetDevices()
-{
-  inherited::forgetDevices();
-  // TODO: do additional hue specific stuff
-  bridgeUuid.clear();
-  bridgeUserName.clear();
-}
-
-
 
 void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
   collectedHandler = aCompletedCB;
-  // forget all devices
-  forgetDevices();
+  // remove all devices
+  removeDevices(false);
   // load hue bridge uuid and token
   sqlite3pp::query qry(db);
   if (qry.prepare("SELECT hueBridgeUUID, hueBridgeUser FROM globs")==SQLITE_OK) {
@@ -113,13 +104,10 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
     );
-    // Note: there is a search lights command and a new lights command, might want to use these here?
-
-
-    // TODO: %%% implement collecting lights
-
-    // for now: just say ok
-    collectedHandler(ErrorPtr()); // ok
+    // collect existing lights
+    // Note: for now we don't search for new lights, this is left to the Hue App, so users have control
+    //   if they want new lights added or not
+    collectLights();
   }
   else {
     // not found (usually timeout)
@@ -141,7 +129,7 @@ void HueDeviceContainer::setLearnMode(bool aEnableLearning)
   }
   else {
     // stop learning
-    #warning "for now, extend search beyond learning period"
+    hueComm.stopFind();
   }
 }
 
@@ -159,12 +147,16 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
     );
+    // learning in or out requires all devices to be removed first
+    // (on learn-in, the bridge's devices will be added afterwards)
+    removeDevices(false);
     // check if we found the already learned-in bridge
     bool learnIn = false;
     if (hueComm.uuid==bridgeUuid) {
       // this is the bridge that was learned in previously. Learn it out
-      // TODO: - delete it from the whitelist
-      
+      // - delete it from the whitelist
+      string url = "/config/whitelist/" + hueComm.userName;
+      hueComm.apiAction(httpMethodDELETE, url.c_str(), JsonObjectPtr(), NULL);
       // - forget uuid + user name
       bridgeUuid.clear();
       bridgeUserName.clear();
@@ -184,7 +176,8 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
     // now process the learn in/out
     if (learnIn) {
       // TODO: now get lights
-      // Note: there is a search lights command and a new lights command, might want to use these on learn?
+      collectedHandler = NULL; // we are not collecting, this is adding new lights while in operation already
+      collectLights();
     }
     // report successful learn event
     getDeviceContainer().reportLearnEvent(learnIn, ErrorPtr());
@@ -194,6 +187,45 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
     LOG(LOG_NOTICE, "No hue bridge found to register, error = %s\n", aError->description().c_str());
   }
 }
+
+
+void HueDeviceContainer::collectLights()
+{
+  // issue lights query
+  hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _2, _3));
+}
+
+
+void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError)
+{
+  DBGLOG(LOG_DEBUG, "lights = \n%s\n", aResult ? aResult->c_strValue() : "<none>");
+
+  if (aResult) {
+    // { "1": { "name": "Bedroom" }, "2": .... }
+    aResult->resetKeyIteration();
+    string lightID;
+    JsonObjectPtr lightInfo;
+    while (aResult->nextKeyValue(lightID, lightInfo)) {
+      // create hue device
+      if (lightInfo) {
+        HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID));
+        // set the name
+        JsonObjectPtr n = lightInfo->get("name");
+        if (n) newDev->setName(n->stringValue());
+        // add to the system
+        addDevice(newDev);
+      }
+    }
+  }
+  // collect phase done
+  if (collectedHandler)
+    collectedHandler(ErrorPtr());
+  collectedHandler = NULL; // done
+}
+
+
+
+
 
 
 
