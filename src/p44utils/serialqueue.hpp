@@ -41,7 +41,7 @@ namespace p44 {
   class SerialOperationQueue;
 
   /// SerialOperation completion callback
-  typedef boost::function<void (SerialOperation *, SerialOperationQueue *, ErrorPtr)> SerialOperationFinalizeCB;
+  typedef boost::function<void (SerialOperation &aSerialOperation, SerialOperationQueue *aQueueP, ErrorPtr aError)> SerialOperationFinalizeCB;
 
   /// SerialOperation transmitter
   typedef boost::function<size_t (size_t aNumBytes, const uint8_t *aBytes)> SerialOperationTransmitter;

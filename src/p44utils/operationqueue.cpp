@@ -104,7 +104,7 @@ bool Operation::hasTimedOutAt(MLMicroSeconds aRefTime)
 OperationPtr Operation::finalize(OperationQueue *aQueueP)
 {
   if (finalizeCallback) {
-    finalizeCallback(this,aQueueP,ErrorPtr());
+    finalizeCallback(*this,aQueueP,ErrorPtr());
     finalizeCallback = NULL; // call once only
   }
   return OperationPtr();
@@ -117,7 +117,7 @@ void Operation::abortOperation(ErrorPtr aError)
 {
   if (finalizeCallback && !aborted) {
     aborted = true;
-    finalizeCallback(this,NULL,aError);
+    finalizeCallback(*this,NULL,aError);
     finalizeCallback = NULL; // call once only
   }
 }

@@ -38,7 +38,7 @@ namespace p44 {
   class OperationQueue;
 
   /// Operation completion callback
-  typedef boost::function<void (Operation *, OperationQueue *, ErrorPtr)> OperationFinalizeCB;
+  typedef boost::function<void (Operation &aOperation, OperationQueue *aQueueP, ErrorPtr aError)> OperationFinalizeCB;
 
   /// Operation
   typedef boost::intrusive_ptr<Operation> OperationPtr;
