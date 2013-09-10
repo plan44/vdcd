@@ -135,6 +135,8 @@ namespace p44 {
 
     /// blink indicator for a certain time period, with a given blink period and on ratio
     /// @param aOnTime how long indicator should stay active, or p44::infinite to keep blinking
+    /// @param aBlinkPeriod how fast the blinking should be
+    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
     void blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
 
     /// stop blinking/timed activation immediately, turn off

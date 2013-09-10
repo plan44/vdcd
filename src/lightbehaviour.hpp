@@ -106,7 +106,6 @@ namespace p44 {
     /// @{
     int blinkCounter; ///< for generation of blink sequence
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
-    bool isLocigallyOn; ///< if set, device is logically ON (but may be below threshold to enable the output)
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
 
@@ -122,10 +121,6 @@ namespace p44 {
 
     /// @return true if device is dimmable
     bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
-
-
-    /// @return true if device is logically on
-    bool getLogicallyOn() { return isLocigallyOn; };
 
     /// set new brightness
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
@@ -159,6 +154,12 @@ namespace p44 {
     /// @param aScene the scene object to update
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
     virtual void captureScene(DsScenePtr aScene);
+
+    /// blink the light (for identifying it)
+    /// @param aDuration how long the light should blink
+    /// @param aBlinkPeriod how fast the blinking should be
+    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
+    void blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
     
     /// @}
 
@@ -198,6 +199,9 @@ namespace p44 {
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
+  private:
+  
+    void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
 
   };
 

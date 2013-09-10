@@ -506,7 +506,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
             effScene = DEC_S;
           else {
             // increment - check if we need to do a MIN_S first
-            if (lightBehaviour && !lightBehaviour->getLogicallyOn())
+            if (lightBehaviour && lightBehaviour->getLogicalBrightness()==0)
               effScene = MIN_S; // after calling this once, light should be logically on
           }
         }

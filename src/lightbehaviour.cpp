@@ -342,7 +342,6 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   maxBrightness(255),
   // volatile state
   localPriority(false),
-  isLocigallyOn(false),
   logicalBrightness(0)
 {
   // should always be a member of the light group
@@ -368,20 +367,13 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
   if (aBrightness>255) aBrightness = 255;
   MLMicroSeconds tt = aTransitionTimeDown<0 || aBrightness>logicalBrightness ? aTransitionTimeUp : aTransitionTimeDown;
   logicalBrightness = aBrightness;
-  if (isLocigallyOn) {
-    // device is logically ON
-    if (isDimmable()) {
-      // dimmable, 0=off, 1..255=brightness
-      setOutputValue(logicalBrightness, tt);
-    }
-    else {
-      // not dimmable, on if logical brightness is above threshold
-      setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, tt);
-    }
+  if (isDimmable()) {
+    // dimmable, 0=off, 1..255=brightness
+    setOutputValue(logicalBrightness, tt);
   }
   else {
-    // off is off
-    setOutputValue(0, tt);
+    // not dimmable, on if logical brightness is above threshold
+    setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, tt);
   }
 }
 
@@ -389,7 +381,6 @@ void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds
 void LightBehaviour::updateLogicalBrightnessFromOutput()
 {
   Brightness o = getOutputValue();
-  isLocigallyOn = o>0;
   if (isDimmable()) {
     logicalBrightness = o;
   }
@@ -424,8 +415,8 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     if (sceneNo==DEC_S || sceneNo==INC_S) {
       // dimming up/down special scenes
       //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
-      if (isLocigallyOn && !localPriority) {
-        Brightness b = getLogicalBrightness();
+      Brightness b = getLogicalBrightness();
+      if (b<0 && !localPriority) {
         Brightness nb = b;
         if (sceneNo==DEC_S) {
           // dim down
@@ -444,7 +435,6 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
             nb = maxBrightness;
         }
         if (nb!=b) {
-          isLocigallyOn = nb!=0;
           setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
           LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
         }
@@ -456,7 +446,6 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     }
     else if (sceneNo==MIN_S) {
       Brightness b = minBrightness;
-      isLocigallyOn = true; // mindim always turns on light
       setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
       LOG(LOG_NOTICE,"CallScene(MIN_S): setting minDim %d\n", b);
     }
@@ -474,7 +463,6 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
 void LightBehaviour::recallScene(LightScenePtr aLightScene)
 {
   Brightness b = aLightScene->sceneBrightness;
-  isLocigallyOn = b!=0;
   uint8_t s = aLightScene->dimTimeSelector;
   setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeUp[s]), transitionTimeFromDimTime(dimTimeDown[s]));
 }
@@ -504,6 +492,39 @@ MLMicroSeconds LightBehaviour::transitionTimeFromDimTime(uint8_t aDimTime)
   return ((MLMicroSeconds)(aDimTime & 0xF)*100*MilliSecond/15)<<((aDimTime>>4) & 0xF);
 }
 
+
+
+void LightBehaviour::blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
+  aBlinkPeriod -= blinkOnTime; // blink off time
+  // start off, so first action will be on
+  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, getLogicalBrightness());
+}
+
+
+void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness)
+{
+  if (MainLoop::now()>=aEndTime) {
+    // done, restore original brightness
+    setLogicalBrightness(aOrigBrightness, 0);
+    return;
+  }
+  else if (!aState) {
+    // turn on
+    setLogicalBrightness(255, 0);
+  }
+  else {
+    // turn off
+    setLogicalBrightness(minBrightness, 0);
+  }
+  aState = !aState; // toggle
+  // schedule next event
+  MainLoop::currentMainLoop().executeOnce(
+    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime, aOrigBrightness),
+    aState ? aOnTime : aOffTime
+  );
+}
 
 
 
@@ -706,7 +727,7 @@ string LightBehaviour::shortDesc()
 string LightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- logical brightness = %d, logical on = %d, localPriority = %d\n", logicalBrightness, isLocigallyOn, localPriority);
+  string_format_append(s, "- logical brightness = %d, localPriority = %d\n", logicalBrightness, localPriority);
   string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable(), minBrightness, maxBrightness, onThreshold);
   s.append(inherited::description());
   return s;
