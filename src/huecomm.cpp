@@ -249,16 +249,13 @@ public:
   {
     if (currentBridgeCandidate!=bridgeCandiates.end()) {
       // request description XML
-      DBGLOG(LOG_DEBUG, "### Requesting XML\n");
       hueComm.bridgeAPIComm.httpRequest(
         (currentBridgeCandidate->second).c_str(),
         boost::bind(&BridgeFinder::handleServiceDescriptionAnswer, this, _2, _3),
         "GET"
       );
-      DBGLOG(LOG_DEBUG, "### Requested XML\n");
     }
     else {
-      DBGLOG(LOG_DEBUG, "### Done with candidates\n");
       // done with all candidates
       if (refind) {
         // failed getting description, return error
@@ -312,7 +309,6 @@ public:
                 // that's a hue bridge, remember it for trying to authorize
                 DBGLOG(LOG_DEBUG, "- Seems to be a hue bridge at %s\n", url.c_str());
                 authCandidates[currentBridgeCandidate->first] = url;
-                DBGLOG(LOG_DEBUG, "### Candidate registered\n");
               }
             }
           }
@@ -330,16 +326,13 @@ public:
 
   void attemptPairingWithCandidates()
   {
-    DBGLOG(LOG_DEBUG, "### Attempt pairing\n");
     currentAuthCandidate = authCandidates.begin();
-    DBGLOG(LOG_DEBUG, "### Set first candiate\n");
     processCurrentAuthCandidate();
   }
 
 
   void processCurrentAuthCandidate()
   {
-    DBGLOG(LOG_DEBUG, "### process current auth candidate\n");
     if (currentAuthCandidate!=authCandidates.end() && hueComm.findInProgress) {
       // try to authorize
       DBGLOG(LOG_DEBUG, "Auth candidate: uuid=%s, baseURL=%s -> try creating user\n", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
