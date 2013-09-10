@@ -228,7 +228,7 @@ HueLightBehaviour::HueLightBehaviour(Device &aDevice) :
 
 void HueLightBehaviour::recallScene(LightScenePtr aLightScene)
 {
-  HueLightScenePtr hueScene = dynamic_pointer_cast<HueLightScene>(aLightScene);
+  HueLightScenePtr hueScene = boost::dynamic_pointer_cast<HueLightScene>(aLightScene);
   if (hueScene) {
     // prepare next color values in device
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);

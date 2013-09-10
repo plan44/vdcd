@@ -21,7 +21,7 @@ namespace p44 {
 
 
   // Errors
-  typedef enum {
+  enum {
     HueCommErrorOK,
     HueCommErrorReservedForBridge = 1, ///< 1..999 are native bridge error codes
     HueCommErrorUuidNotFound = 1000, ///< bridge specified by uuid was not found
