@@ -135,6 +135,16 @@ void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler, bool a
 }
 
 
+void DaliDevice::identifyToUser()
+{
+  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(outputs[0]);
+  if (l) {
+    l->blink(4*Second);
+  }
+}
+
+
+
 void DaliDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   checkPresence(boost::bind(&DaliDevice::disconnectableHandler, this, aForgetParams, aDisconnectResultHandler, _1));

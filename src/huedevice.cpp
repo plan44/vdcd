@@ -421,6 +421,33 @@ void HueDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObj
 
 
 
+void HueDevice::identifyToUser()
+{
+  // Four breathe cycles
+  alertHandler(4);
+//  // standard LightBehaviour blink
+//  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(outputs[0]);
+//  if (l) {
+//    l->blink(4*Second);
+//  }
+}
+
+
+void HueDevice::alertHandler(int aLeftCycles)
+{
+  // do one alert
+  string url = string_format("/lights/%s/state", lightID.c_str());
+  JsonObjectPtr newState = JsonObject::newObj();
+  newState->add("alert", JsonObject::newString("select"));
+  hueDeviceContainer().hueComm.apiAction(httpMethodPUT, url.c_str(), newState, NULL);
+  // schedule next if any left
+  if (--aLeftCycles>0) {
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&HueDevice::alertHandler, this, aLeftCycles), 1*Second);
+  }
+}
+
+
+
 void HueDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   checkPresence(boost::bind(&HueDevice::disconnectableHandler, this, aForgetParams, aDisconnectResultHandler, _1));
@@ -493,7 +520,7 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     // for on and off, set transition time (1/10 second resolution)
     newState->add("transitiontime", JsonObject::newInt64(aOutputBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_DEBUG, "HueDevice: setting new state, brightness = %d, JSON = %s\n", b, newState->c_strValue());
-    hueDeviceContainer().hueComm.apiAction(httpMethodPUT, string_format("/lights/%s/state", lightID.c_str()).c_str(), newState, NULL);
+    hueDeviceContainer().hueComm.apiAction(httpMethodPUT, url.c_str(), newState, NULL);
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this

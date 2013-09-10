@@ -154,6 +154,11 @@ namespace p44 {
     /// @param aPresenceResultHandler will be called to report presence status
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
+    /// identify the device to the user
+    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
+    ///   this can be anything.
+    virtual void identifyToUser();
+
     /// disconnect device. For hue, we'll check if the device is still reachable via the bridge, and only if not
     /// we allow disconnection
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
@@ -189,6 +194,7 @@ namespace p44 {
     void deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
+    void alertHandler(int aLeftCycles);
 
   };
   

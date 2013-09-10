@@ -160,6 +160,10 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
       LOG(LOG_WARNING, "saveScene error: %s\n", err->description().c_str());
     }
   }
+  else if (aMethod=="identify") {
+    // identify to user
+    identifyToUser();
+  }
   else {
     inherited::handleNotification(aMethod, aParams);
   }
@@ -206,6 +210,13 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
   }
 }
+
+
+void Device::identifyToUser()
+{
+  LOG(LOG_DEBUG,"***** device 'identify' called (for device with no real identify implementation) *****");
+}
+
 
 
 void Device::saveScene(SceneNo aSceneNo)
