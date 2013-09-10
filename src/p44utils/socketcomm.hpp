@@ -91,7 +91,7 @@ namespace p44 {
     SocketComm *serverConnection;
   public:
 
-    SocketComm(SyncIOMainLoop *aMainLoopP);
+    SocketComm(SyncIOMainLoop &aMainLoop);
     virtual ~SocketComm();
 
     /// Set parameters for connection (client and server)
@@ -170,11 +170,11 @@ namespace p44 {
     void freeAddressInfo();
     ErrorPtr socketError(int aSocketFd);
     ErrorPtr connectNextAddress();
-    bool connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool connectionMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void internalCloseConnection();
     virtual void dataExceptionHandler(int aFd, int aPollFlags);
 
-    bool connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void passClientConnection(int aFD, SocketComm *aServerConnectionP); // used by listening SocketComm to pass accepted client connection to child SocketComm
     SocketCommPtr returnClientConnection(SocketComm *aClientConnectionP); // used to notify listening SocketComm when client connection ends
 

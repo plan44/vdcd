@@ -78,7 +78,7 @@ namespace p44 {
   /// @param aDoc if not NULL, returns the document part (path and possibly query), empty string if none
   /// @param aUser if not NULL, returns user, empty string if none
   /// @param aPasswd if not NULL, returns password, empty string if none
-  void splitURL(const char *aURI,string *aProtocol,string *aHost,string *aDoc,string *aUser=NULL, string *aPasswd=NULL);
+  void splitURL(const char *aURI, string *aProtocol, string *aHost, string *aDoc, string *aUser=NULL, string *aPasswd=NULL);
 
 
   /// split host specification into hostname and port

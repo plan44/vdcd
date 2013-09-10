@@ -39,9 +39,10 @@ namespace p44 {
 
   class SerialOperation;
   class SerialOperationQueue;
+  class SerialOperationSendAndReceive;
 
   /// SerialOperation completion callback
-  typedef boost::function<void (SerialOperation *, SerialOperationQueue *, ErrorPtr)> SerialOperationFinalizeCB;
+  typedef boost::function<void (SerialOperation &aSerialOperation, OperationQueue *aQueueP, ErrorPtr aError)> SerialOperationFinalizeCB;
 
   /// SerialOperation transmitter
   typedef boost::function<size_t (size_t aNumBytes, const uint8_t *aBytes)> SerialOperationTransmitter;
@@ -51,18 +52,25 @@ namespace p44 {
   typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
   class SerialOperation : public Operation
   {
+    friend class SerialOperationSendAndReceive;
   protected:
     SerialOperationTransmitter transmitter;
+    SerialOperationFinalizeCB callback;
   public:
     /// constructor
-    SerialOperation();
+    SerialOperation(SerialOperationFinalizeCB aCallback);
+
     /// set transmitter
     void setTransmitter(SerialOperationTransmitter aTransmitter);
+
     /// call to deliver received bytes
     /// @param aNumBytes number of bytes ready for accepting
     /// @param aBytes pointer to bytes buffer
     /// @return number of bytes operation could accept, 0 if none
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+
+    virtual OperationPtr finalize(OperationQueue *aQueueP = NULL);
+    virtual void abortOperation(ErrorPtr aError);
   };
 
 
@@ -76,7 +84,7 @@ namespace p44 {
     uint8_t *dataP;
   public:
 
-    SerialOperationSend(size_t aNumBytes, uint8_t *aBytes);
+    SerialOperationSend(size_t aNumBytes, uint8_t *aBytes, SerialOperationFinalizeCB aCallback);
     virtual ~SerialOperationSend();
 
     void setDataSize(size_t aDataSize);
@@ -100,7 +108,7 @@ namespace p44 {
 
   public:
 
-    SerialOperationReceive(size_t aExpectedBytes);
+    SerialOperationReceive(size_t aExpectedBytes, SerialOperationFinalizeCB aCallback);
     virtual ~SerialOperationReceive();
     uint8_t *getDataP() { return dataP; };
     size_t getDataSize() { return dataIndex; };
@@ -122,7 +130,7 @@ namespace p44 {
 
   public:
 
-    SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes);
+    SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback);
 
     virtual OperationPtr finalize(OperationQueue *aQueueP = NULL);
   };
@@ -142,7 +150,7 @@ namespace p44 {
   
 	public:
     /// create operation queue linked into specified Synchronous IO mainloop
-    SerialOperationQueue(SyncIOMainLoop *aMainLoopP);
+    SerialOperationQueue(SyncIOMainLoop &aMainLoop);
     /// destructor
     virtual ~SerialOperationQueue();
 
@@ -164,7 +172,7 @@ namespace p44 {
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// SyncIOMainloop handlers
-    bool pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    bool pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
 
 
   };

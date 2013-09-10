@@ -13,9 +13,9 @@
 
 using namespace p44;
 
-FdComm::FdComm(SyncIOMainLoop *aMainLoopP) :
+FdComm::FdComm(SyncIOMainLoop &aMainLoop) :
   dataFd(-1),
-  mainLoopP(aMainLoopP)
+  mainLoop(aMainLoop)
 {
 }
 
@@ -32,13 +32,13 @@ void FdComm::setFd(int aFd)
   if (dataFd!=aFd) {
     if (dataFd>=0) {
       // unregister previous fd
-      mainLoopP->unregisterPollHandler(dataFd);
+      mainLoop.unregisterPollHandler(dataFd);
       dataFd = -1;
     }
     dataFd = aFd;
     if (dataFd>=0) {
       // register new fd
-      mainLoopP->registerPollHandler(
+      mainLoop.registerPollHandler(
         dataFd,
         (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
         (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
@@ -56,7 +56,7 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 
 
 
-bool FdComm::dataMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   //DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
   if (aPollFlags & POLLHUP) {
@@ -94,9 +94,9 @@ void FdComm::setReceiveHandler(FdCommCB aReceiveHandler)
       // If connected already, update poll flags to include data-ready-to-read
       // (otherwise, flags will be set when connection opens)
       if (receiveHandler.empty())
-        mainLoopP->changePollFlags(dataFd, 0, POLLIN); // clear POLLIN
+        mainLoop.changePollFlags(dataFd, 0, POLLIN); // clear POLLIN
       else
-        mainLoopP->changePollFlags(dataFd, POLLIN, 0); // set POLLIN
+        mainLoop.changePollFlags(dataFd, POLLIN, 0); // set POLLIN
     }
   }
   receiveHandler = aReceiveHandler;
@@ -111,9 +111,9 @@ void FdComm::setTransmitHandler(FdCommCB aTransmitHandler)
       // If connected already, update poll flags to include ready-for-transmit
       // (otherwise, flags will be set when connection opens)
       if (transmitHandler.empty())
-        mainLoopP->changePollFlags(dataFd, 0, POLLOUT); // clear POLLOUT
+        mainLoop.changePollFlags(dataFd, 0, POLLOUT); // clear POLLOUT
       else
-        mainLoopP->changePollFlags(dataFd, POLLOUT, 0); // set POLLOUT
+        mainLoop.changePollFlags(dataFd, POLLOUT, 0); // set POLLOUT
     }
   }
 }

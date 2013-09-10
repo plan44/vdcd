@@ -225,7 +225,7 @@ ErrorPtr SceneDeviceSettings::loadChildren()
   // create a template
   DsScenePtr scene = newDefaultScene(0);
   // get the query
-  sqlite3pp::query * queryP = scene->newLoadAllQuery(parentID.c_str());
+  sqlite3pp::query *queryP = scene->newLoadAllQuery(parentID.c_str());
   if (queryP==NULL) {
     // real error preparing query
     err = paramStore.error();
@@ -241,6 +241,7 @@ ErrorPtr SceneDeviceSettings::loadChildren()
       // - fresh object for next row
       scene = newDefaultScene(0);
     }
+    delete queryP; queryP = NULL;
   }
   return err;
 }

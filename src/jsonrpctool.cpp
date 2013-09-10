@@ -38,13 +38,15 @@ class JsonRpcTool : public Application
   bool sendNotification;
   string method;
   string lastId;
+  bool autoaccept;
 
 public:
 
   JsonRpcTool() :
     jsonRpcServer(SyncIOMainLoop::currentMainLoop()),
     userInput(SyncIOMainLoop::currentMainLoop()),
-    inputState(idle)
+    inputState(idle),
+    autoaccept(false)
   {
   }
 
@@ -55,6 +57,7 @@ public:
     fprintf(stderr, "  %s [options]\n", name);
     fprintf(stderr, "    -c jsonrpchost  : host for making connection to\n");
     fprintf(stderr, "    -C jsonrpcport  : port number/service name for JSON service (default=%s)\n", DEFAULT_VDSMSERVICE);
+    fprintf(stderr, "    -a              : auto-respond to 'announce' method call from vDC\n");
     fprintf(stderr, "    -l loglevel     : set loglevel (default = %d)\n", DEFAULT_LOGLEVEL);
   };
 
@@ -72,7 +75,7 @@ public:
     char *jsonrpcport = (char *) DEFAULT_VDSMSERVICE;
 
     int c;
-    while ((c = getopt(argc, argv, "C:c:l:")) != -1)
+    while ((c = getopt(argc, argv, "C:c:l:a")) != -1)
     {
       switch (c) {
         case 'c':
@@ -83,6 +86,9 @@ public:
           break;
         case 'l':
           loglevel = atoi(optarg);
+          break;
+        case 'a':
+          autoaccept = true;
           break;
         default:
           exit(-1);
@@ -151,8 +157,15 @@ public:
     printf("\nJSON-RPC request id='%s', method='%s', params=%s\n\n", aJsonRpcId ? aJsonRpcId : "<none>", aMethod, aParams ? aParams->c_strValue() : "<none>");
     if (aJsonRpcId) {
       // this is a method call, expects answer
-      lastId = aJsonRpcId; // save
-      askErrorCode();
+      if (strcmp(aMethod,"announce")==0 && autoaccept) {
+        // just send NULL result
+        printf("Auto-responding with success to 'announce' method\n\n");
+        jsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
+      }
+      else {
+        lastId = aJsonRpcId; // save
+        askErrorCode();
+      }
     }
     else {
       askMethod();
@@ -267,7 +280,7 @@ public:
         jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3, _4)); // answer expected, add handler
       // and ask for next method
       inputState = waiting_for_method;
-      MainLoop::currentMainLoop()->executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
     }
     else if (inputState==waiting_for_errorcode) {
       if (text.size()>0) {
@@ -308,7 +321,7 @@ public:
       jsonRpcComm->sendResult(lastId.c_str(), result);
       // and ask for next method
       inputState = waiting_for_method;
-      MainLoop::currentMainLoop()->executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
     }
     else {
       // invalid
@@ -329,7 +342,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop()->setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static JsonRpcTool application;
   // pass control

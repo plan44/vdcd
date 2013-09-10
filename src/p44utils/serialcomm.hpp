@@ -57,7 +57,7 @@ namespace p44 {
   class SerialComm;
   typedef boost::intrusive_ptr<SerialComm> SerialCommPtr;
 
-  /// A class providing low level access to the DALI bus
+  /// A class providing serialized access to a serial device attached directly or via a TCP proxy
   class SerialComm : public SerialOperationQueue
   {
     typedef SerialOperationQueue inherited;
@@ -74,7 +74,7 @@ namespace p44 {
     ErrorPtr unhandledError;
   public:
 
-    SerialComm(SyncIOMainLoop *aMainLoopP);
+    SerialComm(SyncIOMainLoop &aMainLoop);
     virtual ~SerialComm();
 
     /// Specify the serial connection parameters as single string

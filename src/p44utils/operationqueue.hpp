@@ -37,15 +37,11 @@ namespace p44 {
   class Operation;
   class OperationQueue;
 
-  /// Operation completion callback
-  typedef boost::function<void (Operation *, OperationQueue *, ErrorPtr)> OperationFinalizeCB;
-
   /// Operation
   typedef boost::intrusive_ptr<Operation> OperationPtr;
   class Operation : public P44Obj
   {
   protected:
-    OperationFinalizeCB finalizeCallback;
     bool initiated;
     bool aborted;
     MLMicroSeconds timeout; // timeout
@@ -57,8 +53,6 @@ namespace p44 {
     bool inSequence;
     /// constructor
     Operation();
-    /// set callback to execute when operation completes
-    void setOperationCB(OperationFinalizeCB aCallBack);
     /// set delay for initiation (after first attempt to initiate)
     void setInitiationDelay(MLMicroSeconds aInitiationDelay);
     /// set earliest time to execute
@@ -80,9 +74,9 @@ namespace p44 {
     /// @return true if completed
     virtual bool hasCompleted();
     /// call to execute after completion, can chain another operation by returning it
-    virtual OperationPtr finalize(OperationQueue *aQueueP);
+    virtual OperationPtr finalize(OperationQueue *aQueueP) = 0;
     /// abort operation
-    virtual void abortOperation(ErrorPtr aError);
+    virtual void abortOperation(ErrorPtr aError) = 0;
   };
 
 
@@ -90,13 +84,13 @@ namespace p44 {
   /// Operation queue
   class OperationQueue : public P44Obj
   {
-    MainLoop *mainLoopP;
+    MainLoop &mainLoop;
   protected:
     typedef list<OperationPtr> OperationList;
     OperationList operationQueue;
   public:
     /// create operation queue linked into specified mainloop
-    OperationQueue(MainLoop *aMainLoopP);
+    OperationQueue(MainLoop &aMainLoop);
     /// destructor
     virtual ~OperationQueue();
 

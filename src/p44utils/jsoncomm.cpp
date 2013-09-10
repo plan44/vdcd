@@ -11,8 +11,8 @@
 using namespace p44;
 
 
-JsonComm::JsonComm(SyncIOMainLoop *aMainLoopP) :
-  inherited(aMainLoopP),
+JsonComm::JsonComm(SyncIOMainLoop &aMainLoop) :
+  inherited(aMainLoop),
   tokener(NULL),
   ignoreUntilNextEOM(false),
   closeWhenSent(false)
@@ -76,11 +76,11 @@ void JsonComm::gotData(ErrorPtr aError)
             struct json_object *o = json_tokener_parse_ex(tokener, (const char *)buf+bom, (int)(eom-bom));
             if (o==NULL) {
               // error (or incomplete JSON, which is fine)
-              JsonCommErrors err = json_tokener_get_error(tokener);
+              JsonErrors err = json_tokener_get_error(tokener);
               if (err!=json_tokener_continue) {
                 // real error
                 if (jsonMessageHandler) {
-                  jsonMessageHandler(this, ErrorPtr(new JsonCommError(err)), JsonObjectPtr());
+                  jsonMessageHandler(this, ErrorPtr(new JsonError(err)), JsonObjectPtr());
                 }
                 // reset the parser
                 ignoreUntilNextEOM = true;

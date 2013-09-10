@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd jsonrpctool
 
-vdcd_CPPFLAGS = -I src/p44utils -I src
+vdcd_CPPFLAGS = -I src/p44utils -I src -I src/mongoose -D DEBUG=1
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -53,7 +53,13 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/httpcomm.cpp\
+  src/p44utils/httpcomm.hpp\
+  src/p44utils/jsonwebclient.cpp\
+  src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44_common.hpp \
+  src/mongoose/mongoose.c\
+  src/mongoose/mongoose.h\
   src/sqlite3pp/sqlite3pp.cpp \
   src/sqlite3pp/sqlite3pp.h \
   src/sqlite3pp/sqlite3ppext.cpp \
@@ -110,6 +116,8 @@ vdcd_SOURCES = \
   src/digitaliodevice.hpp \
   src/staticdevicecontainer.cpp \
   src/staticdevicecontainer.hpp \
+  src/huecomm.cpp \
+  src/huecomm.hpp \
   src/huedevicecontainer.cpp \
   src/huedevicecontainer.hpp \
   src/huedevice.cpp \

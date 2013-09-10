@@ -43,13 +43,6 @@ void Operation::setInitiatesAt(MLMicroSeconds aInitiatesAt)
 }
 
 
-// set callback to execute when operation completes
-void Operation::setOperationCB(OperationFinalizeCB aCallBack)
-{
-  finalizeCallback = aCallBack;
-}
-
-
 // check if can be initiated
 bool Operation::canInitiate()
 {
@@ -100,39 +93,16 @@ bool Operation::hasTimedOutAt(MLMicroSeconds aRefTime)
 }
 
 
-// call to execute after completion
-OperationPtr Operation::finalize(OperationQueue *aQueueP)
-{
-  if (finalizeCallback) {
-    finalizeCallback(this,aQueueP,ErrorPtr());
-    finalizeCallback = NULL; // call once only
-  }
-  return OperationPtr();
-}
-
-
-
-// call to execute to abort operation
-void Operation::abortOperation(ErrorPtr aError)
-{
-  if (finalizeCallback && !aborted) {
-    aborted = true;
-    finalizeCallback(this,NULL,aError);
-    finalizeCallback = NULL; // call once only
-  }
-}
-
-
 
 #pragma mark - OperationQueue
 
 
 // create operation queue into specified mainloop
-OperationQueue::OperationQueue(MainLoop *aMainLoopP)
+OperationQueue::OperationQueue(MainLoop &aMainLoop) :
+  mainLoop(aMainLoop)
 {
-  mainLoopP = aMainLoopP; // remember mainloop
   // register with mainloop
-  mainLoopP->registerIdleHandler(this, boost::bind(&OperationQueue::idleHandler, this));
+  mainLoop.registerIdleHandler(this, boost::bind(&OperationQueue::idleHandler, this));
 }
 
 
@@ -140,7 +110,7 @@ OperationQueue::OperationQueue(MainLoop *aMainLoopP)
 OperationQueue::~OperationQueue()
 {
   // unregister from mainloop
-  mainLoopP->unregisterIdleHandlers(this);
+  mainLoop.unregisterIdleHandlers(this);
 }
 
 

@@ -128,10 +128,6 @@ namespace p44 {
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
     
-    
-  private:
-    
-    void nextBlink();
   };
   
   typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;

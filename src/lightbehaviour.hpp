@@ -37,7 +37,12 @@ namespace p44 {
 
     /// @}
 
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+
   protected:
+
 
     // persistence implementation
     virtual const char *tableName();
@@ -68,8 +73,9 @@ namespace p44 {
 
   protected:
 
-    /// factory method to create the correct subclass type of DsScene with default values
-    /// @param aSceneNo the scene number to create a scene object with proper default values for.
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
 
   };
@@ -123,14 +129,22 @@ namespace p44 {
 
     /// set new brightness
     /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness
-    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTime=0);
+    /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher new logical brightness
+    /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower new logical brightness
+    ///   if not specified or <0, aTransitionTimeUp is used for both directions
+    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown=-1);
+
+    /// update logical brightness from actual output state
+    void updateLogicalBrightnessFromOutput();
+
+
 
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set
     /// @param aMax maximal brightness that can be set
     /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
     void initBrightnessParams(Brightness aMin, Brightness aMax);
+
     /// @}
 
 
@@ -148,6 +162,9 @@ namespace p44 {
     
     /// @}
 
+    /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
+    static MLMicroSeconds transitionTimeFromDimTime(uint8_t aDimTime);
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
@@ -157,6 +174,12 @@ namespace p44 {
     virtual string shortDesc();
 
   protected:
+
+    /// called by applyScene to actually recall a scene from the scene table
+    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
+    /// additional values that were saved as captureScene()
+    virtual void recallScene(LightScenePtr aLightScene);
+
 
     // property access implementation for descriptor/settings/states
     //virtual int numDescProps();
@@ -176,9 +199,6 @@ namespace p44 {
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
 
-  private:
-
-    void nextBlink();
   };
 
   typedef boost::intrusive_ptr<LightBehaviour> LightBehaviourPtr;

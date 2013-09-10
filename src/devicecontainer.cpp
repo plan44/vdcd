@@ -180,7 +180,7 @@ private:
   void completed(ErrorPtr aError)
   {
     // start periodic tasks like registration checking and saving parameters
-    MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
     // callback
     callback(aError);
     // done, delete myself
@@ -408,7 +408,7 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 {
   // cancel any pending executions
-  MainLoop::currentMainLoop()->cancelExecutionTicket(periodicTaskTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
   if (!collecting) {
     if (sessionActive) {
       // check for devices that need to be announced
@@ -420,7 +420,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
     }
   }
   // schedule next run
-  periodicTaskTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
 }
 
 
@@ -435,7 +435,7 @@ void DeviceContainer::localDimHandler()
       dev->callScene(localDimDown ? DEC_S : INC_S, true);
     }
   }
-  localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+  localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
 }
 
 
@@ -472,7 +472,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       break;
     case ct_hold_start:
       scene = INC_S;
-      localDimTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+      localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
       if (direction!=0)
         localDimDown = direction<0;
       else {
@@ -481,7 +481,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       }
       break;
     case ct_hold_end:
-      MainLoop::currentMainLoop()->cancelExecutionTicket(localDimTicket); // stop dimming
+      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket); // stop dimming
       scene = STOP_S; // stop any still ongoing dimming
       direction = 1; // really send STOP, not main off!
       break;
@@ -609,8 +609,8 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   string method = aMethod;
   LOG(LOG_DEBUG,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
   // retrigger session timout
-  MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
-  sessionActivityTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
+  MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
+  sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
   if (aJsonRpcId) {
     // Check session init/end methods
     if (method=="hello") {
@@ -659,7 +659,7 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
     if (pos->get()==aJsonRpcComm) {
       if (*pos==sessionComm) {
         // this is the current vDC session, end it
-        MainLoop::currentMainLoop()->cancelExecutionTicket(sessionActivityTicket);
+        MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
         endContainerSession();
         sessionComm.reset();
       }
@@ -826,7 +826,7 @@ void DeviceContainer::startContainerSession()
 void DeviceContainer::endContainerSession()
 {
   // end pending announcement
-  MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // end all device sessions
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
@@ -867,7 +867,7 @@ void DeviceContainer::announceDevices()
           LOG(LOG_INFO, "Sent announcement for device %s\n", dev->shortDesc().c_str());
         }
         // schedule a retry
-        announcementTicket = MainLoop::currentMainLoop()->executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_TIMEOUT);
+        announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_TIMEOUT);
         // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
         break;
       }
@@ -885,7 +885,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
     aDevice->announcing = Never; // not announcing any more
   }
   // cancel retry timer
-  MainLoop::currentMainLoop()->cancelExecutionTicket(announcementTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement
   announceDevices();
 }

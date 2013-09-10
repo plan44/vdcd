@@ -34,7 +34,7 @@ const char *StaticDeviceContainer::deviceClassIdentifier() const
 /// @param aCompletedCB will be called when device scan for this device class has been completed
 void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 {
-  forgetDevices();
+  removeDevices(false);
 	// create devices from configs
 	for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
 		// create device of appropriate class

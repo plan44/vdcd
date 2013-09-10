@@ -90,8 +90,9 @@ namespace p44 {
     /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
 
-    /// forget all devices (but don't delete learned-in devices, so next collect will add them again)
-    virtual void forgetDevices();
+    /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
+    ///   the devices are not disconnected (=unlearned) by this.
+    virtual void removeDevices(bool aForget);
 
   protected:
 

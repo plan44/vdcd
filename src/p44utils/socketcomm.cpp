@@ -13,8 +13,8 @@
 
 using namespace p44;
 
-SocketComm::SocketComm(SyncIOMainLoop *aMainLoopP) :
-  FdComm(aMainLoopP),
+SocketComm::SocketComm(SyncIOMainLoop &aMainLoop) :
+  FdComm(aMainLoop),
   connectionOpen(false),
   isConnecting(false),
   serving(false),
@@ -120,7 +120,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
       serving = true;
       serverConnectionHandler = aServerConnectionHandler;
       // - install callback for when FD becomes writable (or errors out)
-      mainLoopP->registerPollHandler(
+      mainLoop.registerPollHandler(
         connectionFd,
         POLLIN,
         boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3, _4)
@@ -132,7 +132,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 }
 
 
-bool SocketComm::connectionAcceptHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if (aPollFlags & POLLIN) {
@@ -347,7 +347,7 @@ ErrorPtr SocketComm::connectNextAddress()
       // - save FD
       connectionFd = socketFD;
       // - install callback for when FD becomes writable (or errors out)
-      mainLoopP->registerPollHandler(
+      mainLoop.registerPollHandler(
         connectionFd,
         POLLOUT,
         boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
@@ -395,7 +395,7 @@ ErrorPtr SocketComm::socketError(int aSocketFd)
 
 
 
-bool SocketComm::connectionMonitorHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if ((aPollFlags & POLLOUT) && isConnecting) {
@@ -474,7 +474,7 @@ void SocketComm::internalCloseConnection()
   if (serving) {
     // serving socket
     // - close listening socket
-    mainLoopP->unregisterPollHandler(connectionFd);
+    mainLoop.unregisterPollHandler(connectionFd);
     close(connectionFd);
     connectionFd = -1;
     serving = false;
@@ -487,7 +487,7 @@ void SocketComm::internalCloseConnection()
     // stop monitoring data connection
     setFd(-1);
     // to make sure, also unregister handler for connectionFd (in case FdComm had no fd set yet)
-    mainLoopP->unregisterPollHandler(connectionFd);
+    mainLoop.unregisterPollHandler(connectionFd);
     if (serverConnection) {
       shutdown(connectionFd, SHUT_RDWR);
     }

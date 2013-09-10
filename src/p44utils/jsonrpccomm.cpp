@@ -12,8 +12,8 @@
 using namespace p44;
 
 
-JsonRpcComm::JsonRpcComm(SyncIOMainLoop *aMainLoopP) :
-  inherited(aMainLoopP),
+JsonRpcComm::JsonRpcComm(SyncIOMainLoop &aMainLoop) :
+  inherited(aMainLoop),
   requestIdCounter(0),
   reportAllErrors(false)
 {
@@ -229,7 +229,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
   }
   else {
     // no proper JSON received, create error response
-    if (aError->isDomain(JsonCommError::domain())) {
+    if (aError->isDomain(JsonError::domain())) {
       // some kind of parsing error
       respErr = ErrorPtr(new JsonRpcError(JSONRPC_PARSE_ERROR, aError->description()));
     }

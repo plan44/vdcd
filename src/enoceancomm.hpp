@@ -288,7 +288,7 @@ namespace p44 {
   };
 
 
-  typedef boost::function<void (EnoceanComm *aEnoceanCommP, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
+  typedef boost::function<void (EnoceanComm &aEnoceanComm, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
 
   typedef boost::intrusive_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication
@@ -301,7 +301,7 @@ namespace p44 {
 		
 	public:
 		
-		EnoceanComm(SyncIOMainLoop *aMainLoopP);
+		EnoceanComm(SyncIOMainLoop &aMainLoop);
 		virtual ~EnoceanComm();
 		
     /// set the connection parameters to connect to the enOcean TCM310 modem

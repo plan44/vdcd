@@ -225,10 +225,20 @@ void Device::saveScene(SceneNo aSceneNo)
         }
       }
       // save updated scene if any modifications found
-      if (scene->isDirty()) {
-        scenes->updateScene(scene);
-      }
+      // Note: some implementations of captureScene might not save the scene immediately, but
+      //   will need some time to retrieve the values. These implementations must call
+      //   updateScene() again later when the current values are available.
+      updateScene(scene);
     }
+  }
+}
+
+
+void Device::updateScene(DsScenePtr aScene)
+{
+  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  if (scenes && aScene->isDirty()) {
+    scenes->updateScene(aScene);
   }
 }
 

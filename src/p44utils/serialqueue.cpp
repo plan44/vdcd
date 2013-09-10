@@ -17,7 +17,8 @@ using namespace p44;
 #pragma mark - SerialOperation
 
 
-SerialOperation::SerialOperation()
+SerialOperation::SerialOperation(SerialOperationFinalizeCB aCallback) :
+  callback(aCallback)
 {
 }
 
@@ -35,11 +36,33 @@ size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 }
 
 
+OperationPtr SerialOperation::finalize(OperationQueue *aQueueP)
+{
+  if (callback) {
+    callback(*this,aQueueP,ErrorPtr());
+    callback = NULL; // call once only
+  }
+  return OperationPtr(); // no operation to insert
+}
+
+
+void SerialOperation::abortOperation(ErrorPtr aError)
+{
+  if (callback && !aborted) {
+    aborted = true;
+    callback(*this,NULL,aError);
+    callback = NULL; // call once only
+  }
+}
+
+
+
 
 #pragma mark - SerialOperationSend
 
 
-SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes) :
+SerialOperationSend::SerialOperationSend(size_t aNumBytes, uint8_t *aBytes, SerialOperationFinalizeCB aCallback) :
+  inherited(aCallback),
   dataP(NULL)
 {
   // copy data
@@ -112,7 +135,8 @@ bool SerialOperationSend::initiate()
 #pragma mark - SerialOperationReceive
 
 
-SerialOperationReceive::SerialOperationReceive(size_t aExpectedBytes)
+SerialOperationReceive::SerialOperationReceive(size_t aExpectedBytes, SerialOperationFinalizeCB aCallback) :
+  inherited(aCallback)
 {
   // allocate buffer
   expectedBytes = aExpectedBytes;
@@ -174,8 +198,8 @@ void SerialOperationReceive::abortOperation(ErrorPtr aError)
 #pragma mark - SerialOperationSendAndReceive
 
 
-SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes) :
-  inherited(aNumBytes, aBytes),
+SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback) :
+  inherited(aNumBytes, aBytes, aCallback),
   expectedBytes(aExpectedBytes)
 {
 };
@@ -185,12 +209,11 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 {
   if (aQueueP) {
     // insert receive operation
-    SerialOperationPtr op(new SerialOperationReceive(expectedBytes));
-    op->setOperationCB(finalizeCallback); // inherit completion callback
-    finalizeCallback = NULL; // prevent it to be called from this object!
+    SerialOperationPtr op(new SerialOperationReceive(expectedBytes, callback)); // inherit completion callback
+    callback = NULL; // prevent it to be called from this object!
     return op;
   }
-  return SerialOperationPtr(); // none
+  return inherited::finalize(aQueueP); // default
 }
 
 
@@ -198,8 +221,8 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 
 
 // Link into mainloop
-SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop *aMainLoopP) :
-  inherited(aMainLoopP),
+SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
+  inherited(aMainLoop),
   fdToMonitor(-1)
 {
 }
@@ -231,12 +254,12 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
   if (aFileDescriptor!=fdToMonitor) {
     // unregister previous one, if any
     if (fdToMonitor>=0) {
-      SyncIOMainLoop::currentMainLoop()->unregisterPollHandler(fdToMonitor);
+      SyncIOMainLoop::currentMainLoop().unregisterPollHandler(fdToMonitor);
     }
     // unregister new one, if any
     if (aFileDescriptor>=0) {
       // register
-      SyncIOMainLoop::currentMainLoop()->registerPollHandler(
+      SyncIOMainLoop::currentMainLoop().registerPollHandler(
         aFileDescriptor,
         POLLIN,
         boost::bind(&SerialOperationQueue::pollHandler, this, _1, _2, _3, _4)
@@ -250,7 +273,7 @@ void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
 
 #define RECBUFFER_SIZE 100
 
-bool SerialOperationQueue::pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+bool SerialOperationQueue::pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
@@ -263,14 +286,14 @@ bool SerialOperationQueue::pollHandler(SyncIOMainLoop *aMainLoop, MLMicroSeconds
 }
 
 
-//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
 //{
 //
 //  return true;
 //}
 //
 //
-//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop *aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
+//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
 //{
 //
 //  return true;

@@ -19,10 +19,10 @@ namespace p44 {
 
   class Application : public P44Obj
   {
-    MainLoop *mainLoopP;
+    MainLoop &mainLoop;
   public:
     /// constructors
-    Application(MainLoop *aMainLoopP);
+    Application(MainLoop &aMainLoop);
     Application();
 
     /// destructor
@@ -80,7 +80,7 @@ namespace p44 {
   public:
 
     /// constructors
-    CmdLineApp(MainLoop *aMainLoopP);
+    CmdLineApp(MainLoop &aMainLoop);
     CmdLineApp();
 
     /// destructor

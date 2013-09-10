@@ -104,8 +104,13 @@ DevicePtr DeviceClassContainer::getDevicePtrForInstance(Device *aDeviceP)
 
 
 
-void DeviceClassContainer::forgetDevices()
+void DeviceClassContainer::removeDevices(bool aForget)
 {
+	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+    DevicePtr dev = *pos;
+    deviceContainerP->removeDevice(dev, aForget);
+  }
+  // clear my own list
   devices.clear();
 }
 
