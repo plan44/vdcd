@@ -716,7 +716,7 @@ void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSI
       dev->handleNotification(aMethod, aParams);
     }
     else {
-      LOG(LOG_WARNING, "Target device %s not found for notification '%s'", aDsid.getString().c_str(), aMethod.c_str());
+      LOG(LOG_WARNING, "Target device %s not found for notification '%s'\n", aDsid.getString().c_str(), aMethod.c_str());
     }
   }
 }
