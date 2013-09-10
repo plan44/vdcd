@@ -32,6 +32,7 @@
 </option>
 <option id="gnu.c.compiler.option.include.paths.2033005810" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.365296998" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
@@ -45,6 +46,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.104925405" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -59,10 +61,12 @@
 <tool id="com.digi.lxnetes.managedbuild.cpp.linker.debug.1643172921" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.managedbuild.cpp.linker.debug">
 <option id="gnu.cpp.link.option.libs.436267425" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="mongoose"/>
 <listOptionValue builtIn="false" value="json-c"/>
 </option>
 <option id="gnu.cpp.link.option.paths.1280385530" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.449462333" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -75,7 +79,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/sqlite3pp/testselect.cpp|src/sqlite3pp/testinsertall.cpp|src/sqlite3pp/testinsert.cpp|src/sqlite3pp/testfunction.cpp|src/sqlite3pp/testdisconnect.cpp|src/sqlite3pp/testcallback.cpp|src/sqlite3pp/testattach.cpp|src/sqlite3pp/testaggregate.cpp|boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/jsonrpctool.cpp|src/enoceantool.cpp|src/mongoose/mongoose.h|src/mongoose/mongoose.c|src/sqlite3pp/testselect.cpp|src/sqlite3pp/testinsertall.cpp|src/sqlite3pp/testinsert.cpp|src/sqlite3pp/testfunction.cpp|src/sqlite3pp/testdisconnect.cpp|src/sqlite3pp/testcallback.cpp|src/sqlite3pp/testattach.cpp|src/sqlite3pp/testaggregate.cpp|boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1033,7 +1037,7 @@
 <targetPlatform id="com.digi.lxnetes.managedbuild.targetPlatform.release.167951857" name="Debug Platform" superClass="com.digi.lxnetes.managedbuild.targetPlatform.release"/>
 <builder buildPath="${workspace_loc:/p44bridged/Release}" id="com.digi.lxnetes.builder.exe.release.160383975" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="com.digi.lxnetes.builder.exe.release"/>
 <tool id="com.digi.lxnetes.managedbuild.archiver.base.993090639" name="GCC C Cross-Archiver" superClass="com.digi.lxnetes.managedbuild.archiver.base"/>
-<tool id="com.digi.lxnetes.managedbuild.c.compiler.release.1716932832" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.release">
+<tool command="$(CC)" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.digi.lxnetes.managedbuild.c.compiler.release.1716932832" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.release">
 <option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1831859778" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.1301704598" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.635601814" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
@@ -1044,6 +1048,7 @@
 </option>
 <option id="gnu.c.compiler.option.include.paths.1678086436" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
@@ -1056,6 +1061,7 @@
 <listOptionValue builtIn="false" value="../src"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1780290498" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -1070,10 +1076,12 @@
 <tool id="com.digi.lxnetes.mangedbuild.cpp.linker.release.956388161" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.mangedbuild.cpp.linker.release">
 <option id="gnu.cpp.link.option.libs.47163167" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="mongoose"/>
 <listOptionValue builtIn="false" value="json-c"/>
 </option>
 <option id="gnu.cpp.link.option.paths.471327307" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.347692932" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -1086,7 +1094,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="sqlite3pp/testselect.cpp|sqlite3pp/testinsertall.cpp|sqlite3pp/testinsert.cpp|sqlite3pp/testfunction.cpp|sqlite3pp/testdisconnect.cpp|sqlite3pp/testcallback.cpp|sqlite3pp/testattach.cpp|sqlite3pp/testaggregate.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+<entry excluding="jsonrpctool.cpp|enoceantool.cpp|mongoose/mongoose.h|mongoose/mongoose.c|sqlite3pp/testselect.cpp|sqlite3pp/testinsertall.cpp|sqlite3pp/testinsert.cpp|sqlite3pp/testfunction.cpp|sqlite3pp/testdisconnect.cpp|sqlite3pp/testcallback.cpp|sqlite3pp/testattach.cpp|sqlite3pp/testaggregate.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>

@@ -23,33 +23,36 @@ using namespace p44;
 /// @param a4BSdata the 4BS data as 32-bit value, MSB=enocean DB_3, LSB=enocean DB_0
 typedef void (*BitFieldHandlerFunc)(const Enocean4bsHandler &aHandler, bool aForSend, uint32_t &a4BSdata);
 
-/// descriptor flags
-typedef enum {
-  dflag_none = 0,
-  dflag_NeedsTeachInResponse = 0x1,
-  dflag_alwaysUpdateable = 0x2, ///< device is always updateable (not only within 1sec after having sent a message)
-} DescriptorFlags;
+namespace p44 {
+
+  /// descriptor flags
+  typedef enum {
+    dflag_none = 0,
+    dflag_NeedsTeachInResponse = 0x1,
+    dflag_alwaysUpdateable = 0x2, ///< device is always updateable (not only within 1sec after having sent a message)
+  } DescriptorFlags;
 
 
-/// enocean sensor value descriptor
-typedef struct p44::Enocean4BSDescriptor {
-  uint8_t func; ///< the function code from the EPP signature
-  uint8_t type; ///< the type code from the EPP signature
-  uint8_t subDevice; ///< subdevice index, in case enOcean device needs to be split into multiple logical vdSDs
-  DsGroup group; ///< the dS group for this channel
-  BehaviourType behaviourType; ///< the behaviour type
-  uint8_t behaviourParam; ///< DsSensorType, DsBinaryInputType or DsOutputFunction resp., depending on behaviourType
-  float min; ///< min value
-  float max; ///< max value
-  uint8_t msBit; ///< most significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
-  uint8_t lsBit; ///< least significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
-  double updateInterval; ///< normal update interval (average) in seconds
-  BitFieldHandlerFunc bitFieldHandler; ///< function used to convert between bit field in 4BS telegram and engineering value for the behaviour
-  const char *typeText;
-  const char *unitText;
-  DescriptorFlags flags; ///< flags for special functions of device or channel
-} Enocean4BSDescriptor;
+  /// enocean sensor value descriptor
+  typedef struct Enocean4BSDescriptor {
+    uint8_t func; ///< the function code from the EPP signature
+    uint8_t type; ///< the type code from the EPP signature
+    uint8_t subDevice; ///< subdevice index, in case enOcean device needs to be split into multiple logical vdSDs
+    DsGroup group; ///< the dS group for this channel
+    BehaviourType behaviourType; ///< the behaviour type
+    uint8_t behaviourParam; ///< DsSensorType, DsBinaryInputType or DsOutputFunction resp., depending on behaviourType
+    float min; ///< min value
+    float max; ///< max value
+    uint8_t msBit; ///< most significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
+    uint8_t lsBit; ///< least significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
+    double updateInterval; ///< normal update interval (average) in seconds
+    BitFieldHandlerFunc bitFieldHandler; ///< function used to convert between bit field in 4BS telegram and engineering value for the behaviour
+    const char *typeText;
+    const char *unitText;
+    DescriptorFlags flags; ///< flags for special functions of device or channel
+  } Enocean4BSDescriptor;
 
+} // namespace p44
 
 /// enocean bit specification to bit number macro
 #define DB(byte,bit) (byte*8+bit)
@@ -131,7 +134,7 @@ static void stdOutputHandler(const Enocean4bsHandler &aHandler, bool aForSend, u
 static const char *tempText = "Temperature";
 static const char *tempUnit = "°C";
 
-static const Enocean4BSDescriptor enocean4BSdescriptors[] = {
+static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // Temperature sensors
   // - 40 degree range                 behaviour_binaryinput
   { 0x02, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, -40,    0, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
@@ -374,7 +377,7 @@ void Enocean4BSDevice::sendTeachInResponse()
     // now send
     getEnoceanDeviceContainer().enoceanComm.sendPacket(responsePacket);
   }
-  
+
 }
 
 
