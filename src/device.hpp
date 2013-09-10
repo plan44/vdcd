@@ -155,6 +155,12 @@ namespace p44 {
     /// @param aSceneNo the scene to save current state into
     void saveScene(SceneNo aSceneNo);
 
+    /// store updated version of a scene for this device
+    /// @param aScene the updated scene object that should be stored
+    /// @note only updates the scene if aScene is marked dirty
+    void updateScene(DsScenePtr aScene);
+
+
 
     /// @name DsAddressable API implementation
 

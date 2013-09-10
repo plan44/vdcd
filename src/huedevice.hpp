@@ -11,26 +11,130 @@
 
 #include "device.hpp"
 
+#include "lightbehaviour.hpp"
+
 using namespace std;
 
 namespace p44 {
 
   class HueDeviceContainer;
   class HueDevice;
+  class HueComm;
+
+  typedef enum {
+    hueColorModeNone, ///< no color information stored, only brightness
+    hueColorModeHueSaturation, ///< "hs" - hue & saturation
+    hueColorModeXY, ///< "xy" - CIE color space coordinates
+    hueColorModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K) for hue Lights
+  } HueColorMode;
+
+
+
+  class HueLightScene : public LightScene
+  {
+    typedef LightScene inherited;
+  public:
+    HueLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+
+    /// @name hue light scene specific values
+    /// @{
+
+    HueColorMode colorMode; ///< color mode (hue+Saturation or CIE xy or color temperature)
+    double XOrHueOrCt; ///< X or hue or ct, depending on colorMode
+    double YOrSat; ///< Y or saturation, depending on colorMode
+
+    /// @}
+
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+
+  protected:
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
+  };
+  typedef boost::intrusive_ptr<HueLightScene> HueLightScenePtr;
+
+
+  class HueLightBehaviour : public LightBehaviour
+  {
+    typedef LightBehaviour inherited;
+
+  public:
+
+    HueLightBehaviour(Device &aDevice);
+
+    /// capture current state into passed scene object
+    /// @param aScene the scene object to update
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void captureScene(DsScenePtr aScene);
+
+  protected:
+
+    /// called by applyScene to actually recall a scene from the scene table
+    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
+    /// additional values that were saved as captureScene()
+    virtual void recallScene(LightScenePtr aLightScene);
+
+  private:
+
+    void sceneColorsReceived(HueLightScenePtr aHueScene, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+
+
+  };
+  typedef boost::intrusive_ptr<HueLightBehaviour> HueLightBehaviourPtr;
+
+
+
+  /// the persistent parameters of a light scene device (including scene table)
+  class HueDeviceSettings : public LightDeviceSettings
+  {
+    typedef LightDeviceSettings inherited;
+
+  public:
+    HueDeviceSettings(Device &aDevice);
+
+  protected:
+
+    /// factory method to create the correct subclass type of DsScene with default values
+    /// @param aSceneNo the scene number to create a scene object with proper default values for.
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+    
+  };
+
+
+
+
   typedef boost::intrusive_ptr<HueDevice> HueDevicePtr;
   class HueDevice : public Device
   {
     typedef Device inherited;
+    friend class HueLightBehaviour;
 
     string lightID; ///< the ID as used in the hue bridge
 
     // information from the device itself
     string hueModel;
 
+    // scene to update colors from when updating output
+    HueLightScenePtr pendingColorScene;
+
   public:
     HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID);
 
     HueDeviceContainer &hueDeviceContainer();
+    HueComm &hueComm();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

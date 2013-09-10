@@ -166,16 +166,7 @@ bool LightScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Pr
 }
 
 
-
-
-#pragma mark - LightDeviceSettings with default light scenes factory
-
-
-LightDeviceSettings::LightDeviceSettings(Device &aDevice) :
-  inherited(aDevice)
-{
-};
-
+#pragma mark - default scene values
 
 typedef struct {
   Brightness brightness; ///< output value for this scene
@@ -302,26 +293,40 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
 };
 
 
-DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+void LightScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
   // fetch from defaults
   if (aSceneNo>NUMDEFAULTSCENES)
     aSceneNo = NUMDEFAULTSCENES; // last entry in the table is the default for all higher scene numbers
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
-  LightScenePtr lightScene = LightScenePtr(new LightScene(*this, aSceneNo));
   // now set default values
   // - common scene flags
-  lightScene->dontCare = p.dontCare;
-  lightScene->ignoreLocalPriority = p.ignoreLocalPriority;
+  dontCare = p.dontCare;
+  ignoreLocalPriority = p.ignoreLocalPriority;
   // - light scene specifics
-  lightScene->sceneBrightness = p.brightness;
-  lightScene->dimTimeSelector = p.dimTimeSelector;
-  lightScene->flashing = p.flashing;
-  lightScene->specialBehaviour = p.specialBehaviour;
+  sceneBrightness = p.brightness;
+  dimTimeSelector = p.dimTimeSelector;
+  flashing = p.flashing;
+  specialBehaviour = p.specialBehaviour;
+}
+
+
+#pragma mark - LightDeviceSettings with default light scenes factory
+
+
+LightDeviceSettings::LightDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+};
+
+
+DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+{
+  LightScenePtr lightScene = LightScenePtr(new LightScene(*this, aSceneNo));
+  lightScene->setDefaultSceneValues(aSceneNo);
   // return it
   return lightScene;
 }
-
 
 
 
@@ -358,24 +363,38 @@ Brightness LightBehaviour::getLogicalBrightness()
 }
 
 
-void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTime)
+void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
 {
   if (aBrightness>255) aBrightness = 255;
+  MLMicroSeconds tt = aTransitionTimeDown<0 || aBrightness>logicalBrightness ? aTransitionTimeUp : aTransitionTimeDown;
   logicalBrightness = aBrightness;
   if (isLocigallyOn) {
     // device is logically ON
     if (isDimmable()) {
       // dimmable, 0=off, 1..255=brightness
-      setOutputValue(logicalBrightness, aTransitionTime);
+      setOutputValue(logicalBrightness, tt);
     }
     else {
       // not dimmable, on if logical brightness is above threshold
-      setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, aTransitionTime);
+      setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, tt);
     }
   }
   else {
     // off is off
-    setOutputValue(0, aTransitionTime);
+    setOutputValue(0, tt);
+  }
+}
+
+
+void LightBehaviour::updateLogicalBrightnessFromOutput()
+{
+  Brightness o = getOutputValue();
+  isLocigallyOn = o>0;
+  if (isDimmable()) {
+    logicalBrightness = o;
+  }
+  else {
+    logicalBrightness = o>onThreshold ? 255 : 0;
   }
 }
 
@@ -425,8 +444,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
             nb = maxBrightness;
         }
         if (nb!=b) {
-          isLocigallyOn = nb!=0; // TODO: is this correct?
-          // TODO: pass correct transition time
+          isLocigallyOn = nb!=0;
           setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
           LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
         }
@@ -434,14 +452,12 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     }
     else if (sceneNo==STOP_S) {
       // stop dimming
-      // TODO: when fine tuning dimming, we'll need to actually stop ongoing DALI dimming. For now, it's just a NOP
+      // TODO: when fine tuning dimming, we'll need to actually stop ongoing dimming. For now, it's just a NOP
     }
     else if (sceneNo==MIN_S) {
-      // TODO: this is a duplicate implementation of "callscenemin"
       Brightness b = minBrightness;
       isLocigallyOn = true; // mindim always turns on light
-      // TODO: pass correct transition time
-      setLogicalBrightness(b, 0);
+      setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
       LOG(LOG_NOTICE,"CallScene(MIN_S): setting minDim %d\n", b);
     }
     else {
@@ -455,13 +471,12 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
 }
 
 
-
 void LightBehaviour::recallScene(LightScenePtr aLightScene)
 {
   Brightness b = aLightScene->sceneBrightness;
-  isLocigallyOn = b!=0; // TODO: is this correct?
-  // TODO: pass correct transition time
-  setLogicalBrightness(b, 0);
+  isLocigallyOn = b!=0;
+  uint8_t s = aLightScene->dimTimeSelector;
+  setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeUp[s]), transitionTimeFromDimTime(dimTimeDown[s]));
 }
 
 
@@ -472,6 +487,8 @@ void LightBehaviour::captureScene(DsScenePtr aScene)
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
+    // make sure logical brightness is updated from output
+    updateLogicalBrightnessFromOutput();
     // just capture the output value
     if (lightScene->sceneBrightness != getLogicalBrightness()) {
       lightScene->sceneBrightness = getLogicalBrightness();
@@ -481,27 +498,13 @@ void LightBehaviour::captureScene(DsScenePtr aScene)
 }
 
 
-
-#define BLINK_HALF_PERIOD (500*MilliSecond)
-
-void LightBehaviour::nextBlink()
+/// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
+MLMicroSeconds LightBehaviour::transitionTimeFromDimTime(uint8_t aDimTime)
 {
-  Brightness b = getLogicalBrightness();
-  if (b<128)
-    b = 255;
-  else {
-    b = 1;
-    // one complete period
-    blinkCounter--;
-  }
-  isLocigallyOn = b!=0; // TODO: is this correct?
-  setLogicalBrightness(b,0);
-  // schedule next
-  if (blinkCounter>0) {
-    // schedule next blink
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::nextBlink, this), BLINK_HALF_PERIOD);
-  }
+  return ((MLMicroSeconds)(aDimTime & 0xF)*100*MilliSecond/15)<<((aDimTime>>4) & 0xF);
 }
+
+
 
 
 #pragma mark - persistence implementation
