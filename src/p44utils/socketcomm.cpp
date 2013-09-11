@@ -361,7 +361,6 @@ ErrorPtr SocketComm::connectNextAddress()
       isConnecting = false;
       currentAddressInfo = NULL; // no more addresses to check
       // immediately use socket for I/O
-      makeNonBlocking(socketFD);
       setFd(socketFD);
       // call handler if defined
       if (connectionStatusHandler) {
