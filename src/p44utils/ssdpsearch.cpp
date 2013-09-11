@@ -70,6 +70,7 @@ void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const c
 void SsdpSearch::socketStatusHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
+    DBGLOG(LOG_DEBUG, "### sending UDP M-SEARCH\n");
     // unregister socket status handler (or we'll get called when connection closes)
     setConnectionStatusHandler(NULL);
     // send search request

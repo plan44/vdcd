@@ -258,6 +258,7 @@ ErrorPtr SocketComm::initiateConnection()
     if (res!=0) {
       // error
       err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
+      DBGLOG(LOG_DEBUG, "SocketComm: getaddrinfo failed: %s\n", err->description().c_str());
       goto done;
     }
     // now try all addresses in the list
@@ -360,6 +361,7 @@ ErrorPtr SocketComm::connectNextAddress()
       isConnecting = false;
       currentAddressInfo = NULL; // no more addresses to check
       // immediately use socket for I/O
+      makeNonBlocking(socketFD);
       setFd(socketFD);
       // call handler if defined
       if (connectionStatusHandler) {
