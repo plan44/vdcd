@@ -490,33 +490,37 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (dev->isMember(group_yellow_light)) {
-        // this is a light
+        // this is a light related device (but not necessarily a light output!)
         LightBehaviourPtr lightBehaviour;
-        if (dev->outputs.size()>0)
+        if (dev->outputs.size()>0) {
           lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->outputs[0]);
-        if (direction==0) {
-          // get direction from current value of first encountered light
-          direction = lightBehaviour && lightBehaviour->getLogicalBrightness()>0 ? -1 : 1;
-        }
-        // determine the scene to call
-        int effScene = scene;
-        if (scene==INC_S) {
-          // dimming
-          if (direction<0)
-            effScene = DEC_S;
-          else {
-            // increment - check if we need to do a MIN_S first
-            if (lightBehaviour && lightBehaviour->getLogicalBrightness()==0)
-              effScene = MIN_S; // after calling this once, light should be logically on
-          }
-        }
-        else {
-          // switching
-          if (direction<0) effScene = T0_S0; // main off
-        }
-        // call the effective scene
-        dev->callScene(effScene, true);
-      }
+          if (lightBehaviour) {
+            // this device has a light behaviour output
+            if (direction==0) {
+              // get direction from current value of first encountered light
+              direction = lightBehaviour->getLogicalBrightness()>1 ? -1 : 1;
+            }
+            // determine the scene to call
+            int effScene = scene;
+            if (scene==INC_S) {
+              // dimming
+              if (direction<0)
+                effScene = DEC_S;
+              else {
+                // increment - check if we need to do a MIN_S first
+                if (lightBehaviour && lightBehaviour->getLogicalBrightness()==0)
+                  effScene = MIN_S; // after calling this once, light should be logically on
+              }
+            }
+            else {
+              // switching
+              if (direction<0) effScene = T0_S0; // main off
+            }
+            // call the effective scene
+            dev->callScene(effScene, true);
+          } // if light behaviour
+        } // if any outputs
+      } // if in light group
     }
   }
 }

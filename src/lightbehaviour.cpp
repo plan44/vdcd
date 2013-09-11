@@ -416,7 +416,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       // dimming up/down special scenes
       //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
       Brightness b = getLogicalBrightness();
-      if (b<0 && !localPriority) {
+      if (b>0 && !localPriority) {
         Brightness nb = b;
         if (sceneNo==DEC_S) {
           // dim down
