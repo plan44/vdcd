@@ -74,34 +74,49 @@ namespace p44 {
     /// @note devices can
     virtual int idBlockSize() { return 1; }; // normal devices only reserve one single ID (their own)
 
+    /// @return human readable model name/short description
+    virtual string modelName() { return "vdSD - virtual device"; }
+
+    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "vdSD"; }
+
     /// @}
 
 
 
-    /// @name interface towards actual device hardware (or simulation)
+    /// @name interfaces for actual device hardware (or simulation)
     /// @{
-
-    /// set user assignable name
-    /// @param new name of the addressable entity
-    virtual void setName(const string &aName);
 
     /// set basic device color
     /// @param aColorGroup color group number
     void setPrimaryGroup(DsGroup aColorGroup);
+
+    /// set group membership
+    /// @param aColorGroup color group number to set or remove
+    /// @param aIsMember true to make device member of this group
+    void setGroupMembership(DsGroup aColorGroup, bool aIsMember);
+
+    /// report that device has vanished (disconnected without being told so via vDC API)
+    /// This will call disconnect() on the device, and remove it from all vDC container lists
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @note this method should be called when bus scanning or other HW-side events detect disconnection
+    ///   of a device, such that it can be reported to the dS system.
+    /// @note calling hasVanished() might delete the object, so don't rely on 'this' after calling it unless you
+    ///   still hold a DevicePtr to it
+    void hasVanished(bool aForgetParams);
+
+    /// @}
+
 
     /// check group membership
     /// @param aColorGroup color group number to check
     /// @return true if device is member of this group
     bool isMember(DsGroup aColorGroup);
 
-    /// set group membership
-    /// @param aColorGroup color group number to check
-    /// @param aIsMember true to make device member of this group
-    void setGroupMembership(DsGroup aColorGroup, bool aIsMember);
-
-    /// @}
-
-
+    /// set user assignable name
+    /// @param new name of the addressable entity
+    virtual void setName(const string &aName);
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
@@ -119,33 +134,25 @@ namespace p44 {
     virtual ErrorPtr forget();
 
 
-    typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
 
-    /// disconnect device. If presence is represented by data stored in the vDC rather than
-    /// detection of real physical presence on a bus, this call must clear the data that marks
-    /// the device as connected to this vDC (such as a learned-in enOcean button).
-    /// For devices where the vDC can be *absolutely certain* that they are still connected
-    /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
-    /// return false.
-    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
-    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
-    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
-    ///   false in case it is certain that the device is still connected to this and only this vDC
-    /// @note at the time aDisconnectResultHandler is called, the only owner left for the device object might be the
-    ///   aDevice argument to the DisconnectCB handler.
-    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
+    /// @name API implementation
 
+    /// @{
 
-    /// report that device has vanished (disconnected without being told so via vDC API)
-    /// This will call disconnect() on the device, and remove it from all vDC container lists
-    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
-    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
-    /// @note this method should be called when bus scanning or other HW-side events detect disconnection
-    ///   of a device, such that it can be reported to the dS system.
-    /// @note calling hasVanished() might delete the object, so don't rely on 'this' after calling it unless you
-    ///   still hold a DevicePtr to it
-    void hasVanished(bool aForgetParams);
+    /// called to let device handle device-level methods
+    /// @param aMethod the method
+    /// @param aJsonRpcId the id parameter to be used in sendResult()
+    /// @param aParams the parameters object
+    /// @note the parameters object always contains the dSID parameter which has been
+    ///   used already to route the method call to this device.
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
 
+    /// called to let device handle device-level notification
+    /// @param aMethod the notification
+    /// @param aParams the parameters object
+    /// @note the parameters object always contains the dSID parameter which has been
+    ///   used already to route the notification to this device.
+    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
 
     /// call scene on this device
     /// @param aSceneNo the scene to call.
@@ -165,26 +172,6 @@ namespace p44 {
     ///   this can be anything.
     virtual void identifyToUser();
 
-
-    /// @name DsAddressable API implementation
-
-    /// @{
-
-    /// called to let device handle device-level methods
-    /// @param aMethod the method
-    /// @param aJsonRpcId the id parameter to be used in sendResult()
-    /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
-    ///   used already to route the method call to this device.
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
-
-    /// called to let device handle device-level notification
-    /// @param aMethod the notification
-    /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
-    ///   used already to route the notification to this device.
-    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
-
     /// @}
 
 
@@ -203,18 +190,23 @@ namespace p44 {
     ///   output behaviours to collect data for an outgoing message.
     virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour) { /* NOP */ };
 
-    /// @}
 
+    typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
 
-    /// @name identification of the addressable entity
-    /// @{
+    /// disconnect device. If presence is represented by data stored in the vDC rather than
+    /// detection of real physical presence on a bus, this call must clear the data that marks
+    /// the device as connected to this vDC (such as a learned-in enOcean button).
+    /// For devices where the vDC can be *absolutely certain* that they are still connected
+    /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
+    /// return false.
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    /// @note at the time aDisconnectResultHandler is called, the only owner left for the device object might be the
+    ///   aDevice argument to the DisconnectCB handler.
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "vdSD - virtual device"; }
-
-    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
-    virtual const char *entityType() { return "vdSD"; }
-    
     /// @}
 
 

@@ -37,7 +37,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     }
   }
   // assign name
-  setName(name);
+  initializeName(name);
   // create I/O
   if (hasOutput) {
     // Simulate light device

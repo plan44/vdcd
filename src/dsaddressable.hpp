@@ -58,7 +58,14 @@ namespace p44 {
 
     /// set user assignable name
     /// @param new name of the addressable entity
-    virtual void setName(const string &aName) { name = aName; };
+    /// @note might prevent truncating names (just shortening an otherwise unchanged name)
+    /// @note subclasses might propagate the name into actual device hardware (e.g. hue)
+    virtual void setName(const string &aName);
+
+    /// initialize user assignable name with a default name or a name obtained from hardware
+    /// @note use setName to change a name from the API or UI, as initializeName() does not
+    ///   propagate to hardware
+    void initializeName(const string &aName);
 
     /// @name vDC API
     /// @{

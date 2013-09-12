@@ -301,6 +301,7 @@ public:
               if (refind) {
                 // that's my known hue bridge, save the URL and report success
                 hueComm.baseURL = url; // save it
+                hueComm.apiReady = true; // can use API now
                 callback(hueComm, ErrorPtr()); // success
                 keepAlive.reset(); // will delete object if nobody else keeps it
                 return; // done
@@ -371,6 +372,7 @@ public:
         hueComm.userName = u->stringValue();
         hueComm.uuid = currentAuthCandidate->first;
         hueComm.baseURL = currentAuthCandidate->second;
+        hueComm.apiReady = true; // can use API now
         DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
         // successfully registered with hue bridge, let caller know
         callback(hueComm, ErrorPtr());
@@ -397,7 +399,8 @@ public:
 HueComm::HueComm() :
   inherited(SyncIOMainLoop::currentMainLoop()),
   bridgeAPIComm(SyncIOMainLoop::currentMainLoop()),
-  findInProgress(false)
+  findInProgress(false),
+  apiReady(false)
 {
 }
 
@@ -415,6 +418,9 @@ void HueComm::apiQuery(const char* aUrlSuffix, HueApiResultCB aResultHandler)
 
 void HueComm::apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectPtr aData, HueApiResultCB aResultHandler, bool aNoAutoURL)
 {
+  if (!apiReady) {
+    if (aResultHandler) aResultHandler(*this,JsonObjectPtr(),ErrorPtr(new HueCommError(HueCommErrorApiNotReady)));
+  }
   string url;
   if (aNoAutoURL) {
     url = aUrlSuffix;
@@ -450,6 +456,7 @@ void HueComm::stopFind()
 
 void HueComm::refindBridge(HueBridgeFindCB aFindHandler)
 {
+  apiReady = false; // not yet found, API disabled
   BridgeFinderPtr bridgeFinder = BridgeFinderPtr(new BridgeFinder(*this, aFindHandler));
   bridgeFinder->refindBridge(aFindHandler);
 };

@@ -25,6 +25,24 @@ DsAddressable::~DsAddressable()
 }
 
 
+void DsAddressable::setName(const string &aName)
+{
+  // TODO: for now dsm API truncates names to 20 bytes. Therefore,
+  //   we prevent replacing a long name with a truncated version
+  if (name!=aName && (name.length()<20 || name.substr(0,20)!=aName)) {
+    name = aName;
+  }
+}
+
+
+void DsAddressable::initializeName(const string &aName)
+{
+  // just assign
+  name = aName;
+}
+
+
+
 #pragma mark - vDC API
 
 

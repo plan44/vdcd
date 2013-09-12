@@ -25,6 +25,7 @@ namespace p44 {
     HueCommErrorOK,
     HueCommErrorReservedForBridge = 1, ///< 1..999 are native bridge error codes
     HueCommErrorUuidNotFound = 1000, ///< bridge specified by uuid was not found
+    HueCommErrorApiNotReady, ///< API not ready (bridge not yet found, no bridge paired)
     HueCommErrorDescription, ///< SSDP by uuid did find a device, but XML description was inaccessible or invalid
     HueCommErrorInvalidUser, ///< bridge did not allow accessing the API with the username
     HueCommErrorNoRegistration, ///< could not register with a bridge
@@ -105,6 +106,7 @@ namespace p44 {
     friend class BridgeFinder;
 
     bool findInProgress;
+    bool apiReady;
 
   public:
 

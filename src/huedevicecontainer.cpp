@@ -211,7 +211,7 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
         HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID));
         // set the name
         JsonObjectPtr n = lightInfo->get("name");
-        if (n) newDev->setName(n->stringValue());
+        if (n) newDev->initializeName(n->stringValue());
         // add to the system
         addDevice(newDev);
       }

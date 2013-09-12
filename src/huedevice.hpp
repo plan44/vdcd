@@ -140,6 +140,11 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
+    /// set user assignable name
+    /// @param new name of the hue device
+    /// @note will propagate the name to the hue bridge to name the light itself
+    virtual void setName(const string &aName);
+
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
