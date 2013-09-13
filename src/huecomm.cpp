@@ -418,7 +418,7 @@ void HueComm::apiQuery(const char* aUrlSuffix, HueApiResultCB aResultHandler)
 
 void HueComm::apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectPtr aData, HueApiResultCB aResultHandler, bool aNoAutoURL)
 {
-  if (!apiReady) {
+  if (!apiReady && !aNoAutoURL) {
     if (aResultHandler) aResultHandler(*this,JsonObjectPtr(),ErrorPtr(new HueCommError(HueCommErrorApiNotReady)));
   }
   string url;
