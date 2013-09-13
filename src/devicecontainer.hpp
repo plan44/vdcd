@@ -54,7 +54,7 @@ namespace p44 {
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer;
   typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
-  typedef list<DeviceClassContainerPtr> ContainerList;
+  typedef vector<DeviceClassContainerPtr> ContainerVector;
   typedef map<dSID, DevicePtr> DsDeviceMap;
 
   typedef list<JsonRpcCommPtr> ApiConnectionList;
@@ -96,7 +96,7 @@ namespace p44 {
     DeviceContainer();
 
     /// the list of containers
-    ContainerList deviceClassContainers;
+    ContainerVector deviceClassContainers;
 
     /// API for vdSM
     SocketComm vdcApiServer;

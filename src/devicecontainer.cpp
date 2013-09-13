@@ -142,7 +142,7 @@ const char *DeviceContainer::getPersistentDataDir()
 class DeviceClassInitializer
 {
   CompletedCB callback;
-  ContainerList::iterator nextContainer;
+  ContainerVector::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   bool factoryReset;
 public:
@@ -233,7 +233,7 @@ class DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
-  ContainerList::iterator nextContainer;
+  ContainerVector::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
@@ -367,7 +367,7 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler)
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
-  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     (*pos)->setLearnMode(true);
   }
 }
@@ -376,7 +376,7 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler)
 void DeviceContainer::stopLearning()
 {
   // disable learning in all class containers
-  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     (*pos)->setLearnMode(false);
   }
   learningMode = false;
@@ -917,6 +917,7 @@ void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aP
 
 enum {
   devices_key,
+  classes_key,
   numDeviceContainerProperties
 };
 
@@ -931,7 +932,8 @@ int DeviceContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "devices", ptype_object, true, devices_key }
+    { "devices", ptype_object, true, devices_key },
+    { "classes", ptype_object, true, classes_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -955,6 +957,13 @@ PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPr
     else
       return NULL;
   }
+  else if (aPropertyDescriptor.accessKey==classes_key) {
+    // return the class container by index
+    if (aIndex<deviceClassContainers.size())
+      return deviceClassContainers[aIndex];
+    else
+      return NULL;
+  }
   return inherited::getContainer(aPropertyDescriptor, aDomain);
 }
 
@@ -966,6 +975,14 @@ bool DeviceContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       if (aForWrite) return false; // cannot write
       // return size of array
       aPropValue = JsonObject::newInt32((uint32_t)dSDevices.size());
+      return true;
+    }
+  }
+  else if (aPropertyDescriptor.accessKey==classes_key) {
+    if (aIndex==PROP_ARRAY_SIZE) {
+      if (aForWrite) return false; // cannot write
+      // return size of array
+      aPropValue = JsonObject::newInt32((uint32_t)deviceClassContainers.size());
       return true;
     }
   }
@@ -981,7 +998,7 @@ bool DeviceContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
 string DeviceContainer::description()
 {
   string d = string_format("DeviceContainer with %d device classes:\n", deviceClassContainers.size());
-  for (ContainerList::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
     d.append((*pos)->description());
   }
   return d;

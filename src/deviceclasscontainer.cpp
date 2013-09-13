@@ -44,7 +44,7 @@ const char *DeviceClassContainer::getPersistentDataDir()
 }
 
 
-int DeviceClassContainer::getInstanceNumber()
+int DeviceClassContainer::getInstanceNumber() const
 {
 	return instanceNumber;
 }
@@ -56,7 +56,7 @@ int DeviceClassContainer::getInstanceNumber()
 string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
-  s.append("@");
+  string_format_append(s, ".%d@", getInstanceNumber());
   s.append(deviceContainerP->deviceContainerInstanceIdentifier());
   return s;
 }
@@ -77,7 +77,7 @@ void DeviceClassContainer::addDevice(DevicePtr aDevice)
 void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 {
 	// find and remove from my list.
-	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
 		if (*pos==aDevice) {
 			devices.erase(pos);
 			break;
@@ -93,7 +93,7 @@ DevicePtr DeviceClassContainer::getDevicePtrForInstance(Device *aDeviceP)
 {
 	// find shared pointer in my list
   DevicePtr dev;
-	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
 		if (pos->get()==aDeviceP) {
       dev = *pos;
 			break;
@@ -106,7 +106,7 @@ DevicePtr DeviceClassContainer::getDevicePtrForInstance(Device *aDeviceP)
 
 void DeviceClassContainer::removeDevices(bool aForget)
 {
-	for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
     DevicePtr dev = *pos;
     deviceContainerP->removeDevice(dev, aForget);
   }
@@ -120,8 +120,66 @@ void DeviceClassContainer::removeDevices(bool aForget)
 string DeviceClassContainer::description()
 {
   string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), devices.size());
-  for (DeviceList::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+  for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
     d.append((*pos)->description());
   }
   return d;
 }
+
+
+#pragma mark - property access
+
+enum {
+  deviceClassInstance_key,
+  dsids_key,
+  numClassContainerProperties
+};
+
+
+
+int DeviceClassContainer::numProps(int aDomain)
+{
+  return inherited::numProps(aDomain)+numClassContainerProperties;
+}
+
+
+const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
+{
+  static const PropertyDescriptor properties[numClassContainerProperties] = {
+    { "deviceClassInstance", ptype_string, false, deviceClassInstance_key },
+    { "dsids", ptype_string, true, dsids_key }
+  };
+  int n = inherited::numProps(aDomain);
+  if (aPropIndex<n)
+    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return &properties[aPropIndex];
+}
+
+
+
+bool DeviceClassContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+{
+  if (!aForWrite) {
+    // read only
+    if (aPropertyDescriptor.accessKey==deviceClassInstance_key) {
+      // return dsid of contained devices
+      aPropValue = JsonObject::newString(deviceClassContainerInstanceIdentifier());
+      return true;
+    }
+    else if (aPropertyDescriptor.accessKey==dsids_key) {
+      if (aIndex==PROP_ARRAY_SIZE) {
+        // return size of array
+        aPropValue = JsonObject::newInt32((uint32_t)devices.size());
+        return true;
+      }
+      else if (aIndex<devices.size()) {
+        // return dsid of contained devices
+        aPropValue = JsonObject::newString(devices[aIndex]->dsid.getString());
+        return true;
+      }
+    }
+  }
+  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+}
+

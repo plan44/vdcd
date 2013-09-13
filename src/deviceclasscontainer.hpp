@@ -43,11 +43,13 @@ namespace p44 {
 
   class DeviceClassContainer;
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
-  typedef std::list<DevicePtr> DeviceList;
-  class DeviceClassContainer : public P44Obj
+  typedef std::vector<DevicePtr> DeviceVector;
+  class DeviceClassContainer : public PropertyContainer
   {
+    typedef PropertyContainer inherited;
+
     DeviceContainer *deviceContainerP; ///< link to the deviceContainer
-    DeviceList devices; ///< the devices of this class
+    DeviceVector devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
 
   public:
@@ -87,7 +89,7 @@ namespace p44 {
 		
     /// Instance number (to differentiate multiple device class containers of the same class)
 		/// @return instance index number
-		int getInstanceNumber();
+		int getInstanceNumber() const;
 		
 
     /// get a sufficiently unique identifier for this class container
@@ -149,6 +151,12 @@ namespace p44 {
 
 		/// @}
 
+  protected:
+
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   };
 
