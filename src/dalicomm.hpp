@@ -91,6 +91,9 @@ namespace p44 {
     bool isBusy();
     static ErrorPtr busyError() { return ErrorPtr(new DaliCommError(DaliCommErrorBusy)); };
 
+    MLMicroSeconds closeAfterIdleTime;
+    long connectionTimeoutTicket;
+
   public:
 
     DaliComm(SyncIOMainLoop &aMainLoop);
@@ -105,7 +108,8 @@ namespace p44 {
     /// set the connection parameters to connect to the DALI bridge
     /// @param aConnectionSpec serial device path (/dev/...) or host name/address[:port] (1.2.3.4 or xxx.yy)
     /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
-    void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort);
+    /// @param aCloseAfterIdleTime if not Never, serial port will be closed after being idle for the specified time
+    void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime);
 
     /// callback function for sendBridgeCommand
     typedef boost::function<void (DaliComm &aDaliComm, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
@@ -241,6 +245,9 @@ namespace p44 {
 
     /// @}
 
+  private:
+
+    void connectionTimeout();
 
   public:
     // %%% test

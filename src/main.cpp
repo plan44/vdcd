@@ -113,6 +113,7 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
+      { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default=" DEFAULT_VDSMSERVICE ")" },
@@ -198,8 +199,10 @@ public:
     // - Add DALI devices class if DALI bridge serialport/host is specified
     const char *daliname = getOption("dali");
     if (daliname) {
+      int sec = 0;
+      getIntOption("daliportidle", sec);
       DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
-      daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT);
+      daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
       deviceContainer.addDeviceClassContainer(daliDeviceContainer);
     }
     // - Add enOcean devices class if enOcean modem serialport/host is specified
@@ -319,15 +322,16 @@ public:
 
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
+    LOG(LOG_DEBUG, "Learn button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
     // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
       // keypress reported again, check for very long keypress
       if (aTimeSincePreviousChange>=10*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Very long button press detected -> exit(3) in 2 seconds\n");
+        LOG(LOG_WARNING,"Very long button press detected -> clean exit(0) in 2 seconds\n");
         sleep(2);
-        exit(3); // %%% for now, so starting script knows why we exit
+        exit(0); // Regular exit
       }
     }
     if (aState==false) {

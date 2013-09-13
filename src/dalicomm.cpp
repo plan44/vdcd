@@ -17,7 +17,9 @@ using namespace p44;
 
 DaliComm::DaliComm(SyncIOMainLoop &aMainLoop) :
 	inherited(aMainLoop),
-  runningProcedures(0)
+  runningProcedures(0),
+  closeAfterIdleTime(Never),
+  connectionTimeoutTicket(0)
 {
 }
 
@@ -77,7 +79,7 @@ bool DaliComm::isBusy()
 
 
 
-void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
+void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
 {
   inherited::setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
 }
@@ -117,6 +119,11 @@ public:
 
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay)
 {
+  // reset connection closing timeout
+  MainLoop::currentMainLoop().cancelExecutionTicket(connectionTimeoutTicket);
+  if (closeAfterIdleTime!=Never) {
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliComm::connectionTimeout, this), closeAfterIdleTime);
+  }
   // deliver unhandled error
   if (unhandledError && aResultCB) {
     // return and clear last unhandled error
@@ -147,6 +154,11 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
   processOperations();
 }
 
+
+void DaliComm::connectionTimeout()
+{
+  closeConnection();
+}
 
 #pragma mark - DALI bus communication basics
 
