@@ -916,7 +916,6 @@ void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aP
 #pragma mark - property access
 
 enum {
-  devices_key,
   classes_key,
   numDeviceContainerProperties
 };
@@ -932,7 +931,6 @@ int DeviceContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "devices", ptype_object, true, devices_key },
     { "classes", ptype_object, true, classes_key }
   };
   int n = inherited::numProps(aDomain);
@@ -945,19 +943,7 @@ const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex,
 
 PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
 {
-  if (aPropertyDescriptor.accessKey==devices_key) {
-    // return the device by index
-    // TODO: slow and ugly
-    vector<DevicePtr> devVector;
-    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); pos++) {
-      devVector.push_back(pos->second);
-    }
-    if (aIndex<devVector.size())
-      return devVector[aIndex];
-    else
-      return NULL;
-  }
-  else if (aPropertyDescriptor.accessKey==classes_key) {
+  if (aPropertyDescriptor.accessKey==classes_key) {
     // return the class container by index
     if (aIndex<deviceClassContainers.size())
       return deviceClassContainers[aIndex];
@@ -970,15 +956,7 @@ PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPr
 
 bool DeviceContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
-  if (aPropertyDescriptor.accessKey==devices_key) {
-    if (aIndex==PROP_ARRAY_SIZE) {
-      if (aForWrite) return false; // cannot write
-      // return size of array
-      aPropValue = JsonObject::newInt32((uint32_t)dSDevices.size());
-      return true;
-    }
-  }
-  else if (aPropertyDescriptor.accessKey==classes_key) {
+  if (aPropertyDescriptor.accessKey==classes_key) {
     if (aIndex==PROP_ARRAY_SIZE) {
       if (aForWrite) return false; // cannot write
       // return size of array
