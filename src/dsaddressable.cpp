@@ -245,7 +245,6 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
   static const PropertyDescriptor properties[numDsAddressableProperties] = {
     { "dSID", ptype_charptr, false, dSID_key, &dsAddressable_key },
     { "model", ptype_charptr, false, model_key, &dsAddressable_key },
-    { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &dsAddressable_key },
     { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
     { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
     { "numDevicesInHW", ptype_int32, false, numDevicesInHW_key, &dsAddressable_key },
@@ -273,7 +272,6 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
       switch (aPropertyDescriptor.accessKey) {
         case dSID_key: aPropValue = JsonObject::newString(dsid.getString()); return true;
         case model_key: aPropValue = JsonObject::newString(modelName()); return true;
-        case dsProfileVersion_key: aPropValue = JsonObject::newInt32(dsProfileVersion()); return true;
         case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
         case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
         case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); return true;

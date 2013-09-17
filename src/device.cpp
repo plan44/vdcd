@@ -301,7 +301,6 @@ ErrorPtr Device::forget()
 
 enum {
   // device level simple parameters
-  dsProfileVersion_key,
   primaryGroup_key,
   isMember_key,
   progMode_key,
@@ -336,7 +335,6 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
 {
   static const PropertyDescriptor properties[numDeviceProperties] = {
     // common device properties
-    { "dsProfileVersion", ptype_int32, false, dsProfileVersion_key, &device_key },
     { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
     { "isMember", ptype_bool, true, isMember_key, &device_key },
     { "progMode", ptype_bool, false, progMode_key, &device_key },
@@ -498,9 +496,6 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
     else if (!aForWrite) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
-        case dsProfileVersion_key:
-          aPropValue = JsonObject::newInt32(dsProfileVersion());
-          return true;
         case primaryGroup_key:
           aPropValue = JsonObject::newInt32(primaryGroup);
           return true;

@@ -205,9 +205,6 @@ namespace p44 {
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vDC"; }
 
-    /// @return 0xMMmmrrrr digitalstrom Profile version (MM=major, mm=minor, rrrr=revision)
-    virtual uint32_t dsProfileVersion() { return 0; }
-
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; }
 
