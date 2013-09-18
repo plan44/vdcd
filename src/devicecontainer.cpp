@@ -334,7 +334,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
 {
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
-  LOG(LOG_NOTICE,"--- added device: %s",aDevice->shortDesc().c_str());
+  LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
   LOG(LOG_INFO, "--- device description: %s\n",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
@@ -358,7 +358,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   }
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
-  LOG(LOG_NOTICE,"--- removed device: %s", aDevice->shortDesc().c_str());
+  LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
 }
 
 
