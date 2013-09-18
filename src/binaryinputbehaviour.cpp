@@ -44,12 +44,12 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
     // changed state
     currentState = aNewState;
     MLMicroSeconds now = MainLoop::now();
+    lastUpdate = now;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
       device.pushProperty("binaryInputStates", VDC_API_DOMAIN, (int)index);
       lastPush = now;
     }
-    lastUpdate = now;
   }
 }
 
