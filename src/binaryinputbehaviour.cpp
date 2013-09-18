@@ -187,7 +187,7 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue
           aPropValue = JsonObject::newInt32(hardwareInputType);
           return true;
         case reportsChanges_key+descriptions_key_offset: // aka "inputType"
-          aPropValue = JsonObject::newInt32(reportsChanges ? 0 : 1);
+          aPropValue = JsonObject::newInt32(reportsChanges ? 1 : 0);
           return true;
         case updateInterval_key+descriptions_key_offset:
           aPropValue = JsonObject::newDouble((double)updateInterval/Second);
