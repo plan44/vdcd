@@ -221,7 +221,6 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 enum {
   dSID_key,
   model_key,
-  dsProfileVersion_key,
   hardwareVersion_key,
   hardwareGUID_key,
   numDevicesInHW_key,
