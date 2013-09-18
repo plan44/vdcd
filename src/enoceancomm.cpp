@@ -235,18 +235,20 @@ uint8_t *Esp3Packet::optData()
 
 void Esp3Packet::finalize()
 {
-  // force creation of payload (usually already done, but to make sure to avoid crashes)
-  data();
-  // set sync byte
-  header[0] = 0x55;
-  // assign header CRC
-  header[ESP3_HEADERBYTES-1] = headerCRC();
-  // assign payload CRC
-  if (payloadP) {
-    payloadP[payloadSize-1] = payloadCRC();
+  if (state!=ps_complete) {
+    // force creation of payload (usually already done, but to make sure to avoid crashes)
+    data();
+    // set sync byte
+    header[0] = 0x55;
+    // assign header CRC
+    header[ESP3_HEADERBYTES-1] = headerCRC();
+    // assign payload CRC
+    if (payloadP) {
+      payloadP[payloadSize-1] = payloadCRC();
+    }
+    // packet is complete now
+    state = ps_complete;
   }
-  // packet is complete now
-  state = ps_complete;
 }
 
 
@@ -872,7 +874,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 		// pass bytes to current telegram
 		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
 		if (currentIncomingPacket->isComplete()) {
-      LOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
+      LOG(LOG_DEBUG, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
 			currentIncomingPacket = Esp3PacketPtr(); // forget

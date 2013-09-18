@@ -535,7 +535,7 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     }
     // for on and off, set transition time (1/10 second resolution)
     newState->add("transitiontime", JsonObject::newInt64(aOutputBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
-    LOG(LOG_DEBUG, "HueDevice: setting new state, brightness = %d, JSON = %s\n", b, newState->c_strValue());
+    LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
     hueComm().apiAction(httpMethodPUT, url.c_str(), newState, NULL);
   }
   else

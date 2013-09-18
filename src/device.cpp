@@ -214,7 +214,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
 
 void Device::identifyToUser()
 {
-  LOG(LOG_DEBUG,"***** device 'identify' called (for device with no real identify implementation) *****");
+  LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****");
 }
 
 

@@ -39,7 +39,7 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
-  LOG(LOG_INFO, "BinaryInput %s in device %s received new state = %d\n", hardwareName.c_str(),  device.shortDesc().c_str(), aNewState);
+  LOG(LOG_NOTICE, "BinaryInput %s in device %s received new state = %d\n", hardwareName.c_str(),  device.shortDesc().c_str(), aNewState);
   if (aNewState!=currentState) {
     // changed state
     currentState = aNewState;

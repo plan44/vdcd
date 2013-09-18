@@ -334,7 +334,8 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
 {
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
-  LOG(LOG_NOTICE,"--- added device: %s", aDevice->description().c_str());
+  LOG(LOG_NOTICE,"--- added device: %s",aDevice->shortDesc().c_str());
+  LOG(LOG_INFO, "--- device description: %s\n",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
   // unless collecting now, register new device right away
@@ -357,7 +358,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   }
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->dsid);
-  LOG(LOG_NOTICE,"--- removed device: %s", aDevice->description().c_str());
+  LOG(LOG_NOTICE,"--- removed device: %s", aDevice->shortDesc().c_str());
 }
 
 
@@ -571,7 +572,7 @@ bool DeviceContainer::sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSe
 
 void DeviceContainer::sessionTimeoutHandler()
 {
-  LOG(LOG_DEBUG,"vDC API session timed out -> ends here\n");
+  LOG(LOG_INFO,"vDC API session timed out -> ends here\n");
   endContainerSession();
   if (sessionComm) {
     sessionComm->closeConnection();
@@ -595,13 +596,13 @@ SocketCommPtr DeviceContainer::vdcApiConnectionHandler(SocketComm *aServerSocket
 void DeviceContainer::vdcApiConnectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
-    LOG(LOG_DEBUG,"vDC API connection ends due to %s\n", aError->description().c_str());
+    LOG(LOG_INFO,"vDC API connection ends due to %s\n", aError->description().c_str());
     // connection failed/closed and we don't support reconnect yet -> end session
     JsonRpcComm *connP = dynamic_cast<JsonRpcComm *>(aSocketComm);
     endApiConnection(connP);
   }
   else {
-    LOG(LOG_DEBUG,"vDC API connection started\n");
+    LOG(LOG_INFO,"vDC API connection started\n");
   }
 }
 
@@ -611,7 +612,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
 {
   ErrorPtr respErr;
   string method = aMethod;
-  LOG(LOG_DEBUG,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
+  LOG(LOG_INFO,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
@@ -868,7 +869,7 @@ void DeviceContainer::announceDevices()
           dev->announcing = Never; // not registering
         }
         else {
-          LOG(LOG_INFO, "Sent announcement for device %s\n", dev->shortDesc().c_str());
+          LOG(LOG_NOTICE, "Sent announcement for device %s\n", dev->shortDesc().c_str());
         }
         // schedule a retry
         announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_TIMEOUT);
@@ -884,7 +885,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
-    LOG(LOG_INFO, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
+    LOG(LOG_NOTICE, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
     aDevice->announced = MainLoop::now();
     aDevice->announcing = Never; // not announcing any more
   }

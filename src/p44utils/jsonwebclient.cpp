@@ -49,7 +49,7 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
         json_tokener_free(tokener);
       }
       // call back with result of request
-      DBGLOG(LOG_DEBUG,"JsonWebClient: <- received JSON answer:\n%s\n", message ? message->json_c_str() : "<none>");
+      LOG(LOG_DEBUG,"JsonWebClient: <- received JSON answer:\n%s\n", message ? message->json_c_str() : "<none>");
       // Note: this callback might initiate another request already
       if (jsonResponseCallback) {
         // use this callback, but as callback routine might post another request immediately, we need to free the member first
@@ -78,7 +78,7 @@ bool JsonWebClient::jsonRequest(const char *aURL, JsonWebClientCB aResponseCallb
   if (aJsonRequest) {
     jsonstring = aJsonRequest->json_c_str();
   }
-  DBGLOG(LOG_DEBUG,"JsonWebClient: -> sending %s JSON request to %s:\n%s\n", aMethod, aURL, jsonstring.c_str());
+  LOG(LOG_DEBUG,"JsonWebClient: -> sending %s JSON request to %s:\n%s\n", aMethod, aURL, jsonstring.c_str());
   return httpRequest(aURL, NULL, aMethod, jsonstring.c_str());
 }
 

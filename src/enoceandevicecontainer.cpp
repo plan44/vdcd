@@ -224,6 +224,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // now add/remove the device (if the action is a valid learn/unlearn)
     // detect implicit (RPS) learn in only with sufficient radio strength, explicit ones are always recognized
     if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false)) {
+      LOG(LOG_NOTICE, "Received enOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
       ErrorPtr learnStatus;
       if (learnIn) {

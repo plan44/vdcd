@@ -243,7 +243,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
     if (safeError || reportAllErrors)
       sendError(idString, respErr);
     else
-      DBGLOG(LOG_WARNING,"Received data that generated error which can't be sent back: Code=%d, Message='%s'\n", respErr->getErrorCode(), respErr->description().c_str());
+      LOG(LOG_WARNING,"Received data that generated error which can't be sent back: Code=%d, Message='%s'\n", respErr->getErrorCode(), respErr->description().c_str());
   }
 }
 

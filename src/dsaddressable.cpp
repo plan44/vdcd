@@ -200,7 +200,7 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
     sendRequest("pong", JsonObjectPtr());
   }
   else {
-    LOG(LOG_NOTICE,"ping: %s is not present -> no Pong sent\n", shortDesc().c_str());
+    LOG(LOG_INFO,"ping: %s is not present -> no Pong sent\n", shortDesc().c_str());
   }
 }
 

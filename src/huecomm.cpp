@@ -230,7 +230,7 @@ public:
     if (Error::isOK(aError)) {
       // check device for possibility of being a hue bridge
       if (aSsdpSearchP->server.find("IpBridge")!=string::npos) {
-        LOG(LOG_NOTICE, "hue bridge candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
+        LOG(LOG_INFO, "hue bridge candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearchP->locationURL.c_str(), aSsdpSearchP->server.c_str(), aSsdpSearchP->uuid.c_str());
         // put into map
         bridgeCandiates[aSsdpSearchP->uuid.c_str()] = aSsdpSearchP->locationURL.c_str();
       }
@@ -302,6 +302,7 @@ public:
                 // that's my known hue bridge, save the URL and report success
                 hueComm.baseURL = url; // save it
                 hueComm.apiReady = true; // can use API now
+                DBGLOG(LOG_DEBUG, "pre-known hue Bridge %s found at %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
                 callback(hueComm, ErrorPtr()); // success
                 keepAlive.reset(); // will delete object if nobody else keeps it
                 return; // done
@@ -351,7 +352,7 @@ public:
       }
       else {
         // all candidates tried, nothing found in given time
-        DBGLOG(LOG_DEBUG, "Could not register with a hue bridge\n");
+        LOG(LOG_NOTICE, "Could not register with a hue bridge\n");
         hueComm.findInProgress = false;
         callback(hueComm, ErrorPtr(new HueCommError(HueCommErrorNoRegistration, "No hue bridge found ready to register")));
         // done!
@@ -373,7 +374,7 @@ public:
         hueComm.uuid = currentAuthCandidate->first;
         hueComm.baseURL = currentAuthCandidate->second;
         hueComm.apiReady = true; // can use API now
-        DBGLOG(LOG_DEBUG, "Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
+        DBGLOG(LOG_DEBUG, "hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
         // successfully registered with hue bridge, let caller know
         callback(hueComm, ErrorPtr());
         // done!
@@ -382,7 +383,7 @@ public:
       }
     }
     else {
-      DBGLOG(LOG_DEBUG, "Error creating bridge user: %s\n", aError->description().c_str());
+      LOG(LOG_ERR, "hue Bridge: Error creating user: %s\n", aError->description().c_str());
     }
     // try next
     ++currentAuthCandidate;

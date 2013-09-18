@@ -289,14 +289,14 @@ GpioNS9XXXPin::GpioNS9XXXPin(const char* aGpioName, bool aOutput, bool aInitialS
   gpiopath.append(name);
   gpioFD = open(gpiopath.c_str(), O_RDWR);
   if (gpioFD<0) {
-    DBGLOG(LOG_ERR,"Cannot open GPIO device %s: %s\n", name.c_str(), strerror(errno));
+    LOG(LOG_ERR,"Cannot open GPIO device %s: %s\n", name.c_str(), strerror(errno));
     return;
   }
   // configure
   if (output) {
     // output
     if ((ret_val = ioctl(gpioFD, GPIO_CONFIG_AS_OUT)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_CONFIG_AS_OUT failed for %s: %s\n", name.c_str(), strerror(errno));
+      LOG(LOG_ERR,"GPIO_CONFIG_AS_OUT failed for %s: %s\n", name.c_str(), strerror(errno));
       return;
     }
     // set state immediately
@@ -305,7 +305,7 @@ GpioNS9XXXPin::GpioNS9XXXPin(const char* aGpioName, bool aOutput, bool aInitialS
   else {
     // input
     if ((ret_val = ioctl(gpioFD, GPIO_CONFIG_AS_INP)) < 0) {
-      DBGLOG(LOG_ERR,"GPIO_CONFIG_AS_INP failed for %s: %s\n", name.c_str(), strerror(errno));
+      LOG(LOG_ERR,"GPIO_CONFIG_AS_INP failed for %s: %s\n", name.c_str(), strerror(errno));
       return;
     }
   }

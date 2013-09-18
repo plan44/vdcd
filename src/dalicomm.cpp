@@ -444,7 +444,7 @@ private:
     bool isYes = false;
     if (aError && aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
       // framing error, indicates that we might have duplicates
-      DBGLOG(LOG_INFO, "Detected framing error for response from short address %d - probably short address collision\n", shortAddress);
+      LOG(LOG_INFO, "Detected framing error for response from short address %d - probably short address collision\n", shortAddress);
       probablyCollision = true;
       isYes = true; // still count as YES
       aError.reset(); // do not count as error aborting the search
@@ -454,7 +454,7 @@ private:
       isYes = true;
       if (aResponse!=DALIANSWER_YES) {
         // not entirely correct answer, also indicates collision
-        DBGLOG(LOG_INFO, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
+        LOG(LOG_INFO, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
         probablyCollision = true;
       }
     }
@@ -551,7 +551,7 @@ private:
     }
     // save the short address list
     usedShortAddrsPtr = aShortAddressListPtr;
-    LOG(LOG_INFO, "DaliComm: starting full bus scan (random address binary search)\n");
+    LOG(LOG_NOTICE, "DaliComm: starting full bus scan (random address binary search)\n");
     // Terminate any special modes first
     daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // initialize entire system for random address selection process
@@ -655,7 +655,7 @@ private:
     }
     if (searchMin==searchMax && searchAddr==searchMin) {
       // found!
-      LOG(LOG_INFO, "- Found device at 0x%06X\n", searchAddr);
+      LOG(LOG_NOTICE, "- Found device at 0x%06X\n", searchAddr);
       // read current short address
       daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _2, _3, _4));
     }
@@ -664,9 +664,9 @@ private:
       searchAddr = searchMin + (searchMax-searchMin)/2;
       DBGLOG(LOG_DEBUG, "                         Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
       if (searchAddr>0xFFFFFF) {
-        LOG(LOG_INFO, "- failed search\n");
+        LOG(LOG_WARNING, "- failed search\n");
         if (restarts<MAX_RESTARTS) {
-          LOG(LOG_INFO, "- restarting search at address of last found device + 1\n");
+          LOG(LOG_NOTICE, "- restarting search at address of last found device + 1\n");
           restarts++;
           newSearchUpFrom(lastSearchMin);
           return;
@@ -685,7 +685,7 @@ private:
     if (aError)
       return completed(aError);
     if (aNoOrTimeout) {
-      DBGLOG(LOG_ERR, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
+      LOG(LOG_WARNING, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
       // TODO: should not happen, probably bus error led to false device detection, restart search
     }
     else {
@@ -695,7 +695,7 @@ private:
       if (aResponse==DALIVALUE_MASK) {
         // device has no short address yet, assign one
         newAddress = newShortAddress();
-        LOG(LOG_INFO, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
+        LOG(LOG_NOTICE, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
       }
       else {
         shortAddress = DaliComm::addressFromDaliResponse(aResponse);
@@ -703,7 +703,7 @@ private:
         // check for collisions
         if (isShortAddressInList(shortAddress, foundDevicesPtr)) {
           newAddress = newShortAddress();
-          LOG(LOG_INFO, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
+          LOG(LOG_NOTICE, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
         }
       }
       // check if we need to re-assign the short address

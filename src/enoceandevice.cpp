@@ -194,6 +194,8 @@ void EnoceanDevice::sendOutgoingUpdate()
     if (outgoingEsp3Packet) {
       // set destination
       outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
+      outgoingEsp3Packet->finalize();
+      LOG(LOG_INFO, "enOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
     }
@@ -216,6 +218,7 @@ void EnoceanDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
+  LOG(LOG_INFO, "enOcean device %s: received packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
