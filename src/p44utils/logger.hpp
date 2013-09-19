@@ -46,6 +46,7 @@
 #define LOGERRNO(lvl) globalLogger.logSysError(lvl)
 
 #define SETLOGLEVEL(lvl) globalLogger.setLogLevel(lvl)
+#define SETERRLEVEL(lvl, dup) globalLogger.setErrLevel(lvl, dup)
 
 namespace p44 {
 
@@ -53,12 +54,37 @@ namespace p44 {
   {
     pthread_mutex_t reportMutex;
     int logLevel;
+    int stderrLevel;
+    bool errToStdout;
   public:
     Logger();
-    bool logEnabled(int aErrlevel);
-    void log(int aErrlevel, const char *aFmt, ... );
-    void logSysError(int aErrlevel, int aErrNum = 0);
+
+    /// test if log is enabled at a given level
+    /// @param aErrLevel level to check
+    /// @return true if logging is enabled at the specified level
+    bool logEnabled(int aErrLevel);
+
+    /// log a message
+    /// @param aErrLevel error level of the message
+    /// @param aFmt, ... printf style error message
+    void log(int aErrLevel, const char *aFmt, ... );
+
+    /// log a system error
+    /// @param aErrLevel error level of the message
+    /// @param aErrNum optional system error code (if none specified, errno global will be used)
+    void logSysError(int aErrLevel, int aErrNum = 0);
+
+    /// set log level
+    /// @param aLogLevel the new log level
+    /// @note even if aLogLevel is set to suppress messages, messages that qualify for going to stderr
+    ///   (see setErrorLevel) will still be shown on stderr, but not on stdout.
     void setLogLevel(int aLogLevel);
+
+    /// set level required to send messages to stderr
+    /// @param aStderrLevel any messages with this or a lower (=higher priority) level will be sent to stderr (default = LOG_ERR)
+    /// @param aErrToStdout if set, messages that qualify for stderr will STILL be duplicated to stdout as well (default = true)
+    void setErrLevel(int aStderrLevel, bool aErrToStdout);
+
   };
 
 } // namespace p44

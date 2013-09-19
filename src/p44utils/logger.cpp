@@ -18,20 +18,22 @@ Logger::Logger()
 {
   pthread_mutex_init(&reportMutex, NULL);
   logLevel = LOGGER_DEFAULT_LOGLEVEL;
+  stderrLevel = LOG_ERR;
+  errToStdout = true;
 }
 
 #define LOGBUFSIZ 8192
 
 
-bool Logger::logEnabled(int aErrlevel)
+bool Logger::logEnabled(int aErrLevel)
 {
-  return (aErrlevel <= logLevel);
+  return (aErrLevel<=logLevel);
 }
 
 
-void Logger::log(int aErrlevel, const char *aFmt, ... )
+void Logger::log(int aErrLevel, const char *aFmt, ... )
 {
-  if (logEnabled(aErrlevel)) {
+  if (logEnabled(aErrLevel) || aErrLevel<=stderrLevel) {
     pthread_mutex_lock(&reportMutex);
     va_list args;
     va_start(args, aFmt);
@@ -60,20 +62,32 @@ void Logger::log(int aErrlevel, const char *aFmt, ... )
     gettimeofday(&t, NULL);
     strftime(tsbuf, sizeof(tsbuf), "%Y-%m-%d %H:%M:%S", localtime(&t.tv_sec));
     // output
-    fputs(tsbuf, stderr);
-    if (isMultiline)
-      fputs(":\n", stderr);
-    else
-      fputs(": ", stderr);
-    fputs(message.c_str(), stderr);
+    if (aErrLevel<=stderrLevel) {
+      // must go to stderr anyway
+      fputs(tsbuf, stderr);
+      if (isMultiline)
+        fputs(":\n", stderr);
+      else
+        fputs(": ", stderr);
+      fputs(message.c_str(), stderr);
+    }
+    if (logEnabled(aErrLevel) && (aErrLevel>stderrLevel || errToStdout)) {
+      // must go to stdout as well
+      fputs(tsbuf, stdout);
+      if (isMultiline)
+        fputs(":\n", stdout);
+      else
+        fputs(": ", stdout);
+      fputs(message.c_str(), stdout);
+    }
     pthread_mutex_unlock(&reportMutex);
   }
 }
 
 
-void Logger::logSysError(int aErrlevel, int aErrNum)
+void Logger::logSysError(int aErrLevel, int aErrNum)
 {
-  if (logEnabled(aErrlevel)) {
+  if (logEnabled(aErrLevel)) {
     // obtain error number if none specified
     if (aErrNum==0)
       aErrNum = errno;
@@ -81,7 +95,7 @@ void Logger::logSysError(int aErrlevel, int aErrNum)
     char buf[LOGBUFSIZ];
     strerror_r(aErrNum, buf, LOGBUFSIZ);
     // show it
-    log(aErrlevel, "System error message: %s\n", buf);
+    log(aErrLevel, "System error message: %s\n", buf);
   }
 }
 
@@ -90,4 +104,12 @@ void Logger::setLogLevel(int aLogLevel)
 {
   if (aLogLevel<LOG_EMERG || aLogLevel>LOG_DEBUG) return;
   logLevel = aLogLevel;
+}
+
+
+void Logger::setErrLevel(int aStderrLevel, bool aErrToStdout)
+{
+  if (aStderrLevel<LOG_EMERG || aStderrLevel>LOG_DEBUG) return;
+  stderrLevel = aStderrLevel;
+  errToStdout = aErrToStdout;
 }
