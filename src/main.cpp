@@ -25,12 +25,7 @@
 #define DEFAULT_VDSMSERVICE "8440"
 #define DEFAULT_DBDIR "/tmp"
 
-#ifdef __APPLE__
-#define DEFAULT_DAEMON_LOGLEVEL LOG_INFO
-#else
-#define DEFAULT_DAEMON_LOGLEVEL LOG_WARNING
-#endif
-#define DEFAULT_LOGLEVEL LOG_INFO
+#define DEFAULT_LOGLEVEL LOG_NOTICE
 
 
 #define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
@@ -118,9 +113,10 @@ public:
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default=" DEFAULT_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
-      { 'd', "daemonize",     false, "fully daemonize after startup" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 'l', "loglevel",      true,  "level;set loglevel" },
+      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
+      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
+      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
@@ -140,35 +136,24 @@ public:
     setCommandDescriptors(usageText, options);
     parseCommandLine(argc, argv);
 
-    if (numOptions()<1 || numArguments()>0) {
+    if ((numOptions()<1 && staticDeviceConfigs.size()==0) || numArguments()>0) {
       // show usage
       showUsage();
       terminateApp(EXIT_SUCCESS);
     }
 
-    // daemon mode?
-    bool daemonMode = getOption("daemonize");
-
     // log level?
-    int loglevel = -1; // none specified
+    int loglevel = DEFAULT_LOGLEVEL;
     getIntOption("loglevel", loglevel);
+    SETLOGLEVEL(loglevel);
+    int errlevel = LOG_ERR;
+    getIntOption("errlevel", errlevel);
+    SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
 
     // startup delay?
     int startupDelay = 0; // no delay
     getIntOption("startupdelay", startupDelay);
 
-    // daemonize now if requested and in proxy mode
-    if (daemonMode) {
-      LOG(LOG_NOTICE, "Starting background daemon\n");
-      daemonize();
-      if (loglevel<0) loglevel = DEFAULT_DAEMON_LOGLEVEL;
-    }
-    else {
-      if (loglevel<0) loglevel = DEFAULT_LOGLEVEL;
-    }
-
-    // set log level
-    SETLOGLEVEL(loglevel);
 
     // before starting anything, delay
     if (startupDelay>0) {

@@ -30,7 +30,6 @@ SocketComm::SocketComm(SyncIOMainLoop &aMainLoop) :
 
 SocketComm::~SocketComm()
 {
-  DBGLOG(LOG_DEBUG, "SocketComm destructing\n");
   internalCloseConnection();
 }
 

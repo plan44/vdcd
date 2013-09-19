@@ -335,7 +335,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
-  LOG(LOG_INFO, "--- device description: %s\n",aDevice->description().c_str());
+  LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
   // unless collecting now, register new device right away
