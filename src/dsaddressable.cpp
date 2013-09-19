@@ -159,6 +159,7 @@ void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aPar
 {
   if (aMethod=="ping") {
     // issue device ping (which will issue a pong when device is reachable)
+    LOG(LOG_INFO,"ping: %s -> checking presence...\n", shortDesc().c_str());
     checkPresence(boost::bind(&DsAddressable::presenceResultHandler, this, _1));
   }
   else {
@@ -197,10 +198,11 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
 {
   if (aIsPresent) {
     // send back Pong notification
+    LOG(LOG_INFO,"ping: %s is present -> sending pong\n", shortDesc().c_str());
     sendRequest("pong", JsonObjectPtr());
   }
   else {
-    LOG(LOG_INFO,"ping: %s is not present -> no Pong sent\n", shortDesc().c_str());
+    LOG(LOG_NOTICE,"ping: %s is NOT present -> no Pong sent\n", shortDesc().c_str());
   }
 }
 

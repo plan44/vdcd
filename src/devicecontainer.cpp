@@ -539,7 +539,9 @@ bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams,
 {
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (sessionComm) {
-    return Error::isOK(sessionComm->sendRequest(aMethod, aParams, aResponseHandler));
+    bool ok = Error::isOK(sessionComm->sendRequest(aMethod, aParams, aResponseHandler));
+    LOG(LOG_INFO,"vdSM <- vDC request sent: id='%d', method='%s', params=%s\n", sessionComm->lastRequestId(), aMethod, aParams ? aParams->c_strValue() : "<none>");
+    return ok;
   }
   // cannot send
   return false;
@@ -550,7 +552,9 @@ bool DeviceContainer::sendApiResult(const string &aJsonRpcId, JsonObjectPtr aRes
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
-    return Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), aResult));
+    bool ok = Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), aResult));
+    LOG(LOG_INFO,"vdSM <- vDC result sent: id='%s', result=%s\n", aJsonRpcId.c_str(), aResult ? aResult->c_strValue() : "<none>");
+    return ok;
   }
   // cannot send
   return false;
@@ -561,7 +565,9 @@ bool DeviceContainer::sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSe
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
-    return Error::isOK(sessionComm->sendError(aJsonRpcId.size()>0 ? aJsonRpcId.c_str() : NULL, aErrorToSend));
+    bool ok = Error::isOK(sessionComm->sendError(aJsonRpcId.size()>0 ? aJsonRpcId.c_str() : NULL, aErrorToSend));
+    LOG(LOG_INFO,"vdSM <- vDC error sent: id='%s', error=%s\n", aJsonRpcId.c_str(), aErrorToSend ? aErrorToSend->description().c_str() : "<none>");
+    return ok;
   }
   // cannot send
   return false;
@@ -612,7 +618,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
 {
   ErrorPtr respErr;
   string method = aMethod;
-  LOG(LOG_INFO,"vDC API request id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
+  LOG(LOG_INFO,"vdSM -> vDC request received: id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
