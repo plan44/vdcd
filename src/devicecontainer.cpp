@@ -855,6 +855,9 @@ void DeviceContainer::endContainerSession()
 // how long until a not acknowledged announcement for a device is retried again for the same device
 #define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
+// how long vDC waits after receiving ok from one announce until it fires the next
+#define ANNOUNCE_PAUSE (2*Second)
+
 /// announce all not-yet announced devices to the vdSM
 void DeviceContainer::announceDevices()
 {
@@ -898,8 +901,8 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
   }
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
-  // try next announcement
-  announceDevices();
+  // try next announcement, after a pause
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_PAUSE);
 }
 
 
