@@ -117,10 +117,30 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
       if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
         // get optional index
         o = aParams->get("index");
-        if (o)
+        if (o) {
           arrayIndex = o->int32Value();
-        // now write
-        respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
+          rangeSize = 0; // single element
+        }
+        else {
+          o = aParams->get("offset");
+          if (o) {
+            // range access
+            arrayIndex = o->int32Value(); // same as index for lower level property access mechanism
+            // - check optional max count of elements
+            o = aParams->get("count");
+            if (o)
+              rangeSize = o->int32Value();
+          }
+        }
+        // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 is single element write)
+        if (rangeSize==PROP_ARRAY_SIZE)
+          respErr = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, "array batch write needs offset AND count"));
+        else {
+          do {
+            respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
+            arrayIndex++;
+          } while (--rangeSize>0 && Error::isOK(respErr));
+        }
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
           sendResult(aJsonRpcId, JsonObjectPtr());
