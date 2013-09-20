@@ -247,7 +247,7 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 255, 1, false, false, false, false }, // 37 : Preset 31 - T3E_S1
   { 0, 1, false, false, false, false }, // 38 : Preset 40 - T4E_S0
   { 255, 1, false, false, false, false }, // 39 : Preset 41 - T4E_S1
-  { 0, 1, false, false, true, false }, // 40 : Reserved
+  { 0, 1, false, false, false, false }, // 40 : Fade down to 0 in 1min - AUTO_OFF
   { 0, 1, false, false, true, false }, // 41 : Reserved
   { 0, 1, false, true, false, false }, // 42 : Area 1 Decrement - T1_DEC
   { 0, 1, false, true, false, false }, // 43 : Area 1 Increment - T1_INC
@@ -341,6 +341,8 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   minBrightness(1),
   maxBrightness(255),
   // volatile state
+  fadeDownTicket(0),
+  blinkCounter(0),
   localPriority(false),
   logicalBrightness(0)
 {
@@ -405,12 +407,17 @@ void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
 #pragma mark - behaviour interaction with digitalSTROM system
 
 
+#define AUTO_OFF_FADE_TIME (60*Second)
+
 // apply scene
 void LightBehaviour::applyScene(DsScenePtr aScene)
 {
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
+    // any scene call cancels fade down
+    MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
+    // now check new scenne
     SceneNo sceneNo = lightScene->sceneNo;
     if (sceneNo==DEC_S || sceneNo==INC_S) {
       // dimming up/down special scenes
@@ -449,6 +456,15 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
       LOG(LOG_NOTICE,"CallScene(MIN_S): setting minDim %d\n", b);
     }
+    else if (sceneNo==AUTO_OFF) {
+      // slow fade down
+      Brightness b = getLogicalBrightness();
+      if (b>0) {
+        MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
+        fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
+      }
+
+    }
     else {
       if (!lightScene->dontCare && (!localPriority || lightScene->ignoreLocalPriority)) {
         // apply stored scene value(s) to output(s)
@@ -458,6 +474,16 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     }
   }
 }
+
+
+void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
+{
+  setLogicalBrightness(aBrightness, aFadeStepTime);
+  if (aBrightness>0) {
+    fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
+  }
+}
+
 
 
 void LightBehaviour::recallScene(LightScenePtr aLightScene)

@@ -105,6 +105,7 @@ namespace p44 {
     /// @name internal volatile state
     /// @{
     int blinkCounter; ///< for generation of blink sequence
+    long fadeDownTicket; ///< for slow fading operations
     bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
@@ -202,6 +203,7 @@ namespace p44 {
   private:
   
     void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
+    void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
 
   };
 
