@@ -119,7 +119,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         o = aParams->get("index");
         if (o) {
           arrayIndex = o->int32Value();
-          rangeSize = 0; // single element
+          rangeSize = 1; // single array element, no repetition 
         }
         else {
           o = aParams->get("offset");
@@ -130,6 +130,10 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
             o = aParams->get("count");
             if (o)
               rangeSize = o->int32Value();
+          }
+          else {
+            // neither "index" nor "offset" -> must be non-array
+            rangeSize = 1; // no repetition
           }
         }
         // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 is single element write)

@@ -170,7 +170,7 @@ public:
     const char *configApiPort = getOption("cfgapiport");
     if (configApiPort) {
       configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-      configApiServer.setAllowNonlocalConnections(false); // config port is always local (mg44 will expose it to outside if needed)
+      configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
       configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
     }
 

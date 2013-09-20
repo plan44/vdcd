@@ -891,6 +891,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
+    LOG(LOG_INFO,"vdSM -> vDC result received: id='%d', result/error=%s\n", sessionComm->lastRequestId(), aResultOrErrorData ? aResultOrErrorData->c_strValue() : "<none>");
     LOG(LOG_NOTICE, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
     aDevice->announced = MainLoop::now();
     aDevice->announcing = Never; // not announcing any more
