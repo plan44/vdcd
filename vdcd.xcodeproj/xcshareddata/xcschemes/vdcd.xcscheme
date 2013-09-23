@@ -64,7 +64,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"

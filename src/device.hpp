@@ -52,8 +52,9 @@ namespace p44 {
     ///   for the device type and, if needed, proper type of scenes (light, blinds, RGB light etc. have different scene tables)
     DeviceSettingsPtr deviceSettings;
 
-    // r/w properties
+    // volatile r/w properties
     bool progMode;
+    bool localPriority;
 
     // variables set by concrete devices (=hardware dependent)
     DsGroup primaryGroup; ///< basic color of the device (can be black)

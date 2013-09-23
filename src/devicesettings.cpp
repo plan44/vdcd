@@ -15,7 +15,9 @@ using namespace p44;
 
 DeviceSettings::DeviceSettings(Device &aDevice) :
   inherited(aDevice.getDeviceContainer().getDsParamStore()),
-  device(aDevice)
+  device(aDevice),
+  deviceFlags(0),
+  zoneID(0)
 {
 }
 
@@ -29,7 +31,7 @@ const char *DeviceSettings::tableName()
 
 // data field definitions
 
-static const size_t numFields = 2;
+static const size_t numFields = 3;
 
 size_t DeviceSettings::numFieldDefs()
 {
@@ -41,7 +43,8 @@ const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "deviceFlags", SQLITE_INTEGER },
-    { "deviceName", SQLITE_TEXT }
+    { "deviceName", SQLITE_TEXT },
+    { "zoneID", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -56,9 +59,10 @@ const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
 void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
-  // get the flags
+  // get the field value
   deviceFlags = aRow->get<int>(aIndex++);
   device.setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  zoneID = aRow->get<int>(aIndex++);
 }
 
 
@@ -66,7 +70,8 @@ void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // bind the flags
+  // bind the fields
   aStatement.bind(aIndex++, deviceFlags);
   aStatement.bind(aIndex++, device.getName().c_str());
+  aStatement.bind(aIndex++, zoneID);
 }

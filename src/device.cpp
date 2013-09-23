@@ -23,6 +23,8 @@ using namespace p44;
 Device::Device(DeviceClassContainer *aClassContainerP) :
   announced(Never),
   announcing(Never),
+  localPriority(false),
+  progMode(false),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
   primaryGroup(group_black_joker),
@@ -303,6 +305,8 @@ enum {
   // device level simple parameters
   primaryGroup_key,
   isMember_key,
+  zoneID_key,
+  localPriority_key,
   progMode_key,
   idBlockSize_key,
   // the behaviour arrays
@@ -337,6 +341,8 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
     // common device properties
     { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
     { "isMember", ptype_bool, true, isMember_key, &device_key },
+    { "zoneID", ptype_int16, false, zoneID_key, &device_key },
+    { "localPriority", ptype_bool, false, progMode_key, &device_key },
     { "progMode", ptype_bool, false, progMode_key, &device_key },
     { "idBlockSize", ptype_int8, false, idBlockSize_key, &device_key },
     // the behaviour arrays
@@ -503,6 +509,12 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
           // test group bit
           aPropValue = JsonObject::newBool(isMember((DsGroup)aIndex));
           return true;
+        case zoneID_key:
+          aPropValue = JsonObject::newInt32(deviceSettings->zoneID);
+          return true;
+        case localPriority_key:
+          aPropValue = JsonObject::newBool(localPriority);
+          return true;
         case progMode_key:
           aPropValue = JsonObject::newBool(progMode);
           return true;
@@ -516,6 +528,13 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
       switch (aPropertyDescriptor.accessKey) {
         case isMember_key:
           setGroupMembership((DsGroup)aIndex, aPropValue->boolValue());
+          return true;
+        case zoneID_key:
+          deviceSettings->zoneID = aPropValue->int32Value();
+          deviceSettings->markDirty();
+          return true;
+        case localPriority_key:
+          localPriority = aPropValue->boolValue();
           return true;
         case progMode_key:
           progMode = aPropValue->boolValue();

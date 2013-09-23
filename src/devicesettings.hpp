@@ -24,6 +24,7 @@ namespace p44 {
   class DeviceSettings : public PersistentParams, public P44Obj
   {
     typedef PersistentParams inherited;
+    friend class Device;
 
     Device &device;
 
@@ -31,6 +32,8 @@ namespace p44 {
 
     /// generic device flag word, can be used by subclasses to map flags onto at loadFromRow() and bindToStatement()
     int deviceFlags;
+    /// global dS zone ID
+    int zoneID;
 
   public:
     DeviceSettings(Device &aDevice);
