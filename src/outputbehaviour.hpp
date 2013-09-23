@@ -94,10 +94,12 @@ namespace p44 {
     virtual int32_t getOutputValue();
 
     /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which wants to set the hardware output value
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
     virtual void setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime=0);
+
+    /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
+    virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
 
 
     /// @}

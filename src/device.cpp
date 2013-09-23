@@ -162,6 +162,34 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
       LOG(LOG_WARNING, "saveScene error: %s\n", err->description().c_str());
     }
   }
+  else if (aMethod=="undoScene") {
+    // save scene
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "scene", o))) {
+      SceneNo sceneNo = (SceneNo)o->int32Value();
+      // now save
+      undoScene(sceneNo);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "undoScene error: %s\n", err->description().c_str());
+    }
+  }
+  else if (aMethod=="setLocalPriority") {
+    // save scene
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "scene", o))) {
+      SceneNo sceneNo = (SceneNo)o->int32Value();
+      // now save
+      setLocalPriority(sceneNo);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+    }
+  }
+  else if (aMethod=="callSceneMin") {
+    // switch device on with minimum output level if not already on
+    callSceneMin();
+  }
   else if (aMethod=="identify") {
     // identify to user
     identifyToUser();
@@ -202,16 +230,73 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene) {
+      // make sure we have the lastState pseudo-scene for undo
+      if (!previousState) {
+        previousState = scenes->newDefaultScene(aSceneNo);
+      }
+      else {
+        previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
+      }
+      bool pseudoScene = aSceneNo==INC_S || aSceneNo==DEC_S || aSceneNo==T1234_CONT || (aSceneNo>=T1_DEC && aSceneNo<=T4_STOP_S);
       // scene found, now apply to all of our outputs
       for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
         OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
         if (output) {
+          // have output save its current state into the previousState pseudo scene
+          // Note: the actual updating might happen later (when the hardware responds) but
+          //   implementations must make sure access to the hardware is serialized such that
+          //   the values are captured before values from applyScene() below are applied.
+          if (!pseudoScene)
+            output->captureScene(previousState);
+          // now apply the new scene
           output->applyScene(scene);
         }
       }
     }
   }
 }
+
+
+void Device::undoScene(SceneNo aSceneNo)
+{
+  if (previousState && previousState->sceneNo==aSceneNo) {
+    // there is an undo pseudo scene we can apply
+    // scene found, now apply to all of our outputs
+    for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+      OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+      if (output) {
+        // now apply the pseudo state
+        output->applyScene(previousState);
+      }
+    }
+  }
+}
+
+
+void Device::setLocalPriority(SceneNo aSceneNo)
+{
+  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  if (scenes) {
+    // we have a device-wide scene table, get the scene object
+    DsScenePtr scene = scenes->getScene(aSceneNo);
+    if (scene && !scene->dontCare) {
+      localPriority = true;
+    }
+  }
+}
+
+
+void Device::callSceneMin()
+{
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+    OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+    if (output) {
+      output->onAtMinBrightness();
+    }
+  }
+}
+
+
 
 
 void Device::identifyToUser()

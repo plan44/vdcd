@@ -106,7 +106,6 @@ namespace p44 {
     /// @{
     int blinkCounter; ///< for generation of blink sequence
     long fadeDownTicket; ///< for slow fading operations
-    bool localPriority; ///< if set, device is in local priority, i.e. ignores scene calls
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
 
@@ -132,8 +131,6 @@ namespace p44 {
 
     /// update logical brightness from actual output state
     void updateLogicalBrightnessFromOutput();
-
-
 
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set
@@ -161,7 +158,10 @@ namespace p44 {
     /// @param aBlinkPeriod how fast the blinking should be
     /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
     void blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
-    
+
+    /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
+    virtual void onAtMinBrightness();
+
     /// @}
 
     /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)

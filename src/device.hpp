@@ -30,6 +30,7 @@ namespace p44 {
     typedef DsAddressable inherited;
 
     friend class DeviceContainer;
+    friend class DsBehaviour;
     
     MLMicroSeconds announced; ///< set when last announced to the vdSM
     MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
@@ -53,8 +54,9 @@ namespace p44 {
     DeviceSettingsPtr deviceSettings;
 
     // volatile r/w properties
-    bool progMode;
-    bool localPriority;
+    bool progMode; ///< if set, device is in programming mode
+    bool localPriority; ///< if set device is in local priority mode
+    DsScenePtr previousState; ///< a pseudo scene which holds the device state before the last applyScene() call, used to do undoScene()
 
     // variables set by concrete devices (=hardware dependent)
     DsGroup primaryGroup; ///< basic color of the device (can be black)
@@ -87,6 +89,9 @@ namespace p44 {
 
     /// @name interfaces for actual device hardware (or simulation)
     /// @{
+
+    /// @return true if device is in local priority mode
+    bool hasLocalPriority() { return localPriority; };
 
     /// set basic device color
     /// @param aColorGroup color group number
@@ -159,6 +164,10 @@ namespace p44 {
     /// @param aSceneNo the scene to call.
     void callScene(SceneNo aSceneNo, bool aForce);
 
+    /// undo scene call on this device (i.e. revert outputs to values present immediately before calling that scene)
+    /// @param aSceneNo the scene call to undo (needs to be specified to prevent undoing the wrong scene)
+    void undoScene(SceneNo aSceneNo);
+
     /// save scene on this device
     /// @param aSceneNo the scene to save current state into
     void saveScene(SceneNo aSceneNo);
@@ -228,6 +237,14 @@ namespace p44 {
     /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
     ///   array and given the correct index value
     void addBehaviour(DsBehaviourPtr aBehaviour);
+
+    /// set local priority of the device if specified scene does not have dontCare set.
+    /// @param aSceneNo the scene to check don't care for
+    void setLocalPriority(SceneNo aSceneNo);
+
+    /// switch outputs on that are off, and set minmum (logical) output value
+    void callSceneMin();
+
 
   private:
 

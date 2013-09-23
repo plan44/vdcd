@@ -86,6 +86,8 @@ namespace p44 {
     typedef DeviceSettings inherited;
 
     friend class DsScene;
+    friend class Device;
+
     DsSceneMap scenes; ///< the user defined scenes (default scenes will be created on the fly)
 
   public:

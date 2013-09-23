@@ -343,7 +343,6 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   // volatile state
   fadeDownTicket(0),
   blinkCounter(0),
-  localPriority(false),
   logicalBrightness(0)
 {
   // should always be a member of the light group
@@ -423,7 +422,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       // dimming up/down special scenes
       //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
       Brightness b = getLogicalBrightness();
-      if (b>0 && !localPriority) {
+      if (b>0 && !device.hasLocalPriority()) {
         Brightness nb = b;
         if (sceneNo==DEC_S) {
           // dim down
@@ -466,7 +465,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
 
     }
     else {
-      if (!lightScene->dontCare && (!localPriority || lightScene->ignoreLocalPriority)) {
+      if (!lightScene->dontCare && (!device.hasLocalPriority() || lightScene->ignoreLocalPriority)) {
         // apply stored scene value(s) to output(s)
         recallScene(lightScene);
         LOG(LOG_NOTICE,"CallScene: Applied output value(s) from scene %d\n", sceneNo);
@@ -488,6 +487,7 @@ void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aB
 
 void LightBehaviour::recallScene(LightScenePtr aLightScene)
 {
+  // now apply scene's brightness
   Brightness b = aLightScene->sceneBrightness;
   uint8_t s = aLightScene->dimTimeSelector;
   setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeUp[s]), transitionTimeFromDimTime(dimTimeDown[s]));
@@ -510,6 +510,10 @@ void LightBehaviour::captureScene(DsScenePtr aScene)
     }
   }
 }
+
+
+
+
 
 
 /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
@@ -552,6 +556,15 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
   );
 }
 
+
+
+void LightBehaviour::onAtMinBrightness()
+{
+  if (getLogicalBrightness()==0) {
+    // device is off and must be set to minimal logical brightness
+    setLogicalBrightness(minBrightness, transitionTimeFromDimTime(dimTimeUp[0]));
+  }
+}
 
 
 #pragma mark - persistence implementation
@@ -753,7 +766,7 @@ string LightBehaviour::shortDesc()
 string LightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- logical brightness = %d, localPriority = %d\n", logicalBrightness, localPriority);
+  string_format_append(s, "- logical brightness = %d, localPriority = %d\n", logicalBrightness, device.hasLocalPriority());
   string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable(), minBrightness, maxBrightness, onThreshold);
   s.append(inherited::description());
   return s;
