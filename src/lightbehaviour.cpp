@@ -416,7 +416,9 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
   if (lightScene) {
     // any scene call cancels fade down
     MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
-    // now check new scenne
+    // now check new scene
+    // Note: Area dimming scene calls are converted to INC_S/DEC_S/STOP_S at the Device class level
+    //  so we only need to handle INC_S/DEC_S and STOP_S here.
     SceneNo sceneNo = lightScene->sceneNo;
     if (sceneNo==DEC_S || sceneNo==INC_S) {
       // dimming up/down special scenes
@@ -453,7 +455,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     else if (sceneNo==MIN_S) {
       Brightness b = minBrightness;
       setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
-      LOG(LOG_NOTICE,"CallScene(MIN_S): setting minDim %d\n", b);
+      LOG(LOG_NOTICE,"CallScene(MIN_S): setting brightness to minDim %d\n", b);
     }
     else if (sceneNo==AUTO_OFF) {
       // slow fade down
@@ -461,8 +463,8 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       if (b>0) {
         MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
+        LOG(LOG_NOTICE,"CallScene(AUTO_OFF): starting slow fade down to zero\n", b);
       }
-
     }
     else {
       if (!lightScene->dontCare && (!device.hasLocalPriority() || lightScene->ignoreLocalPriority)) {

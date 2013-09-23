@@ -82,6 +82,10 @@ namespace p44 {
 
     /// apply scene to output
     /// @param aScene the scene to apply to the output
+    /// @note this method must handle dimming, but will *always* be called with basic INC_S/DEC_S/STOP_S scenes for that,
+    ///   never with area dimming scenes. Area dimming scenes are converted to INC_S/DEC_S/STOP_S (normalized)
+    ///   and filtered by actual area at the Device::callScene level. This is to keep the highly dS 1.0 specific
+    ///   area withing the Device class and simplify implementations of output behaviours.
     virtual void applyScene(DsScenePtr aScene) { /* NOP in base class */ };
 
     /// capture current state into passed scene object

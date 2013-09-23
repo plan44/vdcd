@@ -25,6 +25,7 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   announcing(Never),
   localPriority(false),
   progMode(false),
+  lastDimSceneNo(T0_S0),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
   primaryGroup(group_black_joker),
@@ -221,33 +222,171 @@ void Device::hasVanished(bool aForgetParams)
 }
 
 
+// returns 0 for non-area scenes, area number for area scenes
+static int areaFromScene(SceneNo aSceneNo)
+{
+  int area = 0;
+  switch(aSceneNo) {
+    case T1_S0:
+    case T1_S1:
+    case T1_S2:
+    case T1_S3:
+    case T1_S4:
+    case T1_INC:
+    case T1_DEC:
+    case T1_STOP_S:
+    case T1E_S0:
+    case T1E_S1:
+      area = 1;
+      break;
+    case T2_S0:
+    case T2_S1:
+    case T2_S2:
+    case T2_S3:
+    case T2_S4:
+    case T2_INC:
+    case T2_DEC:
+    case T2_STOP_S:
+    case T2E_S0:
+    case T2E_S1:
+      area = 2;
+      break;
+    case T3_S0:
+    case T3_S1:
+    case T3_S2:
+    case T3_S3:
+    case T3_S4:
+    case T3_INC:
+    case T3_DEC:
+    case T3_STOP_S:
+    case T3E_S0:
+    case T3E_S1:
+      area = 3;
+      break;
+    case T4_S0:
+    case T4_S1:
+    case T4_S2:
+    case T4_S3:
+    case T4_S4:
+    case T4_INC:
+    case T4_DEC:
+    case T4_STOP_S:
+    case T4E_S0:
+    case T4E_S1:
+      area = 4;
+      break;
+  }
+  return area;
+}
+
+
+static SceneNo mainSceneForArea(int aArea)
+{
+  switch (aArea) {
+    case 1: return T1_S1;
+    case 2: return T2_S1;
+    case 3: return T3_S1;
+    case 4: return T4_S1;
+  }
+  return T0_S1; // no area, main scene for room
+}
+
+
+// returns main dim scene INC_S/DEC_S/STOP_S for any type of dim scene
+// returns 0 for non-dim scenes
+static SceneNo mainDimScene(SceneNo aSceneNo)
+{
+  SceneNo dimScene = 0;
+  switch (aSceneNo) {
+    case INC_S:
+    case T1_INC:
+    case T2_INC:
+    case T3_INC:
+    case T4_INC:
+      dimScene = INC_S;
+      break;
+    case DEC_S:
+    case T1_DEC:
+    case T2_DEC:
+    case T3_DEC:
+    case T4_DEC:
+      dimScene = DEC_S;
+      break;
+    case STOP_S:
+    case T1_STOP_S:
+    case T2_STOP_S:
+    case T3_STOP_S:
+    case T4_STOP_S:
+      dimScene = STOP_S;
+      break;
+  }
+  return dimScene;
+}
+
 
 void Device::callScene(SceneNo aSceneNo, bool aForce)
 {
   // see if we have a scene table at all
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    // we have a device-wide scene table, get the scene object
-    DsScenePtr scene = scenes->getScene(aSceneNo);
+    DsScenePtr scene;
+    // check special scene numbers first
+    SceneNo dimSceneNo = 0;
+    if (aSceneNo==T1234_CONT) {
+      // re-use last dim scene
+      dimSceneNo = lastDimSceneNo;
+    }
+    else {
+      // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
+      dimSceneNo = mainDimScene(aSceneNo);
+      lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
+    }
+    // check for area
+    int area = areaFromScene(aSceneNo);
+    // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
+    if (area) {
+      // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
+      scene = scenes->getScene(mainSceneForArea(area));
+      if (scene->dontCare)
+        return; // not in this area, suppress callScene entirely
+      // call applies, if it is area off it resets localPriority
+      if (aSceneNo>=T1_S0 && aSceneNo<=T4_S0) {
+        // area is switched off -> end local priority
+        localPriority = false;
+      }
+    }
+    // get the scene to apply to output
+    if (dimSceneNo) {
+      // dimming, use normalized dim scene (INC_S/DEC_S/STOP_S) in all cases, including area dimming
+      scene = scenes->getScene(dimSceneNo);
+      // if area dimming, remember last are dimming scene for possible subsequent T1234_CONT
+      if (area)
+        lastDimSceneNo = dimSceneNo;
+    }
+    else {
+      // not dimming, use scene as passed
+      scene = scenes->getScene(aSceneNo);
+    }
     if (scene) {
-      // make sure we have the lastState pseudo-scene for undo
-      if (!previousState) {
-        previousState = scenes->newDefaultScene(aSceneNo);
+      // Scene found, check details
+      // - make sure we have the lastState pseudo-scene for undo (but not for dimming scenes)
+      if (dimSceneNo==0) {
+        if (!previousState)
+          previousState = scenes->newDefaultScene(aSceneNo);
+        else
+          previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
       }
-      else {
-        previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
-      }
-      bool pseudoScene = aSceneNo==INC_S || aSceneNo==DEC_S || aSceneNo==T1234_CONT || (aSceneNo>=T1_DEC && aSceneNo<=T4_STOP_S);
-      // scene found, now apply to all of our outputs
+      // - now apply to all of our outputs
       for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
         OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
         if (output) {
-          // have output save its current state into the previousState pseudo scene
-          // Note: the actual updating might happen later (when the hardware responds) but
-          //   implementations must make sure access to the hardware is serialized such that
-          //   the values are captured before values from applyScene() below are applied.
-          if (!pseudoScene)
+          if (dimSceneNo==0) {
+            // Non-dimming scene: have output save its current state into the previousState pseudo scene
+            // Note: the actual updating might happen later (when the hardware responds) but
+            //   implementations must make sure access to the hardware is serialized such that
+            //   the values are captured before values from applyScene() below are applied.
             output->captureScene(previousState);
+          }
           // now apply the new scene
           output->applyScene(scene);
         }

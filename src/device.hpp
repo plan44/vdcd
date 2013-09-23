@@ -62,6 +62,9 @@ namespace p44 {
     DsGroup primaryGroup; ///< basic color of the device (can be black)
     DsGroupMask groupMembership; ///< mask for groups the device is member of ("GRP" property)
 
+    // volatile internal state
+    SceneNo lastDimSceneNo; ///< most recently used dimming scene (used when T1234_CONT is received)
+
   public:
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
@@ -247,8 +250,6 @@ namespace p44 {
 
 
   private:
-
-    // method handlers
 
   };
 
