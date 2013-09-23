@@ -93,8 +93,9 @@ void PersistentParams::checkAndUpdateSchema()
       const FieldDefinition *fd = getFieldDef(i);
       sql = string_format("ALTER TABLE %s ADD ", tableName());
       sql += fieldDeclaration(fd);
-      sqlite3pp::command cmd(paramStore, sql.c_str());
-      cmd.execute();
+      sqlite3pp::command cmd(paramStore);
+      if (cmd.prepare(sql.c_str())==SQLITE_OK)
+        cmd.execute();
     }
   }
 }
