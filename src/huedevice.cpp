@@ -527,7 +527,8 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
             cm = NULL;
         }
         if (cm) {
-          newState->add("colormode", JsonObject::newString(cm));
+          // colormode is read-only, bridge derives it from presence of ct/xy/hue+sat
+          //newState->add("colormode", JsonObject::newString(cm));
         }
         // done
         pendingColorScene.reset();
