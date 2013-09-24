@@ -281,7 +281,7 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 255, 1, false, true, true, false }, // 70 : Wakeup - WAKE_UP
   { 255, 1, false, true, true, false }, // 71 : Present - PRESENT
   { 0, 1, false, true, false, false }, // 72 : Absent - ABSENT
-  { 0, 1, true, true, true, false }, // 73 : Door Bell - SIG_BELL
+  { 0, 1, false, true, true, false }, // 73 : Door Bell - SIG_BELL
   { 0, 1, false, false, true, false }, // 74 : Reserved (SIG_ALARM)
   { 255, 1, false, false, true, false }, // 75 : Zone Active
   { 255, 1, false, false, true, false }, // 76 : Reserved
