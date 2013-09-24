@@ -338,10 +338,8 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
-  // unless collecting now, register new device right away
-  if (!collecting && sessionActive) {
-    announceDevices();
-  }
+  // register new device right away (unless collecting or already announcing)
+  announceDevices();
 }
 
 
@@ -411,10 +409,8 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
   // cancel any pending executions
   MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
   if (!collecting) {
-    if (sessionActive) {
-      // check for devices that need to be announced
-      announceDevices();
-    }
+    // check for devices that need to be announced
+    announceDevices();
     // do a save run as well
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       pos->second->save();
@@ -856,35 +852,41 @@ void DeviceContainer::endContainerSession()
 #define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
 // how long vDC waits after receiving ok from one announce until it fires the next
-#define ANNOUNCE_PAUSE (2*Second)
+#define ANNOUNCE_PAUSE (1*Second)
 
 /// announce all not-yet announced devices to the vdSM
 void DeviceContainer::announceDevices()
 {
   if (!collecting && announcementTicket==0 && sessionActive) {
-    // check all devices for unnannounced ones and announce those
-    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-      DevicePtr dev = pos->second;
-      if (
+    announceNext();
+  }
+}
+
+
+void DeviceContainer::announceNext()
+{
+  // check all devices for unnannounced ones and announce those
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    if (
         dev->isPublicDS() && // only public ones
         dev->announced==Never &&
         (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
-      ) {
-        // mark device as being in process of getting announced
-        dev->announcing = MainLoop::now();
-        // call announce method
-        if (!dev->sendRequest("announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
-          LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
-          dev->announcing = Never; // not registering
-        }
-        else {
-          LOG(LOG_NOTICE, "Sent announcement for device %s\n", dev->shortDesc().c_str());
-        }
-        // schedule a retry
-        announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_TIMEOUT);
-        // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
-        break;
+        ) {
+      // mark device as being in process of getting announced
+      dev->announcing = MainLoop::now();
+      // call announce method
+      if (!dev->sendRequest("announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
+        LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
+        dev->announcing = Never; // not registering
       }
+      else {
+        LOG(LOG_NOTICE, "Sent announcement for device %s\n", dev->shortDesc().c_str());
+      }
+      // schedule a retry
+      announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
+      // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
+      break;
     }
   }
 }
@@ -902,7 +904,7 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceDevices, this), ANNOUNCE_PAUSE);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
 }
 
 

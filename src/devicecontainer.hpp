@@ -28,6 +28,9 @@ namespace p44 {
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef boost::intrusive_ptr<Device> DevicePtr;
 
+  /// generic callback for signalling something done
+  typedef boost::function<void ()> DoneCB;
+
   /// generic callback for signalling completion (with success/error reporting)
   typedef boost::function<void (ErrorPtr aError)> CompletedCB;
 
@@ -281,6 +284,7 @@ namespace p44 {
 
     // announcing devices
     void announceDevices();
+    void announceNext();
     void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
   public:
