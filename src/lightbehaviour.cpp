@@ -423,8 +423,9 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     if (sceneNo==DEC_S || sceneNo==INC_S) {
       // dimming up/down special scenes
       //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
+      //  Note: local priority check is done at the device level
       Brightness b = getLogicalBrightness();
-      if (b>0 && !device.hasLocalPriority()) {
+      if (b>0) {
         Brightness nb = b;
         if (sceneNo==DEC_S) {
           // dim down
@@ -444,7 +445,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
         }
         if (nb!=b) {
           setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-          LOG(LOG_NOTICE,"- CallScene DIM: Dimmed to new value %d\n", nb);
+          LOG(LOG_NOTICE,"- ApplyScene(DIM): Dimmed to new value %d\n", nb);
         }
       }
     }
@@ -455,7 +456,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
     else if (sceneNo==MIN_S) {
       Brightness b = minBrightness;
       setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
-      LOG(LOG_NOTICE,"CallScene(MIN_S): setting brightness to minDim %d\n", b);
+      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %d\n", b);
     }
     else if (sceneNo==AUTO_OFF) {
       // slow fade down
@@ -463,15 +464,13 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       if (b>0) {
         MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
-        LOG(LOG_NOTICE,"CallScene(AUTO_OFF): starting slow fade down to zero\n", b);
+        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
       }
     }
     else {
-      if (!lightScene->dontCare && (!device.hasLocalPriority() || lightScene->ignoreLocalPriority)) {
-        // apply stored scene value(s) to output(s)
-        recallScene(lightScene);
-        LOG(LOG_NOTICE,"CallScene: Applied output value(s) from scene %d\n", sceneNo);
-      }
+      // apply stored scene value(s) to output(s)
+      recallScene(lightScene);
+      LOG(LOG_NOTICE,"- ApplyScene(%d): Applied output value(s) from scene\n", sceneNo);
     }
   }
 }
