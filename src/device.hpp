@@ -251,6 +251,9 @@ namespace p44 {
 
   private:
 
+    void outputSceneValueSaved(DsScenePtr aScene);
+    void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
+
   };
 
 

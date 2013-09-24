@@ -57,6 +57,7 @@ int32_t OutputBehaviour::getOutputValue()
 // NOT to be used to change the hardware output value!
 void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 {
+  DBGLOG(LOG_DEBUG, ">>>> initOutputValue actualOutputValue=%d\n", aActualOutputValue);
   cachedOutputValue = aActualOutputValue;
   outputValueApplied(); // now we know that we are in sync
 }
@@ -64,6 +65,7 @@ void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 
 void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
 {
+  DBGLOG(LOG_DEBUG, ">>>> setOutputValue %d, cachedOutputValue=%d\n", aNewValue, cachedOutputValue);
   if (aNewValue!=cachedOutputValue) {
     cachedOutputValue = aNewValue;
     nextTransitionTime = aTransitionTime;

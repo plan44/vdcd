@@ -143,9 +143,9 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
       // check for force flag
       if (Error::isOK(err = checkParam(aParams, "force", o))) {
         force = o->boolValue();
+        // now call
+        callScene(sceneNo, force);
       }
-      // now call
-      callScene(sceneNo, force);
     }
     if (!Error::isOK(err)) {
       LOG(LOG_WARNING, "callScene error: %s\n", err->description().c_str());
@@ -397,16 +397,42 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
               // Note: the actual updating might happen later (when the hardware responds) but
               //   implementations must make sure access to the hardware is serialized such that
               //   the values are captured before values from applyScene() below are applied.
-              output->captureScene(previousState);
+              output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
             }
-            // now apply the new scene
-            output->applyScene(scene);
+            else {
+              // apply the new scene right now
+              output->applyScene(scene);
+              // and perform the special actions, if any
+              output->performSceneActions(scene);
+            }
           } // if output
         } // for
       } // not dontCare
+      else {
+        // do other scene actions now, as dontCare prevented applying scene above
+        for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+          OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+          if (output) {
+            output->performSceneActions(scene);
+          } // if output
+        } // for
+      }
     } // scene found
   } // device with scenes
 }
+
+
+// deferred applying of state, after current state has been captured for this output
+void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
+{
+  OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
+  if (output) {
+    output->applyScene(aScene);
+    output->performSceneActions(aScene);
+  }
+}
+
+
 
 
 void Device::undoScene(SceneNo aSceneNo)
@@ -432,6 +458,7 @@ void Device::setLocalPriority(SceneNo aSceneNo)
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->dontCare) {
+      LOG(LOG_DEBUG, "setLocalPriority(%d): localPriority set\n", aSceneNo);
       localPriority = true;
     }
   }
@@ -471,16 +498,18 @@ void Device::saveScene(SceneNo aSceneNo)
         OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
         if (output) {
           // capture value from this output
-          output->captureScene(scene);
+          output->captureScene(scene, boost::bind(&Device::outputSceneValueSaved, this, scene));
         }
       }
-      // save updated scene if any modifications found
-      // Note: some implementations of captureScene might not save the scene immediately, but
-      //   will need some time to retrieve the values. These implementations must call
-      //   updateScene() again later when the current values are available.
-      updateScene(scene);
     }
   }
+}
+
+
+void Device::outputSceneValueSaved(DsScenePtr aScene)
+{
+  // update scene in scene table and DB if dirty
+  updateScene(aScene);
 }
 
 
@@ -560,6 +589,7 @@ enum {
   sensorSettings_key,
   sensorStates_key,
   scenes_key,
+  undoState_key,
   numDeviceProperties
 };
 
@@ -599,6 +629,7 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
     { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
     // the scenes array
     { "scenes", ptype_object, true, scenes_key, &device_key },
+    { "undoState", ptype_object, false, undoState_key, &device_key },
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -667,6 +698,12 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
         SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
         if (scenes) {
           return scenes->getScene(aIndex);
+        }
+      }
+      // pseudo scene which saves the values before last scene call, used for undoScene
+      case undoState_key: {
+        if (previousState) {
+          return previousState;
         }
       }
     }

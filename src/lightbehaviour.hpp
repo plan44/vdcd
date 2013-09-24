@@ -148,10 +148,15 @@ namespace p44 {
     /// @param aScene the scene to apply to the output
     virtual void applyScene(DsScenePtr aScene);
 
+    /// perform special scene actions (like flashing) which are independent of dontCare flag.
+    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
+    virtual void performSceneActions(DsScenePtr aScene);
+
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
+    /// @param aDoneCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene);
+    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
 
     /// blink the light (for identifying it)
     /// @param aDuration how long the light should blink

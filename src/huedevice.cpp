@@ -243,8 +243,26 @@ void HueLightBehaviour::recallScene(LightScenePtr aLightScene)
 
 
 
+void HueLightBehaviour::performSceneActions(DsScenePtr aScene)
+{
+  // we can only handle light scenes
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene && lightScene->flashing) {
+    // alert
+    HueDevice *devP = dynamic_cast<HueDevice *>(&device);
+    if (devP) {
+      // Three breathe cycles
+      devP->alertHandler(3);
+    }
+  }
+}
+
+
+
+
+
 // capture scene
-void HueLightBehaviour::captureScene(DsScenePtr aScene)
+void HueLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
 {
   HueLightScenePtr hueScene = boost::dynamic_pointer_cast<HueLightScene>(aScene);
   if (hueScene) {
@@ -252,13 +270,13 @@ void HueLightBehaviour::captureScene(DsScenePtr aScene)
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
       string url = string_format("/lights/%s", devP->lightID.c_str());
-      devP->hueComm().apiQuery(url.c_str(), boost::bind(&HueLightBehaviour::sceneColorsReceived, this, hueScene, _2, _3));
+      devP->hueComm().apiQuery(url.c_str(), boost::bind(&HueLightBehaviour::sceneColorsReceived, this, hueScene, aDoneCB, _2, _3));
     }
   }
 }
 
 
-void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
+void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     JsonObjectPtr o;
@@ -307,11 +325,7 @@ void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, JsonObje
     }
   }
   // anyway, let base class capture brightness
-  inherited::captureScene(aHueScene);
-  // as we deferred capture, we need to update the scene again to have it persisted
-  if (aHueScene->isDirty()) {
-    device.updateScene(aHueScene);
-  }
+  inherited::captureScene(aHueScene, aDoneCB);
 }
 
 
@@ -441,11 +455,6 @@ void HueDevice::identifyToUser()
 {
   // Four breathe cycles
   alertHandler(4);
-//  // standard LightBehaviour blink
-//  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(outputs[0]);
-//  if (l) {
-//    l->blink(4*Second);
-//  }
 }
 
 

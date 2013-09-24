@@ -88,10 +88,16 @@ namespace p44 {
     ///   area withing the Device class and simplify implementations of output behaviours.
     virtual void applyScene(DsScenePtr aScene) { /* NOP in base class */ };
 
+    /// perform special scene actions (like flashing) which are independent of dontCare flag.
+    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
+    virtual void performSceneActions(DsScenePtr aScene) { /* NOP in base class, only relevant for lights */ };
+
+
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
+    /// @param aDoneCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene) { /* NOP in base class */ };
+    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
 
     /// get currently set output value from device hardware
     /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
@@ -104,7 +110,6 @@ namespace p44 {
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
-
 
     /// @}
 

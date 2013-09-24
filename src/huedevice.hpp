@@ -77,8 +77,14 @@ namespace p44 {
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
+    /// @param aCompletedCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene);
+    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
+
+    /// perform special scene actions (like flashing) which are independent of dontCare flag.
+    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
+    virtual void performSceneActions(DsScenePtr aScene);
+
 
   protected:
 
@@ -89,7 +95,7 @@ namespace p44 {
 
   private:
 
-    void sceneColorsReceived(HueLightScenePtr aHueScene, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+    void sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
 
   };
