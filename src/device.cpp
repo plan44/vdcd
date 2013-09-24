@@ -334,13 +334,11 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     SceneNo dimSceneNo = 0;
     if (aSceneNo==T1234_CONT) {
       // re-use last dim scene
-      dimSceneNo = lastDimSceneNo;
+      aSceneNo = lastDimSceneNo;
     }
-    else {
-      // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
-      dimSceneNo = mainDimScene(aSceneNo);
-      lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
-    }
+    // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
+    dimSceneNo = mainDimScene(aSceneNo);
+    lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
     // check for area
     int area = areaFromScene(aSceneNo);
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
@@ -365,7 +363,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       scene = scenes->getScene(dimSceneNo);
       // if area dimming, remember last are dimming scene for possible subsequent T1234_CONT
       if (area)
-        lastDimSceneNo = dimSceneNo;
+        lastDimSceneNo = aSceneNo;
     }
     else {
       // not dimming, use scene as passed
