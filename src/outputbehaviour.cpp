@@ -38,6 +38,7 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
       outputMode = outputmode_binary;
       break;
     case outputFunction_dimmer:
+    case outputFunction_positional:
       outputMode = outputmode_gradual;
       break;
     default:
