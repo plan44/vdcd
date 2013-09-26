@@ -782,7 +782,8 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
           aPropValue = JsonObject::newBool(isMember((DsGroup)aIndex));
           return true;
         case zoneID_key:
-          aPropValue = JsonObject::newInt32(deviceSettings->zoneID);
+          if (deviceSettings)
+            aPropValue = JsonObject::newInt32(deviceSettings->zoneID);
           return true;
         case localPriority_key:
           aPropValue = JsonObject::newBool(localPriority);
@@ -802,8 +803,10 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
           setGroupMembership((DsGroup)aIndex, aPropValue->boolValue());
           return true;
         case zoneID_key:
-          deviceSettings->zoneID = aPropValue->int32Value();
-          deviceSettings->markDirty();
+          if (deviceSettings) {
+            deviceSettings->zoneID = aPropValue->int32Value();
+            deviceSettings->markDirty();
+          }
           return true;
         case localPriority_key:
           localPriority = aPropValue->boolValue();
