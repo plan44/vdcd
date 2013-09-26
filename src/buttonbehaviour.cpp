@@ -511,7 +511,10 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
           return true;
         // States properties
         case value_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(buttonPressed ? 1 : 0);
+          if (lastClick==Never)
+            aPropValue = JsonObject::newNull();
+          else
+            aPropValue = JsonObject::newBool(buttonPressed);
           return true;
         case clickType_key+states_key_offset:
           aPropValue = JsonObject::newInt32(clickType);
