@@ -29,6 +29,7 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
 void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval)
 {
   sensorType = aType;
+  sensorUsage = aUsage;
   min = aMin;
   max = aMax;
   resolution = aResolution;
