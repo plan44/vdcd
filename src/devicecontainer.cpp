@@ -10,14 +10,11 @@
 
 #include "deviceclasscontainer.hpp"
 
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
 
 #include "device.hpp"
 
+#include "macaddress.hpp"
 #include "fnv.hpp"
 
 // for local behaviour
@@ -69,46 +66,11 @@ string DeviceContainer::deviceContainerInstanceIdentifier() const
 {
   string identifier;
 
-  struct ifreq ifr;
-  struct ifconf ifc;
-  char buf[1024];
-  int success = 0;
-
-  do {
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (sock == -1) { /* handle error*/ };
-
-    ifc.ifc_len = sizeof(buf);
-    ifc.ifc_buf = buf;
-    if (ioctl(sock, SIOCGIFCONF, &ifc) == -1)
-      break;
-    struct ifreq* it = ifc.ifc_req;
-    const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
-    for (; it != end; ++it) {
-      strcpy(ifr.ifr_name, it->ifr_name);
-      if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
-        if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
-          #ifdef __APPLE__
-          #warning MAC address retrieval on OSX not supported
-          break;
-          #else
-          if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-            success = 1;
-            break;
-          }
-          #endif
-        }
-      }
-      else
-        break;
-    }
-  } while(false);
+  uint64_t mac = macAddress();
   // extract ID if we have one
-  if (success) {
+  if (mac!=0) {
     for (int i=0; i<6; ++i) {
-      #ifndef __APPLE__
-      string_format_append(identifier, "%02X",(uint8_t *)(ifr.ifr_hwaddr.sa_data)[i]);
-      #endif
+      string_format_append(identifier, "%02X",(mac>>((5-i)*8)) & 0xFF);
     }
   }
   else {
@@ -484,6 +446,10 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       break;
   }
   if (scene>=0) {
+    if (aClickType!=ct_hold_start) {
+      // safety: any scene call except hold start stops ongoing dimming
+      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket);
+    }
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (dev->isMember(group_yellow_light)) {

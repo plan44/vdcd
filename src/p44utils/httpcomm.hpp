@@ -85,7 +85,7 @@ namespace p44 {
 
     /// send a HTTP or HTTPS request
     /// @param aURL the http or https URL to access
-    /// @param responseCallback will be called when request completes, returning response or error
+    /// @param aResponseCallback will be called when request completes, returning response or error
     /// @param aMethod the HTTP method to use (defaults to "GET")
     /// @param aRequestBody a C string containing the request body to send, or NULL if none
     /// @param aContentType the content type for the body to send, or NULL to use default

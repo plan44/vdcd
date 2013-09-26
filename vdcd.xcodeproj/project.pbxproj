@@ -108,6 +108,7 @@
 		EDCFE85D171FFAF6001D35F3 /* dsid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsid.cpp */; };
 		EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
 		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
+		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -276,6 +277,8 @@
 		EDCFE85F17203E47001D35F3 /* fnv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fnv.hpp; sourceTree = "<group>"; };
 		EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; lineEnding = 0; path = xcode_docset_doxygen.sh; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		EDCFE86617212BA9001D35F3 /* doxygen.config */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doxygen.config; sourceTree = "<group>"; };
+		EDDE42BC17F35419005B97A0 /* macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = macaddress.cpp; sourceTree = "<group>"; };
+		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = macaddress.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -323,6 +326,8 @@
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
+				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED81337717C6C765003982CC /* p44obj.cpp */,
 				ED81337817C6C765003982CC /* p44obj.hpp */,
 				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
@@ -636,6 +641,7 @@
 			files = (
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
+				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,

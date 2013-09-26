@@ -53,6 +53,8 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/macaddress.cpp \
+  src/p44utils/macaddress.hpp \
   src/p44utils/httpcomm.cpp\
   src/p44utils/httpcomm.hpp\
   src/p44utils/jsonwebclient.cpp\
