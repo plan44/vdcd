@@ -141,9 +141,9 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x02, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40,    0, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x02, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -30,   10, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x03, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -20,   20, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x04, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate, -10,   30, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x05, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,   0,   40, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,  10,   50, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x04, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,        -10,   30, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x05, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    10,   50, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x07, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    20,   60, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x08, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    30,   70, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x09, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    40,   80, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
@@ -154,31 +154,31 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x02, 0x11, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -50,   30, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x12, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40,   40, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x13, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -30,   50, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x14, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate, -20,   60, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x15, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate, -10,   70, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x02, 0x16, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,   0,   80, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x14, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -20,   60, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x15, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,        -10,   70, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x16, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,          0,   80, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x17, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    10,   90, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x18, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    20,  100, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x19, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    30,  110, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x1A, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    40,  120, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x1B, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,    50,  130, DB(1,7), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   // - 10 bit
-  { 0x02, 0x20, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate, -10, 42.2, DB(2,1), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x02, 0x20, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,        -10, 42.2, DB(2,1), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x30, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40, 62.3, DB(2,1), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   // Temperature and Humidity
-  { 0x04, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,   0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x04, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_humitity,    usage_roomClimate,   0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x04, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x04, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_humitity,    usage_room,          0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
 
   // Room Panels
   // - e.g. Eltako FTR55D
-  { 0x10, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,   0,  40, DB(1,7), DB(1,0),  100, &invSensorHandler, tempText, tempUnit },
-  { 0x10, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_set_point,   usage_roomClimate,   0,   1, DB(2,7), DB(2,0),  100, &stdSensorHandler, "Set Point", "1", dflag_none },
-  { 0x10, 0x06, 0, group_blue_climate, behaviour_binaryinput, sensorType_none,        usage_roomClimate,   0,   1, DB(0,0), DB(0,0),  100, &stdInputHandler, "Day/Night", "1", dflag_none },
+  { 0x10, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,          0,  40, DB(1,7), DB(1,0),  100, &invSensorHandler, tempText, tempUnit },
+  { 0x10, 0x06, 0, group_blue_climate, behaviour_sensor,      sensorType_set_point,   usage_user,          0,   1, DB(2,7), DB(2,0),  100, &stdSensorHandler, "Set Point", "1", dflag_none },
+  { 0x10, 0x06, 0, group_blue_climate, behaviour_binaryinput, sensorType_none,        usage_user,          0,   1, DB(0,0), DB(0,0),  100, &stdInputHandler, "Day/Night", "1", dflag_none },
 
   // HVAC heating valve actuators
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
-  { 0x20, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_roomClimate,   0,  40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse },
-  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional, usage_roomClimate,  0, 100, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
+  { 0x20, 0x01, 0, group_blue_climate, behaviour_sensor,      sensorType_temperature, usage_room,          0,  40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse },
+  { 0x20, 0x01, 0, group_blue_climate, behaviour_output,      outputFunction_positional, usage_room,       0, 100, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse },
 
   // terminator
   { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },

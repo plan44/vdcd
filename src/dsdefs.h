@@ -253,9 +253,9 @@ typedef enum {
 /// usage hints for inputs and outputs
 typedef enum {
   usage_undefined, ///< usage not defined
-  usage_roomClimate, ///< room climate measurement
-  usage_outdoorClimate, ///< outdoor climate measurement
-  usage_climateSetting, ///< climate related user setting (e.g. temperature dial)
+  usage_room, ///< room related (e.g. indoor sensors and controllers)
+  usage_outdoors, ///< outdoors related (e.g. outdoor sensors)
+  usage_user, ///< user interaction (e.g. indicators, displays, dials, sliders)
 } DsUsageHint;
 
 
