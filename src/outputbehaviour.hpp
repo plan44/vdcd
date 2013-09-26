@@ -27,6 +27,7 @@ namespace p44 {
     /// @name hardware derived parameters (constant during operation)
     /// @{
     DsOutputFunction outputFunction; ///< the function of the output
+    DsUsageHint outputUsage; ///< the input type when device has hardwired functions
     bool variableRamp; ///< output has variable ramp times
     double maxPower; ///< max power in Watts the output can control
     /// @}
@@ -55,7 +56,7 @@ namespace p44 {
     /// @{
 
     /// Configure hardware parameters of the output
-    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, bool aVariableRamp, double aMaxPower);
+    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
     /// set actual current output value as read from the device on startup, to update local cache value
     /// @param aActualOutputValue the value as read from the device

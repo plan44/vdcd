@@ -25,6 +25,7 @@ namespace p44 {
     ///   set by device implementations when adding a Behaviour.
     /// @{
     DsSensorType sensorType; ///< type and physical unit of sensor
+    DsUsageHint sensorUsage; ///< usage for sensor (if known)
     double min; /// minimum value (corresponding to aEngineeringValue==0)
     double max; /// max value
     double resolution; /// change per LSB of sensor engineering value
@@ -53,7 +54,7 @@ namespace p44 {
     /// initialisation of hardware-specific constants for this sensor
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareSensorConfig(DsSensorType aType, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
+    void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{

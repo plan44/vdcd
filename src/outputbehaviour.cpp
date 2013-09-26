@@ -21,15 +21,16 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   pushChanges(false) // do not push changes
 {
   // set default hardware default configuration
-  setHardwareOutputConfig(outputFunction_switch, false, -1);
+  setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
   // default to joker
   setGroup(group_black_joker);
 }
 
 
-void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, bool aVariableRamp, double aMaxPower)
+void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
 {
   outputFunction = aOutputFunction;
+  outputUsage = aUsage;
   variableRamp = aVariableRamp;
   maxPower = aMaxPower;
   // determine default output mode
@@ -158,6 +159,7 @@ static char output_key;
 
 enum {
   outputFunction_key,
+  outputUsage_key,
   variableRamp_key,
   maxPower_key,
   numDescProperties
@@ -169,6 +171,7 @@ const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
     { "outputFunction", ptype_int8, false, outputFunction_key+descriptions_key_offset, &output_key },
+    { "outputUsage", ptype_int8, false, outputUsage_key+descriptions_key_offset, &output_key },
     { "variableRamp", ptype_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
     { "maxPower", ptype_double, false, maxPower_key+descriptions_key_offset, &output_key },
   };
@@ -226,6 +229,9 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
         // Description properties
         case outputFunction_key+descriptions_key_offset:
           aPropValue = JsonObject::newInt32(outputFunction);
+          return true;
+        case outputUsage_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(outputUsage);
           return true;
         case variableRamp_key+descriptions_key_offset:
           aPropValue = JsonObject::newBool(variableRamp);

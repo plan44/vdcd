@@ -26,6 +26,7 @@ namespace p44 {
     ///   set by device implementations when adding a Behaviour.
     /// @{
     DsBinaryInputType hardwareInputType; ///< the input type when device has hardwired functions
+    DsUsageHint inputUsage; ///< the input type when device has hardwired functions
     bool reportsChanges; ///< set if the input detects changes without polling
     MLMicroSeconds updateInterval;
     /// @}
@@ -53,7 +54,7 @@ namespace p44 {
     /// initialisation of hardware-specific constants for this binary input
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareInputConfig(DsBinaryInputType aInputType, bool aReportsChanges, MLMicroSeconds aUpdateInterval);
+    void setHardwareInputConfig(DsBinaryInputType aInputType, DsUsageHint aUsage, bool aReportsChanges, MLMicroSeconds aUpdateInterval);
 
 
     /// @name interface towards actual device hardware (or simulation)

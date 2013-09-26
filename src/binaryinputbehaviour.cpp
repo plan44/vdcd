@@ -21,15 +21,16 @@ BinaryInputBehaviour::BinaryInputBehaviour(Device &aDevice) :
   currentState(false)
 {
   // set dummy default hardware default configuration
-  setHardwareInputConfig(binInpType_none, true, 15*Second);
+  setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Second);
   // default to joker
   setGroup(group_black_joker);
 }
 
 
-void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, bool aReportsChanges, MLMicroSeconds aUpdateInterval)
+void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, DsUsageHint aUsage, bool aReportsChanges, MLMicroSeconds aUpdateInterval)
 {
   hardwareInputType = aInputType;
+  inputUsage = aUsage;
   reportsChanges = aReportsChanges;
   updateInterval = aUpdateInterval;
   // set default input mode to hardware type
@@ -118,6 +119,7 @@ static char binaryInput_key;
 
 enum {
   hardwareInputType_key,
+  inputUsage_key,
   reportsChanges_key,
   updateInterval_key,
   numDescProperties
@@ -129,6 +131,7 @@ const PropertyDescriptor *BinaryInputBehaviour::getDescDescriptor(int aPropIndex
 {
   static const PropertyDescriptor properties[numDescProperties] = {
     { "hardwareSensorFunction", ptype_int8, false, hardwareInputType_key+descriptions_key_offset, &binaryInput_key },
+    { "inputUsage", ptype_int8, false, inputUsage_key+descriptions_key_offset, &binaryInput_key },
     { "inputType", ptype_bool, false, reportsChanges_key+descriptions_key_offset, &binaryInput_key },
     { "updateInterval", ptype_double, false, updateInterval_key+descriptions_key_offset, &binaryInput_key },
   };
@@ -185,6 +188,9 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue
         // Description properties
         case hardwareInputType_key+descriptions_key_offset: // aka "hardwareSensorFunction"
           aPropValue = JsonObject::newInt32(hardwareInputType);
+          return true;
+        case inputUsage_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(inputUsage);
           return true;
         case reportsChanges_key+descriptions_key_offset: // aka "inputType"
           aPropValue = JsonObject::newInt32(reportsChanges ? 1 : 0);

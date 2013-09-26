@@ -20,13 +20,13 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
   currentValue(0)
 {
   // set dummy default hardware default configuration
-  setHardwareSensorConfig(sensorType_none, 0, 100, 1, 15*Second);
+  setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 100, 1, 15*Second);
   // default to joker
   setGroup(group_black_joker);
 }
 
 
-void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval)
+void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval)
 {
   sensorType = aType;
   min = aMin;
@@ -118,6 +118,7 @@ static char sensor_key;
 
 enum {
   sensorType_key,
+  sensorUsage_key,
   min_key,
   max_key,
   resolution_key,
@@ -131,6 +132,7 @@ const PropertyDescriptor *SensorBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
     { "sensorType", ptype_int8, false, sensorType_key+descriptions_key_offset, &sensor_key },
+    { "sensorUsage", ptype_int8, false, sensorUsage_key+descriptions_key_offset, &sensor_key },
     { "min", ptype_double, false, min_key+descriptions_key_offset, &sensor_key },
     { "max", ptype_double, false, max_key+descriptions_key_offset, &sensor_key },
     { "resolution", ptype_double, false, resolution_key+descriptions_key_offset, &sensor_key },
@@ -188,6 +190,9 @@ bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
         // Description properties
         case sensorType_key+descriptions_key_offset:
           aPropValue = JsonObject::newInt32(sensorType);
+          return true;
+        case sensorUsage_key+descriptions_key_offset:
+          aPropValue = JsonObject::newInt32(sensorUsage);
           return true;
         case min_key+descriptions_key_offset:
           aPropValue = JsonObject::newDouble(min);

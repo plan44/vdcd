@@ -250,6 +250,16 @@ typedef enum {
 } DsSensorType;
 
 
+/// usage hints for inputs and outputs
+typedef enum {
+  usage_undefined, ///< usage not defined
+  usage_roomClimate, ///< room climate measurement
+  usage_outdoorClimate, ///< outdoor climate measurement
+  usage_climateSetting, ///< climate related user setting (e.g. temperature dial)
+} DsUsageHint;
+
+
+
 /// binary input types (sensor functions)
 typedef enum {
   binInpType_none, ///< no system function
