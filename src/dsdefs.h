@@ -88,14 +88,16 @@ typedef enum {
   group_variable = 0,
   group_yellow_light = 1,
   group_grey_shadow = 2,
-  group_blue_climate = 3,
+  group_blue_heating = 3, ///< heating - formerly "climate"
   group_cyan_audio = 4,
   group_magenta_video = 5,
   group_red_security = 6,
   group_green_access = 7,
   group_black_joker = 8,
-  group_white = 9,
-  group_displays = 10
+  group_white_cooling = 9, ///< cooling - formerly just "white" (is it still white? snow?)
+  group_ventilation = 10, ///< ventilation - formerly "display"?!
+  group_windows = 11, ///< windows (not the OS, holes in the wall..)
+  group_roomtemperature_control = 48, ///< room temperature control
 } DsGroup;
 
 typedef uint64_t DsGroupMask; ///< 64 bit mask, Bit0 = group 0, Bit63 = group 63

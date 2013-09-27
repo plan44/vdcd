@@ -188,7 +188,7 @@ void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aPar
   }
   else {
     // unknown notification
-    LOG(LOG_WARNING, "unknown method for '%s'", shortDesc().c_str());
+    LOG(LOG_WARNING, "unknown notification '%s' for '%s'\n", aMethod.c_str(), shortDesc().c_str());
   }
 }
 

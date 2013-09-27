@@ -200,7 +200,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
       }
     }
     if (!Error::isOK(err)) {
-      LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+      LOG(LOG_WARNING, "setControlValue error: %s\n", err->description().c_str());
     }
   }
   else if (aMethod=="callSceneMin") {

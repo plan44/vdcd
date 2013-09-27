@@ -72,6 +72,8 @@ vdcd_SOURCES = \
   src/dsscene.hpp \
   src/outputbehaviour.cpp \
   src/outputbehaviour.hpp \
+  src/climatecontrolbehaviour.cpp \
+  src/climatecontrolbehaviour.hpp \
   src/buttonbehaviour.cpp \
   src/sensorbehaviour.hpp \
   src/sensorbehaviour.cpp \
