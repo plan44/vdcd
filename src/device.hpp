@@ -204,6 +204,14 @@ namespace p44 {
     virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour) { /* NOP */ };
 
 
+    /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
+    /// the value affects physical outputs of the device
+    /// @param aName the name of the control value, which describes the purpose
+    /// @param aValue the control value to process
+    /// @note base class by default forwards the control value to all of its output behaviours.
+    virtual void processControlValue(const string &aName, double aValue);
+
+
     typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
 
     /// disconnect device. If presence is represented by data stored in the vDC rather than

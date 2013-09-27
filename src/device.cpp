@@ -187,6 +187,22 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
       LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
     }
   }
+  else if (aMethod=="setControlValue") {
+    // save scene
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "name", o))) {
+      string controlValueName = o->stringValue();
+      if (Error::isOK(err = checkParam(aParams, "value", o))) {
+        // get value
+        double value = o->doubleValue();
+        // now process
+        processControlValue(controlValueName, value);
+      }
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+    }
+  }
   else if (aMethod=="callSceneMin") {
     // switch device on with minimum output level if not already on
     callSceneMin();
@@ -518,6 +534,20 @@ void Device::updateScene(DsScenePtr aScene)
     scenes->updateScene(aScene);
   }
 }
+
+
+
+void Device::processControlValue(const string &aName, double aValue)
+{
+  // default base class behaviour is letting know all output behaviours
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+    OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+    if (ob) {
+      ob->processControlValue(aName, aValue);
+    }
+  }
+}
+
 
 
 

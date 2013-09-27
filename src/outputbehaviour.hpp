@@ -112,6 +112,13 @@ namespace p44 {
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
 
+    /// Process a named control value. The type, color and settings of the output determine if at all,
+    /// and if, how the value affects the output
+    /// @param aName the name of the control value, which describes the purpose
+    /// @param aValue the control value to process
+    virtual void processControlValue(const string &aName, double aValue) { /* NOP in base class */ };
+
+
     /// @}
 
     /// description of object, mainly for debug and logging
