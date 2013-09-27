@@ -527,8 +527,13 @@ void Device::updateScene(DsScenePtr aScene)
 // load device settings - beaviours + scenes
 ErrorPtr Device::load()
 {
+  // if we don't have device settings at this point (created by subclass)
+  // create standard base class settings.
+  if (!deviceSettings)
+    deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
   // load the device settings
-  if (deviceSettings) deviceSettings->loadFromStore(dsid.getString().c_str());
+  if (deviceSettings)
+    deviceSettings->loadFromStore(dsid.getString().c_str());
   // load the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
