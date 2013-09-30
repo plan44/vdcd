@@ -63,7 +63,9 @@ MainLoop &MainLoop::currentMainLoop()
 MainLoop::MainLoop() :
 	terminated(false),
   loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_uS),
-  cycleStartTime(Never)
+  cycleStartTime(Never),
+  idleHandlersChanged(false),
+  oneTimeHandlersChanged(false)
 {
 }
 
@@ -95,6 +97,7 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 	while(pos!=idleHandlers.end()) {
 		if (pos->subscriberP==aSubscriberP) {
 			pos = idleHandlers.erase(pos);
+      idleHandlersChanged = true;
 		}
 		else {
 			// skip
@@ -123,6 +126,7 @@ long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime,
   while (pos!=onetimeHandlers.end()) {
     if (pos->executionTime>aExecutionTime) {
       onetimeHandlers.insert(pos, h);
+      oneTimeHandlersChanged = true;
       return ticketNo;
     }
     ++pos;
@@ -139,6 +143,7 @@ void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
 	while(aSubmitterP==NULL || pos!=onetimeHandlers.end()) {
 		if (pos->submitterP==aSubmitterP) {
 			pos = onetimeHandlers.erase(pos);
+      oneTimeHandlersChanged = true;
 		}
 		else {
 			// skip
@@ -154,6 +159,7 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
   for (OnetimeHandlerList::iterator pos = onetimeHandlers.begin(); pos!=onetimeHandlers.end(); ++pos) {
 		if (pos->ticketNo==aTicketNo) {
 			pos = onetimeHandlers.erase(pos);
+      oneTimeHandlersChanged = true;
       break;
 		}
 	}
@@ -200,14 +206,22 @@ int MainLoop::run()
 
 void MainLoop::runOnetimeHandlers()
 {
-	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
-  while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
-    if (terminated) return; // terminated means everything is considered complete
-    OneTimeCB cb = pos->callback; // get handler
-    pos = onetimeHandlers.erase(pos); // remove from queue
-    cb(*this, cycleStartTime); // call handler
-    ++pos;
-  }
+  int rep = 5; // max 5 re-evaluations of list due to changes
+  do {
+    OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
+    oneTimeHandlersChanged = false; // detect changes happening from callbacks
+    while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
+      if (terminated) return; // terminated means everything is considered complete
+      OneTimeCB cb = pos->callback; // get handler
+      pos = onetimeHandlers.erase(pos); // remove from queue
+      cb(*this, cycleStartTime); // call handler
+      if (oneTimeHandlersChanged) {
+        // callback has caused change of onetime handlers list, pos gets invalid
+        break; // but done for now
+      }
+      ++pos;
+    }
+  } while(oneTimeHandlersChanged && rep-->0); // limit repetitions due to changed one time handlers to prevent endless loop
 }
 
 
@@ -215,10 +229,15 @@ bool MainLoop::runIdleHandlers()
 {
 	IdleHandlerList::iterator pos = idleHandlers.begin();
   bool allCompleted = true;
+  idleHandlersChanged = false; // detect changes happening from callbacks
   while (pos!=idleHandlers.end()) {
     if (terminated) return true; // terminated means everything is considered complete
     IdleCB cb = pos->callback; // get handler
     allCompleted = allCompleted && cb(*this, cycleStartTime); // call handler
+    if (idleHandlersChanged) {
+      // callback has caused change of idlehandlers list, pos gets invalid
+      return false; // not really completed, cause calling again soon
+    }
 		++pos;
   }
   return allCompleted;

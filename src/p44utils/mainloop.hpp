@@ -37,12 +37,16 @@ namespace p44 {
   /// A main loop for a thread
   class MainLoop : public P44Obj
   {
+
     typedef struct {
       void *subscriberP;
       IdleCB callback;
     } IdleHandler;
     typedef std::list<IdleHandler> IdleHandlerList;
+
     IdleHandlerList idleHandlers;
+    bool idleHandlersChanged;
+
     typedef struct {
       void *submitterP;
       long ticketNo;
@@ -50,14 +54,22 @@ namespace p44 {
       OneTimeCB callback;
     } OnetimeHandler;
     typedef std::list<OnetimeHandler> OnetimeHandlerList;
+
     OnetimeHandlerList onetimeHandlers;
+    bool oneTimeHandlersChanged;
+
     long ticketNo;
+
   protected:
+
     bool terminated;
+
     MLMicroSeconds loopCycleTime;
     MLMicroSeconds cycleStartTime;
+
     // protected constructor
     MainLoop();
+
   public:
 
     /// returns or creates the current thread's mainloop
