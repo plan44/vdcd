@@ -64,6 +64,7 @@ MainLoop::MainLoop() :
 	terminated(false),
   loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_uS),
   cycleStartTime(Never),
+  exitCode(EXIT_SUCCESS),
   idleHandlersChanged(false),
   oneTimeHandlersChanged(false)
 {
@@ -169,8 +170,9 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
 
 
 
-void MainLoop::terminate()
+void MainLoop::terminate(int aExitCode)
 {
+  exitCode = aExitCode;
   terminated = true;
 }
 
@@ -198,9 +200,9 @@ int MainLoop::run()
         // no time left, end of cycle
         break;
       }
-    }
-  }
-	return EXIT_SUCCESS;
+    } // not terminated
+  } // not terminated
+	return exitCode;
 }
 
 
@@ -404,9 +406,9 @@ int SyncIOMainLoop::run()
       // if no time left, end the cycle, otherwise re-run handlers
       if (terminated || remainingCycleTime()<=0)
         break; // no more time, end the cycle here
-    }
-  }
-	return EXIT_SUCCESS;
+    } // not terminated
+  } // not terminated
+	return exitCode;
 }
 
 

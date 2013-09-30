@@ -316,8 +316,6 @@ public:
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
         button.setButtonHandler(NULL, true); // disconnect button
-        deviceContainer.vdcApiServer.closeConnection();
-        configApiServer.closeConnection();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -2), 2*Second);
       }

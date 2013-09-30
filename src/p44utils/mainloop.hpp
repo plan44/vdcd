@@ -63,6 +63,7 @@ namespace p44 {
   protected:
 
     bool terminated;
+    int exitCode;
 
     MLMicroSeconds loopCycleTime;
     MLMicroSeconds cycleStartTime;
@@ -114,7 +115,9 @@ namespace p44 {
     void cancelExecutionTicket(long &aTicketNo);
 
     /// terminate the mainloop
-    void terminate();
+    /// @param aExitCode the code to return from run()
+    void terminate(int aExitCode);
+
     /// run the mainloop
     /// @return returns a exit code
     virtual int run();

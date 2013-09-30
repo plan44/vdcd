@@ -67,8 +67,8 @@ int Application::run()
 
 void Application::terminateApp(int aExitCode)
 {
-  // TODO: add more elaborated exit handling
-  exit(aExitCode);
+  // have mainloop terminate with given exit code and exit run()
+  mainLoop.terminate(aExitCode);
 }
 
 
