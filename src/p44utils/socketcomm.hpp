@@ -81,6 +81,7 @@ namespace p44 {
     struct sockaddr *currentSockAddrP; ///< address info as currently in use by open connection
     socklen_t currentSockAddrLen; ///< length of current sockAddr struct
     bool isConnecting; ///< in progress of opening connection
+    bool isClosing; ///< in progress of closing connection
     bool connectionOpen; ///< regular data connection is open
     bool serving; ///< is serving socket
     SocketCommCB connectionStatusHandler;

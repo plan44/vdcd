@@ -17,6 +17,7 @@ SocketComm::SocketComm(SyncIOMainLoop &aMainLoop) :
   FdComm(aMainLoop),
   connectionOpen(false),
   isConnecting(false),
+  isClosing(false),
   serving(false),
   addressInfoList(NULL),
   currentAddressInfo(NULL),
@@ -454,7 +455,8 @@ void SocketComm::setConnectionStatusHandler(SocketCommCB aConnectedHandler)
 
 void SocketComm::closeConnection()
 {
-  if (connectionOpen) {
+  if (connectionOpen && !isClosing) {
+    isClosing = true; // prevent doing it more than once due to handlers called
     // report to handler
     LOG(LOG_NOTICE, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     if (connectionStatusHandler) {
@@ -470,7 +472,7 @@ void SocketComm::closeConnection()
 
 void SocketComm::internalCloseConnection()
 {
-  // unregister from main loop
+  isClosing = true; // prevent doing it more than once due to handlers called
   if (serving) {
     // serving socket
     // - close listening socket
@@ -506,12 +508,13 @@ void SocketComm::internalCloseConnection()
     free(currentSockAddrP);
     currentSockAddrP = NULL;
   }
+  isClosing = false;
 }
 
 
 bool SocketComm::connected()
 {
-  return connectionOpen;
+  return connectionOpen && !isClosing;
 }
 
 
@@ -549,42 +552,44 @@ size_t SocketComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorP
 void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
   DBGLOG(LOG_DEBUG, "SocketComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
-  if (aPollFlags & POLLHUP) {
-    // other end has closed connection
-    // - report
-    if (connectionStatusHandler) {
-      // report reason for closing
-      connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
+  if (!isClosing) {
+    if (aPollFlags & POLLHUP) {
+      // other end has closed connection
+      // - report
+      if (connectionStatusHandler) {
+        // report reason for closing
+        connectionStatusHandler(this, ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (HUP)")));
+      }
     }
-  }
-  else if (aPollFlags & POLLIN) {
-    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
-    // alerted for read, but nothing to read any more: assume connection closed
-    ErrorPtr err = socketError(aFd);
-    if (Error::isOK(err))
-      err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
-    LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    // - report
-    if (connectionStatusHandler) {
-      // report reason for closing
-      connectionStatusHandler(this, err);
+    else if (aPollFlags & POLLIN) {
+      // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
+      // alerted for read, but nothing to read any more: assume connection closed
+      ErrorPtr err = socketError(aFd);
+      if (Error::isOK(err))
+        err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
+      LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      // - report
+      if (connectionStatusHandler) {
+        // report reason for closing
+        connectionStatusHandler(this, err);
+      }
     }
-  }
-  else if (aPollFlags & POLLERR) {
-    // error
-    ErrorPtr err = socketError(aFd);
-    LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
-    // - report
-    if (connectionStatusHandler) {
-      // report reason for closing
-      connectionStatusHandler(this, err);
+    else if (aPollFlags & POLLERR) {
+      // error
+      ErrorPtr err = socketError(aFd);
+      LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      // - report
+      if (connectionStatusHandler) {
+        // report reason for closing
+        connectionStatusHandler(this, err);
+      }
     }
+    else {
+      // NOP
+      return;
+    }
+    // - shut down (Note: if nobody else retains the connection except the server SocketComm, this will delete the connection)
+    internalCloseConnection();
   }
-  else {
-    // NOP
-    return;
-  }
-  // - shut down (Note: if nobody else retains the connection except the server SocketComm, this will delete the connection)
-  internalCloseConnection();
 }
 
