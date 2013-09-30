@@ -31,7 +31,9 @@ SocketComm::SocketComm(SyncIOMainLoop &aMainLoop) :
 
 SocketComm::~SocketComm()
 {
-  internalCloseConnection();
+  if (!isClosing) {
+    internalCloseConnection();
+  }
 }
 
 
