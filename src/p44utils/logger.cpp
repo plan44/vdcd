@@ -70,6 +70,7 @@ void Logger::log(int aErrLevel, const char *aFmt, ... )
       else
         fputs(": ", stderr);
       fputs(message.c_str(), stderr);
+      fflush(stderr);
     }
     if (logEnabled(aErrLevel) && (aErrLevel>stderrLevel || errToStdout)) {
       // must go to stdout as well
@@ -79,6 +80,7 @@ void Logger::log(int aErrLevel, const char *aFmt, ... )
       else
         fputs(": ", stdout);
       fputs(message.c_str(), stdout);
+      fflush(stdout);
     }
     pthread_mutex_unlock(&reportMutex);
   }
