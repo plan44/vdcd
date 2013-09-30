@@ -482,9 +482,9 @@ void SocketComm::internalCloseConnection()
     close(connectionFd);
     connectionFd = -1;
     serving = false;
-    // - close all child connections
-    for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
-      if (*pos) (*pos)->closeConnection();
+    // - close all child connections (closing will remove them from the list)
+    while (clientConnections.size()>0) {
+      (*clientConnections.begin())->closeConnection();
     }
   }
   else if (connectionOpen || isConnecting) {
