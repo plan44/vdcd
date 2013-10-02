@@ -14,7 +14,8 @@ using namespace p44;
 HttpComm::HttpComm(SyncIOMainLoop &aMainLoop) :
   mainLoop(aMainLoop),
   requestInProgress(false),
-  mgConn(NULL)
+  mgConn(NULL),
+  responseDataFd(-1)
 {
 }
 
@@ -128,7 +129,14 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
         }
         else {
           // data read
-          response.append((const char *)bufferP, (size_t)res);
+          if (responseDataFd>=0) {
+            // write to fd
+            write(responseDataFd, bufferP, res);
+          }
+          else {
+            // collect in string
+            response.append((const char *)bufferP, (size_t)res);
+          }
         }
       }
       delete[] bufferP;
@@ -158,10 +166,11 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
 
 
 
-bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody, const char* aContentType)
+bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody, const char* aContentType, int aResponseDataFd)
 {
   if (requestInProgress || !aURL)
     return false; // blocked or no URL
+  responseDataFd = aResponseDataFd;
   requestURL = aURL;
   responseCallback = aResponseCallback;
   method = aMethod;

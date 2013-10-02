@@ -65,6 +65,7 @@ namespace p44 {
     string method;
     string contentType;
     string requestBody;
+    int responseDataFd;
     struct mg_connection *mgConn; // mongoose connection
 
   protected:
@@ -89,9 +90,10 @@ namespace p44 {
     /// @param aMethod the HTTP method to use (defaults to "GET")
     /// @param aRequestBody a C string containing the request body to send, or NULL if none
     /// @param aContentType the content type for the body to send, or NULL to use default
+    /// @param aResponseDataFd if>=0, response data will be written to that file descriptor
     /// @return false if no request could be initiated (already busy with another request).
     ///   If false, aHttpCallback will not be called
-    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL, const char *aContentType = NULL);
+    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL, const char *aContentType = NULL, int aResponseDataFd = -1);
 
     /// cancel request
     void cancelRequest();
