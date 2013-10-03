@@ -169,6 +169,25 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
 }
 
 
+void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
+{
+  if (aCallback) {
+    // install new callback
+    WaitHandler h;
+    h.callback = aCallback;
+    h.pid = aPid;
+    waitHandlers[aPid] = h;
+  }
+  else {
+    WaitHandlerMap::iterator pos = waitHandlers.find(aPid);
+    if (pos!=waitHandlers.end()) {
+      // remove it from list
+      waitHandlers.erase(pos);
+    }
+  }
+}
+
+
 
 void MainLoop::terminate(int aExitCode)
 {
@@ -186,6 +205,8 @@ int MainLoop::run()
       runOnetimeHandlers();
       if (terminated) break;
 			bool allCompleted = runIdleHandlers();
+      if (terminated) break;
+      allCompleted = allCompleted && checkWait();
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       if (timeLeft>0) {
@@ -244,6 +265,32 @@ bool MainLoop::runIdleHandlers()
   }
   return allCompleted;
 }
+
+
+bool MainLoop::checkWait()
+{
+  if (waitHandlers.size()>0) {
+    // check for process signal
+    int status;
+    pid_t pid = waitpid(-1, &status, WNOHANG);
+    if (pid>0) {
+      // process has status
+      WaitHandlerMap::iterator pos = waitHandlers.find(pid);
+      if (pos!=waitHandlers.end()) {
+        // we have a callback
+        WaitCB cb = pos->second.callback; // get it
+        // remove it from list
+        waitHandlers.erase(pos);
+        // call back
+        cb(*this, cycleStartTime, pid, status);
+        return false; // more process status could be ready, call soon again
+      }
+    }
+  }
+  return true; // all checked
+}
+
+
 
 
 #pragma mark - SyncIOMainLoop
@@ -386,6 +433,8 @@ int SyncIOMainLoop::run()
       runOnetimeHandlers();
       if (terminated) break;
 			bool allCompleted = runIdleHandlers();
+      if (terminated) break;
+      allCompleted = allCompleted && checkWait();
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       // if other handlers have not completed yet, don't wait for I/O, just quickly check

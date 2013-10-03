@@ -32,6 +32,7 @@ namespace p44 {
   /// Mainloop callback
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
 
 
   /// A main loop for a thread
@@ -57,6 +58,14 @@ namespace p44 {
 
     OnetimeHandlerList onetimeHandlers;
     bool oneTimeHandlersChanged;
+
+    typedef struct {
+      pid_t pid;
+      WaitCB callback;
+    } WaitHandler;
+    typedef std::map<pid_t, WaitHandler> WaitHandlerMap;
+
+    WaitHandlerMap waitHandlers;
 
     long ticketNo;
 
@@ -114,6 +123,11 @@ namespace p44 {
     /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
     void cancelExecutionTicket(long &aTicketNo);
 
+    /// have handler called from the mainloop once with an optional delay from now
+    /// @param aCallback the functor to be called when given process delivers a state change, NULL to remove callback
+    /// @param aPid the process to wait for
+    void waitForPid(WaitCB aCallback, pid_t aPid);
+
     /// terminate the mainloop
     /// @param aExitCode the code to return from run()
     void terminate(int aExitCode);
@@ -125,6 +139,7 @@ namespace p44 {
     // run all handlers
     void runOnetimeHandlers();
     bool runIdleHandlers();
+    bool checkWait();
   };
 
 
@@ -177,8 +192,8 @@ namespace p44 {
       int pollFlags;
       SyncIOCB pollHandler;
     } SyncIOHandler;
-
     typedef std::map<int, SyncIOHandler> SyncIOHandlerMap;
+
     SyncIOHandlerMap syncIOHandlers;
 
     // private constructor
