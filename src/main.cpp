@@ -310,25 +310,43 @@ public:
     LOG(LOG_DEBUG, "Learn button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
     // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
-      // keypress reported again, check for very long keypress
-      if (aTimeSincePreviousChange>=10*Second) {
+      // keypress reported again
+      if (aTimeSincePreviousChange>=5*Second) {
+        // visually acknowledge long keypress by turning LED red
+        setAppStatus(status_error);
+        LOG(LOG_WARNING,"Button held for >5 seconds now...\n");
+      }
+      // check for very long keypress
+      if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
         button.setButtonHandler(NULL, true); // disconnect button
+        // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
+        redLED.off();
+        greenLED.off();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -2), 2*Second);
+        return true;
       }
     }
     if (aState==false) {
       // keypress release
-      if (aTimeSincePreviousChange>=3*Second) {
+//      if (aTimeSincePreviousChange>=3*Second) {
+//        // long press (labelled "Software Update" on the case)
+//        setAppStatus(status_error);
+//        LOG(LOG_WARNING,"Long button press detected -> collect devices (again)\n");
+//        // collect devices again
+//        collectDevices();
+//        return true;
+//      }
+      if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
-        setAppStatus(status_error);
-        LOG(LOG_WARNING,"Long button press detected -> collect devices (again)\n");
-        // collect devices again
-        collectDevices();
-        return true;
+        setAppStatus(status_busy);
+        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(-3) in 500 mS\n");
+        button.setButtonHandler(NULL, true); // disconnect button
+        // give mainloop some time to close down API connections
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -3), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
