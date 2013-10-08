@@ -176,7 +176,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
     }
   }
   else if (aMethod=="setLocalPriority") {
-    // save scene
+    // set local priority
     JsonObjectPtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
@@ -204,8 +204,16 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
     }
   }
   else if (aMethod=="callSceneMin") {
-    // switch device on with minimum output level if not already on
-    callSceneMin();
+    // switch device on with minimum output level if not already on (=prepare device for dimming from zero)
+    JsonObjectPtr o;
+    if (Error::isOK(err = checkParam(aParams, "scene", o))) {
+      SceneNo sceneNo = (SceneNo)o->int32Value();
+      // now call
+      callSceneMin(sceneNo);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+    }
   }
   else if (aMethod=="identify") {
     // identify to user
@@ -487,12 +495,19 @@ void Device::setLocalPriority(SceneNo aSceneNo)
 }
 
 
-void Device::callSceneMin()
+void Device::callSceneMin(SceneNo aSceneNo)
 {
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-    OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-    if (output) {
-      output->onAtMinBrightness();
+  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  if (scenes) {
+    // we have a device-wide scene table, get the scene object
+    DsScenePtr scene = scenes->getScene(aSceneNo);
+    if (scene && !scene->dontCare) {
+      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+        OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+        if (output) {
+          output->onAtMinBrightness();
+        }
+      }
     }
   }
 }

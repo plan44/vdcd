@@ -254,7 +254,8 @@ namespace p44 {
     void setLocalPriority(SceneNo aSceneNo);
 
     /// switch outputs on that are off, and set minmum (logical) output value
-    void callSceneMin();
+    /// @param aSceneNo the scene to check don't care for
+    void callSceneMin(SceneNo aSceneNo);
 
 
   private:
