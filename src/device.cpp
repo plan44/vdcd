@@ -345,12 +345,20 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
   // see if we have a scene table at all
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
+    LOG(LOG_NOTICE, "%s: callScene(%d):\n", shortDesc().c_str(), aSceneNo);
     DsScenePtr scene;
     // check special scene numbers first
     SceneNo dimSceneNo = 0;
     if (aSceneNo==T1234_CONT) {
-      // re-use last dim scene
-      aSceneNo = lastDimSceneNo;
+      if (lastDimSceneNo) {
+        // re-use last dim scene
+        aSceneNo = lastDimSceneNo;
+      }
+      else {
+        // this device was not part of area dimming, ignore T1234_CONT
+        LOG(LOG_DEBUG, "- dimming was not started in this device, ignore T1234_CONT\n");
+        return;
+      }
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
     dimSceneNo = mainDimScene(aSceneNo);
