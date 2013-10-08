@@ -172,7 +172,7 @@ void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     setTransitionTime(aOutputBehaviour.transitionTimeForHardware());
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(aOutputBehaviour.valueForHardware());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aOutputBehaviour.transitionTimeForHardware()/MilliSecond, aOutputBehaviour.valueForHardware(), power);
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aOutputBehaviour.valueForHardware(), aOutputBehaviour.transitionTimeForHardware()/MilliSecond, power);
     daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
   }
   else
