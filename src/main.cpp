@@ -307,7 +307,7 @@ public:
 
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_DEBUG, "Learn button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
     // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
       // keypress reported again
