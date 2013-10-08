@@ -110,7 +110,7 @@ public:
           // short yellow LED flash
           if (appStatus==status_ok) {
             // activity flashes only during normal operation
-            timer = 100*MilliSecond;
+            timer = 50*MilliSecond;
             redLED.on();
             greenLED.on();
           }
