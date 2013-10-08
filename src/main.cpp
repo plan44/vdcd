@@ -44,13 +44,22 @@ class P44bridged : public CmdLineApp
     status_interaction, // expecting user interaction
     status_error, // error
     status_fatalerror  // fatal error that needs user interaction
-  } P44bridgeStatus;
+  } AppStatus;
+
+  typedef enum {
+    tempstatus_none,  // no temp activity status
+    tempstatus_activityflash,  // activity LED flashing (yellow flash)
+    tempstatus_success,  // success/learn-in indication (green blinking)
+    tempstatus_failure,  // failure/learn-out indication (red blinking)
+  } TempStatus;
 
   // command line defined devices
   DeviceConfigMap staticDeviceConfigs;
 
   // App status
-  P44bridgeStatus appStatus;
+  AppStatus appStatus;
+  TempStatus currentTempStatus;
+  long tempStatusTicket;
 
   // the device container
   DeviceContainer deviceContainer;
@@ -73,18 +82,101 @@ public:
     greenLED("gpioNS9XXXX.ledgreen", false, false),
     button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
+    currentTempStatus(tempstatus_none),
+    tempStatusTicket(0),
     learningTimerTicket(0),
     configApiServer(SyncIOMainLoop::currentMainLoop())
   {
     showAppStatus();
   }
 
-  void setAppStatus(P44bridgeStatus aStatus)
+  void setAppStatus(AppStatus aStatus)
   {
     appStatus = aStatus;
     // update LEDs
     showAppStatus();
   }
+
+  void indicateTempStatus(TempStatus aStatus)
+  {
+    if (aStatus>=currentTempStatus) {
+      // higher priority than current temp status, apply
+      currentTempStatus = aStatus; // overrides app status updates for now
+      MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
+      // initiate
+      MLMicroSeconds timer = Never;
+      switch (aStatus) {
+        case tempstatus_activityflash:
+          // short yellow LED flash
+          if (appStatus==status_ok) {
+            // activity flashes only during normal operation
+            timer = 100*MilliSecond;
+            redLED.on();
+            greenLED.on();
+          }
+          else {
+            currentTempStatus = tempstatus_none;
+          }
+          break;
+        case tempstatus_success:
+          timer = 1600*MilliSecond;
+          redLED.stop();
+          greenLED.blinkFor(timer, 400*MilliSecond, 30);
+          break;
+        case tempstatus_failure:
+          timer = 1600*MilliSecond;
+          greenLED.stop();
+          redLED.blinkFor(timer, 400*MilliSecond, 30);
+          break;
+        default:
+          break;
+      }
+      if (timer!=Never) {
+        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::endTempStatus, this), timer);
+      }
+    }
+  }
+
+
+  void endTempStatus()
+  {
+    currentTempStatus = tempstatus_none;
+    showAppStatus();
+  }
+
+  // show global status on LEDs
+  void showAppStatus()
+  {
+    if (currentTempStatus==tempstatus_none) {
+      greenLED.stop();
+      redLED.stop();
+      switch (appStatus) {
+        case status_ok:
+          greenLED.on();
+          break;
+        case status_busy:
+          greenLED.on();
+          redLED.on();
+          break;
+        case status_interaction:
+          greenLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          redLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          break;
+        case status_error:
+          redLED.on();
+          break;
+        case status_fatalerror:
+          redLED.blinkFor(p44::Infinite, 800*MilliSecond, 50);;
+          break;
+      }
+    }
+  }
+
+  void activitySignal()
+  {
+    indicateTempStatus(tempstatus_activityflash);
+  }
+
 
 
   virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
@@ -209,36 +301,14 @@ public:
       staticDeviceConfigs.clear(); // no longer needed, free memory
     }
 
+    // install activity monitor
+    deviceContainer.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+
     // app now ready to run
     return run();
   }
 
 
-  // show global status on LEDs
-  void showAppStatus()
-  {
-    greenLED.stop();
-    redLED.stop();
-    switch (appStatus) {
-      case status_ok:
-        greenLED.on();
-        break;
-      case status_busy:
-        greenLED.on();
-        redLED.on();
-        break;
-      case status_interaction:
-        greenLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
-        redLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
-        break;
-      case status_error:
-        redLED.on();
-        break;
-      case status_fatalerror:
-        redLED.blinkFor(p44::Infinite, 800*MilliSecond, 50);;
-        break;
-    }
-  }
 
 
   SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP)
@@ -281,13 +351,11 @@ public:
     if (Error::isOK(aError)) {
       if (aLearnIn) {
         // show device learned
-        redLED.stop();
-        greenLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+        indicateTempStatus(tempstatus_success);
       }
       else {
         // show device unlearned
-        greenLED.stop();
-        redLED.blinkFor(1600*MilliSecond, 400*MilliSecond, 30);
+        indicateTempStatus(tempstatus_failure);
       }
     }
     else {
@@ -322,6 +390,7 @@ public:
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
         button.setButtonHandler(NULL, true); // disconnect button
+        deviceContainer.setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
         redLED.off();
         greenLED.off();
@@ -345,6 +414,7 @@ public:
         setAppStatus(status_busy);
         LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(-3) in 500 mS\n");
         button.setButtonHandler(NULL, true); // disconnect button
+        deviceContainer.setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -3), 500*MilliSecond);
       }

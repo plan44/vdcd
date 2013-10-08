@@ -361,6 +361,23 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 
 
 
+#pragma mark - activity monitor
+
+
+void DeviceContainer::setActivityMonitor(DoneCB aActivityCB)
+{
+  activityHandler = aActivityCB;
+}
+
+
+void DeviceContainer::signalActivity()
+{
+  if (activityHandler) {
+    activityHandler();
+  }
+}
+
+
 #pragma mark - periodic activity
 
 
@@ -391,6 +408,7 @@ void DeviceContainer::localDimHandler()
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
     if (dev->isMember(group_yellow_light)) {
+      signalActivity();
       dev->callScene(localDimDown ? DEC_S : INC_S, true);
     }
   }
@@ -480,6 +498,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
               if (direction<0) effScene = T0_S0; // main off
             }
             // call the effective scene
+            signalActivity(); // local activity
             dev->callScene(effScene, true);
           } // if light behaviour
         } // if any outputs
@@ -501,6 +520,7 @@ bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams,
 {
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (sessionComm) {
+    signalActivity();
     bool ok = Error::isOK(sessionComm->sendRequest(aMethod, aParams, aResponseHandler));
     LOG(LOG_INFO,"vdSM <- vDC request sent: id='%d', method='%s', params=%s\n", sessionComm->lastRequestId(), aMethod, aParams ? aParams->c_strValue() : "<none>");
     return ok;
@@ -514,6 +534,7 @@ bool DeviceContainer::sendApiResult(const string &aJsonRpcId, JsonObjectPtr aRes
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
+    signalActivity();
     bool ok = Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), aResult));
     LOG(LOG_INFO,"vdSM <- vDC result sent: id='%s', result=%s\n", aJsonRpcId.c_str(), aResult ? aResult->c_strValue() : "<none>");
     return ok;
@@ -527,6 +548,7 @@ bool DeviceContainer::sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSe
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
+    signalActivity();
     bool ok = Error::isOK(sessionComm->sendError(aJsonRpcId.size()>0 ? aJsonRpcId.c_str() : NULL, aErrorToSend));
     LOG(LOG_INFO,"vdSM <- vDC error sent: id='%s', error=%s\n", aJsonRpcId.c_str(), aErrorToSend ? aErrorToSend->description().c_str() : "<none>");
     return ok;
@@ -580,6 +602,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
 {
   ErrorPtr respErr;
   string method = aMethod;
+  signalActivity();
   LOG(LOG_INFO,"vdSM -> vDC request received: id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);

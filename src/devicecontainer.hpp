@@ -94,6 +94,9 @@ namespace p44 {
     bool learningMode;
     LearnCB learnHandler;
 
+    // activity monitor
+    DoneCB activityHandler;
+
   public:
 
     DeviceContainer();
@@ -119,6 +122,10 @@ namespace p44 {
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
     void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+
+    /// activity monitor
+    /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.
+    void setActivityMonitor(DoneCB aActivityCB);
 
 
 		/// @name device detection and registration
@@ -286,6 +293,9 @@ namespace p44 {
     void announceDevices();
     void announceNext();
     void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
+
+    // activity monitor
+    void signalActivity();
 
   public:
     // public for C++ limitation reasons only, semantically private
