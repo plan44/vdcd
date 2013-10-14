@@ -188,7 +188,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
     }
   }
   else if (aMethod=="setControlValue") {
-    // save scene
+    // set control value
     JsonObjectPtr o;
     if (Error::isOK(err = checkParam(aParams, "name", o))) {
       string controlValueName = o->stringValue();
@@ -196,6 +196,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
         // get value
         double value = o->doubleValue();
         // now process
+        LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
       }
     }
@@ -217,6 +218,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="identify") {
     // identify to user
+    LOG(LOG_NOTICE, "%s: identify:\n", shortDesc().c_str());
     identifyToUser();
   }
   else {
@@ -467,6 +469,7 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 
 void Device::undoScene(SceneNo aSceneNo)
 {
+  LOG(LOG_NOTICE, "%s: undoScene(%d):\n", shortDesc().c_str(), aSceneNo);
   if (previousState && previousState->sceneNo==aSceneNo) {
     // there is an undo pseudo scene we can apply
     // scene found, now apply to all of our outputs
@@ -485,6 +488,7 @@ void Device::setLocalPriority(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
+    LOG(LOG_NOTICE, "%s: setLocalPriority(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->dontCare) {
@@ -499,6 +503,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
+    LOG(LOG_NOTICE, "%s: callSceneMin(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->dontCare) {
@@ -525,6 +530,7 @@ void Device::identifyToUser()
 void Device::saveScene(SceneNo aSceneNo)
 {
   // see if we have a scene table at all
+  LOG(LOG_NOTICE, "%s: saveScene(%d):\n", shortDesc().c_str(), aSceneNo);
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
     // we have a device-wide scene table, get the scene object
