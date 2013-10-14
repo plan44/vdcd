@@ -38,7 +38,7 @@ MLMicroSeconds MainLoop::now()
   struct timespec tsp;
   clock_gettime(CLOCK_MONOTONIC, &tsp);
   // return milliseconds
-  return tsp.tv_sec*1000000 + tsp.tv_nsec/1000; // uS
+  return ((uint64_t)(tsp.tv_sec))*1000000ll + tsp.tv_nsec/1000; // uS
 #endif
 }
 
