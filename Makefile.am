@@ -114,6 +114,8 @@ vdcd_SOURCES = \
   src/enoceanrps.hpp \
   src/enocean4bs.cpp \
   src/enocean4bs.hpp \
+  src/enocean1bs.cpp \
+  src/enocean1bs.hpp \
   src/enoceandevicecontainer.cpp \
   src/enoceandevicecontainer.hpp \
   src/digitaliodevice.cpp \

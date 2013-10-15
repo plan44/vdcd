@@ -174,7 +174,7 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // - e.g. Eltako FTR55D
   { 0x10, 0x06, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,  40, DB(1,7), DB(1,0),  100, &invSensorHandler, tempText, tempUnit },
   { 0x10, 0x06, 0, group_blue_heating, behaviour_sensor,      sensorType_set_point,   usage_user,          0,   1, DB(2,7), DB(2,0),  100, &stdSensorHandler, "Set Point", "1", dflag_none },
-  { 0x10, 0x06, 0, group_blue_heating, behaviour_binaryinput, sensorType_none,        usage_user,          0,   1, DB(0,0), DB(0,0),  100, &stdInputHandler, "Day/Night", "1", dflag_none },
+  { 0x10, 0x06, 0, group_blue_heating, behaviour_binaryinput, binInpType_none,        usage_user,          0,   1, DB(0,0), DB(0,0),  100, &stdInputHandler, "Day/Night", "1", dflag_none },
 
   // HVAC heating valve actuators
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL

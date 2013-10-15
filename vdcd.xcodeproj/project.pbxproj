@@ -110,6 +110,7 @@
 		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
+		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -282,6 +283,8 @@
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = macaddress.hpp; sourceTree = "<group>"; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; };
 		EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = climatecontrolbehaviour.hpp; sourceTree = "<group>"; };
+		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean1bs.cpp; sourceTree = "<group>"; };
+		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean1bs.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -483,6 +486,8 @@
 				ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */,
 				ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */,
 				ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */,
+				EDE4FA46180D45D500A35889 /* enocean1bs.cpp */,
+				EDE4FA47180D45D500A35889 /* enocean1bs.hpp */,
 				ED07E26417DB204200889CC3 /* huecomm.cpp */,
 				ED07E26517DB204200889CC3 /* huecomm.hpp */,
 				EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */,
@@ -687,6 +692,7 @@
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
+				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
 				EDB4062017D4D99D003783CE /* huedevicecontainer.cpp in Sources */,
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,

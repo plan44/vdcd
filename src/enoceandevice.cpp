@@ -15,7 +15,7 @@
 #include "outputbehaviour.hpp"
 
 #include "enoceanrps.hpp"
-//#include "enocean1bs.hpp"
+#include "enocean1bs.hpp"
 #include "enocean4bs.hpp"
 //#include "enoceanVld.hpp"
 
@@ -268,9 +268,9 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
     case rorg_RPS:
       newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
       break;
-//    case rorg_1BS:
-//      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
-//      break;
+    case rorg_1BS:
+      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
+      break;
     case rorg_4BS:
       newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
       break;
