@@ -49,6 +49,8 @@ class P44bridged : public CmdLineApp
   typedef enum {
     tempstatus_none,  // no temp activity status
     tempstatus_activityflash,  // activity LED flashing (yellow flash)
+    tempstatus_buttonpressed, // button is pressed (steady yellow)
+    tempstatus_buttonpressedlong, // button is pressed longer (steady red)
     tempstatus_success,  // success/learn-in indication (green blinking)
     tempstatus_failure,  // failure/learn-out indication (red blinking)
   } TempStatus;
@@ -104,6 +106,8 @@ public:
       currentTempStatus = aStatus; // overrides app status updates for now
       MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
       // initiate
+      redLED.stop();
+      greenLED.stop();
       MLMicroSeconds timer = Never;
       switch (aStatus) {
         case tempstatus_activityflash:
@@ -117,6 +121,16 @@ public:
           else {
             currentTempStatus = tempstatus_none;
           }
+          break;
+        case tempstatus_buttonpressed:
+          // just yellow
+          redLED.on();
+          greenLED.on();
+          break;
+        case tempstatus_buttonpressedlong:
+          // just red
+          redLED.on();
+          greenLED.off();
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
@@ -376,12 +390,17 @@ public:
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
     LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    // LED yellow as long as button pressed
+    if (aHasChanged) {
+      if (aState) indicateTempStatus(tempstatus_buttonpressed);
+      else endTempStatus();
+    }
     // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
       // keypress reported again
       if (aTimeSincePreviousChange>=5*Second) {
         // visually acknowledge long keypress by turning LED red
-        setAppStatus(status_error);
+        indicateTempStatus(tempstatus_buttonpressedlong);
         LOG(LOG_WARNING,"Button held for >5 seconds now...\n");
       }
       // check for very long keypress
