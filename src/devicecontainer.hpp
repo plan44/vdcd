@@ -71,6 +71,8 @@ namespace p44 {
     friend class DeviceClassContainer;
     friend class DsAddressable;
 
+    bool useModernDsids; ///< set to use modern (GS1/UUID based) dSIDs
+
     DsDeviceMap dSDevices; ///< available devices by dSID
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
@@ -106,6 +108,15 @@ namespace p44 {
 
     /// API for vdSM
     SocketComm vdcApiServer;
+
+    /// enable or disable modern (GS1/UUID based) dSIDs
+    /// @param aEnable true to enable modern dSIDs
+    /// @note Must be set before any other activity in the device container
+    void enableModernDsids(bool aEnable);
+
+    /// @return true if modern GS1/UUID based dSIDs should be used
+    bool modernDsids() { return useModernDsids; };
+
 
     /// add a device class container
     /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
@@ -265,6 +276,9 @@ namespace p44 {
     virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   private:
+
+    // derive dsid
+    void deriveDSID();
 
     // local operation mode
     void handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);

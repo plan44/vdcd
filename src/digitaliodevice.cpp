@@ -85,25 +85,37 @@ void DigitalIODevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 void DigitalIODevice::deriveDSID()
 {
   Fnv64 hash;
-	
-	// we have no unqiquely defining device information, construct something as reproducible as possible
-	// - use class container's ID
-	string s = classContainerP->deviceClassContainerInstanceIdentifier();
-	hash.addBytes(s.size(), (uint8_t *)s.c_str());
-	// - add-in the DigitalIO name
-  if (buttonInput)
-    hash.addCStr(buttonInput->getName());
-  if (indicatorOutput)
-    hash.addCStr(indicatorOutput->getName());
-  #if FAKE_REAL_DSD_IDS
-  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-  #else
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
-  #endif
-  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+
+  if (getDeviceContainer().modernDsids()) {
+    // vDC implementation specific UUID:
+    //   UUIDv5 with name = classcontainerinstanceid::ioname[:ioname ...]
+    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    string s = classContainerP->deviceClassContainerInstanceIdentifier();
+    s += ':';
+    if (buttonInput) s += ':' + buttonInput->getName();
+    if (indicatorOutput) s += ':' + indicatorOutput->getName();
+    dsid.setNameInSpace(s, vdcNamespace);
+  }
+  else {
+    // we have no unqiquely defining device information, construct something as reproducible as possible
+    // - use class container's ID
+    string s = classContainerP->deviceClassContainerInstanceIdentifier();
+    hash.addBytes(s.size(), (uint8_t *)s.c_str());
+    // - add-in the DigitalIO name
+    if (buttonInput)
+      hash.addCStr(buttonInput->getName());
+    if (indicatorOutput)
+      hash.addCStr(indicatorOutput->getName());
+    #if FAKE_REAL_DSD_IDS
+    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dsid.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
+    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+    #else
+    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    #endif
+    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  }
 }
 
 

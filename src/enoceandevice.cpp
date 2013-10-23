@@ -100,28 +100,37 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 void EnoceanDevice::deriveDSID()
 {
-  #if FAKE_REAL_DSD_IDS
-  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(
-    ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
-    ((getSubDevice()*idBlockSize()) & 0x0F) // 4 lower bits for up to 16 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
-  );
-  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-  #else
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-  // TODO: validate, now we are using the MAC-address class with:
-  // - bits 48..51 set to 6
-  // - bits 40..47 unused
-  // - enOcean address encoded into bits 8..39
-  // - subdevice encoded into bits 0..7 (max 255 subdevices)
-	//   Note: this conforms to the dS convention which mandates that multi-input physical
-	//   devices (up to 4) must have adjacent dsids.
-  dsid.setSerialNo(
-    0x6000000000000ll+
-    ((uint64_t)getAddress()<<8) +
-    ((getSubDevice()*idBlockSize()) & 0xFF) // 8 lower bits for up to 256 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
-  );
-  #endif
+  if (getDeviceContainer().modernDsids()) {
+    // UUID in enOcean name space
+    //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
+    dSID enOceanNamespace(DSID_ENOCEAN_NAMESPACE_UUID);
+    string s = string_format("%08lX:%d", getAddress(), getSubDevice());
+    dsid.setNameInSpace(s, enOceanNamespace);
+  }
+  else {
+    #if FAKE_REAL_DSD_IDS
+    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dsid.setDsSerialNo(
+      ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
+      ((getSubDevice()*idBlockSize()) & 0x0F) // 4 lower bits for up to 16 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
+    );
+    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+    #else
+    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+    // TODO: validate, now we are using the MAC-address class with:
+    // - bits 48..51 set to 6
+    // - bits 40..47 unused
+    // - enOcean address encoded into bits 8..39
+    // - subdevice encoded into bits 0..7 (max 255 subdevices)
+    //   Note: this conforms to the dS convention which mandates that multi-input physical
+    //   devices (up to 4) must have adjacent dsids.
+    dsid.setSerialNo(
+      0x6000000000000ll+
+      ((uint64_t)getAddress()<<8) +
+      ((getSubDevice()*idBlockSize()) & 0xFF) // 8 lower bits for up to 256 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
+    );
+    #endif
+  }
 }
 
 

@@ -35,23 +35,45 @@ DeviceContainer::DeviceContainer() :
   localDimTicket(0),
   localDimDown(false),
   sessionActive(false),
-  sessionActivityTicket(0)
+  sessionActivityTicket(0),
+  useModernDsids(false)
 {
-  #warning "// TODO: %%%% use final dsid scheme"
-  // create a hash of the deviceContainerInstanceIdentifier
-  string s = deviceContainerInstanceIdentifier();
-  Fnv64 hash;
-  hash.addBytes(s.size(), (uint8_t *)s.c_str());
-  #if FAKE_REAL_DSD_IDS
-  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(hash.getHash32());
-  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-  #else
-  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
-  #endif
 }
+
+
+
+void DeviceContainer::deriveDSID()
+{
+  if (modernDsids()) {
+    // vDC implementation specific UUID:
+    //   UUIDv5 with name = devicecontainerinstanceid
+    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    dsid.setNameInSpace(deviceContainerInstanceIdentifier(), vdcNamespace);
+  }
+  else {
+    // classic dsids: create a hash of the deviceContainerInstanceIdentifier
+    string s = deviceContainerInstanceIdentifier();
+    Fnv64 hash;
+    hash.addBytes(s.size(), (uint8_t *)s.c_str());
+    #if FAKE_REAL_DSD_IDS
+    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dsid.setDsSerialNo(hash.getHash32());
+    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+    #else
+    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    #endif
+  }
+}
+
+
+void DeviceContainer::enableModernDsids(bool aEnable)
+{
+  useModernDsids = aEnable;
+  deriveDSID(); // derive my dsid now (again)
+}
+
 
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)

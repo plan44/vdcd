@@ -20,6 +20,8 @@
 #include "digitalio.hpp"
 
 
+#define DEFAULT_USE_MODERN_DSIDS 0 // 0: no, 1: yes
+
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
 #define DEFAULT_VDSMSERVICE "8440"
@@ -154,9 +156,11 @@ public:
 
   void endTempStatus()
   {
+    MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
     currentTempStatus = tempstatus_none;
     showAppStatus();
   }
+
 
   // show global status on LEDs
   void showAppStatus()
@@ -213,6 +217,7 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
+      { 0  , "moderndsids",   true,  "enabled;1=use modern (GS1/UUID based) dsids, 0=classic dsids" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
@@ -267,10 +272,16 @@ public:
       sleep(startupDelay);
     }
 
-    // Create the device container root object
+    // Init the device container root object
+    // - set DB dir
     const char *dbdir = DEFAULT_DBDIR;
     getStringOption("sqlitedir", dbdir);
     deviceContainer.setPersistentDataDir(dbdir);
+
+    // - set dsid mode
+    int moderndsids = DEFAULT_USE_MODERN_DSIDS;
+    getIntOption("moderndsids", moderndsids);
+    deviceContainer.enableModernDsids(moderndsids!=0);
 
     // Create Web configuration JSON API server
     const char *configApiPort = getOption("cfgapiport");

@@ -101,6 +101,7 @@
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDB5BC1C17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDB5BC1D17B52683004DB38D /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
+		EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDBC78541818227000A3E46C /* libcrypto.dylib */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
@@ -263,6 +264,9 @@
 		EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = jsonrpctool.cpp; sourceTree = "<group>"; };
 		EDB5BC1917B50E79004DB38D /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fdcomm.cpp; sourceTree = "<group>"; };
 		EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = fdcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDBC784F181821EA00A3E46C /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = usr/lib/libssl.dylib; sourceTree = SDKROOT; };
+		EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.0.9.8.dylib; path = usr/lib/libssl.0.9.8.dylib; sourceTree = SDKROOT; };
+		EDBC78541818227000A3E46C /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
 		EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dsbehaviour.cpp; sourceTree = "<group>"; };
 		EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = consoledevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -300,6 +304,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */,
 				ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */,
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
 				ED55760F174CFAEC00CCC4DD /* libjson.a in Frameworks */,
@@ -408,6 +413,9 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				EDBC78541818227000A3E46C /* libcrypto.dylib */,
+				EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */,
+				EDBC784F181821EA00A3E46C /* libssl.dylib */,
 				ED07E25417D786A000889CC3 /* mongoose.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,

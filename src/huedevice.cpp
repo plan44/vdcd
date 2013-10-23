@@ -556,24 +556,33 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 void HueDevice::deriveDSID()
 {
-  Fnv64 hash;
-	
-	// we have no unqiquely defining device information, construct something as reproducible as possible
-	// - use class container's ID
-	string s = classContainerP->deviceClassContainerInstanceIdentifier();
-	hash.addBytes(s.size(), (uint8_t *)s.c_str());
-	// - add-in the console device name
-  #warning "TEST ONLY: lightID is only semi-clever basis for a hash!!!"
-  hash.addBytes(lightID.length(), (uint8_t *)lightID.c_str());
-  #if FAKE_REAL_DSD_IDS
-  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-  #else
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
-  #endif
-  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  #warning "lightID is not exactly a stable ID. But the hue API does not provide anything better at this time"
+  if (getDeviceContainer().modernDsids()) {
+    // vDC implementation specific UUID:
+    //   UUIDv5 with name = classcontainerinstanceid::huelightid
+    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    string s = classContainerP->deviceClassContainerInstanceIdentifier();
+    s += "::" + lightID;
+    dsid.setNameInSpace(s, vdcNamespace);
+  }
+  else {
+    Fnv64 hash;
+    // we have no unqiquely defining device information, construct something as reproducible as possible
+    // - use class container's ID
+    string s = classContainerP->deviceClassContainerInstanceIdentifier();
+    hash.addBytes(s.size(), (uint8_t *)s.c_str());
+    // - add-in the console device name
+    hash.addBytes(lightID.length(), (uint8_t *)lightID.c_str());
+    #if FAKE_REAL_DSD_IDS
+    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dsid.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
+    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+    #else
+    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    #endif
+    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+  }
 }
 
 

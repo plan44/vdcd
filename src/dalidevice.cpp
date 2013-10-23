@@ -206,44 +206,62 @@ Brightness DaliDevice::arcpowerToBrightness(int aArcpower)
 
 void DaliDevice::deriveDSID()
 {
-  // create a hash
-  Fnv64 hash;
-  if (deviceInfo.uniquelyIdentifiing()) {
-    // Valid device info
-    // - add GTIN (6 bytes = 48bits, MSB to LSB)
-    hash.addByte((deviceInfo.gtin>>40) & 0xFF);
-    hash.addByte((deviceInfo.gtin>>32) & 0xFF);
-    hash.addByte((deviceInfo.gtin>>24) & 0xFF);
-    hash.addByte((deviceInfo.gtin>>16) & 0xFF);
-    hash.addByte((deviceInfo.gtin>>8) & 0xFF);
-    hash.addByte((deviceInfo.gtin) & 0xFF);
-    // - add Serial number (all 8 bytes, usually only last 4 are used)
-    hash.addByte((deviceInfo.serialNo>>56) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>52) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>48) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>40) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>32) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>16) & 0xFF);
-    hash.addByte((deviceInfo.serialNo>>8) & 0xFF);
-    hash.addByte((deviceInfo.serialNo) & 0xFF);
+  if (getDeviceContainer().modernDsids()) {
+    // vDC implementation specific UUID:
+    if (deviceInfo.uniquelyIdentifiing()) {
+      // we have GTIN + Serial, use it
+      dsid.setGTIN(deviceInfo.gtin, 0); // unknown partition value
+      dsid.setSerial(deviceInfo.serialNo);
+    }
+    else {
+      // not uniquely identified by itself, generate id in vDC namespace
+      //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
+      dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+      string s = classContainerP->deviceClassContainerInstanceIdentifier();
+      string_format_append(s, "::%d", deviceInfo.shortAddress);
+      dsid.setNameInSpace(s, vdcNamespace);
+    }
   }
   else {
-    // no unqiquely defining device information, construct something as reproducible as possible
-    // - use class container's ID
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    // - and add the DALI short address
-    hash.addByte(deviceInfo.shortAddress);
+    // create a hash
+    Fnv64 hash;
+    if (deviceInfo.uniquelyIdentifiing()) {
+      // Valid device info
+      // - add GTIN (6 bytes = 48bits, MSB to LSB)
+      hash.addByte((deviceInfo.gtin>>40) & 0xFF);
+      hash.addByte((deviceInfo.gtin>>32) & 0xFF);
+      hash.addByte((deviceInfo.gtin>>24) & 0xFF);
+      hash.addByte((deviceInfo.gtin>>16) & 0xFF);
+      hash.addByte((deviceInfo.gtin>>8) & 0xFF);
+      hash.addByte((deviceInfo.gtin) & 0xFF);
+      // - add Serial number (all 8 bytes, usually only last 4 are used)
+      hash.addByte((deviceInfo.serialNo>>56) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>52) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>48) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>40) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>32) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>16) & 0xFF);
+      hash.addByte((deviceInfo.serialNo>>8) & 0xFF);
+      hash.addByte((deviceInfo.serialNo) & 0xFF);
+    }
+    else {
+      // no unqiquely defining device information, construct something as reproducible as possible
+      // - use class container's ID
+      string s = classContainerP->deviceClassContainerInstanceIdentifier();
+      hash.addBytes(s.size(), (uint8_t *)s.c_str());
+      // - and add the DALI short address
+      hash.addByte(deviceInfo.shortAddress);
+    }
+    #if FAKE_REAL_DSD_IDS
+    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dsid.setDsSerialNo(hash.getHash32());
+    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+    #else
+    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    #endif
   }
-  #if FAKE_REAL_DSD_IDS
-  dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-  dsid.setSerialNo(hash.getHash32());
-  #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-  #else
-  // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
-  #endif
 }
 
 

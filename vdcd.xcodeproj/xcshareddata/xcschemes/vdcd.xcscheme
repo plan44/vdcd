@@ -63,6 +63,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--moderndsids 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-l 7"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -108,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
@@ -120,7 +124,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:in -k testout:out"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
