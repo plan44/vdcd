@@ -218,6 +218,7 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "moderndsids",   true,  "enabled;1=use modern (GS1/UUID based) dsids, 0=classic dsids" },
+      { 0  , "dsid",          true,  "dsid;set dsid for this vDC (should be a UUIDv1 generated on the host)" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
@@ -281,7 +282,12 @@ public:
     // - set dsid mode
     int moderndsids = DEFAULT_USE_MODERN_DSIDS;
     getIntOption("moderndsids", moderndsids);
-    deviceContainer.enableModernDsids(moderndsids!=0);
+    dSIDPtr externalDsid;
+    string dsidStr;
+    if (getStringOption("dsid", dsidStr)) {
+      externalDsid = dSIDPtr(new dSID(dsidStr));
+    }
+    deviceContainer.setDsidMode(moderndsids!=0, externalDsid);
 
     // Create Web configuration JSON API server
     const char *configApiPort = getOption("cfgapiport");

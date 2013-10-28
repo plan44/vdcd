@@ -72,6 +72,7 @@ namespace p44 {
     friend class DsAddressable;
 
     bool useModernDsids; ///< set to use modern (GS1/UUID based) dSIDs
+    bool externalDsid; ///< set when dSID is set to a UUIDv1 from external
 
     DsDeviceMap dSDevices; ///< available devices by dSID
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
@@ -109,26 +110,25 @@ namespace p44 {
     /// API for vdSM
     SocketComm vdcApiServer;
 
-    /// enable or disable modern (GS1/UUID based) dSIDs
-    /// @param aEnable true to enable modern dSIDs
-    /// @note Must be set before any other activity in the device container
-    void enableModernDsids(bool aEnable);
+    /// Set how dsids are generated (GS1/UUID based) dSIDs
+    /// @param aModern true to enable modern dSIDs
+    /// @param aExternalDSID if specified, this is used directly as dsid for the device container
+    /// @note Must be set before any other activity in the device container, in particular before
+    ///   any class containers are added to the device container
+    void setDsidMode(bool aModern, dSIDPtr aExternalDsid = dSIDPtr());
+
 
     /// @return true if modern GS1/UUID based dSIDs should be used
     bool modernDsids() { return useModernDsids; };
 
+    /// @return MAC address as 12 char hex string (6 bytes)
+    static string macAddressString();
 
     /// add a device class container
     /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
     /// @note this is a one-time initialisation. Device class containers are not meant to be removed at runtime
     void addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr);
 
-    /// get a sufficiently unique identifier for this device container
-    /// @return ID that identifies this container running on a specific hardware
-    ///   the ID should not be dependent on the software version
-    ///   the ID MUST change when same software runs on different hardware
-    ///   Usually, a hardware-ID such as the MAC address is used
-    string deviceContainerInstanceIdentifier() const;
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error

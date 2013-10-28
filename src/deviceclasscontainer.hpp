@@ -97,7 +97,8 @@ namespace p44 {
     ///   the ID should not be dependent on the software version
     ///   the ID must differ for each of multiple device class containers run on the same hardware
     ///   the ID MUST change when same software runs on different hardware
-    ///   Usually, MAC address is used as base ID.
+    /// @note Current implementation derives this from the devicecontainer's dsid (modern) or mac address (classic),
+    ///   the deviceClassIdentitfier and the instance number in the form "class:instanceIndex@devicecontainerDsidOrMAC"
     string deviceClassContainerInstanceIdentifier() const;
 
     /// @}

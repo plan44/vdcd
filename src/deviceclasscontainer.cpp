@@ -50,14 +50,20 @@ int DeviceClassContainer::getInstanceNumber() const
 }
 
 
-
-
-// deviceclass container instance identifier
 string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
-  string_format_append(s, ".%d@", getInstanceNumber());
-  s.append(deviceContainerP->deviceContainerInstanceIdentifier());
+  if (deviceContainerP->modernDsids()) {
+    string_format_append(s, ".%d@", getInstanceNumber());
+    s.append(deviceContainerP->dsid.getString());
+  }
+  else {
+    // classic dsids. Note that this does not include the instance number (which is a bug but
+    // we leave it as-is in classic mode to avoid generating another set of different dsids).
+    // classic dsids are beta only anyway.
+    s.append("@");
+    s.append(DeviceContainer::macAddressString());
+  }
   return s;
 }
 

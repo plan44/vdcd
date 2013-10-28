@@ -15,6 +15,13 @@
 // UUID based dsids
 // - enOcean device namespace
 #define DSID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
+// - GS1-128 identified device namespace
+#define DSID_GS128_NAMESPACE_UUID "8ca838d5-4c40-47cc-bafa-37ac89658962"
+// - vDC namespace (to create a UUIDv5 for a vDC from the MAC address of the hardware)
+#define DSID_VDC_NAMESPACE_UUID "9888dd3d-b345-4109-b088-2673306d0c65"
+// - vdSM namespace (to create a UUIDv5 for a vdSM from the MAC address of the hardware)
+#define DSID_VDSM_NAMESPACE_UUID "195de5c0-902f-4b71-a706-b43b80765e3d"
+
 // - plan44 vDC implementation namespace (used for generating vDC-implementation specific dsids)
 #define DSID_P44VDC_NAMESPACE_UUID "441A1FED-F449-4058-BEBA-13B1C4AB6A93"
 
@@ -160,6 +167,8 @@ namespace p44 {
     /// @}
 
   };
+  typedef boost::intrusive_ptr<dSID> dSIDPtr;
+
 
 } // namespace p44
 

@@ -42,36 +42,60 @@ DeviceContainer::DeviceContainer() :
 
 
 
-void DeviceContainer::deriveDSID()
+string DeviceContainer::macAddressString()
 {
-  if (modernDsids()) {
-    // vDC implementation specific UUID:
-    //   UUIDv5 with name = devicecontainerinstanceid
-    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
-    dsid.setNameInSpace(deviceContainerInstanceIdentifier(), vdcNamespace);
+  string macStr;
+  uint64_t mac = macAddress();
+  if (mac!=0) {
+    for (int i=0; i<6; ++i) {
+      string_format_append(macStr, "%02X",(mac>>((5-i)*8)) & 0xFF);
+    }
   }
   else {
-    // classic dsids: create a hash of the deviceContainerInstanceIdentifier
-    string s = deviceContainerInstanceIdentifier();
-    Fnv64 hash;
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(hash.getHash32());
-    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-    #else
-    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
-    #endif
+    macStr = "UnknownMACAddress";
+  }
+  return macStr;
+}
+
+
+
+void DeviceContainer::deriveDSID()
+{
+  if (!externalDsid) {
+    // we don't have a fixed external dsid to base everything on, derive a dsid of our own
+    if (modernDsids()) {
+      // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
+      // - calculate UUIDv5 based dsid
+      dSID vdcNamespace(DSID_VDC_NAMESPACE_UUID);
+      dsid.setNameInSpace(macAddressString(), vdcNamespace);
+    }
+    else {
+      // classic dsids: create a hash from MAC hex string
+      Fnv64 hash;
+      string s = macAddressString();
+      hash.addBytes(s.size(), (uint8_t *)s.c_str());
+      #if FAKE_REAL_DSD_IDS
+      dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+      dsid.setDsSerialNo(hash.getHash32());
+      #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
+      #else
+      // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+      dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+      dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+      #endif
+    }
   }
 }
 
 
-void DeviceContainer::enableModernDsids(bool aEnable)
+void DeviceContainer::setDsidMode(bool aModern, dSIDPtr aExternalDsid)
 {
-  useModernDsids = aEnable;
-  deriveDSID(); // derive my dsid now (again)
+  useModernDsids = aModern;
+  if (aExternalDsid) {
+    externalDsid = true;
+    dsid = *aExternalDsid;
+  }
+  deriveDSID(); // derive my dsid now (again), if necessary
 }
 
 
@@ -82,24 +106,6 @@ void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceCla
   aDeviceClassContainerPtr->setDeviceContainer(this);
 }
 
-
-
-string DeviceContainer::deviceContainerInstanceIdentifier() const
-{
-  string identifier;
-
-  uint64_t mac = macAddress();
-  // extract ID if we have one
-  if (mac!=0) {
-    for (int i=0; i<6; ++i) {
-      string_format_append(identifier, "%02X",(mac>>((5-i)*8)) & 0xFF);
-    }
-  }
-  else {
-    identifier = "UnknownMACAddress";
-  }
-  return identifier;
-}
 
 
 void DeviceContainer::setPersistentDataDir(const char *aPersistentDataDir)
@@ -194,6 +200,8 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
+  // Log start message
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, dsid (%s) = %s, MAC = %s\n", externalDsid ? "external" : "MAC-derived", dsid.getString().c_str(), macAddressString().c_str());
   // start the API server
   vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database
