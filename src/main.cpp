@@ -82,8 +82,8 @@ class P44bridged : public CmdLineApp
 public:
 
   P44bridged() :
-    redLED("gpioNS9XXXX.ledred", false, false),
-    greenLED("gpioNS9XXXX.ledgreen", false, false),
+    redLED("gpioNS9XXXX.ledred", false, true), // default on to show yellow (busy) by default
+    greenLED("gpioNS9XXXX.ledgreen", false, true), // default on to show yellow (busy) by default
     button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
