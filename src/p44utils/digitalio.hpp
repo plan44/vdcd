@@ -139,8 +139,9 @@ namespace p44 {
     /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
     void blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
 
-    /// stop blinking/timed activation immediately, turn off
-    void stop();
+    /// stop blinking/timed activation immediately
+    /// @param aAndTurnOn if true, indicator will be left turned on after stop blinking, otherwise it will be turned off
+    void stop(bool aAndTurnOn = false);
 
   };
 	typedef boost::intrusive_ptr<IndicatorOutput> IndicatorOutputPtr;
