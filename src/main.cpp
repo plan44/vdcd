@@ -82,8 +82,8 @@ class P44bridged : public CmdLineApp
 public:
 
   P44bridged() :
-    redLED("gpioNS9XXXX.ledred", false, true), // default on to show yellow (busy) by default
-    greenLED("gpioNS9XXXX.ledgreen", false, true), // default on to show yellow (busy) by default
+    redLED("gpioNS9XXXX.ledred", false, false),
+    greenLED("gpioNS9XXXX.ledgreen", false, false),
     button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
@@ -108,8 +108,6 @@ public:
       currentTempStatus = aStatus; // overrides app status updates for now
       MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
       // initiate
-      redLED.stop();
-      greenLED.stop();
       MLMicroSeconds timer = Never;
       switch (aStatus) {
         case tempstatus_activityflash:
@@ -117,8 +115,8 @@ public:
           if (appStatus==status_ok) {
             // activity flashes only during normal operation
             timer = 50*MilliSecond;
-            redLED.on();
-            greenLED.on();
+            redLED.steadyOn();
+            greenLED.steadyOn();
           }
           else {
             currentTempStatus = tempstatus_none;
@@ -126,22 +124,22 @@ public:
           break;
         case tempstatus_buttonpressed:
           // just yellow
-          redLED.on();
-          greenLED.on();
+          redLED.steadyOn();
+          greenLED.steadyOn();
           break;
         case tempstatus_buttonpressedlong:
           // just red
-          redLED.on();
-          greenLED.off();
+          redLED.steadyOn();
+          greenLED.steadyOff();
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
-          redLED.stop();
+          redLED.steadyOff();
           greenLED.blinkFor(timer, 400*MilliSecond, 30);
           break;
         case tempstatus_failure:
           timer = 1600*MilliSecond;
-          greenLED.stop();
+          greenLED.steadyOff();
           redLED.blinkFor(timer, 400*MilliSecond, 30);
           break;
         default:
@@ -166,24 +164,25 @@ public:
   void showAppStatus()
   {
     if (currentTempStatus==tempstatus_none) {
-      greenLED.stop();
-      redLED.stop();
       switch (appStatus) {
         case status_ok:
-          greenLED.on();
+          redLED.steadyOff();
+          greenLED.steadyOn();
           break;
         case status_busy:
-          greenLED.on();
-          redLED.on();
+          greenLED.steadyOn();
+          redLED.steadyOn();
           break;
         case status_interaction:
           greenLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
           redLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
-          redLED.on();
+          greenLED.steadyOff();
+          redLED.steadyOn();
           break;
         case status_fatalerror:
+          greenLED.steadyOff();
           redLED.blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
       }

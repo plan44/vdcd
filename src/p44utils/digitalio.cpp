@@ -229,13 +229,29 @@ void IndicatorOutput::blinkFor(MLMicroSeconds aOnTime, MLMicroSeconds aBlinkPeri
 }
 
 
-void IndicatorOutput::stop(bool aAndTurnOn)
+void IndicatorOutput::stop()
 {
   blinkOnTime = Never;
   blinkOffTime = Never;
   switchOffAt = Never;
-  set(aAndTurnOn);
 }
+
+
+void IndicatorOutput::steadyOff()
+{
+  stop();
+  off();
+}
+
+
+void IndicatorOutput::steadyOn()
+{
+  stop();
+  on();
+}
+
+
+
 
 
 bool IndicatorOutput::timer(MLMicroSeconds aTimestamp)
