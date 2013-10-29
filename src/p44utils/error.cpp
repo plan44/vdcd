@@ -123,7 +123,7 @@ SysError::SysError(const char *aContextMessage) :
 
 
 SysError::SysError(int aErrNo, const char *aContextMessage) :
-  Error(aErrNo, nonNullCStr(strerror(aErrNo)))
+  Error(aErrNo, string(nonNullCStr(aContextMessage)).append(nonNullCStr(strerror(errno))))
 {
 }
 

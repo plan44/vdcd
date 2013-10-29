@@ -9,7 +9,7 @@
 #ifndef __p44utils__dcerror__
 #define __p44utils__dcerror__
 
-#include "p44_common.hpp"
+#include "p44obj.hpp"
 
 using namespace std;
 

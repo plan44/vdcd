@@ -9,6 +9,8 @@
 #ifndef __vdcd__p44obj__
 #define __vdcd__p44obj__
 
+#include <boost/intrusive_ptr.hpp>
+
 namespace p44 {
 
   class P44Obj;

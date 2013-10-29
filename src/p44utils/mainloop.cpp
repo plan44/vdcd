@@ -61,6 +61,15 @@ MainLoop &MainLoop::currentMainLoop()
 }
 
 
+ErrorPtr ExecError::exitStatus(int aExitStatus, const char *aContextMessage)
+{
+  if (aExitStatus==0)
+    return ErrorPtr(); // empty, no error
+  return ErrorPtr(new ExecError(aExitStatus, aContextMessage));
+}
+
+
+
 MainLoop::MainLoop() :
 	terminated(false),
   loopCycleTime(MAINLOOP_DEFAULT_CYCLE_TIME_uS),
@@ -187,6 +196,55 @@ void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
     }
   }
 }
+
+
+extern char **environ;
+
+void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[])
+{
+  // fork child process
+  if (aEnvp==NULL) {
+    aEnvp = environ;
+  }
+  pid_t child_pid;
+  child_pid = fork();
+  if (child_pid>=0) {
+    // fork successful
+    if (child_pid==0) {
+      // this is the child process (fork() returns 0 for the child process)
+      execve(aPath, aArgv, aEnvp); // replace process with new binary/script
+      // execv returns only in case of error
+      exit(127);
+    }
+    else {
+      // this is the parent process, wait for the child to terminate
+      MainLoop::currentMainLoop().waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, _3, _4), child_pid);
+    }
+  }
+  else {
+    // fork failed, call back with error
+    aCallback(*this, cycleStartTime, SysError::errNo());
+  }
+  return;
+}
+
+
+void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine)
+{
+  char * args[4];
+  args[0] = (char *)"sh";
+  args[1] = (char *)"-c";
+  args[2] = (char *)aCommandLine;
+  args[3] = NULL;
+  fork_and_execve(aCallback, "/bin/sh", args, NULL);
+}
+
+
+void MainLoop::execChildTerminated(ExecCB aCallback, pid_t aPid, int aStatus)
+{
+  aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)));
+}
+
 
 
 

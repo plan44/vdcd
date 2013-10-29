@@ -33,6 +33,18 @@ namespace p44 {
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
+  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError)> ExecCB;
+
+
+  class ExecError : public Error
+  {
+  public:
+    static const char *domain() { return "ExecError"; };
+    virtual const char *getErrorDomain() const { return ExecError::domain(); };
+    ExecError(int aExitStatus) : Error(ErrorCode(aExitStatus)) {};
+    ExecError(int aExitStatus, std::string aErrorMessage) : Error(ErrorCode(aExitStatus), aErrorMessage) {};
+    static ErrorPtr exitStatus(int aExitStatus, const char *aContextMessage = NULL);
+  };
 
 
   /// A main loop for a thread
@@ -123,6 +135,19 @@ namespace p44 {
     /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
     void cancelExecutionTicket(long &aTicketNo);
 
+    /// execute external binary or interpreter script in a separate process
+    /// @param aCallback the functor to be called when execution is done (failed to start or completed)
+    /// @param aPath the path to the binary or script
+    /// @param aArgv a NULL terminated array of arguments, first should be program name
+    /// @param aEnvp a NULL terminated array of environment variables
+    void fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[] = NULL);
+
+    /// execute command line in external shell
+    /// @param aCallback the functor to be called when execution is done (failed to start or completed)
+    /// @param aCommandLine the command line to execute
+    void fork_and_system(ExecCB aCallback, const char *aCommandLine);
+
+
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called when given process delivers a state change, NULL to remove callback
     /// @param aPid the process to wait for
@@ -135,11 +160,18 @@ namespace p44 {
     /// run the mainloop
     /// @return returns a exit code
     virtual int run();
+
   protected:
+
     // run all handlers
     void runOnetimeHandlers();
     bool runIdleHandlers();
     bool checkWait();
+
+  private:
+
+    void execChildTerminated(ExecCB aCallback, pid_t aPid, int aStatus);
+
   };
 
 
