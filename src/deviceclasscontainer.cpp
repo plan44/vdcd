@@ -61,7 +61,7 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
   else {
     // with classic dsids, device container was identified by its MAC address, so we simulate that to
     // avoid generating another set of different dsids (classic dsids are beta only anyway).
-    s.append(DeviceContainer::macAddressString());
+    s.append(deviceContainerP->macAddressString());
   }
   return s;
 }

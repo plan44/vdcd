@@ -26,6 +26,7 @@ using namespace p44;
 
 
 DeviceContainer::DeviceContainer() :
+  mac(0),
   DsAddressable(this),
   vdcApiServer(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
@@ -45,7 +46,6 @@ DeviceContainer::DeviceContainer() :
 string DeviceContainer::macAddressString()
 {
   string macStr;
-  uint64_t mac = macAddress();
   if (mac!=0) {
     for (int i=0; i<6; ++i) {
       string_format_append(macStr, "%02X",(mac>>((5-i)*8)) & 0xFF);
@@ -201,7 +201,21 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, dsid (%s) = %s, MAC = %s\n", externalDsid ? "external" : "MAC-derived", dsid.getString().c_str(), macAddressString().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, getting MAC address\n");
+  getMyMac(aCompletedCB, aFactoryReset);
+}
+
+
+void DeviceContainer::getMyMac(CompletedCB aCompletedCB, bool aFactoryReset)
+{
+  mac = macAddress();
+  if (mac==0) {
+    LOG(LOG_NOTICE,"- MAC address not yet ready, trying again in 3 seconds\n");
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::getMyMac, this, aCompletedCB, aFactoryReset), 3*Second);
+    return;
+  }
+  // MAC ready, we can now start initializing rest and get stable MAC-derived ids.
+  LOG(LOG_NOTICE,"MAC address found: %s, dsid (%s) = %s\n", macAddressString().c_str(), externalDsid ? "external" : "MAC-derived", dsid.getString().c_str());
   // start the API server
   vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database

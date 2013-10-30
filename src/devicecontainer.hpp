@@ -73,6 +73,7 @@ namespace p44 {
 
     bool useModernDsids; ///< set to use modern (GS1/UUID based) dSIDs
     bool externalDsid; ///< set when dSID is set to a UUIDv1 from external
+    uint64_t mac; ///< MAC address as found at startup
 
     DsDeviceMap dSDevices; ///< available devices by dSID
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
@@ -122,7 +123,7 @@ namespace p44 {
     bool modernDsids() { return useModernDsids; };
 
     /// @return MAC address as 12 char hex string (6 bytes)
-    static string macAddressString();
+    string macAddressString();
 
     /// add a device class container
     /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
@@ -310,6 +311,9 @@ namespace p44 {
 
     // activity monitor
     void signalActivity();
+
+    // getting MAC
+    void getMyMac(CompletedCB aCompletedCB, bool aFactoryReset);
 
   public:
     // public for C++ limitation reasons only, semantically private
