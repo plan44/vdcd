@@ -1080,6 +1080,8 @@
 <tool id="com.digi.lxnetes.mangedbuild.cpp.linker.release.956388161" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.mangedbuild.cpp.linker.release">
 <option id="gnu.cpp.link.option.libs.47163167" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="crypto"/>
+<listOptionValue builtIn="false" value="ssl"/>
 <listOptionValue builtIn="false" value="mongoose"/>
 <listOptionValue builtIn="false" value="json-c"/>
 </option>
