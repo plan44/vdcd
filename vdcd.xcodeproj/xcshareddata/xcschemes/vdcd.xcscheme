@@ -87,12 +87,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.223"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali 192.168.59.225"
-            isEnabled = "NO">
+            argument = "--dali 192.168.59.175"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean localhost:12102"

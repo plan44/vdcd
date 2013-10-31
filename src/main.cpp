@@ -53,6 +53,7 @@ class P44bridged : public CmdLineApp
     tempstatus_activityflash,  // activity LED flashing (yellow flash)
     tempstatus_buttonpressed, // button is pressed (steady yellow)
     tempstatus_buttonpressedlong, // button is pressed longer (steady red)
+    tempstatus_factoryresetwait, // detecting possible factory reset (blinking red)
     tempstatus_success,  // success/learn-in indication (green blinking)
     tempstatus_failure,  // failure/learn-out indication (red blinking)
   } TempStatus;
@@ -61,6 +62,7 @@ class P44bridged : public CmdLineApp
   DeviceConfigMap staticDeviceConfigs;
 
   // App status
+  bool factoryResetWait;
   AppStatus appStatus;
   TempStatus currentTempStatus;
   long tempStatusTicket;
@@ -87,6 +89,7 @@ public:
     button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
+    factoryResetWait(false),
     tempStatusTicket(0),
     learningTimerTicket(0),
     configApiServer(SyncIOMainLoop::currentMainLoop())
@@ -131,6 +134,11 @@ public:
           // just red
           redLED.steadyOn();
           greenLED.steadyOff();
+          break;
+        case tempstatus_factoryresetwait:
+          // fast red blinking
+          greenLED.steadyOff();
+          redLED.blinkFor(p44::Infinite, 200*MilliSecond, 20);
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
@@ -272,68 +280,76 @@ public:
       sleep(startupDelay);
     }
 
-    // Init the device container root object
-    // - set DB dir
-    const char *dbdir = DEFAULT_DBDIR;
-    getStringOption("sqlitedir", dbdir);
-    deviceContainer.setPersistentDataDir(dbdir);
-
-    // - set dsid mode
-    int moderndsids = DEFAULT_USE_MODERN_DSIDS;
-    getIntOption("moderndsids", moderndsids);
-    dSIDPtr externalDsid;
-    string dsidStr;
-    if (getStringOption("dsid", dsidStr)) {
-      externalDsid = dSIDPtr(new dSID(dsidStr));
+    // Check for factory reset as very first action, to avoid that corrupt data might already crash the daemon
+    // before we can do the factory reset
+    if (button.isSet()) {
+      // started with button pressed - go into factory reset wait mode
+      factoryResetWait = true;
+      indicateTempStatus(tempstatus_factoryresetwait);
     }
-    deviceContainer.setDsidMode(moderndsids!=0, externalDsid);
+    else {
+      // Init the device container root object
+      // - set DB dir
+      const char *dbdir = DEFAULT_DBDIR;
+      getStringOption("sqlitedir", dbdir);
+      deviceContainer.setPersistentDataDir(dbdir);
 
-    // Create Web configuration JSON API server
-    const char *configApiPort = getOption("cfgapiport");
-    if (configApiPort) {
-      configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-      configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
-      configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
-    }
+      // - set dsid mode
+      int moderndsids = DEFAULT_USE_MODERN_DSIDS;
+      getIntOption("moderndsids", moderndsids);
+      dSIDPtr externalDsid;
+      string dsidStr;
+      if (getStringOption("dsid", dsidStr)) {
+        externalDsid = dSIDPtr(new dSID(dsidStr));
+      }
+      deviceContainer.setDsidMode(moderndsids!=0, externalDsid);
 
-    // set up server for vdSM to connect to
-    const char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
-    getStringOption("vdsmport", vdsmport);
-    deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-    deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+      // Create Web configuration JSON API server
+      const char *configApiPort = getOption("cfgapiport");
+      if (configApiPort) {
+        configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
+        configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
+        configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
+      }
 
-    // Create static container structure
-    // - Add DALI devices class if DALI bridge serialport/host is specified
-    const char *daliname = getOption("dali");
-    if (daliname) {
-      int sec = 0;
-      getIntOption("daliportidle", sec);
-      DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
-      daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
-      deviceContainer.addDeviceClassContainer(daliDeviceContainer);
-    }
-    // - Add enOcean devices class if enOcean modem serialport/host is specified
-    const char *enoceanname = getOption("enocean");
-    if (enoceanname) {
-      EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
-      enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
-      deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
-    }
-    // - Add hue support
-    if (getOption("huelights")) {
-      HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1));
-      deviceContainer.addDeviceClassContainer(hueDeviceContainer);
-    }
-    // - Add static devices if we have collected any config from the command line
-    if (staticDeviceConfigs.size()>0) {
-      StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
-      deviceContainer.addDeviceClassContainer(staticDeviceContainer);
-      staticDeviceConfigs.clear(); // no longer needed, free memory
-    }
+      // set up server for vdSM to connect to
+      const char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+      getStringOption("vdsmport", vdsmport);
+      deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+      deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
-    // install activity monitor
-    deviceContainer.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+      // Create static container structure
+      // - Add DALI devices class if DALI bridge serialport/host is specified
+      const char *daliname = getOption("dali");
+      if (daliname) {
+        int sec = 0;
+        getIntOption("daliportidle", sec);
+        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
+        daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+        deviceContainer.addDeviceClassContainer(daliDeviceContainer);
+      }
+      // - Add enOcean devices class if enOcean modem serialport/host is specified
+      const char *enoceanname = getOption("enocean");
+      if (enoceanname) {
+        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
+        enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
+        deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
+      }
+      // - Add hue support
+      if (getOption("huelights")) {
+        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1));
+        deviceContainer.addDeviceClassContainer(hueDeviceContainer);
+      }
+      // - Add static devices if we have collected any config from the command line
+      if (staticDeviceConfigs.size()>0) {
+        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
+        deviceContainer.addDeviceClassContainer(staticDeviceContainer);
+        staticDeviceConfigs.clear(); // no longer needed, free memory
+      }
 
+      // install activity monitor
+      deviceContainer.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+    }
     // app now ready to run
     return run();
   }
@@ -466,12 +482,68 @@ public:
   }
 
 
+  virtual bool fromStartButtonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
+  {
+    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    if (aHasChanged && aState==false) {
+      // released
+      if (factoryResetWait && aTimeSincePreviousChange>20*Second) {
+        // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
+        LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(-42) in 2 seconds\n");
+        // indicate red "error/danger" state
+        redLED.steadyOn();
+        greenLED.steadyOff();
+        // give mainloop some time to close down API connections
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -42), 2*Second);
+        return true;
+      }
+      else {
+        // held in waiting-for-reset state less than 20 seconds or more than 30 seconds -> just restart
+        LOG(LOG_WARNING,"Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds\n");
+        // indicate yellow "busy" state
+        redLED.steadyOn();
+        greenLED.steadyOn();
+        // give mainloop some time to close down API connections
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 0), 500*MilliSecond);
+        return true;
+      }
+    }
+    // if button is stuck, turn nervously yellow to indicate: something needs to be done
+    if (factoryResetWait && !aHasChanged && aState) {
+      if (aTimeSincePreviousChange>30*Second) {
+        // end factory reset wait, assume button stuck or something
+        factoryResetWait = false;
+        // fast yellow blinking
+        greenLED.blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        redLED.blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        // when button is released, a normal restart will occur, otherwise we'll remain in this state
+      }
+      else if (aTimeSincePreviousChange>20*Second) {
+        // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode
+        redLED.steadyOn();
+        greenLED.steadyOff();
+      }
+    }
+    return true;
+  }
+
+
+
+
   virtual void initialize()
   {
-    // connect button
-    button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
-    // initialize the device container
-    deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+    if (factoryResetWait) {
+      // button held during startup, check for factory reset
+      // - connect special button hander
+      button.setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
+    }
+    else {
+      // normal init
+      // - connect button
+      button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
+      // - initialize the device container
+      deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+    }
   }
 
 
