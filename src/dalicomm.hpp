@@ -74,7 +74,9 @@ namespace p44 {
     /// text description
     string description();
     /// returns true if uniquely identifying the device (real GTIN + serial found)
-    bool uniquelyIdentifiing();
+    bool uniquelyIdentifying();
+    /// if not yet uniquely identifying (no real GTIN + serial found), but there is a OEM GTIN+serial, use that one
+    void makeUniquelyIdentifyingFromOEM();
   };
 
 

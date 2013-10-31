@@ -36,6 +36,8 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
   // store the info record
   deviceInfo = aDeviceInfo; // copy
+  // use OEM GTIN/Serial if this is set, but main GTIN/Serial is not (some Meanwell LED dimmers)
+  deviceInfo.makeUniquelyIdentifyingFromOEM();
   // derive the dSID
   deriveDSID();
   // use light settings, which include a scene table
@@ -208,7 +210,7 @@ void DaliDevice::deriveDSID()
 {
   if (getDeviceContainer().modernDsids()) {
     // vDC implementation specific UUID:
-    if (deviceInfo.uniquelyIdentifiing()) {
+    if (deviceInfo.uniquelyIdentifying()) {
       // we have GTIN + Serial, use it
       dsid.setGTIN(deviceInfo.gtin, 0); // unknown partition value
       dsid.setSerial(deviceInfo.serialNo);
@@ -225,7 +227,7 @@ void DaliDevice::deriveDSID()
   else {
     // create a hash
     Fnv64 hash;
-    if (deviceInfo.uniquelyIdentifiing()) {
+    if (deviceInfo.uniquelyIdentifying()) {
       // Valid device info
       // - add GTIN (6 bytes = 48bits, MSB to LSB)
       hash.addByte((deviceInfo.gtin>>40) & 0xFF);

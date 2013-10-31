@@ -985,19 +985,29 @@ DaliDeviceInfo::DaliDeviceInfo()
 string DaliDeviceInfo::description()
 {
   string s = string_format("- DaliDeviceInfo for shortAddress %d\n", shortAddress);
-  string_format_append(s, "  - is %suniquely defining the device\n", uniquelyIdentifiing() ? "" : "NOT ");
+  string_format_append(s, "  - is %suniquely defining the device\n", uniquelyIdentifying() ? "" : "NOT ");
   string_format_append(s, "  - GTIN       : %lld\n", gtin);
-  string_format_append(s, "  - Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
   string_format_append(s, "  - Serial     : %lld\n", serialNo);
   string_format_append(s, "  - OEM GTIN   : %lld\n", oem_gtin);
   string_format_append(s, "  - OEM Serial : %lld\n", oem_serialNo);
+  string_format_append(s, "  - Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
   return s;
 }
 
 
-bool DaliDeviceInfo::uniquelyIdentifiing()
+bool DaliDeviceInfo::uniquelyIdentifying()
 {
   return gtin!=0 && serialNo!=0;
+}
+
+
+void DaliDeviceInfo::makeUniquelyIdentifyingFromOEM()
+{
+  if (!uniquelyIdentifying() && oem_gtin!=0 && oem_serialNo!=0) {
+    // copy OEM GTIN/Serial into real one
+    gtin = oem_gtin;
+    serialNo = oem_serialNo;
+  }
 }
 
 
