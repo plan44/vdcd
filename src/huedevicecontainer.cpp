@@ -63,11 +63,13 @@ void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
 
 
 
-void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
+void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
   collectedHandler = aCompletedCB;
-  // remove all devices
-  removeDevices(false);
+  if (!aIncremental) {
+    // full collect, remove all devices
+    removeDevices(false);
+  }
   // load hue bridge uuid and token
   sqlite3pp::query qry(db);
   if (qry.prepare("SELECT hueBridgeUUID, hueBridgeUser FROM globs")==SQLITE_OK) {
@@ -191,6 +193,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
 
 void HueDeviceContainer::collectLights()
 {
+  // Note: can be used to incrementally search additional lights
   // issue lights query
   hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _2, _3));
 }
@@ -209,11 +212,12 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
       // create hue device
       if (lightInfo) {
         HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID));
-        // set the name
-        JsonObjectPtr n = lightInfo->get("name");
-        if (n) newDev->initializeName(n->stringValue());
-        // add to the system
-        addDevice(newDev);
+        if (addDevice(newDev)) {
+          // actually added, no duplicate, set the name
+          // (otherwise, this is an incremental collect and we knew this light already)
+          JsonObjectPtr n = lightInfo->get("name");
+          if (n) newDev->initializeName(n->stringValue());
+        }
       }
     }
   }

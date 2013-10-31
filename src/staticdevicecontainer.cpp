@@ -32,26 +32,30 @@ const char *StaticDeviceContainer::deviceClassIdentifier() const
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
+void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
-  removeDevices(false);
-	// create devices from configs
-	for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
-		// create device of appropriate class
-		DevicePtr newDev;
-		if (pos->first=="digitalio") {
-			// Digital IO based device
-			newDev = DevicePtr(new DigitalIODevice(this, pos->second));
-		}
-    else if (pos->first=="console") {
-      // console based simulated device
-			newDev = DevicePtr(new ConsoleDevice(this, pos->second));
+  // incrementally collecting static devices makes no sense. The devices are "static"!
+  if (!aIncremental) {
+    // non-incremental, re-collect all devices
+    removeDevices(false);
+    // create devices from configs
+    for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
+      // create device of appropriate class
+      DevicePtr newDev;
+      if (pos->first=="digitalio") {
+        // Digital IO based device
+        newDev = DevicePtr(new DigitalIODevice(this, pos->second));
+      }
+      else if (pos->first=="console") {
+        // console based simulated device
+        newDev = DevicePtr(new ConsoleDevice(this, pos->second));
+      }
+      if (newDev) {
+        // add to container
+        addDevice(newDev);
+      }
     }
-		if (newDev) {
-			// add to container
-			addDevice(newDev);
-		}
-	}
+  }
   // assume ok
   aCompletedCB(ErrorPtr());
 }

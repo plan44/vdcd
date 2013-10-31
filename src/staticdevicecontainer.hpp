@@ -30,7 +30,7 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
   };
 

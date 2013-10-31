@@ -100,32 +100,35 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 
 
 
-void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
+void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
-  // start with zero
-  removeDevices(false);
-  // - read learned-in enOcean button IDs from DB
-  sqlite3pp::query qry(db);
-  if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
-    for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-      EnoceanSubDevice numSubdevices;
-      EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
-        this,
-        i->get<int>(0), i->get<int>(1), // address / subdevice
-        i->get<int>(2), i->get<int>(3), // profile / manufacturer
-        numSubdevices,
-        false // don't send teach-in responses
-      );
-      if (newdev) {
-        // we fetched this from DB, so it is already known (don't save again!)
-        addKnownDevice(newdev);
-      }
-      else {
-        LOG(LOG_ERR,
-          "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%06X, manufacturer=%d",
+  // incrementally collecting enOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
+  if (!aIncremental) {
+    // start with zero
+    removeDevices(false);
+    // - read learned-in enOcean button IDs from DB
+    sqlite3pp::query qry(db);
+    if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
+      for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
+        EnoceanSubDevice numSubdevices;
+        EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
+          this,
           i->get<int>(0), i->get<int>(1), // address / subdevice
-          i->get<int>(2), i->get<int>(3) // profile / manufacturer
+          i->get<int>(2), i->get<int>(3), // profile / manufacturer
+          numSubdevices,
+          false // don't send teach-in responses
         );
+        if (newdev) {
+          // we fetched this from DB, so it is already known (don't save again!)
+          addKnownDevice(newdev);
+        }
+        else {
+          LOG(LOG_ERR,
+            "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%06X, manufacturer=%d",
+            i->get<int>(0), i->get<int>(1), // address / subdevice
+            i->get<int>(2), i->get<int>(3) // profile / manufacturer
+          );
+        }
       }
     }
   }
@@ -134,26 +137,33 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExha
 }
 
 
-void EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
+bool EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
 {
-  inherited::addDevice(aEnoceanDevice);
-  enoceanDevices.insert(make_pair(aEnoceanDevice->getAddress(), aEnoceanDevice));
+  if (inherited::addDevice(aEnoceanDevice)) {
+    // not a duplicate, actually added - add to my own list
+    enoceanDevices.insert(make_pair(aEnoceanDevice->getAddress(), aEnoceanDevice));
+    return true;
+  }
+  return false;
 }
 
 
 
-void EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice)
+bool EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice)
 {
-  addKnownDevice(aEnoceanDevice);
-  // save enocean ID to DB
-  // - check if this subdevice is already stored
-  db.executef(
-    "INSERT OR REPLACE INTO knownDevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
-    aEnoceanDevice->getAddress(),
-    aEnoceanDevice->getSubDevice(),
-    aEnoceanDevice->getEEProfile(),
-    aEnoceanDevice->getEEManufacturer()
-  );
+  if (addKnownDevice(aEnoceanDevice)) {
+    // save enocean ID to DB
+    // - check if this subdevice is already stored
+    db.executef(
+      "INSERT OR REPLACE INTO knownDevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) VALUES (%d,%d,%d,%d)",
+      aEnoceanDevice->getAddress(),
+      aEnoceanDevice->getSubDevice(),
+      aEnoceanDevice->getEEProfile(),
+      aEnoceanDevice->getEEManufacturer()
+    );
+    return true;
+  }
+  return false;
 }
 
 

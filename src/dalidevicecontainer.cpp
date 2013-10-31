@@ -41,19 +41,21 @@ class DaliDeviceCollector
   DaliComm::ShortAddressListPtr deviceShortAddresses;
   DaliComm::ShortAddressList::iterator nextDev;
   DaliDeviceContainer *daliDeviceContainerP;
+  bool incremental;
   #if MAX_DEVICES_COLLECTED
   int collectedDevices;
   #endif
 public:
-  static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aForceFullScan)
+  static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aIncremental, bool aForceFullScan)
   {
     // create new instance, deletes itself when finished
-    new DaliDeviceCollector(aDaliDeviceContainerP, aDaliCommP, aCallback, aForceFullScan);
+    new DaliDeviceCollector(aDaliDeviceContainerP, aDaliCommP, aCallback, aIncremental, aForceFullScan);
   };
 private:
-  DaliDeviceCollector(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aForceFullScan) :
+  DaliDeviceCollector(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aIncremental, bool aForceFullScan) :
     daliCommP(aDaliCommP),
     callback(aCallback),
+    incremental(aIncremental),
     daliDeviceContainerP(aDaliDeviceContainerP)
   {
     #if MAX_DEVICES_COLLECTED
@@ -99,7 +101,7 @@ private:
         //   Note: device info might be empty except for short address
         daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
         // - make it 
-        // - add it to our collection
+        // - add it to our collection (if not already there)
         daliDeviceContainerP->addDevice(daliDevice);
       }
     }
@@ -126,9 +128,9 @@ private:
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
+void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
   removeDevices(false);
-  DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aExhaustive);
+  DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aIncremental, aExhaustive);
 }
 

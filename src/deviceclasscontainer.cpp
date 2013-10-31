@@ -68,12 +68,17 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 
 
 // add a device
-void DeviceClassContainer::addDevice(DevicePtr aDevice)
+bool DeviceClassContainer::addDevice(DevicePtr aDevice)
 {
-  // save in my own list
-  devices.push_back(aDevice);
   // announce to global device container
-  deviceContainerP->addDevice(aDevice);
+  if (deviceContainerP->addDevice(aDevice)) {
+    // not a duplicate
+    // - save in my own list
+    devices.push_back(aDevice);
+    // added
+    return true;
+  }
+  return false;
 }
 
 

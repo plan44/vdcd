@@ -145,10 +145,12 @@ namespace p44 {
 
     /// collect devices from all device classes, and have each of them initialized
     /// @param aCompletedCB will be called when all device scans have completed
+    /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices
+    ///   might not get detected this way
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
-    void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+    void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
     /// Put device class controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs
@@ -206,9 +208,11 @@ namespace p44 {
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dsid
+    /// @return false if aDevice's dsid is already known.
+    /// @note aDevice is added *only if no device is already known with this dsid*
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
     ///   by other means than a scan/collect operation
-    void addDevice(DevicePtr aDevice);
+    bool addDevice(DevicePtr aDevice);
 
     /// called by device class containers to remove devices from the container-wide list
     /// @param aDevice a device object which has a valid dsid

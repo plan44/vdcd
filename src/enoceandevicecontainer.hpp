@@ -88,7 +88,7 @@ namespace p44 {
     virtual const char *deviceClassIdentifier() const;
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive);
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
     ///   the devices are not disconnected (=unlearned) by this.
@@ -97,10 +97,12 @@ namespace p44 {
   protected:
 
     /// add device to container (already known device, already stored in DB)
-    virtual void addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
+    /// @return false if aEnoceanDevice dsid is already known and thus was *not* added
+    virtual bool addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// add newly learned device to enOcean container (and remember it in DB)
-    virtual void addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
+    /// @return false if aEnoceanDevice dsid is already known and thus was *not* added
+    virtual bool addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// un-pair devices by physical device address
     /// @param aEnoceanAddress address for which to disconnect and forget all physical devices

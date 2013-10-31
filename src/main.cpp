@@ -374,7 +374,7 @@ public:
   void deviceLearnHandler(bool aLearnIn, ErrorPtr aError)
   {
     // back to normal...
-    stopLearning();
+    stopLearning(false);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
     MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
@@ -394,11 +394,15 @@ public:
   }
 
 
-  void stopLearning()
+  void stopLearning(bool aFromTimeout)
   {
     deviceContainer.stopLearning();
     MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
     setAppStatus(status_ok);
+    if (aFromTimeout) {
+      // letting learn run into timeout will re-collect all devices
+      collectDevices(true);
+    }
   }
 
 
@@ -411,7 +415,6 @@ public:
       if (aState) indicateTempStatus(tempstatus_buttonpressed);
       else endTempStatus();
     }
-    // TODO: %%% clean up, test hacks for now
     if (aState==true && !aHasChanged) {
       // keypress reported again
       if (aTimeSincePreviousChange>=5*Second) {
@@ -427,8 +430,8 @@ public:
         button.setButtonHandler(NULL, true); // disconnect button
         deviceContainer.setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
-        redLED.off();
-        greenLED.off();
+        redLED.steadyOff();
+        greenLED.steadyOff();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -2), 2*Second);
         return true;
@@ -436,14 +439,6 @@ public:
     }
     if (aState==false) {
       // keypress release
-//      if (aTimeSincePreviousChange>=3*Second) {
-//        // long press (labelled "Software Update" on the case)
-//        setAppStatus(status_error);
-//        LOG(LOG_WARNING,"Long button press detected -> collect devices (again)\n");
-//        // collect devices again
-//        collectDevices();
-//        return true;
-//      }
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
@@ -458,12 +453,12 @@ public:
         if (!learningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this), LEARN_TIMEOUT);
+          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this, true), LEARN_TIMEOUT);
           deviceContainer.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
         }
         else {
           // stop
-          stopLearning();
+          stopLearning(false);
         }
       }
     }
@@ -489,16 +484,16 @@ public:
     }
     else {
       // collect devices
-      collectDevices();
+      collectDevices(false);
     }
   }
 
 
-  virtual void collectDevices()
+  virtual void collectDevices(bool aIncremental)
   {
     // initiate device collection
     setAppStatus(status_busy);
-    deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), false); // no forced full scan (only if needed)
+    deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
   }
 
 

@@ -239,19 +239,21 @@ class DeviceClassCollector
 {
   CompletedCB callback;
   bool exhaustive;
+  bool incremental;
   ContainerVector::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
-  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aExhaustive)
+  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassCollector(aDeviceContainerP, aCallback, aExhaustive);
+    new DeviceClassCollector(aDeviceContainerP, aCallback, aIncremental, aExhaustive);
   };
 private:
-  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aExhaustive) :
+  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive) :
     callback(aCallback),
     deviceContainerP(aDeviceContainerP),
+    incremental(aIncremental),
     exhaustive(aExhaustive)
   {
     nextContainer = deviceContainerP->deviceClassContainers.begin();
@@ -262,7 +264,7 @@ private:
   void queryNextContainer(ErrorPtr aError)
   {
     if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
-      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), exhaustive);
+      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
     else
       collectedAll(aError);
   }
@@ -313,17 +315,20 @@ private:
 
 
 
-void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
+void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
   if (!collecting) {
     collecting = true;
-    if (sessionComm) {
-      // disconnect the vdSM
-      sessionComm->closeConnection();
+    if (!aIncremental) {
+      // only for non-incremental collect, close vdsm connection
+      if (sessionComm) {
+        // disconnect the vdSM
+        sessionComm->closeConnection();
+      }
+      endContainerSession(); // end the session
+      dSDevices.clear(); // forget existing ones
     }
-    endContainerSession(); // end the session
-    dSDevices.clear(); // forget existing ones
-    DeviceClassCollector::collectDevices(this, aCompletedCB, aExhaustive);
+    DeviceClassCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive);
   }
 }
 
@@ -336,8 +341,16 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aExhaustive)
 
 
 // add a new device, replaces possibly existing one based on dsid
-void DeviceContainer::addDevice(DevicePtr aDevice)
+bool DeviceContainer::addDevice(DevicePtr aDevice)
 {
+  if (!aDevice)
+    return false; // no device, nothing added
+  // check if device with same dsid already exists
+  DsDeviceMap::iterator pos = dSDevices.find(aDevice->dsid);
+  if (pos!=dSDevices.end()) {
+    LOG(LOG_INFO, "- device %s already registered, not added again",aDevice->dsid.getString().c_str());
+    return false; // duplicate dsid, not added
+  }
   // set for given dsid in the container-wide map of devices
   dSDevices[aDevice->dsid] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
@@ -346,6 +359,7 @@ void DeviceContainer::addDevice(DevicePtr aDevice)
   aDevice->load();
   // register new device right away (unless collecting or already announcing)
   announceDevices();
+  return true;
 }
 
 
@@ -898,6 +912,7 @@ void DeviceContainer::announceDevices()
 
 void DeviceContainer::announceNext()
 {
+  if (collecting) return; // prevent announcements during collect.
   // check all devices for unnannounced ones and announce those
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;

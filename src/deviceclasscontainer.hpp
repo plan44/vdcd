@@ -109,10 +109,12 @@ namespace p44 {
 
     /// collect devices from this device classes
     /// @param aCompletedCB will be called when device scan for this device class has been completed
+    /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices
+    ///   might not get detected this way
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aExhaustive) = 0;
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive) = 0;
 
     /// Forget all previously collected devices
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
@@ -137,9 +139,13 @@ namespace p44 {
 
     /// Add device collected from hardware side (bus scan, etc.)
     /// @param aDevice a device object which has a valid dsid
+    /// @return false if aDevice's dsid is already known.
+    /// @note if aDevice's dsid is already known, it will *not* be added again. This facilitates
+    ///   implementation of incremental collection of newly appeared devices (scanning entire bus,
+    ///   known ones will just be ignored when encountered again)
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
     ///   by other means than a scan/collect operation
-    virtual void addDevice(DevicePtr aDevice);
+    virtual bool addDevice(DevicePtr aDevice);
 
     /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
     /// @param aDevice a device object which has a valid dsid
