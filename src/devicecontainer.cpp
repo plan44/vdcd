@@ -901,14 +901,16 @@ void DeviceContainer::announceDevices()
 void DeviceContainer::announceNext()
 {
   if (collecting) return; // prevent announcements during collect.
+  // cancel re-announcing
+  MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // check all devices for unnannounced ones and announce those
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
     if (
-        dev->isPublicDS() && // only public ones
-        dev->announced==Never &&
-        (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
-        ) {
+      dev->isPublicDS() && // only public ones
+      dev->announced==Never &&
+      (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
+    ) {
       // mark device as being in process of getting announced
       dev->announcing = MainLoop::now();
       // call announce method
