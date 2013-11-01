@@ -108,7 +108,7 @@ uint64_t p44::macAddress()
       // - get flags for it
       if (ioctl(sock, SIOCGIFFLAGS, &ifr)>=0) {
         // skip loopback interfaces
-        if ((fr.ifr_flags & IFF_LOOPBACK)==0) {
+        if ((ifr.ifr_flags & IFF_LOOPBACK)==0) {
           // not loopback
           // - now get HWADDR
           if (ioctl(sock, SIOCGIFHWADDR, &ifr)>=0) {
