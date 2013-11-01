@@ -39,6 +39,8 @@ DeviceContainer::DeviceContainer() :
   sessionActivityTicket(0),
   useModernDsids(false)
 {
+  // obtain MAC address
+  mac = macAddress();
 }
 
 
@@ -201,21 +203,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, getting MAC address\n");
-  getMyMac(aCompletedCB, aFactoryReset);
-}
-
-
-void DeviceContainer::getMyMac(CompletedCB aCompletedCB, bool aFactoryReset)
-{
-  mac = macAddress();
-  if (mac==0) {
-    LOG(LOG_NOTICE,"- MAC address not yet ready, trying again in 3 seconds\n");
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::getMyMac, this, aCompletedCB, aFactoryReset), 3*Second);
-    return;
-  }
-  // MAC ready, we can now start initializing rest and get stable MAC-derived ids.
-  LOG(LOG_NOTICE,"MAC address found: %s, dsid (%s) = %s\n", macAddressString().c_str(), externalDsid ? "external" : "MAC-derived", dsid.getString().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dsid (%s) = %s\n", macAddressString().c_str(), externalDsid ? "external" : "MAC-derived", dsid.getString().c_str());
   // start the API server
   vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database
