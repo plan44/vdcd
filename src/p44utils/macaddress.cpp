@@ -84,44 +84,51 @@ uint64_t p44::macAddress()
 
 uint64_t p44::macAddress()
 {
+  int sock;
+  int ifIndex;
   struct ifreq ifr;
-  struct ifconf ifc;
-  char buf[1024];
-  int success = 0;
+  int res;
+  uint64_t mac = 0;
 
-  do {
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-    if (sock == -1) { /* handle error*/ };
-
-    ifc.ifc_len = sizeof(buf);
-    ifc.ifc_buf = buf;
-    if (ioctl(sock, SIOCGIFCONF, &ifc) == -1)
-      break;
-    struct ifreq* it = ifc.ifc_req;
-    const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
-    for (; it != end; ++it) {
-      strcpy(ifr.ifr_name, it->ifr_name);
-      if (ioctl(sock, SIOCGIFFLAGS, &ifr) == 0) {
-        if (! (ifr.ifr_flags & IFF_LOOPBACK)) { // don't count loopback
-          if (ioctl(sock, SIOCGIFHWADDR, &ifr) == 0) {
-            success = 1;
-            break;
+  // any socket type will do
+  sock = socket(PF_INET, SOCK_DGRAM, 0);
+  if (sock>=0) {
+    // enumerate interfaces
+    ifIndex = 1; // start with 1
+    do {
+      // - init struct
+      memset(&ifr, 0x00, sizeof(ifr));
+      // - get name of interface by index
+      ifr.ifr_ifindex = ifIndex;
+      res = ioctl(sock, SIOCGIFNAME, &ifr);
+      if (res<0) {
+        break; // no more names, end
+      }
+      // got name for index
+      // - get flags for it
+      if (ioctl(sock, SIOCGIFFLAGS, &ifr)>=0) {
+        // skip loopback interfaces
+        if ((fr.ifr_flags & IFF_LOOPBACK)==0) {
+          // not loopback
+          // - now get HWADDR
+          if (ioctl(sock, SIOCGIFHWADDR, &ifr)>=0) {
+            // compose int64
+            for (int i=0; i<6; ++i) {
+              mac = (mac<<8) + ((uint8_t *)(ifr.ifr_hwaddr.sa_data))[i];
+            }
+            // this is our MAC unless it is zero
+            if (mac!=0) {
+              break; // done, use it
+            }
           }
         }
       }
-      else
-        break;
-    }
-  } while(false);
-  // extract MAC if we have one
-  if (!success) {
-    return 0; // failed
+      // next
+      ifIndex++;
+    } while(true);
+    close(sock);
   }
-  // compose int64
-  uint64_t mac = 0;
-  for (int i=0; i<6; ++i) {
-    mac = (mac<<8) + ((uint8_t *)(ifr.ifr_hwaddr.sa_data))[i];
-  }
+  // return MAC as 64bit int (or 0 if no MAC could be found)
   return mac;
 }
 
