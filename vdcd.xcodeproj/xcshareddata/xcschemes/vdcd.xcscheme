@@ -63,8 +63,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--moderndsids 1"
-            isEnabled = "NO">
+            argument = "--modernids 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -87,8 +87,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.175"
-            isEnabled = "YES">
+            argument = "--dali 192.168.59.134"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean localhost:12102"
@@ -108,7 +108,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"

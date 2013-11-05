@@ -210,19 +210,25 @@ void DaliDevice::deriveDSID()
 {
   if (getDeviceContainer().modernDsids()) {
     // vDC implementation specific UUID:
+    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    string s;
     if (deviceInfo.uniquelyIdentifying()) {
-      // we have GTIN + Serial, use it
-      dsid.setGTIN(deviceInfo.gtin, 0); // unknown partition value
-      dsid.setSerial(deviceInfo.serialNo);
+      // uniquely identified by GTIN+Serial, but unknown partition value:
+      // - Proceed according to dS rule 2:
+      //   "vDC can determine GTIN and serial number of Device → combine GTIN and
+      //    serial number to form a GS1-128 with Application Identifier 21:
+      //    "(01)<GTIN>(21)<serial number>” and use the resulting string to
+      //    generate a UUIDv5 in the GS1-128 name space"
+      s = string_format("(01)%lld(21)%lld", deviceInfo.gtin, deviceInfo.serialNo);
     }
     else {
-      // not uniquely identified by itself, generate id in vDC namespace
+      // not uniquely identified by itself:
+      // - generate id in vDC namespace
       //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
-      dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
-      string s = classContainerP->deviceClassContainerInstanceIdentifier();
+      s = classContainerP->deviceClassContainerInstanceIdentifier();
       string_format_append(s, "::%d", deviceInfo.shortAddress);
-      dsid.setNameInSpace(s, vdcNamespace);
     }
+    dsid.setNameInSpace(s, vdcNamespace);
   }
   else {
     // create a hash

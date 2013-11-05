@@ -224,8 +224,9 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "moderndsids",   true,  "enabled;1=use modern (GS1/UUID based) dsids, 0=classic dsids" },
-      { 0  , "dsid",          true,  "dsid;set dsid for this vDC (should be a UUIDv1 generated on the host)" },
+      { 0  , "modernids",     true,  "enabled;1=use modern (GS1/UUID based) 34 hex dsUIDs, 0=classic 24 hex dsids" },
+      { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC (usually UUIDv1 generated on the host)" },
+      { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dsid for this vDC as SGTIN" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
@@ -295,14 +296,24 @@ public:
       deviceContainer.setPersistentDataDir(dbdir);
 
       // - set dsid mode
-      int moderndsids = DEFAULT_USE_MODERN_DSIDS;
-      getIntOption("moderndsids", moderndsids);
+      int modernids = DEFAULT_USE_MODERN_DSIDS;
+      getIntOption("modernids", modernids);
       dSIDPtr externalDsid;
       string dsidStr;
-      if (getStringOption("dsid", dsidStr)) {
+      if (getStringOption("dsuid", dsidStr)) {
         externalDsid = dSIDPtr(new dSID(dsidStr));
       }
-      deviceContainer.setDsidMode(moderndsids!=0, externalDsid);
+      else if (getStringOption("sgtin", dsidStr)) {
+        int part;
+        uint64_t gcp;
+        uint32_t itemref;
+        uint64_t serial;
+        sscanf(dsidStr.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
+        externalDsid = dSIDPtr(new dSID(dsidStr));
+        externalDsid->setGTIN(gcp, itemref, part);
+        externalDsid->setSerial(serial);
+      }
+      deviceContainer.setDsidMode(modernids!=0, externalDsid);
 
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");

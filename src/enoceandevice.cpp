@@ -104,8 +104,9 @@ void EnoceanDevice::deriveDSID()
     // UUID in enOcean name space
     //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
     dSID enOceanNamespace(DSID_ENOCEAN_NAMESPACE_UUID);
-    string s = string_format("%08lX:%d", getAddress(), getSubDevice());
+    string s = string_format("%08lX", getAddress()); // base address comes from
     dsid.setNameInSpace(s, enOceanNamespace);
+    dsid.setSubdeviceIndex(getSubDevice()*idBlockSize()); // space subdevices according to idBlockSize (e.g. up/down-buttons will reserve a second subdevice to allow vdSM to expand it into 2 separate buttons)
   }
   else {
     #if FAKE_REAL_DSD_IDS

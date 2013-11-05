@@ -19,6 +19,7 @@ using namespace p44;
 void dSID::internalInit()
 {
   idType = dsidtype_undefined;
+  memset(raw, 0, sizeof(raw));
 }
 
 
@@ -30,28 +31,35 @@ dSID::dSID()
 
 
 
+// Byte offset         0 1 2 3  4 5  6 7  8 9 101112131415 16
+// dsUID with UUID  : xxxxxxxx-xxxx-Vxxx-Txxx-xxxxxxxxxxxx ii   (V=version, T=type/variant, ii=subdevice index)
+// dsUID with EPC96 : ssssssss ssss 0000 0000 ssssssssssss ii   (ii=subdevice index)
+
 void dSID::setIdType(DsIdType aIdType)
 {
   if (aIdType!=idType) {
     // new type, reset
     idType = aIdType;
-    memset(raw.raw, 0, rawBytes);
+    memset(raw, 0, sizeof(raw));
     switch (idType) {
+      // classic
       case dsidtype_classic:
-        idBytes = classicBytes;
+        idBytes = dsidBytes;
         // header byte
-        raw.classic[0] = GID96Header;
+        raw[0] = GID96Header;
         // constant manager number
-        raw.classic[1] = (ManagerNo>>20) & 0xFF;
-        raw.classic[2] = (ManagerNo>>12) & 0xFF;
-        raw.classic[3] = (ManagerNo>>4) & 0xFF;
-        raw.classic[4] = (ManagerNo<<4) & 0xF0;
+        raw[1] = (ManagerNo>>20) & 0xFF;
+        raw[2] = (ManagerNo>>12) & 0xFF;
+        raw[3] = (ManagerNo>>4) & 0xFF;
+        raw[4] = (ManagerNo<<4) & 0xF0;
         break;
+      // dsUID
       case dsidtype_sgtin:
-        idBytes = sgtinBytes;
-        break;
+        raw[0] = SGTIN96Header;
+        // fall through
       case dsidtype_uuid:
-        idBytes = uuidBytes;
+      case dsidtype_gid:
+        idBytes = dsuidBytes;
         break;
       default:
         idBytes = 0; // no content
@@ -61,17 +69,49 @@ void dSID::setIdType(DsIdType aIdType)
 }
 
 
+void dSID::setSubdeviceIndex(uint8_t aSubDeviceIndex)
+{
+  if (idBytes==dsuidBytes) {
+    // is a dsUID, can set subdevice index
+    raw[16] = aSubDeviceIndex;
+  }
+}
+
+
 
 #pragma mark - set SGTIN based dSID from parameters
 
 // 1. vDC can determine GTIN and SerialNumber of Device → combine GTIN and SerialNumber to a SGTIN
 
+// SGTIN96 binary:
+//      hhhhhhhh fffpppgg gggggggg gggggggg gggggggg gggggggg gggggggg ggssssss ssssssss ssssssss ssssssss ssssssss
+//      00110000 001ppp<--------- 44 bit binary GCP+ItemRef ------------><------- 38 bit serial number ----------->
+// dsUID Byte index:
+//         0        1         2        3       4        5        10        11      12       13       14       15
 
-void dSID::setGTIN(uint64_t aGTIN, uint8_t aPartition)
+
+// translation table to get GCP bit length for partition value
+// Note: Partition Value + 1 = number of decimal digits for item reference including indicator/pad digit
+static uint8_t gcpBitLength[7] = { 40, 37, 34, 30, 27, 24, 20 };
+
+void dSID::setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition)
 {
   // setting GTIN switches to sgtin dsid
   setIdType(dsidtype_sgtin);
- // TODO: implement
+  // total bit length for CGP + itemRef combined are 44bits
+  uint64_t binaryGtin = aGCP<<(44-gcpBitLength[aPartition]) | aItemRef;
+  // now put into bytes
+  // - filter (fixed to 1), partition and upper 2 bits of binaryGtin go into raw[1]
+  raw[1] = (0x1<<5) | ((aPartition&0x07)<<2) | (binaryGtin>>42);
+  // - raw[2..5]
+  raw[2] = (binaryGtin>>34) & 0xFF;
+  raw[3] = (binaryGtin>>26) & 0xFF;
+  raw[4] = (binaryGtin>>18) & 0xFF;
+  raw[5] = (binaryGtin>>10) & 0xFF;
+  // - raw[6..9] are left 0 to mark it as non-UUID
+  // - raw[10..11] contain more GTIN information
+  raw[10] = (binaryGtin>>2) & 0xFF;
+  raw[11] = (raw[11] & 0x3F) | ((binaryGtin & 0x03)<<6); // combine lowest 2 bits of GTIN with highest 6 of serial
 }
 
 
@@ -79,6 +119,11 @@ void dSID::setSerial(uint64_t aSerial)
 {
   // setting GTIN switches to sgtin dsid
   setIdType(dsidtype_sgtin);
+  raw[11] = (raw[11] & 0xC0) | ((aSerial>>32)&0x3F); // combine lowest 2 bits of GTIN with highest 6 of serial
+  raw[12] = (aSerial>>24)&0xFF;
+  raw[13] = (aSerial>>16)&0xFF;
+  raw[14] = (aSerial>>8)&0xFF;
+  raw[15] = aSerial&0xFF;
 }
 
 
@@ -132,7 +177,7 @@ void dSID::setNameInSpace(const string &aName, const dSID &aNameSpace)
   // calculate the hash used as basis for a UUIDv5
   SHA1_Init(&sha_context);
   // - hash the name space UUID
-  SHA1_Update(&sha_context, &aNameSpace.raw.uuid, uuidBytes);
+  SHA1_Update(&sha_context, &aNameSpace.raw, uuidBytes);
   // - hash the name
   SHA1_Update(&sha_context, aName.c_str(), aName.size());
   SHA1_Final(sha1, &sha_context);
@@ -144,14 +189,14 @@ void dSID::setNameInSpace(const string &aName, const dSID &aNameSpace)
   // - Set the clock_seq_low field to octet 9 of the hash.
   // - Set octets zero through five of the node field to octets 10 through 15 of the hash.
   // ...which means: copy byte 0..15 of the sha1 into the UUID bytes 0..15
-  memcpy(raw.uuid, sha1, uuidBytes);
+  memcpy(raw, sha1, uuidBytes);
   // Then:
   // - Set the four most significant bits (bits 12 through 15) of the time_hi_and_version field to the appropriate 4-bit version number from Section 4.1.3.
   // ...means: set the UUID version, is 0x5 here
-  raw.uuid[6] = (raw.uuid[6] & 0x0F) | (0x5<<4);
+  raw[6] = (raw[6] & 0x0F) | (0x5<<4);
   // - Set the two most significant bits (bits 6 and 7) of the clock_seq_hi_and_reserved to zero and one, respectively.
   // ...means: mark the UUID as RFC4122 type/variant
-  raw.uuid[8] = (raw.uuid[8] & 0xC0) | (0x2<<6);
+  raw[8] = (raw[8] & 0xC0) | (0x2<<6);
 }
 
 
@@ -194,20 +239,20 @@ void dSID::setObjectClass(ObjectClass aObjectClass)
   // setting object class switches to classic dsid
   setIdType(dsidtype_classic);
   // first nibble of object class shares byte 4 with last nibble of ManagerNo
-  raw.classic[4] |= (aObjectClass>>20) & 0x0F; // or in
+  raw[4] |= (aObjectClass>>20) & 0x0F; // or in
   // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
   if ((aObjectClass & OBJECTCLASS_MSB_MASK)==DSID_OBJECTCLASS_MACADDRESS) {
     // MAC address object class
     // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
     // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dsid (as a 4 bit extension of the MAC address mapping)
-    raw.classic[5] = ((aObjectClass>>12) & 0xF0);
+    raw[5] = ((aObjectClass>>12) & 0xF0);
   }
   else {
     // Regular object class
-    raw.classic[5] = (aObjectClass>>12) & 0xFF;
-    raw.classic[6] = (aObjectClass>>4) & 0xFF;
+    raw[5] = (aObjectClass>>12) & 0xFF;
+    raw[6] = (aObjectClass>>4) & 0xFF;
     // lowest 4 bits of object class combined with highest 4 bit of 36bit aSerialNo
-    raw.classic[7] = (raw.classic[7] & 0x0F) | ((aObjectClass<<4) & 0xF0);
+    raw[7] = (raw[7] & 0x0F) | ((aObjectClass<<4) & 0xF0);
   }
 }
 
@@ -217,23 +262,23 @@ void dSID::setDsSerialNo(DsSerialNo aSerialNo)
   // setting dS serial number switches to classic dsid
   setIdType(dsidtype_classic);
   // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
-  if ((((raw.classic[4] & 0x0F)<<4) | ((raw.classic[5] & 0xF0)>>4))==MACADDRESSCLASS_MSB) {
+  if ((((raw[4] & 0x0F)<<4) | ((raw[5] & 0xF0)>>4))==MACADDRESSCLASS_MSB) {
     // MAC address object class
     // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
     // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dsid (as a 4 bit extension of the MAC address mapping)
-    raw.classic[5] = (raw.classic[5] & 0xF0) | ((aSerialNo>>44) & 0x0F);
-    raw.classic[6] = (aSerialNo>>36) & 0xFF;
-    raw.classic[7] = ((aSerialNo>>28) & 0xF0) | ((aSerialNo>>48) & 0x0F);
+    raw[5] = (raw[5] & 0xF0) | ((aSerialNo>>44) & 0x0F);
+    raw[6] = (aSerialNo>>36) & 0xFF;
+    raw[7] = ((aSerialNo>>28) & 0xF0) | ((aSerialNo>>48) & 0x0F);
   }
   else {
     // lowest 4 bits of object class combined with highest 4 bit of 36bit aSerialNo
-    raw.classic[7] = (raw.classic[7] & 0xF0) | ((aSerialNo>>32) & 0x0F);
+    raw[7] = (raw[7] & 0xF0) | ((aSerialNo>>32) & 0x0F);
   }
   // lower 4 bytes are always bits 0..31 of aSerialNo
-  raw.classic[8] = (aSerialNo>>24) & 0xFF;
-  raw.classic[9] = (aSerialNo>>16) & 0xFF;
-  raw.classic[10] = (aSerialNo>>8) & 0xFF;
-  raw.classic[11] = aSerialNo & 0xFF;
+  raw[8] = (aSerialNo>>24) & 0xFF;
+  raw[9] = (aSerialNo>>16) & 0xFF;
+  raw[10] = (aSerialNo>>8) & 0xFF;
+  raw[11] = aSerialNo & 0xFF;
 }
 
 
@@ -259,58 +304,17 @@ dSID::dSID(const char *aString)
 
 bool dSID::setAsString(const string &aString)
 {
-  // detect type
-  // - separate SGTIN by detecting period
-  // TODO: verify actual format used
-  size_t p = aString.find('.');
-  bool success = false;
-  if (p!=string::npos) {
-    // is a SGTIN
-    success = setAsSGTIN(aString);
-  }
-  else {
-    p = aString.find('-');
-    if (p!=string::npos) {
-      // is a UUID
-      success = setAsUUID(aString);
-    }
-    else {
-      // must be a classic GID96 dsid
-      success = setAsClassic(aString);
-    }
-  }
-  if (!success) setIdType(dsidtype_undefined); // clear
-  return success;
-}
-
-
-// internal
-bool dSID::setAsClassic(const string &aString)
-{
-  setIdType(dsidtype_classic);
-  return setAsHex(aString);
-}
-
-
-// internal
-bool dSID::setAsUUID(const string &aString)
-{
-  setIdType(dsidtype_uuid);
-  return setAsHex(aString);
-}
-
-
-// internal: set as string of hex digits (dashes ignored, everything else non-hex ends parsing)
-// number of hex bytes must exactly match idBytes
-bool dSID::setAsHex(const string &aString)
-{
   const char *p = aString.c_str();
   int byteIndex = 0;
   uint8_t b = 0;
   bool firstNibble = true;
+  bool hasDashes = false;
   char c;
   while ((c = *p++)!=0 && byteIndex<idBytes) {
-    if (c=='-') continue; // dashes allowed in UUID
+    if (c=='-') {
+      hasDashes = true; // a dash has occurred, might be a pure UUID (without 17th byte)
+      continue; // dashes allowed but ignored
+    }
     c = toupper(c)-'0';
     if (c>9) c -= ('A'-'9'-1);
     if (c<0 || c>0xF)
@@ -321,23 +325,42 @@ bool dSID::setAsHex(const string &aString)
     }
     else {
       b |= c;
-      raw.raw[byteIndex++]=b;
+      raw[byteIndex++]=b;
       firstNibble = true;
     }
   }
-  // valid if all bytes read
-  return byteIndex==idBytes;
+  // determine type of dsUID
+  if (byteIndex==dsidBytes && raw[0]==GID96Header) {
+    // must be a classic dsid (pure GID96)
+    idType = dsidtype_classic;
+    idBytes = dsidBytes;
+  }
+  else if (byteIndex==dsuidBytes || (hasDashes && byteIndex==uuidBytes)) {
+    // must be a dsUID (when read with dashes, it can also be a pure UUID without the subdevice index byte)
+    idType = dsidtype_other;
+    idBytes = dsuidBytes;
+    // - determine subtype
+    if (raw[6]==0 && raw[7]==0 && raw[8]==0 && raw[9]==0) {
+      // EPC96, check which one
+      if (raw[0]==SGTIN96Header)
+        idType = dsidtype_sgtin;
+      else if (raw[0]==GID96Header)
+        idType = dsidtype_gid;
+    }
+    else {
+      // UUID
+      idType = dsidtype_uuid;
+    }
+    if (byteIndex==uuidBytes)
+      raw[16] = 0; // specified as pure UUID, set subdevice index == 0
+  }
+  else {
+    // unknown format
+    setIdType(dsidtype_undefined);
+    return false;
+  }
+  return true;
 }
-
-
-// set as SGTIN
-bool dSID::setAsSGTIN(const string &aString)
-{
-  // TODO: implement
-  return false;
-}
-
-
 
 
 
@@ -348,33 +371,8 @@ bool dSID::setAsSGTIN(const string &aString)
 string dSID::getString() const
 {
   string s;
-  switch (idType) {
-    case dsidtype_classic: {
-      for (int i=0; i<classicBytes; i++) {
-        string_format_append(s, "%02X", raw.classic[i]);
-      }
-      break;
-    }
-    case dsidtype_sgtin: {
-      // TODO: implement
-      s = "SGTIN%%%";
-      break;
-    }
-    case dsidtype_uuid: {
-      const int8_t numSegs = 5;
-      const uint8_t uuidsegments[numSegs] = { 4,2,2,2,6 };
-      int8_t i = 0;
-      for (uint8_t seg=0; seg<numSegs; seg++) {
-        if (seg>0) s += '-'; // not first segment, separate
-        for (uint8_t j=0; j<uuidsegments[seg]; ++j) {
-          string_format_append(s, "%02X", raw.classic[i]);
-          ++i;
-        }
-      }
-      break;
-    }
-    default:
-      break;
+  for (int i=0; i<idBytes; i++) {
+    string_format_append(s, "%02X", raw[i]);
   }
   return s;
 }
@@ -386,14 +384,14 @@ string dSID::getString() const
 bool dSID::operator== (const dSID &aDSID) const
 {
   if (idType!=aDSID.idType) return false;
-  return memcmp(raw.raw, aDSID.raw.raw, idBytes)==0;
+  return memcmp(raw, aDSID.raw, idBytes)==0;
 }
 
 
 bool dSID::operator< (const dSID &aDSID) const
 {
   if (idType==aDSID.idType)
-    return memcmp(raw.raw, aDSID.raw.raw, idBytes)<0;
+    return memcmp(raw, aDSID.raw, idBytes)<0;
   else
     return idType<aDSID.idType;
 }

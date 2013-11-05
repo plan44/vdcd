@@ -42,28 +42,26 @@ namespace p44 {
     /// type of ID
     typedef enum {
       dsidtype_undefined,
-      dsidtype_classic,
-      dsidtype_sgtin,
-      dsidtype_uuid
+      dsidtype_classic, // 12-byte classic dsid
+      dsidtype_gid, // classic dsid, but encoded as GID96 within dsUID
+      dsidtype_sgtin, // dsUID based on SGTIN96
+      dsidtype_uuid, // dsUID based on UUID
+      dsidtype_other, // dsUID of not (yet) identifiable type
     } DsIdType;
 
-    // new SGTIN96 or UUID(128) dsid
-    static const uint8_t sgtinBytes = 12;
-    static const uint8_t uuidBytes = 16;
-    static const uint8_t rawBytes = 16; // must be max of the above
+    // new dsUID (SGTIN96, GID96 or UUID based)
+    static const uint8_t SGTIN96Header = 0x30; ///< SGTIN96 8bit header byte
+    static const uint8_t dsuidBytes = 17; ///< total bytes in a dsUID
+    static const uint8_t uuidBytes = 16; ///< actual ID bytes (UUID or EPC96 mapped into UUID)
 
     // old 96 bit dsid
     static const uint8_t GID96Header = 0x35; ///< GID96 8bit header byte
     static const uint32_t ManagerNo = 0x04175FE; ///< 28bit Manager number (for Aizo GmbH)
     typedef uint32_t ObjectClass; ///< 24bit object class
     typedef uint64_t DsSerialNo; ///< 36bit serial no (up to 52bits for certain object classes such as MAC-address)
-    static const uint8_t classicBytes = 12;
-    typedef union {
-      uint8_t classic[classicBytes];
-      uint8_t sgtin[sgtinBytes];
-      uint8_t uuid[uuidBytes];
-      uint8_t raw[uuidBytes]; // largest
-    } RawID;
+    static const uint8_t dsidBytes = 12; ///< total bytes in a (classic) dsid
+
+    typedef uint8_t RawID[dsuidBytes];
 
   private:
 
@@ -75,42 +73,33 @@ namespace p44 {
 
     void setIdType(DsIdType aIdType);
 
-    bool setAsSGTIN(const string &aString);
-    bool setAsUUID(const string &aString);
-    bool setAsClassic(const string &aString);
-    bool setAsHex(const string &aString);
-
-
   public:
 
     /// @name generic dsid operations
     /// @{
 
-    /// create empty dSID
+    /// create empty dsUID
     dSID();
 
-    /// create dsID from string
+    /// create dsUID from string
     /// @param aString string representing a dsid. Must be in one of the following formats
-    /// - a 24 digit hex string without any dashes for classic dsids
-    /// - a UUID in standard notation with dashes, i.e. 4by-2by-2by-2by-6by
-    /// - a sgtin in standard notation, i.e. ???? %%%% TODO: specify!
+    /// - a 24 digit hex string for classic dsids
+    /// - a 34 digit hex string for dsUIDs
     dSID(const string &aString);
     dSID(const char *aString);
 
-    /// set as string, group separating dashes are allowed
-    /// @param aString string representing a dsid. Must be in one of the following formats
-    /// - a 24 digit hex string without any dashes for classic dsids
-    /// - a UUID in standard notation with dashes, i.e. 4by-2by-2by-2by-6by
-    /// - a sgtin in standard notation, i.e. ???? %%%% TODO: specify!
-    /// @return true if 24 digits read, false otherwise
+    /// set as string, group separating dashes are allowed (but usually not needed)
+    /// @param aString string representing a dsUID. Must be in one of the following formats
+    /// - a 24 digit hex string for classic dsids
+    /// - a 34 digit hex string for dsUIDs
+    /// @return true if valid dsUID could be read
     bool setAsString(const string &aString);
 
-    /// get dSID in official string representation
+    /// get dsUID in official string representation
     /// @return string representation of dsid, depending on the type
     /// - empty string for dsidtype_undefined
-    /// - a 24 digit hex string without any dashes for classic dsids
-    /// - a UUID in standard notation with dashes, i.e. 4by-2by-2by-2by-6by
-    /// - a sgtin in standard notation, i.e. ???? %%%% TODO: specify!
+    /// - a 24 digit hex string for classic dsids
+    /// - a 34 digit hex string for dsUIDs
     string getString() const;
 
     // comparison
@@ -120,13 +109,21 @@ namespace p44 {
     /// @}
 
 
-    /// @name SGTIN96 based dsids
+    /// set the function/subdevice index of the dsUID
+    /// @param aSubDeviceIndex a subdevice index. Devices containing multiple, logically independent subdevices
+    ///   or functionality (like 2 or 4 buttons in one enOcean device) must use this index to differentiate
+    ///   the subdevices.
+    void setSubdeviceIndex(uint8_t aSubDeviceIndex);
+
+
+    /// @name SGTIN96 based dsUIDs
     /// @{
 
     /// set the GTIN part of the dsid
-    /// @param aGTIN a GTIN (global trade indentifier Number, GS1 number consisting of GCP + product identifier)
+    /// @param aGCP the global company prefix
+    /// @param aItemRef the item reference
     /// @param aPartition the partition value (encoding the length of the CGP in the GTIN)
-    void setGTIN(uint64_t aGTIN, uint8_t aPartition);
+    void setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition);
 
     /// set the serial part of the dsid
     /// @param aSerial a maximally 38bit long serial number
@@ -135,7 +132,7 @@ namespace p44 {
     /// @}
 
 
-    /// @name UUID based dsids
+    /// @name UUID based dsUIDs
     /// @{
 
     /// create UUIDv5 from namespace ID + name
