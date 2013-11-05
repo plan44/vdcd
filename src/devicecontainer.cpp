@@ -336,7 +336,7 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   // check if device with same dsid already exists
   DsDeviceMap::iterator pos = dSDevices.find(aDevice->dsid);
   if (pos!=dSDevices.end()) {
-    LOG(LOG_INFO, "- device %s already registered, not added again",aDevice->dsid.getString().c_str());
+    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->dsid.getString().c_str());
     return false; // duplicate dsid, not added
   }
   // set for given dsid in the container-wide map of devices

@@ -522,7 +522,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
 
 void Device::identifyToUser()
 {
-  LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****");
+  LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
 }
 
 
