@@ -71,9 +71,13 @@ void SerialComm::setConnectionParameters(const char* aConnectionPath, uint16_t a
 
 size_t SerialComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes)
 {
-  size_t res = 0;
+  ssize_t res = 0;
   if (establishConnection()) {
     res = write(connectionFd,aBytes,aNumBytes);
+    if (res<0) {
+      DBGLOG(LOG_DEBUG,"Error writing serial\n");
+      res = 0; // none written
+    }
     if (DBGLOGENABLED(LOG_DEBUG)) {
       std::string s;
       for (size_t i=0; i<aNumBytes; i++) {
@@ -97,7 +101,7 @@ size_t SerialComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
 		if (numBytes>aMaxBytes)
 			numBytes = (int)aMaxBytes;
 		// read
-    size_t gotBytes = 0;
+    ssize_t gotBytes = 0;
 		if (numBytes>0)
 			gotBytes = read(connectionFd,aBytes,numBytes); // read available bytes
     if (DBGLOGENABLED(LOG_DEBUG)) {
@@ -108,6 +112,10 @@ size_t SerialComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
         }
         DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
       }
+    }
+    if (gotBytes<0) {
+      DBGLOG(LOG_DEBUG,"   Error reading serial\n");
+      gotBytes = 0; // none read
     }
 		return gotBytes;
   }
