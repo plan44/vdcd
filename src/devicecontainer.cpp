@@ -667,9 +667,9 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
         respErr = ErrorPtr(new JsonRpcError(401,"no vDC session - cannot call method"));
       }
       else {
-        // session active - all commands need dSID parameter
+        // session active - all commands need dSUID parameter
         string dsidstring;
-        if (Error::isOK(respErr = checkStringParam(aParams, "dSID", dsidstring))) {
+        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
           // operation method
           respErr = handleMethodForDsid(aMethod, aJsonRpcId, dSID(dsidstring), aParams);
         }
@@ -681,7 +681,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
     if (sessionActive) {
       // out of session, notifications are simply ignored
       string dsidstring;
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSID", dsidstring))) {
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
         handleNotificationForDsid(aMethod, dSID(dsidstring), aParams);
       }
     }
@@ -778,7 +778,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
       respErr = ErrorPtr(new JsonRpcError(505, "Incompatible vDC API version - expected '1.0'"));
     else {
       // API version ok, check dsID
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSID", s))) {
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
         dSID vdsmDsid = dSID(s);
         // same vdSM can restart session any time. Others will be rejected
         if (!sessionActive || vdsmDsid==connectedVdsm) {
@@ -795,7 +795,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
           }
           // - create answer
           JsonObjectPtr result = JsonObject::newObj();
-          result->add("dSID", JsonObject::newString(dsid.getString()));
+          result->add("dSUID", JsonObject::newString(dsid.getString()));
           result->add("allowDisconnect", JsonObject::newBool(false));
           sendResult(aJsonRpcId, result);
           // - start session, enable sending announces now

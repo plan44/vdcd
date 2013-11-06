@@ -199,7 +199,7 @@ bool DsAddressable::sendRequest(const char *aMethod, JsonObjectPtr aParams, Json
     // create params object because we need it for the dSID
     aParams = JsonObject::newObj();
   }
-  aParams->add("dSID", JsonObject::newString(dsid.getString()));
+  aParams->add("dSUID", JsonObject::newString(dsid.getString()));
   return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
 }
 
@@ -268,7 +268,7 @@ int DsAddressable::numProps(int aDomain)
 const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDsAddressableProperties] = {
-    { "dSID", ptype_charptr, false, dSID_key, &dsAddressable_key },
+    { "dSUID", ptype_charptr, false, dSID_key, &dsAddressable_key },
     { "model", ptype_charptr, false, model_key, &dsAddressable_key },
     { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
     { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
