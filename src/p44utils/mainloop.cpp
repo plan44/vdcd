@@ -222,8 +222,10 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
     }
   }
   else {
-    // fork failed, call back with error
-    aCallback(*this, cycleStartTime, SysError::errNo());
+    if (aCallback) {
+      // fork failed, call back with error
+      aCallback(*this, cycleStartTime, SysError::errNo());
+    }
   }
   return;
 }
@@ -242,7 +244,9 @@ void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine)
 
 void MainLoop::execChildTerminated(ExecCB aCallback, pid_t aPid, int aStatus)
 {
-  aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)));
+  if (aCallback) {
+    aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)));
+  }
 }
 
 
