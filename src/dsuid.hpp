@@ -1,5 +1,5 @@
 //
-//  dsid.hpp
+//  dsuid.hpp
 //  vdcd
 //
 //  Created by Lukas Zeller on 18.04.13.
@@ -14,16 +14,16 @@
 
 // UUID based dsids
 // - enOcean device namespace
-#define DSID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
+#define DSUID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
 // - GS1-128 identified device namespace
-#define DSID_GS128_NAMESPACE_UUID "8ca838d5-4c40-47cc-bafa-37ac89658962"
+#define DSUID_GS128_NAMESPACE_UUID "8ca838d5-4c40-47cc-bafa-37ac89658962"
 // - vDC namespace (to create a UUIDv5 for a vDC from the MAC address of the hardware)
-#define DSID_VDC_NAMESPACE_UUID "9888dd3d-b345-4109-b088-2673306d0c65"
+#define DSUID_VDC_NAMESPACE_UUID "9888dd3d-b345-4109-b088-2673306d0c65"
 // - vdSM namespace (to create a UUIDv5 for a vdSM from the MAC address of the hardware)
-#define DSID_VDSM_NAMESPACE_UUID "195de5c0-902f-4b71-a706-b43b80765e3d"
+#define DSUID_VDSM_NAMESPACE_UUID "195de5c0-902f-4b71-a706-b43b80765e3d"
 
 // - plan44 vDC implementation namespace (used for generating vDC-implementation specific dsids)
-#define DSID_P44VDC_NAMESPACE_UUID "441A1FED-F449-4058-BEBA-13B1C4AB6A93"
+#define DSUID_P44VDC_NAMESPACE_UUID "441A1FED-F449-4058-BEBA-13B1C4AB6A93"
 
 // classic dsids
 #define DSID_OBJECTCLASS_DSDEVICE 0x000000
@@ -36,80 +36,80 @@ using namespace std;
 
 namespace p44 {
 
-  class dSID : public P44Obj
+  class DsUid : public P44Obj
   {
   public:
     /// type of ID
     typedef enum {
-      dsidtype_undefined,
-      dsidtype_classic, // 12-byte classic dsid
-      dsidtype_gid, // classic dsid, but encoded as GID96 within dsUID
-      dsidtype_sgtin, // dsUID based on SGTIN96
-      dsidtype_uuid, // dsUID based on UUID
-      dsidtype_other, // dsUID of not (yet) identifiable type
-    } DsIdType;
+      idtype_undefined,
+      idtype_classic, // 12-byte classic dSUID
+      idtype_gid, // classic dSUID, but encoded as GID96 within dSUID
+      idtype_sgtin, // dSUID based on SGTIN96
+      idtype_uuid, // dSUID based on UUID
+      idtype_other, // dSUID of not (yet) identifiable type
+    } DsUidType;
 
-    // new dsUID (SGTIN96, GID96 or UUID based)
+    // new dSUID (SGTIN96, GID96 or UUID based)
     static const uint8_t SGTIN96Header = 0x30; ///< SGTIN96 8bit header byte
-    static const uint8_t dsuidBytes = 17; ///< total bytes in a dsUID
+    static const uint8_t dsuidBytes = 17; ///< total bytes in a dSUID
     static const uint8_t uuidBytes = 16; ///< actual ID bytes (UUID or EPC96 mapped into UUID)
 
-    // old 96 bit dsid
+    // old 96 bit dSUID
     static const uint8_t GID96Header = 0x35; ///< GID96 8bit header byte
     static const uint32_t ManagerNo = 0x04175FE; ///< 28bit Manager number (for Aizo GmbH)
     typedef uint32_t ObjectClass; ///< 24bit object class
     typedef uint64_t DsSerialNo; ///< 36bit serial no (up to 52bits for certain object classes such as MAC-address)
-    static const uint8_t dsidBytes = 12; ///< total bytes in a (classic) dsid
+    static const uint8_t dsidBytes = 12; ///< total bytes in a (classic) dSUID
 
     typedef uint8_t RawID[dsuidBytes];
 
   private:
 
-    DsIdType idType; ///< the type of ID
+    DsUidType idType; ///< the type of ID
     uint8_t idBytes; ///< the length of the ID in bytes
-    RawID raw; ///< the raw dsid
+    RawID raw; ///< the raw dSUID
 
     void internalInit();
 
-    void setIdType(DsIdType aIdType);
+    void setIdType(DsUidType aIdType);
 
   public:
 
-    /// @name generic dsid operations
+    /// @name generic dSUID operations
     /// @{
 
-    /// create empty dsUID
-    dSID();
+    /// create empty dSUID
+    DsUid();
 
-    /// create dsUID from string
-    /// @param aString string representing a dsid. Must be in one of the following formats
+    /// create dSUID from string
+    /// @param aString string representing a dSUID. Must be in one of the following formats
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
-    dSID(const string &aString);
-    dSID(const char *aString);
+    DsUid(const string &aString);
+    DsUid(const char *aString);
 
     /// set as string, group separating dashes are allowed (but usually not needed)
-    /// @param aString string representing a dsUID. Must be in one of the following formats
+    /// @param aString string representing a dSUID. Must be in one of the following formats
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
-    /// @return true if valid dsUID could be read
+    /// @return true if valid dSUID could be read
     bool setAsString(const string &aString);
 
-    /// get dsUID in official string representation
-    /// @return string representation of dsid, depending on the type
-    /// - empty string for dsidtype_undefined
+    /// get dSUID in official string representation
+    /// @return string representation of dSUID, depending on the type
+    /// - empty string for idtype_undefined
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
     string getString() const;
 
     // comparison
-    bool operator== (const dSID &aDSID) const;
-    bool operator< (const dSID &aDSID) const;
+    bool operator== (const DsUid &aDSID) const;
+    bool operator< (const DsUid &aDSID) const;
 
     /// @}
 
 
-    /// set the function/subdevice index of the dsUID
+    /// set the function/subdevice index of the dSUID
     /// @param aSubDeviceIndex a subdevice index. Devices containing multiple, logically independent subdevices
     ///   or functionality (like 2 or 4 buttons in one enOcean device) must use this index to differentiate
     ///   the subdevices.
@@ -119,13 +119,13 @@ namespace p44 {
     /// @name SGTIN96 based dsUIDs
     /// @{
 
-    /// set the GTIN part of the dsid
+    /// set the GTIN part of the dSUID
     /// @param aGCP the global company prefix
     /// @param aItemRef the item reference
     /// @param aPartition the partition value (encoding the length of the CGP in the GTIN)
     void setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition);
 
-    /// set the serial part of the dsid
+    /// set the serial part of the dSUID
     /// @param aSerial a maximally 38bit long serial number
     void setSerial(uint64_t aSerial);
 
@@ -137,8 +137,8 @@ namespace p44 {
 
     /// create UUIDv5 from namespace ID + name
     /// @param aName the name part (unique identifier within the name space)
-    /// @param aNameSpace a UUID-type dsid representing the name space
-    void setNameInSpace(const string &aName, const dSID &aNameSpace);
+    /// @param aNameSpace a UUID-type dSUID representing the name space
+    void setNameInSpace(const string &aName, const DsUid &aNameSpace);
 
     /// @}
 
@@ -164,7 +164,7 @@ namespace p44 {
     /// @}
 
   };
-  typedef boost::intrusive_ptr<dSID> dSIDPtr;
+  typedef boost::intrusive_ptr<DsUid> DsUidPtr;
 
 
 } // namespace p44

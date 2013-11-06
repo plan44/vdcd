@@ -592,7 +592,7 @@ ErrorPtr Device::load()
     deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
   // load the device settings
   if (deviceSettings)
-    deviceSettings->loadFromStore(dsid.getString().c_str());
+    deviceSettings->loadFromStore(dSUID.getString().c_str());
   // load the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
@@ -605,7 +605,7 @@ ErrorPtr Device::load()
 ErrorPtr Device::save()
 {
   // save the device settings
-  if (deviceSettings) deviceSettings->saveToStore(dsid.getString().c_str());
+  if (deviceSettings) deviceSettings->saveToStore(dSUID.getString().c_str());
   // save the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->save();

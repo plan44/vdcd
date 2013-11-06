@@ -104,8 +104,8 @@ vdcd_SOURCES = \
   src/devicecontainer.cpp \
   src/devicecontainer.hpp \
   src/dsdefs.h \
-  src/dsid.cpp \
-  src/dsid.hpp \
+  src/dsuid.cpp \
+  src/dsuid.hpp \
   src/enoceancomm.cpp \
   src/enoceancomm.hpp \
   src/enoceandevice.cpp \

@@ -339,7 +339,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
   // hue devices are lights
   setPrimaryGroup(group_yellow_light);
   // derive the dSID
-  deriveDSID();
+  deriveDsUid();
   // use light settings, which include a scene table
   deviceSettings = DeviceSettingsPtr(new HueDeviceSettings(*this));
   // set the behaviour
@@ -554,16 +554,16 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 
 
-void HueDevice::deriveDSID()
+void HueDevice::deriveDsUid()
 {
   #warning "lightID is not exactly a stable ID. But the hue API does not provide anything better at this time"
-  if (getDeviceContainer().modernDsids()) {
+  if (getDeviceContainer().usingDsUids()) {
     // vDC implementation specific UUID:
     //   UUIDv5 with name = classcontainerinstanceid::huelightid
-    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
     s += "::" + lightID;
-    dsid.setNameInSpace(s, vdcNamespace);
+    dSUID.setNameInSpace(s, vdcNamespace);
   }
   else {
     Fnv64 hash;
@@ -574,12 +574,12 @@ void HueDevice::deriveDSID()
     // - add-in the console device name
     hash.addBytes(lightID.length(), (uint8_t *)lightID.c_str());
     #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
+    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
     #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
     #else
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
     #endif
     // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
   }

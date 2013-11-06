@@ -9,7 +9,7 @@
 #ifndef __vdcd__dsaddressable__
 #define __vdcd__dsaddressable__
 
-#include "dsid.hpp"
+#include "dSUID.hpp"
 #include "jsonrpccomm.hpp"
 #include "propertycontainer.hpp"
 
@@ -47,7 +47,7 @@ namespace p44 {
     virtual ~DsAddressable();
 
     /// the digitalstrom ID of this addressable entity
-    dSID dsid;
+    DsUid dSUID;
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return *deviceContainerP; };

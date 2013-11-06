@@ -39,7 +39,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   // use OEM GTIN/Serial if this is set, but main GTIN/Serial is not (some Meanwell LED dimmers)
   deviceInfo.makeUniquelyIdentifyingFromOEM();
   // derive the dSID
-  deriveDSID();
+  deriveDsUid();
   // use light settings, which include a scene table
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
@@ -206,11 +206,11 @@ Brightness DaliDevice::arcpowerToBrightness(int aArcpower)
 
 
 
-void DaliDevice::deriveDSID()
+void DaliDevice::deriveDsUid()
 {
-  if (getDeviceContainer().modernDsids()) {
+  if (getDeviceContainer().usingDsUids()) {
     // vDC implementation specific UUID:
-    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     string s;
     if (deviceInfo.uniquelyIdentifying()) {
       // uniquely identified by GTIN+Serial, but unknown partition value:
@@ -228,7 +228,7 @@ void DaliDevice::deriveDSID()
       s = classContainerP->deviceClassContainerInstanceIdentifier();
       string_format_append(s, "::%d", deviceInfo.shortAddress);
     }
-    dsid.setNameInSpace(s, vdcNamespace);
+    dSUID.setNameInSpace(s, vdcNamespace);
   }
   else {
     // create a hash
@@ -261,13 +261,13 @@ void DaliDevice::deriveDSID()
       hash.addByte(deviceInfo.shortAddress);
     }
     #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(hash.getHash32());
+    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dSUID.setDsSerialNo(hash.getHash32());
     #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
     #else
     // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
     #endif
   }
 }

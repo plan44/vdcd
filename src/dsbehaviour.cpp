@@ -59,7 +59,7 @@ void DsBehaviour::setGroup(DsGroup aGroup)
 
 string DsBehaviour::getDbKey()
 {
-  return string_format("%s_%d",device.dsid.getString().c_str(),index);
+  return string_format("%s_%d",device.dSUID.getString().c_str(),index);
 }
 
 

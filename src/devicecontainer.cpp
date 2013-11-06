@@ -37,7 +37,7 @@ DeviceContainer::DeviceContainer() :
   localDimDown(false),
   sessionActive(false),
   sessionActivityTicket(0),
-  useModernDsids(false)
+  dsUids(false)
 {
   // obtain MAC address
   mac = macAddress();
@@ -61,15 +61,15 @@ string DeviceContainer::macAddressString()
 
 
 
-void DeviceContainer::deriveDSID()
+void DeviceContainer::deriveDsUid()
 {
-  if (!externalDsid) {
-    // we don't have a fixed external dsid to base everything on, derive a dsid of our own
-    if (modernDsids()) {
+  if (!externalDsuid) {
+    // we don't have a fixed external dSUID to base everything on, derive a dSUID of our own
+    if (usingDsUids()) {
       // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
-      // - calculate UUIDv5 based dsid
-      dSID vdcNamespace(DSID_VDC_NAMESPACE_UUID);
-      dsid.setNameInSpace(macAddressString(), vdcNamespace);
+      // - calculate UUIDv5 based dSUID
+      DsUid vdcNamespace(DSUID_VDC_NAMESPACE_UUID);
+      dSUID.setNameInSpace(macAddressString(), vdcNamespace);
     }
     else {
       // classic dsids: create a hash from MAC hex string
@@ -77,27 +77,27 @@ void DeviceContainer::deriveDSID()
       string s = macAddressString();
       hash.addBytes(s.size(), (uint8_t *)s.c_str());
       #if FAKE_REAL_DSD_IDS
-      dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-      dsid.setDsSerialNo(hash.getHash32());
+      dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+      dSUID.setDsSerialNo(hash.getHash32());
       #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
       #else
       // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-      dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-      dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+      dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+      dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
       #endif
     }
   }
 }
 
 
-void DeviceContainer::setDsidMode(bool aModern, dSIDPtr aExternalDsid)
+void DeviceContainer::setIdMode(bool aDsUids, DsUidPtr aExternalDsUid)
 {
-  useModernDsids = aModern;
-  if (aExternalDsid) {
-    externalDsid = true;
-    dsid = *aExternalDsid;
+  dsUids = aDsUids;
+  if (aExternalDsUid) {
+    externalDsuid = true;
+    dSUID = *aExternalDsUid;
   }
-  deriveDSID(); // derive my dsid now (again), if necessary
+  deriveDsUid(); // derive my dSUID now (again), if necessary
 }
 
 
@@ -203,7 +203,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dsid (%s) = %s\n", macAddressString().c_str(), externalDsid ? "external" : "MAC-derived", dsid.getString().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", dSUID.getString().c_str());
   // start the API server
   vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database
@@ -328,19 +328,19 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental
 #pragma mark - adding/removing devices
 
 
-// add a new device, replaces possibly existing one based on dsid
+// add a new device, replaces possibly existing one based on dSUID
 bool DeviceContainer::addDevice(DevicePtr aDevice)
 {
   if (!aDevice)
     return false; // no device, nothing added
-  // check if device with same dsid already exists
-  DsDeviceMap::iterator pos = dSDevices.find(aDevice->dsid);
+  // check if device with same dSUID already exists
+  DsDeviceMap::iterator pos = dSDevices.find(aDevice->dSUID);
   if (pos!=dSDevices.end()) {
-    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->dsid.getString().c_str());
-    return false; // duplicate dsid, not added
+    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->dSUID.getString().c_str());
+    return false; // duplicate dSUID, not added
   }
-  // set for given dsid in the container-wide map of devices
-  dSDevices[aDevice->dsid] = aDevice;
+  // set for given dSUID in the container-wide map of devices
+  dSDevices[aDevice->dSUID] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
   LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
@@ -363,7 +363,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     aDevice->save();
   }
   // remove from container-wide map of devices
-  dSDevices.erase(aDevice->dsid);
+  dSDevices.erase(aDevice->dSUID);
   LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
 }
 
@@ -671,7 +671,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
         string dsidstring;
         if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
           // operation method
-          respErr = handleMethodForDsid(aMethod, aJsonRpcId, dSID(dsidstring), aParams);
+          respErr = handleMethodForDsid(aMethod, aJsonRpcId, DsUid(dsidstring), aParams);
         }
       }
     }
@@ -682,7 +682,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
       // out of session, notifications are simply ignored
       string dsidstring;
       if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
-        handleNotificationForDsid(aMethod, dSID(dsidstring), aParams);
+        handleNotificationForDsid(aMethod, DsUid(dsidstring), aParams);
       }
     }
   }
@@ -714,9 +714,9 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsid, JsonObjectPtr aParams)
 {
-  if (aDsid==dsid) {
+  if (aDsid==dSUID) {
     // container level method
     return handleMethod(aMethod, aJsonRpcId, aParams);
   }
@@ -743,9 +743,9 @@ ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const strin
 
 
 
-void DeviceContainer::handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams)
+void DeviceContainer::handleNotificationForDsid(const string &aMethod, const DsUid &aDsid, JsonObjectPtr aParams)
 {
-  if (aDsid==dsid) {
+  if (aDsid==dSUID) {
     // container level notification
     handleNotification(aMethod, aParams);
   }
@@ -779,7 +779,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
     else {
       // API version ok, check dsID
       if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
-        dSID vdsmDsid = dSID(s);
+        DsUid vdsmDsid = DsUid(s);
         // same vdSM can restart session any time. Others will be rejected
         if (!sessionActive || vdsmDsid==connectedVdsm) {
           // ok to start new session
@@ -795,7 +795,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
           }
           // - create answer
           JsonObjectPtr result = JsonObject::newObj();
-          result->add("dSUID", JsonObject::newString(dsid.getString()));
+          result->add("dSUID", JsonObject::newString(dSUID.getString()));
           result->add("allowDisconnect", JsonObject::newBool(false));
           sendResult(aJsonRpcId, result);
           // - start session, enable sending announces now

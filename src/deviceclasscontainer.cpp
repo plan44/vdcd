@@ -54,9 +54,9 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
   string_format_append(s, ".%d@", getInstanceNumber());
-  if (deviceContainerP->modernDsids()) {
-    // with modern dsids, device container is always identified via its dsid
-    s.append(deviceContainerP->dsid.getString());
+  if (deviceContainerP->usingDsUids()) {
+    // with modern dsids, device container is always identified via its dSUID
+    s.append(deviceContainerP->dSUID.getString());
   }
   else {
     // with classic dsids, device container was identified by its MAC address, so we simulate that to
@@ -173,7 +173,7 @@ bool DeviceClassContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue
   if (!aForWrite) {
     // read only
     if (aPropertyDescriptor.accessKey==deviceClassInstance_key) {
-      // return dsid of contained devices
+      // return dSUID of contained devices
       aPropValue = JsonObject::newString(deviceClassContainerInstanceIdentifier());
       return true;
     }
@@ -184,8 +184,8 @@ bool DeviceClassContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue
         return true;
       }
       else if (aIndex<devices.size()) {
-        // return dsid of contained devices
-        aPropValue = JsonObject::newString(devices[aIndex]->dsid.getString());
+        // return dSUID of contained devices
+        aPropValue = JsonObject::newString(devices[aIndex]->dSUID.getString());
         return true;
       }
     }

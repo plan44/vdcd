@@ -199,7 +199,7 @@ bool DsAddressable::sendRequest(const char *aMethod, JsonObjectPtr aParams, Json
     // create params object because we need it for the dSID
     aParams = JsonObject::newObj();
   }
-  aParams->add("dSUID", JsonObject::newString(dsid.getString()));
+  aParams->add("dSUID", JsonObject::newString(dSUID.getString()));
   return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
 }
 
@@ -295,7 +295,7 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
     }
     else {
       switch (aPropertyDescriptor.accessKey) {
-        case dSID_key: aPropValue = JsonObject::newString(dsid.getString()); return true;
+        case dSID_key: aPropValue = JsonObject::newString(dSUID.getString()); return true;
         case model_key: aPropValue = JsonObject::newString(modelName()); return true;
         case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
         case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
@@ -329,8 +329,8 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
 
 string DsAddressable::shortDesc()
 {
-  // short description is dsid
-  return dsid.getString();
+  // short description is dSUID
+  return dSUID.getString();
 }
 
 

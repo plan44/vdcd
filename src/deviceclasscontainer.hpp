@@ -13,7 +13,7 @@
 
 #include "devicecontainer.hpp"
 
-#include "dsid.hpp"
+#include "dsuid.hpp"
 
 using namespace std;
 
@@ -97,7 +97,7 @@ namespace p44 {
     ///   the ID should not be dependent on the software version
     ///   the ID must differ for each of multiple device class containers run on the same hardware
     ///   the ID MUST change when same software runs on different hardware
-    /// @note Current implementation derives this from the devicecontainer's dsid (modern) or mac address (classic),
+    /// @note Current implementation derives this from the devicecontainer's dSUID (modern) or mac address (classic),
     ///   the deviceClassIdentitfier and the instance number in the form "class:instanceIndex@devicecontainerDsidOrMAC"
     string deviceClassContainerInstanceIdentifier() const;
 
@@ -138,9 +138,9 @@ namespace p44 {
     /// @{
 
     /// Add device collected from hardware side (bus scan, etc.)
-    /// @param aDevice a device object which has a valid dsid
-    /// @return false if aDevice's dsid is already known.
-    /// @note if aDevice's dsid is already known, it will *not* be added again. This facilitates
+    /// @param aDevice a device object which has a valid dSUID
+    /// @return false if aDevice's dSUID is already known.
+    /// @note if aDevice's dSUID is already known, it will *not* be added again. This facilitates
     ///   implementation of incremental collection of newly appeared devices (scanning entire bus,
     ///   known ones will just be ignored when encountered again)
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
@@ -148,7 +148,7 @@ namespace p44 {
     virtual bool addDevice(DevicePtr aDevice);
 
     /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
-    /// @param aDevice a device object which has a valid dsid
+    /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, all parameters stored for the device will be deleted. Note however that
     ///   the device is not disconnected (=unlearned) by this.
     virtual void removeDevice(DevicePtr aDevice, bool aForget = false);

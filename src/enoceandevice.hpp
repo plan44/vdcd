@@ -210,7 +210,7 @@ namespace p44 {
   protected:
 
     /// derive dSID from hardware address
-    void deriveDSID();
+    void deriveDsUid();
 
   private:
 

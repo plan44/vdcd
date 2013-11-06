@@ -101,11 +101,11 @@ namespace p44 {
 
 
     /// get parameter set from persistent storage
-    /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
+    /// @param aParentIdentifier identifies the parent of this parameter set (a string (G)UID or the ROWID of a parent parameter set)
     ErrorPtr loadFromStore(const char *aParentIdentifier);
 
     /// save parameter set to persistent storage if dirty
-    /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
+    /// @param aParentIdentifier identifies the parent of this parameter set (a string (G)UID or the ROWID of a parent parameter set)
     ErrorPtr saveToStore(const char *aParentIdentifier);
 
     /// delete this parameter set from the store
@@ -113,7 +113,7 @@ namespace p44 {
 
     /// helper for implementation of loadChildren()
     /// @return a prepared query set up to iterate through all records with a given parent identifier, or NULL on error
-    /// @param aParentIdentifier identifies the parent of this parameter set (the dsid or the ROWID of a parent parameter set)
+    /// @param aParentIdentifier identifies the parent of this parameter set (a string (G)UID or the ROWID of a parent parameter set)
     sqlite3pp::query *newLoadAllQuery(const char *aParentIdentifier);
 
 

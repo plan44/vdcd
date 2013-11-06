@@ -23,7 +23,7 @@ namespace p44 {
   class DeviceClassContainer;
   class Device;
   class ButtonBehaviour;
-  class dSID;
+  class DsUid;
 
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef boost::intrusive_ptr<Device> DevicePtr;
@@ -58,7 +58,7 @@ namespace p44 {
   class DeviceContainer;
   typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
   typedef vector<DeviceClassContainerPtr> ContainerVector;
-  typedef map<dSID, DevicePtr> DsDeviceMap;
+  typedef map<DsUid, DevicePtr> DsDeviceMap;
 
   typedef list<JsonRpcCommPtr> ApiConnectionList;
 
@@ -71,8 +71,8 @@ namespace p44 {
     friend class DeviceClassContainer;
     friend class DsAddressable;
 
-    bool useModernDsids; ///< set to use modern (GS1/UUID based) dSIDs
-    bool externalDsid; ///< set when dSID is set to a UUIDv1 from external
+    bool dsUids; ///< set to use dsUIDs (GS1/UUID based, 34 hex chars)
+    bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
     uint64_t mac; ///< MAC address as found at startup
 
     DsDeviceMap dSDevices; ///< available devices by dSID
@@ -89,7 +89,7 @@ namespace p44 {
 
     // vDC session
     bool sessionActive;
-    dSID connectedVdsm;
+    DsUid connectedVdsm;
     long sessionActivityTicket;
     ApiConnectionList apiConnections;
     JsonRpcCommPtr sessionComm;
@@ -111,16 +111,16 @@ namespace p44 {
     /// API for vdSM
     SocketComm vdcApiServer;
 
-    /// Set how dsids are generated (GS1/UUID based) dSIDs
-    /// @param aModern true to enable modern dSIDs
-    /// @param aExternalDSID if specified, this is used directly as dsid for the device container
+    /// Set how dsids are generated
+    /// @param aDsUid true to enable modern dSUIDs (GS1/UUID based)
+    /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container
     /// @note Must be set before any other activity in the device container, in particular before
     ///   any class containers are added to the device container
-    void setDsidMode(bool aModern, dSIDPtr aExternalDsid = dSIDPtr());
+    void setIdMode(bool aDsUid, DsUidPtr aExternalDsUid = DsUidPtr());
 
 
     /// @return true if modern GS1/UUID based dSIDs should be used
-    bool modernDsids() { return useModernDsids; };
+    bool usingDsUids() { return dsUids; };
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
@@ -207,15 +207,15 @@ namespace p44 {
     void reportLearnEvent(bool aLearnIn, ErrorPtr aError);
 
     /// called by device class containers to add devices to the container-wide devices list
-    /// @param aDevice a device object which has a valid dsid
-    /// @return false if aDevice's dsid is already known.
-    /// @note aDevice is added *only if no device is already known with this dsid*
+    /// @param aDevice a device object which has a valid dSUID
+    /// @return false if aDevice's dSUID is already known.
+    /// @note aDevice is added *only if no device is already known with this dSUID*
     /// @note this can be called as part of a collectDevices scan, or when a new device is detected
     ///   by other means than a scan/collect operation
     bool addDevice(DevicePtr aDevice);
 
     /// called by device class containers to remove devices from the container-wide list
-    /// @param aDevice a device object which has a valid dsid
+    /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, parameters stored for the device will be deleted
     void removeDevice(DevicePtr aDevice, bool aForget);
 
@@ -282,8 +282,8 @@ namespace p44 {
 
   private:
 
-    // derive dsid
-    void deriveDSID();
+    // derive dSUID
+    void deriveDsUid();
 
     // local operation mode
     void handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);
@@ -299,8 +299,8 @@ namespace p44 {
     void endContainerSession();
 
     // method and notification dispatching
-    ErrorPtr handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const dSID &aDsid, JsonObjectPtr aParams);
-    void handleNotificationForDsid(const string &aMethod, const dSID &aDsid, JsonObjectPtr aParams);
+    ErrorPtr handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsid, JsonObjectPtr aParams);
+    void handleNotificationForDsid(const string &aMethod, const DsUid &aDsid, JsonObjectPtr aParams);
 
     // vDC level method and notification handlers
     ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);

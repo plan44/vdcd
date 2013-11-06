@@ -58,7 +58,7 @@ namespace p44 {
 
   protected:
 
-    void deriveDSID();
+    void deriveDsUid();
 		
 	private:
 

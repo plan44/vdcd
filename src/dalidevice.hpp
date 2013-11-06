@@ -97,8 +97,8 @@ namespace p44 {
 
   protected:
 
-    /// derive the dsid from collected device info
-    void deriveDSID();
+    /// derive the dSUID from collected device info
+    void deriveDsUid();
 
     /// convert dS brightness value to DALI arc power
     /// @param aBrightness 0..255

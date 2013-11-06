@@ -57,7 +57,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
     addBehaviour(b);
   }
-	deriveDSID();
+	deriveDsUid();
 }
 
 
@@ -82,19 +82,19 @@ void DigitalIODevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 
 
-void DigitalIODevice::deriveDSID()
+void DigitalIODevice::deriveDsUid()
 {
   Fnv64 hash;
 
-  if (getDeviceContainer().modernDsids()) {
+  if (getDeviceContainer().usingDsUids()) {
     // vDC implementation specific UUID:
     //   UUIDv5 with name = classcontainerinstanceid::ioname[:ioname ...]
-    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
     s += ':';
     if (buttonInput) s += ':' + buttonInput->getName();
     if (indicatorOutput) s += ':' + indicatorOutput->getName();
-    dsid.setNameInSpace(s, vdcNamespace);
+    dSUID.setNameInSpace(s, vdcNamespace);
   }
   else {
     // we have no unqiquely defining device information, construct something as reproducible as possible
@@ -107,12 +107,12 @@ void DigitalIODevice::deriveDSID()
     if (indicatorOutput)
       hash.addCStr(indicatorOutput->getName());
     #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
+    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
     #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
     #else
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
     #endif
     // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
   }

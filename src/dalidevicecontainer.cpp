@@ -97,7 +97,7 @@ private:
       #endif
         // - create device
         DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
-        // - give it device info (such that it can calculate its dsid)
+        // - give it device info (such that it can calculate its dSUID)
         //   Note: device info might be empty except for short address
         daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
         // - make it 

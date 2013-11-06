@@ -74,7 +74,7 @@ void EnoceanDevice::setAddressingInfo(EnoceanAddress aAddress, EnoceanSubDevice 
 {
   enoceanAddress = aAddress;
   subDevice = aSubDevice;
-  deriveDSID();
+  deriveDsUid();
 }
 
 
@@ -98,26 +98,26 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 
 
-void EnoceanDevice::deriveDSID()
+void EnoceanDevice::deriveDsUid()
 {
-  if (getDeviceContainer().modernDsids()) {
+  if (getDeviceContainer().usingDsUids()) {
     // UUID in enOcean name space
     //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
-    dSID enOceanNamespace(DSID_ENOCEAN_NAMESPACE_UUID);
+    DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
     string s = string_format("%08lX", getAddress()); // base address comes from
-    dsid.setNameInSpace(s, enOceanNamespace);
-    dsid.setSubdeviceIndex(getSubDevice()*idBlockSize()); // space subdevices according to idBlockSize (e.g. up/down-buttons will reserve a second subdevice to allow vdSM to expand it into 2 separate buttons)
+    dSUID.setNameInSpace(s, enOceanNamespace);
+    dSUID.setSubdeviceIndex(getSubDevice()*idBlockSize()); // space subdevices according to idBlockSize (e.g. up/down-buttons will reserve a second subdevice to allow vdSM to expand it into 2 separate buttons)
   }
   else {
     #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(
+    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dSUID.setDsSerialNo(
       ((uint64_t)getAddress()<<4) + // 32 upper bits, 4..35
       ((getSubDevice()*idBlockSize()) & 0x0F) // 4 lower bits for up to 16 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)
     );
     #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
     #else
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
+    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
     // TODO: validate, now we are using the MAC-address class with:
     // - bits 48..51 set to 6
     // - bits 40..47 unused
@@ -125,7 +125,7 @@ void EnoceanDevice::deriveDSID()
     // - subdevice encoded into bits 0..7 (max 255 subdevices)
     //   Note: this conforms to the dS convention which mandates that multi-input physical
     //   devices (up to 4) must have adjacent dsids.
-    dsid.setSerialNo(
+    dSUID.setSerialNo(
       0x6000000000000ll+
       ((uint64_t)getAddress()<<8) +
       ((getSubDevice()*idBlockSize()) & 0xFF) // 8 lower bits for up to 256 subdevices. Some subdevices might reserve more than one dSID (idBlockSize()>1)

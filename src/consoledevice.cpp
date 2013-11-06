@@ -64,7 +64,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     b->setHardwareName(string_format("console key '%c'",name[0]));
     addBehaviour(b);
   }
-	deriveDSID();
+	deriveDsUid();
 }
 
 
@@ -94,15 +94,15 @@ void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 
 
-void ConsoleDevice::deriveDSID()
+void ConsoleDevice::deriveDsUid()
 {
-  if (getDeviceContainer().modernDsids()) {
+  if (getDeviceContainer().usingDsUids()) {
     // vDC implementation specific UUID:
     //   UUIDv5 with name = classcontainerinstanceid::consoledevicename
-    dSID vdcNamespace(DSID_P44VDC_NAMESPACE_UUID);
+    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
     s += "::" + getName();
-    dsid.setNameInSpace(s, vdcNamespace);
+    dSUID.setNameInSpace(s, vdcNamespace);
   }
   else {
     Fnv64 hash;
@@ -113,12 +113,12 @@ void ConsoleDevice::deriveDSID()
     // - add-in the console device name
     hash.addCStr(getName().c_str());
     #if FAKE_REAL_DSD_IDS
-    dsid.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dsid.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
+    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
     #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
     #else
-    dsid.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dsid.setSerialNo(0x7000000000000ll+hash.getHash48());
+    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
+    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
     #endif
     // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
   }

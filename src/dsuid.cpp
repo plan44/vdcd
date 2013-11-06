@@ -1,12 +1,12 @@
 //
-//  dsid.cpp
+//  dsuid.cpp
 //  vdcd
 //
 //  Created by Lukas Zeller on 18.04.13.
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#include "dsid.hpp"
+#include "dsuid.hpp"
 
 #include <openssl/sha.h>
 
@@ -16,15 +16,15 @@ using namespace p44;
 
 // create empty
 
-void dSID::internalInit()
+void DsUid::internalInit()
 {
-  idType = dsidtype_undefined;
+  idType = idtype_undefined;
   memset(raw, 0, sizeof(raw));
 }
 
 
 
-dSID::dSID()
+DsUid::DsUid()
 {
   internalInit();
 }
@@ -32,10 +32,10 @@ dSID::dSID()
 
 
 // Byte offset         0 1 2 3  4 5  6 7  8 9 101112131415 16
-// dsUID with UUID  : xxxxxxxx-xxxx-Vxxx-Txxx-xxxxxxxxxxxx ii   (V=version, T=type/variant, ii=subdevice index)
-// dsUID with EPC96 : ssssssss ssss 0000 0000 ssssssssssss ii   (ii=subdevice index)
+// dSUID with UUID  : xxxxxxxx-xxxx-Vxxx-Txxx-xxxxxxxxxxxx ii   (V=version, T=type/variant, ii=subdevice index)
+// dSUID with EPC96 : ssssssss ssss 0000 0000 ssssssssssss ii   (ii=subdevice index)
 
-void dSID::setIdType(DsIdType aIdType)
+void DsUid::setIdType(DsUidType aIdType)
 {
   if (aIdType!=idType) {
     // new type, reset
@@ -43,7 +43,7 @@ void dSID::setIdType(DsIdType aIdType)
     memset(raw, 0, sizeof(raw));
     switch (idType) {
       // classic
-      case dsidtype_classic:
+      case idtype_classic:
         idBytes = dsidBytes;
         // header byte
         raw[0] = GID96Header;
@@ -53,12 +53,12 @@ void dSID::setIdType(DsIdType aIdType)
         raw[3] = (ManagerNo>>4) & 0xFF;
         raw[4] = (ManagerNo<<4) & 0xF0;
         break;
-      // dsUID
-      case dsidtype_sgtin:
+      // dSUID
+      case idtype_sgtin:
         raw[0] = SGTIN96Header;
         // fall through
-      case dsidtype_uuid:
-      case dsidtype_gid:
+      case idtype_uuid:
+      case idtype_gid:
         idBytes = dsuidBytes;
         break;
       default:
@@ -69,10 +69,10 @@ void dSID::setIdType(DsIdType aIdType)
 }
 
 
-void dSID::setSubdeviceIndex(uint8_t aSubDeviceIndex)
+void DsUid::setSubdeviceIndex(uint8_t aSubDeviceIndex)
 {
   if (idBytes==dsuidBytes) {
-    // is a dsUID, can set subdevice index
+    // is a dSUID, can set subdevice index
     raw[16] = aSubDeviceIndex;
   }
 }
@@ -86,7 +86,7 @@ void dSID::setSubdeviceIndex(uint8_t aSubDeviceIndex)
 // SGTIN96 binary:
 //      hhhhhhhh fffpppgg gggggggg gggggggg gggggggg gggggggg gggggggg ggssssss ssssssss ssssssss ssssssss ssssssss
 //      00110000 001ppp<--------- 44 bit binary GCP+ItemRef ------------><------- 38 bit serial number ----------->
-// dsUID Byte index:
+// dSUID Byte index:
 //         0        1         2        3       4        5        10        11      12       13       14       15
 
 
@@ -94,10 +94,10 @@ void dSID::setSubdeviceIndex(uint8_t aSubDeviceIndex)
 // Note: Partition Value + 1 = number of decimal digits for item reference including indicator/pad digit
 static uint8_t gcpBitLength[7] = { 40, 37, 34, 30, 27, 24, 20 };
 
-void dSID::setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition)
+void DsUid::setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition)
 {
-  // setting GTIN switches to sgtin dsid
-  setIdType(dsidtype_sgtin);
+  // setting GTIN switches to sgtin dSUID
+  setIdType(idtype_sgtin);
   // total bit length for CGP + itemRef combined are 44bits
   uint64_t binaryGtin = aGCP<<(44-gcpBitLength[aPartition]) | aItemRef;
   // now put into bytes
@@ -115,10 +115,10 @@ void dSID::setGTIN(uint64_t aGCP, uint64_t aItemRef, uint8_t aPartition)
 }
 
 
-void dSID::setSerial(uint64_t aSerial)
+void DsUid::setSerial(uint64_t aSerial)
 {
-  // setting GTIN switches to sgtin dsid
-  setIdType(dsidtype_sgtin);
+  // setting GTIN switches to sgtin dSUID
+  setIdType(idtype_sgtin);
   raw[11] = (raw[11] & 0xC0) | ((aSerial>>32)&0x3F); // combine lowest 2 bits of GTIN with highest 6 of serial
   raw[12] = (aSerial>>24)&0xFF;
   raw[13] = (aSerial>>16)&0xFF;
@@ -128,7 +128,7 @@ void dSID::setSerial(uint64_t aSerial)
 
 
 
-#pragma mark - set UUID based dSID from parameters
+#pragma mark - set UUID based DsUid from parameters
 
 
 // 2. vDC can determine an existing UUID of Device → use existing UUID
@@ -137,7 +137,7 @@ void dSID::setSerial(uint64_t aSerial)
 // 5. vDC can determine MAC address of Device: generate UUIDv1 (MAC based)
 
 // Device kind Name spaces (UUID v4, randomly generated):
-//   EnOcean: DSID_ENOCEAN_NAMESPACE_UUID (0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3)
+//   EnOcean: DSUID_ENOCEAN_NAMESPACE_UUID (0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3)
 
 
 // UUID format (see RFC 4122 for details):
@@ -167,13 +167,13 @@ void dSID::setSerial(uint64_t aSerial)
 //   always calculated over network byte order representation).
 
 
-void dSID::setNameInSpace(const string &aName, const dSID &aNameSpace)
+void DsUid::setNameInSpace(const string &aName, const DsUid &aNameSpace)
 {
   uint8_t sha1[SHA_DIGEST_LENGTH]; // buffer for calculating SHA1
   SHA_CTX sha_context;
 
-  // setting name in namespace switches to UUID dsid
-  setIdType(dsidtype_uuid);
+  // setting name in namespace switches to UUID dSUID
+  setIdType(idtype_uuid);
   // calculate the hash used as basis for a UUIDv5
   SHA1_Init(&sha_context);
   // - hash the name space UUID
@@ -234,17 +234,17 @@ void dSID::setNameInSpace(const string &aName, const dSID &aNameSpace)
 #define OBJECTCLASS_MSB_MASK 0xFF0000
 
 
-void dSID::setObjectClass(ObjectClass aObjectClass)
+void DsUid::setObjectClass(ObjectClass aObjectClass)
 {
-  // setting object class switches to classic dsid
-  setIdType(dsidtype_classic);
+  // setting object class switches to classic dSUID
+  setIdType(idtype_classic);
   // first nibble of object class shares byte 4 with last nibble of ManagerNo
   raw[4] |= (aObjectClass>>20) & 0x0F; // or in
   // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
   if ((aObjectClass & OBJECTCLASS_MSB_MASK)==DSID_OBJECTCLASS_MACADDRESS) {
     // MAC address object class
     // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
-    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dsid (as a 4 bit extension of the MAC address mapping)
+    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dSUID (as a 4 bit extension of the MAC address mapping)
     raw[5] = ((aObjectClass>>12) & 0xF0);
   }
   else {
@@ -257,15 +257,15 @@ void dSID::setObjectClass(ObjectClass aObjectClass)
 }
 
 
-void dSID::setDsSerialNo(DsSerialNo aSerialNo)
+void DsUid::setDsSerialNo(DsSerialNo aSerialNo)
 {
-  // setting dS serial number switches to classic dsid
-  setIdType(dsidtype_classic);
+  // setting dS serial number switches to classic dSUID
+  setIdType(idtype_classic);
   // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
   if ((((raw[4] & 0x0F)<<4) | ((raw[5] & 0xF0)>>4))==MACADDRESSCLASS_MSB) {
     // MAC address object class
     // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
-    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dsid (as a 4 bit extension of the MAC address mapping)
+    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dSUID (as a 4 bit extension of the MAC address mapping)
     raw[5] = (raw[5] & 0xF0) | ((aSerialNo>>44) & 0x0F);
     raw[6] = (aSerialNo>>36) & 0xFF;
     raw[7] = ((aSerialNo>>28) & 0xF0) | ((aSerialNo>>48) & 0x0F);
@@ -284,17 +284,17 @@ void dSID::setDsSerialNo(DsSerialNo aSerialNo)
 
 
 
-#pragma mark - set/create dSID from string representation
+#pragma mark - set/create DsUid from string representation
 
 
-dSID::dSID(const string &aString)
+DsUid::DsUid(const string &aString)
 {
   internalInit();
   setAsString(aString);
 }
 
 
-dSID::dSID(const char *aString)
+DsUid::DsUid(const char *aString)
 {
   internalInit();
   setAsString(aString);
@@ -302,7 +302,7 @@ dSID::dSID(const char *aString)
 
 
 
-bool dSID::setAsString(const string &aString)
+bool DsUid::setAsString(const string &aString)
 {
   const char *p = aString.c_str();
   int byteIndex = 0;
@@ -329,34 +329,34 @@ bool dSID::setAsString(const string &aString)
       firstNibble = true;
     }
   }
-  // determine type of dsUID
+  // determine type of dSUID
   if (byteIndex==dsidBytes && raw[0]==GID96Header) {
-    // must be a classic dsid (pure GID96)
-    idType = dsidtype_classic;
+    // must be a classic dSUID (pure GID96)
+    idType = idtype_classic;
     idBytes = dsidBytes;
   }
   else if (byteIndex==dsuidBytes || (hasDashes && byteIndex==uuidBytes)) {
-    // must be a dsUID (when read with dashes, it can also be a pure UUID without the subdevice index byte)
-    idType = dsidtype_other;
+    // must be a dSUID (when read with dashes, it can also be a pure UUID without the subdevice index byte)
+    idType = idtype_other;
     idBytes = dsuidBytes;
     // - determine subtype
     if (raw[6]==0 && raw[7]==0 && raw[8]==0 && raw[9]==0) {
       // EPC96, check which one
       if (raw[0]==SGTIN96Header)
-        idType = dsidtype_sgtin;
+        idType = idtype_sgtin;
       else if (raw[0]==GID96Header)
-        idType = dsidtype_gid;
+        idType = idtype_gid;
     }
     else {
       // UUID
-      idType = dsidtype_uuid;
+      idType = idtype_uuid;
     }
     if (byteIndex==uuidBytes)
       raw[16] = 0; // specified as pure UUID, set subdevice index == 0
   }
   else {
     // unknown format
-    setIdType(dsidtype_undefined);
+    setIdType(idtype_undefined);
     return false;
   }
   return true;
@@ -368,7 +368,7 @@ bool dSID::setAsString(const string &aString)
 
 
 
-string dSID::getString() const
+string DsUid::getString() const
 {
   string s;
   for (int i=0; i<idBytes; i++) {
@@ -381,14 +381,14 @@ string dSID::getString() const
 #pragma mark - comparison
 
 
-bool dSID::operator== (const dSID &aDSID) const
+bool DsUid::operator== (const DsUid &aDSID) const
 {
   if (idType!=aDSID.idType) return false;
   return memcmp(raw, aDSID.raw, idBytes)==0;
 }
 
 
-bool dSID::operator< (const dSID &aDSID) const
+bool DsUid::operator< (const DsUid &aDSID) const
 {
   if (idType==aDSID.idType)
     return memcmp(raw, aDSID.raw, idBytes)<0;

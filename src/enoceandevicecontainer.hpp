@@ -97,11 +97,11 @@ namespace p44 {
   protected:
 
     /// add device to container (already known device, already stored in DB)
-    /// @return false if aEnoceanDevice dsid is already known and thus was *not* added
+    /// @return false if aEnoceanDevice dSUID is already known and thus was *not* added
     virtual bool addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// add newly learned device to enOcean container (and remember it in DB)
-    /// @return false if aEnoceanDevice dsid is already known and thus was *not* added
+    /// @return false if aEnoceanDevice dSUID is already known and thus was *not* added
     virtual bool addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// un-pair devices by physical device address
