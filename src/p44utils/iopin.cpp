@@ -15,7 +15,7 @@ SimPin::SimPin(const char *aName, bool aOutput, bool aInitialState) :
   output(aOutput),
   pinState(aInitialState)
 {
-  printf("Initialized SimPin \"%s\" as %s with initial state %s\n", name.c_str(), aOutput ? "output" : "input", pinState ? "HI" : "LO");
+  LOG(LOG_ALERT, "Initialized SimPin \"%s\" as %s with initial state %s\n", name.c_str(), aOutput ? "output" : "input", pinState ? "HI" : "LO");
   if (!aOutput) {
     static char nextGpioSimKey = 'a';
     if (!output) {
@@ -43,6 +43,6 @@ void SimPin::setState(bool aState)
   if (!output) return; // non-outputs cannot be set
   if (pinState!=aState) {
     pinState = aState;
-    printf(">>> SimPin \"%s\" set to %s\n", name.c_str(), pinState ? "HI" : "LO");
+    LOG(LOG_ALERT, ">>> SimPin \"%s\" set to %s\n", name.c_str(), pinState ? "HI" : "LO");
   }
 }
