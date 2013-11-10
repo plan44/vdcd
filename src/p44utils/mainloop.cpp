@@ -15,6 +15,8 @@
 #include <sys/param.h>
 #include <sys/wait.h>
 
+#include "fdcomm.hpp"
+
 #pragma mark - MainLoop
 
 
@@ -200,52 +202,90 @@ void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
 
 extern char **environ;
 
-void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[])
+
+void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[], bool aPipeBackStdOut)
 {
-  // fork child process
+  pid_t child_pid;
+  int answerPipe[2]; /* Child to parent pipe */
+
+  // prepare environment
   if (aEnvp==NULL) {
     aEnvp = environ;
   }
-  pid_t child_pid;
+  // prepare pipe in case we want answer collected
+  if (aPipeBackStdOut) {
+    if(pipe(answerPipe)<0) {
+      // pipe could not be created
+      aCallback(*this, cycleStartTime, SysError::errNo(),"");
+      return;
+    }
+  }
+  // fork child process
   child_pid = fork();
   if (child_pid>=0) {
     // fork successful
     if (child_pid==0) {
       // this is the child process (fork() returns 0 for the child process)
+      if (aPipeBackStdOut) {
+        close(STDOUT_FILENO); // close current stdout
+        dup(answerPipe[1]); // replace it by writing end of pipe
+        close(answerPipe[0]); // close child's reading end of pipe (parent uses it!)
+      }
+      // change to the requested child process
       execve(aPath, aArgv, aEnvp); // replace process with new binary/script
       // execv returns only in case of error
       exit(127);
     }
     else {
       // this is the parent process, wait for the child to terminate
-      MainLoop::currentMainLoop().waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, _3, _4), child_pid);
+      FdStringCollectorPtr ans;
+      if (aPipeBackStdOut) {
+        close(answerPipe[1]); // close parent's writing end (child uses it!)
+        // set up collector for data returned from child process
+        ans = FdStringCollectorPtr(new FdStringCollector(SyncIOMainLoop::currentMainLoop()));
+        ans->setFd(answerPipe[0]);
+      }
+      MainLoop::currentMainLoop().waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _3, _4), child_pid);
     }
   }
   else {
     if (aCallback) {
       // fork failed, call back with error
-      aCallback(*this, cycleStartTime, SysError::errNo());
+      aCallback(*this, cycleStartTime, SysError::errNo(),"");
     }
   }
   return;
 }
 
 
-void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine)
+void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine, bool aPipeBackStdOut)
 {
   char * args[4];
   args[0] = (char *)"sh";
   args[1] = (char *)"-c";
   args[2] = (char *)aCommandLine;
   args[3] = NULL;
-  fork_and_execve(aCallback, "/bin/sh", args, NULL);
+  fork_and_execve(aCallback, "/bin/sh", args, NULL, aPipeBackStdOut);
 }
 
 
-void MainLoop::execChildTerminated(ExecCB aCallback, pid_t aPid, int aStatus)
+void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus)
 {
   if (aCallback) {
-    aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)));
+    string answer;
+    if (aAnswerCollector) {
+      // - make sure entire answer gets read until pipe is empty
+      while (aAnswerCollector->numBytesReady()>0) {
+        aAnswerCollector->receiveAndAppendToString(aAnswerCollector->collectedData);
+      }
+      // now get answer
+      answer = aAnswerCollector->collectedData;
+      // detach collector
+      aAnswerCollector->setReceiveHandler(NULL);
+      close(aAnswerCollector->getFd());
+    }
+    // call back
+    aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)), answer);
   }
 }
 

@@ -33,7 +33,7 @@ namespace p44 {
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError)> ExecCB;
+  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
 
   class ExecError : public Error
@@ -46,6 +46,11 @@ namespace p44 {
     static ErrorPtr exitStatus(int aExitStatus, const char *aContextMessage = NULL);
   };
 
+
+  class MainLoop;
+
+  class FdStringCollector;
+  typedef boost::intrusive_ptr<FdStringCollector> FdStringCollectorPtr;
 
   /// A main loop for a thread
   class MainLoop : public P44Obj
@@ -139,13 +144,15 @@ namespace p44 {
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aPath the path to the binary or script
     /// @param aArgv a NULL terminated array of arguments, first should be program name
-    /// @param aEnvp a NULL terminated array of environment variables
-    void fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[] = NULL);
+    /// @param aEnvp a NULL terminated array of environment variables, or NULL to use let child inherit parent's environment
+    /// @param aPipeBackStdOut if true, stdout of the child is collected via a pipe by the parent and passed back in aCallBack
+    void fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[] = NULL, bool aPipeBackStdOut = false);
 
     /// execute command line in external shell
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aCommandLine the command line to execute
-    void fork_and_system(ExecCB aCallback, const char *aCommandLine);
+    /// @param aPipeBackStdOut if true, stdout of the child is collected via a pipe by the parent and passed back in aCallBack
+    void fork_and_system(ExecCB aCallback, const char *aCommandLine, bool aPipeBackStdOut = false);
 
 
     /// have handler called from the mainloop once with an optional delay from now
@@ -170,7 +177,7 @@ namespace p44 {
 
   private:
 
-    void execChildTerminated(ExecCB aCallback, pid_t aPid, int aStatus);
+    void execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus);
 
   };
 
