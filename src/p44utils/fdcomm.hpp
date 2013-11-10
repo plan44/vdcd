@@ -59,6 +59,9 @@ namespace p44 {
     /// @param aFd the file descriptor to monitor
     void setFd(int aFd);
 
+    /// Get file descriptor
+    int getFd() { return dataFd; };
+
     /// write data (non-blocking)
     /// @param aNumBytes number of bytes to transfer
     /// @param aBytes pointer to buffer to be sent
@@ -112,7 +115,25 @@ namespace p44 {
 
     bool dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
   };
-  
+
+
+  class FdStringCollector : public FdComm
+  {
+  public:
+
+    // all data received from the fd is collected into this string
+    string collectedData;
+
+    FdStringCollector(SyncIOMainLoop &aMainLoop);
+
+  private:
+
+    void gotData(FdComm *aFdCommP, ErrorPtr aError);
+
+  };
+  typedef boost::intrusive_ptr<FdStringCollector> FdStringCollectorPtr;
+
+
 } // namespace p44
 
 

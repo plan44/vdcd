@@ -217,3 +217,19 @@ void FdComm::makeNonBlocking(int aFd)
 }
 
 
+#pragma mark - FdStringCollector
+
+
+FdStringCollector::FdStringCollector(SyncIOMainLoop &aMainLoop) :
+  FdComm(aMainLoop)
+{
+  setReceiveHandler(boost::bind(&FdStringCollector::gotData, this, _1, _2));
+}
+
+
+void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    receiveAndAppendToString(collectedData);
+  }
+}
