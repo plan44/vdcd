@@ -234,6 +234,7 @@ void HueLightBehaviour::recallScene(LightScenePtr aLightScene)
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
       devP->pendingColorScene = hueScene;
+      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
     }
   }
   // let base class update logical brightness, which will in turn update the output, which will then

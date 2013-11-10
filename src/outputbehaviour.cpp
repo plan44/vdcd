@@ -73,7 +73,12 @@ void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransiti
     nextTransitionTime = aTransitionTime;
     outputUpdatePending = true; // pending to be sent to the device
     outputLastSent = Never; // cachedOutputValue is no longer applied (does not correspond with actual hardware)
-    // let device know to hardware can update actual output
+  }
+  // check if output update is pending (might be because of changing the value right above
+  // but also when derived class marks update pending because of changed values
+  // of secondary outputs (e.g. hue color scene recall)
+  if (outputUpdatePending) {
+    // let device know so hardware can update actual output
     device.updateOutputValue(*this);
   }
 }
