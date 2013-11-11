@@ -3,7 +3,17 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 bin_PROGRAMS = vdcd jsonrpctool
 
-vdcd_CPPFLAGS = -I src/p44utils -I src -I src/mongoose -D DEBUG=1
+vdcd_CPPFLAGS = \
+  -I src/p44utils \
+  -I src -I src/thirdparty/mongoose \
+  -I src/thirdparty \
+  -I src/vdc_common \
+  -I src/behaviours \
+  -I src/deviceclasses/simpleio \
+  -I src/deviceclasses/enocean \
+  -I src/deviceclasses/dali \
+  -I src/deviceclasses/hue \
+  -D DEBUG=1
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -60,76 +70,76 @@ vdcd_SOURCES = \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44_common.hpp \
-  src/mongoose/mongoose.c\
-  src/mongoose/mongoose.h\
-  src/sqlite3pp/sqlite3pp.cpp \
-  src/sqlite3pp/sqlite3pp.h \
-  src/sqlite3pp/sqlite3ppext.cpp \
-  src/sqlite3pp/sqlite3ppext.h \
-  src/dsbehaviour.cpp \
-  src/dsbehaviour.hpp \
-  src/dsscene.cpp \
-  src/dsscene.hpp \
-  src/outputbehaviour.cpp \
-  src/outputbehaviour.hpp \
-  src/climatecontrolbehaviour.cpp \
-  src/climatecontrolbehaviour.hpp \
-  src/buttonbehaviour.cpp \
-  src/sensorbehaviour.hpp \
-  src/sensorbehaviour.cpp \
-  src/binaryinputbehaviour.hpp \
-  src/binaryinputbehaviour.cpp \
-  src/buttonbehaviour.hpp \
-  src/lightbehaviour.cpp \
-  src/lightbehaviour.hpp \
-  src/consoledevice.cpp \
-  src/consoledevice.hpp \
-  src/dalicomm.cpp \
-  src/dalicomm.hpp \
-  src/dalidefs.h \
-  src/dalidevice.cpp \
-  src/dalidevice.hpp \
-  src/dalidevicecontainer.cpp \
-  src/dalidevicecontainer.hpp \
-  src/device.cpp \
-  src/device.hpp \
-  src/devicesettings.cpp \
-  src/devicesettings.hpp \
-  src/propertycontainer.cpp \
-  src/propertycontainer.hpp \
-  src/dsaddressable.cpp \
-  src/dsaddressable.hpp \
-  src/deviceclasscontainer.cpp \
-  src/deviceclasscontainer.hpp \
-  src/devicecontainer.cpp \
-  src/devicecontainer.hpp \
-  src/dsdefs.h \
-  src/dsuid.cpp \
-  src/dsuid.hpp \
-  src/enoceancomm.cpp \
-  src/enoceancomm.hpp \
-  src/enoceandevice.cpp \
-  src/enoceandevice.hpp \
-  src/enoceanrps.cpp \
-  src/enoceanrps.hpp \
-  src/enocean4bs.cpp \
-  src/enocean4bs.hpp \
-  src/enocean1bs.cpp \
-  src/enocean1bs.hpp \
-  src/enoceandevicecontainer.cpp \
-  src/enoceandevicecontainer.hpp \
-  src/digitaliodevice.cpp \
-  src/digitaliodevice.hpp \
-  src/staticdevicecontainer.cpp \
-  src/staticdevicecontainer.hpp \
-  src/huecomm.cpp \
-  src/huecomm.hpp \
-  src/huedevicecontainer.cpp \
-  src/huedevicecontainer.hpp \
-  src/huedevice.cpp \
-  src/huedevice.hpp \
-  src/vdcd_common.hpp \
-  src/main.cpp
+  src/thirdparty/mongoose/mongoose.c\
+  src/thirdparty/mongoose/mongoose.h\
+  src/thirdparty/sqlite3pp/sqlite3pp.cpp \
+  src/thirdparty/sqlite3pp/sqlite3pp.h \
+  src/thirdparty/sqlite3pp/sqlite3ppext.cpp \
+  src/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/vdc_common/dsbehaviour.cpp \
+  src/vdc_common/dsbehaviour.hpp \
+  src/vdc_common/dsscene.cpp \
+  src/vdc_common/dsscene.hpp \
+  src/vdc_common/device.cpp \
+  src/vdc_common/device.hpp \
+  src/vdc_common/devicesettings.cpp \
+  src/vdc_common/devicesettings.hpp \
+  src/vdc_common/propertycontainer.cpp \
+  src/vdc_common/propertycontainer.hpp \
+  src/vdc_common/dsaddressable.cpp \
+  src/vdc_common/dsaddressable.hpp \
+  src/vdc_common/deviceclasscontainer.cpp \
+  src/vdc_common/deviceclasscontainer.hpp \
+  src/vdc_common/devicecontainer.cpp \
+  src/vdc_common/devicecontainer.hpp \
+  src/vdc_common/dsdefs.h \
+  src/vdc_common/dsuid.cpp \
+  src/vdc_common/dsuid.hpp \
+  src/vdc_common/vdcd_common.hpp \
+  src/behaviours/outputbehaviour.cpp \
+  src/behaviours/outputbehaviour.hpp \
+  src/behaviours/climatecontrolbehaviour.cpp \
+  src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/buttonbehaviour.cpp \
+  src/behaviours/sensorbehaviour.hpp \
+  src/behaviours/sensorbehaviour.cpp \
+  src/behaviours/binaryinputbehaviour.hpp \
+  src/behaviours/binaryinputbehaviour.cpp \
+  src/behaviours/buttonbehaviour.hpp \
+  src/behaviours/lightbehaviour.cpp \
+  src/behaviours/lightbehaviour.hpp \
+  src/deviceclasses/simpleio/consoledevice.cpp \
+  src/deviceclasses/simpleio/consoledevice.hpp \
+  src/deviceclasses/simpleio/digitaliodevice.cpp \
+  src/deviceclasses/simpleio/digitaliodevice.hpp \
+  src/deviceclasses/simpleio/staticdevicecontainer.cpp \
+  src/deviceclasses/simpleio/staticdevicecontainer.hpp \
+  src/deviceclasses/enocean/enoceancomm.cpp \
+  src/deviceclasses/enocean/enoceancomm.hpp \
+  src/deviceclasses/enocean/enoceandevice.cpp \
+  src/deviceclasses/enocean/enoceandevice.hpp \
+  src/deviceclasses/enocean/enoceanrps.cpp \
+  src/deviceclasses/enocean/enoceanrps.hpp \
+  src/deviceclasses/enocean/enocean4bs.cpp \
+  src/deviceclasses/enocean/enocean4bs.hpp \
+  src/deviceclasses/enocean/enocean1bs.cpp \
+  src/deviceclasses/enocean/enocean1bs.hpp \
+  src/deviceclasses/enocean/enoceandevicecontainer.cpp \
+  src/deviceclasses/enocean/enoceandevicecontainer.hpp \
+  src/deviceclasses/dali/dalicomm.cpp \
+  src/deviceclasses/dali/dalicomm.hpp \
+  src/deviceclasses/dali/dalidefs.h \
+  src/deviceclasses/dali/dalidevice.cpp \
+  src/deviceclasses/dali/dalidevice.hpp \
+  src/deviceclasses/dali/dalidevicecontainer.cpp \
+  src/deviceclasses/dali/dalidevicecontainer.hpp \
+  src/deviceclasses/hue/huecomm.cpp \
+  src/deviceclasses/hue/huecomm.hpp \
+  src/deviceclasses/hue/huedevicecontainer.cpp \
+  src/deviceclasses/hue/huedevicecontainer.hpp \
+  src/deviceclasses/hue/huedevice.cpp \
+  src/deviceclasses/hue/huedevice.hpp \
+  src/p44_main.cpp
 
 jsonrpctool_CPPFLAGS = -I src/p44utils -I src
 

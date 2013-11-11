@@ -61,7 +61,7 @@
 		ED5C8EB917CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
-		ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* main.cpp */; };
+		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
 		ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */; };
@@ -221,7 +221,7 @@
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED6D7BEA1716B6B1005DED18 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = main.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = p44_vdcd_main.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vdcd_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BEE1716EAA6005DED18 /* logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = logger.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BEF1716EAA6005DED18 /* logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = logger.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -330,6 +330,130 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		ED31268518311BD300FAF28B /* vdc_common */ = {
+			isa = PBXGroup;
+			children = (
+				ED81337117C644AE003982CC /* dsscene.cpp */,
+				ED81337217C644AE003982CC /* dsscene.hpp */,
+				ED81337417C65F7E003982CC /* devicesettings.cpp */,
+				ED81337517C65F7E003982CC /* devicesettings.hpp */,
+				EDCFE855171FE841001D35F3 /* device.cpp */,
+				EDCFE856171FE841001D35F3 /* device.hpp */,
+				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
+				EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */,
+				EDCFE85C171FFAF5001D35F3 /* dsuid.hpp */,
+				ED69C169176787FB00D9E596 /* dsdefs.h */,
+				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
+				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
+				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
+				ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */,
+				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
+				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
+				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
+				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
+				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
+				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
+			);
+			path = vdc_common;
+			sourceTree = "<group>";
+		};
+		ED312687183121FF00FAF28B /* thirdparty */ = {
+			isa = PBXGroup;
+			children = (
+				ED5B291C1740E72100334C71 /* sqlite3pp */,
+			);
+			path = thirdparty;
+			sourceTree = "<group>";
+		};
+		ED3126881831225600FAF28B /* behaviours */ = {
+			isa = PBXGroup;
+			children = (
+				ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */,
+				ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */,
+				ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */,
+				ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */,
+				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
+				ED81337B17C72F45003982CC /* outputbehaviour.hpp */,
+				ED81338017C72F87003982CC /* sensorbehaviour.cpp */,
+				ED81338117C72F87003982CC /* sensorbehaviour.hpp */,
+				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
+				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
+				EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */,
+				EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */,
+			);
+			path = behaviours;
+			sourceTree = "<group>";
+		};
+		ED3126891831228D00FAF28B /* deviceclasses */ = {
+			isa = PBXGroup;
+			children = (
+				ED31268E183122F600FAF28B /* simpleio */,
+				ED31268D183122E900FAF28B /* hue */,
+				ED31268C183122D600FAF28B /* enocean */,
+				ED31268B183122C800FAF28B /* dali */,
+			);
+			path = deviceclasses;
+			sourceTree = "<group>";
+		};
+		ED31268B183122C800FAF28B /* dali */ = {
+			isa = PBXGroup;
+			children = (
+				ED70716E171D428A00752E4D /* dalidefs.h */,
+				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
+				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
+				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
+				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
+				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
+				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
+			);
+			path = dali;
+			sourceTree = "<group>";
+		};
+		ED31268C183122D600FAF28B /* enocean */ = {
+			isa = PBXGroup;
+			children = (
+				EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */,
+				EDB284461733B4ED00EAE5DE /* enoceancomm.hpp */,
+				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
+				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
+				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
+				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
+				ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */,
+				ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */,
+				ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */,
+				ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */,
+				EDE4FA46180D45D500A35889 /* enocean1bs.cpp */,
+				EDE4FA47180D45D500A35889 /* enocean1bs.hpp */,
+			);
+			path = enocean;
+			sourceTree = "<group>";
+		};
+		ED31268D183122E900FAF28B /* hue */ = {
+			isa = PBXGroup;
+			children = (
+				ED07E26417DB204200889CC3 /* huecomm.cpp */,
+				ED07E26517DB204200889CC3 /* huecomm.hpp */,
+				EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */,
+				EDB4061F17D4D99D003783CE /* huedevicecontainer.hpp */,
+				EDB4062117D4D9B5003783CE /* huedevice.cpp */,
+				EDB4062217D4D9B5003783CE /* huedevice.hpp */,
+			);
+			path = hue;
+			sourceTree = "<group>";
+		};
+		ED31268E183122F600FAF28B /* simpleio */ = {
+			isa = PBXGroup;
+			children = (
+				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
+				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
+				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
+				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
+				ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */,
+				ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */,
+			);
+			path = simpleio;
+			sourceTree = "<group>";
+		};
 		ED3699B5178DA83800376405 /* p44utils */ = {
 			isa = PBXGroup;
 			children = (
@@ -394,6 +518,9 @@
 			isa = PBXGroup;
 			children = (
 				ED55760E174CFAEC00CCC4DD /* libjson.a */,
+				EDBC78541818227000A3E46C /* libcrypto.dylib */,
+				EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */,
+				EDBC784F181821EA00A3E46C /* libssl.dylib */,
 				ED5AF914174182E700689E4B /* libsqlite3.dylib */,
 			);
 			name = libs;
@@ -413,9 +540,6 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
-				EDBC78541818227000A3E46C /* libcrypto.dylib */,
-				EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */,
-				EDBC784F181821EA00A3E46C /* libssl.dylib */,
 				ED07E25417D786A000889CC3 /* mongoose.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
@@ -438,74 +562,14 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ED312687183121FF00FAF28B /* thirdparty */,
 				ED3699B5178DA83800376405 /* p44utils */,
-				ED5B291C1740E72100334C71 /* sqlite3pp */,
-				EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */,
-				EDCFE85C171FFAF5001D35F3 /* dsuid.hpp */,
-				ED69C169176787FB00D9E596 /* dsdefs.h */,
-				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
-				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
-				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
-				ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */,
-				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
-				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
-				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
-				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
-				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
-				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
-				ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */,
-				ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */,
-				ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */,
-				ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */,
-				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
-				ED81337B17C72F45003982CC /* outputbehaviour.hpp */,
-				ED81338017C72F87003982CC /* sensorbehaviour.cpp */,
-				ED81338117C72F87003982CC /* sensorbehaviour.hpp */,
-				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
-				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
-				EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */,
-				EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */,
-				ED81337117C644AE003982CC /* dsscene.cpp */,
-				ED81337217C644AE003982CC /* dsscene.hpp */,
-				ED81337417C65F7E003982CC /* devicesettings.cpp */,
-				ED81337517C65F7E003982CC /* devicesettings.hpp */,
-				EDCFE855171FE841001D35F3 /* device.cpp */,
-				EDCFE856171FE841001D35F3 /* device.hpp */,
-				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
-				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
-				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
-				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
-				ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */,
-				ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */,
-				ED70716E171D428A00752E4D /* dalidefs.h */,
-				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
-				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
-				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
-				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
-				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
-				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
-				EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */,
-				EDB284461733B4ED00EAE5DE /* enoceancomm.hpp */,
-				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
-				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
-				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
-				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
-				ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */,
-				ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */,
-				ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */,
-				ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */,
-				EDE4FA46180D45D500A35889 /* enocean1bs.cpp */,
-				EDE4FA47180D45D500A35889 /* enocean1bs.hpp */,
-				ED07E26417DB204200889CC3 /* huecomm.cpp */,
-				ED07E26517DB204200889CC3 /* huecomm.hpp */,
-				EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */,
-				EDB4061F17D4D99D003783CE /* huedevicecontainer.hpp */,
-				EDB4062117D4D9B5003783CE /* huedevice.cpp */,
-				EDB4062217D4D9B5003783CE /* huedevice.hpp */,
-				ED6D7BEA1716B6B1005DED18 /* main.cpp */,
+				ED31268518311BD300FAF28B /* vdc_common */,
+				ED3126881831225600FAF28B /* behaviours */,
+				ED3126891831228D00FAF28B /* deviceclasses */,
+				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
 				ED5C8EB317CF393E002CC15F /* enoceantool.cpp */,
-				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -661,7 +725,7 @@
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
-				ED6D7BED1716B6B1005DED18 /* main.cpp in Sources */,
+				ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
@@ -870,6 +934,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
+					"$(PROJECT_DIR)/src/thirdparty",
 				);
 				PRODUCT_NAME = vdcd;
 			};
@@ -881,6 +946,7 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
+					"$(PROJECT_DIR)/src/thirdparty",
 				);
 				PRODUCT_NAME = vdcd;
 			};
