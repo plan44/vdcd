@@ -11,7 +11,7 @@
 
 #include "deviceclasscontainer.hpp"
 
-#include "dSUID.hpp"
+#include "dsuid.hpp"
 #include "dsdefs.h"
 
 #include "dsscene.hpp"

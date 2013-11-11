@@ -9,7 +9,7 @@
 #ifndef __vdcd__dsaddressable__
 #define __vdcd__dsaddressable__
 
-#include "dSUID.hpp"
+#include "dsuid.hpp"
 #include "jsonrpccomm.hpp"
 #include "propertycontainer.hpp"
 
@@ -192,7 +192,7 @@ namespace p44 {
   };
   typedef boost::intrusive_ptr<DsAddressable> DsAddressablePtr;
 
-  
+
 } // namespace p44
 
 
