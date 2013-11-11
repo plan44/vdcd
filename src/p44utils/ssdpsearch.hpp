@@ -44,6 +44,7 @@ namespace p44 {
     typedef SocketComm inherited;
 
     // parameters
+    bool uuidMustMatch;
     SsdpSearchCB searchResultHandler;
     string searchTarget;
     bool singleTargetSearch;
@@ -63,13 +64,15 @@ namespace p44 {
     /// start a SSDP search for a specific UUID or all root devices
     /// @param aSearchResultHandler will be called whenever a Ssdp search result has been received, or a search times out
     /// @param aUuidToFind the uuid to search for, or NULL to search for all root devices (target: "upnp:rootdevice")
-    void startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind = NULL);
+    /// @param aVerifyUUID verify that UUID matches before delivering result via callback (default)
+    void startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind = NULL, bool aVerifyUUID = true);
 
     /// start a SSDP search
     /// @param aSearchResultHandler will be called whenever a Ssdp search result has been received, or a search times out
     /// @param aSearchTarget search target string, like "ssdp:all" or "upnp:rootdevice"
     /// @param aSingleTarget searching for single target, stop search once we got an answer
-    void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget);
+    /// @param aUuidToMatch if not NULL, only results matching this UUID will be returned
+    void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, const char *aUuidToMatch = NULL);
 
 
     /// stop SSDP search - result handler

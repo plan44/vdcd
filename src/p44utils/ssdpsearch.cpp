@@ -23,18 +23,24 @@ SsdpSearch::~SsdpSearch()
 }
 
 
-void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind)
+void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUuidToFind, bool aVerifyUUID)
 {
   string searchTarget;
   bool singleTarget = false;
+  const char *uuidToMatch = NULL;
   if (!aUuidToFind) {
+    // find anything
     searchTarget = "upnp:rootdevice";
   }
   else {
+    // find specific UUID
     singleTarget = true;
     searchTarget = string_format("uuid:%s",aUuidToFind);
+    if (aVerifyUUID) {
+      uuidToMatch = aUuidToFind;
+    }
   }
-  startSearchForTarget(aSearchResultHandler, searchTarget.c_str(), singleTarget);
+  startSearchForTarget(aSearchResultHandler, searchTarget.c_str(), singleTarget, uuidToMatch);
 }
 
 
@@ -51,12 +57,19 @@ void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUui
 #define SSDP_MX 3 // should be sufficient (5 is max allowed)
 
 
-void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget)
+void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, const char *aUuidToMatch)
 {
   // save params
   singleTargetSearch = aSingleTarget;
   searchTarget = aSearchTarget;
   searchResultHandler = aSearchResultHandler;
+  if (aUuidToMatch) {
+    uuid = aUuidToMatch;
+    uuidMustMatch = true;
+  }
+  else {
+    uuidMustMatch = false;
+  }
   // close current socket
   closeConnection();
   // setup new UDP socket
@@ -150,12 +163,26 @@ void SsdpSearch::gotData(ErrorPtr aError)
           string k,v;
           if (keyAndValue(value, k, v)) {
             if (k=="uuid") {
+              string u;
               size_t i = v.find("::");
               if (i!=string::npos)
-                uuid = v.substr(0,i);
+                u = v.substr(0,i);
               else
-                uuid = v;
-              uuidFound = true;
+                u = v;
+              // check if matches
+              if (uuidMustMatch) {
+                uuidFound = uuid==u;
+                if (!uuidFound) {
+                  // wrong UUID, discard
+                  LOG(LOG_INFO,"Received search response from %s, but wrong UUID (%s, expected: %s) -> ignored\n", locationURL.c_str(), u.c_str(), uuid.c_str());
+                  // no more action, wait for response with correct UUID
+                  return;
+                }
+              }
+              else {
+                uuid = u;
+                uuidFound = true;
+              }
               //LOG(LOG_NOTICE,"uuid: %s\n", uuid.c_str());
             }
           }
