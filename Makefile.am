@@ -139,7 +139,7 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevicecontainer.hpp \
   src/deviceclasses/hue/huedevice.cpp \
   src/deviceclasses/hue/huedevice.hpp \
-  src/p44_main.cpp
+  src/p44_vdcd_main.cpp
 
 jsonrpctool_CPPFLAGS = -I src/p44utils -I src
 

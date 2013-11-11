@@ -1,5 +1,5 @@
 /*
- * main.cpp
+ * p44_vdcd_main.cpp
  * vdcd
  *
  *      Author: Lukas Zeller / luz@plan44.ch
@@ -244,8 +244,8 @@ public:
                                      "Use ! for inverted polarity (default is noninverted input)\n"
                                      "ioname is of form [bus.[device.]]pin:\n"
                                      "- gpio.gpionumber : generic Linux GPIO\n"
-                                     "- i2cN.device@i2caddr.pinNumber : numbered pin of I2C device at i2caddr\n"
-                                     "  (supported for device : TCA9555" },
+                                     "- i2cN.device@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
+                                     "  (supported for device : TCA9555)" },
       { 'k', "consoleio",     true,  "name[:(in|out|io)];add static debug device which reads and writes console\n"
                                      "(for inputs: first char of name=action key)" },
       { 'h', "help",          false, "show this text" },
@@ -595,6 +595,9 @@ public:
 
 int main(int argc, char **argv)
 {
+  // prevent debug output before application.main scans command line
+  SETLOGLEVEL(LOG_EMERG);
+  SETERRLEVEL(LOG_EMERG, false); // messages, if any, go to stderr
   // create the mainloop
   SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
