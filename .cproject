@@ -1035,7 +1035,7 @@
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="p44bridged" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837" name="Release" parent="com.digi.lxnetes.managedbuild.realeaseConfiguration">
+<configuration artifactName="vdcd" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837" name="Release" parent="com.digi.lxnetes.managedbuild.realeaseConfiguration">
 <folderInfo id="com.digi.lxnetes.managedbuild.realeaseConfiguration.1627204837." name="/" resourcePath="">
 <toolChain id="com.digi.lxnetes.managedbuild.toolChainRelease.2021065781" name="Digi EL Tool Chain" superClass="com.digi.lxnetes.managedbuild.toolChainRelease">
 <targetPlatform id="com.digi.lxnetes.managedbuild.targetPlatform.release.167951857" name="Debug Platform" superClass="com.digi.lxnetes.managedbuild.targetPlatform.release"/>
