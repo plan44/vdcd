@@ -25,5 +25,8 @@ configure_aux/
 .dirstamp
 .deps/
 stamp-h1
+
+# built binaries
 vdcd
 jsonrpctool
+demovdc

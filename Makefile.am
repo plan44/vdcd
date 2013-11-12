@@ -170,6 +170,8 @@ demovdc_SOURCES = \
   src/p44utils/logger.hpp \
   src/p44utils/mainloop.cpp \
   src/p44utils/mainloop.hpp \
+  src/p44utils/persistentparams.cpp \
+  src/p44utils/persistentparams.hpp \
   src/p44utils/fdcomm.cpp \
   src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
