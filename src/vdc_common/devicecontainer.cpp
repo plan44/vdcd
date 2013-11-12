@@ -736,6 +736,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
       }
     }
     else {
+      LOG(LOG_WARNING, "Target device %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
       return ErrorPtr(new JsonRpcError(404, "unknown dSUID"));
     }
   }
