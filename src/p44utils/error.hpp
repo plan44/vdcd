@@ -28,7 +28,7 @@ namespace p44 {
   class Error : public P44Obj
   {
     ErrorCode errorCode;
-    std::string errorMessage;
+    string errorMessage;
   public:
     static const char *domain();
 
