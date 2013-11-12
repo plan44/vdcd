@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = subdir-objects
-ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
 bin_PROGRAMS = vdcd demovdc jsonrpctool
 
@@ -16,9 +16,9 @@ vdcd_CPPFLAGS = \
   -I src/deviceclasses/hue \
   -D DEBUG=1
 
-vdcd_CFLAGS = $(JSONC_CFLAGS)
+vdcd_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
 
-vdcd_LDADD = $(JSONC_LIBS)
+vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -155,9 +155,9 @@ demovdc_CPPFLAGS = \
   -I src/deviceclasses/demo \
   -D DEBUG=1
 
-demovdc_CFLAGS = $(JSONC_CFLAGS)
+demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
 
-demovdc_LDADD = $(JSONC_LIBS)
+demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
 
 demovdc_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -239,9 +239,9 @@ jsonrpctool_CPPFLAGS = \
   -I src/p44utils \
   -I src
 
-jsonrpctool_CFLAGS = $(JSONC_LIBS)
+jsonrpctool_CXXFLAGS = $(JSONC_LIBS) $(PTHREAD_CFLAGS)
 
-jsonrpctool_LDADD = $(JSONC_LIBS)
+jsonrpctool_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
 
 jsonrpctool_SOURCES = \
   src/p44utils/p44obj.cpp \

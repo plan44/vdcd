@@ -22,6 +22,8 @@ AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto])])
 #AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
 AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clock_gettime])])
 
+AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
+
 PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
@@ -57,5 +59,6 @@ BOOST_FOREACH
 BOOST_FUNCTION
 BOOST_SMART_PTR
 
+AX_PTHREAD([], [ AC_MSG_ERROR([required pthread library not found]) ])
 
 AC_OUTPUT
