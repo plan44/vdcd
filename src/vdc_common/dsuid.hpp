@@ -12,7 +12,7 @@
 #include "vdcd_common.hpp"
 
 
-// UUID based dsids
+// Name spaces for UUID based dSUIDs
 // - enOcean device namespace
 #define DSUID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
 // - GS1-128 identified device namespace
@@ -25,7 +25,7 @@
 // - plan44 vDC implementation namespace (used for generating vDC-implementation specific dsids)
 #define DSUID_P44VDC_NAMESPACE_UUID "441A1FED-F449-4058-BEBA-13B1C4AB6A93"
 
-// classic dsids
+// components for classic dsids
 #define DSID_OBJECTCLASS_DSDEVICE 0x000000
 #define DSID_OBJECTCLASS_DSMETER 0x000001
 #define DSID_OBJECTCLASS_MACADDRESS 0xFF0000
@@ -103,8 +103,8 @@ namespace p44 {
     string getString() const;
 
     // comparison
-    bool operator== (const DsUid &aDSID) const;
-    bool operator< (const DsUid &aDSID) const;
+    bool operator== (const DsUid &aDsUid) const;
+    bool operator< (const DsUid &aDsUid) const;
 
     /// @}
 

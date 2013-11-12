@@ -75,7 +75,7 @@ namespace p44 {
     bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
     uint64_t mac; ///< MAC address as found at startup
 
-    DsDeviceMap dSDevices; ///< available devices by dSID
+    DsDeviceMap dSDevices; ///< available devices by dSUID
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
     string persistentDataDir;
@@ -111,7 +111,7 @@ namespace p44 {
     /// API for vdSM
     SocketComm vdcApiServer;
 
-    /// Set how dsids are generated
+    /// Set how dSUIDs are generated
     /// @param aDsUid true to enable modern dSUIDs (GS1/UUID based)
     /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container
     /// @note Must be set before any other activity in the device container, in particular before
@@ -119,7 +119,7 @@ namespace p44 {
     void setIdMode(bool aDsUid, DsUidPtr aExternalDsUid = DsUidPtr());
 
 
-    /// @return true if modern GS1/UUID based dSIDs should be used
+    /// @return true if modern GS1/UUID based dSUIDs should be used
     bool usingDsUids() { return dsUids; };
 
     /// @return MAC address as 12 char hex string (6 bytes)
@@ -299,8 +299,8 @@ namespace p44 {
     void endContainerSession();
 
     // method and notification dispatching
-    ErrorPtr handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsid, JsonObjectPtr aParams);
-    void handleNotificationForDsid(const string &aMethod, const DsUid &aDsid, JsonObjectPtr aParams);
+    ErrorPtr handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, JsonObjectPtr aParams);
+    void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, JsonObjectPtr aParams);
 
     // vDC level method and notification handlers
     ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);

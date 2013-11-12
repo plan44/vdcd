@@ -27,7 +27,7 @@ namespace p44 {
 
   class DeviceContainer;
 
-  /// base class representing a entity which is addressable with a dSID
+  /// base class representing a entity which is addressable with a dSUID
   /// dS devices are most obvious addressables, but the vDC itself is also addressable and uses this base class
   class DsAddressable : public PropertyContainer
   {
@@ -77,18 +77,18 @@ namespace p44 {
     static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue);
 
 
-    /// called by DeviceContainer to handle methods directed to a dSID
+    /// called by DeviceContainer to handle methods directed to a dSUID
     /// @param aMethod the method
     /// @param aJsonRpcId the id parameter to be used in sendResult()
     /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
+    /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this DsAddressable.
     virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
 
-    /// called by DeviceContainer to handle notifications directed to a dSID
+    /// called by DeviceContainer to handle notifications directed to a dSUID
     /// @param aMethod the notification
     /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
+    /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the notification to this DsAddressable.
     virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
 
@@ -97,7 +97,7 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    /// @note the dSID will be automatically added to aParams (generating a params object if none was passed)
+    /// @note the dSUID will be automatically added to aParams (generating a params object if none was passed)
     bool sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
 
     /// send result from a method call back to the to vdSM
@@ -149,7 +149,7 @@ namespace p44 {
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; }
 
-    /// @return number of vdSDs (virtual devices represented by a separate dSID)
+    /// @return number of vdSDs (virtual devices represented by a separate dSUID)
     ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
     virtual ssize_t numDevicesInHW() { return -1; }
 

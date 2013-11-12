@@ -54,7 +54,7 @@ namespace p44 {
 
   public:
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
-    ///   of this class container. This is used when generating dsids for devices that don't have their own
+    ///   of this class container. This is used when generating dsuids for devices that don't have their own
     ///   unique ID, by using a hashOf(DeviceContainer's id, deviceClassIdentifier(), aInstanceNumber)
     DeviceClassContainer(int aInstanceNumber);
 

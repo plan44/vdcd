@@ -209,7 +209,7 @@ namespace p44 {
 
   protected:
 
-    /// derive dSID from hardware address
+    /// derive dSUID from hardware address
     void deriveDsUid();
 
   private:

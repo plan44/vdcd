@@ -38,7 +38,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceInfo = aDeviceInfo; // copy
   // use OEM GTIN/Serial if this is set, but main GTIN/Serial is not (some Meanwell LED dimmers)
   deviceInfo.makeUniquelyIdentifyingFromOEM();
-  // derive the dSID
+  // derive the dSUID
   deriveDsUid();
   // use light settings, which include a scene table
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));

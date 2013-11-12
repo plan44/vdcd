@@ -20,7 +20,7 @@
 #include "digitalio.hpp"
 
 
-#define DEFAULT_USE_MODERN_DSIDS 0 // 0: no, 1: yes
+#define DEFAULT_USE_MODERN_DSUIDS 0 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
@@ -296,12 +296,12 @@ public:
       deviceContainer.setPersistentDataDir(dbdir);
 
       // - set dSUID mode
-      int modernids = DEFAULT_USE_MODERN_DSIDS;
+      int modernids = DEFAULT_USE_MODERN_DSUIDS;
       getIntOption("modernids", modernids);
-      DsUidPtr externalDsid;
+      DsUidPtr externalDsUid;
       string dsuidStr;
       if (getStringOption("dsuid", dsuidStr)) {
-        externalDsid = DsUidPtr(new DsUid(dsuidStr));
+        externalDsUid = DsUidPtr(new DsUid(dsuidStr));
       }
       else if (getStringOption("sgtin", dsuidStr)) {
         int part;
@@ -309,11 +309,11 @@ public:
         uint32_t itemref;
         uint64_t serial;
         sscanf(dsuidStr.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
-        externalDsid = DsUidPtr(new DsUid(dsuidStr));
-        externalDsid->setGTIN(gcp, itemref, part);
-        externalDsid->setSerial(serial);
+        externalDsUid = DsUidPtr(new DsUid(dsuidStr));
+        externalDsUid->setGTIN(gcp, itemref, part);
+        externalDsUid->setSerial(serial);
       }
-      deviceContainer.setIdMode(modernids!=0, externalDsid);
+      deviceContainer.setIdMode(modernids!=0, externalDsUid);
 
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");

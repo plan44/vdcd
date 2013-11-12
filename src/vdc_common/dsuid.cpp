@@ -79,7 +79,7 @@ void DsUid::setSubdeviceIndex(uint8_t aSubDeviceIndex)
 
 
 
-#pragma mark - set SGTIN based dSID from parameters
+#pragma mark - set SGTIN based dSUID from parameters
 
 // 1. vDC can determine GTIN and SerialNumber of Device → combine GTIN and SerialNumber to a SGTIN
 
@@ -203,7 +203,7 @@ void DsUid::setNameInSpace(const string &aName, const DsUid &aNameSpace)
 
 
 
-#pragma mark - set dSID from classic GID96 class/serial
+#pragma mark - set classic dSID from classic GID96 class/serial
 
 
 // Sample real dsids
@@ -364,7 +364,7 @@ bool DsUid::setAsString(const string &aString)
 
 
 
-#pragma mark - getting dSID string representation
+#pragma mark - getting dSUID string representation
 
 
 
@@ -381,19 +381,19 @@ string DsUid::getString() const
 #pragma mark - comparison
 
 
-bool DsUid::operator== (const DsUid &aDSID) const
+bool DsUid::operator== (const DsUid &aDsUid) const
 {
-  if (idType!=aDSID.idType) return false;
-  return memcmp(raw, aDSID.raw, idBytes)==0;
+  if (idType!=aDsUid.idType) return false;
+  return memcmp(raw, aDsUid.raw, idBytes)==0;
 }
 
 
-bool DsUid::operator< (const DsUid &aDSID) const
+bool DsUid::operator< (const DsUid &aDsUid) const
 {
-  if (idType==aDSID.idType)
-    return memcmp(raw, aDSID.raw, idBytes)<0;
+  if (idType==aDsUid.idType)
+    return memcmp(raw, aDsUid.raw, idBytes)<0;
   else
-    return idType<aDSID.idType;
+    return idType<aDsUid.idType;
 }
 
 

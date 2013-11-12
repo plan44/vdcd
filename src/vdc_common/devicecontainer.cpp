@@ -668,10 +668,10 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
       }
       else {
         // session active - all commands need dSUID parameter
-        string dsidstring;
-        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
+        string dsuidstring;
+        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
           // operation method
-          respErr = handleMethodForDsid(aMethod, aJsonRpcId, DsUid(dsidstring), aParams);
+          respErr = handleMethodForDsUid(aMethod, aJsonRpcId, DsUid(dsuidstring), aParams);
         }
       }
     }
@@ -680,9 +680,9 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
     // Notifications
     if (sessionActive) {
       // out of session, notifications are simply ignored
-      string dsidstring;
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
-        handleNotificationForDsid(aMethod, DsUid(dsidstring), aParams);
+      string dsuidstring;
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
+        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), aParams);
       }
     }
   }
@@ -714,16 +714,16 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsid, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, JsonObjectPtr aParams)
 {
-  if (aDsid==dSUID) {
+  if (aDsUid==dSUID) {
     // container level method
     return handleMethod(aMethod, aJsonRpcId, aParams);
   }
   else {
     // Must be device level method
     // - find device to handle it
-    DsDeviceMap::iterator pos = dSDevices.find(aDsid);
+    DsDeviceMap::iterator pos = dSDevices.find(aDsUid);
     if (pos!=dSDevices.end()) {
       DevicePtr dev = pos->second;
       // check special case of Remove command - we must execute this because device should not try to remove itself
@@ -736,29 +736,29 @@ ErrorPtr DeviceContainer::handleMethodForDsid(const string &aMethod, const strin
       }
     }
     else {
-      return ErrorPtr(new JsonRpcError(404, "unknown dSID"));
+      return ErrorPtr(new JsonRpcError(404, "unknown dSUID"));
     }
   }
 }
 
 
 
-void DeviceContainer::handleNotificationForDsid(const string &aMethod, const DsUid &aDsid, JsonObjectPtr aParams)
+void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, JsonObjectPtr aParams)
 {
-  if (aDsid==dSUID) {
+  if (aDsUid==dSUID) {
     // container level notification
     handleNotification(aMethod, aParams);
   }
   else {
     // Must be device level notification
     // - find device to handle it
-    DsDeviceMap::iterator pos = dSDevices.find(aDsid);
+    DsDeviceMap::iterator pos = dSDevices.find(aDsUid);
     if (pos!=dSDevices.end()) {
       DevicePtr dev = pos->second;
       dev->handleNotification(aMethod, aParams);
     }
     else {
-      LOG(LOG_WARNING, "Target device %s not found for notification '%s'\n", aDsid.getString().c_str(), aMethod.c_str());
+      LOG(LOG_WARNING, "Target device %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
     }
   }
 }
@@ -777,14 +777,14 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
     if (s!="1.0")
       respErr = ErrorPtr(new JsonRpcError(505, "Incompatible vDC API version - expected '1.0'"));
     else {
-      // API version ok, check dsID
+      // API version ok, check dSUID
       if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
-        DsUid vdsmDsid = DsUid(s);
+        DsUid vdsmDsUid = DsUid(s);
         // same vdSM can restart session any time. Others will be rejected
-        if (!sessionActive || vdsmDsid==connectedVdsm) {
+        if (!sessionActive || vdsmDsUid==connectedVdsm) {
           // ok to start new session
           // - start session with this vdSM
-          connectedVdsm = vdsmDsid;
+          connectedVdsm = vdsmDsUid;
           // - remember the session's connection
           for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
             if (pos->get()==aJsonRpcComm) {

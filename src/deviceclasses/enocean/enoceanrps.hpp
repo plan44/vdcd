@@ -71,14 +71,14 @@ namespace p44 {
     /// constructor
     EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
 
-    /// @name dSID space and hardware grouping properties needed for dS 1.0 backwards compatibility
+    /// @name dSUID space and hardware grouping properties needed for dS 1.0 backwards compatibility
     /// @{
 
-    /// @return size of dSID block (number of consecutive dSIDs) that is guaranteed reserved for this device
+    /// @return size of dSUID block (number of consecutive dSUIDs) that is guaranteed reserved for this device
     /// @note devices can
     virtual int idBlockSize();
 
-    /// @return number of vdSDs (virtual devices represented by a separate dSID)
+    /// @return number of vdSDs (virtual devices represented by a separate dSUID)
     ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
     virtual ssize_t numDevicesInHW();
 

@@ -55,12 +55,12 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
   string s(deviceClassIdentifier());
   string_format_append(s, ".%d@", getInstanceNumber());
   if (deviceContainerP->usingDsUids()) {
-    // with modern dsids, device container is always identified via its dSUID
+    // with modern dSUIDs, device container is always identified via its dSUID
     s.append(deviceContainerP->dSUID.getString());
   }
   else {
     // with classic dsids, device container was identified by its MAC address, so we simulate that to
-    // avoid generating another set of different dsids (classic dsids are beta only anyway).
+    // avoid generating another set of different dSUIDs (classic dsids are beta only anyway).
     s.append(deviceContainerP->macAddressString());
   }
   return s;
@@ -141,7 +141,7 @@ string DeviceClassContainer::description()
 
 enum {
   deviceClassInstance_key,
-  dsids_key,
+  dsuids_key,
   numClassContainerProperties
 };
 
@@ -157,7 +157,7 @@ const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropI
 {
   static const PropertyDescriptor properties[numClassContainerProperties] = {
     { "deviceClassInstance", ptype_string, false, deviceClassInstance_key },
-    { "dsids", ptype_string, true, dsids_key }
+    { "dsuids", ptype_string, true, dsuids_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -177,7 +177,7 @@ bool DeviceClassContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue
       aPropValue = JsonObject::newString(deviceClassContainerInstanceIdentifier());
       return true;
     }
-    else if (aPropertyDescriptor.accessKey==dsids_key) {
+    else if (aPropertyDescriptor.accessKey==dsuids_key) {
       if (aIndex==PROP_ARRAY_SIZE) {
         // return size of array
         aPropValue = JsonObject::newInt32((uint32_t)devices.size());

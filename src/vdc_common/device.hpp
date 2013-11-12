@@ -76,7 +76,7 @@ namespace p44 {
     /// @return true if device is registerable with vdSM
     virtual bool isPublicDS() { return true; }; // base class assumes that all devices are public
 
-    /// @return size of dSID block (number of consecutive dSIDs) that is guaranteed reserved for this device
+    /// @return size of dSUID block (number of consecutive dSUIDs) that is guaranteed reserved for this device
     /// @note devices can
     virtual int idBlockSize() { return 1; }; // normal devices only reserve one single ID (their own)
 
@@ -152,14 +152,14 @@ namespace p44 {
     /// @param aMethod the method
     /// @param aJsonRpcId the id parameter to be used in sendResult()
     /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
+    /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this device.
     virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
 
     /// called to let device handle device-level notification
     /// @param aMethod the notification
     /// @param aParams the parameters object
-    /// @note the parameters object always contains the dSID parameter which has been
+    /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the notification to this device.
     virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
 

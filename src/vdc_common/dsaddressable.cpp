@@ -196,7 +196,7 @@ void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aPar
 bool DsAddressable::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
 {
   if (!aParams) {
-    // create params object because we need it for the dSID
+    // create params object because we need it for the dSUID
     aParams = JsonObject::newObj();
   }
   aParams->add("dSUID", JsonObject::newString(dSUID.getString()));
@@ -245,7 +245,7 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 #pragma mark - property access
 
 enum {
-  dSID_key,
+  dSUID_key,
   model_key,
   hardwareVersion_key,
   hardwareGUID_key,
@@ -268,7 +268,7 @@ int DsAddressable::numProps(int aDomain)
 const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDsAddressableProperties] = {
-    { "dSUID", ptype_charptr, false, dSID_key, &dsAddressable_key },
+    { "dSUID", ptype_charptr, false, dSUID_key, &dsAddressable_key },
     { "model", ptype_charptr, false, model_key, &dsAddressable_key },
     { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
     { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
@@ -295,7 +295,7 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
     }
     else {
       switch (aPropertyDescriptor.accessKey) {
-        case dSID_key: aPropValue = JsonObject::newString(dSUID.getString()); return true;
+        case dSUID_key: aPropValue = JsonObject::newString(dSUID.getString()); return true;
         case model_key: aPropValue = JsonObject::newString(modelName()); return true;
         case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
         case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;

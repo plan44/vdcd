@@ -181,7 +181,7 @@ string EnoceanRpsHandler::shortDesc()
 
 int EnoceanRPSDevice::idBlockSize()
 {
-  // reserve another dSID so vdSM could split the 2-way button into two separate devices
+  // reserve another dSUID so vdSM could split the 2-way button into two separate devices
   return 2;
 }
 
