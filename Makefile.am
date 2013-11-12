@@ -1,11 +1,12 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
-bin_PROGRAMS = vdcd jsonrpctool
+bin_PROGRAMS = vdcd demovdc jsonrpctool
 
 vdcd_CPPFLAGS = \
   -I src/p44utils \
-  -I src -I src/thirdparty/mongoose \
+  -I src \
+  -I src/thirdparty/mongoose \
   -I src/thirdparty \
   -I src/vdc_common \
   -I src/behaviours \
@@ -141,7 +142,91 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevice.hpp \
   src/p44_vdcd_main.cpp
 
-jsonrpctool_CPPFLAGS = -I src/p44utils -I src
+demovdc_CPPFLAGS = \
+  -I src/p44utils \
+  -I src \
+  -I src/thirdparty \
+  -I src/vdc_common \
+  -I src/behaviours \
+  -I src/deviceclasses/demo \
+  -D DEBUG=1
+
+demovdc_SOURCES = \
+  src/p44utils/p44obj.cpp \
+  src/p44utils/p44obj.hpp \
+  src/p44utils/application.cpp \
+  src/p44utils/application.hpp \
+  src/p44utils/error.cpp \
+  src/p44utils/error.hpp \
+  src/p44utils/fnv.cpp \
+  src/p44utils/fnv.hpp \
+  src/p44utils/jsoncomm.cpp \
+  src/p44utils/jsoncomm.hpp \
+  src/p44utils/jsonobject.cpp \
+  src/p44utils/jsonobject.hpp \
+  src/p44utils/jsonrpccomm.cpp \
+  src/p44utils/jsonrpccomm.hpp \
+  src/p44utils/logger.cpp \
+  src/p44utils/logger.hpp \
+  src/p44utils/mainloop.cpp \
+  src/p44utils/mainloop.hpp \
+  src/p44utils/fdcomm.cpp \
+  src/p44utils/fdcomm.hpp \
+  src/p44utils/socketcomm.cpp \
+  src/p44utils/socketcomm.hpp \
+  src/p44utils/sqlite3persistence.cpp \
+  src/p44utils/sqlite3persistence.hpp \
+  src/p44utils/utils.cpp \
+  src/p44utils/utils.hpp \
+  src/p44utils/macaddress.cpp \
+  src/p44utils/macaddress.hpp \
+  src/p44utils/p44_common.hpp \
+  src/thirdparty/sqlite3pp/sqlite3pp.cpp \
+  src/thirdparty/sqlite3pp/sqlite3pp.h \
+  src/thirdparty/sqlite3pp/sqlite3ppext.cpp \
+  src/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/vdc_common/dsbehaviour.cpp \
+  src/vdc_common/dsbehaviour.hpp \
+  src/vdc_common/dsscene.cpp \
+  src/vdc_common/dsscene.hpp \
+  src/vdc_common/device.cpp \
+  src/vdc_common/device.hpp \
+  src/vdc_common/devicesettings.cpp \
+  src/vdc_common/devicesettings.hpp \
+  src/vdc_common/propertycontainer.cpp \
+  src/vdc_common/propertycontainer.hpp \
+  src/vdc_common/dsaddressable.cpp \
+  src/vdc_common/dsaddressable.hpp \
+  src/vdc_common/deviceclasscontainer.cpp \
+  src/vdc_common/deviceclasscontainer.hpp \
+  src/vdc_common/devicecontainer.cpp \
+  src/vdc_common/devicecontainer.hpp \
+  src/vdc_common/dsdefs.h \
+  src/vdc_common/dsuid.cpp \
+  src/vdc_common/dsuid.hpp \
+  src/vdc_common/vdcd_common.hpp \
+  src/behaviours/outputbehaviour.cpp \
+  src/behaviours/outputbehaviour.hpp \
+  src/behaviours/climatecontrolbehaviour.cpp \
+  src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/buttonbehaviour.cpp \
+  src/behaviours/sensorbehaviour.hpp \
+  src/behaviours/sensorbehaviour.cpp \
+  src/behaviours/binaryinputbehaviour.hpp \
+  src/behaviours/binaryinputbehaviour.cpp \
+  src/behaviours/buttonbehaviour.hpp \
+  src/behaviours/lightbehaviour.cpp \
+  src/behaviours/lightbehaviour.hpp \
+  src/deviceclasses/demo/demodevice.cpp \
+  src/deviceclasses/demo/demodevice.hpp \
+  src/deviceclasses/demo/demodevicecontainer.cpp \
+  src/deviceclasses/demo/demodevicecontainer.hpp \
+  src/demo_main.cpp
+
+
+jsonrpctool_CPPFLAGS = \
+  -I src/p44utils \
+  -I src
 
 jsonrpctool_SOURCES = \
   src/p44utils/p44obj.cpp \

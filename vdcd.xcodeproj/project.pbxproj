@@ -19,6 +19,45 @@
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
+		ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
+		ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
+		ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
+		ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED312692183186C200FAF28B /* demodevicecontainer.cpp */; };
+		ED3126A018318CC100FAF28B /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
+		ED3126A218318CC100FAF28B /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
+		ED3126A318318CC100FAF28B /* devicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */; };
+		ED3126A618318CC100FAF28B /* deviceclasscontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */; };
+		ED3126A818318CC100FAF28B /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
+		ED3126A918318CC100FAF28B /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
+		ED3126AA18318CC100FAF28B /* propertycontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */; };
+		ED3126AB18318CC100FAF28B /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
+		ED3126AC18318CC100FAF28B /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
+		ED3126AE18318CC100FAF28B /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
+		ED3126AF18318CC100FAF28B /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
+		ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */; };
+		ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
+		ED3126B318318CC100FAF28B /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
+		ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
+		ED3126B918318CC100FAF28B /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED3126BA18318CC100FAF28B /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
+		ED3126C218318CC100FAF28B /* sqlite3pp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291D1740E72200334C71 /* sqlite3pp.cpp */; };
+		ED3126C318318CC100FAF28B /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
+		ED3126C418318CC100FAF28B /* sqlite3ppext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */; };
+		ED3126C518318CC100FAF28B /* sqlite3persistence.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2933174124D300334C71 /* sqlite3persistence.cpp */; };
+		ED3126C718318CC100FAF28B /* demodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED312690183186C200FAF28B /* demodevice.cpp */; };
+		ED3126C818318CC100FAF28B /* lightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29391749446200334C71 /* lightbehaviour.cpp */; };
+		ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */; };
+		ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
+		ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED31269618318CB100FAF28B /* demo_main.cpp */; };
+		ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
+		ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
+		ED3126D318318CC100FAF28B /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
+		ED3126D618318CC100FAF28B /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
+		ED3126D718318CC100FAF28B /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
+		ED3126D918318CC100FAF28B /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDBC78541818227000A3E46C /* libcrypto.dylib */; };
+		ED3126DA18318CC100FAF28B /* libmongoose.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED07E25917D786A000889CC3 /* libmongoose.dylib */; };
+		ED3126DB18318CC100FAF28B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED5AF914174182E700689E4B /* libsqlite3.dylib */; };
+		ED3126DC18318CC100FAF28B /* libjson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED55760E174CFAEC00CCC4DD /* libjson.a */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
 		ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
 		ED36999E178DA01E00376405 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
@@ -125,6 +164,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		ED3126DD18318CC100FAF28B /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		ED5C8EAE17CF3908002CC15F /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -178,6 +226,12 @@
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED312690183186C200FAF28B /* demodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevice.cpp; path = demo/demodevice.cpp; sourceTree = "<group>"; };
+		ED312691183186C200FAF28B /* demodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = demodevice.hpp; path = demo/demodevice.hpp; sourceTree = "<group>"; };
+		ED312692183186C200FAF28B /* demodevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevicecontainer.cpp; path = demo/demodevicecontainer.cpp; sourceTree = "<group>"; };
+		ED312693183186C200FAF28B /* demodevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = demodevicecontainer.hpp; path = demo/demodevicecontainer.hpp; sourceTree = "<group>"; };
+		ED31269618318CB100FAF28B /* demo_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = demo_main.cpp; sourceTree = "<group>"; };
+		ED3126E118318CC100FAF28B /* demovdc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = demovdc; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED369996178D5BD600376405 /* digitalio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitalio.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED369997178D5BE300376405 /* digitalio.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitalio.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED369998178D6A2C00376405 /* iopin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iopin.cpp; sourceTree = "<group>"; };
@@ -292,6 +346,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		ED3126D818318CC100FAF28B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ED3126D918318CC100FAF28B /* libcrypto.dylib in Frameworks */,
+				ED3126DA18318CC100FAF28B /* libmongoose.dylib in Frameworks */,
+				ED3126DB18318CC100FAF28B /* libsqlite3.dylib in Frameworks */,
+				ED3126DC18318CC100FAF28B /* libjson.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ED5C8EAC17CF3908002CC15F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -387,6 +452,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				ED31268F1831865800FAF28B /* demo */,
 				ED31268E183122F600FAF28B /* simpleio */,
 				ED31268D183122E900FAF28B /* hue */,
 				ED31268C183122D600FAF28B /* enocean */,
@@ -452,6 +518,17 @@
 				ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */,
 			);
 			path = simpleio;
+			sourceTree = "<group>";
+		};
+		ED31268F1831865800FAF28B /* demo */ = {
+			isa = PBXGroup;
+			children = (
+				ED312690183186C200FAF28B /* demodevice.cpp */,
+				ED312691183186C200FAF28B /* demodevice.hpp */,
+				ED312692183186C200FAF28B /* demodevicecontainer.cpp */,
+				ED312693183186C200FAF28B /* demodevicecontainer.hpp */,
+			);
+			name = demo;
 			sourceTree = "<group>";
 		};
 		ED3699B5178DA83800376405 /* p44utils */ = {
@@ -555,6 +632,7 @@
 				ED6D7BDB1716B63A005DED18 /* vdcd */,
 				EDB5BBFC17B4ED31004DB38D /* jsonrpctool */,
 				ED5C8EB217CF3908002CC15F /* enoceantool */,
+				ED3126E118318CC100FAF28B /* demovdc */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -568,6 +646,7 @@
 				ED3126881831225600FAF28B /* behaviours */,
 				ED3126891831228D00FAF28B /* deviceclasses */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
+				ED31269618318CB100FAF28B /* demo_main.cpp */,
 				EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */,
 				ED5C8EB317CF393E002CC15F /* enoceantool.cpp */,
 			);
@@ -594,6 +673,23 @@
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
+		ED31269818318CC100FAF28B /* demovdc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ED3126DE18318CC100FAF28B /* Build configuration list for PBXNativeTarget "demovdc" */;
+			buildPhases = (
+				ED31269918318CC100FAF28B /* Sources */,
+				ED3126D818318CC100FAF28B /* Frameworks */,
+				ED3126DD18318CC100FAF28B /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = demovdc;
+			productName = p44bridged;
+			productReference = ED3126E118318CC100FAF28B /* demovdc */;
+			productType = "com.apple.product-type.tool";
+		};
 		ED5C8E9617CF3908002CC15F /* enoceantool */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = ED5C8EAF17CF3908002CC15F /* Build configuration list for PBXNativeTarget "enoceantool" */;
@@ -673,6 +769,7 @@
 			projectRoot = "";
 			targets = (
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
+				ED31269818318CC100FAF28B /* demovdc */,
 				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
 				EDB5BBFB17B4ED31004DB38D /* jsonrpctool */,
 				ED5C8E9617CF3908002CC15F /* enoceantool */,
@@ -691,6 +788,48 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
+		ED31269918318CC100FAF28B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */,
+				ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */,
+				ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */,
+				ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */,
+				ED3126A018318CC100FAF28B /* logger.cpp in Sources */,
+				ED3126A218318CC100FAF28B /* utils.cpp in Sources */,
+				ED3126A318318CC100FAF28B /* devicecontainer.cpp in Sources */,
+				ED3126A618318CC100FAF28B /* deviceclasscontainer.cpp in Sources */,
+				ED3126A818318CC100FAF28B /* fdcomm.cpp in Sources */,
+				ED3126A918318CC100FAF28B /* outputbehaviour.cpp in Sources */,
+				ED3126AA18318CC100FAF28B /* propertycontainer.cpp in Sources */,
+				ED3126AB18318CC100FAF28B /* error.cpp in Sources */,
+				ED3126AC18318CC100FAF28B /* device.cpp in Sources */,
+				ED3126AE18318CC100FAF28B /* climatecontrolbehaviour.cpp in Sources */,
+				ED3126AF18318CC100FAF28B /* devicesettings.cpp in Sources */,
+				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
+				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
+				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
+				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
+				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
+				ED3126BA18318CC100FAF28B /* persistentparams.cpp in Sources */,
+				ED3126C218318CC100FAF28B /* sqlite3pp.cpp in Sources */,
+				ED3126C318318CC100FAF28B /* sensorbehaviour.cpp in Sources */,
+				ED3126C418318CC100FAF28B /* sqlite3ppext.cpp in Sources */,
+				ED3126C518318CC100FAF28B /* sqlite3persistence.cpp in Sources */,
+				ED3126C718318CC100FAF28B /* demodevice.cpp in Sources */,
+				ED3126C818318CC100FAF28B /* lightbehaviour.cpp in Sources */,
+				ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */,
+				ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */,
+				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,
+				ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */,
+				ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */,
+				ED3126D318318CC100FAF28B /* binaryinputbehaviour.cpp in Sources */,
+				ED3126D618318CC100FAF28B /* dsbehaviour.cpp in Sources */,
+				ED3126D718318CC100FAF28B /* jsonobject.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ED5C8E9717CF3908002CC15F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -814,6 +953,30 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		ED3126DF18318CC100FAF28B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../libmongoose",
+					"$(PROJECT_DIR)/src/thirdparty",
+				);
+				PRODUCT_NAME = demovdc;
+			};
+			name = Debug;
+		};
+		ED3126E018318CC100FAF28B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../libmongoose",
+					"$(PROJECT_DIR)/src/thirdparty",
+				);
+				PRODUCT_NAME = demovdc;
+			};
+			name = Release;
+		};
 		ED5C8EB017CF3908002CC15F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1021,6 +1184,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		ED3126DE18318CC100FAF28B /* Build configuration list for PBXNativeTarget "demovdc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ED3126DF18318CC100FAF28B /* Debug */,
+				ED3126E018318CC100FAF28B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		ED5C8EAF17CF3908002CC15F /* Build configuration list for PBXNativeTarget "enoceantool" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
