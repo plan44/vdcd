@@ -16,6 +16,10 @@ vdcd_CPPFLAGS = \
   -I src/deviceclasses/hue \
   -D DEBUG=1
 
+vdcd_CFLAGS = $(JSONC_CFLAGS)
+
+vdcd_LDADD = $(JSONC_LIBS)
+
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
@@ -151,6 +155,10 @@ demovdc_CPPFLAGS = \
   -I src/deviceclasses/demo \
   -D DEBUG=1
 
+demovdc_CFLAGS = $(JSONC_CFLAGS)
+
+demovdc_LDADD = $(JSONC_LIBS)
+
 demovdc_SOURCES = \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
@@ -226,9 +234,14 @@ demovdc_SOURCES = \
   src/demo_main.cpp
 
 
+
 jsonrpctool_CPPFLAGS = \
   -I src/p44utils \
   -I src
+
+jsonrpctool_CFLAGS = $(JSONC_LIBS)
+
+jsonrpctool_LDADD = $(JSONC_LIBS)
 
 jsonrpctool_SOURCES = \
   src/p44utils/p44obj.cpp \
