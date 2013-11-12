@@ -310,7 +310,7 @@ bool DsUid::setAsString(const string &aString)
   bool firstNibble = true;
   bool hasDashes = false;
   char c;
-  while ((c = *p++)!=0 && byteIndex<idBytes) {
+  while ((c = *p++)!=0 && byteIndex<dsuidBytes) {
     if (c=='-') {
       hasDashes = true; // a dash has occurred, might be a pure UUID (without 17th byte)
       continue; // dashes allowed but ignored
