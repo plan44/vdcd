@@ -10,7 +10,7 @@
 #define __vdcd__demodevicecontainer__
 
 #include "vdcd_common.hpp"
-
+#include "ssdpsearch.hpp"
 #include "deviceclasscontainer.hpp"
 
 using namespace std;
@@ -29,7 +29,11 @@ namespace p44 {
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+    void discoveryHandler(SsdpSearch *aSsdpSearchP, ErrorPtr aError);
 
+  private:
+    SsdpSearch m_dmr_search;
+    void findDevices();
   };
 
 } // namespace p44

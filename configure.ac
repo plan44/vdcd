@@ -31,6 +31,11 @@ PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
         AC_MSG_ERROR([$JSON_PKG_ERRORS])
     ])
 
+PKG_CHECK_MODULES([GUPNP], [gupnp-1.0], [],
+    [
+        AC_MSG_ERROR([$GUPNP_PKG_ERRORS])
+    ])
+
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h sys/resource.h], [], [AC_MSG_ERROR([required system header not found])])
 

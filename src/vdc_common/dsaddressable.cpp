@@ -9,6 +9,8 @@
 #include "dsaddressable.hpp"
 
 #include "devicecontainer.hpp"
+#include "device.hpp"
+#include "demodevice.hpp"
 
 using namespace p44;
 
@@ -104,6 +106,31 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
       JsonObjectPtr result;
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
+        // send back property result
+        sendResult(aJsonRpcId, result);
+      }
+    }
+  }
+  else if (aMethod=="getUserProperty") {
+    JsonObjectPtr propindex;
+    if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
+      o = aParams->get("index");
+      if (o) {
+        arrayIndex = o->int32Value();
+        rangeSize = 0; // single element
+      }
+      JsonObjectPtr result;
+      DevicePtr dev = getDeviceContainer().getDevice(dSUID);
+      if (dev == NULL) {
+        respErr = ErrorPtr(new JsonRpcError(JSONRPC_INTERNAL_ERROR, "device not found"));
+      } else {
+        string property = "";
+        // HACK
+        if (dev->modelName() == "Demo UPnP") {
+            boost::intrusive_ptr<p44::DemoDevice> demoDevP = boost::dynamic_pointer_cast<DemoDevice>(dev);
+            property = demoDevP->getDeviceDescriptionURL();
+        }
+        result = JsonObject::newString(property);
         // send back property result
         sendResult(aJsonRpcId, result);
       }

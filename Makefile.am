@@ -14,6 +14,7 @@ vdcd_CPPFLAGS = \
   -I src/deviceclasses/enocean \
   -I src/deviceclasses/dali \
   -I src/deviceclasses/hue \
+  -I src/deviceclasses/demo \
   -D DEBUG=1
 
 vdcd_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
@@ -144,7 +145,9 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevicecontainer.hpp \
   src/deviceclasses/hue/huedevice.cpp \
   src/deviceclasses/hue/huedevice.hpp \
-  src/p44_vdcd_main.cpp
+  src/p44_vdcd_main.cpp \
+  src/deviceclasses/demo/demodevice.cpp \
+  src/deviceclasses/demo/demodevice.hpp
 
 demovdc_CPPFLAGS = \
   -I src/p44utils \
@@ -155,9 +158,9 @@ demovdc_CPPFLAGS = \
   -I src/deviceclasses/demo \
   -D DEBUG=1
 
-demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
+demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(GUPNP_CFLAGS)
 
-demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
+demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(GUPNP_LIBS)
 
 demovdc_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -191,6 +194,8 @@ demovdc_SOURCES = \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
   src/p44utils/p44_common.hpp \
+  src/p44utils/ssdpsearch.cpp \
+  src/p44utils/ssdpsearch.hpp \
   src/thirdparty/sqlite3pp/sqlite3pp.cpp \
   src/thirdparty/sqlite3pp/sqlite3pp.h \
   src/thirdparty/sqlite3pp/sqlite3ppext.cpp \

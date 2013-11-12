@@ -350,6 +350,18 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   return true;
 }
 
+DevicePtr DeviceContainer::getDevice(DsUid dsuid)
+{
+  // check if device with same dSUID already exists
+  DsDeviceMap::iterator pos = dSDevices.find(dsuid);
+  if (pos!=dSDevices.end()) {
+      return dSDevices[dsuid];
+  }
+
+  return NULL;
+}
+
+
 
 // remove a device from container list (but does not disconnect it!)
 void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
@@ -671,6 +683,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
         string dsidstring;
         if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsidstring))) {
           // operation method
+          DsUid temp(dsidstring);
           respErr = handleMethodForDsid(aMethod, aJsonRpcId, DsUid(dsidstring), aParams);
         }
       }

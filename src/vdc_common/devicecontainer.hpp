@@ -214,6 +214,8 @@ namespace p44 {
     ///   by other means than a scan/collect operation
     bool addDevice(DevicePtr aDevice);
 
+    DevicePtr getDevice(DsUid dsuid);
+
     /// called by device class containers to remove devices from the container-wide list
     /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, parameters stored for the device will be deleted

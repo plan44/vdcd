@@ -16,12 +16,15 @@
 using namespace p44;
 
 
-DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
-  Device((DeviceClassContainer *)aClassContainerP)
+DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP, std::string location, std::string uuid) :
+  Device((DeviceClassContainer *)aClassContainerP),
+  m_locationURL(location),
+  m_uuid(uuid)
 {
   // a demo device is a light which shows its dimming value as a string of 0..50 hashes on the console
   // - is a light device
-  primaryGroup = group_yellow_light;
+  primaryGroup = group_cyan_audio;
+  /*
   // - use light settings, which include a fully functional scene table
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // - create one output with light behaviour
@@ -30,6 +33,7 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
   l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
   addBehaviour(l);
   // - hardware is defined, now derive dSUID
+  */
 	deriveDsUid();
 }
 
@@ -84,7 +88,7 @@ void DemoDevice::deriveDsUid()
 
 string DemoDevice::modelName()
 {
-  return "Demo Output";
+  return "Demo UPnP";
 }
 
 
@@ -93,4 +97,9 @@ string DemoDevice::description()
   string s = inherited::description();
   string_format_append(s, "- Demo output to console\n");
   return s;
+}
+
+string DemoDevice::getDeviceDescriptionURL() const
+{
+    return m_locationURL;
 }

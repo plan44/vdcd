@@ -25,7 +25,8 @@ namespace p44 {
     typedef Device inherited;
 
   public:
-    DemoDevice(DemoDeviceContainer *aClassContainerP);
+    DemoDevice(DemoDeviceContainer *aClassContainerP,
+               const std::string location, const std::string uuid);
     
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -52,10 +53,13 @@ namespace p44 {
 
     /// @}
 
+    string getDeviceDescriptionURL() const;
+
   protected:
 
     void deriveDsUid();
-
+    std::string m_locationURL;
+    std::string m_uuid;
   };
 
 } // namespace p44
