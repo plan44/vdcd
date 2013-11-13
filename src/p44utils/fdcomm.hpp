@@ -46,7 +46,7 @@ namespace p44 {
     FdCommCB transmitHandler;
 
   protected:
-  
+
     int dataFd;
     SyncIOMainLoop &mainLoop;
 
@@ -125,6 +125,10 @@ namespace p44 {
     string collectedData;
 
     FdStringCollector(SyncIOMainLoop &aMainLoop);
+
+  protected:
+
+    virtual void dataExceptionHandler(int aFd, int aPollFlags);
 
   private:
 

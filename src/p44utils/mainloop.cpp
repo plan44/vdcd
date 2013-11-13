@@ -276,7 +276,10 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
     if (aAnswerCollector) {
       // - make sure entire answer gets read until pipe is empty
       while (aAnswerCollector->numBytesReady()>0) {
-        aAnswerCollector->receiveAndAppendToString(aAnswerCollector->collectedData);
+        ErrorPtr err = aAnswerCollector->receiveAndAppendToString(aAnswerCollector->collectedData);
+        if (!Error::isOK(err)) {
+          break;
+        }
       }
       // now get answer
       answer = aAnswerCollector->collectedData;

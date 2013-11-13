@@ -233,3 +233,18 @@ void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
     receiveAndAppendToString(collectedData);
   }
 }
+
+
+
+void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
+{
+  DBGLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
+  if ((aPollFlags & (POLLHUP|POLLIN|POLLERR)) != 0) {
+    // - other end has closed connection (POLLHUP)
+    // - linux socket was closed server side and does not return POLLHUP, but POLLIN with no data
+    // - error (POLLERR)
+    // end polling for data
+    setReceiveHandler(NULL);
+  }
+}
+
