@@ -221,7 +221,8 @@ void FdComm::makeNonBlocking(int aFd)
 
 
 FdStringCollector::FdStringCollector(SyncIOMainLoop &aMainLoop) :
-  FdComm(aMainLoop)
+  FdComm(aMainLoop),
+  ended(false)
 {
   setReceiveHandler(boost::bind(&FdStringCollector::gotData, this, _1, _2));
 }
@@ -231,6 +232,10 @@ void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     receiveAndAppendToString(collectedData);
+  }
+  else {
+    // error ends collecting
+    ended = true;
   }
 }
 
@@ -245,6 +250,26 @@ void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
     // - error (POLLERR)
     // end polling for data
     setReceiveHandler(NULL);
+    ended = true;
+    if (endedCallback) {
+      endedCallback(this, ErrorPtr());
+      endedCallback = NULL;
+    }
   }
 }
+
+
+void FdStringCollector::collectToEnd(FdCommCB aEndedCallback)
+{
+  endedCallback = aEndedCallback;
+  if (ended) {
+    // if already ended when called, end right away
+    if (endedCallback) {
+      endedCallback(this, ErrorPtr());
+      endedCallback = NULL;
+    }
+  }
+}
+
+
 

@@ -119,12 +119,17 @@ namespace p44 {
 
   class FdStringCollector : public FdComm
   {
+    bool ended; ///< set when FD returns error or HUP
+    FdCommCB endedCallback; ///< called when collecting ends (after setup by collectToEnd())
+
   public:
 
-    // all data received from the fd is collected into this string
-    string collectedData;
+    string collectedData; ///< all data received from the fd is collected into this string
 
     FdStringCollector(SyncIOMainLoop &aMainLoop);
+
+    /// collect until file descriptor does not provide any more data
+    void collectToEnd(FdCommCB aEndedCallback);
 
   protected:
 

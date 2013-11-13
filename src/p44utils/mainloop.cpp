@@ -273,23 +273,26 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
 {
   if (aCallback) {
     string answer;
+    ErrorPtr err = ExecError::exitStatus(WEXITSTATUS(aStatus));
     if (aAnswerCollector) {
-      // - make sure entire answer gets read until pipe is empty
-      while (aAnswerCollector->numBytesReady()>0) {
-        ErrorPtr err = aAnswerCollector->receiveAndAppendToString(aAnswerCollector->collectedData);
-        if (!Error::isOK(err)) {
-          break;
-        }
-      }
-      // now get answer
-      answer = aAnswerCollector->collectedData;
-      // detach collector
-      aAnswerCollector->setReceiveHandler(NULL);
-      close(aAnswerCollector->getFd());
+      aAnswerCollector->collectToEnd(boost::bind(&MainLoop::childAnswerCollected, this, aCallback, aAnswerCollector, err));
     }
-    // call back
-    aCallback(*this, cycleStartTime, ExecError::exitStatus(WEXITSTATUS(aStatus)), answer);
+    else {
+      // call back directly
+      aCallback(*this, cycleStartTime, err, "");
+    }
   }
+}
+
+
+void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError)
+{
+  // now get answer
+  string answer = aAnswerCollector->collectedData;
+  // close my end of the pipe
+  close(aAnswerCollector->getFd());
+  // call back directly
+  aCallback(*this, cycleStartTime, aError, answer);
 }
 
 

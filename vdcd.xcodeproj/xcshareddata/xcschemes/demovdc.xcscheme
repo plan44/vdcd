@@ -60,11 +60,11 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

@@ -178,6 +178,7 @@ namespace p44 {
   private:
 
     void execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus);
+    void childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError);
 
   };
 
