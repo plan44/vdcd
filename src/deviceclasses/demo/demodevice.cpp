@@ -70,7 +70,7 @@ void DemoDevice::deriveDsUid()
     //   UUIDv5 with name = classcontainerinstanceid::SingularDemoDevice
     DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    s += "::SingularDemoDevice";
+    s += m_uuid;
     dSUID.setNameInSpace(s, vdcNamespace);
   }
   else {
@@ -79,7 +79,7 @@ void DemoDevice::deriveDsUid()
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
     hash.addBytes(s.size(), (uint8_t *)s.c_str());
     // - add-in the Demo name
-    hash.addCStr("SingularDemoDevice");
+    hash.addCStr(m_uuid.c_str());
     dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
     dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
   }
