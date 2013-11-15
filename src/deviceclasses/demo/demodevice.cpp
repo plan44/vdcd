@@ -13,13 +13,15 @@
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
 
+
 using namespace p44;
 
 
 DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP, std::string location, std::string uuid) :
   Device((DeviceClassContainer *)aClassContainerP),
   m_locationURL(location),
-  m_uuid(uuid)
+  m_uuid(uuid),
+  presenceTicket(0)
 {
   // a demo device is a light which shows its dimming value as a string of 0..50 hashes on the console
   // - is a light device
@@ -57,6 +59,33 @@ void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+}
+
+
+
+void DemoDevice::checkPresence(PresenceCB aPresenceResultHandler)
+{
+  SsdpSearchPtr srch = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
+  presenceTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DemoDevice::timeoutHandler, this, aPresenceResultHandler, srch), 3*Second);
+  srch->startSearch(boost::bind(&DemoDevice::presenceHandler, this, aPresenceResultHandler, _1, _2), m_uuid.c_str(), true);
+}
+
+
+
+void DemoDevice::presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError)
+{
+  printf("Ping response notify\n%s\n", aSsdpSearchP->response.c_str());
+  aPresenceResultHandler(true);
+  aSsdpSearchP->stopSearch();
+  MainLoop::currentMainLoop().cancelExecutionTicket(presenceTicket);
+}
+
+
+void DemoDevice::timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch)
+{
+  aSrch->stopSearch();
+  aPresenceResultHandler(false);
+  presenceTicket = 0;
 }
 
 
@@ -101,5 +130,5 @@ string DemoDevice::description()
 
 string DemoDevice::getDeviceDescriptionURL() const
 {
-    return m_locationURL;
+  return m_locationURL;
 }

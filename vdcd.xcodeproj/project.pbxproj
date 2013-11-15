@@ -112,6 +112,7 @@
 		ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
 		ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
+		EDAC58FA1836347700EF6E7B /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
@@ -795,6 +796,7 @@
 				ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */,
 				ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */,
 				ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */,
+				EDAC58FA1836347700EF6E7B /* ssdpsearch.cpp in Sources */,
 				ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */,
 				ED3126A018318CC100FAF28B /* logger.cpp in Sources */,
 				ED3126A218318CC100FAF28B /* utils.cpp in Sources */,

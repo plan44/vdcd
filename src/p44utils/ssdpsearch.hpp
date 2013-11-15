@@ -44,7 +44,7 @@ namespace p44 {
     typedef SocketComm inherited;
 
     // parameters
-    bool uuidMustMatch;
+    bool targetMustMatch;
     SsdpSearchCB searchResultHandler;
     string searchTarget;
     bool singleTargetSearch;
@@ -57,6 +57,7 @@ namespace p44 {
     string locationURL; ///< will be set to the location of the result
     string uuid; ///< will be set to the uuid (extracted from USN header) of the result
     string server; ///< will be set to the SERVER header
+    int maxAge; ///< will be set to the max-age value
 
     SsdpSearch(SyncIOMainLoop &aMainLoop);
     virtual ~SsdpSearch();
@@ -71,8 +72,8 @@ namespace p44 {
     /// @param aSearchResultHandler will be called whenever a Ssdp search result has been received, or a search times out
     /// @param aSearchTarget search target string, like "ssdp:all" or "upnp:rootdevice"
     /// @param aSingleTarget searching for single target, stop search once we got an answer
-    /// @param aUuidToMatch if not NULL, only results matching this UUID will be returned
-    void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, const char *aUuidToMatch = NULL);
+    /// @param aTargetMustMatch if set, only direct responses to our search are returned
+    void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, bool aTargetMustMatch);
 
 
     /// stop SSDP search - result handler

@@ -33,7 +33,7 @@ namespace p44 {
 
   private:
     SsdpSearch m_dmr_search;
-    void findDevices();
+    void endCollect(CompletedCB aCompletedCB);
   };
 
 } // namespace p44

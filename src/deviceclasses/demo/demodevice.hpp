@@ -10,6 +10,7 @@
 #define __vdcd__demodevice__
 
 #include "device.hpp"
+#include "ssdpsearch.hpp"
 
 
 using namespace std;
@@ -42,6 +43,13 @@ namespace p44 {
     ///   output behaviours to collect data for an outgoing message.
     virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
 
+
+    /// check presence of UPnP device
+    virtual void checkPresence(PresenceCB aPresenceResultHandler);
+
+
+
+
     /// @}
 
 
@@ -60,6 +68,11 @@ namespace p44 {
     void deriveDsUid();
     std::string m_locationURL;
     std::string m_uuid;
+    long presenceTicket;
+
+    void presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError);
+    void timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch);
+
   };
 
 } // namespace p44
