@@ -153,6 +153,7 @@ demovdc_CPPFLAGS = \
   -I src/vdc_common \
   -I src/behaviours \
   -I src/deviceclasses/demo \
+  -I src/deviceclasses/upnphack \
   -D DEBUG=1
 
 demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
