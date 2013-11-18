@@ -152,11 +152,57 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
       }
     }
   }
+  else if (aMethod=="getUserProperty") {
+    // Shortcut access to some specific "user" properties
+    // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
+    JsonObjectPtr propindex;
+    if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
+      int userPropIndex = propindex->int32Value();
+      // look up name and index of real property
+      if (Error::isOK(respErr = getUserPropertyMapping(userPropIndex, name, arrayIndex))) {
+        // this dsAdressable supports this user property index, read it
+        JsonObjectPtr result;
+        respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, 0); // always single element
+        if (Error::isOK(respErr)) {
+          // send back property result
+          sendResult(aJsonRpcId, result);
+        }
+      }
+    }
+  }
+  else if (aMethod=="setUserProperty") {
+    // Shortcut access to some specific "user" properties
+    // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
+    JsonObjectPtr propindex;
+    JsonObjectPtr value;
+    if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
+      if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
+        int userPropIndex = propindex->int32Value();
+        // look up name and index of real property
+        if (Error::isOK(respErr = getUserPropertyMapping(userPropIndex, name, arrayIndex))) {
+          // this dsAdressable supports this user property index, write it
+          respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
+          if (Error::isOK(respErr)) {
+            // send back OK if write was successful
+            sendResult(aJsonRpcId, JsonObjectPtr());
+          }
+        }
+      }
+    }
+  }
   else {
     respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND, "unknown method"));
   }
   return respErr;
 }
+
+
+ErrorPtr DsAddressable::getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex)
+{
+  // base class implements no user properties
+  return ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Unknown user property index %d", aUserPropertyIndex)));
+}
+
 
 
 bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)

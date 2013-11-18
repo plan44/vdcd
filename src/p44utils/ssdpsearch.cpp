@@ -27,7 +27,7 @@ void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUui
 {
   string searchTarget;
   bool singleTarget = false;
-  const char *uuidToMatch = NULL;
+  bool mustMatch = false;
   if (!aUuidToFind) {
     // find anything
     searchTarget = "upnp:rootdevice";
@@ -36,11 +36,9 @@ void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUui
     // find specific UUID
     singleTarget = true;
     searchTarget = string_format("uuid:%s",aUuidToFind);
-    if (aVerifyUUID) {
-      uuidToMatch = aUuidToFind;
-    }
+    mustMatch = aVerifyUUID;
   }
-  startSearchForTarget(aSearchResultHandler, searchTarget.c_str(), singleTarget, uuidToMatch);
+  startSearchForTarget(aSearchResultHandler, searchTarget.c_str(), singleTarget, mustMatch);
 }
 
 
@@ -57,19 +55,13 @@ void SsdpSearch::startSearch(SsdpSearchCB aSearchResultHandler, const char *aUui
 #define SSDP_MX 3 // should be sufficient (5 is max allowed)
 
 
-void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, const char *aUuidToMatch)
+void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, bool aTargetMustMatch)
 {
   // save params
   singleTargetSearch = aSingleTarget;
   searchTarget = aSearchTarget;
   searchResultHandler = aSearchResultHandler;
-  if (aUuidToMatch) {
-    uuid = aUuidToMatch;
-    uuidMustMatch = true;
-  }
-  else {
-    uuidMustMatch = false;
-  }
+  targetMustMatch = aTargetMustMatch;
   // close current socket
   closeConnection();
   // setup new UDP socket
@@ -99,7 +91,7 @@ void SsdpSearch::socketStatusHandler(ErrorPtr aError)
       searchTarget.c_str()
     );
     transmitString(ssdpSearch);
-    // start timer (wait twice the MX for answers)
+    // start timer (wait 1.5 the MX for answers)
     timeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SsdpSearch::searchTimedOut, this), SSDP_MX*1500*MilliSecond);
   }
   else {
@@ -149,6 +141,7 @@ void SsdpSearch::gotData(ErrorPtr aError)
     bool locFound = false;
     bool uuidFound = false;
     bool serverFound = false;
+    bool stFound = false;
     while (nextLine(p, line)) {
       string key, value;
       if (keyAndValue(line, key, value)) {
@@ -156,6 +149,17 @@ void SsdpSearch::gotData(ErrorPtr aError)
           locationURL = value;
           locFound = true;
           //LOG(LOG_NOTICE,"Location: %s\n", locationURL.c_str());
+        }
+        else if (key=="ST") {
+          if (targetMustMatch) {
+            if (searchTarget!=value) {
+              // wrong ST, discard
+              LOG(LOG_INFO,"Received notify from %s, but wrong ST (%s, expected: %s) -> ignored\n", locationURL.c_str(), value.c_str(), searchTarget.c_str());
+              // no more action, wait for response with correct ST
+              return;
+            }
+          }
+          stFound = true;
         }
         else if (key=="USN") {
           //LOG(LOG_NOTICE,"USN: %s\n", value.c_str());
@@ -169,22 +173,29 @@ void SsdpSearch::gotData(ErrorPtr aError)
                 u = v.substr(0,i);
               else
                 u = v;
-              // check if matches
-              if (uuidMustMatch) {
-                uuidFound = uuid==u;
-                if (!uuidFound) {
-                  // wrong UUID, discard
-                  LOG(LOG_INFO,"Received search response from %s, but wrong UUID (%s, expected: %s) -> ignored\n", locationURL.c_str(), u.c_str(), uuid.c_str());
-                  // no more action, wait for response with correct UUID
-                  return;
-                }
-              }
-              else {
+//              // check if matches
+//              if (uuidMustMatch) {
+//                uuidFound = uuid==u;
+//                if (!uuidFound) {
+//                  // wrong UUID, discard
+//                  LOG(LOG_INFO,"Received search response from %s, but wrong UUID (%s, expected: %s) -> ignored\n", locationURL.c_str(), u.c_str(), uuid.c_str());
+//                  // no more action, wait for response with correct UUID
+//                  return;
+//                }
+//              }
+//              else
+              {
                 uuid = u;
                 uuidFound = true;
               }
               //LOG(LOG_NOTICE,"uuid: %s\n", uuid.c_str());
             }
+          }
+        }
+        else if (key=="CACHE-CONTROL") {
+          size_t pos = value.find("max-age =");
+          if (pos!=string::npos) {
+            sscanf(value.c_str()+9, "%d", &maxAge);
           }
         }
         else if (key=="SERVER") {
@@ -195,7 +206,7 @@ void SsdpSearch::gotData(ErrorPtr aError)
       }
     }
     if (searchResultHandler) {
-      if (locFound && uuidFound && serverFound) {
+      if (locFound && uuidFound && serverFound && stFound) {
         // complete response -> call back
         if (singleTargetSearch) {
           stopSearch();

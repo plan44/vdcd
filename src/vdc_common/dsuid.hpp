@@ -92,6 +92,7 @@ namespace p44 {
     /// @param aString string representing a dSUID. Must be in one of the following formats
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
+    /// - a 32 digit UUID, containing at least one dash (position does not matter)
     /// @return true if valid dSUID could be read
     bool setAsString(const string &aString);
 

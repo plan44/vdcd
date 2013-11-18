@@ -151,6 +151,9 @@
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
+		EDF62B49183A0ED20016BFDA /* upnpdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF62B45183A0ED20016BFDA /* upnpdevicecontainer.cpp */; };
+		EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF62B46183A0ED20016BFDA /* upnpdevice.cpp */; };
+		EDF62B4B183A29550016BFDA /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -343,6 +346,10 @@
 		EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = climatecontrolbehaviour.hpp; sourceTree = "<group>"; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean1bs.cpp; sourceTree = "<group>"; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean1bs.hpp; sourceTree = "<group>"; };
+		EDF62B45183A0ED20016BFDA /* upnpdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = upnpdevicecontainer.cpp; sourceTree = "<group>"; };
+		EDF62B46183A0ED20016BFDA /* upnpdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = upnpdevice.cpp; sourceTree = "<group>"; };
+		EDF62B47183A0ED20016BFDA /* upnpdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = upnpdevice.hpp; sourceTree = "<group>"; };
+		EDF62B48183A0ED20016BFDA /* upnpdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = upnpdevicecontainer.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -452,6 +459,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				EDF62B43183A0EA50016BFDA /* upnphack */,
 				ED31268F1831865800FAF28B /* demo */,
 				ED31268E183122F600FAF28B /* simpleio */,
 				ED31268D183122E900FAF28B /* hue */,
@@ -653,6 +661,17 @@
 			path = src;
 			sourceTree = "<group>";
 		};
+		EDF62B43183A0EA50016BFDA /* upnphack */ = {
+			isa = PBXGroup;
+			children = (
+				EDF62B46183A0ED20016BFDA /* upnpdevice.cpp */,
+				EDF62B47183A0ED20016BFDA /* upnpdevice.hpp */,
+				EDF62B45183A0ED20016BFDA /* upnpdevicecontainer.cpp */,
+				EDF62B48183A0ED20016BFDA /* upnpdevicecontainer.hpp */,
+			);
+			path = upnphack;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
@@ -794,6 +813,7 @@
 			files = (
 				ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */,
 				ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */,
+				EDF62B49183A0ED20016BFDA /* upnpdevicecontainer.cpp in Sources */,
 				ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */,
 				ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */,
 				ED3126A018318CC100FAF28B /* logger.cpp in Sources */,
@@ -812,6 +832,7 @@
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
 				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
+				EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */,
 				ED3126BA18318CC100FAF28B /* persistentparams.cpp in Sources */,
 				ED3126C218318CC100FAF28B /* sqlite3pp.cpp in Sources */,
 				ED3126C318318CC100FAF28B /* sensorbehaviour.cpp in Sources */,
@@ -819,6 +840,7 @@
 				ED3126C518318CC100FAF28B /* sqlite3persistence.cpp in Sources */,
 				ED3126C718318CC100FAF28B /* demodevice.cpp in Sources */,
 				ED3126C818318CC100FAF28B /* lightbehaviour.cpp in Sources */,
+				EDF62B4B183A29550016BFDA /* ssdpsearch.cpp in Sources */,
 				ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */,
 				ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */,
 				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,

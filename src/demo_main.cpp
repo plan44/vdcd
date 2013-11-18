@@ -13,6 +13,7 @@
 #include "devicecontainer.hpp"
 
 #include "demodevicecontainer.hpp"
+#include "upnpdevicecontainer.hpp"
 
 #define DEFAULT_USE_MODERN_DSIDS 0 // 0: no, 1: yes
 
@@ -83,9 +84,12 @@ public:
     deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
     // Now add device class(es)
-    // - only the demo device class for now
+    // - the demo device (dimmer value output to console as bar of hashes ######) class
     DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1));
     deviceContainer.addDeviceClassContainer(demoDeviceContainer);
+    // - the UPnP skeleton device from the developer days 2013 hackaton
+    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1));
+    deviceContainer.addDeviceClassContainer(upnpDeviceContainer);
 
     // now start running the mainloop
     return run();

@@ -184,6 +184,8 @@ demovdc_SOURCES = \
   src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
   src/p44utils/socketcomm.hpp \
+  src/p44utils/ssdpsearch.cpp \
+  src/p44utils/ssdpsearch.hpp \
   src/p44utils/sqlite3persistence.cpp \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
@@ -231,6 +233,10 @@ demovdc_SOURCES = \
   src/deviceclasses/demo/demodevice.hpp \
   src/deviceclasses/demo/demodevicecontainer.cpp \
   src/deviceclasses/demo/demodevicecontainer.hpp \
+  src/deviceclasses/upnphack/upnpdevice.cpp \
+  src/deviceclasses/upnphack/upnpdevice.hpp \
+  src/deviceclasses/upnphack/upnpdevicecontainer.cpp \
+  src/deviceclasses/upnphack/upnpdevicecontainer.hpp \
   src/demo_main.cpp
 
 
