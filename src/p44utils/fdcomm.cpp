@@ -49,6 +49,17 @@ void FdComm::setFd(int aFd)
 }
 
 
+void FdComm::stopMonitoringAndClose()
+{
+  if (dataFd>=0) {
+    mainLoop.unregisterPollHandler(dataFd);
+    close(dataFd);
+    dataFd = -1;
+  }
+}
+
+
+
 void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
   DBGLOG(LOG_DEBUG, "FdComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
@@ -58,19 +69,22 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 
 bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
-  //DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
-  if (aPollFlags & POLLHUP) {
-    // other end has closed connection
-    dataExceptionHandler(aFd, aPollFlags);
-  }
-  else if ((aPollFlags & POLLIN) && receiveHandler) {
-    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN
-    if (numBytesReady()>0)
+  DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
+  // Note: test POLLIN first, because we might get a POLLHUP in parallel - so make sure we process data before hanging up
+  if ((aPollFlags & POLLIN) && receiveHandler) {
+    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
+    if (numBytesReady()>0) {
       receiveHandler(this, ErrorPtr());
+    }
     else {
       // alerted for read, but nothing to read any more - is also an exception
       dataExceptionHandler(aFd, aPollFlags);
+      aPollFlags = 0; // handle only once
     }
+  }
+  if (aPollFlags & POLLHUP) {
+    // other end has closed connection
+    dataExceptionHandler(aFd, aPollFlags);
   }
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
     transmitHandler(this, ErrorPtr());
@@ -243,18 +257,20 @@ void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
 
 void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
+  DBGLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X), numBytesReady()=%d\n", aFd, aPollFlags, numBytesReady());
   if ((aPollFlags & (POLLHUP|POLLIN|POLLERR)) != 0) {
     // - other end has closed connection (POLLHUP)
     // - linux socket was closed server side and does not return POLLHUP, but POLLIN with no data
     // - error (POLLERR)
     // end polling for data
     setReceiveHandler(NULL);
-    ended = true;
-    if (endedCallback) {
+    // if ending first time, call back
+    if (!ended && endedCallback) {
       endedCallback(this, ErrorPtr());
-      endedCallback = NULL;
+      // Note: we do not clear the callback here, as it might hold references which are not cleanly disposable right now
     }
+    // anyway, ended now
+    ended = true;
   }
 }
 

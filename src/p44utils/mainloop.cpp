@@ -227,10 +227,13 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
     if (child_pid==0) {
       // this is the child process (fork() returns 0 for the child process)
       if (aPipeBackStdOut) {
-        close(STDOUT_FILENO); // close current stdout
-        dup(answerPipe[1]); // replace it by writing end of pipe
+        dup2(answerPipe[1],STDOUT_FILENO); // replace STDOUT by writing end of pipe
+        close(answerPipe[1]); // release the original descriptor (does NOT really close the file)
         close(answerPipe[0]); // close child's reading end of pipe (parent uses it!)
       }
+      // close all non-std file descriptors
+      int fd = getdtablesize();
+      while (fd-- > 2) close(fd);
       // change to the requested child process
       execve(aPath, aArgv, aEnvp); // replace process with new binary/script
       // execv returns only in case of error
@@ -290,7 +293,7 @@ void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnsw
   // now get answer
   string answer = aAnswerCollector->collectedData;
   // close my end of the pipe
-  close(aAnswerCollector->getFd());
+  aAnswerCollector->stopMonitoringAndClose();
   // call back directly
   aCallback(*this, cycleStartTime, aError, answer);
 }

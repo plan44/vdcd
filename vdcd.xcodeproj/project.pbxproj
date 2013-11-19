@@ -411,7 +411,6 @@
 				ED81337517C65F7E003982CC /* devicesettings.hpp */,
 				EDCFE855171FE841001D35F3 /* device.cpp */,
 				EDCFE856171FE841001D35F3 /* device.hpp */,
-				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsuid.hpp */,
 				ED69C169176787FB00D9E596 /* dsdefs.h */,
@@ -425,6 +424,7 @@
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
 				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
 				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
+				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 			);
 			path = vdc_common;
 			sourceTree = "<group>";

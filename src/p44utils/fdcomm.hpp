@@ -56,8 +56,11 @@ namespace p44 {
     virtual ~FdComm();
 
     /// Set file descriptor
-    /// @param aFd the file descriptor to monitor
+    /// @param aFd the file descriptor to monitor, -1 to cancel monitoring
     void setFd(int aFd);
+
+    /// Stop monitoring (unregister SyncIOMainLoop callbacks) and close the file descriptor
+    void stopMonitoringAndClose();
 
     /// Get file descriptor
     int getFd() { return dataFd; };
