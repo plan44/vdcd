@@ -232,8 +232,8 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
         close(answerPipe[0]); // close child's reading end of pipe (parent uses it!)
       }
       // close all non-std file descriptors
-      int fd = getdtablesize();
-      while (fd-- > 2) close(fd);
+      //int fd = getdtablesize();
+      //while (fd-- > 2) close(fd);
       // change to the requested child process
       execve(aPath, aArgv, aEnvp); // replace process with new binary/script
       // execv returns only in case of error
@@ -274,6 +274,7 @@ void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine, bool 
 
 void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus)
 {
+  fprintf(stderr,"execChildTerminated\n"); fflush(stderr);
   if (aCallback) {
     string answer;
     ErrorPtr err = ExecError::exitStatus(WEXITSTATUS(aStatus));
