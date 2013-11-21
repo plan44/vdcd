@@ -374,6 +374,10 @@ bool CmdLineApp::processOption(const CmdLineOptionDescriptor &aOptionDescriptor,
 }
 
 
+const char *CmdLineApp::getInvocationName()
+{
+  return invocationName.c_str();
+}
 
 
 void CmdLineApp::resetCommandLine()

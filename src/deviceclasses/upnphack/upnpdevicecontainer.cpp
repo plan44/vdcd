@@ -20,7 +20,7 @@ UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber) :
 // device class name
 const char *UpnpDeviceContainer::deviceClassIdentifier() const
 {
-  return "Demo_Device_Container";
+  return "UPnP_Device_Container";
 }
 
 void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearch *aSsdpSearchP, ErrorPtr aError)
