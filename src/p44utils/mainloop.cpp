@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include "fdcomm.hpp"
 
@@ -183,7 +184,19 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
 
 void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
 {
+  LOG(LOG_DEBUG,"waitForPid: requested wait for pid=%d\n", aPid);
   if (aCallback) {
+//    // get status once immediately
+//    int status;
+//    pid_t pid = waitpid(aPid, &status, WNOHANG);
+//    if (pid>0) {
+//      LOG(LOG_DEBUG,"waitForPid: child pid=%d immediately reported exit status %d\n", pid, status);
+//      aCallback(*this, cycleStartTime, pid, status);
+//      return;
+//    }
+//    else {
+//      LOG(LOG_DEBUG,"waitForPid: immediate check for child pid=%d returns %d\n", aPid, pid);
+//    }
     // install new callback
     WaitHandler h;
     h.callback = aCallback;
@@ -203,8 +216,18 @@ void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
 extern char **environ;
 
 
+static void showSigAction()
+{
+  struct sigaction oldact, newact;
+  sigaction(SIGCHLD, NULL, &oldact);
+  LOG(LOG_DEBUG,"- sa_handler = 0x%lX, sa_sigaction = 0x%lX, sa_mask = 0x%X, sa_flags = 0x%X\n", oldact.sa_handler, oldact.sa_sigaction, oldact.sa_mask, oldact.sa_flags);
+}
+
+
 void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[], bool aPipeBackStdOut)
 {
+  LOG(LOG_DEBUG,"fork_and_execve: preparing to fork for executing '%s' now\n", aPath);
+  showSigAction();
   pid_t child_pid;
   int answerPipe[2]; /* Child to parent pipe */
 
@@ -226,14 +249,16 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
     // fork successful
     if (child_pid==0) {
       // this is the child process (fork() returns 0 for the child process)
+      LOG(LOG_DEBUG,"forked child process: prepare for execve\n", aPath);
+      showSigAction();
       if (aPipeBackStdOut) {
         dup2(answerPipe[1],STDOUT_FILENO); // replace STDOUT by writing end of pipe
         close(answerPipe[1]); // release the original descriptor (does NOT really close the file)
         close(answerPipe[0]); // close child's reading end of pipe (parent uses it!)
       }
       // close all non-std file descriptors
-      //int fd = getdtablesize();
-      //while (fd-- > 2) close(fd);
+      int fd = getdtablesize();
+      while (fd>STDERR_FILENO) close(fd--);
       // change to the requested child process
       execve(aPath, aArgv, aEnvp); // replace process with new binary/script
       // execv returns only in case of error
@@ -241,14 +266,17 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
     }
     else {
       // this is the parent process, wait for the child to terminate
+      LOG(LOG_DEBUG,"fork_and_execve: child pid=%d, parent will now set up pipe string collector\n", child_pid);
       FdStringCollectorPtr ans;
       if (aPipeBackStdOut) {
+        LOG(LOG_DEBUG,"fork_and_execve: parent will now set up pipe string collector\n");
         close(answerPipe[1]); // close parent's writing end (child uses it!)
         // set up collector for data returned from child process
         ans = FdStringCollectorPtr(new FdStringCollector(SyncIOMainLoop::currentMainLoop()));
         ans->setFd(answerPipe[0]);
       }
-      MainLoop::currentMainLoop().waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _3, _4), child_pid);
+      LOG(LOG_DEBUG,"fork_and_execve: now calling waitForPid(%d)\n", child_pid);
+      waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _3, _4), child_pid);
     }
   }
   else {
@@ -274,7 +302,7 @@ void MainLoop::fork_and_system(ExecCB aCallback, const char *aCommandLine, bool 
 
 void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus)
 {
-  fprintf(stderr,"execChildTerminated\n"); fflush(stderr);
+  LOG(LOG_DEBUG,"execChildTerminated: pid=%d, aStatus=%d\n", aPid, aStatus);
   if (aCallback) {
     string answer;
     ErrorPtr err = ExecError::exitStatus(WEXITSTATUS(aStatus));
@@ -291,10 +319,12 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
 
 void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError)
 {
-  // now get answer
-  string answer = aAnswerCollector->collectedData;
+  LOG(LOG_DEBUG,"childAnswerCollected: error = %s\n", Error::isOK(aError) ? "none" : aError->description().c_str());
   // close my end of the pipe
   aAnswerCollector->stopMonitoringAndClose();
+  // now get answer
+  string answer = aAnswerCollector->collectedData;
+  LOG(LOG_DEBUG,"- Answer = %s\n", answer.c_str());
   // call back directly
   aCallback(*this, cycleStartTime, aError, answer);
 }
@@ -387,6 +417,7 @@ bool MainLoop::checkWait()
     int status;
     pid_t pid = waitpid(-1, &status, WNOHANG);
     if (pid>0) {
+      LOG(LOG_DEBUG,"checkWait: child pid=%d reports exit status %d\n", pid, status);
       // process has status
       WaitHandlerMap::iterator pos = waitHandlers.find(pid);
       if (pos!=waitHandlers.end()) {
@@ -395,8 +426,27 @@ bool MainLoop::checkWait()
         // remove it from list
         waitHandlers.erase(pos);
         // call back
+        LOG(LOG_DEBUG,"- calling wait handler for pid=%d now\n", pid);
         cb(*this, cycleStartTime, pid, status);
         return false; // more process status could be ready, call soon again
+      }
+    }
+    else if (pid<0) {
+      // error when calling waitpid
+      int e = errno;
+      if (e==ECHILD) {
+        // no more children
+        LOG(LOG_DEBUG,"checkWait: no children any more -> ending all waits\n");
+        // - inform all still waiting handlers
+        WaitHandlerMap oldHandlers = waitHandlers; // copy
+        waitHandlers.clear(); // remove all handlers from real list, as new handlers might be added in handlers we'll call now
+        for (WaitHandlerMap::iterator pos = oldHandlers.begin(); pos!=oldHandlers.end(); pos++) {
+          WaitCB cb = pos->second.callback; // get callback
+          cb(*this, cycleStartTime, pos->second.pid, 0); // fake status
+        }
+      }
+      else {
+        LOG(LOG_DEBUG,"checkWait: waitpid returns error %s\n", strerror(e));
       }
     }
   }
