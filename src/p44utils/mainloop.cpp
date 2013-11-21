@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <sys/param.h>
 #include <sys/wait.h>
-#include <signal.h>
 
 #include "fdcomm.hpp"
 
@@ -186,17 +185,6 @@ void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
 {
   LOG(LOG_DEBUG,"waitForPid: requested wait for pid=%d\n", aPid);
   if (aCallback) {
-//    // get status once immediately
-//    int status;
-//    pid_t pid = waitpid(aPid, &status, WNOHANG);
-//    if (pid>0) {
-//      LOG(LOG_DEBUG,"waitForPid: child pid=%d immediately reported exit status %d\n", pid, status);
-//      aCallback(*this, cycleStartTime, pid, status);
-//      return;
-//    }
-//    else {
-//      LOG(LOG_DEBUG,"waitForPid: immediate check for child pid=%d returns %d\n", aPid, pid);
-//    }
     // install new callback
     WaitHandler h;
     h.callback = aCallback;
@@ -216,18 +204,9 @@ void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
 extern char **environ;
 
 
-static void showSigAction()
-{
-  struct sigaction oldact, newact;
-  sigaction(SIGCHLD, NULL, &oldact);
-  LOG(LOG_DEBUG,"- sa_handler = 0x%lX, sa_sigaction = 0x%lX, sa_mask = 0x%X, sa_flags = 0x%X\n", oldact.sa_handler, oldact.sa_sigaction, oldact.sa_mask, oldact.sa_flags);
-}
-
-
 void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[], bool aPipeBackStdOut)
 {
   LOG(LOG_DEBUG,"fork_and_execve: preparing to fork for executing '%s' now\n", aPath);
-  showSigAction();
   pid_t child_pid;
   int answerPipe[2]; /* Child to parent pipe */
 
@@ -249,8 +228,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
     // fork successful
     if (child_pid==0) {
       // this is the child process (fork() returns 0 for the child process)
-      LOG(LOG_DEBUG,"forked child process: prepare for execve\n", aPath);
-      showSigAction();
+      LOG(LOG_DEBUG,"forked child process: preparing for execve\n", aPath);
       if (aPipeBackStdOut) {
         dup2(answerPipe[1],STDOUT_FILENO); // replace STDOUT by writing end of pipe
         close(answerPipe[1]); // release the original descriptor (does NOT really close the file)
