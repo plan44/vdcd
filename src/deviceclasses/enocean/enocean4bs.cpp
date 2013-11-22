@@ -135,6 +135,8 @@ static void stdOutputHandler(const Enocean4bsHandler &aHandler, bool aForSend, u
 
 static const char *tempText = "Temperature";
 static const char *tempUnit = "°C";
+static const char *humText = "Humidity";
+static const char *humUnit = "%";
 
 static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // Temperature sensors
@@ -167,8 +169,9 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x02, 0x20, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,        -10, 42.2, DB(2,1), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   { 0x02, 0x30, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40, 62.3, DB(2,1), DB(1,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
   // Temperature and Humidity
-  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
-  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_humitity,    usage_room,          0,   40, DB(2,7), DB(2,0), 100, &invSensorHandler, tempText, tempUnit, dflag_none },
+  // - e.g. Alpha Sense
+  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, &stdSensorHandler, tempText, tempUnit, dflag_none },
+  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_humitity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, &stdSensorHandler, humText,  humUnit,  dflag_none },
 
   // Room Panels
   // - e.g. Eltako FTR55D
