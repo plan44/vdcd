@@ -10,7 +10,6 @@
 #define __vdcd__dsaddressable__
 
 #include "dsuid.hpp"
-#include "jsonrpccomm.hpp"
 #include "propertycontainer.hpp"
 
 using namespace std;
@@ -71,10 +70,10 @@ namespace p44 {
     /// @{
 
     /// convenience method to check for existence of a parameter and return appropriate error if not
-    static ErrorPtr checkParam(JsonObjectPtr aParams, const char *aParamName, JsonObjectPtr &aParam);
+    static ErrorPtr checkParam(ApiValuePtr aParams, const char *aParamName, ApiValuePtr &aParam);
 
     /// convenience method to check for existence of a string value and if it does, return its value in one call
-    static ErrorPtr checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue);
+    static ErrorPtr checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue);
 
 
     /// called by DeviceContainer to handle methods directed to a dSUID
@@ -83,14 +82,14 @@ namespace p44 {
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this DsAddressable.
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
 
     /// called by DeviceContainer to handle notifications directed to a dSUID
     /// @param aMethod the notification
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the notification to this DsAddressable.
-    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
+    virtual void handleNotification(const string &aMethod, ApiValuePtr aParams);
 
     /// send a DsAddressable method or notification to vdSM
     /// @param aMethod the method or notification
@@ -98,14 +97,14 @@ namespace p44 {
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     /// @note the dSUID will be automatically added to aParams (generating a params object if none was passed)
-    bool sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+    bool sendRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
 
     /// send result from a method call back to the to vdSM
     /// @param aJsonRpcId the id parameter from the method call
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendResult(const string &aJsonRpcId, JsonObjectPtr aResult);
+    bool sendResult(const string &aJsonRpcId, ApiValuePtr aResult);
 
     /// send error from a method call back to the vdSM
     /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
@@ -116,7 +115,7 @@ namespace p44 {
 
     /// push property value
     /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
-    ///   "^" to return the default property value (internally used for ptype_proxy).
+    ///   "^" to return the default property value (internally used for apivalue_proxy).
     /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
     /// @param aIndex in case of array, the array element to push. Pass negative value for non-array properties
     /// @return true if push could be sent, false otherwise (e.g. no vdSM connection)
@@ -182,7 +181,7 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
     // user property mapping
     // @param aUserPropertyIndex the index (0..n) of the user property to access

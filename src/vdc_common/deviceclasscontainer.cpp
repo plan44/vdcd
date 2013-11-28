@@ -156,8 +156,8 @@ int DeviceClassContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numClassContainerProperties] = {
-    { "deviceClassInstance", ptype_string, false, deviceClassInstance_key },
-    { "dsuids", ptype_string, true, dsuids_key }
+    { "deviceClassInstance", apivalue_string, false, deviceClassInstance_key },
+    { "dsuids", apivalue_string, true, dsuids_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -168,24 +168,24 @@ const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropI
 
 
 
-bool DeviceClassContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (!aForWrite) {
     // read only
     if (aPropertyDescriptor.accessKey==deviceClassInstance_key) {
       // return dSUID of contained devices
-      aPropValue = JsonObject::newString(deviceClassContainerInstanceIdentifier());
+      aPropValue->setStringValue(deviceClassContainerInstanceIdentifier());
       return true;
     }
     else if (aPropertyDescriptor.accessKey==dsuids_key) {
       if (aIndex==PROP_ARRAY_SIZE) {
         // return size of array
-        aPropValue = JsonObject::newInt32((uint32_t)devices.size());
+        aPropValue->setUint32Value((uint32_t)devices.size());
         return true;
       }
       else if (aIndex<devices.size()) {
         // return dSUID of contained devices
-        aPropValue = JsonObject::newString(devices[aIndex]->dSUID.getString());
+        aPropValue->setStringValue(devices[aIndex]->dSUID.getString());
         return true;
       }
     }

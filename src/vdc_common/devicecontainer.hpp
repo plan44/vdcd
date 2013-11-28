@@ -185,8 +185,8 @@ namespace p44 {
     /// @name DsAddressable API implementation
     /// @{
 
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
-    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
+    virtual void handleNotification(const string &aMethod, ApiValuePtr aParams);
 
     /// @}
 
@@ -253,14 +253,14 @@ namespace p44 {
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+    bool sendApiRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
 
     /// send a raw JSON-RPC result from a method call back to the to vdSM
     /// @param aJsonRpcId the id parameter from the method call
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiResult(const string &aJsonRpcId, JsonObjectPtr aResult);
+    bool sendApiResult(const string &aJsonRpcId, ApiValuePtr aResult);
 
     /// send error from a method call back to the vdSM
     /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
@@ -278,7 +278,7 @@ namespace p44 {
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
     virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   private:
 
@@ -289,22 +289,24 @@ namespace p44 {
     void handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);
     void localDimHandler();
 
-    // vDC API connection and session handling
-    SocketCommPtr vdcApiConnectionHandler(SocketComm *aServerSocketCommP);
-    void vdcApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
-    void endApiConnection(JsonRpcComm *aJsonRpcComm);
-    void vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    // vDC JSON API handling
+    SocketCommPtr vdcJsonApiConnectionHandler(SocketComm *aServerSocketCommP);
+    void vdcJsonApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
+    void vdcJsonApiEndConnection(JsonRpcComm *aJsonRpcComm);
+    void vdcJsonApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+
+    // generic session handling
     void sessionTimeoutHandler();
     void startContainerSession();
     void endContainerSession();
 
     // method and notification dispatching
-    ErrorPtr handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, JsonObjectPtr aParams);
-    void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, JsonObjectPtr aParams);
+    ErrorPtr handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, ApiValuePtr aParams);
+    void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
 
     // vDC level method and notification handlers
-    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);
-    ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams);
+    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams);
+    ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams);
     ErrorPtr removeHandler(DevicePtr aDevice, const string &aJsonRpcId);
     void removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected);
 

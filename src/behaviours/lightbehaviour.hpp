@@ -54,7 +54,7 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   };
   typedef boost::intrusive_ptr<LightScene> LightScenePtr;
@@ -196,7 +196,7 @@ namespace p44 {
     //virtual int numStateProps();
     //virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
     // combined field access for all types of properties
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
     // persistence implementation
     virtual const char *tableName();

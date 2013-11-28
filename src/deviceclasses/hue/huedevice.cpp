@@ -109,12 +109,12 @@ int HueLightScene::numProps(int aDomain)
 const PropertyDescriptor *HueLightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numHueLightSceneProperties] = {
-    { "colorMode", ptype_int8, false, colorMode_key, &huelightscene_key },
-    { "hue", ptype_double, false, hue_key, &huelightscene_key },
-    { "saturation", ptype_double, false, saturation_key, &huelightscene_key },
-    { "X", ptype_double, false, X_key, &huelightscene_key },
-    { "Y", ptype_double, false, Y_key, &huelightscene_key },
-    { "colorTemperature", ptype_double, false, colorTemperature_key, &huelightscene_key },
+    { "colorMode", apivalue_uint64, false, colorMode_key, &huelightscene_key },
+    { "hue", apivalue_double, false, hue_key, &huelightscene_key },
+    { "saturation", apivalue_double, false, saturation_key, &huelightscene_key },
+    { "X", apivalue_double, false, X_key, &huelightscene_key },
+    { "Y", apivalue_double, false, Y_key, &huelightscene_key },
+    { "colorTemperature", apivalue_double, false, colorTemperature_key, &huelightscene_key },
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -124,29 +124,29 @@ const PropertyDescriptor *HueLightScene::getPropertyDescriptor(int aPropIndex, i
 }
 
 
-bool HueLightScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool HueLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&huelightscene_key) {
     if (!aForWrite) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case colorMode_key:
-          aPropValue = JsonObject::newInt32(colorMode);
+          aPropValue->setUint16Value(colorMode);
           return true;
         case hue_key:
-          aPropValue = colorMode==hueColorModeHueSaturation ? JsonObject::newDouble(XOrHueOrCt) : JsonObjectPtr();
+          if (colorMode==hueColorModeHueSaturation) aPropValue->setDoubleValue(XOrHueOrCt); else aPropValue.reset();
           return true;
         case saturation_key:
-          aPropValue = colorMode==hueColorModeHueSaturation ? JsonObject::newDouble(YOrSat) : JsonObjectPtr();
+          if (colorMode==hueColorModeHueSaturation) aPropValue->setDoubleValue(YOrSat); else aPropValue.reset();
           return true;
         case X_key:
-          aPropValue = colorMode==hueColorModeXY ? JsonObject::newDouble(XOrHueOrCt) : JsonObjectPtr();
+          if (colorMode==hueColorModeXY) aPropValue->setDoubleValue(XOrHueOrCt); else aPropValue.reset();
           return true;
         case Y_key:
-          aPropValue = colorMode==hueColorModeXY ? JsonObject::newDouble(YOrSat) : JsonObjectPtr();
+          if (colorMode==hueColorModeXY) aPropValue->setDoubleValue(YOrSat); else aPropValue.reset();
           return true;
         case colorTemperature_key:
-          aPropValue = colorMode==hueColorModeCt ? JsonObject::newDouble(XOrHueOrCt) : JsonObjectPtr();
+          if (colorMode==hueColorModeCt) aPropValue->setDoubleValue(XOrHueOrCt); else aPropValue.reset();
           return true;
       }
     }

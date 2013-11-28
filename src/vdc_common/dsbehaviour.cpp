@@ -192,14 +192,14 @@ int DsBehaviour::numProps(int aDomain)
 const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor descProperties[numDsBehaviourDescProperties] = {
-    { "name", ptype_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
-    { "type", ptype_charptr, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
+    { "name", apivalue_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
+    { "type", apivalue_string, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
   };
   static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
-    { "group", ptype_int8, false, group_key+settings_key_offset, &dsBehaviour_Key },
+    { "group", apivalue_uint64, false, group_key+settings_key_offset, &dsBehaviour_Key },
   };
   static const PropertyDescriptor stateProperties[numDsBehaviourStateProperties] = {
-    { "error", ptype_int8, false, error_key+states_key_offset, &dsBehaviour_Key },
+    { "error", apivalue_uint64, false, error_key+states_key_offset, &dsBehaviour_Key },
   };
   int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
@@ -235,19 +235,19 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
 }
 
 
-bool DsBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
     if (!aForWrite) {
       // Read
       switch (aPropertyDescriptor.accessKey) {
         // descriptions
-        case name_key+descriptions_key_offset: aPropValue = JsonObject::newString(hardwareName); return true;
-        case type_key+descriptions_key_offset: aPropValue = JsonObject::newString(getTypeName()); return true;
+        case name_key+descriptions_key_offset: aPropValue->setStringValue(hardwareName); return true;
+        case type_key+descriptions_key_offset: aPropValue->setStringValue(getTypeName()); return true;
         // settings
-        case group_key+settings_key_offset: aPropValue = JsonObject::newInt32(group); return true;
+        case group_key+settings_key_offset: aPropValue->setUint16Value(group); return true;
         // state
-        case error_key+states_key_offset: aPropValue = JsonObject::newInt32(hardwareError); return true;
+        case error_key+states_key_offset: aPropValue->setUint16Value(hardwareError); return true;
       }
     }
     else {

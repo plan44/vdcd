@@ -132,12 +132,12 @@ int SensorBehaviour::numDescProps() { return numDescProperties; }
 const PropertyDescriptor *SensorBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
-    { "sensorType", ptype_int8, false, sensorType_key+descriptions_key_offset, &sensor_key },
-    { "sensorUsage", ptype_int8, false, sensorUsage_key+descriptions_key_offset, &sensor_key },
-    { "min", ptype_double, false, min_key+descriptions_key_offset, &sensor_key },
-    { "max", ptype_double, false, max_key+descriptions_key_offset, &sensor_key },
-    { "resolution", ptype_double, false, resolution_key+descriptions_key_offset, &sensor_key },
-    { "updateInterval", ptype_double, false, updateInterval_key+descriptions_key_offset, &sensor_key },
+    { "sensorType", apivalue_uint64, false, sensorType_key+descriptions_key_offset, &sensor_key },
+    { "sensorUsage", apivalue_uint64, false, sensorUsage_key+descriptions_key_offset, &sensor_key },
+    { "min", apivalue_double, false, min_key+descriptions_key_offset, &sensor_key },
+    { "max", apivalue_double, false, max_key+descriptions_key_offset, &sensor_key },
+    { "resolution", apivalue_double, false, resolution_key+descriptions_key_offset, &sensor_key },
+    { "updateInterval", apivalue_double, false, updateInterval_key+descriptions_key_offset, &sensor_key },
   };
   return &properties[aPropIndex];
 }
@@ -155,7 +155,7 @@ int SensorBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptor *SensorBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "minPushInterval", ptype_double, false, minPushInterval_key+settings_key_offset, &sensor_key },
+    { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &sensor_key },
   };
   return &properties[aPropIndex];
 }
@@ -173,8 +173,8 @@ int SensorBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *SensorBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", ptype_double, false, value_key+states_key_offset, &sensor_key },
-    { "age", ptype_double, false, age_key+states_key_offset, &sensor_key },
+    { "value", apivalue_double, false, value_key+states_key_offset, &sensor_key },
+    { "age", apivalue_double, false, age_key+states_key_offset, &sensor_key },
   };
   return &properties[aPropIndex];
 }
@@ -182,7 +182,7 @@ const PropertyDescriptor *SensorBehaviour::getStateDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool SensorBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&sensor_key) {
     if (!aForWrite) {
@@ -190,41 +190,41 @@ bool SensorBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
         case sensorType_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(sensorType);
+          aPropValue->setUint16Value(sensorType);
           return true;
         case sensorUsage_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(sensorUsage);
+          aPropValue->setUint16Value(sensorUsage);
           return true;
         case min_key+descriptions_key_offset:
-          aPropValue = JsonObject::newDouble(min);
+          aPropValue->setDoubleValue(min);
           return true;
         case max_key+descriptions_key_offset:
-          aPropValue = JsonObject::newDouble(max);
+          aPropValue->setDoubleValue(max);
           return true;
         case resolution_key+descriptions_key_offset:
-          aPropValue = JsonObject::newDouble(resolution);
+          aPropValue->setDoubleValue(resolution);
           return true;
         case updateInterval_key+descriptions_key_offset:
-          aPropValue = JsonObject::newDouble((double)updateInterval/Second);
+          aPropValue->setDoubleValue((double)updateInterval/Second);
           return true;
         // Settings properties
         case minPushInterval_key+settings_key_offset:
-          aPropValue = JsonObject::newDouble((double)minPushInterval/Second);
+          aPropValue->setDoubleValue((double)minPushInterval/Second);
           return true;
         // States properties
         case value_key+states_key_offset:
           // value
           if (lastUpdate==Never)
-            aPropValue = JsonObject::newNull();
+            aPropValue->setNull();
           else
-            aPropValue = JsonObject::newDouble(currentValue);
+            aPropValue->setDoubleValue(currentValue);
           return true;
         case age_key+states_key_offset:
           // age
           if (lastUpdate==Never)
-            aPropValue = JsonObject::newNull();
+            aPropValue->setNull();
           else
-            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-lastUpdate)/Second);
+            aPropValue->setDoubleValue(((double)MainLoop::now()-lastUpdate)/Second);
           return true;
       }
     }

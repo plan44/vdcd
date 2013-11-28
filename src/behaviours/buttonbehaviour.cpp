@@ -421,10 +421,10 @@ int ButtonBehaviour::numDescProps() { return numDescProperties; }
 const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
-    { "supportsLocalKeyMode", ptype_bool, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
-    { "buttonID", ptype_int8, false, buttonID_key+descriptions_key_offset, &button_key },
-    { "buttonType", ptype_int8, false, buttonType_key+descriptions_key_offset, &button_key },
-    { "buttonElementID", ptype_int8, false, buttonElementID_key+descriptions_key_offset, &button_key },
+    { "supportsLocalKeyMode", apivalue_bool, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
+    { "buttonID", apivalue_uint64, false, buttonID_key+descriptions_key_offset, &button_key },
+    { "buttonType", apivalue_uint64, false, buttonType_key+descriptions_key_offset, &button_key },
+    { "buttonElementID", apivalue_uint64, false, buttonElementID_key+descriptions_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -445,10 +445,10 @@ int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "mode", ptype_int8, false, mode_key+settings_key_offset, &button_key },
-    { "function", ptype_int8, false, function_key+settings_key_offset, &button_key },
-    { "setsLocalPriority", ptype_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
-    { "callsPresent", ptype_bool, false, callsPresent_key+settings_key_offset, &button_key },
+    { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &button_key },
+    { "function", apivalue_uint64, false, function_key+settings_key_offset, &button_key },
+    { "setsLocalPriority", apivalue_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
+    { "callsPresent", apivalue_bool, false, callsPresent_key+settings_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -467,9 +467,9 @@ int ButtonBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", ptype_int8, false, value_key+states_key_offset, &button_key },
-    { "clickType", ptype_int8, false, clickType_key+states_key_offset, &button_key },
-    { "age", ptype_double, false, age_key+states_key_offset, &button_key },
+    { "value", apivalue_uint64, false, value_key+states_key_offset, &button_key },
+    { "clickType", apivalue_uint64, false, clickType_key+states_key_offset, &button_key },
+    { "age", apivalue_double, false, age_key+states_key_offset, &button_key },
   };
   return &properties[aPropIndex];
 }
@@ -477,7 +477,7 @@ const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool ButtonBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&button_key) {
     if (!aForWrite) {
@@ -485,46 +485,46 @@ bool ButtonBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
         case supportsLocalKeyMode_key+descriptions_key_offset:
-          aPropValue = JsonObject::newBool(supportsLocalKeyMode);
+          aPropValue->setBoolValue(supportsLocalKeyMode);
           return true;
         case buttonID_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(buttonID);
+          aPropValue->setUint64Value(buttonID);
           return true;
         case buttonType_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(buttonType);
+          aPropValue->setUint64Value(buttonType);
           return true;
         case buttonElementID_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(buttonElementID);
+          aPropValue->setUint64Value(buttonElementID);
           return true;
         // Settings properties
         case mode_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(buttonMode);
+          aPropValue->setUint64Value(buttonMode);
           return true;
         case function_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(buttonFunc);
+          aPropValue->setUint64Value(buttonFunc);
           return true;
         case setsLocalPriority_key+settings_key_offset:
-          aPropValue = JsonObject::newBool(setsLocalPriority);
+          aPropValue->setBoolValue(setsLocalPriority);
           return true;
         case callsPresent_key+settings_key_offset:
-          aPropValue = JsonObject::newBool(callsPresent);
+          aPropValue->setBoolValue(callsPresent);
           return true;
         // States properties
         case value_key+states_key_offset:
           if (lastClick==Never)
-            aPropValue = JsonObject::newNull();
+            aPropValue->setNull();
           else
-            aPropValue = JsonObject::newBool(buttonPressed);
+            aPropValue->setBoolValue(buttonPressed);
           return true;
         case clickType_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(clickType);
+          aPropValue->setUint64Value(clickType);
           return true;
         case age_key+states_key_offset:
           // age
           if (lastClick==Never)
-            aPropValue = JsonObject::newNull();
+            aPropValue->setNull();
           else
-            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-lastClick)/Second);
+            aPropValue->setDoubleValue(((double)MainLoop::now()-lastClick)/Second);
           return true;
       }
     }

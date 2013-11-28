@@ -129,8 +129,8 @@ int DsScene::numProps(int aDomain)
 const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numSceneProperties] = {
-    { "dontCare", ptype_bool, false, dontCare_key, &dsscene_key },
-    { "ignoreLocalPriority", ptype_bool, false, ignoreLocalPriority_key, &dsscene_key },
+    { "dontCare", apivalue_bool, false, dontCare_key, &dsscene_key },
+    { "ignoreLocalPriority", apivalue_bool, false, ignoreLocalPriority_key, &dsscene_key },
   };
   int n = inheritedProps::numProps(aDomain);
   if (aPropIndex<n)
@@ -140,17 +140,17 @@ const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDo
 }
 
 
-bool DsScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsscene_key) {
     if (!aForWrite) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case dontCare_key:
-          aPropValue = JsonObject::newBool(dontCare);
+          aPropValue->setBoolValue(dontCare);
           return true;
         case ignoreLocalPriority_key:
-          aPropValue = JsonObject::newBool(ignoreLocalPriority);
+          aPropValue->setBoolValue(ignoreLocalPriority);
           return true;
       }
     }

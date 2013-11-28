@@ -205,7 +205,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   // Log start message
   LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", dSUID.getString().c_str());
   // start the API server
-  vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcApiConnectionHandler, this, _1), 3);
+  vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcJsonApiConnectionHandler, this, _1), 3);
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
@@ -562,12 +562,13 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 
 
 
-bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
+bool DeviceContainer::sendApiRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler)
 {
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (sessionComm) {
     signalActivity();
-    bool ok = Error::isOK(sessionComm->sendRequest(aMethod, aParams, aResponseHandler));
+    JsonApiValuePtr params = boost::dynamic_pointer_cast<JsonApiValue>(aParams);
+    bool ok = Error::isOK(sessionComm->sendRequest(aMethod, params->jsonObject(), aResponseHandler));
     LOG(LOG_INFO,"vdSM <- vDC request sent: id='%d', method='%s', params=%s\n", sessionComm->lastRequestId(), aMethod, aParams ? aParams->c_strValue() : "<none>");
     return ok;
   }
@@ -576,12 +577,13 @@ bool DeviceContainer::sendApiRequest(const char *aMethod, JsonObjectPtr aParams,
 }
 
 
-bool DeviceContainer::sendApiResult(const string &aJsonRpcId, JsonObjectPtr aResult)
+bool DeviceContainer::sendApiResult(const string &aJsonRpcId, ApiValuePtr aResult)
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
   if (sessionComm) {
     signalActivity();
-    bool ok = Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), aResult));
+    JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
+    bool ok = Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), result->jsonObject()));
     LOG(LOG_INFO,"vdSM <- vDC result sent: id='%s', result=%s\n", aJsonRpcId.c_str(), aResult ? aResult->c_strValue() : "<none>");
     return ok;
   }
@@ -618,24 +620,24 @@ void DeviceContainer::sessionTimeoutHandler()
 
 
 
-SocketCommPtr DeviceContainer::vdcApiConnectionHandler(SocketComm *aServerSocketCommP)
+SocketCommPtr DeviceContainer::vdcJsonApiConnectionHandler(SocketComm *aServerSocketCommP)
 {
   JsonRpcCommPtr conn = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
-  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
-  conn->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
+  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcJsonApiRequestHandler, this, _1, _2, _3, _4));
+  conn->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcJsonApiConnectionStatusHandler, this, _1, _2));
   // save in my own list of connections
   apiConnections.push_back(conn);
   return conn;
 }
 
 
-void DeviceContainer::vdcApiConnectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
+void DeviceContainer::vdcJsonApiConnectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
     LOG(LOG_INFO,"vDC API connection ends due to %s\n", aError->description().c_str());
     // connection failed/closed and we don't support reconnect yet -> end session
     JsonRpcComm *connP = dynamic_cast<JsonRpcComm *>(aSocketComm);
-    endApiConnection(connP);
+    vdcJsonApiEndConnection(connP);
   }
   else {
     LOG(LOG_INFO,"vDC API connection started\n");
@@ -644,7 +646,7 @@ void DeviceContainer::vdcApiConnectionStatusHandler(SocketComm *aSocketComm, Err
 
 
 
-void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+void DeviceContainer::vdcJsonApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
   ErrorPtr respErr;
   string method = aMethod;
@@ -653,13 +655,16 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
+  // create params API value
+  ApiValuePtr params = JsonApiValue::newValueFromJson(aParams);
+  // now process
   if (aJsonRpcId) {
     // Check session init/end methods
     if (method=="hello") {
-      respErr = helloHandler(aJsonRpcComm, aJsonRpcId, aParams);
+      respErr = helloHandler(aJsonRpcComm, aJsonRpcId, params);
     }
     else if (method=="bye") {
-      respErr = byeHandler(aJsonRpcComm, aJsonRpcId, aParams);
+      respErr = byeHandler(aJsonRpcComm, aJsonRpcId, params);
     }
     else {
       if (!sessionActive) {
@@ -669,9 +674,9 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
       else {
         // session active - all commands need dSUID parameter
         string dsuidstring;
-        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
+        if (Error::isOK(respErr = checkStringParam(params, "dSUID", dsuidstring))) {
           // operation method
-          respErr = handleMethodForDsUid(aMethod, aJsonRpcId, DsUid(dsuidstring), aParams);
+          respErr = handleMethodForDsUid(aMethod, aJsonRpcId, DsUid(dsuidstring), params);
         }
       }
     }
@@ -681,8 +686,8 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
     if (sessionActive) {
       // out of session, notifications are simply ignored
       string dsuidstring;
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
-        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), aParams);
+      if (Error::isOK(respErr = checkStringParam(params, "dSUID", dsuidstring))) {
+        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), params);
       }
     }
   }
@@ -694,7 +699,7 @@ void DeviceContainer::vdcApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char
 
 
 
-void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
+void DeviceContainer::vdcJsonApiEndConnection(JsonRpcComm *aJsonRpcComm)
 {
   // remove from my list of connection
   for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
@@ -714,7 +719,7 @@ void DeviceContainer::endApiConnection(JsonRpcComm *aJsonRpcComm)
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, ApiValuePtr aParams)
 {
   if (aDsUid==dSUID) {
     // container level method
@@ -744,7 +749,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
 
 
 
-void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, JsonObjectPtr aParams)
+void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
 {
   if (aDsUid==dSUID) {
     // container level notification
@@ -769,7 +774,7 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
 
 
 
-ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   string s;
@@ -795,9 +800,9 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
             }
           }
           // - create answer
-          JsonObjectPtr result = JsonObject::newObj();
-          result->add("dSUID", JsonObject::newString(dSUID.getString()));
-          result->add("allowDisconnect", JsonObject::newBool(false));
+          ApiValuePtr result = aParams->newObject();
+          result->add("dSUID", aParams->newString(dSUID.getString()));
+          result->add("allowDisconnect", aParams->newBool(false));
           sendResult(aJsonRpcId, result);
           // - start session, enable sending announces now
           startContainerSession();
@@ -818,7 +823,7 @@ ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &
 }
 
 
-ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams)
 {
   // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (sessionComm might not be ready)
   aJsonRpcComm->sendResult(aJsonRpcId.c_str(), JsonObjectPtr());
@@ -841,7 +846,7 @@ ErrorPtr DeviceContainer::removeHandler(DevicePtr aDevice, const string &aJsonRp
 void DeviceContainer::removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected)
 {
   if (aDisconnected)
-    aDevice->sendResult(aJsonRpcId, JsonObjectPtr()); // disconnected successfully
+    aDevice->sendResult(aJsonRpcId, ApiValuePtr()); // disconnected successfully
   else
     aDevice->sendError(aJsonRpcId, ErrorPtr(new JsonRpcError(403, "Device cannot be removed, is still connected")));
 }
@@ -915,7 +920,7 @@ void DeviceContainer::announceNext()
       // mark device as being in process of getting announced
       dev->announcing = MainLoop::now();
       // call announce method
-      if (!dev->sendRequest("announce", JsonObjectPtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
+      if (!dev->sendRequest("announce", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
@@ -949,13 +954,13 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 
 #pragma mark - DsAddressable API implementation
 
-ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
 {
   return inherited::handleMethod(aMethod, aJsonRpcId, aParams);
 }
 
 
-void DeviceContainer::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+void DeviceContainer::handleNotification(const string &aMethod, ApiValuePtr aParams)
 {
   inherited::handleNotification(aMethod, aParams);
 }
@@ -983,7 +988,7 @@ int DeviceContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "classes", ptype_object, true, classes_key }
+    { "classes", apivalue_object, true, classes_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -1006,13 +1011,13 @@ PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPr
 }
 
 
-bool DeviceContainer::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.accessKey==classes_key) {
     if (aIndex==PROP_ARRAY_SIZE) {
       if (aForWrite) return false; // cannot write
       // return size of array
-      aPropValue = JsonObject::newInt32((uint32_t)deviceClassContainers.size());
+      aPropValue->setUint32Value((uint32_t)deviceClassContainers.size());
       return true;
     }
   }

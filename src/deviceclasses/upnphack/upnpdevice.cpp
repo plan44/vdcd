@@ -111,14 +111,14 @@ int UpnpDevice::numProps(int aDomain)
 const PropertyDescriptor *UpnpDevice::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numProperties] = {
-    { "descriptionURL", ptype_string, false, descriptionURL_key, &upnpDevice_key }, // custom UPnP property revealing the description URL
+    { "descriptionURL", apivalue_string, false, descriptionURL_key, &upnpDevice_key }, // custom UPnP property revealing the description URL
   };
   return &properties[aPropIndex];
 }
 
 
 // access to all fields
-bool UpnpDevice::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool UpnpDevice::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&upnpDevice_key) {
     if (!aForWrite) {
@@ -126,7 +126,7 @@ bool UpnpDevice::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Pr
       switch (aPropertyDescriptor.accessKey) {
           // Description properties
         case descriptionURL_key:
-          aPropValue = JsonObject::newString(descriptionURL); return true;
+          aPropValue->setStringValue(descriptionURL); return true;
           return true;
       }
     }

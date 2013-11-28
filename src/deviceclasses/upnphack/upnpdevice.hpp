@@ -61,7 +61,7 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
     // User property mapping
     ErrorPtr getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex);
 

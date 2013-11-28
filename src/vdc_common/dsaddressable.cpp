@@ -47,23 +47,23 @@ void DsAddressable::initializeName(const string &aName)
 
 
 
-ErrorPtr DsAddressable::checkParam(JsonObjectPtr aParams, const char *aParamName, JsonObjectPtr &aParam)
+ErrorPtr DsAddressable::checkParam(ApiValuePtr aParams, const char *aParamName, ApiValuePtr &aParam)
 {
   ErrorPtr err;
-  bool exists = false;
-  aParam.reset();
   if (aParams)
-    exists = aParams->get(aParamName, aParam);
-  if (!exists)
+    aParam = aParams->get(aParamName);
+  else
+    aParam.reset();
+  if (!aParam)
     err = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Invalid Parameters - missing '%s'",aParamName)));
   return err;
 }
 
 
-ErrorPtr DsAddressable::checkStringParam(JsonObjectPtr aParams, const char *aParamName, string &aParamValue)
+ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue)
 {
   ErrorPtr err;
-  JsonObjectPtr o;
+  ApiValuePtr o;
   err = checkParam(aParams, aParamName, o);
   if (Error::isOK(err)) {
     aParamValue = o->stringValue();
@@ -73,13 +73,13 @@ ErrorPtr DsAddressable::checkStringParam(JsonObjectPtr aParams, const char *aPar
 
 
 
-ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   string name;
   int arrayIndex = 0;
   int rangeSize = PROP_ARRAY_SIZE; // entire array by default if no "index" or "offset"/"count" is given
-  JsonObjectPtr o;
+  ApiValuePtr o;
   if (aMethod=="getProperty") {
     // name must be present
     if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
@@ -101,7 +101,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         }
       }
       // now read
-      JsonObjectPtr result;
+      ApiValuePtr result = ApiValuePtr(new JsonApiValue()); // prepare empty result pointer
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result
@@ -113,7 +113,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
     // name must be present
     if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
       // value must be present
-      JsonObjectPtr value;
+      ApiValuePtr value;
       if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
         // get optional index
         o = aParams->get("index");
@@ -147,7 +147,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         }
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
-          sendResult(aJsonRpcId, JsonObjectPtr());
+          sendResult(aJsonRpcId, ApiValuePtr());
         }
       }
     }
@@ -155,13 +155,13 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
   else if (aMethod=="getUserProperty") {
     // Shortcut access to some specific "user" properties
     // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
-    JsonObjectPtr propindex;
+    ApiValuePtr propindex;
     if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
       int userPropIndex = propindex->int32Value();
       // look up name and index of real property
       if (Error::isOK(respErr = getUserPropertyMapping(userPropIndex, name, arrayIndex))) {
         // this dsAdressable supports this user property index, read it
-        JsonObjectPtr result;
+        ApiValuePtr result;
         respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, 0); // always single element
         if (Error::isOK(respErr)) {
           // send back property result
@@ -173,8 +173,8 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
   else if (aMethod=="setUserProperty") {
     // Shortcut access to some specific "user" properties
     // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
-    JsonObjectPtr propindex;
-    JsonObjectPtr value;
+    ApiValuePtr propindex;
+    ApiValuePtr value;
     if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
       if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
         int userPropIndex = propindex->int32Value();
@@ -184,7 +184,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
           respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
           if (Error::isOK(respErr)) {
             // send back OK if write was successful
-            sendResult(aJsonRpcId, JsonObjectPtr());
+            sendResult(aJsonRpcId, ApiValuePtr());
           }
         }
       }
@@ -208,14 +208,15 @@ ErrorPtr DsAddressable::getUserPropertyMapping(int aUserPropertyIndex, string &a
 bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
 {
   // get the value
-  JsonObjectPtr value;
+  ApiValuePtr value;
   ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
   if (Error::isOK(err)) {
-    JsonObjectPtr pushParams = JsonObject::newObj();
-    pushParams->add("name", JsonObject::newString(aName));
+    ApiValuePtr pushParams = ApiValuePtr(new JsonApiValue);
+    pushParams->setType(apivalue_object);
+    pushParams->add("name", pushParams->newString(aName));
     if (aIndex>=0) {
       // array property push
-      pushParams->add("index", JsonObject::newInt32(aIndex));
+      pushParams->add("index", pushParams->newInt64(aIndex));
     }
     pushParams->add("value", value);
     return sendRequest("pushProperty", pushParams);
@@ -225,7 +226,7 @@ bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
 
 
 
-void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParams)
 {
   if (aMethod=="ping") {
     // issue device ping (which will issue a pong when device is reachable)
@@ -239,18 +240,19 @@ void DsAddressable::handleNotification(const string &aMethod, JsonObjectPtr aPar
 }
 
 
-bool DsAddressable::sendRequest(const char *aMethod, JsonObjectPtr aParams, JsonRpcResponseCB aResponseHandler)
+bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler)
 {
   if (!aParams) {
     // create params object because we need it for the dSUID
-    aParams = JsonObject::newObj();
+    aParams = ApiValuePtr(new JsonApiValue);
+    aParams->setType(apivalue_object);
   }
-  aParams->add("dSUID", JsonObject::newString(dSUID.getString()));
+  aParams->add("dSUID", aParams->newString(dSUID.getString()));
   return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
 }
 
 
-bool DsAddressable::sendResult(const string &aJsonRpcId, JsonObjectPtr aResult)
+bool DsAddressable::sendResult(const string &aJsonRpcId, ApiValuePtr aResult)
 {
   return getDeviceContainer().sendApiResult(aJsonRpcId, aResult);
 }
@@ -269,7 +271,7 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
   if (aIsPresent) {
     // send back Pong notification
     LOG(LOG_INFO,"ping: %s is present -> sending pong\n", shortDesc().c_str());
-    sendRequest("pong", JsonObjectPtr());
+    sendRequest("pong", ApiValuePtr());
   }
   else {
     LOG(LOG_NOTICE,"ping: %s is NOT present -> no Pong sent\n", shortDesc().c_str());
@@ -314,14 +316,14 @@ int DsAddressable::numProps(int aDomain)
 const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDsAddressableProperties] = {
-    { "dSUID", ptype_charptr, false, dSUID_key, &dsAddressable_key },
-    { "model", ptype_charptr, false, model_key, &dsAddressable_key },
-    { "hardwareVersion", ptype_charptr, false, hardwareVersion_key, &dsAddressable_key },
-    { "hardwareGuid", ptype_charptr, false, hardwareGUID_key, &dsAddressable_key },
-    { "numDevicesInHW", ptype_int32, false, numDevicesInHW_key, &dsAddressable_key },
-    { "deviceIndexInHW", ptype_int32, false, deviceIndexInHW_key, &dsAddressable_key },
-    { "oemGuid", ptype_charptr, false, oemGUID_key, &dsAddressable_key },
-    { "name", ptype_charptr, false, name_key, &dsAddressable_key }
+    { "dSUID", apivalue_string, false, dSUID_key, &dsAddressable_key },
+    { "model", apivalue_string, false, model_key, &dsAddressable_key },
+    { "hardwareVersion", apivalue_string, false, hardwareVersion_key, &dsAddressable_key },
+    { "hardwareGuid", apivalue_string, false, hardwareGUID_key, &dsAddressable_key },
+    { "numDevicesInHW", apivalue_uint64, false, numDevicesInHW_key, &dsAddressable_key },
+    { "deviceIndexInHW", apivalue_uint64, false, deviceIndexInHW_key, &dsAddressable_key },
+    { "oemGuid", apivalue_string, false, oemGUID_key, &dsAddressable_key },
+    { "name", apivalue_string, false, name_key, &dsAddressable_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -331,7 +333,7 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
 }
 
 
-bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsAddressable_key) {
     if (aForWrite) {
@@ -341,22 +343,22 @@ bool DsAddressable::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const
     }
     else {
       switch (aPropertyDescriptor.accessKey) {
-        case dSUID_key: aPropValue = JsonObject::newString(dSUID.getString()); return true;
-        case model_key: aPropValue = JsonObject::newString(modelName()); return true;
-        case hardwareVersion_key: aPropValue = JsonObject::newString(hardwareVersion(), true); return true;
-        case hardwareGUID_key: aPropValue = JsonObject::newString(hardwareGUID(), true); return true;
-        case oemGUID_key: aPropValue = JsonObject::newString(oemGUID(), true); return true;
-        case name_key: aPropValue = JsonObject::newString(getName()); return true;
+        case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true;
+        case model_key: aPropValue->setStringValue(modelName()); return true;
+        case hardwareVersion_key: aPropValue->setStringValue(hardwareVersion(), true); return true;
+        case hardwareGUID_key: aPropValue->setStringValue(hardwareGUID(), true); return true;
+        case oemGUID_key: aPropValue->setStringValue(oemGUID(), true); return true;
+        case name_key: aPropValue->setStringValue(getName()); return true;
         // conditionally available
         case numDevicesInHW_key:
           if (numDevicesInHW()>=0) {
-            aPropValue = JsonObject::newInt32((int)numDevicesInHW());
+            aPropValue->setUint16Value((int)numDevicesInHW());
             return true;
           }
           break; // no such property
         case deviceIndexInHW_key:
           if (deviceIndexInHW()>=0) {
-            aPropValue = JsonObject::newInt32((int)deviceIndexInHW());
+            aPropValue->setUint16Value((int)deviceIndexInHW());
             return true;
           }
           break; // no such property

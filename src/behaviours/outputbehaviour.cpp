@@ -175,10 +175,10 @@ int OutputBehaviour::numDescProps() { return numDescProperties; }
 const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
-    { "outputFunction", ptype_int8, false, outputFunction_key+descriptions_key_offset, &output_key },
-    { "outputUsage", ptype_int8, false, outputUsage_key+descriptions_key_offset, &output_key },
-    { "variableRamp", ptype_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
-    { "maxPower", ptype_double, false, maxPower_key+descriptions_key_offset, &output_key },
+    { "outputFunction", apivalue_uint64, false, outputFunction_key+descriptions_key_offset, &output_key },
+    { "outputUsage", apivalue_uint64, false, outputUsage_key+descriptions_key_offset, &output_key },
+    { "variableRamp", apivalue_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
+    { "maxPower", apivalue_double, false, maxPower_key+descriptions_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }
@@ -197,8 +197,8 @@ int OutputBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "mode", ptype_int8, false, mode_key+settings_key_offset, &output_key },
-    { "pushChanges", ptype_bool, false, pushChanges_key+settings_key_offset, &output_key },
+    { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &output_key },
+    { "pushChanges", apivalue_bool, false, pushChanges_key+settings_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }
@@ -216,8 +216,8 @@ int OutputBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", ptype_int32, false, value_key+states_key_offset, &output_key },
-    { "age", ptype_double, false, age_key+states_key_offset, &output_key },
+    { "value", apivalue_int64, false, value_key+states_key_offset, &output_key },
+    { "age", apivalue_double, false, age_key+states_key_offset, &output_key },
   };
   return &properties[aPropIndex];
 }
@@ -225,7 +225,7 @@ const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&output_key) {
     if (!aForWrite) {
@@ -233,33 +233,33 @@ bool OutputBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, con
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
         case outputFunction_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(outputFunction);
+          aPropValue->setUint8Value(outputFunction);
           return true;
         case outputUsage_key+descriptions_key_offset:
-          aPropValue = JsonObject::newInt32(outputUsage);
+          aPropValue->setUint16Value(outputUsage);
           return true;
         case variableRamp_key+descriptions_key_offset:
-          aPropValue = JsonObject::newBool(variableRamp);
+          aPropValue->setBoolValue(variableRamp);
           return true;
         case maxPower_key+descriptions_key_offset:
-          aPropValue = JsonObject::newDouble(maxPower);
+          aPropValue->setDoubleValue(maxPower);
           return true;
         // Settings properties
         case mode_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(outputMode);
+          aPropValue->setUint8Value(outputMode);
           return true;
         case pushChanges_key+settings_key_offset:
-          aPropValue = JsonObject::newBool(pushChanges);
+          aPropValue->setBoolValue(pushChanges);
           return true;
         // States properties
         case value_key+states_key_offset:
-          aPropValue = JsonObject::newInt32(getOutputValue());
+          aPropValue->setInt32Value(getOutputValue());
           return true;
         case age_key+states_key_offset:
           if (outputLastSent==Never)
-            aPropValue = JsonObject::newNull(); // no value known
+            aPropValue->setNull(); // no value known
           else
-            aPropValue = JsonObject::newDouble(((double)MainLoop::now()-outputLastSent)/Second);
+            aPropValue->setDoubleValue(((double)MainLoop::now()-outputLastSent)/Second);
           return true;
       }
     }

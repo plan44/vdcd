@@ -301,9 +301,9 @@
 		ED81337817C6C765003982CC /* p44obj.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44obj.hpp; sourceTree = "<group>"; };
 		ED81337A17C72F45003982CC /* outputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = outputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81337B17C72F45003982CC /* outputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = outputbehaviour.hpp; sourceTree = "<group>"; };
-		ED81338017C72F87003982CC /* sensorbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sensorbehaviour.cpp; sourceTree = "<group>"; };
+		ED81338017C72F87003982CC /* sensorbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = sensorbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338117C72F87003982CC /* sensorbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sensorbehaviour.hpp; sourceTree = "<group>"; };
-		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; };
+		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = apivalue.cpp; sourceTree = "<group>"; };
 		EDADCADA1846373300297214 /* apivalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = apivalue.h; sourceTree = "<group>"; };

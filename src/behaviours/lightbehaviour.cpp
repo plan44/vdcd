@@ -115,9 +115,9 @@ int LightScene::numProps(int aDomain)
 const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numLightSceneProperties] = {
-    { "value", ptype_int8, false, value_key, &lightscene_key },
-    { "flashing", ptype_bool, false, flashing_key, &lightscene_key },
-    { "dimTimeSelector", ptype_int8, false, dimTimeSelector_key, &lightscene_key },
+    { "value", apivalue_uint64, false, value_key, &lightscene_key },
+    { "flashing", apivalue_bool, false, flashing_key, &lightscene_key },
+    { "dimTimeSelector", apivalue_uint64, false, dimTimeSelector_key, &lightscene_key },
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -127,20 +127,20 @@ const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int 
 }
 
 
-bool LightScene::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&lightscene_key) {
     if (!aForWrite) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case value_key:
-          aPropValue = JsonObject::newInt32(sceneBrightness);
+          aPropValue->setUint8Value(sceneBrightness);
           return true;
         case flashing_key:
-          aPropValue = JsonObject::newBool(flashing);
+          aPropValue->setBoolValue(flashing);
           return true;
         case dimTimeSelector_key:
-          aPropValue = JsonObject::newInt32(dimTimeSelector);
+          aPropValue->setUint8Value(dimTimeSelector);
           return true;
       }
     }
@@ -685,15 +685,15 @@ int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+nu
 const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "onThreshold", ptype_int8, false, onThreshold_key+settings_key_offset, &light_key },
-    { "minBrightness", ptype_int8, false, minBrightness_key+settings_key_offset, &light_key },
-    { "maxBrightness", ptype_int8, false, maxBrightness_key+settings_key_offset, &light_key },
-    { "dimTimeUp", ptype_int8, false, dimTimeUp_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt1", ptype_int8, false, dimTimeUpAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt2", ptype_int8, false, dimTimeUpAlt2_key+settings_key_offset, &light_key },
-    { "dimTimeDown", ptype_int8, false, dimTimeDown_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt1", ptype_int8, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt2", ptype_int8, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
+    { "onThreshold", apivalue_uint64, false, onThreshold_key+settings_key_offset, &light_key },
+    { "minBrightness", apivalue_uint64, false, minBrightness_key+settings_key_offset, &light_key },
+    { "maxBrightness", apivalue_uint64, false, maxBrightness_key+settings_key_offset, &light_key },
+    { "dimTimeUp", apivalue_uint64, false, dimTimeUp_key+settings_key_offset, &light_key },
+    { "dimTimeUpAlt1", apivalue_uint64, false, dimTimeUpAlt1_key+settings_key_offset, &light_key },
+    { "dimTimeUpAlt2", apivalue_uint64, false, dimTimeUpAlt2_key+settings_key_offset, &light_key },
+    { "dimTimeDown", apivalue_uint64, false, dimTimeDown_key+settings_key_offset, &light_key },
+    { "dimTimeDownAlt1", apivalue_uint64, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
+    { "dimTimeDownAlt2", apivalue_uint64, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
   };
   int n = inherited::numSettingsProps();
   if (aPropIndex<n)
@@ -705,7 +705,7 @@ const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool LightBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&light_key) {
     if (!aForWrite) {
@@ -713,23 +713,23 @@ bool LightBehaviour::accessField(bool aForWrite, JsonObjectPtr &aPropValue, cons
       switch (aPropertyDescriptor.accessKey) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(onThreshold);
+          aPropValue->setUint8Value(onThreshold);
           return true;
         case minBrightness_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(minBrightness);
+          aPropValue->setUint8Value(minBrightness);
           return true;
         case maxBrightness_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(maxBrightness);
+          aPropValue->setUint8Value(maxBrightness);
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)]);
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          aPropValue = JsonObject::newInt32(dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)]);
           return true;
       }
     }

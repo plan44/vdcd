@@ -116,7 +116,7 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
 #pragma mark - Device level vDC API
 
 
-ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams)
+ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
 //  if (aMethod=="Gugus") {
@@ -131,12 +131,12 @@ ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, J
 
 
 
-void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
+void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr err;
   if (aMethod=="callScene") {
     // call scene
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
       bool force = false;
@@ -153,7 +153,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="saveScene") {
     // save scene
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
       // now save
@@ -165,7 +165,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="undoScene") {
     // save scene
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
       // now save
@@ -177,7 +177,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="setLocalPriority") {
     // set local priority
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
       // now save
@@ -189,7 +189,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="setControlValue") {
     // set control value
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "name", o))) {
       string controlValueName = o->stringValue();
       if (Error::isOK(err = checkParam(aParams, "value", o))) {
@@ -206,7 +206,7 @@ void Device::handleNotification(const string &aMethod, JsonObjectPtr aParams)
   }
   else if (aMethod=="callSceneMin") {
     // switch device on with minimum output level if not already on (=prepare device for dimming from zero)
-    JsonObjectPtr o;
+    ApiValuePtr o;
     if (Error::isOK(err = checkParam(aParams, "scene", o))) {
       SceneNo sceneNo = (SceneNo)o->int32Value();
       // now call
@@ -241,7 +241,7 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
 void Device::hasVanished(bool aForgetParams)
 {
   // have device send a vanish message
-  sendRequest("vanish", JsonObjectPtr());
+  sendRequest("vanish", ApiValuePtr());
   // then disconnect it in software
   // Note that disconnect() might delete the Device object (so 'this' gets invalid)
   disconnect(aForgetParams, NULL);
@@ -668,30 +668,30 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
 {
   static const PropertyDescriptor properties[numDeviceProperties] = {
     // common device properties
-    { "primaryGroup", ptype_int8, false, primaryGroup_key, &device_key },
-    { "isMember", ptype_bool, true, isMember_key, &device_key },
-    { "zoneID", ptype_int16, false, zoneID_key, &device_key },
-    { "localPriority", ptype_bool, false, progMode_key, &device_key },
-    { "progMode", ptype_bool, false, progMode_key, &device_key },
-    { "idBlockSize", ptype_int8, false, idBlockSize_key, &device_key },
+    { "primaryGroup", apivalue_uint64, false, primaryGroup_key, &device_key },
+    { "isMember", apivalue_bool, true, isMember_key, &device_key },
+    { "zoneID", apivalue_uint64, false, zoneID_key, &device_key },
+    { "localPriority", apivalue_bool, false, progMode_key, &device_key },
+    { "progMode", apivalue_bool, false, progMode_key, &device_key },
+    { "idBlockSize", apivalue_uint64, false, idBlockSize_key, &device_key },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
-    { "buttonInputDescriptions", ptype_object, true, buttonInputDescriptions_key, &device_key },
-    { "buttonInputSettings", ptype_object, true, buttonInputSettings_key, &device_key },
-    { "buttonInputStates", ptype_object, true, buttonInputStates_key, &device_key },
-    { "binaryInputDescriptions", ptype_object, true, binaryInputDescriptions_key, &device_key },
-    { "binaryInputSettings", ptype_object, true, binaryInputSettings_key, &device_key },
-    { "binaryInputStates", ptype_object, true, binaryInputStates_key, &device_key },
-    { "outputDescriptions", ptype_object, true, outputDescriptions_key, &device_key },
-    { "outputSettings", ptype_object, true, outputSettings_key, &device_key },
-    { "outputStates", ptype_object, true, outputStates_key, &device_key },
-    { "sensorDescriptions", ptype_object, true, sensorDescriptions_key, &device_key },
-    { "sensorSettings", ptype_object, true, sensorSettings_key, &device_key },
-    { "sensorStates", ptype_object, true, sensorStates_key, &device_key },
+    { "buttonInputDescriptions", apivalue_object, true, buttonInputDescriptions_key, &device_key },
+    { "buttonInputSettings", apivalue_object, true, buttonInputSettings_key, &device_key },
+    { "buttonInputStates", apivalue_object, true, buttonInputStates_key, &device_key },
+    { "binaryInputDescriptions", apivalue_object, true, binaryInputDescriptions_key, &device_key },
+    { "binaryInputSettings", apivalue_object, true, binaryInputSettings_key, &device_key },
+    { "binaryInputStates", apivalue_object, true, binaryInputStates_key, &device_key },
+    { "outputDescriptions", apivalue_object, true, outputDescriptions_key, &device_key },
+    { "outputSettings", apivalue_object, true, outputSettings_key, &device_key },
+    { "outputStates", apivalue_object, true, outputStates_key, &device_key },
+    { "sensorDescriptions", apivalue_object, true, sensorDescriptions_key, &device_key },
+    { "sensorSettings", apivalue_object, true, sensorSettings_key, &device_key },
+    { "sensorStates", apivalue_object, true, sensorStates_key, &device_key },
     // the scenes array
-    { "scenes", ptype_object, true, scenes_key, &device_key },
-    { "undoState", ptype_object, false, undoState_key, &device_key },
+    { "scenes", apivalue_object, true, scenes_key, &device_key },
+    { "undoState", apivalue_object, false, undoState_key, &device_key },
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -796,7 +796,7 @@ ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, 
 
 
 
-bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&device_key) {
     if (aIndex==PROP_ARRAY_SIZE && !aForWrite) {
@@ -804,34 +804,34 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
       switch (aPropertyDescriptor.accessKey) {
         // the isMember pseudo-array
         case isMember_key:
-          aPropValue = JsonObject::newInt32(64); // max 64 groups
+          aPropValue->setUint16Value(64); // max 64 groups
           return true;
         // the behaviour arrays
         case buttonInputDescriptions_key:
         case buttonInputSettings_key:
         case buttonInputStates_key:
-          aPropValue = JsonObject::newInt32((int)buttons.size());
+          aPropValue->setUint16Value((int)buttons.size());
           return true;
         case binaryInputDescriptions_key:
         case binaryInputSettings_key:
         case binaryInputStates_key:
-          aPropValue = JsonObject::newInt32((int)binaryInputs.size());
+          aPropValue->setUint16Value((int)binaryInputs.size());
           return true;
         case outputDescriptions_key:
         case outputSettings_key:
         case outputStates_key:
-          aPropValue = JsonObject::newInt32((int)outputs.size());
+          aPropValue->setUint16Value((int)outputs.size());
           return true;
         case sensorDescriptions_key:
         case sensorSettings_key:
         case sensorStates_key:
-          aPropValue = JsonObject::newInt32((int)sensors.size());
+          aPropValue->setUint16Value((int)sensors.size());
           return true;
         case scenes_key:
           if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
-            aPropValue = JsonObject::newInt32(MAX_SCENE_NO);
+            aPropValue->setUint16Value(MAX_SCENE_NO);
           else
-            aPropValue = JsonObject::newInt32(0); // no scene table
+            aPropValue->setUint16Value(0); // no scene table
           return true;
       }
     }
@@ -839,24 +839,24 @@ bool Device::accessField(bool aForWrite, JsonObjectPtr &aPropValue, const Proper
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case primaryGroup_key:
-          aPropValue = JsonObject::newInt32(primaryGroup);
+          aPropValue->setUint16Value(primaryGroup);
           return true;
         case isMember_key:
           // test group bit
-          aPropValue = JsonObject::newBool(isMember((DsGroup)aIndex));
+          aPropValue->setBoolValue(isMember((DsGroup)aIndex));
           return true;
         case zoneID_key:
           if (deviceSettings)
-            aPropValue = JsonObject::newInt32(deviceSettings->zoneID);
+            aPropValue->setUint16Value(deviceSettings->zoneID);
           return true;
         case localPriority_key:
-          aPropValue = JsonObject::newBool(localPriority);
+          aPropValue->setBoolValue(localPriority);
           return true;
         case progMode_key:
-          aPropValue = JsonObject::newBool(progMode);
+          aPropValue->setBoolValue(progMode);
           return true;
         case idBlockSize_key:
-          aPropValue = JsonObject::newInt32(idBlockSize());
+          aPropValue->setUint16Value(idBlockSize());
           return true;
       }
     }

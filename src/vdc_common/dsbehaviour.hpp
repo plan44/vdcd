@@ -170,7 +170,7 @@ namespace p44 {
     /// @param aPropValue JsonObject with a single value
     /// @param aIndex in case of array, the index of the element to access
     /// @return false if value could not be accessed
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
     /// @}
 

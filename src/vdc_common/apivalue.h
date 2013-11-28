@@ -29,6 +29,7 @@ namespace p44 {
     apivalue_string, // std::string
     apivalue_object, // object containing multiple named ApiValues
     apivalue_array, // array of multiple ApiValues
+    apivalue_proxy, // not used in actual ApiValues, but reserved to describe properties
   } ApiValueType;
 
 
@@ -43,12 +44,17 @@ namespace p44 {
   /// wrapper around json-c / libjson0 object
   class ApiValue : public P44Obj
   {
+  protected:
+
     ApiValueType objectType;
 
   public:
 
     /// construct empty object
     ApiValue();
+
+    /// create new API value of same implementation variant as this object
+    virtual ApiValuePtr newValue(ApiValueType aObjectType) = 0;
 
     /// check if object is of given type
     /// @param aObjectType type to check for
@@ -63,6 +69,11 @@ namespace p44 {
     /// @param type to convert object into
     /// @note existing data will be discarded (not converted)!
     virtual void setType(ApiValueType aType);
+
+    /// clear object to "empty" or "zero" value of its type
+    /// @note does not change the type (unlike setNull)
+    virtual void clear();
+
 
     /// add object for key
     /// @param aKey key of object
@@ -123,6 +134,22 @@ namespace p44 {
 
     /// @}
 
+
+    /// @name factory methods
+    /// @{
+
+    ApiValuePtr newInt64(int64_t aInt64);
+    ApiValuePtr newUint64(uint64_t aUint64);
+    ApiValuePtr newDouble(double aDouble);
+    ApiValuePtr newBool(bool aBool);
+    ApiValuePtr newString(const char *aString);
+    ApiValuePtr newString(const string &aString);
+    ApiValuePtr newObject();
+    ApiValuePtr newArray();
+
+    /// @}
+
+
     /// generic string value (works for all types)
     /// @return value as string
     virtual string stringValue();
@@ -130,7 +157,25 @@ namespace p44 {
     /// set string value (works for all types)
     /// @param aString value as string to be set. Must match type of object for successful assignment
     /// @return true if assignment was successful, false otherwise
-    bool setStringValue(const string &aString, bool aEmptyIsNull = false);
+    virtual bool setStringValue(const string &aString, bool aEmptyIsNull = false);
+
+
+    /// get in different int types
+    uint8_t uint8Value();
+    uint16_t uint16Value();
+    uint32_t uint32Value();
+    int8_t int8Value();
+    int16_t int16Value();
+    int32_t int32Value();
+
+    /// set in different int types
+    void setUint8Value(uint8_t aUint8);
+    void setUint16Value(uint16_t aUint16);
+    void setUint32Value(uint32_t aUint32);
+    void setInt8Value(int8_t aInt8);
+    void setInt16Value(int16_t aInt16);
+    void setInt32Value(int32_t aInt32);
+
 
 
     /// utilities
@@ -142,16 +187,16 @@ namespace p44 {
     void setNull();
     string lowercaseStringValue();
 
-
-    #ifndef VDC_API_NO_JSON
-    JsonObjectPtr jsonObject() { return JsonObjectPtr(); };
-    #endif
-
   };
 
 
 
   #ifndef VDC_API_NO_JSON
+
+
+  class JsonApiValue;
+
+  typedef boost::intrusive_ptr<JsonApiValue> JsonApiValuePtr;
 
   class JsonApiValue : public ApiValue
   {
@@ -166,19 +211,21 @@ namespace p44 {
 
     JsonApiValue();
 
-    static ApiValuePtr newApiObject(JsonObjectPtr aWithObject);
+    virtual ApiValuePtr newValue(ApiValueType aObjectType);
 
-    virtual void setType(ApiValueType aType);
+    static ApiValuePtr newValueFromJson(JsonObjectPtr aJsonObject);
 
-    virtual void add(const string &aKey, ApiValuePtr aObj) { if (jsonObj) jsonObj->add(aKey.c_str(), aObj->jsonObject()); };
-    virtual ApiValuePtr get(const string &aKey)  { JsonObjectPtr o; if (jsonObj && jsonObj->get(aKey.c_str(), o)) return newApiObject(o); else return ApiValuePtr(); };
+    virtual void clear();
+
+    virtual void add(const string &aKey, ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->add(aKey.c_str(), o->jsonObject()); };
+    virtual ApiValuePtr get(const string &aKey)  { JsonObjectPtr o; if (jsonObj && jsonObj->get(aKey.c_str(), o)) return newValueFromJson(o); else return ApiValuePtr(); };
     virtual void del(const string &aKey) { if (jsonObj) jsonObj->del(aKey.c_str()); };
     virtual int arrayLength() { return jsonObj ? jsonObj->arrayLength() : 0; };
-    virtual void arrayAppend(ApiValuePtr aObj) { if (jsonObj) jsonObj->arrayAppend(aObj->jsonObject()); };
-    virtual ApiValuePtr arrayGet(int aAtIndex) { if (jsonObj) { JsonObjectPtr o = jsonObj->arrayGet(aAtIndex); return newApiObject(o); } else return ApiValuePtr(); };
-    virtual void arrayPut(int aAtIndex, ApiValuePtr aObj) { if (jsonObj) jsonObj->arrayPut(aAtIndex, aObj->jsonObject()); };
+    virtual void arrayAppend(ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->arrayAppend(o->jsonObject()); };
+    virtual ApiValuePtr arrayGet(int aAtIndex) { if (jsonObj) { JsonObjectPtr o = jsonObj->arrayGet(aAtIndex); return newValueFromJson(o); } else return ApiValuePtr(); };
+    virtual void arrayPut(int aAtIndex, ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->arrayPut(aAtIndex, o->jsonObject()); };
     virtual bool resetKeyIteration() { if (jsonObj) return jsonObj->resetKeyIteration(); else return false; };
-    virtual bool nextKeyValue(string &aKey, ApiValuePtr &aValue) { if (jsonObj) { JsonObjectPtr o; bool gotone = jsonObj->nextKeyValue(aKey, o); aValue = newApiObject(o); return gotone; } else return false; };
+    virtual bool nextKeyValue(string &aKey, ApiValuePtr &aValue) { if (jsonObj) { JsonObjectPtr o; bool gotone = jsonObj->nextKeyValue(aKey, o); aValue = newValueFromJson(o); return gotone; } else return false; };
 
     virtual uint64_t uint64Value() { return jsonObj ? (uint64_t)jsonObj->int64Value() : 0; };
     virtual int64_t int64Value() { return jsonObj ? jsonObj->int64Value() : 0; };
@@ -199,6 +246,8 @@ namespace p44 {
 
 
   };
+
+
 
   #endif // not VDC_API_NO_JSON
 

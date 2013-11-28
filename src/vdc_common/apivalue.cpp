@@ -21,6 +21,7 @@ ApiValue::ApiValue() :
 }
 
 
+
 bool ApiValue::isType(ApiValueType aObjectType)
 {
   return (objectType==aObjectType);
@@ -36,7 +37,11 @@ ApiValueType ApiValue::getType()
 void ApiValue::setType(ApiValueType aType)
 {
   // base class: just set type
-  objectType = aType;
+  if (aType!=objectType) {
+    objectType = aType;
+    // type has changed, make sure internals are cleared
+    clear();
+  }
 }
 
 
@@ -44,6 +49,31 @@ int ApiValue::arrayLength()
 {
   return 0;
 }
+
+
+void ApiValue::clear()
+{
+  switch (objectType) {
+    // "Zero" simple values
+    case apivalue_bool:
+      setBoolValue(false);
+      break;
+    case apivalue_int64:
+    case apivalue_uint64:
+      setUint64Value(0);
+      break;
+    case apivalue_double:
+      setDoubleValue(0);
+      break;
+    case apivalue_string:
+      setStringValue("");
+      break;
+    // stuctured values need to be handled in derived class
+    default:
+      break;
+  }
+}
+
 
 
 // getting and setting as string (for all basic types)
@@ -106,6 +136,135 @@ bool ApiValue::setStringValue(const string &aString, bool aEmptyIsNull)
 }
 
 
+// factory methods
+ApiValuePtr ApiValue::newInt64(int64_t aInt64)
+{
+  ApiValuePtr newVal = newValue(apivalue_int64);
+  newVal->setInt64Value(aInt64);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newUint64(uint64_t aUint64)
+{
+  ApiValuePtr newVal = newValue(apivalue_uint64);
+  newVal->setUint64Value(aUint64);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newDouble(double aDouble)
+{
+  ApiValuePtr newVal = newValue(apivalue_double);
+  newVal->setDoubleValue(apivalue_double);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newBool(bool aBool)
+{
+  ApiValuePtr newVal = newValue(apivalue_bool);
+  newVal->setBoolValue(aBool);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newString(const char *aString)
+{
+  return newString(string(aString));
+}
+
+
+ApiValuePtr ApiValue::newString(const string &aString)
+{
+  ApiValuePtr newVal = newValue(apivalue_string);
+  newVal->setStringValue(aString);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newObject()
+{
+  return newValue(apivalue_object);
+}
+
+
+ApiValuePtr ApiValue::newArray()
+{
+  return newValue(apivalue_array);
+}
+
+
+
+
+// get in different int types
+uint8_t ApiValue::uint8Value()
+{
+  return uint64Value() & 0xFF;
+}
+
+uint16_t ApiValue::uint16Value()
+{
+  return uint64Value() & 0xFFFF;
+}
+
+uint32_t ApiValue::uint32Value()
+{
+  return uint64Value() & 0xFFFFFFFF;
+}
+
+
+int8_t ApiValue::int8Value()
+{
+  return (int8_t)int64Value();
+}
+
+
+int16_t ApiValue::int16Value()
+{
+  return (int16_t)int64Value();
+}
+
+
+int32_t ApiValue::int32Value()
+{
+  return (int32_t)int64Value();
+}
+
+
+void ApiValue::setUint8Value(uint8_t aUint8)
+{
+  setUint64Value(aUint8);
+}
+
+void ApiValue::setUint16Value(uint16_t aUint16)
+{
+  setUint64Value(aUint16);
+}
+
+void ApiValue::setUint32Value(uint32_t aUint32)
+{
+  setUint64Value(aUint32);
+}
+
+void ApiValue::setInt8Value(int8_t aInt8)
+{
+  setInt64Value(aInt8);
+}
+
+void ApiValue::setInt16Value(int16_t aInt16)
+{
+  setInt64Value(aInt16);
+}
+
+void ApiValue::setInt32Value(int32_t aInt32)
+{
+  setInt64Value(aInt32);
+}
+
+
+
+
 // convenience utilities
 
 size_t ApiValue::stringLength()
@@ -160,37 +319,62 @@ JsonApiValue::JsonApiValue()
 }
 
 
-JsonApiValue::JsonApiValue(JsonObjectPtr aWithObject)
+ApiValuePtr JsonApiValue::newValue(ApiValueType aObjectType)
 {
-  jsonObj = aWithObject;
-  // derive type
-  switch (jsonObj->type()) {
-    case json_type_boolean: setType(apivalue_bool); break;
-    case json_type_double: setType(apivalue_double); break;
-    case json_type_int: setType(apivalue_int64); break;
-    case json_type_object: setType(apivalue_object); break;
-    case json_type_array: setType(apivalue_array); break;
-    case json_type_string: setType(apivalue_string); break;
-    case json_type_null:
+  ApiValuePtr newVal = ApiValuePtr(new JsonApiValue);
+  newVal->setType(aObjectType);
+  return newVal;
+}
+
+
+
+void JsonApiValue::clear()
+{
+  switch (getType()) {
+    // "Zero" simple values
+    case apivalue_object:
+      // just assign new object an forget old one
+      jsonObj = JsonObject::newObj();
+      break;
+    case apivalue_array:
+      jsonObj = JsonObject::newArray();
+      break;
+    // for unstuctured values, the json obj will be created on assign, so clear it now
     default:
-      setType(apivalue_null);
+      jsonObj.reset();
       break;
   }
 }
 
 
-ApiValuePtr JsonApiValue::newApiObject(JsonObjectPtr aWithObject)
+
+JsonApiValue::JsonApiValue(JsonObjectPtr aWithObject)
 {
-  return ApiValuePtr(new JsonApiValue(aWithObject));
+  jsonObj = aWithObject;
+  // derive type
+  if (!jsonObj) {
+    setType(apivalue_null);
+  }
+  else {
+    switch (jsonObj->type()) {
+      case json_type_boolean: objectType = apivalue_bool; break;
+      case json_type_double: objectType = apivalue_double; break;
+      case json_type_int: objectType = apivalue_int64; break;
+      case json_type_object: objectType = apivalue_object; break;
+      case json_type_array: objectType = apivalue_array; break;
+      case json_type_string: objectType = apivalue_string; break;
+      case json_type_null:
+      default:
+        setType(apivalue_null);
+        break;
+    }
+  }
 }
 
 
-void JsonApiValue::setType(ApiValueType aType)
+ApiValuePtr JsonApiValue::newValueFromJson(JsonObjectPtr aJsonObject)
 {
-  if (aType!=getType()) {
-    inherited::setType(aType);
-    jsonObj.reset(); // no value yet
-  }
+  return ApiValuePtr(new JsonApiValue(aJsonObject));
 }
 
 

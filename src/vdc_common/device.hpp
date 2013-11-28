@@ -154,14 +154,14 @@ namespace p44 {
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this device.
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, JsonObjectPtr aParams);
+    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
 
     /// called to let device handle device-level notification
     /// @param aMethod the notification
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the notification to this device.
-    virtual void handleNotification(const string &aMethod, JsonObjectPtr aParams);
+    virtual void handleNotification(const string &aMethod, ApiValuePtr aParams);
 
     /// call scene on this device
     /// @param aSceneNo the scene to call.
@@ -242,7 +242,7 @@ namespace p44 {
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
     virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
     virtual ErrorPtr writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer);
-    virtual bool accessField(bool aForWrite, JsonObjectPtr &aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
     /// add a behaviour and set its index
     /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
