@@ -49,8 +49,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
         if (Error::isOK(err)) {
           // add to resulting object, if not no object returned at all (explicit JsonObject::newNull()) will be returned!)
-          if (propField)
-            aApiObject->add(propDescP->propertyName, propField);
+          aApiObject->add(propDescP->propertyName, propField);
         }
       }
     }

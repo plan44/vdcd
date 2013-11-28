@@ -101,7 +101,7 @@ string ApiValue::stringValue()
 }
 
 
-bool ApiValue::setStringValue(const string &aString, bool aEmptyIsNull)
+bool ApiValue::setStringValue(const string &aString)
 {
   int n;
   switch (objectType) {
@@ -171,6 +171,7 @@ ApiValuePtr ApiValue::newBool(bool aBool)
 
 ApiValuePtr ApiValue::newString(const char *aString)
 {
+  if (!aString) aString = "";
   return newString(string(aString));
 }
 
@@ -275,7 +276,7 @@ size_t ApiValue::stringLength()
 
 bool ApiValue::setStringValue(const char *aCString)
 {
-  return setStringValue(aCString ? string(aCString) : "", false);
+  return setStringValue(aCString ? string(aCString) : "");
 }
 
 
@@ -283,7 +284,7 @@ bool ApiValue::setStringValue(const char *aCStr, size_t aLen)
 {
   string s;
   if (aCStr) s.assign(aCStr, aLen);
-  return setStringValue(s, false);
+  return setStringValue(s);
 }
 
 
@@ -331,7 +332,6 @@ ApiValuePtr JsonApiValue::newValue(ApiValueType aObjectType)
 void JsonApiValue::clear()
 {
   switch (getType()) {
-    // "Zero" simple values
     case apivalue_object:
       // just assign new object an forget old one
       jsonObj = JsonObject::newObj();
@@ -345,6 +345,18 @@ void JsonApiValue::clear()
       break;
   }
 }
+
+
+bool JsonApiValue::setStringValue(const string &aString)
+{
+  if (getType()==apivalue_string) {
+    jsonObj = JsonObject::newString(aString, false);
+    return true;
+  }
+  else
+    return inherited::setStringValue(aString);
+};
+
 
 
 

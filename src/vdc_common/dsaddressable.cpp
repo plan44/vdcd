@@ -345,9 +345,9 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
       switch (aPropertyDescriptor.accessKey) {
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true;
         case model_key: aPropValue->setStringValue(modelName()); return true;
-        case hardwareVersion_key: aPropValue->setStringValue(hardwareVersion(), true); return true;
-        case hardwareGUID_key: aPropValue->setStringValue(hardwareGUID(), true); return true;
-        case oemGUID_key: aPropValue->setStringValue(oemGUID(), true); return true;
+        case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
+        case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
+        case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
         case name_key: aPropValue->setStringValue(getName()); return true;
         // conditionally available
         case numDevicesInHW_key:

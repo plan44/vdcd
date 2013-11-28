@@ -157,7 +157,7 @@ namespace p44 {
     /// set string value (works for all types)
     /// @param aString value as string to be set. Must match type of object for successful assignment
     /// @return true if assignment was successful, false otherwise
-    virtual bool setStringValue(const string &aString, bool aEmptyIsNull = false);
+    virtual bool setStringValue(const string &aString);
 
 
     /// get in different int types
@@ -237,7 +237,7 @@ namespace p44 {
     virtual void setInt64Value(int64_t aInt64) { jsonObj = JsonObject::newInt64(aInt64); };
     virtual void setDoubleValue(double aDouble) { jsonObj = JsonObject::newDouble(aDouble); };
     virtual void setBoolValue(bool aBool) { jsonObj = JsonObject::newBool(aBool); };
-    virtual bool setStringValue(const string &aString, bool aEmptyIsNull = false) { if (getType()==apivalue_string) { jsonObj = JsonObject::newString(aString, aEmptyIsNull); return true; } else return inherited::setStringValue(aString, aEmptyIsNull); };
+    virtual bool setStringValue(const string &aString);
     virtual void setNull() { jsonObj.reset(); }
 
     JsonObjectPtr jsonObject() { return jsonObj; };
