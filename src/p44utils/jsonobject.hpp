@@ -70,9 +70,12 @@ namespace p44 {
     static JsonObjectPtr newObj(struct json_object *aObjPassingOwnership);
 
     /// get type
+    /// @return type code
     json_type type();
 
     /// check type
+    /// @param aRefType type to check for
+    /// @return true if object matches given type
     bool isType(json_type aRefType);
 
     /// string representation of object.
@@ -84,11 +87,15 @@ namespace p44 {
     void add(const char* aKey, JsonObjectPtr aObj);
 
     /// get object by key
-    /// @note to distingusih between having no such key and having the key with
+    /// @param aKey key of object
+    /// @return the value of the object
+    /// @note to distinguish between having no such key and having the key with
     ///   a NULL object, use get(aKey,aJsonObject) instead
     JsonObjectPtr get(const char *aKey);
 
     /// get object by key
+    /// @param aKey key of object
+    /// @param aJsonObject will be set to the value of the key when return value is true
     /// @return true if key exists (but aJsonObject might still be empty in case of a NULL object)
     bool get(const char *aKey, JsonObjectPtr &aJsonObject);
 
@@ -102,15 +109,21 @@ namespace p44 {
 
 
     /// get array length
+    /// @return length of array. Returns 0 for empty arrays and all non-array objects
     int arrayLength();
 
     /// append to array
+    /// @param aObj object to append to the array
     void arrayAppend(JsonObjectPtr aObj);
 
     /// get from a specific position in the array
+    /// @param aAtIndex index position to return value for
+    /// @return NULL pointer if element does not exist, value otherwise
     JsonObjectPtr arrayGet(int aAtIndex);
 
     /// put at specific position in array
+    /// @param aAtIndex index position to put value to (overwriting existing value at that position)
+    /// @param aObj object to store in the array
     void arrayPut(int aAtIndex, JsonObjectPtr aObj);
 
 

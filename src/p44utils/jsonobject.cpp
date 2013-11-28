@@ -341,12 +341,7 @@ string JsonObject::stringValue()
 
 string JsonObject::lowercaseStringValue()
 {
-  const char *p = c_strValue();
-  string s;
-  while (char c=*p++) {
-    s += tolower(c);
-  }
-  return s;
+  return lowerCase(c_strValue());
 }
 
 
