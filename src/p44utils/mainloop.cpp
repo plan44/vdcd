@@ -67,7 +67,7 @@ ErrorPtr ExecError::exitStatus(int aExitStatus, const char *aContextMessage)
 {
   if (aExitStatus==0)
     return ErrorPtr(); // empty, no error
-  return ErrorPtr(new ExecError(aExitStatus, aContextMessage));
+  return ErrorPtr(new ExecError(aExitStatus, nonNullCStr(aContextMessage)));
 }
 
 
@@ -282,13 +282,15 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
 {
   LOG(LOG_DEBUG,"execChildTerminated: pid=%d, aStatus=%d\n", aPid, aStatus);
   if (aCallback) {
-    string answer;
+    LOG(LOG_DEBUG,"- callback set, execute it\n");
     ErrorPtr err = ExecError::exitStatus(WEXITSTATUS(aStatus));
     if (aAnswerCollector) {
+      LOG(LOG_DEBUG,"- aAnswerCollector: starting collectToEnd\n");
       aAnswerCollector->collectToEnd(boost::bind(&MainLoop::childAnswerCollected, this, aCallback, aAnswerCollector, err));
     }
     else {
       // call back directly
+      LOG(LOG_DEBUG,"- no aAnswerCollector: callback immediately\n");
       aCallback(*this, cycleStartTime, err, "");
     }
   }
