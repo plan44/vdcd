@@ -24,11 +24,14 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
 
   public:
-    DemoDeviceContainer(int aInstanceNumber);
+    DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
 
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "Experimental Demo vDC"; }
 
   };
 

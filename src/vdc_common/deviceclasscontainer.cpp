@@ -13,27 +13,27 @@
 using namespace p44;
 
 
-DeviceClassContainer::DeviceClassContainer(int aInstanceNumber) :
-  deviceContainerP(NULL),
+DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+  inherited(aDeviceContainerP),
   instanceNumber(aInstanceNumber)
 {
 }
 
 
-void DeviceClassContainer::setDeviceContainer(DeviceContainer *aDeviceContainerP)
+void DeviceClassContainer::addClassToDeviceContainer()
 {
-  deviceContainerP = aDeviceContainerP;
+  // derive dSUID first, as it will be mapped by dSUID in the device container 
+  deriveDsUid();
+  // add to container
+  getDeviceContainer().addDeviceClassContainer(DeviceClassContainerPtr(this));
 }
 
 
-DeviceContainer &DeviceClassContainer::getDeviceContainer() const
-{
-  return *deviceContainerP;
-}
 
 
 void DeviceClassContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
+  // done
 	aCompletedCB(ErrorPtr()); // default to error-free initialisation
 }
 
@@ -47,6 +47,15 @@ const char *DeviceClassContainer::getPersistentDataDir()
 int DeviceClassContainer::getInstanceNumber() const
 {
 	return instanceNumber;
+}
+
+
+void DeviceClassContainer::deriveDsUid()
+{
+  // Note: device class containers ALWAYS have a modern dSUID, as these are not exposed in systms with old dsids at all
+  // - class containers have v5 UUIDs based on the device container's master UUID as namespace
+  string name = string_format("%s.%d", deviceClassIdentifier(), getInstanceNumber()); // name is class identifier plus instance number: classID.instNo
+  dSUID.setNameInSpace(name, getDeviceContainer().dSUID); // domain is dSUID of device container
 }
 
 
@@ -98,22 +107,6 @@ void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 }
 
 
-// get device by instance pointer
-DevicePtr DeviceClassContainer::getDevicePtrForInstance(Device *aDeviceP)
-{
-	// find shared pointer in my list
-  DevicePtr dev;
-	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
-		if (pos->get()==aDeviceP) {
-      dev = *pos;
-			break;
-		}
-	}
-  return dev;
-}
-
-
-
 void DeviceClassContainer::removeDevices(bool aForget)
 {
 	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
@@ -127,21 +120,14 @@ void DeviceClassContainer::removeDevices(bool aForget)
 
 
 
-string DeviceClassContainer::description()
-{
-  string d = string_format("Deviceclass Container '%s' contains %d devices:\n", deviceClassIdentifier(), devices.size());
-  for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
-    d.append((*pos)->description());
-  }
-  return d;
-}
 
 
 #pragma mark - property access
 
+static char deviceclass_key;
+
 enum {
-  deviceClassInstance_key,
-  dsuids_key,
+  devices_key,
   numClassContainerProperties
 };
 
@@ -156,8 +142,7 @@ int DeviceClassContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numClassContainerProperties] = {
-    { "deviceClassInstance", apivalue_string, false, deviceClassInstance_key },
-    { "dsuids", apivalue_string, true, dsuids_key }
+    { "devices", apivalue_string, true, devices_key, &deviceclass_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -170,26 +155,39 @@ const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropI
 
 bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
-  if (!aForWrite) {
-    // read only
-    if (aPropertyDescriptor.accessKey==deviceClassInstance_key) {
-      // return dSUID of contained devices
-      aPropValue->setStringValue(deviceClassContainerInstanceIdentifier());
-      return true;
-    }
-    else if (aPropertyDescriptor.accessKey==dsuids_key) {
-      if (aIndex==PROP_ARRAY_SIZE) {
-        // return size of array
-        aPropValue->setUint32Value((uint32_t)devices.size());
-        return true;
-      }
-      else if (aIndex<devices.size()) {
-        // return dSUID of contained devices
-        aPropValue->setStringValue(devices[aIndex]->dSUID.getString());
-        return true;
+  if (aPropertyDescriptor.objectKey==&deviceclass_key) {
+    if (!aForWrite) {
+      // read only
+      if (aPropertyDescriptor.accessKey==devices_key) {
+        if (aIndex==PROP_ARRAY_SIZE) {
+          // return size of array
+          aPropValue->setUint32Value((uint32_t)devices.size());
+          return true;
+        }
+        else if (aIndex<devices.size()) {
+          // return dSUID of contained devices
+          aPropValue->setStringValue(devices[aIndex]->dSUID.getString());
+          return true;
+        }
       }
     }
   }
   return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
 }
+
+
+#pragma mark - description/shortDesc
+
+
+string DeviceClassContainer::description()
+{
+  string d = string_format("%s #%d: %s\n", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str());
+  string_format_append(d, "- contains %d devices:\n", devices.size());
+  for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+    d.append((*pos)->description());
+  }
+  return d;
+}
+
+
 

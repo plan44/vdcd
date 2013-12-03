@@ -13,8 +13,8 @@
 using namespace p44;
 
 
-HueDeviceContainer::HueDeviceContainer(int aInstanceNumber) :
-  inherited(aInstanceNumber),
+HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+  inherited(aInstanceNumber, aDeviceContainerP),
   hueComm()
 {
 }

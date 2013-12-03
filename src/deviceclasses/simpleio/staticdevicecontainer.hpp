@@ -26,11 +26,14 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
 		DeviceConfigMap deviceConfigs;
   public:
-    StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs);
+    StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP);
 
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "GPIO,I2C,console vDC"; }
 
   };
 

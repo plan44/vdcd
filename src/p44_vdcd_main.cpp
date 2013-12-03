@@ -335,26 +335,26 @@ public:
       if (daliname) {
         int sec = 0;
         getIntOption("daliportidle", sec);
-        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1));
+        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &deviceContainer));
         daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
-        deviceContainer.addDeviceClassContainer(daliDeviceContainer);
+        daliDeviceContainer->addClassToDeviceContainer();
       }
       // - Add enOcean devices class if enOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       if (enoceanname) {
-        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1));
+        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &deviceContainer));
         enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
-        deviceContainer.addDeviceClassContainer(enoceanDeviceContainer);
+        enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
       if (getOption("huelights")) {
-        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1));
-        deviceContainer.addDeviceClassContainer(hueDeviceContainer);
+        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &deviceContainer));
+        hueDeviceContainer->addClassToDeviceContainer();
       }
       // - Add static devices if we have collected any config from the command line
       if (staticDeviceConfigs.size()>0) {
-        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs));
-        deviceContainer.addDeviceClassContainer(staticDeviceContainer);
+        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &deviceContainer));
+        staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
 

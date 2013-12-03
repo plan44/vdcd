@@ -27,6 +27,9 @@ namespace p44 {
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
+    /// @return human readable model name/short description
+    virtual string modelName() { return "UPnP vDC"; }
+
   private:
     SsdpSearch m_dmr_search;
 

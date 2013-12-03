@@ -55,7 +55,7 @@ namespace p44 {
     /// @}
 
   public:
-    HueDeviceContainer(int aInstanceNumber);
+    HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
 
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
@@ -68,6 +68,9 @@ namespace p44 {
     /// @param aEnableLearning true to enable learning mode
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     void setLearnMode(bool aEnableLearning);
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "hue vDC"; }
 
   private:
 

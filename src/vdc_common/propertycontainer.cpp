@@ -96,6 +96,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
     // - size access is like a single value
     if (aIndex==PROP_ARRAY_SIZE) {
       // get array size
+      aApiObject->setType(apivalue_uint64); // force integer value
       accessField(aForWrite, aApiObject, aPropertyDescriptor, PROP_ARRAY_SIZE);
     }
     else {

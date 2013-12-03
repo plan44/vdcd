@@ -78,7 +78,7 @@ namespace p44 {
 
   public:
 
-    EnoceanDeviceContainer(int aInstanceNumber);
+    EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
 		
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
@@ -93,6 +93,9 @@ namespace p44 {
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
     ///   the devices are not disconnected (=unlearned) by this.
     virtual void removeDevices(bool aForget);
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "enOcean vDC"; }
 
   protected:
 

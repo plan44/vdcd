@@ -11,8 +11,8 @@
 using namespace p44;
 
 
-EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber) :
-  DeviceClassContainer(aInstanceNumber),
+EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
   learningMode(false),
 	enoceanComm(SyncIOMainLoop::currentMainLoop())
 {

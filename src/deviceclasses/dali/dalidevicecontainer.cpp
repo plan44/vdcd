@@ -13,8 +13,8 @@
 using namespace p44;
 
 
-DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber) :
-  DeviceClassContainer(aInstanceNumber),
+DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
 	daliComm(SyncIOMainLoop::currentMainLoop())
 {
 }

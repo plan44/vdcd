@@ -14,8 +14,8 @@
 using namespace p44;
 
 
-StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs) :
-  DeviceClassContainer(aInstanceNumber),
+StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
 	deviceConfigs(aDeviceConfigs)
 {
 }

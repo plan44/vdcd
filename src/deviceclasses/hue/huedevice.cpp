@@ -489,7 +489,7 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
   else {
     // not disconnectable
     if (aDisconnectResultHandler) {
-      aDisconnectResultHandler(classContainerP->getDevicePtrForInstance(this), false);
+      aDisconnectResultHandler(DevicePtr(this), false);
     }
   }
 }

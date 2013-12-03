@@ -161,7 +161,7 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
   else {
     // not disconnectable
     if (aDisconnectResultHandler) {
-      aDisconnectResultHandler(classContainerP->getDevicePtrForInstance(this), false);
+      aDisconnectResultHandler(DevicePtr(this), false);
     }
   }
 }

@@ -25,7 +25,7 @@ namespace p44 {
   {
     typedef DeviceClassContainer inherited;
   public:
-    DaliDeviceContainer(int aInstanceNumber);
+    DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
 
     // the DALI communication object
     DaliComm daliComm;
@@ -33,6 +33,9 @@ namespace p44 {
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "DALI vDC"; }
 
   };
 

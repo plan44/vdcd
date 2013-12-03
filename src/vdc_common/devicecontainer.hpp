@@ -57,7 +57,7 @@ namespace p44 {
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer;
   typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
-  typedef vector<DeviceClassContainerPtr> ContainerVector;
+  typedef map<DsUid, DeviceClassContainerPtr> ContainerMap;
   typedef map<DsUid, DevicePtr> DsDeviceMap;
 
   typedef list<JsonRpcCommPtr> ApiConnectionList;
@@ -106,7 +106,7 @@ namespace p44 {
     DeviceContainer();
 
     /// the list of containers
-    ContainerVector deviceClassContainers;
+    ContainerMap deviceClassContainers;
 
     /// API for vdSM
     SocketComm vdcApiServer;
@@ -124,12 +124,6 @@ namespace p44 {
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
-
-    /// add a device class container
-    /// @param aDeviceClassContainerPtr a shared_ptr to a device class container
-    /// @note this is a one-time initialisation. Device class containers are not meant to be removed at runtime
-    void addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr);
-
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
@@ -226,10 +220,10 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "vDC virtual device controller"; }
+    virtual string modelName() { return "vDC host"; }
 
-    /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
-    virtual const char *entityType() { return "vDC"; }
+    /// @return the entity type (one of dSD|vdSD|vDChost|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "vDChost"; }
 
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; }
@@ -244,6 +238,12 @@ namespace p44 {
 
 
   protected:
+
+    /// add a device class container
+    /// @param aDeviceClassContainerPtr a intrusive_ptr to a device class container
+    /// @note this is a one-time initialisation. Device class containers are not meant to be removed at runtime
+    void addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr);
+
 
     /// @name methods for friend classes to send API messages
     /// @{
@@ -271,13 +271,11 @@ namespace p44 {
 
     /// @}
 
-
   protected:
 
     // property access implementation
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
     virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
   private:

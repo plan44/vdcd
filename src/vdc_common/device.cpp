@@ -230,7 +230,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
 void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // remove from container management
-  DevicePtr dev = classContainerP->getDevicePtrForInstance(this);
+  DevicePtr dev = DevicePtr(this);
   classContainerP->removeDevice(dev, aForgetParams);
   // that's all for the base class
   if (aDisconnectResultHandler)

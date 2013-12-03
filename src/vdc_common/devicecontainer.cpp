@@ -104,8 +104,7 @@ void DeviceContainer::setIdMode(bool aDsUids, DsUidPtr aExternalDsUid)
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
-  deviceClassContainers.push_back(aDeviceClassContainerPtr);
-  aDeviceClassContainerPtr->setDeviceContainer(this);
+  deviceClassContainers[aDeviceClassContainerPtr->dSUID] = aDeviceClassContainerPtr;
 }
 
 
@@ -134,7 +133,7 @@ const char *DeviceContainer::getPersistentDataDir()
 class DeviceClassInitializer
 {
   CompletedCB callback;
-  ContainerVector::iterator nextContainer;
+  ContainerMap::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   bool factoryReset;
 public:
@@ -157,7 +156,7 @@ private:
   void queryNextContainer(ErrorPtr aError)
   {
     if ((!aError || factoryReset) && nextContainer!=deviceContainerP->deviceClassContainers.end())
-      (*nextContainer)->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
+      nextContainer->second->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
     else
       completed(aError);
   }
@@ -228,7 +227,7 @@ class DeviceClassCollector
   CompletedCB callback;
   bool exhaustive;
   bool incremental;
-  ContainerVector::iterator nextContainer;
+  ContainerMap::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
@@ -252,7 +251,7 @@ private:
   void queryNextContainer(ErrorPtr aError)
   {
     if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
-      (*nextContainer)->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
+      nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
     else
       collectedAll(aError);
   }
@@ -374,8 +373,8 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler)
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
-  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
-    (*pos)->setLearnMode(true);
+  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+    pos->second->setLearnMode(true);
   }
 }
 
@@ -383,8 +382,8 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler)
 void DeviceContainer::stopLearning()
 {
   // disable learning in all class containers
-  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
-    (*pos)->setLearnMode(false);
+  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+    pos->second->setLearnMode(false);
   }
   learningMode = false;
   learnHandler.clear();
@@ -726,8 +725,8 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
     return handleMethod(aMethod, aJsonRpcId, aParams);
   }
   else {
-    // Must be device level method
-    // - find device to handle it
+    // Must be device or deviceClassContainer level method
+    // - find device to handle it (more probable case)
     DsDeviceMap::iterator pos = dSDevices.find(aDsUid);
     if (pos!=dSDevices.end()) {
       DevicePtr dev = pos->second;
@@ -741,8 +740,16 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
       }
     }
     else {
-      LOG(LOG_WARNING, "Target device %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
-      return ErrorPtr(new JsonRpcError(404, "unknown dSUID"));
+      // is not a device, try deviceClassContainer
+      ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
+      if (pos!=deviceClassContainers.end()) {
+        // found
+        return pos->second->handleMethod(aMethod, aJsonRpcId, aParams);
+      }
+      else {
+        LOG(LOG_WARNING, "Target entity %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+        return ErrorPtr(new JsonRpcError(404, "unknown dSUID"));
+      }
     }
   }
 }
@@ -764,7 +771,15 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
       dev->handleNotification(aMethod, aParams);
     }
     else {
-      LOG(LOG_WARNING, "Target device %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+      // is not a device, try deviceClassContainer
+      ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
+      if (pos!=deviceClassContainers.end()) {
+        // found
+        return pos->second->handleNotification(aMethod, aParams);
+      }
+      else {
+        LOG(LOG_WARNING, "Target entity %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+      }
     }
   }
 }
@@ -972,8 +987,10 @@ void DeviceContainer::handleNotification(const string &aMethod, ApiValuePtr aPar
 
 #pragma mark - property access
 
+static char devicecontainer_key;
+
 enum {
-  classes_key,
+  vdcs_key,
   numDeviceContainerProperties
 };
 
@@ -988,7 +1005,7 @@ int DeviceContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "classes", apivalue_object, true, classes_key }
+    { "vdcs", apivalue_string, true, vdcs_key, &devicecontainer_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
@@ -998,27 +1015,29 @@ const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex,
 }
 
 
-PropertyContainerPtr DeviceContainer::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
-{
-  if (aPropertyDescriptor.accessKey==classes_key) {
-    // return the class container by index
-    if (aIndex<deviceClassContainers.size())
-      return deviceClassContainers[aIndex];
-    else
-      return NULL;
-  }
-  return inherited::getContainer(aPropertyDescriptor, aDomain);
-}
-
-
 bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
-  if (aPropertyDescriptor.accessKey==classes_key) {
-    if (aIndex==PROP_ARRAY_SIZE) {
-      if (aForWrite) return false; // cannot write
-      // return size of array
-      aPropValue->setUint32Value((uint32_t)deviceClassContainers.size());
-      return true;
+  if (aPropertyDescriptor.objectKey==&devicecontainer_key) {
+    if (aPropertyDescriptor.accessKey==vdcs_key) {
+      if (aIndex==PROP_ARRAY_SIZE) {
+        // return size of array
+        aPropValue->setUint32Value((uint32_t)deviceClassContainers.size());
+        return true;
+      }
+      else if (aIndex<deviceClassContainers.size()) {
+        // return dSUID of contained vdc
+        // - just iterate into map, we'll never have more than a few logical vdcs!
+        int i = 0;
+        for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+          if (i==aIndex) {
+            // found
+            aPropValue->setStringValue(pos->first.getString());
+            return true;
+          }
+          i++;
+        }
+      }
+      return false;
     }
   }
   return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
@@ -1033,8 +1052,8 @@ bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
 string DeviceContainer::description()
 {
   string d = string_format("DeviceContainer with %d device classes:\n", deviceClassContainers.size());
-  for (ContainerVector::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-    d.append((*pos)->description());
+  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+    d.append(pos->second->description());
   }
   return d;
 }

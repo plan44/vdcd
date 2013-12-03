@@ -355,13 +355,13 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
             aPropValue->setUint16Value((int)numDevicesInHW());
             return true;
           }
-          break; // no such property
+          return false; // no such property
         case deviceIndexInHW_key:
           if (deviceIndexInHW()>=0) {
             aPropValue->setUint16Value((int)deviceIndexInHW());
             return true;
           }
-          break; // no such property
+          return false; // no such property
       }
       return true;
     }

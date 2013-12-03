@@ -44,26 +44,23 @@ namespace p44 {
   class DeviceClassContainer;
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef std::vector<DevicePtr> DeviceVector;
-  class DeviceClassContainer : public PropertyContainer
+  class DeviceClassContainer : public DsAddressable
   {
-    typedef PropertyContainer inherited;
+    typedef DsAddressable inherited;
 
-    DeviceContainer *deviceContainerP; ///< link to the deviceContainer
     DeviceVector devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
 
   public:
+
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsuids for devices that don't have their own
     ///   unique ID, by using a hashOf(DeviceContainer's id, deviceClassIdentifier(), aInstanceNumber)
-    DeviceClassContainer(int aInstanceNumber);
-
-    /// associate with container
     /// @param aDeviceContainerP device container this device class is contained in
-    void setDeviceContainer(DeviceContainer *aDeviceContainerP);
-    /// get associated container
-    /// @return associated device container
-    DeviceContainer &getDeviceContainer() const;
+    DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+
+    /// add device class to device container.
+    void addClassToDeviceContainer();
 
 		/// initialize
 		/// @param aCompletedCB will be called when initialisation is complete
@@ -129,11 +126,6 @@ namespace p44 {
     /// @}
 
 
-    /// description of object, mainly for debug and logging
-    /// @return textual description of object
-    virtual string description();
-
-
     /// @name services for actual device class controller implementations
     /// @{
 
@@ -153,10 +145,33 @@ namespace p44 {
     ///   the device is not disconnected (=unlearned) by this.
     virtual void removeDevice(DevicePtr aDevice, bool aForget = false);
 
-    /// get device smart pointer by instance pointer
-    DevicePtr getDevicePtrForInstance(Device *aDeviceP);
-
 		/// @}
+
+
+    /// @name identification of the addressable entity
+    /// @{
+
+    /// @return human readable model name/short description
+    virtual string modelName() { return "vDC virtual device controller"; }
+
+    /// @return the entity type (one of dSD|vdSD|vDChost|vDC|dSM|vdSM|dSS|*)
+    virtual const char *entityType() { return "vDC"; }
+
+    /// @return hardware version string or NULL if none
+    virtual string hardwareVersion() { return ""; }
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID() { return ""; }
+
+    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    virtual string oemGUID() { return ""; }
+    
+    /// @}
+
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object
+    virtual string description();
 
   protected:
 
@@ -164,6 +179,9 @@ namespace p44 {
     virtual int numProps(int aDomain);
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
     virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
+    // derive dSUID
+    void deriveDsUid();
 
   };
 
