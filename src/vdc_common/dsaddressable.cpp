@@ -73,7 +73,7 @@ ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParam
 
 
 
-ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
+ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   string name;
@@ -105,7 +105,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result
-        sendResult(aJsonRpcId, result);
+        sendResult(aRequest, result);
       }
     }
   }
@@ -147,7 +147,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         }
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
-          sendResult(aJsonRpcId, ApiValuePtr());
+          sendResult(aRequest, ApiValuePtr());
         }
       }
     }
@@ -165,7 +165,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
         respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, 0); // always single element
         if (Error::isOK(respErr)) {
           // send back property result
-          sendResult(aJsonRpcId, result);
+          sendResult(aRequest, result);
         }
       }
     }
@@ -184,7 +184,7 @@ ErrorPtr DsAddressable::handleMethod(const string &aMethod, const string &aJsonR
           respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
           if (Error::isOK(respErr)) {
             // send back OK if write was successful
-            sendResult(aJsonRpcId, ApiValuePtr());
+            sendResult(aRequest, ApiValuePtr());
           }
         }
       }
@@ -240,27 +240,31 @@ void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParam
 }
 
 
-bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler)
+bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
-  if (!aParams) {
-    // create params object because we need it for the dSUID
-    aParams = ApiValuePtr(new JsonApiValue);
-    aParams->setType(apivalue_object);
+  VdcApiConnectionPtr api = getDeviceContainer().getSessionConnection();
+  if (api) {
+    if (!aParams) {
+      // create params object because we need it for the dSUID
+      aParams = api->newApiValue();
+      aParams->setType(apivalue_object);
+    }
+    aParams->add("dSUID", aParams->newString(dSUID.getString()));
+    return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
   }
-  aParams->add("dSUID", aParams->newString(dSUID.getString()));
-  return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
+  return false; // no connection
 }
 
 
-bool DsAddressable::sendResult(const string &aJsonRpcId, ApiValuePtr aResult)
+bool DsAddressable::sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult)
 {
-  return getDeviceContainer().sendApiResult(aJsonRpcId, aResult);
+  return getDeviceContainer().sendApiResult(aForRequest, aResult);
 }
 
 
-bool DsAddressable::sendError(const string &aJsonRpcId, ErrorPtr aErrorToSend)
+bool DsAddressable::sendError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend)
 {
-  return getDeviceContainer().sendApiError(aJsonRpcId, aErrorToSend);
+  return getDeviceContainer().sendApiError(aForRequest, aErrorToSend);
 }
 
 

@@ -91,6 +91,8 @@ vdcd_SOURCES = \
   src/vdc_common/devicesettings.hpp \
   src/vdc_common/propertycontainer.cpp \
   src/vdc_common/propertycontainer.hpp \
+  src/vdc_common/vdcapi.cpp \
+  src/vdc_common/vdcapi.hpp \
   src/vdc_common/apivalue.cpp \
   src/vdc_common/apivalue.hpp \
   src/vdc_common/dsaddressable.cpp \

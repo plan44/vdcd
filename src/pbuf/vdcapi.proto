@@ -1,0 +1,109 @@
+package vdcapi;
+
+message vdsm_RequestHello {
+    optional string dSUID = 1;
+    optional uint32 api_version = 2;
+    optional string push_uri = 3;
+}
+
+message vdc_ResponseHello {
+    optional string dSUID = 1;
+    optional bool allow_disconnect = 2 [ default = false ];
+}
+
+message vdc_SendAnnounce {
+    optional string dSUID = 1;
+}
+
+message vdc_SendVanish {
+    optional string dSUID = 1;
+}
+
+message vdsm_SendBye {
+    optional string dSUID = 1;
+}
+
+message vdsm_SendRemove {
+}
+
+message vdsm_RequestGetProperty {
+    optional string dSUID = 1;
+    optional string name = 2;
+    optional int32 value = 3;
+}
+
+message vdc_ResponseGetProperty {
+    // TODO: check with team
+}
+
+message vdsm_SendSetProperty {
+    optional string dSUID = 1;
+    optional string name = 2;
+    optional uint32 index = 3;
+    optional uint32 offset = 4;
+    optional uint32 count = 5 [ default = 1 ];
+    // TODO: value - check with team
+
+}
+
+message vdsm_SendPing {
+    optional string dSUID = 1;
+}
+
+message vdc_SendPong {
+    optional string dSUID = 1;
+}
+
+message vdsm_NotificationCallScene {
+    optional string dSUID = 1;
+    optional int32 scene = 2;
+    optional bool force = 3;
+    optional int32 group = 4;
+    optional int32 zoneID = 5;
+}
+
+message vdsm_NotificationSaveScene {
+    optional string dSUID = 1;
+    optional int32 scene = 2;
+    optional int32 group = 3;
+    optional int32 zoneID = 4;
+}
+
+
+message vdsm_NotificationUndoScene {
+    optional string dSUID = 1;
+    optional int32 scene = 2;
+    optional int32 group = 3;
+    optional int32 zoneID = 4;
+}
+
+message vdsm_NotificationSetLocalPrio {
+    optional string dSUID = 1;
+    optional int32 scene = 2;
+    optional int32 group = 3;
+    optional int32 zoneID = 4;
+}
+
+message vdsm_NotificationCallMinScene {
+    optional string dSUID = 1;
+    optional int32 group = 2;
+    optional int32 zoneID = 3;
+}
+
+message vdsm_NotificationIdentify {
+    optional string dSUID = 1;
+    optional int32 group = 2;
+    optional int32 zoneID = 3;
+}
+
+message vdsm_NotificationPingDevice {
+    optional string dSUID = 1;
+}
+
+message vdc_SendPushProperty {
+    optional string dSUID = 1;
+    optional string name = 2;
+    optional uint32 index = 3;
+    // TODO: value
+    
+}

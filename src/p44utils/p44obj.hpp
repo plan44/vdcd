@@ -29,6 +29,8 @@ namespace p44 {
     virtual ~P44Obj() {}; // important for multiple inheritance
   };
 
+  typedef boost::intrusive_ptr<P44Obj> P44ObjPtr;
+
 
 
 } // namespace p44

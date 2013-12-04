@@ -12,6 +12,8 @@
 #include "dsuid.hpp"
 #include "propertycontainer.hpp"
 
+#include "vdcapi.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -77,12 +79,12 @@ namespace p44 {
 
 
     /// called by DeviceContainer to handle methods directed to a dSUID
+    /// @param aRequest this is the request to respond to
     /// @param aMethod the method
-    /// @param aJsonRpcId the id parameter to be used in sendResult()
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this DsAddressable.
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
     /// called by DeviceContainer to handle notifications directed to a dSUID
     /// @param aMethod the notification
@@ -97,21 +99,21 @@ namespace p44 {
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     /// @note the dSUID will be automatically added to aParams (generating a params object if none was passed)
-    bool sendRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+    bool sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
     /// send result from a method call back to the to vdSM
     /// @param aJsonRpcId the id parameter from the method call
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendResult(const string &aJsonRpcId, ApiValuePtr aResult);
+    bool sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult);
 
     /// send error from a method call back to the vdSM
     /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
     /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
     ///   of the JSON-RPC 2.0 error object.
     /// @return true if error could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendError(const string &aJsonRpcId, ErrorPtr aErrorToSend);
+    bool sendError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend);
 
     /// push property value
     /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,

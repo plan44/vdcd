@@ -116,7 +116,7 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
 #pragma mark - Device level vDC API
 
 
-ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
+ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
 //  if (aMethod=="Gugus") {
@@ -124,7 +124,7 @@ ErrorPtr Device::handleMethod(const string &aMethod, const string &aJsonRpcId, A
 //  }
 //  else
   {
-    respErr = inherited::handleMethod(aMethod, aJsonRpcId, aParams);
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
   }
   return respErr;
 }

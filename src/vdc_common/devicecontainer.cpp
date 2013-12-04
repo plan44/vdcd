@@ -28,15 +28,12 @@ using namespace p44;
 DeviceContainer::DeviceContainer() :
   mac(0),
   DsAddressable(this),
-  vdcApiServer(SyncIOMainLoop::currentMainLoop()),
   collecting(false),
   learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimTicket(0),
   localDimDown(false),
-  sessionActive(false),
-  sessionActivityTicket(0),
   dsUids(false)
 {
   // obtain MAC address
@@ -204,7 +201,10 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   // Log start message
   LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", dSUID.getString().c_str());
   // start the API server
-  vdcApiServer.startServer(boost::bind(&DeviceContainer::vdcJsonApiConnectionHandler, this, _1), 3);
+  if (vdcApiServer) {
+    vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
+    vdcApiServer->start();
+  }
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
@@ -308,11 +308,11 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental
     collecting = true;
     if (!aIncremental) {
       // only for non-incremental collect, close vdsm connection
-      if (sessionComm) {
-        // disconnect the vdSM
-        sessionComm->closeConnection();
+      if (activeSessionConnection) {
+        activeSessionConnection->closeConnection(); // close the API connection
+        resetAnnouncing();
+        activeSessionConnection.reset(); // forget connection
       }
-      endContainerSession(); // end the session
       dSDevices.clear(); // forget existing ones
     }
     DeviceClassCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive);
@@ -345,7 +345,7 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   // load the device's persistent params
   aDevice->load();
   // register new device right away (unless collecting or already announcing)
-  announceDevices();
+  startAnnouncing();
   return true;
 }
 
@@ -433,8 +433,8 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
   // cancel any pending executions
   MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
   if (!collecting) {
-    // check for devices that need to be announced
-    announceDevices();
+    // check again for devices that need to be announced
+    startAnnouncing();
     // do a save run as well
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       pos->second->save();
@@ -464,7 +464,7 @@ void DeviceContainer::localDimHandler()
 
 void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
-  if (!sessionActive) {
+  if (!activeSessionConnection) {
     // not connected to a vdSM, handle clicks locally
     handleClickLocally(aButtonBehaviour, aClickType);
   }
@@ -561,168 +561,192 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 
 
 
-bool DeviceContainer::sendApiRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler)
+bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
-  if (sessionComm) {
+  if (activeSessionConnection) {
     signalActivity();
-    JsonApiValuePtr params = boost::dynamic_pointer_cast<JsonApiValue>(aParams);
-    bool ok = Error::isOK(sessionComm->sendRequest(aMethod, params->jsonObject(), aResponseHandler));
-    LOG(LOG_INFO,"vdSM <- vDC request sent: id='%d', method='%s', params=%s\n", sessionComm->lastRequestId(), aMethod, aParams ? aParams->c_strValue() : "<none>");
-    return ok;
+    return Error::isOK(activeSessionConnection->sendRequest(aMethod, aParams));
   }
   // cannot send
   return false;
 }
 
 
-bool DeviceContainer::sendApiResult(const string &aJsonRpcId, ApiValuePtr aResult)
+bool DeviceContainer::sendApiResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult)
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
-  if (sessionComm) {
+  if (activeSessionConnection) {
     signalActivity();
-    JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
-    bool ok = Error::isOK(sessionComm->sendResult(aJsonRpcId.c_str(), result->jsonObject()));
-    LOG(LOG_INFO,"vdSM <- vDC result sent: id='%s', result=%s\n", aJsonRpcId.c_str(), aResult ? aResult->c_strValue() : "<none>");
-    return ok;
+    return Error::isOK(activeSessionConnection->sendResult(aForRequest, aResult));
   }
   // cannot send
   return false;
 }
 
 
-bool DeviceContainer::sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSend)
+bool DeviceContainer::sendApiError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend)
 {
   // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
-  if (sessionComm) {
+  if (activeSessionConnection) {
     signalActivity();
-    bool ok = Error::isOK(sessionComm->sendError(aJsonRpcId.size()>0 ? aJsonRpcId.c_str() : NULL, aErrorToSend));
-    LOG(LOG_INFO,"vdSM <- vDC error sent: id='%s', error=%s\n", aJsonRpcId.c_str(), aErrorToSend ? aErrorToSend->description().c_str() : "<none>");
-    return ok;
+    return Error::isOK(activeSessionConnection->sendError(aForRequest, aErrorToSend));
   }
   // cannot send
   return false;
 }
-
-
 
 
 void DeviceContainer::sessionTimeoutHandler()
 {
   LOG(LOG_INFO,"vDC API session timed out -> ends here\n");
-  endContainerSession();
-  if (sessionComm) {
-    sessionComm->closeConnection();
-    sessionComm.reset();
+  if (activeSessionConnection) {
+    activeSessionConnection->closeConnection();
+    resetAnnouncing(); // stop possibly ongoing announcing
+    activeSessionConnection.reset();
   }
 }
 
 
 
-SocketCommPtr DeviceContainer::vdcJsonApiConnectionHandler(SocketComm *aServerSocketCommP)
+void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConnection, ErrorPtr &aError)
 {
-  JsonRpcCommPtr conn = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
-  conn->setRequestHandler(boost::bind(&DeviceContainer::vdcJsonApiRequestHandler, this, _1, _2, _3, _4));
-  conn->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcJsonApiConnectionStatusHandler, this, _1, _2));
-  // save in my own list of connections
-  apiConnections.push_back(conn);
-  return conn;
-}
-
-
-void DeviceContainer::vdcJsonApiConnectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
-{
-  if (!Error::isOK(aError)) {
-    LOG(LOG_INFO,"vDC API connection ends due to %s\n", aError->description().c_str());
-    // connection failed/closed and we don't support reconnect yet -> end session
-    JsonRpcComm *connP = dynamic_cast<JsonRpcComm *>(aSocketComm);
-    vdcJsonApiEndConnection(connP);
+  if (Error::isOK(aError)) {
+    // new connection, set up reequest handler
+    aApiConnection->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
   }
   else {
-    LOG(LOG_INFO,"vDC API connection started\n");
+    // error or connection closed
+    // - close if not already closed
+    aApiConnection->closeConnection();
+    if (aApiConnection==activeSessionConnection) {
+      // this is the active session connection
+      resetAnnouncing(); // stop possibly ongoing announcing
+      activeSessionConnection.reset();
+      LOG(LOG_INFO,"vDC API session ends because connection closed \n");
+    }
+    else {
+      LOG(LOG_INFO,"vDC API connection (not yet in session) closed \n");
+    }
   }
 }
 
 
-
-void DeviceContainer::vdcJsonApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
-  string method = aMethod;
   signalActivity();
-  LOG(LOG_INFO,"vdSM -> vDC request received: id='%s', method='%s', params=%s\n", aJsonRpcId, aMethod, aParams ? aParams->c_strValue() : "<none>");
+  LOG(LOG_INFO,"vdSM -> vDC request received: id='%s', method='%s', params=%s\n", aRequest->requestId().c_str(), aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
-  // create params API value
-  ApiValuePtr params = JsonApiValue::newValueFromJson(aParams);
   // now process
-  if (aJsonRpcId) {
+  if (aRequest) {
     // Check session init/end methods
-    if (method=="hello") {
-      respErr = helloHandler(aJsonRpcComm, aJsonRpcId, params);
+    if (aMethod=="hello") {
+      respErr = helloHandler(aRequest, aParams);
     }
-    else if (method=="bye") {
-      respErr = byeHandler(aJsonRpcComm, aJsonRpcId, params);
+    else if (aMethod=="bye") {
+      respErr = byeHandler(aRequest, aParams);
     }
     else {
-      if (!sessionActive) {
+      if (!activeSessionConnection) {
         // all following methods must have an active session
-        respErr = ErrorPtr(new JsonRpcError(401,"no vDC session - cannot call method"));
+        respErr = ErrorPtr(new VdcApiError(401,"no vDC session - cannot call method"));
       }
       else {
         // session active - all commands need dSUID parameter
         string dsuidstring;
-        if (Error::isOK(respErr = checkStringParam(params, "dSUID", dsuidstring))) {
+        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
           // operation method
-          respErr = handleMethodForDsUid(aMethod, aJsonRpcId, DsUid(dsuidstring), params);
+          respErr = handleMethodForDsUid(aMethod, aRequest, DsUid(dsuidstring), aParams);
         }
       }
     }
   }
   else {
     // Notifications
-    if (sessionActive) {
+    if (activeSessionConnection) {
       // out of session, notifications are simply ignored
       string dsuidstring;
-      if (Error::isOK(respErr = checkStringParam(params, "dSUID", dsuidstring))) {
-        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), params);
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
+        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), aParams);
       }
     }
   }
   // report back error if any
   if (!Error::isOK(respErr)) {
-    aJsonRpcComm->sendError(aJsonRpcId, respErr);
+    aApiConnection->sendError(aRequest, respErr);
   }
 }
 
 
 
-void DeviceContainer::vdcJsonApiEndConnection(JsonRpcComm *aJsonRpcComm)
+ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
-  // remove from my list of connection
-  for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
-    if (pos->get()==aJsonRpcComm) {
-      if (*pos==sessionComm) {
-        // this is the current vDC session, end it
-        MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
-        endContainerSession();
-        sessionComm.reset();
+  ErrorPtr respErr;
+  string s;
+  // check API version
+  if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
+    if (s!="1.0")
+      respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.0'"));
+    else {
+      // API version ok, check dSUID
+      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
+        DsUid vdsmDsUid = DsUid(s);
+        // same vdSM can restart session any time. Others will be rejected
+        if (!activeSessionConnection || vdsmDsUid==connectedVdsm) {
+          // ok to start new session
+          if (activeSessionConnection) {
+            // session connection was already there, re-announce
+            resetAnnouncing();
+          }
+          // - start session with this vdSM
+          connectedVdsm = vdsmDsUid;
+          // - remember the session's connection
+          activeSessionConnection = aRequest->connection();
+          // - create answer
+          ApiValuePtr result = activeSessionConnection->newApiValue();
+          result->setType(apivalue_object);
+          result->add("dSUID", aParams->newString(dSUID.getString()));
+          result->add("allowDisconnect", aParams->newBool(false));
+          sendResult(aRequest, result);
+          // - trigger announcing devices
+          startAnnouncing();
+        }
+        else {
+          // not ok to start new session, reject
+          respErr = ErrorPtr(new VdcApiError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
+          aRequest->connection()->sendError(aRequest, respErr);
+          // close after send
+          aRequest->connection()->closeAfterSend();
+          // prevent sending error again
+          respErr.reset();
+        }
       }
-      // remove from my connections
-      apiConnections.erase(pos);
-      break;
     }
   }
+  return respErr;
+}
+
+
+ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (jsonSessionComm might not be ready)
+  aRequest->connection()->sendResult(aRequest, ApiValuePtr());
+  // close after send
+  aRequest->connection()->closeAfterSend();
+  // success
+  return ErrorPtr();
 }
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, ApiValuePtr aParams)
+ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
 {
   if (aDsUid==dSUID) {
     // container level method
-    return handleMethod(aMethod, aJsonRpcId, aParams);
+    return handleMethod(aRequest, aMethod, aParams);
   }
   else {
     // Must be device or deviceClassContainer level method
@@ -732,11 +756,11 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
       DevicePtr dev = pos->second;
       // check special case of Remove command - we must execute this because device should not try to remove itself
       if (aMethod=="remove") {
-        return removeHandler(dev, aJsonRpcId);
+        return removeHandler(aRequest, dev);
       }
       else {
         // let device handle it
-        return dev->handleMethod(aMethod, aJsonRpcId, aParams);
+        return dev->handleMethod(aRequest, aMethod, aParams);
       }
     }
     else {
@@ -744,11 +768,11 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, const stri
       ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
       if (pos!=deviceClassContainers.end()) {
         // found
-        return pos->second->handleMethod(aMethod, aJsonRpcId, aParams);
+        return pos->second->handleMethod(aRequest, aMethod, aParams);
       }
       else {
         LOG(LOG_WARNING, "Target entity %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
-        return ErrorPtr(new JsonRpcError(404, "unknown dSUID"));
+        return ErrorPtr(new VdcApiError(404, "unknown dSUID"));
       }
     }
   }
@@ -785,85 +809,25 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
 }
 
 
-#pragma mark - vDC level session management methods and notifications
+
+#pragma mark - vDC level methods and notifications
 
 
-
-ErrorPtr DeviceContainer::helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams)
-{
-  ErrorPtr respErr;
-  string s;
-  // check API version
-  if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
-    if (s!="1.0")
-      respErr = ErrorPtr(new JsonRpcError(505, "Incompatible vDC API version - expected '1.0'"));
-    else {
-      // API version ok, check dSUID
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
-        DsUid vdsmDsUid = DsUid(s);
-        // same vdSM can restart session any time. Others will be rejected
-        if (!sessionActive || vdsmDsUid==connectedVdsm) {
-          // ok to start new session
-          // - start session with this vdSM
-          connectedVdsm = vdsmDsUid;
-          // - remember the session's connection
-          for (ApiConnectionList::iterator pos = apiConnections.begin(); pos!=apiConnections.end(); ++pos) {
-            if (pos->get()==aJsonRpcComm) {
-              // remember the current session's communication object
-              sessionComm = *pos;
-              break;
-            }
-          }
-          // - create answer
-          ApiValuePtr result = aParams->newObject();
-          result->add("dSUID", aParams->newString(dSUID.getString()));
-          result->add("allowDisconnect", aParams->newBool(false));
-          sendResult(aJsonRpcId, result);
-          // - start session, enable sending announces now
-          startContainerSession();
-        }
-        else {
-          // not ok to start new session, reject
-          respErr = ErrorPtr(new JsonRpcError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
-          aJsonRpcComm->sendError(aJsonRpcId.c_str(), respErr);
-          // close after send
-          aJsonRpcComm->closeAfterSend();
-          // prevent sending error again
-          respErr.reset();
-        }
-      }
-    }
-  }
-  return respErr;
-}
-
-
-ErrorPtr DeviceContainer::byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams)
-{
-  // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (sessionComm might not be ready)
-  aJsonRpcComm->sendResult(aJsonRpcId.c_str(), JsonObjectPtr());
-  // close after send
-  aJsonRpcComm->closeAfterSend();
-  // success
-  return ErrorPtr();
-}
-
-
-ErrorPtr DeviceContainer::removeHandler(DevicePtr aDevice, const string &aJsonRpcId)
+ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice)
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
   // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete
-  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aJsonRpcId, _1, _2));
+  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1, _2));
   return ErrorPtr();
 }
 
 
-void DeviceContainer::removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected)
+void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice, bool aDisconnected)
 {
   if (aDisconnected)
-    aDevice->sendResult(aJsonRpcId, ApiValuePtr()); // disconnected successfully
+    aDevice->sendResult(aRequest, ApiValuePtr()); // disconnected successfully
   else
-    aDevice->sendError(aJsonRpcId, ErrorPtr(new JsonRpcError(403, "Device cannot be removed, is still connected")));
+    aDevice->sendError(aRequest, ErrorPtr(new VdcApiError(403, "Device cannot be removed, is still connected")));
 }
 
 
@@ -874,19 +838,9 @@ void DeviceContainer::removeResultHandler(const string &aJsonRpcId, DevicePtr aD
 #pragma mark - session management
 
 
-/// start vDC session (say Hello to the vdSM)
-void DeviceContainer::startContainerSession()
-{
-  // end previous container session first (set all devices unannounced)
-  endContainerSession();
-  sessionActive = true;
-  // announce devices
-  announceDevices();
-}
 
-
-/// end vDC session
-void DeviceContainer::endContainerSession()
+/// reset announcing devices (next startAnnouncing will restart from beginning)
+void DeviceContainer::resetAnnouncing()
 {
   // end pending announcement
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
@@ -896,8 +850,6 @@ void DeviceContainer::endContainerSession()
     dev->announced = Never;
     dev->announcing = Never;
   }
-  // not active any more
-  sessionActive = false;
 }
 
 
@@ -910,10 +862,10 @@ void DeviceContainer::endContainerSession()
 // how long vDC waits after receiving ok from one announce until it fires the next
 #define ANNOUNCE_PAUSE (1*Second)
 
-/// announce all not-yet announced devices to the vdSM
-void DeviceContainer::announceDevices()
+/// start announcing all not-yet announced entities to the vdSM
+void DeviceContainer::startAnnouncing()
 {
-  if (!collecting && announcementTicket==0 && sessionActive) {
+  if (!collecting && announcementTicket==0 && activeSessionConnection) {
     announceNext();
   }
 }
@@ -935,7 +887,7 @@ void DeviceContainer::announceNext()
       // mark device as being in process of getting announced
       dev->announcing = MainLoop::now();
       // call announce method
-      if (!dev->sendRequest("announce", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _1, _2, _3, _4))) {
+      if (!dev->sendRequest("announce", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
@@ -951,11 +903,11 @@ void DeviceContainer::announceNext()
 }
 
 
-void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
+void DeviceContainer::announceResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData)
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
-    LOG(LOG_INFO,"vdSM -> vDC result received: id='%d', result/error=%s\n", sessionComm->lastRequestId(), aResultOrErrorData ? aResultOrErrorData->c_strValue() : "<none>");
+    LOG(LOG_INFO,"vdSM -> vDC result received: id='%d', result/error=%s\n", aRequest->requestId().c_str(), aResultOrErrorData ? aResultOrErrorData->c_strValue() : "<none>");
     LOG(LOG_NOTICE, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
     aDevice->announced = MainLoop::now();
     aDevice->announcing = Never; // not announcing any more
@@ -969,9 +921,9 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJso
 
 #pragma mark - DsAddressable API implementation
 
-ErrorPtr DeviceContainer::handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams)
+ErrorPtr DeviceContainer::handleMethod(VdcApiRequestPtr aRequest,  const string &aMethod, ApiValuePtr aParams)
 {
-  return inherited::handleMethod(aMethod, aJsonRpcId, aParams);
+  return inherited::handleMethod(aRequest, aMethod, aParams);
 }
 
 

@@ -10,8 +10,8 @@
 using namespace p44;
 
 
-UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber) :
-  DeviceClassContainer(aInstanceNumber),
+UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
   m_dmr_search(SyncIOMainLoop::currentMainLoop())
 {
 }

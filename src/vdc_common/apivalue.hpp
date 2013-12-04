@@ -1,5 +1,5 @@
 //
-//  apivalue.h
+//  apivalue.hpp
 //  vdcd
 //
 //  Created by Lukas Zeller on 27.11.13.
@@ -186,6 +186,9 @@ namespace p44 {
     bool isNull();
     void setNull();
     string lowercaseStringValue();
+
+    /// human readable content of the value
+    string description();
 
   };
 

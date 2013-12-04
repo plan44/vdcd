@@ -16,6 +16,9 @@
 #include "persistentparams.hpp"
 #include "dsaddressable.hpp"
 
+#include "vdcapi.hpp"
+
+
 using namespace std;
 
 namespace p44 {
@@ -60,7 +63,6 @@ namespace p44 {
   typedef map<DsUid, DeviceClassContainerPtr> ContainerMap;
   typedef map<DsUid, DevicePtr> DsDeviceMap;
 
-  typedef list<JsonRpcCommPtr> ApiConnectionList;
 
   class DeviceContainer : public DsAddressable
   {
@@ -87,19 +89,17 @@ namespace p44 {
     long localDimTicket;
     bool localDimDown;
 
-    // vDC session
-    bool sessionActive;
-    DsUid connectedVdsm;
-    long sessionActivityTicket;
-    ApiConnectionList apiConnections;
-    JsonRpcCommPtr sessionComm;
-
     // learning
     bool learningMode;
     LearnCB learnHandler;
 
     // activity monitor
     DoneCB activityHandler;
+
+    // active vDC API session
+    DsUid connectedVdsm;
+    long sessionActivityTicket;
+    VdcApiConnectionPtr activeSessionConnection;
 
   public:
 
@@ -109,7 +109,11 @@ namespace p44 {
     ContainerMap deviceClassContainers;
 
     /// API for vdSM
-    SocketComm vdcApiServer;
+    VdcApiServerPtr vdcApiServer;
+
+    /// active session
+    VdcApiConnectionPtr getSessionConnection() { return activeSessionConnection; };
+
 
     /// Set how dSUIDs are generated
     /// @param aDsUid true to enable modern dSUIDs (GS1/UUID based)
@@ -179,7 +183,7 @@ namespace p44 {
     /// @name DsAddressable API implementation
     /// @{
 
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
     virtual void handleNotification(const string &aMethod, ApiValuePtr aParams);
 
     /// @}
@@ -248,26 +252,25 @@ namespace p44 {
     /// @name methods for friend classes to send API messages
     /// @{
 
-    /// send a raw JSON-RPC method or notification to vdSM
+    /// send a API method or notification call to the vdSM
     /// @param aMethod the method or notification
     /// @param aParams the parameters object, or NULL if none
     /// @param aResponseHandler handler for response. If not set, request is sent as notification
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiRequest(const char *aMethod, ApiValuePtr aParams, JsonRpcResponseCB aResponseHandler = JsonRpcResponseCB());
+    bool sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
-    /// send a raw JSON-RPC result from a method call back to the to vdSM
-    /// @param aJsonRpcId the id parameter from the method call
-    /// @param aParams the parameters object, or NULL if none
-    /// @param aResponseHandler handler for response. If not set, request is sent as notification
+    /// send a result from a method call back to the to vdSM
+    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
+    /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiResult(const string &aJsonRpcId, ApiValuePtr aResult);
+    bool sendApiResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult);
 
     /// send error from a method call back to the vdSM
-    /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
+    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
     /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
-    ///   of the JSON-RPC 2.0 error object.
+    ///   of the vDC API error object.
     /// @result empty or Error object in case of error sending error response
-    bool sendApiError(const string &aJsonRpcId, ErrorPtr aErrorToSend);
+    bool sendApiError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend);
 
     /// @}
 
@@ -287,31 +290,30 @@ namespace p44 {
     void handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType);
     void localDimHandler();
 
-    // vDC JSON API handling
-    SocketCommPtr vdcJsonApiConnectionHandler(SocketComm *aServerSocketCommP);
-    void vdcJsonApiConnectionStatusHandler(SocketComm *aJsonRpcComm, ErrorPtr aError);
-    void vdcJsonApiEndConnection(JsonRpcComm *aJsonRpcComm);
-    void vdcJsonApiRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    // API connection status handling
+    void vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConnection, ErrorPtr &aError);
+
+    // API request handling
+    void vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
     // generic session handling
     void sessionTimeoutHandler();
-    void startContainerSession();
-    void endContainerSession();
 
     // method and notification dispatching
-    ErrorPtr handleMethodForDsUid(const string &aMethod, const string &aJsonRpcId, const DsUid &aDsUid, ApiValuePtr aParams);
+    ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
     void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
 
     // vDC level method and notification handlers
-    ErrorPtr helloHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams);
-    ErrorPtr byeHandler(JsonRpcComm *aJsonRpcComm, const string &aJsonRpcId, ApiValuePtr aParams);
-    ErrorPtr removeHandler(DevicePtr aDevice, const string &aJsonRpcId);
-    void removeResultHandler(const string &aJsonRpcId, DevicePtr aDevice, bool aDisconnected);
+    ErrorPtr helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
+    ErrorPtr byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
+    ErrorPtr removeHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice);
+    void removeResultHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice, bool aDisconnected);
 
-    // announcing devices
-    void announceDevices();
+    // announcing dSUID addressable entities within the device container (vdc host)
+    void resetAnnouncing();
+    void startAnnouncing();
     void announceNext();
-    void announceResultHandler(DevicePtr aDevice, JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
+    void announceResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData);
 
     // activity monitor
     void signalActivity();

@@ -150,11 +150,11 @@ namespace p44 {
 
     /// called to let device handle device-level methods
     /// @param aMethod the method
-    /// @param aJsonRpcId the id parameter to be used in sendResult()
+    /// @param aRequest the request to be passed to answering methods
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this device.
-    virtual ErrorPtr handleMethod(const string &aMethod, const string &aJsonRpcId, ApiValuePtr aParams);
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
     /// called to let device handle device-level notification
     /// @param aMethod the notification

@@ -15,16 +15,16 @@
 #include "enoceandevicecontainer.hpp"
 #include "staticdevicecontainer.hpp"
 
-#include "jsonrpccomm.hpp"
-
 #include "digitalio.hpp"
 
 
 #define DEFAULT_USE_MODERN_DSUIDS 0 // 0: no, 1: yes
+#define DEFAULT_USE_PROTOBUF_API 0 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
-#define DEFAULT_VDSMSERVICE "8440"
+#define DEFAULT_JSON_VDSMSERVICE "8440"
+#define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
 
 #define DEFAULT_LOGLEVEL LOG_NOTICE
@@ -225,13 +225,14 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "modernids",     true,  "enabled;1=use modern (GS1/UUID based) 34 hex dsUIDs, 0=classic 24 hex dsids" },
+      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
-      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default=" DEFAULT_VDSMSERVICE ")" },
+      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
@@ -315,6 +316,24 @@ public:
       }
       deviceContainer.setIdMode(modernids!=0, externalDsUid);
 
+      // - set API
+      int protobufapi = DEFAULT_USE_PROTOBUF_API;
+      getIntOption("protobufapi", protobufapi);
+      const char *vdsmport;
+/*      if (protobufapi) {
+        deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+        vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
+      }
+      else */ {
+        deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+        vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
+      }
+      // set up server for vdSM to connect to
+      getStringOption("vdsmport", vdsmport);
+      deviceContainer.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+      deviceContainer.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+
+
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");
       if (configApiPort) {
@@ -322,12 +341,6 @@ public:
         configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
         configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
       }
-
-      // set up server for vdSM to connect to
-      const char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
-      getStringOption("vdsmport", vdsmport);
-      deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-      deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
       // Create static container structure
       // - Add DALI devices class if DALI bridge serialport/host is specified

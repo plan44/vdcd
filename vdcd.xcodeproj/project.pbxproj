@@ -16,9 +16,17 @@
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */; };
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
+		ED0DE30B184E3957001ADB5E /* libprotobuf-c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED0DE30A184E3957001ADB5E /* libprotobuf-c.a */; };
+		ED0DE30C184E3957001ADB5E /* libprotobuf-c.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ED0DE30A184E3957001ADB5E /* libprotobuf-c.a */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
+		ED1F82F6184E40FD00339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
+		ED1F82F7184E410000339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
+		ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE309184E385A001ADB5E /* vdcapi.proto */; };
+		ED1F82F9184E411800339A22 /* vdcapi.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE309184E385A001ADB5E /* vdcapi.proto */; };
+		ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
+		ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
 		ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
@@ -158,6 +166,33 @@
 		EDF62B4B183A29550016BFDA /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXBuildRule section */
+		ED0DE30E184E39B6001ADB5E /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "*.proto";
+			fileType = pattern.proxy;
+			isEditable = 1;
+			outputFiles = (
+				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.h",
+				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.c",
+			);
+			script = "/usr/local/bin/protoc-c -I=${INPUT_FILE_DIR} --c_out=${INPUT_FILE_DIR}/gen ${INPUT_FILE_PATH}";
+		};
+		ED1F8303184F962600339A22 /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "*.proto";
+			fileType = pattern.proxy;
+			isEditable = 1;
+			outputFiles = (
+				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.h",
+				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.c",
+			);
+			script = "/usr/local/bin/protoc-c -I=${INPUT_FILE_DIR} --c_out=${INPUT_FILE_DIR}/gen ${INPUT_FILE_PATH}";
+		};
+/* End PBXBuildRule section */
+
 /* Begin PBXContainerItemProxy section */
 		ED07E25817D786A000889CC3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -225,12 +260,18 @@
 		ED07E26117DA37BF00889CC3 /* jsonwebclient.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonwebclient.hpp; sourceTree = "<group>"; };
 		ED07E26417DB204200889CC3 /* huecomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = huecomm.cpp; sourceTree = "<group>"; };
 		ED07E26517DB204200889CC3 /* huecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = huecomm.hpp; sourceTree = "<group>"; };
+		ED0DE308184E385A001ADB5E /* messages.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = messages.proto; sourceTree = "<group>"; };
+		ED0DE309184E385A001ADB5E /* vdcapi.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vdcapi.proto; sourceTree = "<group>"; };
+		ED0DE30A184E3957001ADB5E /* libprotobuf-c.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libprotobuf-c.a"; path = "/usr/local/Cellar/protobuf-c/0.15/lib/libprotobuf-c.a"; sourceTree = "<absolute>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
+		ED1F82FF184F2D2100339A22 /* vdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vdcapi.cpp; sourceTree = "<group>"; };
+		ED1F8300184F2D2100339A22 /* vdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = vdcapi.hpp; sourceTree = "<group>"; };
 		ED312690183186C200FAF28B /* demodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevice.cpp; path = demo/demodevice.cpp; sourceTree = "<group>"; };
 		ED312691183186C200FAF28B /* demodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = demodevice.hpp; path = demo/demodevice.hpp; sourceTree = "<group>"; };
 		ED312692183186C200FAF28B /* demodevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevicecontainer.cpp; path = demo/demodevicecontainer.cpp; sourceTree = "<group>"; };
@@ -306,7 +347,7 @@
 		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = apivalue.cpp; sourceTree = "<group>"; };
-		EDADCADA1846373300297214 /* apivalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = apivalue.h; sourceTree = "<group>"; };
+		EDADCADA1846373300297214 /* apivalue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = apivalue.hpp; sourceTree = "<group>"; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ssdpsearch.cpp; sourceTree = "<group>"; };
 		EDB1893017D4B7330088B6A5 /* ssdpsearch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ssdpsearch.hpp; sourceTree = "<group>"; };
 		EDB284421732965700EAE5DE /* operationqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = operationqueue.cpp; sourceTree = "<group>"; };
@@ -361,6 +402,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED0DE30C184E3957001ADB5E /* libprotobuf-c.a in Frameworks */,
 				ED3126D918318CC100FAF28B /* libcrypto.dylib in Frameworks */,
 				ED3126DA18318CC100FAF28B /* libmongoose.dylib in Frameworks */,
 				ED3126DB18318CC100FAF28B /* libsqlite3.dylib in Frameworks */,
@@ -380,6 +422,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED0DE30B184E3957001ADB5E /* libprotobuf-c.a in Frameworks */,
 				EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */,
 				ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */,
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
@@ -406,6 +449,16 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		ED0DE305184E3821001ADB5E /* pbuf */ = {
+			isa = PBXGroup;
+			children = (
+				ED1F82FA184E43B600339A22 /* gen */,
+				ED0DE308184E385A001ADB5E /* messages.proto */,
+				ED0DE309184E385A001ADB5E /* vdcapi.proto */,
+			);
+			path = pbuf;
+			sourceTree = "<group>";
+		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
 			isa = PBXGroup;
 			children = (
@@ -419,7 +472,9 @@
 				EDCFE85C171FFAF5001D35F3 /* dsuid.hpp */,
 				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				EDADCAD91846373300297214 /* apivalue.cpp */,
-				EDADCADA1846373300297214 /* apivalue.h */,
+				EDADCADA1846373300297214 /* apivalue.hpp */,
+				ED1F82FF184F2D2100339A22 /* vdcapi.cpp */,
+				ED1F8300184F2D2100339A22 /* vdcapi.hpp */,
 				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
 				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
 				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
@@ -608,6 +663,7 @@
 		ED5AF9161741830200689E4B /* libs */ = {
 			isa = PBXGroup;
 			children = (
+				ED0DE30A184E3957001ADB5E /* libprotobuf-c.a */,
 				ED55760E174CFAEC00CCC4DD /* libjson.a */,
 				EDBC78541818227000A3E46C /* libcrypto.dylib */,
 				EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */,
@@ -654,6 +710,7 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ED0DE305184E3821001ADB5E /* pbuf */,
 				ED312687183121FF00FAF28B /* thirdparty */,
 				ED3699B5178DA83800376405 /* p44utils */,
 				ED31268518311BD300FAF28B /* vdc_common */,
@@ -707,6 +764,7 @@
 				ED3126DD18318CC100FAF28B /* CopyFiles */,
 			);
 			buildRules = (
+				ED1F8303184F962600339A22 /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -741,6 +799,7 @@
 				ED6D7BD91716B63A005DED18 /* CopyFiles */,
 			);
 			buildRules = (
+				ED0DE30E184E39B6001ADB5E /* PBXBuildRule */,
 			);
 			dependencies = (
 			);
@@ -836,6 +895,7 @@
 				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
 				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
+				ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
 				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
 				EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */,
@@ -849,10 +909,12 @@
 				EDF62B4B183A29550016BFDA /* ssdpsearch.cpp in Sources */,
 				ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */,
 				ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */,
+				ED1F82F7184E410000339A22 /* messages.proto in Sources */,
 				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,
 				ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */,
 				ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */,
 				ED3126D318318CC100FAF28B /* binaryinputbehaviour.cpp in Sources */,
+				ED1F82F9184E411800339A22 /* vdcapi.proto in Sources */,
 				ED3126D618318CC100FAF28B /* dsbehaviour.cpp in Sources */,
 				ED3126D718318CC100FAF28B /* jsonobject.cpp in Sources */,
 				EDADCADC1846373300297214 /* apivalue.cpp in Sources */,
@@ -927,10 +989,13 @@
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,
+				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
+				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
 				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
+				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
@@ -990,8 +1055,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"/usr/local/Cellar/protobuf-c/0.15/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/protobuf-c/0.15/lib",
 				);
 				PRODUCT_NAME = demovdc;
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
 			};
 			name = Debug;
 		};
@@ -1002,8 +1073,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"/usr/local/Cellar/protobuf-c/0.15/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/protobuf-c/0.15/lib",
 				);
 				PRODUCT_NAME = demovdc;
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
 			};
 			name = Release;
 		};
@@ -1128,8 +1205,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"/usr/local/Cellar/protobuf-c/0.15/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/protobuf-c/0.15/lib",
 				);
 				PRODUCT_NAME = vdcd;
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
 			};
 			name = Debug;
 		};
@@ -1140,8 +1223,14 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"/usr/local/Cellar/protobuf-c/0.15/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/protobuf-c/0.15/lib",
 				);
 				PRODUCT_NAME = vdcd;
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
 			};
 			name = Release;
 		};

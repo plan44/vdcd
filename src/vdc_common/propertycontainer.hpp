@@ -12,7 +12,7 @@
 #warning "for now, we still include JsonRPC, but this needs to be decoupled once protobuf API is defined"
 #include "jsonrpccomm.hpp"
 
-#include "apivalue.h"
+#include "apivalue.hpp"
 
 using namespace std;
 

@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 plan44.ch. All rights reserved.
 //
 
-#include "apivalue.h"
+#include "apivalue.hpp"
 
 
 using namespace p44;
@@ -134,6 +134,49 @@ bool ApiValue::setStringValue(const string &aString)
   // cannot set as string
   return false;
 }
+
+
+string ApiValue::description()
+{
+  string s;
+  if (objectType==apivalue_object) {
+    string k;
+    ApiValuePtr v;
+    resetKeyIteration();
+    s = "{ ";
+    while (nextKeyValue(k,v)) {
+      if (s.size()>0) s += ", ";
+      // add key
+      s += k;
+      s += ":";
+      // add value
+      s += v->description();
+    }
+    s += " }";
+  }
+  else if(objectType==apivalue_array) {
+    ApiValuePtr v;
+    int i = 0;
+    s = "[ ";
+    while (i<arrayLength()) {
+      if (s.size()>0) s += ", ";
+      // add value
+      s += v->description();
+    }
+    s += " ]";
+  }
+  else if (objectType==apivalue_string) {
+    s = "\"";
+    s += shellQuote(stringValue());
+    s += "\"";
+  }
+  else {
+    // must be simple type
+    s = stringValue();
+  }
+  return s;
+}
+
 
 
 // factory methods
@@ -315,6 +358,8 @@ string ApiValue::lowercaseStringValue()
 
 #pragma mark - JsonApiValue
 
+#ifndef VDC_API_NO_JSON
+
 JsonApiValue::JsonApiValue()
 {
 }
@@ -388,6 +433,8 @@ ApiValuePtr JsonApiValue::newValueFromJson(JsonObjectPtr aJsonObject)
 {
   return ApiValuePtr(new JsonApiValue(aJsonObject));
 }
+
+#endif // VDC_API_NO_JSON
 
 
 

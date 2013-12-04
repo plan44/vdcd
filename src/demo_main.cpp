@@ -16,8 +16,10 @@
 #include "upnpdevicecontainer.hpp"
 
 #define DEFAULT_USE_MODERN_DSIDS 0 // 0: no, 1: yes
+#define DEFAULT_USE_PROTOBUF_API 0 // 0: no, 1: yes
 
-#define DEFAULT_VDSMSERVICE "8440"
+#define DEFAULT_JSON_VDSMSERVICE "8440"
+#define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
 
 #define DEFAULT_LOGLEVEL LOG_NOTICE
@@ -46,7 +48,8 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "modernids",     true,  "enabled;1=use modern (GS1/UUID based) 34 hex dsUIDs, 0=classic 24 hex dsids" },
-      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default=" DEFAULT_VDSMSERVICE ")" },
+      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
+      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
@@ -77,18 +80,29 @@ public:
     int modernids = DEFAULT_USE_MODERN_DSIDS;
     getIntOption("modernids", modernids);
     deviceContainer.setIdMode(modernids!=0);
-    // - set up server for vdSM to connect to
-    const char *vdsmport = (char *) DEFAULT_VDSMSERVICE;
+    // - set up vDC API
+    int protobufapi = DEFAULT_USE_PROTOBUF_API;
+    getIntOption("protobufapi", protobufapi);
+    const char *vdsmport;
+    /*      if (protobufapi) {
+     deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+     vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
+     }
+     else */ {
+       deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+       vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
+     }
+    // set up server for vdSM to connect to
     getStringOption("vdsmport", vdsmport);
-    deviceContainer.vdcApiServer.setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-    deviceContainer.vdcApiServer.setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+    deviceContainer.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+    deviceContainer.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
     // Now add device class(es)
     // - the demo device (dimmer value output to console as bar of hashes ######) class
-    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1));
+    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1, &deviceContainer));
     demoDeviceContainer->addClassToDeviceContainer();
     // - the UPnP skeleton device from the developer days 2013 hackaton
-    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1));
+    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1, &deviceContainer));
     upnpDeviceContainer->addClassToDeviceContainer();
     // now start running the mainloop
     return run();

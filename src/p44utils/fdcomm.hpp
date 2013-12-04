@@ -55,6 +55,9 @@ namespace p44 {
     FdComm(SyncIOMainLoop &aMainLoop);
     virtual ~FdComm();
 
+    /// place to attach a related object
+    P44ObjPtr relatedObject;
+
     /// Set file descriptor
     /// @param aFd the file descriptor to monitor, -1 to cancel monitoring
     void setFd(int aFd);
