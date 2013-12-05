@@ -13,6 +13,8 @@
 
 #include "lightbehaviour.hpp"
 
+#include "jsonobject.hpp"
+
 using namespace std;
 
 namespace p44 {

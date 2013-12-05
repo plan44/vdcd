@@ -10,6 +10,11 @@
 
 #include "devicecontainer.hpp"
 
+// APIs to be user
+#include "jsonvdcapi.hpp"
+//#include "pbufvdcapi.hpp"
+
+// device classes to be used
 #include "dalidevicecontainer.hpp"
 #include "huedevicecontainer.hpp"
 #include "enoceandevicecontainer.hpp"

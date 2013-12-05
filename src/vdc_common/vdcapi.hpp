@@ -15,10 +15,6 @@
 #include "socketcomm.hpp"
 
 
-#ifndef VDC_API_NO_JSON
-#include "jsonrpccomm.hpp"
-#endif
-
 using namespace std;
 
 namespace p44 {
@@ -90,9 +86,11 @@ namespace p44 {
     void closeConnection();
 
     /// get a new API value suitable for this connection
+    /// @return new API value of suitable internal implementation to be used on this API connection
     virtual ApiValuePtr newApiValue() = 0;
 
     /// The underlying socket connection
+    /// @return socket connection
     virtual SocketCommPtr socketConnection() = 0;
 
 
@@ -122,7 +120,7 @@ namespace p44 {
 
     VdcApiServer();
 
-    /// set connection monitor
+    /// set connection status handler
     /// @param aConnectionCB will be called when connections opens, ends or has error
     void setConnectionStatusHandler(VdcApiConnectionCB aConnectionCB);
 
@@ -134,6 +132,8 @@ namespace p44 {
 
   protected:
 
+    /// create API connection of correct type for this API server
+    /// @return API connection
     virtual VdcApiConnectionPtr newConnection() = 0;
 
   private:
@@ -180,83 +180,6 @@ namespace p44 {
     ErrorPtr sendError(ErrorPtr aErrorToSend);
 
   };
-
-
-  /// TODO: move to separate file
-
-
-  class VdcJsonApiConnection;
-  class VdcJsonApiServer;
-  class VdcJsonApiRequest;
-
-  typedef boost::intrusive_ptr<VdcJsonApiConnection> VdcJsonApiConnectionPtr;
-  typedef boost::intrusive_ptr<VdcJsonApiServer> VdcJsonApiServerPtr;
-  typedef boost::intrusive_ptr<VdcJsonApiRequest> VdcJsonApiRequestPtr;
-
-
-  /// a JSON API server
-  class VdcJsonApiServer : public VdcApiServer
-  {
-    typedef VdcApiServer inherited;
-
-  protected:
-
-    virtual VdcApiConnectionPtr newConnection();
-
-  };
-
-
-
-  class VdcJsonApiRequest : public VdcApiRequest
-  {
-    typedef VdcApiRequest inherited;
-
-    string jsonRpcId;
-    VdcJsonApiConnectionPtr jsonConnection;
-
-  public:
-
-    /// constructor
-    VdcJsonApiRequest(VdcJsonApiConnectionPtr aConnection, const char *aJsonRpcId);
-
-    virtual string requestId() { return jsonRpcId; }
-
-    virtual VdcApiConnectionPtr connection();
-
-    virtual ErrorPtr sendResult(ApiValuePtr aResult);
-    virtual ErrorPtr sendError(uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr());
-    
-  };
-
-
-
-  class VdcJsonApiConnection : public VdcApiConnection
-  {
-    typedef VdcApiConnection inherited;
-
-    friend class VdcJsonApiRequest;
-
-    JsonRpcCommPtr jsonRpcComm;
-
-  public:
-
-    VdcJsonApiConnection();
-
-    virtual SocketCommPtr socketConnection() { return jsonRpcComm; };
-
-    virtual void closeAfterSend();
-
-    virtual ApiValuePtr newApiValue();
-
-    virtual ErrorPtr sendRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
-
-  private:
-
-    void jsonRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
-    void jsonResponseHandler(VdcApiResponseCB aResponseHandler, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
-
-  };
-
 
 
 

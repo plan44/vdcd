@@ -24,7 +24,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
       // write: write all fields of input object into properties of this container
       // - input JSON object must be a object
       if (!aApiObject->isType(apivalue_object))
-        err = ErrorPtr(new JsonRpcError(415, "Value must be object"));
+        err = ErrorPtr(new VdcApiError(415, "Value must be object"));
       else {
         // iterate over fields in object and access them one by one
         aApiObject->resetKeyIteration();
@@ -76,7 +76,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
     // - now use descriptor
     if (!propDescP) {
       // named property not found
-      err = ErrorPtr(new JsonRpcError(501,"Unknown property name"));
+      err = ErrorPtr(new VdcApiError(501,"Unknown property name"));
     }
     else {
       // access the property
@@ -108,7 +108,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
       if (aElementCount!=0) {
         // Range of elements: only allowed for reading
         if (aForWrite)
-          err = ErrorPtr(new JsonRpcError(403,"Arrays can only be written one element at a time"));
+          err = ErrorPtr(new VdcApiError(403,"Arrays can only be written one element at a time"));
         else {
           // return array
           aApiObject->setType(apivalue_array);
@@ -123,7 +123,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
             ApiValuePtr elementObj = aApiObject->newValue(aPropertyDescriptor.propertyType);
             // - collect single element
             err = accessPropertyByDescriptor(false, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
-            if (Error::isError(err, JsonRpcError::domain(), 204)) {
+            if (Error::isError(err, VdcApiError::domain(), 204)) {
               // array exhausted
               err.reset(); // is not a real error
               break; // but stop collecting elements
@@ -141,7 +141,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
         // Single element of the array
         // - check index
         if (aIndex>=arrSz)
-          err = ErrorPtr(new JsonRpcError(204,"Invalid array index"));
+          err = ErrorPtr(new VdcApiError(204,"Invalid array index"));
         else
           err = accessElementByDescriptor(aForWrite, aApiObject, aPropertyDescriptor, aDomain, aIndex);
       }
@@ -165,7 +165,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
     PropertyContainerPtr container = getContainer(aPropertyDescriptor, containerDomain, aIndex);
     if (!container) {
       if (aPropertyDescriptor.isArray)
-        err = ErrorPtr(new JsonRpcError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a array object/proxy to return no container
+        err = ErrorPtr(new VdcApiError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a array object/proxy to return no container
       else
         aApiObject->setNull(); // NULL value
     }
@@ -182,7 +182,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
     // single value property
     aApiObject->setType(aPropertyDescriptor.propertyType);
     if (!accessField(aForWrite, aApiObject, aPropertyDescriptor, aIndex)) {
-      err = ErrorPtr(new JsonRpcError(403,"Access denied"));
+      err = ErrorPtr(new VdcApiError(403,"Access denied"));
     }
   }
   return err;

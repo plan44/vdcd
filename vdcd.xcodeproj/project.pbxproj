@@ -27,6 +27,8 @@
 		ED1F82F9184E411800339A22 /* vdcapi.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE309184E385A001ADB5E /* vdcapi.proto */; };
 		ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
 		ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
+		ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
+		ED1F830718508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
 		ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
@@ -272,6 +274,8 @@
 		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
 		ED1F82FF184F2D2100339A22 /* vdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vdcapi.cpp; sourceTree = "<group>"; };
 		ED1F8300184F2D2100339A22 /* vdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = vdcapi.hpp; sourceTree = "<group>"; };
+		ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsonvdcapi.cpp; sourceTree = "<group>"; };
+		ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonvdcapi.hpp; sourceTree = "<group>"; };
 		ED312690183186C200FAF28B /* demodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevice.cpp; path = demo/demodevice.cpp; sourceTree = "<group>"; };
 		ED312691183186C200FAF28B /* demodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = demodevice.hpp; path = demo/demodevice.hpp; sourceTree = "<group>"; };
 		ED312692183186C200FAF28B /* demodevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevicecontainer.cpp; path = demo/demodevicecontainer.cpp; sourceTree = "<group>"; };
@@ -475,6 +479,8 @@
 				EDADCADA1846373300297214 /* apivalue.hpp */,
 				ED1F82FF184F2D2100339A22 /* vdcapi.cpp */,
 				ED1F8300184F2D2100339A22 /* vdcapi.hpp */,
+				ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */,
+				ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */,
 				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
 				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
 				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
@@ -890,6 +896,7 @@
 				ED3126AA18318CC100FAF28B /* propertycontainer.cpp in Sources */,
 				ED3126AB18318CC100FAF28B /* error.cpp in Sources */,
 				ED3126AC18318CC100FAF28B /* device.cpp in Sources */,
+				ED1F830718508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
 				ED3126AE18318CC100FAF28B /* climatecontrolbehaviour.cpp in Sources */,
 				ED3126AF18318CC100FAF28B /* devicesettings.cpp in Sources */,
 				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
@@ -999,6 +1006,7 @@
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
+				ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
 				EDB4062017D4D99D003783CE /* huedevicecontainer.cpp in Sources */,
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,

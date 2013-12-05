@@ -11,10 +11,6 @@
 
 #include "p44_common.hpp"
 
-#ifndef VDC_API_NO_JSON
-#include "jsonobject.hpp"
-#endif
-
 using namespace std;
 
 namespace p44 {
@@ -192,67 +188,6 @@ namespace p44 {
 
   };
 
-
-
-  #ifndef VDC_API_NO_JSON
-
-
-  class JsonApiValue;
-
-  typedef boost::intrusive_ptr<JsonApiValue> JsonApiValuePtr;
-
-  class JsonApiValue : public ApiValue
-  {
-    typedef ApiValue inherited;
-
-    // using an embedded Json Object
-    JsonObjectPtr jsonObj;
-
-    JsonApiValue(JsonObjectPtr aWithObject);
-
-  public:
-
-    JsonApiValue();
-
-    virtual ApiValuePtr newValue(ApiValueType aObjectType);
-
-    static ApiValuePtr newValueFromJson(JsonObjectPtr aJsonObject);
-
-    virtual void clear();
-
-    virtual void add(const string &aKey, ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->add(aKey.c_str(), o->jsonObject()); };
-    virtual ApiValuePtr get(const string &aKey)  { JsonObjectPtr o; if (jsonObj && jsonObj->get(aKey.c_str(), o)) return newValueFromJson(o); else return ApiValuePtr(); };
-    virtual void del(const string &aKey) { if (jsonObj) jsonObj->del(aKey.c_str()); };
-    virtual int arrayLength() { return jsonObj ? jsonObj->arrayLength() : 0; };
-    virtual void arrayAppend(ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->arrayAppend(o->jsonObject()); };
-    virtual ApiValuePtr arrayGet(int aAtIndex) { if (jsonObj) { JsonObjectPtr o = jsonObj->arrayGet(aAtIndex); return newValueFromJson(o); } else return ApiValuePtr(); };
-    virtual void arrayPut(int aAtIndex, ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->arrayPut(aAtIndex, o->jsonObject()); };
-    virtual bool resetKeyIteration() { if (jsonObj) return jsonObj->resetKeyIteration(); else return false; };
-    virtual bool nextKeyValue(string &aKey, ApiValuePtr &aValue) { if (jsonObj) { JsonObjectPtr o; bool gotone = jsonObj->nextKeyValue(aKey, o); aValue = newValueFromJson(o); return gotone; } else return false; };
-
-    virtual uint64_t uint64Value() { return jsonObj ? (uint64_t)jsonObj->int64Value() : 0; };
-    virtual int64_t int64Value() { return jsonObj ? jsonObj->int64Value() : 0; };
-    virtual double doubleValue() { return jsonObj ? jsonObj->doubleValue() : 0; };
-    virtual bool boolValue() { return jsonObj ? jsonObj->boolValue() : false; };
-    virtual string stringValue() { if (getType()==apivalue_string) { return jsonObj ? jsonObj->stringValue() : ""; } else return inherited::stringValue(); };
-
-    virtual void setUint64Value(uint64_t aUint64) { jsonObj = JsonObject::newInt64(aUint64); }
-    virtual void setInt64Value(int64_t aInt64) { jsonObj = JsonObject::newInt64(aInt64); };
-    virtual void setDoubleValue(double aDouble) { jsonObj = JsonObject::newDouble(aDouble); };
-    virtual void setBoolValue(bool aBool) { jsonObj = JsonObject::newBool(aBool); };
-    virtual bool setStringValue(const string &aString);
-    virtual void setNull() { jsonObj.reset(); }
-
-    JsonObjectPtr jsonObject() { return jsonObj; };
-
-  protected:
-
-
-  };
-
-
-
-  #endif // not VDC_API_NO_JSON
 
 
   class StandaloneApiValue : public ApiValue

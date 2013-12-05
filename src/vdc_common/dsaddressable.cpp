@@ -55,7 +55,7 @@ ErrorPtr DsAddressable::checkParam(ApiValuePtr aParams, const char *aParamName, 
   else
     aParam.reset();
   if (!aParam)
-    err = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Invalid Parameters - missing '%s'",aParamName)));
+    err = ErrorPtr(new VdcApiError(400, string_format("Invalid Parameters - missing '%s'",aParamName)));
   return err;
 }
 
@@ -101,7 +101,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         }
       }
       // now read
-      ApiValuePtr result = ApiValuePtr(new JsonApiValue()); // prepare empty result pointer
+      ApiValuePtr result = aRequest->connection()->newApiValue();
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result
@@ -138,7 +138,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         }
         // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 is single element write)
         if (rangeSize==PROP_ARRAY_SIZE)
-          respErr = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, "array batch write needs offset AND count"));
+          respErr = ErrorPtr(new VdcApiError(400, "array batch write needs offset AND count"));
         else {
           do {
             respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
@@ -191,7 +191,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
     }
   }
   else {
-    respErr = ErrorPtr(new JsonRpcError(JSONRPC_METHOD_NOT_FOUND, "unknown method"));
+    respErr = ErrorPtr(new VdcApiError(405, "unknown method"));
   }
   return respErr;
 }
@@ -200,7 +200,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
 ErrorPtr DsAddressable::getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex)
 {
   // base class implements no user properties
-  return ErrorPtr(new JsonRpcError(JSONRPC_INVALID_PARAMS, string_format("Unknown user property index %d", aUserPropertyIndex)));
+  return ErrorPtr(new VdcApiError(400, string_format("Unknown user property index %d", aUserPropertyIndex)));
 }
 
 
@@ -213,7 +213,7 @@ bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
     ApiValuePtr value = api->newApiValue();
     ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
     if (Error::isOK(err)) {
-      ApiValuePtr pushParams = ApiValuePtr(new JsonApiValue);
+      ApiValuePtr pushParams = api->newApiValue();
       pushParams->setType(apivalue_object);
       pushParams->add("name", pushParams->newString(aName));
       if (aIndex>=0) {

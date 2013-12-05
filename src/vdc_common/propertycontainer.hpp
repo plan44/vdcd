@@ -9,10 +9,7 @@
 #ifndef __vdcd__propertycontainer__
 #define __vdcd__propertycontainer__
 
-#warning "for now, we still include JsonRPC, but this needs to be decoupled once protobuf API is defined"
-#include "jsonrpccomm.hpp"
-
-#include "apivalue.hpp"
+#include "vdcapi.hpp"
 
 using namespace std;
 
