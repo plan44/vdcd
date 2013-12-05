@@ -12,6 +12,11 @@
 #include "device.hpp"
 #include "devicecontainer.hpp"
 
+// APIs to be used
+#include "jsonvdcapi.hpp"
+//#include "pbufvdcapi.hpp"
+
+// device classes to be used
 #include "demodevicecontainer.hpp"
 #include "upnpdevicecontainer.hpp"
 

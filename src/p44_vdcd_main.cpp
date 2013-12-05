@@ -10,7 +10,7 @@
 
 #include "devicecontainer.hpp"
 
-// APIs to be user
+// APIs to be used
 #include "jsonvdcapi.hpp"
 //#include "pbufvdcapi.hpp"
 
