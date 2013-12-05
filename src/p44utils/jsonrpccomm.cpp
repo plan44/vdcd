@@ -65,7 +65,7 @@ ErrorPtr JsonRpcComm::sendRequest(const char *aMethod, JsonObjectPtr aParams, Js
     pendingAnswers[requestIdCounter] = aResponseHandler;
   }
   // now send
-  DBGLOG(LOG_INFO,"Sending JSON-RPC 2.0 request message:\n  %s\n", request->c_strValue());
+  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 request message:\n  %s\n", request->c_strValue());
   return sendMessage(request);
 }
 
@@ -78,7 +78,7 @@ ErrorPtr JsonRpcComm::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
   // add the ID so the caller can associate with a previous request
   response->add("id", JsonObject::newString(aJsonRpcId));
   // now send
-  DBGLOG(LOG_INFO,"Sending JSON-RPC 2.0 result message:\n  %s\n", response->c_strValue());
+  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 result message:\n  %s\n", response->c_strValue());
   return sendMessage(response);
 }
 
@@ -106,7 +106,7 @@ ErrorPtr JsonRpcComm::sendError(const char *aJsonRpcId, uint32_t aErrorCode, con
   // add the ID so the caller can associate with a previous request
   response->add("id", aJsonRpcId ? JsonObject::newString(aJsonRpcId) : JsonObjectPtr());
   // now send
-  DBGLOG(LOG_INFO,"Sending JSON-RPC 2.0 error message:\n  %s\n", response->c_strValue());
+  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 error message:\n  %s\n", response->c_strValue());
   return sendMessage(response);
 }
 
@@ -132,7 +132,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
   const char *idString = NULL;
   if (Error::isOK(aError)) {
     // received proper JSON, now check JSON-RPC specifics
-    DBGLOG(LOG_INFO,"Received JSON message:\n  %s\n", aJsonObject->c_strValue());
+    DBGLOG(LOG_DEBUG,"Received JSON message:\n  %s\n", aJsonObject->c_strValue());
     if (aJsonObject->isType(json_type_array)) {
       respErr = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_REQUEST, "Invalid Request - batch mode not supported by this implementation"));
     }
