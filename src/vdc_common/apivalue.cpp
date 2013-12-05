@@ -139,13 +139,15 @@ bool ApiValue::setStringValue(const string &aString)
 string ApiValue::description()
 {
   string s;
+  bool firstElem = true;
   if (objectType==apivalue_object) {
     string k;
     ApiValuePtr v;
     resetKeyIteration();
     s = "{ ";
     while (nextKeyValue(k,v)) {
-      if (s.size()>0) s += ", ";
+      if (!firstElem) s += ", ";
+      firstElem = false;
       // add key
       s += k;
       s += ":";
@@ -159,16 +161,17 @@ string ApiValue::description()
     int i = 0;
     s = "[ ";
     while (i<arrayLength()) {
-      if (s.size()>0) s += ", ";
+      if (!firstElem) s += ", ";
+      firstElem = false;
       // add value
+      v = arrayGet(i);
       s += v->description();
+      i++;
     }
     s += " ]";
   }
   else if (objectType==apivalue_string) {
-    s = "\"";
-    s += shellQuote(stringValue());
-    s += "\"";
+    s = shellQuote(stringValue());
   }
   else {
     // must be simple type

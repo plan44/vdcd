@@ -105,7 +105,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result
-        sendResult(aRequest, result);
+        aRequest->sendResult(result);
       }
     }
   }
@@ -147,7 +147,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         }
         if (Error::isOK(respErr)) {
           // send back OK if write was successful
-          sendResult(aRequest, ApiValuePtr());
+          aRequest->sendResult(ApiValuePtr());
         }
       }
     }
@@ -165,7 +165,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, 0); // always single element
         if (Error::isOK(respErr)) {
           // send back property result
-          sendResult(aRequest, result);
+          aRequest->sendResult(result);
         }
       }
     }
@@ -184,7 +184,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
           respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
           if (Error::isOK(respErr)) {
             // send back OK if write was successful
-            sendResult(aRequest, ApiValuePtr());
+            aRequest->sendResult(ApiValuePtr());
           }
         }
       }
@@ -207,19 +207,22 @@ ErrorPtr DsAddressable::getUserPropertyMapping(int aUserPropertyIndex, string &a
 
 bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
 {
-  // get the value
-  ApiValuePtr value;
-  ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
-  if (Error::isOK(err)) {
-    ApiValuePtr pushParams = ApiValuePtr(new JsonApiValue);
-    pushParams->setType(apivalue_object);
-    pushParams->add("name", pushParams->newString(aName));
-    if (aIndex>=0) {
-      // array property push
-      pushParams->add("index", pushParams->newInt64(aIndex));
+  VdcApiConnectionPtr api = getDeviceContainer().getSessionConnection();
+  if (api) {
+    // get the value
+    ApiValuePtr value = api->newApiValue();
+    ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
+    if (Error::isOK(err)) {
+      ApiValuePtr pushParams = ApiValuePtr(new JsonApiValue);
+      pushParams->setType(apivalue_object);
+      pushParams->add("name", pushParams->newString(aName));
+      if (aIndex>=0) {
+        // array property push
+        pushParams->add("index", pushParams->newInt64(aIndex));
+      }
+      pushParams->add("value", value);
+      return sendRequest("pushProperty", pushParams);
     }
-    pushParams->add("value", value);
-    return sendRequest("pushProperty", pushParams);
   }
   return false;
 }
@@ -254,19 +257,6 @@ bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApi
   }
   return false; // no connection
 }
-
-
-bool DsAddressable::sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult)
-{
-  return getDeviceContainer().sendApiResult(aForRequest, aResult);
-}
-
-
-bool DsAddressable::sendError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend)
-{
-  return getDeviceContainer().sendApiError(aForRequest, aErrorToSend);
-}
-
 
 
 

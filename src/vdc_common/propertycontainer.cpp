@@ -180,6 +180,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
   }
   else {
     // single value property
+    aApiObject->setType(aPropertyDescriptor.propertyType);
     if (!accessField(aForWrite, aApiObject, aPropertyDescriptor, aIndex)) {
       err = ErrorPtr(new JsonRpcError(403,"Access denied"));
     }

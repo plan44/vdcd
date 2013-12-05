@@ -249,7 +249,8 @@ namespace p44 {
     void addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr);
 
 
-    /// @name methods for friend classes to send API messages
+    /// @name method for friend classes to send API messages
+    /// @note sending results/errors is done via the VcdApiRequest object
     /// @{
 
     /// send a API method or notification call to the vdSM
@@ -259,18 +260,6 @@ namespace p44 {
     /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
     bool sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
-    /// send a result from a method call back to the to vdSM
-    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
-    /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendApiResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult);
-
-    /// send error from a method call back to the vdSM
-    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
-    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
-    ///   of the vDC API error object.
-    /// @result empty or Error object in case of error sending error response
-    bool sendApiError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend);
 
     /// @}
 

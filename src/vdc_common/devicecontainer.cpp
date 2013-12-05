@@ -566,35 +566,12 @@ bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams,
   // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (activeSessionConnection) {
     signalActivity();
-    return Error::isOK(activeSessionConnection->sendRequest(aMethod, aParams));
+    return Error::isOK(activeSessionConnection->sendRequest(aMethod, aParams, aResponseHandler));
   }
   // cannot send
   return false;
 }
 
-
-bool DeviceContainer::sendApiResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult)
-{
-  // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
-  if (activeSessionConnection) {
-    signalActivity();
-    return Error::isOK(activeSessionConnection->sendResult(aForRequest, aResult));
-  }
-  // cannot send
-  return false;
-}
-
-
-bool DeviceContainer::sendApiError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend)
-{
-  // TODO: once allowDisconnect is implemented, we might need to close the connection after sending the result
-  if (activeSessionConnection) {
-    signalActivity();
-    return Error::isOK(activeSessionConnection->sendError(aForRequest, aErrorToSend));
-  }
-  // cannot send
-  return false;
-}
 
 
 void DeviceContainer::sessionTimeoutHandler()
@@ -636,13 +613,13 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
 {
   ErrorPtr respErr;
   signalActivity();
-  LOG(LOG_INFO,"vdSM -> vDC request received: id='%s', method='%s', params=%s\n", aRequest->requestId().c_str(), aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
   // retrigger session timout
   MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
   sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
   // now process
   if (aRequest) {
-    // Check session init/end methods
+    // Methods
+    // - Check session init/end methods
     if (aMethod=="hello") {
       respErr = helloHandler(aRequest, aParams);
     }
@@ -676,7 +653,7 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
   }
   // report back error if any
   if (!Error::isOK(respErr)) {
-    aApiConnection->sendError(aRequest, respErr);
+    aRequest->sendError(respErr);
   }
 }
 
@@ -710,14 +687,14 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           result->setType(apivalue_object);
           result->add("dSUID", aParams->newString(dSUID.getString()));
           result->add("allowDisconnect", aParams->newBool(false));
-          sendResult(aRequest, result);
+          aRequest->sendResult(result);
           // - trigger announcing devices
           startAnnouncing();
         }
         else {
           // not ok to start new session, reject
           respErr = ErrorPtr(new VdcApiError(503, string_format("this vDC already has an active session with vdSM %s",connectedVdsm.getString().c_str())));
-          aRequest->connection()->sendError(aRequest, respErr);
+          aRequest->sendError(respErr);
           // close after send
           aRequest->connection()->closeAfterSend();
           // prevent sending error again
@@ -733,7 +710,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
 ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (jsonSessionComm might not be ready)
-  aRequest->connection()->sendResult(aRequest, ApiValuePtr());
+  aRequest->sendResult(ApiValuePtr());
   // close after send
   aRequest->connection()->closeAfterSend();
   // success
@@ -825,9 +802,9 @@ ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDe
 void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice, bool aDisconnected)
 {
   if (aDisconnected)
-    aDevice->sendResult(aRequest, ApiValuePtr()); // disconnected successfully
+    aRequest->sendResult(ApiValuePtr()); // disconnected successfully
   else
-    aDevice->sendError(aRequest, ErrorPtr(new VdcApiError(403, "Device cannot be removed, is still connected")));
+    aRequest->sendError(ErrorPtr(new VdcApiError(403, "Device cannot be removed, is still connected")));
 }
 
 
@@ -907,7 +884,6 @@ void DeviceContainer::announceResultHandler(DevicePtr aDevice, VdcApiRequestPtr 
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
-    LOG(LOG_INFO,"vdSM -> vDC result received: id='%d', result/error=%s\n", aRequest->requestId().c_str(), aResultOrErrorData ? aResultOrErrorData->c_strValue() : "<none>");
     LOG(LOG_NOTICE, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
     aDevice->announced = MainLoop::now();
     aDevice->announcing = Never; // not announcing any more

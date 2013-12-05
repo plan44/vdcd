@@ -105,27 +105,6 @@ namespace p44 {
     /// @return empty or Error object in case of error
     virtual ErrorPtr sendRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB()) = 0;
 
-    /// send a vDC API result (answer for successful method call)
-    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
-    /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
-    /// @result empty or Error object in case of error sending result response
-    virtual ErrorPtr sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult) = 0;
-
-    /// send a vDC API error (answer for unsuccesful method call)
-    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
-    /// @param aErrorCode the error code
-    /// @param aErrorMessage the error message or NULL to generate a standard text
-    /// @param aErrorData the optional "data" member for the vDC API error object
-    /// @result empty or Error object in case of error sending error response
-    virtual ErrorPtr sendError(VdcApiRequestPtr aForRequest, uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr()) = 0;
-
-    /// send p44utils::Error object as vDC API error
-    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
-    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
-    ///   of the vDC API error object.
-    /// @result empty or Error object in case of error sending error response
-    ErrorPtr sendError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend);
-
     /// request closing connection after last message has been sent
     virtual void closeAfterSend() = 0;
   };
@@ -181,6 +160,25 @@ namespace p44 {
     /// @return API connection
     virtual VdcApiConnectionPtr connection() = 0;
 
+    /// send a vDC API result (answer for successful method call)
+    /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
+    /// @result empty or Error object in case of error sending result response
+    virtual ErrorPtr sendResult(ApiValuePtr aResult) = 0;
+
+    /// send a vDC API error (answer for unsuccesful method call)
+    /// @param aErrorCode the error code
+    /// @param aErrorMessage the error message or NULL to generate a standard text
+    /// @param aErrorData the optional "data" member for the vDC API error object
+    /// @result empty or Error object in case of error sending error response
+    virtual ErrorPtr sendError(uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr()) = 0;
+
+    /// send p44utils::Error object as vDC API error
+    /// @param aForRequest this must be the VdcApiRequestPtr received in the VdcApiRequestCB handler.
+    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
+    ///   of the vDC API error object.
+    /// @result empty or Error object in case of error sending error response
+    ErrorPtr sendError(ErrorPtr aErrorToSend);
+
   };
 
 
@@ -208,9 +206,35 @@ namespace p44 {
   };
 
 
+
+  class VdcJsonApiRequest : public VdcApiRequest
+  {
+    typedef VdcApiRequest inherited;
+
+    string jsonRpcId;
+    VdcJsonApiConnectionPtr jsonConnection;
+
+  public:
+
+    /// constructor
+    VdcJsonApiRequest(VdcJsonApiConnectionPtr aConnection, const char *aJsonRpcId);
+
+    virtual string requestId() { return jsonRpcId; }
+
+    virtual VdcApiConnectionPtr connection();
+
+    virtual ErrorPtr sendResult(ApiValuePtr aResult);
+    virtual ErrorPtr sendError(uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr());
+    
+  };
+
+
+
   class VdcJsonApiConnection : public VdcApiConnection
   {
     typedef VdcApiConnection inherited;
+
+    friend class VdcJsonApiRequest;
 
     JsonRpcCommPtr jsonRpcComm;
 
@@ -225,43 +249,14 @@ namespace p44 {
     virtual ApiValuePtr newApiValue();
 
     virtual ErrorPtr sendRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
-    virtual ErrorPtr sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult);
-    virtual ErrorPtr sendError(VdcApiRequestPtr aForRequest, uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr());
 
   private:
 
     void jsonRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
     void jsonResponseHandler(VdcApiResponseCB aResponseHandler, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
-
   };
 
-
-
-
-  /// a single request which needs to be answered
-  class VdcJsonApiRequest : public VdcApiRequest
-  {
-    typedef VdcApiRequest inherited;
-
-    string jsonRpcId;
-    VdcJsonApiConnectionPtr jsonConnection;
-
-  public:
-
-    /// constructor
-    VdcJsonApiRequest(VdcJsonApiConnectionPtr aConnection, const char *aJsonRpcId);
-
-
-    /// return the request ID as a string
-    /// @return request ID as string
-    virtual string requestId() { return jsonRpcId; }
-
-    /// get the API connection this request originates from
-    /// @return API connection
-    virtual VdcApiConnectionPtr connection() { return jsonConnection; }
-    
-  };
 
 
 

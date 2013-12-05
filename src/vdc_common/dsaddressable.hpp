@@ -101,20 +101,6 @@ namespace p44 {
     /// @note the dSUID will be automatically added to aParams (generating a params object if none was passed)
     bool sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
-    /// send result from a method call back to the to vdSM
-    /// @param aJsonRpcId the id parameter from the method call
-    /// @param aParams the parameters object, or NULL if none
-    /// @param aResponseHandler handler for response. If not set, request is sent as notification
-    /// @return true if message could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendResult(VdcApiRequestPtr aForRequest, ApiValuePtr aResult);
-
-    /// send error from a method call back to the vdSM
-    /// @param aJsonRpcId this must be the aJsonRpcId as received in the JsonRpcRequestCB handler.
-    /// @param aErrorToSend From this error object, getErrorCode() and description() will be used as "code" and "message" members
-    ///   of the JSON-RPC 2.0 error object.
-    /// @return true if error could be sent, false otherwise (e.g. no vdSM connection)
-    bool sendError(VdcApiRequestPtr aForRequest, ErrorPtr aErrorToSend);
-
     /// push property value
     /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
     ///   "^" to return the default property value (internally used for apivalue_proxy).
