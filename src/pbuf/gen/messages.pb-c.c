@@ -181,30 +181,6 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "vdsm_send_ping",
-    104,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdsm_send_ping),
-    &vdcapi__vdsm__send_ping__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "vdc_send_pong",
-    105,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_MESSAGE,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_pong),
-    &vdcapi__vdc__send_pong__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "vdc_send_announce",
     106,
     PROTOBUF_C_LABEL_OPTIONAL,
@@ -235,7 +211,7 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_vanish),
-    &vdcapi__vdc__send_vanish__descriptor,
+    &vdcapi__vdc__notification_vanish__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -247,7 +223,7 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_push_property),
-    &vdcapi__vdc__send_push_property__descriptor,
+    &vdcapi__vdc__notification_push_property__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -349,13 +325,37 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "vdsm_send_ping_device",
+    "vdsm_send_ping",
     118,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdsm_send_ping_device),
-    &vdcapi__vdsm__notification_ping_device__descriptor,
+    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdsm_send_ping),
+    &vdcapi__vdsm__notification_ping__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "vdc_send_pong",
+    119,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_pong),
+    &vdcapi__vdc__notification_pong__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "vdsm_send_set_control_value",
+    120,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdsm_send_set_control_value),
+    &vdcapi__vdsm__notification_set_control_value__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -367,28 +367,29 @@ static const unsigned vdcapi__message__field_indices_by_name[] = {
   0,   /* field[0] = type */
   6,   /* field[6] = vdc_response_get_property */
   4,   /* field[4] = vdc_response_hello */
-  9,   /* field[9] = vdc_send_announce */
-  8,   /* field[8] = vdc_send_pong */
-  12,   /* field[12] = vdc_send_push_property */
-  11,   /* field[11] = vdc_send_vanish */
+  7,   /* field[7] = vdc_send_announce */
+  20,   /* field[20] = vdc_send_pong */
+  10,   /* field[10] = vdc_send_push_property */
+  9,   /* field[9] = vdc_send_vanish */
   5,   /* field[5] = vdsm_request_get_property */
   3,   /* field[3] = vdsm_request_hello */
-  14,   /* field[14] = vdsm_send_bye */
-  19,   /* field[19] = vdsm_send_call_min_scene */
-  15,   /* field[15] = vdsm_send_call_scene */
-  20,   /* field[20] = vdsm_send_identify */
-  7,   /* field[7] = vdsm_send_ping */
-  21,   /* field[21] = vdsm_send_ping_device */
-  13,   /* field[13] = vdsm_send_remove */
-  16,   /* field[16] = vdsm_send_save_scene */
-  18,   /* field[18] = vdsm_send_set_local_prio */
-  10,   /* field[10] = vdsm_send_set_property */
-  17,   /* field[17] = vdsm_send_undo_scene */
+  12,   /* field[12] = vdsm_send_bye */
+  17,   /* field[17] = vdsm_send_call_min_scene */
+  13,   /* field[13] = vdsm_send_call_scene */
+  18,   /* field[18] = vdsm_send_identify */
+  19,   /* field[19] = vdsm_send_ping */
+  11,   /* field[11] = vdsm_send_remove */
+  14,   /* field[14] = vdsm_send_save_scene */
+  21,   /* field[21] = vdsm_send_set_control_value */
+  16,   /* field[16] = vdsm_send_set_local_prio */
+  8,   /* field[8] = vdsm_send_set_property */
+  15,   /* field[15] = vdsm_send_undo_scene */
 };
-static const ProtobufCIntRange vdcapi__message__number_ranges[2 + 1] =
+static const ProtobufCIntRange vdcapi__message__number_ranges[3 + 1] =
 {
   { 1, 0 },
   { 100, 3 },
+  { 106, 7 },
   { 0, 22 }
 };
 const ProtobufCMessageDescriptor vdcapi__message__descriptor =
@@ -402,11 +403,12 @@ const ProtobufCMessageDescriptor vdcapi__message__descriptor =
   22,
   vdcapi__message__field_descriptors,
   vdcapi__message__field_indices_by_name,
-  2,  vdcapi__message__number_ranges,
+  3,  vdcapi__message__number_ranges,
   (ProtobufCMessageInit) vdcapi__message__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptors[2] =
+static const Vdcapi__ResultCode vdcapi__generic_response__result__default_value = VDCAPI__RESULT_CODE__RESULT_OK;
+static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptors[3] =
 {
   {
     "result",
@@ -416,7 +418,7 @@ static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptor
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__GenericResponse, result),
     &vdcapi__result_code__descriptor,
-    NULL,
+    &vdcapi__generic_response__result__default_value,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
@@ -432,15 +434,28 @@ static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptor
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "message_id",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_UINT32,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__GenericResponse, message_id),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__generic_response__field_indices_by_name[] = {
   1,   /* field[1] = description */
+  2,   /* field[2] = message_id */
   0,   /* field[0] = result */
 };
 static const ProtobufCIntRange vdcapi__generic_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor vdcapi__generic_response__descriptor =
 {
@@ -450,25 +465,25 @@ const ProtobufCMessageDescriptor vdcapi__generic_response__descriptor =
   "Vdcapi__GenericResponse",
   "vdcapi",
   sizeof(Vdcapi__GenericResponse),
-  2,
+  3,
   vdcapi__generic_response__field_descriptors,
   vdcapi__generic_response__field_indices_by_name,
   1,  vdcapi__generic_response__number_ranges,
   (ProtobufCMessageInit) vdcapi__generic_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue vdcapi__type__enum_values_by_number[20] =
+const ProtobufCEnumValue vdcapi__type__enum_values_by_number[21] =
 {
   { "GENERIC_RESPONSE", "VDCAPI__TYPE__GENERIC_RESPONSE", 1 },
   { "VDSM_REQUEST_HELLO", "VDCAPI__TYPE__VDSM_REQUEST_HELLO", 2 },
   { "VDC_RESPONSE_HELLO", "VDCAPI__TYPE__VDC_RESPONSE_HELLO", 3 },
   { "VDSM_REQUEST_GET_PROPERTY", "VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY", 4 },
   { "VDC_RESPONSE_GET_PROPERTY", "VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY", 5 },
-  { "VDSM_SEND_PING", "VDCAPI__TYPE__VDSM_SEND_PING", 6 },
-  { "VDC_SEND_PONG", "VDCAPI__TYPE__VDC_SEND_PONG", 7 },
+  { "VDSM_NOTIFICATION_PING", "VDCAPI__TYPE__VDSM_NOTIFICATION_PING", 6 },
+  { "VDC_NOTIFICATION_PONG", "VDCAPI__TYPE__VDC_NOTIFICATION_PONG", 7 },
   { "VDC_SEND_ANNOUNCE", "VDCAPI__TYPE__VDC_SEND_ANNOUNCE", 8 },
-  { "VDC_SEND_VANISH", "VDCAPI__TYPE__VDC_SEND_VANISH", 9 },
-  { "VDC_SEND_PUSH_PROPERTY", "VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY", 10 },
+  { "VDC_NOTIFICATION_VANISH", "VDCAPI__TYPE__VDC_NOTIFICATION_VANISH", 9 },
+  { "VDC_NOTIFICATION_PUSH_PROPERTY", "VDCAPI__TYPE__VDC_NOTIFICATION_PUSH_PROPERTY", 10 },
   { "VDSM_SEND_SET_PROPERTY", "VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY", 11 },
   { "VDSM_SEND_REMOVE", "VDCAPI__TYPE__VDSM_SEND_REMOVE", 12 },
   { "VDSM_SEND_BYE", "VDCAPI__TYPE__VDSM_SEND_BYE", 13 },
@@ -479,30 +494,32 @@ const ProtobufCEnumValue vdcapi__type__enum_values_by_number[20] =
   { "VDSM_NOTIFICATION_CALL_MIN_SCENE", "VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE", 18 },
   { "VDSM_NOTIFICATION_IDENTIFY", "VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY", 19 },
   { "VDSM_NOTIFICATION_PING_DEVICE", "VDCAPI__TYPE__VDSM_NOTIFICATION_PING_DEVICE", 20 },
+  { "VDSM_NOTIFICATION_SET_CONTROL_VALUE", "VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE", 21 },
 };
 static const ProtobufCIntRange vdcapi__type__value_ranges[] = {
-{1, 0},{0, 20}
+{1, 0},{0, 21}
 };
-const ProtobufCEnumValueIndex vdcapi__type__enum_values_by_name[20] =
+const ProtobufCEnumValueIndex vdcapi__type__enum_values_by_name[21] =
 {
   { "GENERIC_RESPONSE", 0 },
+  { "VDC_NOTIFICATION_PONG", 6 },
+  { "VDC_NOTIFICATION_PUSH_PROPERTY", 9 },
+  { "VDC_NOTIFICATION_VANISH", 8 },
   { "VDC_RESPONSE_GET_PROPERTY", 4 },
   { "VDC_RESPONSE_HELLO", 2 },
   { "VDC_SEND_ANNOUNCE", 7 },
-  { "VDC_SEND_PONG", 6 },
-  { "VDC_SEND_PUSH_PROPERTY", 9 },
-  { "VDC_SEND_VANISH", 8 },
   { "VDSM_NOTIFICATION_CALL_MIN_SCENE", 17 },
   { "VDSM_NOTIFICATION_CALL_SCENE", 13 },
   { "VDSM_NOTIFICATION_IDENTIFY", 18 },
+  { "VDSM_NOTIFICATION_PING", 5 },
   { "VDSM_NOTIFICATION_PING_DEVICE", 19 },
   { "VDSM_NOTIFICATION_SAVE_SCENE", 14 },
+  { "VDSM_NOTIFICATION_SET_CONTROL_VALUE", 20 },
   { "VDSM_NOTIFICATION_SET_LOCAL_PRIO", 16 },
   { "VDSM_NOTIFICATION_UNDO_SCENE", 15 },
   { "VDSM_REQUEST_GET_PROPERTY", 3 },
   { "VDSM_REQUEST_HELLO", 1 },
   { "VDSM_SEND_BYE", 12 },
-  { "VDSM_SEND_PING", 5 },
   { "VDSM_SEND_REMOVE", 11 },
   { "VDSM_SEND_SET_PROPERTY", 10 },
 };
@@ -513,15 +530,15 @@ const ProtobufCEnumDescriptor vdcapi__type__descriptor =
   "Type",
   "Vdcapi__Type",
   "vdcapi",
-  20,
+  21,
   vdcapi__type__enum_values_by_number,
-  20,
+  21,
   vdcapi__type__enum_values_by_name,
   1,
   vdcapi__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[11] =
+const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[14] =
 {
   { "RESULT_OK", "VDCAPI__RESULT_CODE__RESULT_OK", 1 },
   { "RESULT_MESSAGE_UNKNOWN", "VDCAPI__RESULT_CODE__RESULT_MESSAGE_UNKNOWN", 2 },
@@ -534,19 +551,25 @@ const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[11] =
   { "RESULT_INVALID_VALUE_TYPE", "VDCAPI__RESULT_CODE__RESULT_INVALID_VALUE_TYPE", 9 },
   { "RESULT_MISSING_SUBMESSAGE", "VDCAPI__RESULT_CODE__RESULT_MISSING_SUBMESSAGE", 10 },
   { "RESULT_MISSING_DATA", "VDCAPI__RESULT_CODE__RESULT_MISSING_DATA", 11 },
+  { "RESULT_NOT_FOUND", "VDCAPI__RESULT_CODE__RESULT_NOT_FOUND", 12 },
+  { "RESULT_NOT_AUTHORIZED", "VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED", 13 },
+  { "RESULT_GENERAL_ERROR", "VDCAPI__RESULT_CODE__RESULT_GENERAL_ERROR", 14 },
 };
 static const ProtobufCIntRange vdcapi__result_code__value_ranges[] = {
-{1, 0},{0, 11}
+{1, 0},{0, 14}
 };
-const ProtobufCEnumValueIndex vdcapi__result_code__enum_values_by_name[11] =
+const ProtobufCEnumValueIndex vdcapi__result_code__enum_values_by_name[14] =
 {
   { "RESULT_FORBIDDEN", 5 },
+  { "RESULT_GENERAL_ERROR", 13 },
   { "RESULT_INCOMPATIBLE_API", 2 },
   { "RESULT_INSUFFICIENT_STORAGE", 4 },
   { "RESULT_INVALID_VALUE_TYPE", 8 },
   { "RESULT_MESSAGE_UNKNOWN", 1 },
   { "RESULT_MISSING_DATA", 10 },
   { "RESULT_MISSING_SUBMESSAGE", 9 },
+  { "RESULT_NOT_AUTHORIZED", 12 },
+  { "RESULT_NOT_FOUND", 11 },
   { "RESULT_NOT_IMPLEMENTED", 6 },
   { "RESULT_NO_CONTENT_FOR_ARRAY", 7 },
   { "RESULT_OK", 0 },
@@ -559,9 +582,9 @@ const ProtobufCEnumDescriptor vdcapi__result_code__descriptor =
   "ResultCode",
   "Vdcapi__ResultCode",
   "vdcapi",
-  11,
+  14,
   vdcapi__result_code__enum_values_by_number,
-  11,
+  14,
   vdcapi__result_code__enum_values_by_name,
   1,
   vdcapi__result_code__value_ranges,

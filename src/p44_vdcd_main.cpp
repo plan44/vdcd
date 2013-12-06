@@ -12,7 +12,7 @@
 
 // APIs to be used
 #include "jsonvdcapi.hpp"
-//#include "pbufvdcapi.hpp"
+#include "pbufvdcapi.hpp"
 
 // device classes to be used
 #include "dalidevicecontainer.hpp"
@@ -325,11 +325,11 @@ public:
       int protobufapi = DEFAULT_USE_PROTOBUF_API;
       getIntOption("protobufapi", protobufapi);
       const char *vdsmport;
-/*      if (protobufapi) {
+      if (protobufapi) {
         deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
         vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
       }
-      else */ {
+      else {
         deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
         vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
       }

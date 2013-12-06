@@ -210,10 +210,10 @@ void VdcJsonApiConnection::jsonResponseHandler(VdcApiResponseCB aResponseHandler
     ApiValuePtr resultOrErrorData = JsonApiValue::newValueFromJson(aResultOrErrorData);
     VdcApiRequestPtr request = VdcJsonApiRequestPtr(new VdcJsonApiRequest(VdcJsonApiConnectionPtr(this), respId.c_str()));
     if (Error::isOK(aError)) {
-      LOG(LOG_INFO,"vdSM -> vDC (JSON) result received: id='%d', result=%s\n", request->requestId().c_str(), resultOrErrorData ? resultOrErrorData->description().c_str() : "<none>");
+      LOG(LOG_INFO,"vdSM -> vDC (JSON) result received: id='%s', result=%s\n", request->requestId().c_str(), resultOrErrorData ? resultOrErrorData->description().c_str() : "<none>");
     }
     else {
-      LOG(LOG_INFO,"vdSM -> vDC (JSON) error received: id='%d', error=%s, errordata=%s\n", request->requestId().c_str(), aError->description().c_str(), resultOrErrorData ? resultOrErrorData->description().c_str() : "<none>");
+      LOG(LOG_INFO,"vdSM -> vDC (JSON) error received: id='%s', error=%s, errordata=%s\n", request->requestId().c_str(), aError->description().c_str(), resultOrErrorData ? resultOrErrorData->description().c_str() : "<none>");
     }
     aResponseHandler(VdcApiConnectionPtr(this), request, aError, resultOrErrorData);
   }

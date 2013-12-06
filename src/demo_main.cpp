@@ -14,7 +14,7 @@
 
 // APIs to be used
 #include "jsonvdcapi.hpp"
-//#include "pbufvdcapi.hpp"
+#include "pbufvdcapi.hpp"
 
 // device classes to be used
 #include "demodevicecontainer.hpp"
@@ -89,14 +89,14 @@ public:
     int protobufapi = DEFAULT_USE_PROTOBUF_API;
     getIntOption("protobufapi", protobufapi);
     const char *vdsmport;
-    /*      if (protobufapi) {
-     deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
-     vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
-     }
-     else */ {
-       deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
-       vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
-     }
+    if (protobufapi) {
+      deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+      vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
+    }
+    else {
+      deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+      vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
+    }
     // set up server for vdSM to connect to
     getStringOption("vdsmport", vdsmport);
     deviceContainer.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);

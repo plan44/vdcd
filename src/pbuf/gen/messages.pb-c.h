@@ -21,21 +21,22 @@ typedef enum _Vdcapi__Type {
   VDCAPI__TYPE__VDC_RESPONSE_HELLO = 3,
   VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY = 4,
   VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY = 5,
-  VDCAPI__TYPE__VDSM_SEND_PING = 6,
-  VDCAPI__TYPE__VDC_SEND_PONG = 7,
   VDCAPI__TYPE__VDC_SEND_ANNOUNCE = 8,
-  VDCAPI__TYPE__VDC_SEND_VANISH = 9,
-  VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY = 10,
-  VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY = 11,
   VDCAPI__TYPE__VDSM_SEND_REMOVE = 12,
   VDCAPI__TYPE__VDSM_SEND_BYE = 13,
+  VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY = 11,
   VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_SCENE = 14,
   VDCAPI__TYPE__VDSM_NOTIFICATION_SAVE_SCENE = 15,
   VDCAPI__TYPE__VDSM_NOTIFICATION_UNDO_SCENE = 16,
   VDCAPI__TYPE__VDSM_NOTIFICATION_SET_LOCAL_PRIO = 17,
   VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE = 18,
+  VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21,
   VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY = 19,
-  VDCAPI__TYPE__VDSM_NOTIFICATION_PING_DEVICE = 20
+  VDCAPI__TYPE__VDSM_NOTIFICATION_PING_DEVICE = 20,
+  VDCAPI__TYPE__VDSM_NOTIFICATION_PING = 6,
+  VDCAPI__TYPE__VDC_NOTIFICATION_PONG = 7,
+  VDCAPI__TYPE__VDC_NOTIFICATION_VANISH = 9,
+  VDCAPI__TYPE__VDC_NOTIFICATION_PUSH_PROPERTY = 10
 } Vdcapi__Type;
 typedef enum _Vdcapi__ResultCode {
   VDCAPI__RESULT_CODE__RESULT_OK = 1,
@@ -48,7 +49,10 @@ typedef enum _Vdcapi__ResultCode {
   VDCAPI__RESULT_CODE__RESULT_NO_CONTENT_FOR_ARRAY = 8,
   VDCAPI__RESULT_CODE__RESULT_INVALID_VALUE_TYPE = 9,
   VDCAPI__RESULT_CODE__RESULT_MISSING_SUBMESSAGE = 10,
-  VDCAPI__RESULT_CODE__RESULT_MISSING_DATA = 11
+  VDCAPI__RESULT_CODE__RESULT_MISSING_DATA = 11,
+  VDCAPI__RESULT_CODE__RESULT_NOT_FOUND = 12,
+  VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED = 13,
+  VDCAPI__RESULT_CODE__RESULT_GENERAL_ERROR = 14
 } Vdcapi__ResultCode;
 
 /* --- messages --- */
@@ -64,21 +68,21 @@ struct  _Vdcapi__Message
   Vdcapi__VdcResponseHello *vdc_response_hello;
   Vdcapi__VdsmRequestGetProperty *vdsm_request_get_property;
   Vdcapi__VdcResponseGetProperty *vdc_response_get_property;
-  Vdcapi__VdsmSendPing *vdsm_send_ping;
-  Vdcapi__VdcSendPong *vdc_send_pong;
   Vdcapi__VdcSendAnnounce *vdc_send_announce;
-  Vdcapi__VdsmSendSetProperty *vdsm_send_set_property;
-  Vdcapi__VdcSendVanish *vdc_send_vanish;
-  Vdcapi__VdcSendPushProperty *vdc_send_push_property;
   Vdcapi__VdsmSendRemove *vdsm_send_remove;
   Vdcapi__VdsmSendBye *vdsm_send_bye;
+  Vdcapi__VdsmSendSetProperty *vdsm_send_set_property;
   Vdcapi__VdsmNotificationCallScene *vdsm_send_call_scene;
   Vdcapi__VdsmNotificationSaveScene *vdsm_send_save_scene;
   Vdcapi__VdsmNotificationUndoScene *vdsm_send_undo_scene;
   Vdcapi__VdsmNotificationSetLocalPrio *vdsm_send_set_local_prio;
   Vdcapi__VdsmNotificationCallMinScene *vdsm_send_call_min_scene;
+  Vdcapi__VdsmNotificationSetControlValue *vdsm_send_set_control_value;
   Vdcapi__VdsmNotificationIdentify *vdsm_send_identify;
-  Vdcapi__VdsmNotificationPingDevice *vdsm_send_ping_device;
+  Vdcapi__VdsmNotificationPing *vdsm_send_ping;
+  Vdcapi__VdcNotificationPong *vdc_send_pong;
+  Vdcapi__VdcNotificationVanish *vdc_send_vanish;
+  Vdcapi__VdcNotificationPushProperty *vdc_send_push_property;
 };
 #define VDCAPI__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__message__descriptor) \
@@ -90,10 +94,11 @@ struct  _Vdcapi__GenericResponse
   ProtobufCMessage base;
   Vdcapi__ResultCode result;
   char *description;
+  uint32_t message_id;
 };
 #define VDCAPI__GENERIC_RESPONSE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__generic_response__descriptor) \
-    , 0, NULL }
+    , VDCAPI__RESULT_CODE__RESULT_OK, NULL, 0 }
 
 
 /* Vdcapi__Message methods */

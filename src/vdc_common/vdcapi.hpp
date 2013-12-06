@@ -181,27 +181,6 @@ namespace p44 {
 
   };
 
-
-
-  /// TODO: move to separate file
-
-
-  /// a protobuf API server
-  class VdcPbufApiServer : public VdcApiServer
-  {
-    typedef VdcApiServer inherited;
-
-  public:
-
-    VdcPbufApiServer();
-
-  protected:
-
-    virtual VdcApiConnectionPtr newConnection();
-
-  };
-
-
 }
 
 

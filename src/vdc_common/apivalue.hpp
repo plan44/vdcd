@@ -34,9 +34,6 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<ApiValue> ApiValuePtr;
 
-  typedef map<string, ApiValuePtr> ApiValueFieldMap;
-  typedef vector<ApiValuePtr> ApiValueArray;
-
   /// wrapper around json-c / libjson0 object
   class ApiValue : public P44Obj
   {
@@ -186,24 +183,6 @@ namespace p44 {
     /// human readable content of the value
     string description();
 
-  };
-
-
-
-  class StandaloneApiValue : public ApiValue
-  {
-    typedef ApiValue inherited;
-
-    // the actual storage
-    union {
-      bool boolVal;
-      uint32_t uint64Val;
-      int64_t int64Val;
-      double doubleVal;
-      string *stringP;
-      ApiValueFieldMap *objectMapP;
-      ApiValueArray *objectArrayP;
-    } objectValue;
   };
 
 

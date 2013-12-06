@@ -665,7 +665,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
   string s;
   // check API version
   if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
-    if (s!="1.0")
+    if (s!="1.0" && s!="1")
       respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.0'"));
     else {
       // API version ok, check dSUID

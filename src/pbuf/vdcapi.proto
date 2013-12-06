@@ -2,8 +2,8 @@ package vdcapi;
 
 message vdsm_RequestHello {
     optional string dSUID = 1;
-    optional uint32 api_version = 2;
-    optional string push_uri = 3;
+    optional uint32 apiVersion = 2;
+    optional string pushUri = 3;
 }
 
 message vdc_ResponseHello {
@@ -11,29 +11,30 @@ message vdc_ResponseHello {
     optional bool allow_disconnect = 2 [ default = false ];
 }
 
-message vdc_SendAnnounce {
-    optional string dSUID = 1;
-}
-
-message vdc_SendVanish {
-    optional string dSUID = 1;
-}
-
-message vdsm_SendBye {
-    optional string dSUID = 1;
-}
-
-message vdsm_SendRemove {
-}
 
 message vdsm_RequestGetProperty {
     optional string dSUID = 1;
     optional string name = 2;
-    optional int32 value = 3;
+    optional uint32 index = 3;
+    optional uint32 offset = 4;
+    optional uint32 count = 5 [ default = 1 ];
 }
 
 message vdc_ResponseGetProperty {
     // TODO: check with team
+}
+
+
+
+message vdc_SendAnnounce {
+    optional string dSUID = 1;
+}
+
+message vdsm_SendBye {
+}
+
+message vdsm_SendRemove {
+    optional string dSUID = 1;
 }
 
 message vdsm_SendSetProperty {
@@ -46,13 +47,6 @@ message vdsm_SendSetProperty {
 
 }
 
-message vdsm_SendPing {
-    optional string dSUID = 1;
-}
-
-message vdc_SendPong {
-    optional string dSUID = 1;
-}
 
 message vdsm_NotificationCallScene {
     optional string dSUID = 1;
@@ -90,17 +84,36 @@ message vdsm_NotificationCallMinScene {
     optional int32 zoneID = 3;
 }
 
+message vdsm_NotificationSetControlValue {
+    optional string dSUID = 1;
+    optional int32 value = 2;
+    optional int32 group = 3;
+    optional int32 zoneID = 4;
+}
+
+
 message vdsm_NotificationIdentify {
     optional string dSUID = 1;
     optional int32 group = 2;
     optional int32 zoneID = 3;
 }
 
-message vdsm_NotificationPingDevice {
+message vdsm_NotificationPing {
     optional string dSUID = 1;
 }
 
-message vdc_SendPushProperty {
+
+message vdc_NotificationVanish {
+    optional string dSUID = 1;
+}
+
+
+message vdc_NotificationPong {
+    optional string dSUID = 1;
+}
+
+
+message vdc_NotificationPushProperty {
     optional string dSUID = 1;
     optional string name = 2;
     optional uint32 index = 3;

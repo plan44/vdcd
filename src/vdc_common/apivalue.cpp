@@ -84,9 +84,9 @@ string ApiValue::stringValue()
     case apivalue_bool:
       return boolValue() ? "true" : "false";
     case apivalue_int64:
-      return string_format("%ld", int64Value());
+      return string_format("%lld", int64Value());
     case apivalue_uint64:
-      return string_format("%ud", uint64Value());
+      return string_format("%llu", uint64Value());
     case apivalue_double:
       return string_format("%f", doubleValue());
     case apivalue_object:

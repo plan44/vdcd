@@ -109,7 +109,7 @@ void JsonComm::gotData(ErrorPtr aError)
           bom = eom;
         } // while data to process
       } // no read error
-      free(buf); buf = NULL;
+      delete buf; buf = NULL;
     } // some data seems to be ready
   } // no connection error
   if (!Error::isOK(aError)) {

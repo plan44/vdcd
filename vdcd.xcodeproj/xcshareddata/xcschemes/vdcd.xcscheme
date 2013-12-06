@@ -64,7 +64,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--modernids 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--protobufapi 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -108,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
