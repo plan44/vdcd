@@ -24,6 +24,10 @@ AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clo
 
 AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
 
+AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
+
+
+
 PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
