@@ -8,6 +8,7 @@ vdcd_CPPFLAGS = \
   -I src \
   -I src/thirdparty/mongoose \
   -I src/thirdparty \
+  -I src/pbuf/gen \
   -I src/vdc_common \
   -I src/behaviours \
   -I src/deviceclasses/simpleio \
@@ -91,6 +92,12 @@ vdcd_SOURCES = \
   src/vdc_common/devicesettings.hpp \
   src/vdc_common/propertycontainer.cpp \
   src/vdc_common/propertycontainer.hpp \
+  src/vdc_common/pbufvdcapi.cpp \
+  src/vdc_common/pbufvdcapi.hpp \
+  src/pbuf/gen/vdcapi.pb-c.c \
+  src/pbuf/gen/vdcapi.pb-c.h \
+  src/pbuf/gen/messages.pb-c.c \
+  src/pbuf/gen/messages.pb-c.h \
   src/vdc_common/jsonvdcapi.cpp \
   src/vdc_common/jsonvdcapi.hpp \
   src/vdc_common/vdcapi.cpp \
@@ -156,6 +163,7 @@ demovdc_CPPFLAGS = \
   -I src/p44utils \
   -I src \
   -I src/thirdparty \
+  -I src/pbuf/gen \
   -I src/vdc_common \
   -I src/behaviours \
   -I src/deviceclasses/demo \
@@ -214,6 +222,12 @@ demovdc_SOURCES = \
   src/vdc_common/devicesettings.hpp \
   src/vdc_common/propertycontainer.cpp \
   src/vdc_common/propertycontainer.hpp \
+  src/vdc_common/pbufvdcapi.cpp \
+  src/vdc_common/pbufvdcapi.hpp \
+  src/pbuf/gen/vdcapi.pb-c.c \
+  src/pbuf/gen/vdcapi.pb-c.h \
+  src/pbuf/gen/messages.pb-c.c \
+  src/pbuf/gen/messages.pb-c.h \
   src/vdc_common/jsonvdcapi.cpp \
   src/vdc_common/jsonvdcapi.hpp \
   src/vdc_common/vdcapi.cpp \
