@@ -51,8 +51,7 @@ typedef enum _Vdcapi__ResultCode {
   VDCAPI__RESULT_CODE__RESULT_MISSING_SUBMESSAGE = 10,
   VDCAPI__RESULT_CODE__RESULT_MISSING_DATA = 11,
   VDCAPI__RESULT_CODE__RESULT_NOT_FOUND = 12,
-  VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED = 13,
-  VDCAPI__RESULT_CODE__RESULT_GENERAL_ERROR = 14
+  VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED = 13
 } Vdcapi__ResultCode;
 
 /* --- messages --- */
@@ -94,11 +93,10 @@ struct  _Vdcapi__GenericResponse
   ProtobufCMessage base;
   Vdcapi__ResultCode result;
   char *description;
-  uint32_t message_id;
 };
 #define VDCAPI__GENERIC_RESPONSE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__generic_response__descriptor) \
-    , VDCAPI__RESULT_CODE__RESULT_OK, NULL, 0 }
+    , VDCAPI__RESULT_CODE__RESULT_OK, NULL }
 
 
 /* Vdcapi__Message methods */

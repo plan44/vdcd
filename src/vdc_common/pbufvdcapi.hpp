@@ -80,8 +80,6 @@ namespace p44 {
     virtual bool boolValue();
     virtual string stringValue();
 
-    virtual const char *charPointerValue(); ///< direct pointer to buffer of embedded string
-
     virtual void setUint64Value(uint64_t aUint64);
     virtual void setInt64Value(int64_t aInt64);
     virtual void setDoubleValue(double aDouble);
@@ -117,8 +115,13 @@ namespace p44 {
     void allocate();
     bool allocateIf(ApiValueType aIsType);
 
-    void setValueFromField(ProtobufCType aProtobufType, const void *aData, size_t aIndex, ssize_t aArraySize);
-    void putValueIntoField(ProtobufCType aProtobufType, void *aData, size_t aIndex, ssize_t aArraySize);
+    void setValueFromField(const ProtobufCFieldDescriptor &aFieldDescriptor, const void *aData, size_t aIndex, ssize_t aArraySize);
+    void putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize);
+
+    void getValueFromPropVal(Vdcapi__PropertyValue &aPropVal);
+    void putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal);
+
+    size_t numObjectFields();
 
   };
 

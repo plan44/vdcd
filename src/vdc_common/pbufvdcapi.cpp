@@ -40,23 +40,22 @@ void PbufApiValue::clear()
 {
   // forget allocated type
   if (allocatedType!=apivalue_null) {
-    memset(&objectValue, 0, sizeof(objectValue));
     switch (allocatedType) {
       case apivalue_string:
         if (objectValue.stringP) delete objectValue.stringP;
-        objectValue.stringP = NULL;
         break;
       case apivalue_object:
         if (objectValue.objectMapP) delete objectValue.objectMapP;
-        objectValue.objectMapP = NULL;
         break;
       case apivalue_array:
         if (objectValue.arrayVectorP) delete objectValue.arrayVectorP;
-        objectValue.arrayVectorP = NULL;
         break;
       default:
         break;
     }
+    // zero out union
+    memset(&objectValue, 0, sizeof(objectValue));
+    // is now a NULL object
     allocatedType = apivalue_null;
   }
 }
@@ -165,6 +164,15 @@ void PbufApiValue::arrayPut(int aAtIndex, ApiValuePtr aObj)
 
 
 
+size_t PbufApiValue::numObjectFields()
+{
+  if (allocatedType==apivalue_object) {
+    return objectValue.objectMapP->size();
+  }
+  return 0;
+}
+
+
 bool PbufApiValue::resetKeyIteration()
 {
   if (allocatedType==apivalue_object) {
@@ -194,6 +202,9 @@ uint64_t PbufApiValue::uint64Value()
   if (allocatedType==apivalue_uint64) {
     return objectValue.uint64Val;
   }
+  else if (allocatedType==apivalue_int64 && objectValue.int64Val>=0) {
+    return objectValue.int64Val; // only return positive values
+  }
   return 0;
 }
 
@@ -203,6 +214,9 @@ int64_t PbufApiValue::int64Value()
 {
   if (allocatedType==apivalue_int64) {
     return objectValue.int64Val;
+  }
+  else if (allocatedType==apivalue_uint64) {
+    return objectValue.uint64Val & 0x7FFFFFFFFFFFFFFF; // prevent returning sign
   }
   return 0;
 }
@@ -233,15 +247,6 @@ string PbufApiValue::stringValue()
   }
   // let base class render the contents as string
   return inherited::stringValue();
-}
-
-
-const char *PbufApiValue::charPointerValue()
-{
-  if (allocatedType==apivalue_string) {
-    return objectValue.stringP->c_str();
-  }
-  return NULL;
 }
 
 
@@ -308,7 +313,7 @@ void PbufApiValue::getValueFromMessageField(const ProtobufCFieldDescriptor &aFie
     setType(apivalue_array);
     for (int i = 0; i<arraySize; i++) {
       PbufApiValuePtr element = PbufApiValuePtr(new PbufApiValue);
-      element->setValueFromField(aFieldDescriptor.type, fieldBaseP, i, arraySize);
+      element->setValueFromField(aFieldDescriptor, fieldBaseP, i, arraySize);
       arrayAppend(element);
     }
   }
@@ -336,7 +341,7 @@ void PbufApiValue::getValueFromMessageField(const ProtobufCFieldDescriptor &aFie
     }
     else {
       // get value
-      setValueFromField(aFieldDescriptor.type, fieldBaseP, 0, -1); // not array
+      setValueFromField(aFieldDescriptor, fieldBaseP, 0, -1); // not array
     }
   }
 }
@@ -356,8 +361,14 @@ void PbufApiValue::putValueIntoMessageField(const ProtobufCFieldDescriptor &aFie
       // iterate over existing elements
       for (int i = 0; i<arrayLength(); i++) {
         PbufApiValuePtr element = boost::dynamic_pointer_cast<PbufApiValue>(arrayGet(i));
-        element->putValueIntoField(aFieldDescriptor.type, fieldBaseP, i, ApiValue::arrayLength());
+        element->putValueIntoField(aFieldDescriptor, fieldBaseP, i, arrayLength());
       }
+    }
+    else {
+      // non array value into repeated field - store as single repetition
+      *((size_t *)(baseP+aFieldDescriptor.quantifier_offset)) = 1; // single element
+      // put value into that single element
+      putValueIntoField(aFieldDescriptor, fieldBaseP, 0, 1);
     }
   }
   else {
@@ -376,7 +387,7 @@ void PbufApiValue::putValueIntoMessageField(const ProtobufCFieldDescriptor &aFie
     }
     // put value, if available
     if (hasField) {
-      putValueIntoField(aFieldDescriptor.type, fieldBaseP, 0, -1); // not array
+      putValueIntoField(aFieldDescriptor, fieldBaseP, 0, -1); // not array
     }
   }
 }
@@ -422,13 +433,13 @@ void PbufApiValue::putObjectIntoMessageFields(ProtobufCMessage &aMessage)
 
 
 
-void PbufApiValue::setValueFromField(ProtobufCType aProtobufType, const void *aData, size_t aIndex, ssize_t aArraySize)
+void PbufApiValue::setValueFromField(const ProtobufCFieldDescriptor &aFieldDescriptor, const void *aData, size_t aIndex, ssize_t aArraySize)
 {
   if (aArraySize>=0) {
     // is an array, dereference the data pointer once to get to elements
     aData = *((void **)aData);
   }
-  switch (aProtobufType) {
+  switch (aFieldDescriptor.type) {
     case PROTOBUF_C_TYPE_BOOL:
       setType(apivalue_bool);
       setBoolValue(*((protobuf_c_boolean *)aData+aIndex));
@@ -476,9 +487,15 @@ void PbufApiValue::setValueFromField(ProtobufCType aProtobufType, const void *aD
       break;
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage, pack into object value
-      setType(apivalue_object);
       const ProtobufCMessage *subMessageP = *((const ProtobufCMessage **)aData+aIndex);
-      getObjectFromMessageFields(*subMessageP);
+      ProtobufCMessageDescriptor *msgDescP = (ProtobufCMessageDescriptor *)aFieldDescriptor.descriptor;
+      if (strcmp(msgDescP->short_name,"PropertyValue")==0) {
+        getValueFromPropVal(*((Vdcapi__PropertyValue *)subMessageP));
+      }
+      else {
+        setType(apivalue_object);
+        getObjectFromMessageFields(*subMessageP);
+      }
       break;
     }
     default:
@@ -488,7 +505,7 @@ void PbufApiValue::setValueFromField(ProtobufCType aProtobufType, const void *aD
 }
 
 
-void PbufApiValue::putValueIntoField(ProtobufCType aProtobufType, void *aData, size_t aIndex, ssize_t aArraySize)
+void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize)
 {
   // check array case
   bool allocArray = false;
@@ -505,7 +522,7 @@ void PbufApiValue::putValueIntoField(ProtobufCType aProtobufType, void *aData, s
       dataP = *((void **)aData); // dereference once
     }
   }
-  switch (aProtobufType) {
+  switch (aFieldDescriptor.type) {
     case PROTOBUF_C_TYPE_BOOL:
       if (allocatedType==apivalue_bool) {
         if (allocArray) dataP = new protobuf_c_boolean[aArraySize];
@@ -562,16 +579,43 @@ void PbufApiValue::putValueIntoField(ProtobufCType aProtobufType, void *aData, s
       break;
     case PROTOBUF_C_TYPE_STRING:
       if (allocatedType==apivalue_string) {
-        if (allocArray) dataP = new char*[aArraySize];
-        *((const char **)dataP+aIndex) = charPointerValue();
+        if (allocArray) {
+          dataP = new char*[aArraySize];
+          memset(dataP, 0, aArraySize*sizeof(char *)); // null the array
+        }
+        string s = stringValue();
+        char * p = new char [s.size()+1];
+        strcpy(p, s.c_str());
+        *((char **)dataP+aIndex) = p;
       }
       break;
     case PROTOBUF_C_TYPE_BYTES:
       // TODO: implement it
       break;
     case PROTOBUF_C_TYPE_MESSAGE: {
-      // submessage, pack into object value
-      #warning "// TODO: implement generic submessages
+      // submessage
+      const ProtobufCMessageDescriptor *subMsgDescP = static_cast<const ProtobufCMessageDescriptor *>(aFieldDescriptor.descriptor);
+      if (strcmp(subMsgDescP->short_name,"PropertyValue")==0) {
+        // generic property value submessage
+        if (allocArray) {
+          dataP = new void *[aArraySize];
+          memset(dataP, 0, aArraySize*sizeof(void *)); // null the array
+        }
+        Vdcapi__PropertyValue *propValP = new Vdcapi__PropertyValue;
+        vdcapi__property_value__init(propValP);
+        *((Vdcapi__PropertyValue **)dataP+aIndex) = propValP;
+        putValueIntoPropVal(*propValP);
+      }
+      else {
+        // specific pre-existing message, fields will be filled from message
+        if (allocatedType==apivalue_object && !allocArray) {
+          ProtobufCMessage *aSubMessageP = *((ProtobufCMessage **)dataP+aIndex);
+          if (aSubMessageP) {
+            // submessage exists, have it filled in
+            putObjectIntoMessageFields(*aSubMessageP);
+          }
+        }
+      }
       break;
     }
     default:
@@ -583,6 +627,122 @@ void PbufApiValue::putValueIntoField(ProtobufCType aProtobufType, void *aData, s
     *((void **)aData) = dataP;
   }
 }
+
+
+void PbufApiValue::getValueFromPropVal(Vdcapi__PropertyValue &aPropVal)
+{
+  switch (aPropVal.type) {
+    case VDCAPI__VALUE_TYPE__BOOL_VALUE:
+      setType(apivalue_bool);
+      setBoolValue(aPropVal.boolval);
+      break;
+    case VDCAPI__VALUE_TYPE__INT64_VALUE:
+      setType(apivalue_int64);
+      setInt64Value(aPropVal.intval);
+      break;
+    case VDCAPI__VALUE_TYPE__UINT64_VALUE:
+      setType(apivalue_uint64);
+      setUint64Value(aPropVal.uintval);
+      break;
+    case VDCAPI__VALUE_TYPE__DOUBLE_VALUE:
+      setType(apivalue_double);
+      setDoubleValue(aPropVal.doubleval);
+      break;
+    case VDCAPI__VALUE_TYPE__STRING_VALUE:
+      setType(apivalue_string);
+      setStringValue(aPropVal.strval);
+      break;
+    case VDCAPI__VALUE_TYPE__STRUCT_VALUE:
+      setType(apivalue_object);
+      // repeated structval field contains named subproperties
+      for (size_t i=0; i<aPropVal.n_structval; i++) {
+        PbufApiValuePtr element = PbufApiValuePtr(new PbufApiValue);
+        Vdcapi__SubProperty *subPropP = aPropVal.structval[i];
+        element->getValueFromPropVal(*(subPropP->value));
+        add(subPropP->name, element);
+      }
+      break;
+    case VDCAPI__VALUE_TYPE__NULL_VALUE:
+    default:
+      // null value
+      setType(apivalue_null);
+      break;
+  }
+}
+
+
+void PbufApiValue::putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal)
+{
+  switch (allocatedType) {
+    case apivalue_bool:
+      aPropVal.type = VDCAPI__VALUE_TYPE__BOOL_VALUE;
+      aPropVal.has_boolval = true;
+      aPropVal.boolval = boolValue();
+      break;
+    case apivalue_int64:
+      aPropVal.type = VDCAPI__VALUE_TYPE__INT64_VALUE;
+      aPropVal.has_intval = true;
+      aPropVal.intval = int64Value();
+      break;
+    case apivalue_uint64:
+      aPropVal.type = VDCAPI__VALUE_TYPE__UINT64_VALUE;
+      aPropVal.has_uintval = true;
+      aPropVal.uintval = uint64Value();
+      break;
+    case apivalue_double:
+      aPropVal.type = VDCAPI__VALUE_TYPE__DOUBLE_VALUE;
+      aPropVal.has_doubleval = true;
+      aPropVal.doubleval = doubleValue();
+      break;
+    case apivalue_string: {
+      aPropVal.type = VDCAPI__VALUE_TYPE__STRING_VALUE;
+      string s = stringValue();
+      char * p = new char [s.size()+1];
+      strcpy(p, s.c_str());
+      aPropVal.strval = p;
+      break;
+    }
+    case apivalue_object: {
+      aPropVal.type = VDCAPI__VALUE_TYPE__STRUCT_VALUE;
+      // put key/values of this object into repeated structval field
+      size_t numFields = numObjectFields();
+      if (numFields>0) {
+        // - create pointer array
+        aPropVal.structval = new Vdcapi__SubProperty *[numFields];
+        memset(aPropVal.structval, 0, numFields*sizeof(Vdcapi__SubProperty *)); // null the array
+        aPropVal.n_structval = numFields;
+        // - fill in fields
+        resetKeyIteration();
+        string key;
+        ApiValuePtr val;
+        size_t i = 0;
+        while (nextKeyValue(key, val)) {
+          PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+          Vdcapi__SubProperty *subPropP = new Vdcapi__SubProperty;
+          vdcapi__sub_property__init(subPropP);
+          subPropP->name = new char[key.size()+1];
+          strcpy(subPropP->name, key.c_str());
+          aPropVal.structval[i] = subPropP;
+          subPropP->value = new Vdcapi__PropertyValue;
+          vdcapi__property_value__init(subPropP->value);
+          pval->putValueIntoPropVal(*(subPropP->value));
+          i++;
+        }
+      }
+      break;
+    }
+    case apivalue_array:
+      #warning "for now, arrays nested withing property values are not supported"
+      aPropVal.type = VDCAPI__VALUE_TYPE__STRING_VALUE;
+      aPropVal.strval = (char *)"warning: property subfield is array";
+      break;
+    default:
+      // null value, do nothing
+      break;
+  }
+}
+
+
 
 
 
@@ -648,19 +808,19 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         msg.vdc_response_hello = new Vdcapi__VdcResponseHello;
         vdcapi__vdc__response_hello__init(msg.vdc_response_hello);
         subMessageP = &(msg.vdc_response_hello->base);
+        // result object are response message's fields
+        if (result) result->putObjectIntoMessageFields(*subMessageP);
         break;
       case VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY:
         msg.vdc_response_get_property = new Vdcapi__VdcResponseGetProperty;
         vdcapi__vdc__response_get_property__init(msg.vdc_response_get_property);
         subMessageP = &(msg.vdc_response_get_property->base);
+        // result object is property value(s)
+        if (result) result->putValueIntoMessageField(subMessageP->descriptor->fields[1-1], *subMessageP);
         break;
       default:
         LOG(LOG_INFO,"vdSM <- vDC (pbuf) response '%s' cannot be sent because no message is implemented for it at the pbuf level\n", aResult->description().c_str());
         return ErrorPtr(new VdcApiError(500,"Error: Method is not implemented in the pbuf API"));
-    }
-    // now fill parameters into submessage
-    if (result) {
-      result->putObjectIntoMessageFields(*subMessageP);
     }
     // send
     err = pbufConnection->sendMessage(&msg);
@@ -680,11 +840,9 @@ ErrorPtr VdcPbufApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage,
   Vdcapi__Message msg = VDCAPI__MESSAGE__INIT;
   Vdcapi__GenericResponse resp = VDCAPI__GENERIC_RESPONSE__INIT;
   // error response is a generic message
-  #warning "// TODO: one of the message_id's is redundant, I'd recommend to get rid of the id in the generic response as there is on at the message level anyway"
   msg.generic_response = &resp;
   msg.has_message_id = true; // is response to a previous method call message
   msg.message_id = reqId; // use same message id as in method call
-  resp.message_id = reqId;
   resp.result = VdcPbufApiConnection::internalToPbufError(aErrorCode);
   resp.description = (char *)(aErrorMessage.size()>0 ? aErrorMessage.c_str() : NULL);
   err = pbufConnection->sendMessage(&msg);
@@ -711,6 +869,9 @@ VdcPbufApiConnection::VdcPbufApiConnection() :
 }
 
 
+// max message size accepted - everything bigger must be an error
+#define MAX_DATA_SIZE 16384
+
 
 void VdcPbufApiConnection::gotData(ErrorPtr aError)
 {
@@ -728,15 +889,17 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
         receivedMessage.append((const char *)buf, receivedBytes);
         // single message extraction
         while(true) {
-          if(expectedMsgBytes==0 && receivedMessage.size()>=4) {
-            // got header, decode it
+          if(expectedMsgBytes==0 && receivedMessage.size()>=2) {
+            // got 2-byte length header, decode it
             const uint8_t *sz = (const uint8_t *)receivedMessage.c_str();
             expectedMsgBytes =
-              (sz[0]<<24) +
-              (sz[1]<<16) +
-              (sz[2]<<8) +
-              sz[3];
-            receivedMessage.erase(0,4);
+              (sz[0]<<8) +
+              sz[1];
+            receivedMessage.erase(0,2);
+            if (expectedMsgBytes>MAX_DATA_SIZE) {
+              aError = ErrorPtr(new VdcApiError(413, "message exceeds maximum length of 16kB"));
+              break;
+            }
           }
           // check for complete message
           if (expectedMsgBytes && (receivedMessage.size()>=expectedMsgBytes)) {
@@ -754,7 +917,7 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
         }
       }
       // forget buffer
-      delete buf; buf = NULL;
+      delete[] buf; buf = NULL;
     } // some data seems to be ready
   } // no connection error
   if (!Error::isOK(aError)) {
@@ -771,16 +934,14 @@ ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage
   ErrorPtr err;
   // generate the binary message
   size_t packedSize = vdcapi__message__get_packed_size(aVdcApiMessage);
-  uint8_t *packedMsg = new uint8_t[packedSize+4]; // leave room for header
+  uint8_t *packedMsg = new uint8_t[packedSize+2]; // leave room for header
   // - add the header
-  packedMsg[0] = (packedSize>>24) & 0xFF;
-  packedMsg[1] = (packedSize>>16) & 0xFF;
-  packedMsg[2] = (packedSize>>8) & 0xFF;
-  packedMsg[3] = packedSize & 0xFF;
+  packedMsg[0] = (packedSize>>8) & 0xFF;
+  packedMsg[1] = packedSize & 0xFF;
   // - add the message data
-  vdcapi__message__pack(aVdcApiMessage, packedMsg+4);
+  vdcapi__message__pack(aVdcApiMessage, packedMsg+2);
   // - adjust the total message length
-  packedSize += 4;
+  packedSize += 2;
   // send the message
   if (transmitBuffer.size()>0) {
     // other messages are already waiting, append entire message
@@ -806,7 +967,7 @@ ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage
     }
   }
   // return the buffer
-  delete packedMsg;
+  delete[] packedMsg;
   // done
   return err;
 }
@@ -882,7 +1043,7 @@ Vdcapi__ResultCode VdcPbufApiConnection::internalToPbufError(ErrorCode aErrorCod
     case 501: res = VDCAPI__RESULT_CODE__RESULT_NOT_IMPLEMENTED; break;
     case 204: res = VDCAPI__RESULT_CODE__RESULT_NO_CONTENT_FOR_ARRAY; break;
     case 415: res = VDCAPI__RESULT_CODE__RESULT_INVALID_VALUE_TYPE; break;
-    default: res = VDCAPI__RESULT_CODE__RESULT_GENERAL_ERROR; break; // general error
+    default: res = VDCAPI__RESULT_CODE__RESULT_NOT_IMPLEMENTED; break; // something is obviously not implemented...
   }
   return res;
 }
@@ -977,7 +1138,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
           ErrorCode errorCode = pbufToInternalError(genericResponse->result);
           err = ErrorPtr(new VdcApiError(errorCode, nonNullCStr(genericResponse->description)));
         }
-        responseForId = genericResponse->message_id;
+        responseForId = decodedMsg->message_id;
         emptyResult = true; // do not convert message fields to result
         break;
       }
@@ -1022,7 +1183,9 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
       VdcPbufApiRequestPtr request;
       // - get the params
       PbufApiValuePtr params = PbufApiValuePtr(new PbufApiValue);
-      params->getObjectFromMessageFields(*paramsMsg);
+      if (paramsMsg) {
+        params->getObjectFromMessageFields(*paramsMsg);
+      }
       // - dispatch between methods and notifications
       if (decodedMsg->has_message_id) {
         // method call, we need a request reference object

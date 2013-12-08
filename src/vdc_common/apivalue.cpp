@@ -21,7 +21,6 @@ ApiValue::ApiValue() :
 }
 
 
-
 bool ApiValue::isType(ApiValueType aObjectType)
 {
   return (objectType==aObjectType);
@@ -331,12 +330,6 @@ bool ApiValue::setStringValue(const char *aCStr, size_t aLen)
   string s;
   if (aCStr) s.assign(aCStr, aLen);
   return setStringValue(s);
-}
-
-
-const char *ApiValue::c_strValue()
-{
-  return stringValue().c_str();
 }
 
 

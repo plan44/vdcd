@@ -408,7 +408,7 @@ const ProtobufCMessageDescriptor vdcapi__message__descriptor =
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const Vdcapi__ResultCode vdcapi__generic_response__result__default_value = VDCAPI__RESULT_CODE__RESULT_OK;
-static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptors[3] =
+static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptors[2] =
 {
   {
     "result",
@@ -434,28 +434,15 @@ static const ProtobufCFieldDescriptor vdcapi__generic_response__field_descriptor
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "message_id",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_UINT32,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__GenericResponse, message_id),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned vdcapi__generic_response__field_indices_by_name[] = {
   1,   /* field[1] = description */
-  2,   /* field[2] = message_id */
   0,   /* field[0] = result */
 };
 static const ProtobufCIntRange vdcapi__generic_response__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__generic_response__descriptor =
 {
@@ -465,7 +452,7 @@ const ProtobufCMessageDescriptor vdcapi__generic_response__descriptor =
   "Vdcapi__GenericResponse",
   "vdcapi",
   sizeof(Vdcapi__GenericResponse),
-  3,
+  2,
   vdcapi__generic_response__field_descriptors,
   vdcapi__generic_response__field_indices_by_name,
   1,  vdcapi__generic_response__number_ranges,
@@ -538,7 +525,7 @@ const ProtobufCEnumDescriptor vdcapi__type__descriptor =
   vdcapi__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[14] =
+const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[13] =
 {
   { "RESULT_OK", "VDCAPI__RESULT_CODE__RESULT_OK", 1 },
   { "RESULT_MESSAGE_UNKNOWN", "VDCAPI__RESULT_CODE__RESULT_MESSAGE_UNKNOWN", 2 },
@@ -553,15 +540,13 @@ const ProtobufCEnumValue vdcapi__result_code__enum_values_by_number[14] =
   { "RESULT_MISSING_DATA", "VDCAPI__RESULT_CODE__RESULT_MISSING_DATA", 11 },
   { "RESULT_NOT_FOUND", "VDCAPI__RESULT_CODE__RESULT_NOT_FOUND", 12 },
   { "RESULT_NOT_AUTHORIZED", "VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED", 13 },
-  { "RESULT_GENERAL_ERROR", "VDCAPI__RESULT_CODE__RESULT_GENERAL_ERROR", 14 },
 };
 static const ProtobufCIntRange vdcapi__result_code__value_ranges[] = {
-{1, 0},{0, 14}
+{1, 0},{0, 13}
 };
-const ProtobufCEnumValueIndex vdcapi__result_code__enum_values_by_name[14] =
+const ProtobufCEnumValueIndex vdcapi__result_code__enum_values_by_name[13] =
 {
   { "RESULT_FORBIDDEN", 5 },
-  { "RESULT_GENERAL_ERROR", 13 },
   { "RESULT_INCOMPATIBLE_API", 2 },
   { "RESULT_INSUFFICIENT_STORAGE", 4 },
   { "RESULT_INVALID_VALUE_TYPE", 8 },
@@ -582,9 +567,9 @@ const ProtobufCEnumDescriptor vdcapi__result_code__descriptor =
   "ResultCode",
   "Vdcapi__ResultCode",
   "vdcapi",
-  14,
+  13,
   vdcapi__result_code__enum_values_by_number,
-  14,
+  13,
   vdcapi__result_code__enum_values_by_name,
   1,
   vdcapi__result_code__value_ranges,

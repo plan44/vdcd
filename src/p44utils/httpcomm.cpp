@@ -54,7 +54,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
   requestError.reset();
   response.clear();
   splitURL(requestURL.c_str(), &protocol, &hostSpec, &doc, NULL, NULL);
-  bool useSSL;
+  bool useSSL = false;
   if (protocol=="http") {
     port = 80;
     useSSL = false;

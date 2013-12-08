@@ -460,9 +460,9 @@
 		ED0DE305184E3821001ADB5E /* pbuf */ = {
 			isa = PBXGroup;
 			children = (
-				ED1F82FA184E43B600339A22 /* gen */,
 				ED0DE308184E385A001ADB5E /* messages.proto */,
 				ED0DE309184E385A001ADB5E /* vdcapi.proto */,
+				ED1F82FA184E43B600339A22 /* gen */,
 			);
 			path = pbuf;
 			sourceTree = "<group>";

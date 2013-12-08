@@ -8,6 +8,8 @@
 PROTOBUF_C_BEGIN_DECLS
 
 
+typedef struct _Vdcapi__PropertyValue Vdcapi__PropertyValue;
+typedef struct _Vdcapi__SubProperty Vdcapi__SubProperty;
 typedef struct _Vdcapi__VdsmRequestHello Vdcapi__VdsmRequestHello;
 typedef struct _Vdcapi__VdcResponseHello Vdcapi__VdcResponseHello;
 typedef struct _Vdcapi__VdsmRequestGetProperty Vdcapi__VdsmRequestGetProperty;
@@ -31,8 +33,52 @@ typedef struct _Vdcapi__VdcNotificationPushProperty Vdcapi__VdcNotificationPushP
 
 /* --- enums --- */
 
+typedef enum _Vdcapi__ValueType {
+  VDCAPI__VALUE_TYPE__NULL_VALUE = 1,
+  VDCAPI__VALUE_TYPE__BOOL_VALUE = 2,
+  VDCAPI__VALUE_TYPE__INT64_VALUE = 3,
+  VDCAPI__VALUE_TYPE__UINT64_VALUE = 4,
+  VDCAPI__VALUE_TYPE__DOUBLE_VALUE = 5,
+  VDCAPI__VALUE_TYPE__STRING_VALUE = 6,
+  VDCAPI__VALUE_TYPE__BYTES_VALUE = 7,
+  VDCAPI__VALUE_TYPE__STRUCT_VALUE = 8
+} Vdcapi__ValueType;
 
 /* --- messages --- */
+
+struct  _Vdcapi__PropertyValue
+{
+  ProtobufCMessage base;
+  Vdcapi__ValueType type;
+  protobuf_c_boolean has_boolval;
+  protobuf_c_boolean boolval;
+  protobuf_c_boolean has_uintval;
+  uint64_t uintval;
+  protobuf_c_boolean has_intval;
+  int64_t intval;
+  protobuf_c_boolean has_doubleval;
+  double doubleval;
+  char *strval;
+  protobuf_c_boolean has_bytesval;
+  ProtobufCBinaryData bytesval;
+  size_t n_structval;
+  Vdcapi__SubProperty **structval;
+};
+#define VDCAPI__PROPERTY_VALUE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__property_value__descriptor) \
+    , VDCAPI__VALUE_TYPE__NULL_VALUE, 0,0, 0,0, 0,0, 0,0, NULL, 0,{0,NULL}, 0,NULL }
+
+
+struct  _Vdcapi__SubProperty
+{
+  ProtobufCMessage base;
+  char *name;
+  Vdcapi__PropertyValue *value;
+};
+#define VDCAPI__SUB_PROPERTY__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__sub_property__descriptor) \
+    , NULL, NULL }
+
 
 struct  _Vdcapi__VdsmRequestHello
 {
@@ -79,10 +125,12 @@ struct  _Vdcapi__VdsmRequestGetProperty
 struct  _Vdcapi__VdcResponseGetProperty
 {
   ProtobufCMessage base;
+  size_t n_value;
+  Vdcapi__PropertyValue **value;
 };
 #define VDCAPI__VDC__RESPONSE_GET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__response_get_property__descriptor) \
-     }
+    , 0,NULL }
 
 
 struct  _Vdcapi__VdcSendAnnounce
@@ -125,10 +173,11 @@ struct  _Vdcapi__VdsmSendSetProperty
   uint32_t offset;
   protobuf_c_boolean has_count;
   uint32_t count;
+  Vdcapi__PropertyValue *value;
 };
 #define VDCAPI__VDSM__SEND_SET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__send_set_property__descriptor) \
-    , NULL, NULL, 0,0, 0,0, 0,1 }
+    , NULL, NULL, 0,0, 0,0, 0,1, NULL }
 
 
 struct  _Vdcapi__VdsmNotificationCallScene
@@ -278,12 +327,51 @@ struct  _Vdcapi__VdcNotificationPushProperty
   char *name;
   protobuf_c_boolean has_index;
   uint32_t index;
+  Vdcapi__PropertyValue *value;
 };
 #define VDCAPI__VDC__NOTIFICATION_PUSH_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__notification_push_property__descriptor) \
-    , NULL, NULL, 0,0 }
+    , NULL, NULL, 0,0, NULL }
 
 
+/* Vdcapi__PropertyValue methods */
+void   vdcapi__property_value__init
+                     (Vdcapi__PropertyValue         *message);
+size_t vdcapi__property_value__get_packed_size
+                     (const Vdcapi__PropertyValue   *message);
+size_t vdcapi__property_value__pack
+                     (const Vdcapi__PropertyValue   *message,
+                      uint8_t             *out);
+size_t vdcapi__property_value__pack_to_buffer
+                     (const Vdcapi__PropertyValue   *message,
+                      ProtobufCBuffer     *buffer);
+Vdcapi__PropertyValue *
+       vdcapi__property_value__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   vdcapi__property_value__free_unpacked
+                     (Vdcapi__PropertyValue *message,
+                      ProtobufCAllocator *allocator);
+/* Vdcapi__SubProperty methods */
+void   vdcapi__sub_property__init
+                     (Vdcapi__SubProperty         *message);
+size_t vdcapi__sub_property__get_packed_size
+                     (const Vdcapi__SubProperty   *message);
+size_t vdcapi__sub_property__pack
+                     (const Vdcapi__SubProperty   *message,
+                      uint8_t             *out);
+size_t vdcapi__sub_property__pack_to_buffer
+                     (const Vdcapi__SubProperty   *message,
+                      ProtobufCBuffer     *buffer);
+Vdcapi__SubProperty *
+       vdcapi__sub_property__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   vdcapi__sub_property__free_unpacked
+                     (Vdcapi__SubProperty *message,
+                      ProtobufCAllocator *allocator);
 /* Vdcapi__VdsmRequestHello methods */
 void   vdcapi__vdsm__request_hello__init
                      (Vdcapi__VdsmRequestHello         *message);
@@ -647,6 +735,12 @@ void   vdcapi__vdc__notification_push_property__free_unpacked
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
+typedef void (*Vdcapi__PropertyValue_Closure)
+                 (const Vdcapi__PropertyValue *message,
+                  void *closure_data);
+typedef void (*Vdcapi__SubProperty_Closure)
+                 (const Vdcapi__SubProperty *message,
+                  void *closure_data);
 typedef void (*Vdcapi__VdsmRequestHello_Closure)
                  (const Vdcapi__VdsmRequestHello *message,
                   void *closure_data);
@@ -710,6 +804,9 @@ typedef void (*Vdcapi__VdcNotificationPushProperty_Closure)
 
 /* --- descriptors --- */
 
+extern const ProtobufCEnumDescriptor    vdcapi__value_type__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__property_value__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__sub_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_hello__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor;

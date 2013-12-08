@@ -82,11 +82,9 @@ enum ResultCode {
     RESULT_MISSING_DATA = 11;
     RESULT_NOT_FOUND = 12;
     RESULT_NOT_AUTHORIZED = 13;
-    RESULT_GENERAL_ERROR = 14;
 }
 
 message GenericResponse {
     required ResultCode result = 1 [ default = RESULT_OK ];
     optional string description = 2;
-    required uint32 message_id = 3;
 }

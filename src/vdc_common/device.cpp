@@ -799,40 +799,45 @@ ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, 
 bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&device_key) {
-    if (aIndex==PROP_ARRAY_SIZE && !aForWrite) {
-      // array size query
-      switch (aPropertyDescriptor.accessKey) {
-        // the isMember pseudo-array
-        case isMember_key:
-          aPropValue->setUint16Value(64); // max 64 groups
-          return true;
-        // the behaviour arrays
-        case buttonInputDescriptions_key:
-        case buttonInputSettings_key:
-        case buttonInputStates_key:
-          aPropValue->setUint16Value((int)buttons.size());
-          return true;
-        case binaryInputDescriptions_key:
-        case binaryInputSettings_key:
-        case binaryInputStates_key:
-          aPropValue->setUint16Value((int)binaryInputs.size());
-          return true;
-        case outputDescriptions_key:
-        case outputSettings_key:
-        case outputStates_key:
-          aPropValue->setUint16Value((int)outputs.size());
-          return true;
-        case sensorDescriptions_key:
-        case sensorSettings_key:
-        case sensorStates_key:
-          aPropValue->setUint16Value((int)sensors.size());
-          return true;
-        case scenes_key:
-          if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
-            aPropValue->setUint16Value(MAX_SCENE_NO);
-          else
-            aPropValue->setUint16Value(0); // no scene table
-          return true;
+    if (aIndex==PROP_ARRAY_SIZE) {
+      if (aForWrite) {
+        return false;
+      }
+      else {
+        // array size query
+        switch (aPropertyDescriptor.accessKey) {
+          // the isMember pseudo-array
+          case isMember_key:
+            aPropValue->setUint16Value(64); // max 64 groups
+            return true;
+          // the behaviour arrays
+          case buttonInputDescriptions_key:
+          case buttonInputSettings_key:
+          case buttonInputStates_key:
+            aPropValue->setUint16Value((int)buttons.size());
+            return true;
+          case binaryInputDescriptions_key:
+          case binaryInputSettings_key:
+          case binaryInputStates_key:
+            aPropValue->setUint16Value((int)binaryInputs.size());
+            return true;
+          case outputDescriptions_key:
+          case outputSettings_key:
+          case outputStates_key:
+            aPropValue->setUint16Value((int)outputs.size());
+            return true;
+          case sensorDescriptions_key:
+          case sensorSettings_key:
+          case sensorStates_key:
+            aPropValue->setUint16Value((int)sensors.size());
+            return true;
+          case scenes_key:
+            if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
+              aPropValue->setUint16Value(MAX_SCENE_NO);
+            else
+              aPropValue->setUint16Value(0); // no scene table
+            return true;
+        }
       }
     }
     else if (!aForWrite) {

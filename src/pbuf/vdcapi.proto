@@ -1,5 +1,43 @@
 package vdcapi;
 
+
+enum ValueType {
+    NULL_VALUE = 1;
+
+    BOOL_VALUE = 2;
+    INT64_VALUE = 3;
+    UINT64_VALUE = 4;
+    DOUBLE_VALUE = 5;
+    STRING_VALUE = 6;
+    BYTES_VALUE = 7;
+
+    STRUCT_VALUE = 8;
+}
+
+
+message PropertyValue {
+    required ValueType type = 1 [ default = NULL_VALUE ];
+    // kind of a union
+    optional bool boolval = 2;
+    optional uint64 uintval = 3;
+    optional int64 intval = 4;
+    optional double doubleval = 5;
+    optional string strval = 6;
+    optional bytes bytesval = 7;
+    // in case property is in fact a "struct" with subproperties
+    repeated SubProperty structval = 8;
+}
+ 
+ 
+message SubProperty {
+    required string name = 1;
+    required PropertyValue value = 2;
+}
+
+
+
+
+
 message vdsm_RequestHello {
     optional string dSUID = 1;
     optional uint32 apiVersion = 2;
@@ -22,6 +60,7 @@ message vdsm_RequestGetProperty {
 
 message vdc_ResponseGetProperty {
     // TODO: check with team
+    repeated PropertyValue value = 1;
 }
 
 
@@ -44,7 +83,7 @@ message vdsm_SendSetProperty {
     optional uint32 offset = 4;
     optional uint32 count = 5 [ default = 1 ];
     // TODO: value - check with team
-
+    optional PropertyValue value = 6;
 }
 
 
@@ -118,5 +157,5 @@ message vdc_NotificationPushProperty {
     optional string name = 2;
     optional uint32 index = 3;
     // TODO: value
-    
+    optional PropertyValue value = 4;
 }

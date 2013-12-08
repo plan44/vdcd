@@ -175,7 +175,6 @@ namespace p44 {
     virtual size_t stringLength();
     bool setStringValue(const char *aCString);
     bool setStringValue(const char *aCStr, size_t aLen);
-    virtual const char *c_strValue();
     bool isNull();
     void setNull();
     string lowercaseStringValue();
