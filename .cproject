@@ -34,6 +34,7 @@
 <option id="gnu.c.compiler.option.include.paths.2033005810" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
+<listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
 <option id="gnu.c.compiler.option.debugging.prof.957957389" name="Generate prof information (-p)" superClass="gnu.c.compiler.option.debugging.prof" value="false" valueType="boolean"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.365296998" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
@@ -56,6 +57,7 @@
 <listOptionValue builtIn="false" value="../src/deviceclasses/hue"/>
 <listOptionValue builtIn="false" value="../src/deviceclasses/enocean"/>
 <listOptionValue builtIn="false" value="../src/deviceclasses/simpleio"/>
+<listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.104925405" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -71,12 +73,16 @@
 <tool id="com.digi.lxnetes.managedbuild.cpp.linker.debug.1643172921" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.managedbuild.cpp.linker.debug">
 <option id="gnu.cpp.link.option.libs.436267425" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="protobuf-c"/>
+<listOptionValue builtIn="false" value="crypto"/>
+<listOptionValue builtIn="false" value="ssl"/>
 <listOptionValue builtIn="false" value="mongoose"/>
 <listOptionValue builtIn="false" value="json-c"/>
 </option>
 <option id="gnu.cpp.link.option.paths.1280385530" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>
 </option>
 <option id="gnu.cpp.link.option.strip.1321232120" name="Omit all symbol information (-s)" superClass="gnu.cpp.link.option.strip" value="false" valueType="boolean"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.449462333" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
@@ -1060,6 +1066,7 @@
 <option id="gnu.c.compiler.option.include.paths.1678086436" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
+<listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
@@ -1080,6 +1087,7 @@
 <listOptionValue builtIn="false" value="../src/deviceclasses/hue"/>
 <listOptionValue builtIn="false" value="../src/deviceclasses/enocean"/>
 <listOptionValue builtIn="false" value="../src/deviceclasses/simpleio"/>
+<listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
 <option id="gnu.cpp.compiler.option.preprocessor.def.1780290498" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -1094,6 +1102,7 @@
 <tool id="com.digi.lxnetes.mangedbuild.cpp.linker.release.956388161" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.mangedbuild.cpp.linker.release">
 <option id="gnu.cpp.link.option.libs.47163167" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="protobuf-c"/>
 <listOptionValue builtIn="false" value="crypto"/>
 <listOptionValue builtIn="false" value="ssl"/>
 <listOptionValue builtIn="false" value="mongoose"/>
@@ -1102,6 +1111,7 @@
 <option id="gnu.cpp.link.option.paths.471327307" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.347692932" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

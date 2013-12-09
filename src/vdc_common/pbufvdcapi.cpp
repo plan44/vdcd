@@ -229,7 +229,7 @@ int64_t PbufApiValue::int64Value()
     return objectValue.int64Val;
   }
   else if (allocatedType==apivalue_uint64) {
-    return objectValue.uint64Val & 0x7FFFFFFFFFFFFFFF; // prevent returning sign
+    return objectValue.uint64Val & 0x7FFFFFFFFFFFFFFFll; // prevent returning sign
   }
   return 0;
 }
