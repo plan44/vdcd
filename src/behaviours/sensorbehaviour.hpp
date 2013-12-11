@@ -47,7 +47,8 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    MLMicroSeconds minPushInterval; ///< minimum time between pushes
+    MLMicroSeconds minPushInterval; ///< minimum time between pushes (even if we have more frequent hardware sensor updates)
+    MLMicroSeconds changesOnlyInterval; ///< time span during which only actual value changes are reported. After this interval, next hardware sensor update, even without value change, will cause a push)
     /// @}
 
 
