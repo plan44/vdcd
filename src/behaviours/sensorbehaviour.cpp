@@ -26,7 +26,8 @@ using namespace p44;
 SensorBehaviour::SensorBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
-  minPushInterval(15*Second),
+  minPushInterval(2*Second), // do not push more often than every 2 seconds
+  changesOnlyInterval(0), // report every sensor update
   // state
   lastUpdate(Never),
   lastPush(Never),
@@ -57,11 +58,12 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
     "Sensor %s in device %s received engineering value %d = physical units value %0.3f\n",
     hardwareName.c_str(),  device.shortDesc().c_str(), aEngineeringValue, newCurrentValue
   );
-  if (newCurrentValue!=currentValue) {
-    // changed value
-    MLMicroSeconds now = MainLoop::now();
+  // always update age, even if value itself may not have changed
+  MLMicroSeconds now = MainLoop::now();
+  lastUpdate = now;
+  if (newCurrentValue!=currentValue || now>lastPush+changesOnlyInterval) {
+    // changed value or last push with same value long enough ago
     currentValue = newCurrentValue;
-    lastUpdate = now;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
       device.pushProperty("sensorStates", VDC_API_DOMAIN, (int)index);
@@ -83,7 +85,7 @@ const char *SensorBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 1;
+static const size_t numFields = 2;
 
 size_t SensorBehaviour::numFieldDefs()
 {
@@ -95,6 +97,7 @@ const FieldDefinition *SensorBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "minPushInterval", SQLITE_INTEGER },
+    { "changesOnlyInterval", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -160,6 +163,7 @@ const PropertyDescriptor *SensorBehaviour::getDescDescriptor(int aPropIndex)
 
 enum {
   minPushInterval_key,
+  changesOnlyInterval_key,
   numSettingsProperties
 };
 
@@ -169,6 +173,7 @@ const PropertyDescriptor *SensorBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &sensor_key },
+    { "changesOnlyInterval", apivalue_double, false, changesOnlyInterval_key+settings_key_offset, &sensor_key },
   };
   return &properties[aPropIndex];
 }
@@ -224,6 +229,9 @@ bool SensorBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         case minPushInterval_key+settings_key_offset:
           aPropValue->setDoubleValue((double)minPushInterval/Second);
           return true;
+        case changesOnlyInterval_key+settings_key_offset:
+          aPropValue->setDoubleValue((double)changesOnlyInterval/Second);
+          return true;
         // States properties
         case value_key+states_key_offset:
           // value
@@ -247,6 +255,10 @@ bool SensorBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         // Settings properties
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
+          markDirty();
+          return true;
+        case changesOnlyInterval_key+settings_key_offset:
+          changesOnlyInterval = aPropValue->doubleValue()*Second;
           markDirty();
           return true;
       }
