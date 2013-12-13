@@ -108,6 +108,20 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       newDev->addChannelHandler(upHandler);
     }
   }
+//  else if (functionProfile==0xF61000) {
+//    // F6-10-00 : Window handle
+//    // create EnoceanRPSDevice device
+//    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
+//    // assign channel and address
+//    newDev->setAddressingInfo(aAddress, aSubDevice);
+//    // assign EPP information
+//    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+//    // Window handle switches can be used for anything
+//    newDev->setPrimaryGroup(group_black_joker);
+//    %%%% tbd how to map the handle states to inputs
+//
+//
+//  }
   // RPS never needs a teach-in response
   // return device (or empty if none created)
   return newDev;
