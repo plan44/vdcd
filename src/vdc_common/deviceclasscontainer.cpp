@@ -155,7 +155,7 @@ int DeviceClassContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numClassContainerProperties] = {
-    { "devices", apivalue_string, true, devices_key, &deviceclass_key }
+    { "x-p44-devices", apivalue_string, true, devices_key, &deviceclass_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)

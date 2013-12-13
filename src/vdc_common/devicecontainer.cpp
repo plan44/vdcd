@@ -946,7 +946,7 @@ int DeviceContainer::numProps(int aDomain)
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "vdcs", apivalue_string, true, vdcs_key, &devicecontainer_key }
+    { "x-p44-vdcs", apivalue_string, true, vdcs_key, &devicecontainer_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)

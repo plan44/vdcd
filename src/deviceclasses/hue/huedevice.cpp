@@ -122,12 +122,12 @@ int HueLightScene::numProps(int aDomain)
 const PropertyDescriptor *HueLightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numHueLightSceneProperties] = {
-    { "colorMode", apivalue_uint64, false, colorMode_key, &huelightscene_key },
-    { "hue", apivalue_double, false, hue_key, &huelightscene_key },
-    { "saturation", apivalue_double, false, saturation_key, &huelightscene_key },
-    { "X", apivalue_double, false, X_key, &huelightscene_key },
-    { "Y", apivalue_double, false, Y_key, &huelightscene_key },
-    { "colorTemperature", apivalue_double, false, colorTemperature_key, &huelightscene_key },
+    { "x-p44-colorMode", apivalue_uint64, false, colorMode_key, &huelightscene_key },
+    { "x-p44-hue", apivalue_double, false, hue_key, &huelightscene_key },
+    { "x-p44-saturation", apivalue_double, false, saturation_key, &huelightscene_key },
+    { "x-p44-X", apivalue_double, false, X_key, &huelightscene_key },
+    { "x-p44-Y", apivalue_double, false, Y_key, &huelightscene_key },
+    { "x-p44-colorTemperature", apivalue_double, false, colorTemperature_key, &huelightscene_key },
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
