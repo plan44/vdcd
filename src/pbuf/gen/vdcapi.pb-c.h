@@ -15,6 +15,7 @@ typedef struct _Vdcapi__VdcResponseHello Vdcapi__VdcResponseHello;
 typedef struct _Vdcapi__VdsmRequestGetProperty Vdcapi__VdsmRequestGetProperty;
 typedef struct _Vdcapi__VdcResponseGetProperty Vdcapi__VdcResponseGetProperty;
 typedef struct _Vdcapi__VdcSendAnnounce Vdcapi__VdcSendAnnounce;
+typedef struct _Vdcapi__VdcSendAnnounceVdc Vdcapi__VdcSendAnnounceVdc;
 typedef struct _Vdcapi__VdsmSendBye Vdcapi__VdsmSendBye;
 typedef struct _Vdcapi__VdsmSendRemove Vdcapi__VdsmSendRemove;
 typedef struct _Vdcapi__VdsmSendSetProperty Vdcapi__VdsmSendSetProperty;
@@ -137,9 +138,20 @@ struct  _Vdcapi__VdcSendAnnounce
 {
   ProtobufCMessage base;
   char *dsuid;
+  char *vdcdsuid;
 };
 #define VDCAPI__VDC__SEND_ANNOUNCE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce__descriptor) \
+    , NULL, NULL }
+
+
+struct  _Vdcapi__VdcSendAnnounceVdc
+{
+  ProtobufCMessage base;
+  char *dsuid;
+};
+#define VDCAPI__VDC__SEND_ANNOUNCE_VDC__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce_vdc__descriptor) \
     , NULL }
 
 
@@ -467,6 +479,25 @@ Vdcapi__VdcSendAnnounce *
 void   vdcapi__vdc__send_announce__free_unpacked
                      (Vdcapi__VdcSendAnnounce *message,
                       ProtobufCAllocator *allocator);
+/* Vdcapi__VdcSendAnnounceVdc methods */
+void   vdcapi__vdc__send_announce_vdc__init
+                     (Vdcapi__VdcSendAnnounceVdc         *message);
+size_t vdcapi__vdc__send_announce_vdc__get_packed_size
+                     (const Vdcapi__VdcSendAnnounceVdc   *message);
+size_t vdcapi__vdc__send_announce_vdc__pack
+                     (const Vdcapi__VdcSendAnnounceVdc   *message,
+                      uint8_t             *out);
+size_t vdcapi__vdc__send_announce_vdc__pack_to_buffer
+                     (const Vdcapi__VdcSendAnnounceVdc   *message,
+                      ProtobufCBuffer     *buffer);
+Vdcapi__VdcSendAnnounceVdc *
+       vdcapi__vdc__send_announce_vdc__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   vdcapi__vdc__send_announce_vdc__free_unpacked
+                     (Vdcapi__VdcSendAnnounceVdc *message,
+                      ProtobufCAllocator *allocator);
 /* Vdcapi__VdsmSendBye methods */
 void   vdcapi__vdsm__send_bye__init
                      (Vdcapi__VdsmSendBye         *message);
@@ -756,6 +787,9 @@ typedef void (*Vdcapi__VdcResponseGetProperty_Closure)
 typedef void (*Vdcapi__VdcSendAnnounce_Closure)
                  (const Vdcapi__VdcSendAnnounce *message,
                   void *closure_data);
+typedef void (*Vdcapi__VdcSendAnnounceVdc_Closure)
+                 (const Vdcapi__VdcSendAnnounceVdc *message,
+                  void *closure_data);
 typedef void (*Vdcapi__VdsmSendBye_Closure)
                  (const Vdcapi__VdsmSendBye *message,
                   void *closure_data);
@@ -812,6 +846,7 @@ extern const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_announce__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_vdc__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_bye__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_remove__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_set_property__descriptor;

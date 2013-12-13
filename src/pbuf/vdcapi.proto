@@ -67,7 +67,14 @@ message vdc_ResponseGetProperty {
 
 message vdc_SendAnnounce {
     optional string dSUID = 1;
+    optional string vdcdSUID = 2;
 }
+
+message vdc_SendAnnounceVdc {
+    optional string dSUID = 1;
+}
+
+
 
 message vdsm_SendBye {
 }

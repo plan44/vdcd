@@ -34,8 +34,6 @@ using namespace p44;
 
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
-  announced(Never),
-  announcing(Never),
   localPriority(false),
   progMode(false),
   lastDimSceneNo(T0_S0),
@@ -908,14 +906,7 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
 
 string Device::description()
 {
-  string s = string_format("Device %s", shortDesc().c_str());
-  if (getName().length()>0)
-    string_format_append(s, " named '%s'", getName().c_str());
-  if (announced!=Never)
-    string_format_append(s, " (Announced %lld)", announced);
-  else
-    s.append(" (not yet announced)");
-  s.append("\n");
+  string s = inherited::description(); // DsAdressable
   if (buttons.size()>0) string_format_append(s, "- Buttons: %d\n", buttons.size());
   if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %d\n", binaryInputs.size());
   if (outputs.size()>0) string_format_append(s, "- Outputs: %d\n", outputs.size());

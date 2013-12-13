@@ -52,6 +52,10 @@ namespace p44 {
     /// the user-assignable name
     string name;
 
+    /// announcement status
+    MLMicroSeconds announced; ///< set when last announced to the vdSM
+    MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
+
   protected:
     DeviceContainer *deviceContainerP;
 

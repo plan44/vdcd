@@ -28,7 +28,9 @@ using namespace p44;
 
 
 DsAddressable::DsAddressable(DeviceContainer *aDeviceContainerP) :
-  deviceContainerP(aDeviceContainerP)
+  deviceContainerP(aDeviceContainerP),
+  announced(Never),
+  announcing(Never)
 {
 }
 
@@ -392,5 +394,13 @@ string DsAddressable::shortDesc()
 
 string DsAddressable::description()
 {
-  return string_format("DsAddressable %s", shortDesc().c_str());
+  string s = string_format("%s %s", entityType(), shortDesc().c_str());
+  if (getName().length()>0)
+    string_format_append(s, " named '%s'", getName().c_str());
+  if (announced!=Never)
+    string_format_append(s, " (Announced %lld)", announced);
+  else
+    s.append(" (not yet announced)");
+  s.append("\n");
+  return s;
 }

@@ -315,7 +315,7 @@ namespace p44 {
     void resetAnnouncing();
     void startAnnouncing();
     void announceNext();
-    void announceResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData);
+    void announceResultHandler(DsAddressablePtr aAddressable, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData);
 
     // activity monitor
     void signalActivity();

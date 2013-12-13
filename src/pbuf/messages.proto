@@ -12,6 +12,7 @@ enum Type {
     VDC_RESPONSE_GET_PROPERTY = 5;
 
     VDC_SEND_ANNOUNCE = 8;
+    VDC_SEND_ANNOUNCEVDC = 22;
     VDSM_SEND_REMOVE = 12;
     VDSM_SEND_BYE = 13;
     VDSM_SEND_SET_PROPERTY = 11;
@@ -49,6 +50,7 @@ message Message {
 
     // requests that only expect status responses (ok or error)
     optional vdc_SendAnnounce vdc_send_announce = 106;
+    optional vdc_SendAnnounceVdc vdc_send_announce_vdc = 121;
     optional vdsm_SendRemove vdsm_send_remove = 110;
     optional vdsm_SendBye vdsm_send_bye = 111;
     optional vdsm_SendSetProperty vdsm_send_set_property = 107;

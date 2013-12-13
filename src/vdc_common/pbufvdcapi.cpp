@@ -1253,6 +1253,12 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     vdcapi__vdc__send_announce__init(msg.vdc_send_announce);
     subMessageP = &(msg.vdc_send_announce->base);
   }
+  else if (aMethod=="announcevdc") {
+    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
+    msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
+    vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
+    subMessageP = &(msg.vdc_send_announce_vdc->base);
+  }
   else if (aMethod=="vanish") {
     msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_VANISH;
     msg.vdc_send_vanish = new Vdcapi__VdcNotificationVanish;

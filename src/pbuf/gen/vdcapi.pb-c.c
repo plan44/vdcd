@@ -307,6 +307,49 @@ void   vdcapi__vdc__send_announce__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   vdcapi__vdc__send_announce_vdc__init
+                     (Vdcapi__VdcSendAnnounceVdc         *message)
+{
+  static Vdcapi__VdcSendAnnounceVdc init_value = VDCAPI__VDC__SEND_ANNOUNCE_VDC__INIT;
+  *message = init_value;
+}
+size_t vdcapi__vdc__send_announce_vdc__get_packed_size
+                     (const Vdcapi__VdcSendAnnounceVdc *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t vdcapi__vdc__send_announce_vdc__pack
+                     (const Vdcapi__VdcSendAnnounceVdc *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t vdcapi__vdc__send_announce_vdc__pack_to_buffer
+                     (const Vdcapi__VdcSendAnnounceVdc *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Vdcapi__VdcSendAnnounceVdc *
+       vdcapi__vdc__send_announce_vdc__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Vdcapi__VdcSendAnnounceVdc *)
+     protobuf_c_message_unpack (&vdcapi__vdc__send_announce_vdc__descriptor,
+                                allocator, len, data);
+}
+void   vdcapi__vdc__send_announce_vdc__free_unpacked
+                     (Vdcapi__VdcSendAnnounceVdc *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   vdcapi__vdsm__send_bye__init
                      (Vdcapi__VdsmSendBye         *message)
 {
@@ -1335,7 +1378,7 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor 
   (ProtobufCMessageInit) vdcapi__vdc__response_get_property__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descriptors[1] =
+static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -1349,14 +1392,27 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descript
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "vdcdSUID",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, vdcdsuid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__vdc__send_announce__field_indices_by_name[] = {
   0,   /* field[0] = dSUID */
+  1,   /* field[1] = vdcdSUID */
 };
 static const ProtobufCIntRange vdcapi__vdc__send_announce__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 1 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdc__send_announce__descriptor =
 {
@@ -1366,11 +1422,49 @@ const ProtobufCMessageDescriptor vdcapi__vdc__send_announce__descriptor =
   "Vdcapi__VdcSendAnnounce",
   "vdcapi",
   sizeof(Vdcapi__VdcSendAnnounce),
-  1,
+  2,
   vdcapi__vdc__send_announce__field_descriptors,
   vdcapi__vdc__send_announce__field_indices_by_name,
   1,  vdcapi__vdc__send_announce__number_ranges,
   (ProtobufCMessageInit) vdcapi__vdc__send_announce__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce_vdc__field_descriptors[1] =
+{
+  {
+    "dSUID",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounceVdc, dsuid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned vdcapi__vdc__send_announce_vdc__field_indices_by_name[] = {
+  0,   /* field[0] = dSUID */
+};
+static const ProtobufCIntRange vdcapi__vdc__send_announce_vdc__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 1 }
+};
+const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_vdc__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "vdcapi.vdc_SendAnnounceVdc",
+  "VdcSendAnnounceVdc",
+  "Vdcapi__VdcSendAnnounceVdc",
+  "vdcapi",
+  sizeof(Vdcapi__VdcSendAnnounceVdc),
+  1,
+  vdcapi__vdc__send_announce_vdc__field_descriptors,
+  vdcapi__vdc__send_announce_vdc__field_indices_by_name,
+  1,  vdcapi__vdc__send_announce_vdc__number_ranges,
+  (ProtobufCMessageInit) vdcapi__vdc__send_announce_vdc__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 #define vdcapi__vdsm__send_bye__field_descriptors NULL

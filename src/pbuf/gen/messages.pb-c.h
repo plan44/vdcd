@@ -22,6 +22,7 @@ typedef enum _Vdcapi__Type {
   VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY = 4,
   VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY = 5,
   VDCAPI__TYPE__VDC_SEND_ANNOUNCE = 8,
+  VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC = 22,
   VDCAPI__TYPE__VDSM_SEND_REMOVE = 12,
   VDCAPI__TYPE__VDSM_SEND_BYE = 13,
   VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY = 11,
@@ -68,6 +69,7 @@ struct  _Vdcapi__Message
   Vdcapi__VdsmRequestGetProperty *vdsm_request_get_property;
   Vdcapi__VdcResponseGetProperty *vdc_response_get_property;
   Vdcapi__VdcSendAnnounce *vdc_send_announce;
+  Vdcapi__VdcSendAnnounceVdc *vdc_send_announce_vdc;
   Vdcapi__VdsmSendRemove *vdsm_send_remove;
   Vdcapi__VdsmSendBye *vdsm_send_bye;
   Vdcapi__VdsmSendSetProperty *vdsm_send_set_property;
@@ -85,7 +87,7 @@ struct  _Vdcapi__Message
 };
 #define VDCAPI__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__message__descriptor) \
-    , VDCAPI__TYPE__GENERIC_RESPONSE, 0,0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+    , VDCAPI__TYPE__GENERIC_RESPONSE, 0,0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _Vdcapi__GenericResponse

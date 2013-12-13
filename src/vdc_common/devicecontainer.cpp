@@ -840,6 +840,12 @@ void DeviceContainer::resetAnnouncing()
     dev->announced = Never;
     dev->announcing = Never;
   }
+  // end all vdc sessions
+  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+    DeviceClassContainerPtr vdc = pos->second;
+    vdc->announced = Never;
+    vdc->announcing = Never;
+  }
 }
 
 
@@ -866,40 +872,73 @@ void DeviceContainer::announceNext()
   if (collecting) return; // prevent announcements during collect.
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
+  // first check for unnannounced device classes
+  if (dsUids) {
+    // only announce vdcs when using modern dSUIDs
+    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+      DeviceClassContainerPtr vdc = pos->second;
+      if (
+        vdc->announced==Never &&
+        (vdc->announcing==Never || MainLoop::now()>vdc->announcing+ANNOUNCE_RETRY_TIMEOUT)
+      ) {
+        // mark device as being in process of getting announced
+        vdc->announcing = MainLoop::now();
+        // call announce method
+        if (!vdc->sendRequest("announcevdc", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
+          LOG(LOG_ERR, "Could not send announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+          vdc->announcing = Never; // not registering
+        }
+        else {
+          LOG(LOG_NOTICE, "Sent announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+        }
+        // schedule a retry
+        announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
+        // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
+        return;
+      }
+    }
+  }
   // check all devices for unnannounced ones and announce those
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
+      (!dsUids || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
       // mark device as being in process of getting announced
       dev->announcing = MainLoop::now();
       // call announce method
-      if (!dev->sendRequest("announce", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
-        LOG(LOG_ERR, "Could not send announcement message for device %s\n", dev->shortDesc().c_str());
+      ApiValuePtr params = getSessionConnection()->newApiValue();
+      params->setType(apivalue_object);
+      if (dsUids) {
+        // vcds were announced, include link to vdc for device announcements
+        params->add("vdcdSUID", params->newString(dev->classContainerP->dSUID.getString()));
+      }
+      if (!dev->sendRequest("announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
+        LOG(LOG_ERR, "Could not send announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
       else {
-        LOG(LOG_NOTICE, "Sent announcement for device %s\n", dev->shortDesc().c_str());
+        LOG(LOG_NOTICE, "Sent announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
       }
       // schedule a retry
       announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
       // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
-      break;
+      return;
     }
   }
 }
 
 
-void DeviceContainer::announceResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData)
+void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData)
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
-    LOG(LOG_NOTICE, "Announcement for device %s acknowledged by vdSM\n", aDevice->shortDesc().c_str());
-    aDevice->announced = MainLoop::now();
-    aDevice->announcing = Never; // not announcing any more
+    LOG(LOG_NOTICE, "Announcement for %s %s acknowledged by vdSM\n", aAddressable->entityType(), aAddressable->shortDesc().c_str());
+    aAddressable->announced = MainLoop::now();
+    aAddressable->announcing = Never; // not announcing any more
   }
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);

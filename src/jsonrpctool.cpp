@@ -70,7 +70,7 @@ public:
     fprintf(stderr, "  %s [options]\n", name);
     fprintf(stderr, "    -c jsonrpchost  : host for making connection to\n");
     fprintf(stderr, "    -C jsonrpcport  : port number/service name for JSON service (default=%s)\n", DEFAULT_VDSMSERVICE);
-    fprintf(stderr, "    -a              : auto-respond to 'announce' method call from vDC\n");
+    fprintf(stderr, "    -a              : auto-respond to 'announce' and 'announcevdc' method calls from vDC\n");
     fprintf(stderr, "    -l loglevel     : set loglevel (default = %d)\n", DEFAULT_LOGLEVEL);
   };
 
@@ -170,9 +170,9 @@ public:
     printf("\nJSON-RPC request id='%s', method='%s', params=%s\n\n", aJsonRpcId ? aJsonRpcId : "<none>", aMethod, aParams ? aParams->c_strValue() : "<none>");
     if (aJsonRpcId) {
       // this is a method call, expects answer
-      if (strcmp(aMethod,"announce")==0 && autoaccept) {
+      if ((strcmp(aMethod,"announce")==0 || strcmp(aMethod,"announcevdc")==0) && autoaccept) {
         // just send NULL result
-        printf("Auto-responding with success to 'announce' method\n\n");
+        printf("Auto-responding with success to 'announce(vdc)' method\n\n");
         jsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
       }
       else {

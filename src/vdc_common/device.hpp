@@ -45,9 +45,6 @@ namespace p44 {
     friend class DeviceContainer;
     friend class DsBehaviour;
     
-    MLMicroSeconds announced; ///< set when last announced to the vdSM
-    MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
-
   protected:
 
     /// the class container
