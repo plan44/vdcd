@@ -1249,8 +1249,9 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor =
   (ProtobufCMessageInit) vdcapi__vdc__response_hello__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const uint32_t vdcapi__vdsm__request_get_property__index__default_value = 0;
 static const uint32_t vdcapi__vdsm__request_get_property__count__default_value = 1;
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_descriptors[5] =
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_descriptors[4] =
 {
   {
     "dSUID",
@@ -1284,19 +1285,7 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, has_index),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, index),
     NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "offset",
-    4,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, has_offset),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, offset),
-    NULL,
-    NULL,
+    &vdcapi__vdsm__request_get_property__index__default_value,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
@@ -1314,16 +1303,16 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_
   },
 };
 static const unsigned vdcapi__vdsm__request_get_property__field_indices_by_name[] = {
-  4,   /* field[4] = count */
+  3,   /* field[3] = count */
   0,   /* field[0] = dSUID */
   2,   /* field[2] = index */
   1,   /* field[1] = name */
-  3,   /* field[3] = offset */
 };
-static const ProtobufCIntRange vdcapi__vdsm__request_get_property__number_ranges[1 + 1] =
+static const ProtobufCIntRange vdcapi__vdsm__request_get_property__number_ranges[2 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 5, 3 },
+  { 0, 4 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor =
 {
@@ -1333,10 +1322,10 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor 
   "Vdcapi__VdsmRequestGetProperty",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestGetProperty),
-  5,
+  4,
   vdcapi__vdsm__request_get_property__field_descriptors,
   vdcapi__vdsm__request_get_property__field_indices_by_name,
-  1,  vdcapi__vdsm__request_get_property__number_ranges,
+  2,  vdcapi__vdsm__request_get_property__number_ranges,
   (ProtobufCMessageInit) vdcapi__vdsm__request_get_property__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

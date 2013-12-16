@@ -113,14 +113,12 @@ struct  _Vdcapi__VdsmRequestGetProperty
   char *name;
   protobuf_c_boolean has_index;
   uint32_t index;
-  protobuf_c_boolean has_offset;
-  uint32_t offset;
   protobuf_c_boolean has_count;
   uint32_t count;
 };
 #define VDCAPI__VDSM__REQUEST_GET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_get_property__descriptor) \
-    , NULL, NULL, 0,0, 0,0, 0,1 }
+    , NULL, NULL, 0,0, 0,1 }
 
 
 struct  _Vdcapi__VdcResponseGetProperty
