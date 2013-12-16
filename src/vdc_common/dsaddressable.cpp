@@ -92,7 +92,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
 {
   ErrorPtr respErr;
   string name;
-  int arrayIndex = 0;
+  int arrayIndex = 0; // default to start at first element
   int rangeSize = PROP_ARRAY_SIZE; // entire array by default if no "index" or "offset"/"count" is given
   ApiValuePtr o;
   if (aMethod=="getProperty") {
@@ -102,18 +102,19 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       o = aParams->get("index");
       if (o) {
         arrayIndex = o->int32Value();
-        rangeSize = 0; // single element
+        rangeSize = 0; // single element by default, unless count is explicitly specified
       }
       else {
         o = aParams->get("offset");
         if (o) {
           // range access
           arrayIndex = o->int32Value(); // same as index for lower level property access mechanism
-          // - check optional max count of elements
-          o = aParams->get("count");
-          if (o)
-            rangeSize = o->int32Value();
         }
+      }
+      // check optional max count of elements
+      o = aParams->get("count");
+      if (o) {
+        rangeSize = o->int32Value();
       }
       // now read
       ApiValuePtr result = aRequest->connection()->newApiValue();
@@ -131,27 +132,19 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       ApiValuePtr value;
       if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
         // get optional index
+        rangeSize = 1; // default to single element access
+        arrayIndex = 0; // default to first element
         o = aParams->get("index");
+        if (!o) o = aParams->get("offset");
         if (o) {
           arrayIndex = o->int32Value();
-          rangeSize = 1; // single array element, no repetition 
-        }
-        else {
-          o = aParams->get("offset");
+          // - check optional max count of elements to fill with SAME VALUE
+          o = aParams->get("count");
           if (o) {
-            // range access
-            arrayIndex = o->int32Value(); // same as index for lower level property access mechanism
-            // - check optional max count of elements
-            o = aParams->get("count");
-            if (o)
-              rangeSize = o->int32Value();
-          }
-          else {
-            // neither "index" nor "offset" -> must be non-array
-            rangeSize = 1; // no repetition
+            rangeSize = o->int32Value();
           }
         }
-        // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 is single element write)
+        // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 && rangeSize==1 is single element write)
         if (rangeSize==PROP_ARRAY_SIZE)
           respErr = ErrorPtr(new VdcApiError(400, "array batch write needs offset AND count"));
         else {
