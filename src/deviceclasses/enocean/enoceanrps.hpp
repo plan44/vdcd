@@ -36,13 +36,10 @@ namespace p44 {
   {
     typedef EnoceanChannelHandler inherited;
 
+  protected:
+  
     /// private constructor, create new channels using factory static method
     EnoceanRpsHandler(EnoceanDevice &aDevice);
-
-    bool pressed; ///< true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
-    int switchIndex; ///< which switch within the device (0..3)
-    bool isBSide; ///< set if B-side of switch
-
 
   public:
 
@@ -62,6 +59,56 @@ namespace p44 {
 
     /// handle radio packet related to this channel
     /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) = 0;
+
+  };
+  typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;
+
+
+  /// single enOcean button channel
+  class EnoceanRpsButtonHandler : public EnoceanRpsHandler
+  {
+    typedef EnoceanRpsHandler inherited;
+    friend class EnoceanRpsHandler;
+
+    /// private constructor, create new channels using factory static method
+    EnoceanRpsButtonHandler(EnoceanDevice &aDevice);
+
+    bool pressed; ///< true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
+    int switchIndex; ///< which switch within the device (0..3)
+    bool isBSide; ///< set if B-side of switch
+
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+    
+  private:
+    void setButtonState(bool aPressed);
+    
+  };
+  typedef boost::intrusive_ptr<EnoceanRpsButtonHandler> EnoceanRpsButtonHandlerPtr;
+
+
+  /// single enOcean window handle channel
+  class EnoceanRpsWindowHandleHandler : public EnoceanRpsHandler
+  {
+    typedef EnoceanRpsHandler inherited;
+    friend class EnoceanRpsHandler;
+
+    /// private constructor, create new channels using factory static method
+    EnoceanRpsWindowHandleHandler(EnoceanDevice &aDevice);
+
+
+    bool isTiltedStatus; ///< set if this represents the tilted status (otherwise, it's the open status)
+
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
     virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
@@ -69,10 +116,13 @@ namespace p44 {
     virtual string shortDesc();
 
   private:
-    void setButtonState(bool aPressed);
 
   };
-  typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;
+  typedef boost::intrusive_ptr<EnoceanRpsWindowHandleHandler> EnoceanRpsWindowHandleHandlerPtr;
+
+
+
+
 
 
   class EnoceanRPSDevice : public EnoceanDevice
