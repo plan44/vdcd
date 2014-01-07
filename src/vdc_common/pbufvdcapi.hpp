@@ -53,6 +53,7 @@ namespace p44 {
   class PbufApiValue : public ApiValue
   {
     typedef ApiValue inherited;
+    friend class VdcPbufApiConnection;
 
     // the actual storage
     ApiValueType allocatedType;
@@ -107,9 +108,22 @@ namespace p44 {
     /// @param aMessage the protobuf-c message to extract the fields from
     void getObjectFromMessageFields(const ProtobufCMessage &aMessage);
 
+    /// add specified field of the protobuf message as a field into this ApiValue (which will be made type object if not already so)
+    /// @param aMessage the protobuf-c message to extract the field from
+    /// @param aMessageFieldName the name of the protobuf-c message field
+    /// @param aObjectFieldName The name of the field in the ApiValue object. if NULL, aMessageFieldName will be used.
+    void addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName = NULL);
+
     /// put all values in this ApiValue into name-matching fields of the passed protobuf message
     /// @param aMessage the protobuf-c message to put the fields into
     void putObjectIntoMessageFields(ProtobufCMessage &aMessage);
+
+    /// put specified field of this ApiValue (must be of type object) into the protobuf message as a field
+    /// @param aMessage the protobuf-c message to put the the field into
+    /// @param aMessageFieldName the name of the protobuf-c message field
+    /// @param aObjectFieldName The name of the field in the ApiValue object. if NULL, aMessageFieldName will be used.
+    void putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName = NULL);
+
 
     /// extract a single field from a protobuf message into this value
     /// @param aFieldDescriptor the protobuf-c field descriptor for this field
@@ -133,6 +147,11 @@ namespace p44 {
 
     void getValueFromPropVal(Vdcapi__PropertyValue &aPropVal);
     void putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal);
+
+    void getValueFromProp(Vdcapi__Property &aProp, const char *aBaseName);
+    Vdcapi__PropertyElement *propElementFromValue(const char *aName);
+    void putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName);
+
 
     size_t numObjectFields();
 

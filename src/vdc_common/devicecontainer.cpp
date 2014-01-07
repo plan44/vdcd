@@ -867,13 +867,16 @@ void DeviceContainer::startAnnouncing()
 }
 
 
+#warning "no VDC announce for now"
+#define HAS_VDCANNOUNCE false
+
 void DeviceContainer::announceNext()
 {
   if (collecting) return; // prevent announcements during collect.
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // first check for unnannounced device classes
-  if (dsUids) {
+  if (dsUids && HAS_VDCANNOUNCE) {
     // only announce vdcs when using modern dSUIDs
     for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
       DeviceClassContainerPtr vdc = pos->second;

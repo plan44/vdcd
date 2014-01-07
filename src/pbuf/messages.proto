@@ -11,26 +11,23 @@ enum Type {
     VDSM_REQUEST_GET_PROPERTY = 4;
     VDC_RESPONSE_GET_PROPERTY = 5;
 
+    VDSM_SEND_PING = 6;
+    VDC_SEND_PONG = 7;
     VDC_SEND_ANNOUNCE = 8;
-    VDC_SEND_ANNOUNCEVDC = 22;
+    VDC_SEND_VANISH = 9;
+    VDC_SEND_PUSH_PROPERTY = 10;
+    VDSM_SEND_SET_PROPERTY = 11;
     VDSM_SEND_REMOVE = 12;
     VDSM_SEND_BYE = 13;
-    VDSM_SEND_SET_PROPERTY = 11;
 
+    
     VDSM_NOTIFICATION_CALL_SCENE = 14;
     VDSM_NOTIFICATION_SAVE_SCENE = 15;
     VDSM_NOTIFICATION_UNDO_SCENE = 16;
     VDSM_NOTIFICATION_SET_LOCAL_PRIO = 17;
     VDSM_NOTIFICATION_CALL_MIN_SCENE = 18;
-    VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21;
     VDSM_NOTIFICATION_IDENTIFY = 19;
-    VDSM_NOTIFICATION_PING_DEVICE = 20;
-    VDSM_NOTIFICATION_PING = 6;
-
-    VDC_NOTIFICATION_PONG = 7;
-    VDC_NOTIFICATION_VANISH = 9;
-    VDC_NOTIFICATION_PUSH_PROPERTY = 10;
-
+    VDSM_NOTIFICATION_SET_CONTROL_VALUE = 20;
 }
 
 message Message {
@@ -48,12 +45,15 @@ message Message {
     optional vdsm_RequestGetProperty vdsm_request_get_property = 102;
     optional vdc_ResponseGetProperty vdc_response_get_property = 103;
 
-    // requests that only expect status responses (ok or error)
+    // requests that only expect a response in case of error
+    optional vdsm_SendPing vdsm_send_ping = 104;
+    optional vdc_SendPong vdc_send_pong = 105;
     optional vdc_SendAnnounce vdc_send_announce = 106;
-    optional vdc_SendAnnounceVdc vdc_send_announce_vdc = 121;
+    optional vdsm_SendSetProperty vdsm_send_set_property = 107;
+    optional vdc_SendVanish vdc_send_vanish = 108;
+    optional vdc_SendPushProperty vdc_send_push_property = 109;
     optional vdsm_SendRemove vdsm_send_remove = 110;
     optional vdsm_SendBye vdsm_send_bye = 111;
-    optional vdsm_SendSetProperty vdsm_send_set_property = 107;
 
     // notifications do not expect any response, not even error responses
     optional vdsm_NotificationCallScene vdsm_send_call_scene = 112;
@@ -61,32 +61,27 @@ message Message {
     optional vdsm_NotificationUndoScene vdsm_send_undo_scene = 114;
     optional vdsm_NotificationSetLocalPrio vdsm_send_set_local_prio = 115;
     optional vdsm_NotificationCallMinScene vdsm_send_call_min_scene = 116;
-    optional vdsm_NotificationSetControlValue vdsm_send_set_control_value = 120;
     optional vdsm_NotificationIdentify vdsm_send_identify = 117;
-    optional vdsm_NotificationPing vdsm_send_ping = 118;
-
-    optional vdc_NotificationPong vdc_send_pong = 119;
-    optional vdc_NotificationVanish vdc_send_vanish = 108;
-    optional vdc_NotificationPushProperty vdc_send_push_property = 109;
+    optional vdsm_NotificationSetControlValue vdsm_send_set_control_value = 118;
 }
 
 enum ResultCode {
-    RESULT_OK = 1;
-    RESULT_MESSAGE_UNKNOWN = 2;
-    RESULT_INCOMPATIBLE_API = 3;
-    RESULT_SERVICE_NOT_AVAILABLE = 4;
-    RESULT_INSUFFICIENT_STORAGE = 5;
-    RESULT_FORBIDDEN = 6;
-    RESULT_NOT_IMPLEMENTED = 7;
-    RESULT_NO_CONTENT_FOR_ARRAY = 8;
-    RESULT_INVALID_VALUE_TYPE = 9;
-    RESULT_MISSING_SUBMESSAGE = 10;
-    RESULT_MISSING_DATA = 11;
-    RESULT_NOT_FOUND = 12;
-    RESULT_NOT_AUTHORIZED = 13;
+    ERR_OK = 0;
+    ERR_MESSAGE_UNKNOWN = 1;
+    ERR_INCOMPATIBLE_API = 2;
+    ERR_SERVICE_NOT_AVAILABLE = 3;
+    ERR_INSUFFICIENT_STORAGE = 4;
+    ERR_FORBIDDEN = 5;
+    ERR_NOT_IMPLEMENTED = 6;
+    ERR_NO_CONTENT_FOR_ARRAY = 7;
+    ERR_INVALID_VALUE_TYPE = 8;
+    ERR_MISSING_SUBMESSAGE = 9;
+    ERR_MISSING_DATA = 10;
+    ERR_NOT_FOUND = 11;
+    ERR_NOT_AUTHORIZED = 12;
 }
 
 message GenericResponse {
-    required ResultCode result = 1 [ default = RESULT_OK ];
+    required ResultCode code = 1 [ default = ERR_OK ];
     optional string description = 2;
 }

@@ -446,6 +446,41 @@ void PbufApiValue::putObjectIntoMessageFields(ProtobufCMessage &aMessage)
 
 
 
+void PbufApiValue::addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName)
+{
+  if (!aObjectFieldName) aObjectFieldName = aMessageFieldName;
+  // must be an object
+  setType(apivalue_object);
+  const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aMessageFieldName);
+  if (fieldDescP) {
+    PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
+    val->getValueFromMessageField(*fieldDescP, aMessage);
+    if (!val->isNull()) {
+      // don't add NULL values, because this means field was not set in message, which means no value, not NULL value 
+      add(aObjectFieldName, val); // add with specified name
+    }
+  }
+}
+
+
+
+void PbufApiValue::putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName)
+{
+  if (!aObjectFieldName) aObjectFieldName = aMessageFieldName;
+  if (isType(apivalue_object)) {
+    const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aMessageFieldName);
+    if (fieldDescP) {
+      PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(get(aObjectFieldName));
+      if (val) {
+        val->putValueIntoMessageField(*fieldDescP, aMessage);
+      }
+    }
+  }
+}
+
+
+
+
 void PbufApiValue::setValueFromField(const ProtobufCFieldDescriptor &aFieldDescriptor, const void *aData, size_t aIndex, ssize_t aArraySize)
 {
   if (aArraySize>=0) {
@@ -608,16 +643,18 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage
       const ProtobufCMessageDescriptor *subMsgDescP = static_cast<const ProtobufCMessageDescriptor *>(aFieldDescriptor.descriptor);
-      if (strcmp(subMsgDescP->short_name,"PropertyValue")==0) {
+      // field is a message, we might need to allocate the pointer array
+      if (allocArray) {
+        dataP = new void *[aArraySize];
+        memset(dataP, 0, aArraySize*sizeof(void *)); // null the array
+      }
+      // check for property special case
+      if (strcmp(subMsgDescP->short_name,"Property")==0) {
         // generic property value submessage
-        if (allocArray) {
-          dataP = new void *[aArraySize];
-          memset(dataP, 0, aArraySize*sizeof(void *)); // null the array
-        }
-        Vdcapi__PropertyValue *propValP = new Vdcapi__PropertyValue;
-        vdcapi__property_value__init(propValP);
-        *((Vdcapi__PropertyValue **)dataP+aIndex) = propValP;
-        putValueIntoPropVal(*propValP);
+        Vdcapi__Property *propP = new Vdcapi__Property;
+        vdcapi__property__init(propP);
+        *((Vdcapi__Property **)dataP+aIndex) = propP;
+        putValueIntoProp(*propP,"value");
       }
       else {
         // specific pre-existing message, fields will be filled from message
@@ -644,42 +681,29 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
 
 void PbufApiValue::getValueFromPropVal(Vdcapi__PropertyValue &aPropVal)
 {
-  switch (aPropVal.type) {
-    case VDCAPI__VALUE_TYPE__BOOL_VALUE:
-      setType(apivalue_bool);
-      setBoolValue(aPropVal.boolval);
-      break;
-    case VDCAPI__VALUE_TYPE__INT64_VALUE:
-      setType(apivalue_int64);
-      setInt64Value(aPropVal.intval);
-      break;
-    case VDCAPI__VALUE_TYPE__UINT64_VALUE:
-      setType(apivalue_uint64);
-      setUint64Value(aPropVal.uintval);
-      break;
-    case VDCAPI__VALUE_TYPE__DOUBLE_VALUE:
-      setType(apivalue_double);
-      setDoubleValue(aPropVal.doubleval);
-      break;
-    case VDCAPI__VALUE_TYPE__STRING_VALUE:
-      setType(apivalue_string);
-      setStringValue(aPropVal.strval);
-      break;
-    case VDCAPI__VALUE_TYPE__STRUCT_VALUE:
-      setType(apivalue_object);
-      // repeated structval field contains named subproperties
-      for (size_t i=0; i<aPropVal.n_structval; i++) {
-        PbufApiValuePtr element = PbufApiValuePtr(new PbufApiValue);
-        Vdcapi__SubProperty *subPropP = aPropVal.structval[i];
-        element->getValueFromPropVal(*(subPropP->value));
-        add(subPropP->name, element);
-      }
-      break;
-    case VDCAPI__VALUE_TYPE__NULL_VALUE:
-    default:
-      // null value
-      setType(apivalue_null);
-      break;
+  if (aPropVal.has_v_bool) {
+    setType(apivalue_bool);
+    setBoolValue(aPropVal.v_bool);
+  }
+  else if (aPropVal.has_v_int64) {
+    setType(apivalue_int64);
+    setInt64Value(aPropVal.v_int64);
+  }
+  else if (aPropVal.has_v_uint64) {
+    setType(apivalue_uint64);
+    setUint64Value(aPropVal.v_uint64);
+  }
+  else if (aPropVal.has_v_double) {
+    setType(apivalue_double);
+    setDoubleValue(aPropVal.v_double);
+  }
+  else if (aPropVal.v_string) {
+    setType(apivalue_string);
+    setStringValue(aPropVal.v_string);
+  }
+  else {
+    // null value
+    setType(apivalue_null);
   }
 }
 
@@ -688,66 +712,60 @@ void PbufApiValue::putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal)
 {
   switch (allocatedType) {
     case apivalue_bool:
-      aPropVal.type = VDCAPI__VALUE_TYPE__BOOL_VALUE;
-      aPropVal.has_boolval = true;
-      aPropVal.boolval = boolValue();
+      aPropVal.has_v_bool = true;
+      aPropVal.v_bool = boolValue();
       break;
     case apivalue_int64:
-      aPropVal.type = VDCAPI__VALUE_TYPE__INT64_VALUE;
-      aPropVal.has_intval = true;
-      aPropVal.intval = int64Value();
+      aPropVal.has_v_int64 = true;
+      aPropVal.v_int64 = int64Value();
       break;
     case apivalue_uint64:
-      aPropVal.type = VDCAPI__VALUE_TYPE__UINT64_VALUE;
-      aPropVal.has_uintval = true;
-      aPropVal.uintval = uint64Value();
+      aPropVal.has_v_uint64 = true;
+      aPropVal.v_uint64 = uint64Value();
       break;
     case apivalue_double:
-      aPropVal.type = VDCAPI__VALUE_TYPE__DOUBLE_VALUE;
-      aPropVal.has_doubleval = true;
-      aPropVal.doubleval = doubleValue();
+      aPropVal.has_v_double = true;
+      aPropVal.v_double = doubleValue();
       break;
     case apivalue_string: {
-      aPropVal.type = VDCAPI__VALUE_TYPE__STRING_VALUE;
       string s = stringValue();
       char * p = new char [s.size()+1];
       strcpy(p, s.c_str());
-      aPropVal.strval = p;
+      aPropVal.v_string = p;
       break;
     }
-    case apivalue_object: {
-      aPropVal.type = VDCAPI__VALUE_TYPE__STRUCT_VALUE;
-      // put key/values of this object into repeated structval field
-      size_t numFields = numObjectFields();
-      if (numFields>0) {
-        // - create pointer array
-        aPropVal.structval = new Vdcapi__SubProperty *[numFields];
-        memset(aPropVal.structval, 0, numFields*sizeof(Vdcapi__SubProperty *)); // null the array
-        aPropVal.n_structval = numFields;
-        // - fill in fields
-        resetKeyIteration();
-        string key;
-        ApiValuePtr val;
-        size_t i = 0;
-        while (nextKeyValue(key, val)) {
-          PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
-          Vdcapi__SubProperty *subPropP = new Vdcapi__SubProperty;
-          vdcapi__sub_property__init(subPropP);
-          subPropP->name = new char[key.size()+1];
-          strcpy(subPropP->name, key.c_str());
-          aPropVal.structval[i] = subPropP;
-          subPropP->value = new Vdcapi__PropertyValue;
-          vdcapi__property_value__init(subPropP->value);
-          pval->putValueIntoPropVal(*(subPropP->value));
-          i++;
-        }
-      }
-      break;
-    }
+//    case apivalue_object: {
+//      aPropVal.type = VDCAPI__VALUE_TYPE__STRUCT_VALUE;
+//      // put key/values of this object into repeated structval field
+//      size_t numFields = numObjectFields();
+//      if (numFields>0) {
+//        // - create pointer array
+//        aPropVal.structval = new Vdcapi__SubProperty *[numFields];
+//        memset(aPropVal.structval, 0, numFields*sizeof(Vdcapi__SubProperty *)); // null the array
+//        aPropVal.n_structval = numFields;
+//        // - fill in fields
+//        resetKeyIteration();
+//        string key;
+//        ApiValuePtr val;
+//        size_t i = 0;
+//        while (nextKeyValue(key, val)) {
+//          PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+//          Vdcapi__SubProperty *subPropP = new Vdcapi__SubProperty;
+//          vdcapi__sub_property__init(subPropP);
+//          subPropP->name = new char[key.size()+1];
+//          strcpy(subPropP->name, key.c_str());
+//          aPropVal.structval[i] = subPropP;
+//          subPropP->value = new Vdcapi__PropertyValue;
+//          vdcapi__property_value__init(subPropP->value);
+//          pval->putValueIntoPropVal(*(subPropP->value));
+//          i++;
+//        }
+//      }
+//      break;
+//    }
     case apivalue_array:
       #warning "for now, arrays nested withing property values are not supported"
-      aPropVal.type = VDCAPI__VALUE_TYPE__STRING_VALUE;
-      aPropVal.strval = (char *)"warning: property subfield is array";
+      aPropVal.v_string = (char *)"warning: property subfield is array";
       break;
     default:
       // null value, do nothing
@@ -757,15 +775,92 @@ void PbufApiValue::putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal)
 
 
 
+void PbufApiValue::getValueFromProp(Vdcapi__Property &aProp, const char *aBaseName)
+{
+  // A property is always a list of ProperyValues in protobuf now
+  // so we need some ugly case distinction here:
+  // - if aProp has no elements, this is a NULL value
+  // - if aProp has one element
+  //   - if the element has no or empty name or a name matching aBaseName, this is a single value
+  //   - otherwise, this is an object with a single element in it
+  // - if aProp has multiple elements, this is an object with multiple fields
+  if (aProp.n_elements==0) {
+    // null
+    setType(apivalue_null);
+    return; // done
+  }
+  if (aProp.n_elements==1) {
+    // exactly one element, could be plain value
+    if (
+      aProp.elements[0]->name==NULL || // no name
+      *(aProp.elements[0]->name)==0 || // empty nam
+      strcasecmp(aProp.elements[0]->name, aBaseName)==0 // same name as property itself
+    ) {
+      // single plain value
+      getValueFromPropVal(*(aProp.elements[0]->value));
+      return; // done
+    }
+  }
+  // must be object, collect elements
+  setType(apivalue_object);
+  for (int i=0; i<aProp.n_elements; i++) {
+    PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
+    val->getValueFromPropVal(*(aProp.elements[i]->value));
+    add(aProp.elements[i]->name, val);
+  }
+}
 
 
-//void PbufApiValue::getValueFromFieldNamed(const string &aFieldName, const ProtobufCMessage &aMessage)
-//{
-//  const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aFieldName.c_str());
-//  if (fieldDescP) {
-//    getValueFromMessageField(*fieldDescP, aMessage);
-//  }
-//}
+
+Vdcapi__PropertyElement *PbufApiValue::propElementFromValue(const char *aName)
+{
+  Vdcapi__PropertyElement *elemP = new Vdcapi__PropertyElement;
+  vdcapi__property_element__init(elemP);
+  elemP->name = NULL;
+  if (aName) {
+    elemP->name = new char [strlen(aName)+1];
+    strcpy(elemP->name, aName);
+  }
+  elemP->value = new Vdcapi__PropertyValue;
+  vdcapi__property_value__init(elemP->value);
+  putValueIntoPropVal(*(elemP->value));
+  return elemP;
+}
+
+
+void PbufApiValue::putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName)
+{
+  aProp.n_elements = 0; // assume none
+  aProp.elements = NULL; // none
+  if (isNull()) {    // NULL value is represented by property with no elements, so we are done
+    return; // done
+  }
+  if (!isType(apivalue_object)) {
+    // single value: create single element containing value
+    aProp.n_elements = 1;
+    aProp.elements = new Vdcapi__PropertyElement *[1];
+    Vdcapi__PropertyElement *elem = propElementFromValue(aBaseName);
+    aProp.elements[0] = elem;
+    return; // done
+  }
+  // object: create element for each object field
+  aProp.n_elements = numObjectFields();
+  if (aProp.n_elements>0) {
+    aProp.elements = new Vdcapi__PropertyElement *[aProp.n_elements];
+    // fill in fields
+    resetKeyIteration();
+    string key;
+    ApiValuePtr val;
+    size_t i = 0;
+    while (nextKeyValue(key, val)) {
+      PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+      Vdcapi__PropertyElement *elem = pval->propElementFromValue(key.c_str());
+      aProp.elements[i] = elem;
+      i++;
+    }
+  }
+  return; // done
+}
 
 
 
@@ -821,14 +916,18 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         msg.vdc_response_hello = new Vdcapi__VdcResponseHello;
         vdcapi__vdc__response_hello__init(msg.vdc_response_hello);
         subMessageP = &(msg.vdc_response_hello->base);
-        // result object are response message's fields
-        if (result) result->putObjectIntoMessageFields(*subMessageP);
+        // pbuf API structure and field names are different, we need to map them
+        if (result) {
+          result->putObjectFieldIntoMessage(*subMessageP, "allow_disconnect", "allowDisconnect");
+          result->putObjectFieldIntoMessage(*subMessageP, "dsuid", "dSUID");
+        }
         break;
       case VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY:
         msg.vdc_response_get_property = new Vdcapi__VdcResponseGetProperty;
         vdcapi__vdc__response_get_property__init(msg.vdc_response_get_property);
         subMessageP = &(msg.vdc_response_get_property->base);
         // result object is property value(s)
+        // and only field in VdcResponseGetProperty is the "properties" repeating field
         if (result) result->putValueIntoMessageField(subMessageP->descriptor->fields[1-1], *subMessageP);
         break;
       default:
@@ -856,7 +955,7 @@ ErrorPtr VdcPbufApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage,
   msg.generic_response = &resp;
   msg.has_message_id = true; // is response to a previous method call message
   msg.message_id = reqId; // use same message id as in method call
-  resp.result = VdcPbufApiConnection::internalToPbufError(aErrorCode);
+  resp.code = VdcPbufApiConnection::internalToPbufError(aErrorCode);
   resp.description = (char *)(aErrorMessage.size()>0 ? aErrorMessage.c_str() : NULL);
   err = pbufConnection->sendMessage(&msg);
   // log (if not just OK)
@@ -1020,20 +1119,20 @@ ErrorCode VdcPbufApiConnection::pbufToInternalError(Vdcapi__ResultCode aVdcApiRe
 {
   ErrorCode errorCode;
   switch (aVdcApiResultCode) {
-    case VDCAPI__RESULT_CODE__RESULT_OK: errorCode = 0; break;
-    case VDCAPI__RESULT_CODE__RESULT_MESSAGE_UNKNOWN: errorCode = 405; break;
-    case VDCAPI__RESULT_CODE__RESULT_NOT_FOUND: errorCode = 404; break;
-    case VDCAPI__RESULT_CODE__RESULT_INCOMPATIBLE_API: errorCode = 505; break;
-    case VDCAPI__RESULT_CODE__RESULT_SERVICE_NOT_AVAILABLE: errorCode = 503; break;
-    case VDCAPI__RESULT_CODE__RESULT_INSUFFICIENT_STORAGE: errorCode = 507; break;
-    case VDCAPI__RESULT_CODE__RESULT_FORBIDDEN: errorCode = 403; break;
-    case VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED: errorCode = 401; break;
-    case VDCAPI__RESULT_CODE__RESULT_NOT_IMPLEMENTED: errorCode = 501; break;
-    case VDCAPI__RESULT_CODE__RESULT_NO_CONTENT_FOR_ARRAY: errorCode = 204; break;
-    case VDCAPI__RESULT_CODE__RESULT_INVALID_VALUE_TYPE: errorCode = 415; break;
+    case VDCAPI__RESULT_CODE__ERR_OK: errorCode = 0; break;
+    case VDCAPI__RESULT_CODE__ERR_MESSAGE_UNKNOWN: errorCode = 405; break;
+    case VDCAPI__RESULT_CODE__ERR_NOT_FOUND: errorCode = 404; break;
+    case VDCAPI__RESULT_CODE__ERR_INCOMPATIBLE_API: errorCode = 505; break;
+    case VDCAPI__RESULT_CODE__ERR_SERVICE_NOT_AVAILABLE: errorCode = 503; break;
+    case VDCAPI__RESULT_CODE__ERR_INSUFFICIENT_STORAGE: errorCode = 507; break;
+    case VDCAPI__RESULT_CODE__ERR_FORBIDDEN: errorCode = 403; break;
+    case VDCAPI__RESULT_CODE__ERR_NOT_AUTHORIZED: errorCode = 401; break;
+    case VDCAPI__RESULT_CODE__ERR_NOT_IMPLEMENTED: errorCode = 501; break;
+    case VDCAPI__RESULT_CODE__ERR_NO_CONTENT_FOR_ARRAY: errorCode = 204; break;
+    case VDCAPI__RESULT_CODE__ERR_INVALID_VALUE_TYPE: errorCode = 415; break;
     // TODO: what were these intended for?
-    case VDCAPI__RESULT_CODE__RESULT_MISSING_SUBMESSAGE: errorCode = 400; break;
-    case VDCAPI__RESULT_CODE__RESULT_MISSING_DATA: errorCode = 400; break;
+    case VDCAPI__RESULT_CODE__ERR_MISSING_SUBMESSAGE: errorCode = 400; break;
+    case VDCAPI__RESULT_CODE__ERR_MISSING_DATA: errorCode = 400; break;
     default: errorCode = 500; break; // general error
   }
   return errorCode;
@@ -1045,18 +1144,18 @@ Vdcapi__ResultCode VdcPbufApiConnection::internalToPbufError(ErrorCode aErrorCod
   Vdcapi__ResultCode res;
   switch (aErrorCode) {
     case 0:
-    case 200: res = VDCAPI__RESULT_CODE__RESULT_OK; break;
-    case 405: res = VDCAPI__RESULT_CODE__RESULT_MESSAGE_UNKNOWN; break;
-    case 404: res = VDCAPI__RESULT_CODE__RESULT_NOT_FOUND; break;
-    case 505: res = VDCAPI__RESULT_CODE__RESULT_INCOMPATIBLE_API; break;
-    case 503: res = VDCAPI__RESULT_CODE__RESULT_SERVICE_NOT_AVAILABLE; break;
-    case 507: res = VDCAPI__RESULT_CODE__RESULT_INSUFFICIENT_STORAGE; break;
-    case 403: res = VDCAPI__RESULT_CODE__RESULT_FORBIDDEN; break;
-    case 401: res = VDCAPI__RESULT_CODE__RESULT_NOT_AUTHORIZED; break;
-    case 501: res = VDCAPI__RESULT_CODE__RESULT_NOT_IMPLEMENTED; break;
-    case 204: res = VDCAPI__RESULT_CODE__RESULT_NO_CONTENT_FOR_ARRAY; break;
-    case 415: res = VDCAPI__RESULT_CODE__RESULT_INVALID_VALUE_TYPE; break;
-    default: res = VDCAPI__RESULT_CODE__RESULT_NOT_IMPLEMENTED; break; // something is obviously not implemented...
+    case 200: res = VDCAPI__RESULT_CODE__ERR_OK; break;
+    case 405: res = VDCAPI__RESULT_CODE__ERR_MESSAGE_UNKNOWN; break;
+    case 404: res = VDCAPI__RESULT_CODE__ERR_NOT_FOUND; break;
+    case 505: res = VDCAPI__RESULT_CODE__ERR_INCOMPATIBLE_API; break;
+    case 503: res = VDCAPI__RESULT_CODE__ERR_SERVICE_NOT_AVAILABLE; break;
+    case 507: res = VDCAPI__RESULT_CODE__ERR_INSUFFICIENT_STORAGE; break;
+    case 403: res = VDCAPI__RESULT_CODE__ERR_FORBIDDEN; break;
+    case 401: res = VDCAPI__RESULT_CODE__ERR_NOT_AUTHORIZED; break;
+    case 501: res = VDCAPI__RESULT_CODE__ERR_NOT_IMPLEMENTED; break;
+    case 204: res = VDCAPI__RESULT_CODE__ERR_NO_CONTENT_FOR_ARRAY; break;
+    case 415: res = VDCAPI__RESULT_CODE__ERR_INVALID_VALUE_TYPE; break;
+    default: res = VDCAPI__RESULT_CODE__ERR_NOT_IMPLEMENTED; break; // something is obviously not implemented...
   }
   return res;
 }
@@ -1070,6 +1169,8 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
 {
   Vdcapi__Message *decodedMsg;
   ProtobufCMessage *paramsMsg = NULL;
+  PbufApiValuePtr msgFieldsObj = PbufApiValuePtr(new PbufApiValue);
+
   ErrorPtr err;
 
   decodedMsg = vdcapi__message__unpack(NULL, aPackedMessage.size(), (const uint8_t *)aPackedMessage.c_str()); // Deserialize the serialized input
@@ -1084,77 +1185,113 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
     bool emptyResult = false;
     switch (decodedMsg->type) {
       // incoming method calls
-      case VDCAPI__TYPE__VDSM_REQUEST_HELLO:
+      case VDCAPI__TYPE__VDSM_REQUEST_HELLO: {
         method = "hello";
         paramsMsg = &(decodedMsg->vdsm_request_hello->base);
+        // pbuf API structure and field names are different, we need to map them
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "api_version", "APIVersion");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "push_uri", "pushURI");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_HELLO;
-        break;
-      case VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY:
+        goto getDsUid;
+      }
+      case VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY: {
         method = "getProperty";
         paramsMsg = &(decodedMsg->vdsm_request_get_property->base);
+        // pbuf API structure and field names are different, we need to map them
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "name");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "offset", "index");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
-        break;
-      case VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY:
+        goto getDsUid;
+      }
+      case VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY: {
         method = "setProperty";
         paramsMsg = &(decodedMsg->vdsm_send_set_property->base);
+        // pbuf API structure and field names are different, we need to map them
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "name");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "offset", "index");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
+        // write has always a single property, never multiple, so just get the first or if none, write NULL
+        PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue); // NULL value to start with
+        if (decodedMsg->vdsm_send_set_property->n_properties>0) {
+          // there is a value to set (first, others are ignored
+          val->getValueFromProp(*(decodedMsg->vdsm_send_set_property->properties[0]), decodedMsg->vdsm_send_set_property->name);
+        }
+        msgFieldsObj->add("value", val);
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
-        break;
-      case VDCAPI__TYPE__VDSM_SEND_REMOVE:
+        goto getDsUid;
+      }
+      case VDCAPI__TYPE__VDSM_SEND_REMOVE: {
         method = "remove";
         paramsMsg = &(decodedMsg->vdsm_send_remove->base);
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
-        break;
-      case VDCAPI__TYPE__VDSM_SEND_BYE:
+        goto getDsUid;
+      }
+      case VDCAPI__TYPE__VDSM_SEND_BYE: {
         method = "bye";
         paramsMsg = NULL; // no params (altough there is a message with no fields)
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
         break;
+      }
       // Notifications
-      case VDCAPI__TYPE__VDSM_NOTIFICATION_PING:
+      case VDCAPI__TYPE__VDSM_SEND_PING: {
+//      case VDCAPI__TYPE__VDSM_NOTIFICATION_PING: {
         method = "ping";
         paramsMsg = &(decodedMsg->vdsm_send_ping->base);
-        break;
+        goto getDsUid;
+      }
       case VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_SCENE:
         method = "callScene";
         paramsMsg = &(decodedMsg->vdsm_send_call_scene->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SAVE_SCENE:
         method = "saveScene";
         paramsMsg = &(decodedMsg->vdsm_send_save_scene->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_UNDO_SCENE:
         method = "undoScene";
         paramsMsg = &(decodedMsg->vdsm_send_undo_scene->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_LOCAL_PRIO:
         method = "setLocalPriority";
         paramsMsg = &(decodedMsg->vdsm_send_set_local_prio->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE:
         method = "setControlValue";
         paramsMsg = &(decodedMsg->vdsm_send_set_control_value->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE:
         method = "callSceneMin";
         paramsMsg = &(decodedMsg->vdsm_send_call_min_scene->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY:
         method = "identify";
         paramsMsg = &(decodedMsg->vdsm_send_identify->base);
+        // pbuf API field names match, we can use generic decoding
         break;
       // incoming responses
       case VDCAPI__TYPE__GENERIC_RESPONSE: {
         // error or NULL response
-        _Vdcapi__GenericResponse *genericResponse = (_Vdcapi__GenericResponse *)decodedMsg;
-        if (genericResponse->result!=VDCAPI__RESULT_CODE__RESULT_OK) {
+        if (decodedMsg->generic_response->code!=VDCAPI__RESULT_CODE__ERR_OK) {
           // convert to HTTP-style internal codes
-          ErrorCode errorCode = pbufToInternalError(genericResponse->result);
-          err = ErrorPtr(new VdcApiError(errorCode, nonNullCStr(genericResponse->description)));
+          ErrorCode errorCode = pbufToInternalError(decodedMsg->generic_response->code);
+          err = ErrorPtr(new VdcApiError(errorCode, nonNullCStr(decodedMsg->generic_response->description)));
         }
         responseForId = decodedMsg->message_id;
         emptyResult = true; // do not convert message fields to result
         break;
       }
+      // common case for many messages: message with parameters that were explicitly mapped has also a dSUID parameter
+      getDsUid:
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "dSUID"); // get the dSUID
+        paramsMsg = NULL; // prevent generic parameter mapping, mapping was done explicitly before
+        break;
       // unknown message type
       default:
         method = string_format("unknownMethod_%d", decodedMsg->type);
@@ -1164,10 +1301,9 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
     // dispatch between incoming method calls/notifications and responses for outgoing calls
     if (responseForId>=0) {
       // This is a response
-      PbufApiValuePtr result = PbufApiValuePtr(new PbufApiValue);
       if (Error::isOK(err) && !emptyResult) {
         // convert fields of response to API object
-        result->getObjectFromMessageFields(decodedMsg->base);
+        msgFieldsObj->getObjectFromMessageFields(decodedMsg->base);
       }
       // find the originating request
       PendingAnswerMap::iterator pos = pendingAnswers.find(responseForId);
@@ -1182,12 +1318,12 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
         // create request object just to hold the response ID
         VdcPbufApiRequestPtr request = VdcPbufApiRequestPtr(new VdcPbufApiRequest(VdcPbufApiConnectionPtr(this), responseForId));
         if (Error::isOK(err)) {
-          LOG(LOG_INFO,"vdSM -> vDC (pbuf) result received: id='%s', result=%s\n", request->requestId().c_str(), result ? result->description().c_str() : "<none>");
+          LOG(LOG_INFO,"vdSM -> vDC (pbuf) result received: id='%s', result=%s\n", request->requestId().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
         }
         else {
-          LOG(LOG_INFO,"vdSM -> vDC (pbuf) error received: id='%s', error=%s, errordata=%s\n", request->requestId().c_str(), err->description().c_str(), result ? result->description().c_str() : "<none>");
+          LOG(LOG_INFO,"vdSM -> vDC (pbuf) error received: id='%s', error=%s, errordata=%s\n", request->requestId().c_str(), err->description().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
         }
-        cb(this, request, err, result); // call handler
+        cb(this, request, err, msgFieldsObj); // call handler
       }
       err.reset(); // delivered
     }
@@ -1195,22 +1331,21 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
       // this is a method call or notification
       VdcPbufApiRequestPtr request;
       // - get the params
-      PbufApiValuePtr params = PbufApiValuePtr(new PbufApiValue);
       if (paramsMsg) {
-        params->getObjectFromMessageFields(*paramsMsg);
+        msgFieldsObj->getObjectFromMessageFields(*paramsMsg);
       }
       // - dispatch between methods and notifications
       if (decodedMsg->has_message_id) {
         // method call, we need a request reference object
         request = VdcPbufApiRequestPtr(new VdcPbufApiRequest(VdcPbufApiConnectionPtr(this), decodedMsg->message_id));
         request->responseType = (Vdcapi__Type)responseType; // save the response type for sending answers later
-        LOG(LOG_INFO,"vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s\n", request->reqId, method.c_str(), params ? params->description().c_str() : "<none>");
+        LOG(LOG_INFO,"vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s\n", request->reqId, method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
       else {
-        LOG(LOG_INFO,"vdSM -> vDC (pbuf) notification received: method='%s', params=%s\n", method.c_str(), params ? params->description().c_str() : "<none>");
+        LOG(LOG_INFO,"vdSM -> vDC (pbuf) notification received: method='%s', params=%s\n", method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
       // call handler
-      apiRequestHandler(VdcPbufApiConnectionPtr(this), request, method, params);
+      apiRequestHandler(VdcPbufApiConnectionPtr(this), request, method, msgFieldsObj);
     }
   }
   // free the unpacked message
@@ -1242,9 +1377,10 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
   // find out which type and which submessage applies
   ProtobufCMessage *subMessageP = NULL;
   if (aMethod=="pong") {
-    msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_PONG;
-    msg.vdc_send_pong = new Vdcapi__VdcNotificationPong;
-    vdcapi__vdc__notification_pong__init(msg.vdc_send_pong);
+//    msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_PONG;
+    msg.type = VDCAPI__TYPE__VDC_SEND_PONG;
+    msg.vdc_send_pong = new Vdcapi__VdcSendPong;
+    vdcapi__vdc__send_pong__init(msg.vdc_send_pong);
     subMessageP = &(msg.vdc_send_pong->base);
   }
   else if (aMethod=="announce") {
@@ -1254,22 +1390,33 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     subMessageP = &(msg.vdc_send_announce->base);
   }
   else if (aMethod=="announcevdc") {
-    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
-    msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
-    vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
-    subMessageP = &(msg.vdc_send_announce_vdc->base);
+    #warning "currently missing in libdsvdc, so commented out for now"
+//    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
+//    msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
+//    vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
+//    subMessageP = &(msg.vdc_send_announce_vdc->base);
   }
   else if (aMethod=="vanish") {
-    msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_VANISH;
-    msg.vdc_send_vanish = new Vdcapi__VdcNotificationVanish;
-    vdcapi__vdc__notification_vanish__init(msg.vdc_send_vanish);
+    msg.type = VDCAPI__TYPE__VDC_SEND_VANISH;
+    msg.vdc_send_vanish = new Vdcapi__VdcSendVanish;
+    vdcapi__vdc__send_vanish__init(msg.vdc_send_vanish);
     subMessageP = &(msg.vdc_send_vanish->base);
   }
   else if (aMethod=="pushProperty") {
-    msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_PUSH_PROPERTY;
-    msg.vdc_send_push_property = new Vdcapi__VdcNotificationPushProperty;
-    vdcapi__vdc__notification_push_property__init(msg.vdc_send_push_property);
+    msg.type = VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY;
+    msg.vdc_send_push_property = new Vdcapi__VdcSendPushProperty;
+    vdcapi__vdc__send_push_property__init(msg.vdc_send_push_property);
     subMessageP = &(msg.vdc_send_push_property->base);
+    // pbuf API structure and field names are different, we need to map them
+    params->putObjectFieldIntoMessage(*subMessageP, "name");
+    params->putObjectFieldIntoMessage(*subMessageP, "offset", "index");
+    // transform the value
+    PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(params->get("value"));
+    // result object is property value(s)
+    // and the 4th field in VdcSendPushProperty is the "properties" repeating field
+    if (val) val->putValueIntoMessageField(subMessageP->descriptor->fields[4-1], *subMessageP);
+    // params processed explicitly, prevent generic assignments
+    params.reset();
   }
   else {
     // no suitable submessage, cannot send
@@ -1284,7 +1431,7 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
       // save response handler into our map so that it can be called later when answer arrives
       pendingAnswers[requestIdCounter] = aResponseHandler;
     }
-    // now fill parameters into submessage
+    // now generically fill parameters into submessage (if any, and if not handled above explicitly)
     if (params) {
       params->putObjectIntoMessageFields(*subMessageP);
     }
