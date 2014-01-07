@@ -145,7 +145,7 @@ ErrorPtr VdcJsonApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage,
   JsonApiValuePtr errorData;
   if (aErrorData)
     errorData = boost::dynamic_pointer_cast<JsonApiValue>(aErrorData);
-  return jsonConnection->jsonRpcComm->sendError(requestId().c_str(), aErrorCode, aErrorMessage.size()>0 ? aErrorMessage.c_str() : NULL, errorData->jsonObject());
+  return jsonConnection->jsonRpcComm->sendError(requestId().c_str(), aErrorCode, aErrorMessage.size()>0 ? aErrorMessage.c_str() : NULL, errorData ? errorData->jsonObject() : JsonObjectPtr());
 }
 
 
