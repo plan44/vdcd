@@ -193,7 +193,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
   }
   else {
     // single value property
-    aApiObject->setType(aPropertyDescriptor.propertyType);
+    if (!aForWrite) aApiObject->setType(aPropertyDescriptor.propertyType); // for read, set correct type for value (for write, type should match already)
     if (!accessField(aForWrite, aApiObject, aPropertyDescriptor, aIndex)) {
       err = ErrorPtr(new VdcApiError(403,"Access denied"));
     }
