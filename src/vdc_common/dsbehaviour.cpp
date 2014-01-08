@@ -62,9 +62,7 @@ void DsBehaviour::setHardwareError(DsHardwareError aHardwareError)
 void DsBehaviour::setGroup(DsGroup aGroup)
 {
   if (group!=aGroup) {
-    device.setGroupMembership(group, false);
     group = aGroup;
-    device.setGroupMembership(group, true);
   }
 }
 

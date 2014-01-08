@@ -30,7 +30,8 @@ DeviceSettings::DeviceSettings(Device &aDevice) :
   inherited(aDevice.getDeviceContainer().getDsParamStore()),
   device(aDevice),
   deviceFlags(0),
-  zoneID(0)
+  zoneID(0),
+  extraGroups(1<<group_variable) // all devices are also in group 0 by default 
 {
 }
 
@@ -44,7 +45,7 @@ const char *DeviceSettings::tableName()
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numFields = 4;
 
 size_t DeviceSettings::numFieldDefs()
 {
@@ -57,7 +58,8 @@ const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
   static const FieldDefinition dataDefs[numFields] = {
     { "deviceFlags", SQLITE_INTEGER },
     { "deviceName", SQLITE_TEXT },
-    { "zoneID", SQLITE_INTEGER }
+    { "zoneID", SQLITE_INTEGER },
+    { "extraGroups", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -76,6 +78,7 @@ void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   deviceFlags = aRow->get<int>(aIndex++);
   device.setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
   zoneID = aRow->get<int>(aIndex++);
+  extraGroups = aRow->get<long long>(aIndex++);
 }
 
 
@@ -87,4 +90,5 @@ void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
   aStatement.bind(aIndex++, deviceFlags);
   aStatement.bind(aIndex++, device.getName().c_str());
   aStatement.bind(aIndex++, zoneID);
+  aStatement.bind(aIndex++, (long long)extraGroups);
 }

@@ -120,6 +120,11 @@ namespace p44 {
     /// @note this will also update the device's isMember() information
     void setGroup(DsGroup aGroup);
 
+    /// get group
+    /// @result group for this behaviour
+    DsGroup getGroup() { return group; };
+
+
     /// load behaviour parameters from persistent DB
     ErrorPtr load();
 

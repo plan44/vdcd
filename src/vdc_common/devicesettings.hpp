@@ -24,6 +24,7 @@
 
 #include "persistentparams.hpp"
 
+#include "dsdefs.h"
 
 using namespace std;
 
@@ -47,6 +48,8 @@ namespace p44 {
     int deviceFlags;
     /// global dS zone ID
     int zoneID;
+    /// global extra groups
+    DsGroupMask extraGroups;
 
   public:
     DeviceSettings(Device &aDevice);

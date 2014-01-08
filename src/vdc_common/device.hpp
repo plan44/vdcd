@@ -70,7 +70,6 @@ namespace p44 {
 
     // variables set by concrete devices (=hardware dependent)
     DsGroup primaryGroup; ///< basic color of the device (can be black)
-    DsGroupMask groupMembership; ///< mask for groups the device is member of ("GRP" property)
 
     // volatile internal state
     SceneNo lastDimSceneNo; ///< most recently used dimming scene (used when T1234_CONT is received)
@@ -269,6 +268,8 @@ namespace p44 {
 
 
   private:
+
+    DsGroupMask behaviourGroups();
 
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);

@@ -39,8 +39,7 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   lastDimSceneNo(T0_S0),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
-  primaryGroup(group_black_joker),
-  groupMembership(0)
+  primaryGroup(group_black_joker)
 {
 }
 
@@ -73,21 +72,45 @@ void Device::setPrimaryGroup(DsGroup aColorGroup)
 }
 
 
+
+DsGroupMask Device::behaviourGroups()
+{
+  // or together all group memberships of all behaviours
+  DsGroupMask groups = 0;
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
+  return groups;
+}
+
+
+
 bool Device::isMember(DsGroup aColorGroup)
 {
   return
     aColorGroup==primaryGroup || // is always member of primary group
-    ((groupMembership & 0x1ll<<aColorGroup)!=0); // additional membership flag set
+    (behaviourGroups() & 0x1ll<<aColorGroup)!=0 || // plus of all groups of all behaviours
+    (deviceSettings && (deviceSettings->extraGroups & 0x1ll<<aColorGroup)!=0); // explicit extra membership flag set
 }
 
 
 void Device::setGroupMembership(DsGroup aColorGroup, bool aIsMember)
 {
-  if (aIsMember) {
-    groupMembership |= (0x1ll<<aColorGroup);
-  }
-  else {
-    groupMembership &= ~(0x1ll<<aColorGroup);
+  if (deviceSettings) {
+    DsGroupMask newExtraGroups = deviceSettings->extraGroups;
+    if (aIsMember) {
+      // make explicitly member of a group
+      newExtraGroups |= (0x1ll<<aColorGroup);
+    }
+    else {
+      // not explicitly member
+      newExtraGroups &= ~(0x1ll<<aColorGroup);
+    }
+    if (newExtraGroups!=deviceSettings->extraGroups) {
+      deviceSettings->extraGroups = newExtraGroups;
+      deviceSettings->markDirty();
+    }
   }
 }
 
