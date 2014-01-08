@@ -188,7 +188,7 @@ int OutputBehaviour::numDescProps() { return numDescProperties; }
 const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
-    { "outputFunction", apivalue_uint64, false, outputFunction_key+descriptions_key_offset, &output_key },
+    { "function", apivalue_uint64, false, outputFunction_key+descriptions_key_offset, &output_key },
     { "outputUsage", apivalue_uint64, false, outputUsage_key+descriptions_key_offset, &output_key },
     { "variableRamp", apivalue_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
     { "maxPower", apivalue_double, false, maxPower_key+descriptions_key_offset, &output_key },
