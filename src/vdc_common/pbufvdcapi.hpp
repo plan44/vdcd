@@ -133,7 +133,7 @@ namespace p44 {
     /// extract a single field from a protobuf message into this value
     /// @param aFieldDescriptor the protobuf-c field descriptor for this field
     /// @param aMessage the protobuf-c message to put the field value into
-    void putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage);
+    void putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage, const char *aBaseName);
 
     /// @}
 
@@ -143,12 +143,12 @@ namespace p44 {
     bool allocateIf(ApiValueType aIsType);
 
     void setValueFromField(const ProtobufCFieldDescriptor &aFieldDescriptor, const void *aData, size_t aIndex, ssize_t aArraySize);
-    void putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize);
+    void putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize, const char *aBaseName);
 
     void getValueFromPropVal(Vdcapi__PropertyValue &aPropVal);
     void putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal);
 
-    void getValueFromProp(Vdcapi__Property &aProp, const char *aBaseName);
+    void getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName);
     Vdcapi__PropertyElement *propElementFromValue(const char *aName);
     void putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName);
 
@@ -182,6 +182,7 @@ namespace p44 {
     uint32_t reqId;
     VdcPbufApiConnectionPtr pbufConnection;
     Vdcapi__Type responseType; ///< which response message to send back
+    string requestedPropertyName; ///< which name the property we requested had, because this needs to be in the reply (ugh)
 
   public:
 
