@@ -168,12 +168,17 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
     DBGLOG(LOG_DEBUG,"- HTTP subthread exited - request completed\n");
     requestInProgress = false; // thread completed
     // call back with result of request
-    // Note: this callback might initiate another request already -
-    if (responseCallback)
-      responseCallback(*this, response, requestError);
+    // Note: as this callback might initiate another request already and overwrite the callback, copy it here
+    HttpCommCB cb = responseCallback;
+    string resp = response;
+    ErrorPtr reqErr = requestError;
     // release child thread object now
     responseCallback.clear();
     childThread.reset();
+    // now execute callback
+    if (cb) {
+      cb(*this, resp, reqErr);
+    }
   }
 }
 
