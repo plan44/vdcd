@@ -236,7 +236,7 @@ int OutputBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_int64, false, value_key+states_key_offset, &output_key },
+    { "value", apivalue_uint64, false, value_key+states_key_offset, &output_key }, // note: so far, pbuf API requires uint here
     { "age", apivalue_double, false, age_key+states_key_offset, &output_key },
   };
   return &properties[aPropIndex];
@@ -273,7 +273,7 @@ bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
           return true;
         // States properties
         case value_key+states_key_offset:
-          aPropValue->setInt32Value(getOutputValue());
+          aPropValue->setUint32Value(getOutputValue());
           return true;
         case age_key+states_key_offset:
           if (outputLastSent==Never)
