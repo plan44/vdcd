@@ -100,6 +100,7 @@ void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
       getName().c_str(), outputValue,
       (double)aOutputBehaviour.transitionTimeForHardware()/Second
     );
+    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this

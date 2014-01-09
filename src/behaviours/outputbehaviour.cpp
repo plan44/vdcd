@@ -80,7 +80,10 @@ void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 
 void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
 {
-  DBGLOG(LOG_DEBUG, ">>>> setOutputValue %d, cachedOutputValue=%d\n", aNewValue, cachedOutputValue);
+  LOG(LOG_INFO,
+    "Output '%s' in device %s: is requested to apply new value %d, last known value is %d\n",
+    hardwareName.c_str(), device.shortDesc().c_str(), aNewValue, cachedOutputValue
+  );
   if (aNewValue!=cachedOutputValue) {
     cachedOutputValue = aNewValue;
     nextTransitionTime = aTransitionTime;
@@ -101,6 +104,10 @@ void OutputBehaviour::outputValueApplied()
 {
   outputUpdatePending = false; // applied
   outputLastSent = MainLoop::now(); // now we know that we are in sync
+  LOG(LOG_INFO,
+    "Output '%s' in device %s: has applied new value %d to hardware\n",
+    hardwareName.c_str(), device.shortDesc().c_str(), cachedOutputValue
+  );
 }
 
 

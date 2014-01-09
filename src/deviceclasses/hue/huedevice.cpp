@@ -560,10 +560,18 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     // for on and off, set transition time (1/10 second resolution)
     newState->add("transitiontime", JsonObject::newInt64(aOutputBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, NULL);
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aOutputBehaviour, _3));
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+}
+
+
+void HueDevice::outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+  }
 }
 
 

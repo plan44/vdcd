@@ -78,8 +78,7 @@ namespace p44 {
   /// - In case of PUT, POST and DELETE requests, it is the contents of the "success" response object
   /// - In case of GET requests, it is the entire answer object
   /// @param aError error in case of failure, error code is either a HueCommErrors enum or the error code as
-  ///   delivered by the hue brigde itself ("
-  ///   send API commands
+  ///   delivered by the hue brigde itself.
   typedef boost::function<void (HueComm &aHueComm, JsonObjectPtr aResult, ErrorPtr aError)> HueApiResultCB;
 
 

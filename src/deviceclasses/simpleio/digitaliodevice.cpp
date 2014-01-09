@@ -88,6 +88,7 @@ void DigitalIODevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 {
   if (aOutputBehaviour.getIndex()==0 && indicatorOutput) {
     indicatorOutput->set(aOutputBehaviour.valueForHardware()>0);
+    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this

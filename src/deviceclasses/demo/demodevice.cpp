@@ -63,6 +63,7 @@ void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
       hwValue -= 4;
     }
     printf("Demo Device Output: %s\n", bar.c_str());
+    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this

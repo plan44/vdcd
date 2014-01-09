@@ -221,6 +221,7 @@ namespace p44 {
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
     void alertHandler(int aLeftCycles);
+    void outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aError);
 
   };
   
