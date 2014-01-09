@@ -1211,19 +1211,19 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
         goto getDsUid;
       }
-      case VDCAPI__TYPE__VDSM_SEND_SET_PROPERTY: {
+      case VDCAPI__TYPE__VDSM_REQUEST_SET_PROPERTY: {
         method = "setProperty";
-        paramsMsg = &(decodedMsg->vdsm_send_set_property->base);
+        paramsMsg = &(decodedMsg->vdsm_request_set_property->base);
         // pbuf API structure and field names are different, we need to map them
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "offset", "index");
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         // write has always a single property, never multiple, so just get the first or if none, write NULL
         // also we need derive "name" from examining content AND the "name" property, as it might be at either place :-(
-        const char *name = decodedMsg->vdsm_send_set_property->name; // default to "name" field in request
+        const char *name = decodedMsg->vdsm_request_set_property->name; // default to "name" field in request
         PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue); // NULL value to start with
-        if (decodedMsg->vdsm_send_set_property->n_properties>0) {
+        if (decodedMsg->vdsm_request_set_property->n_properties>0) {
           // there is a value to set (first, others are ignored
-          val->getValueFromProp(*(decodedMsg->vdsm_send_set_property->properties[0]), name);
+          val->getValueFromProp(*(decodedMsg->vdsm_request_set_property->properties[0]), name);
         }
         msgFieldsObj->add("value", val);
         msgFieldsObj->add("name", msgFieldsObj->newString(name)); // add property name as found in request or in passed property.

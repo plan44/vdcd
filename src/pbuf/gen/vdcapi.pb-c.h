@@ -19,7 +19,7 @@ typedef struct _Vdcapi__PropertyElement Vdcapi__PropertyElement;
 typedef struct _Vdcapi__Property Vdcapi__Property;
 typedef struct _Vdcapi__VdsmRequestGetProperty Vdcapi__VdsmRequestGetProperty;
 typedef struct _Vdcapi__VdcResponseGetProperty Vdcapi__VdcResponseGetProperty;
-typedef struct _Vdcapi__VdsmSendSetProperty Vdcapi__VdsmSendSetProperty;
+typedef struct _Vdcapi__VdsmRequestSetProperty Vdcapi__VdsmRequestSetProperty;
 typedef struct _Vdcapi__VdsmSendPing Vdcapi__VdsmSendPing;
 typedef struct _Vdcapi__VdcSendPong Vdcapi__VdcSendPong;
 typedef struct _Vdcapi__VdsmNotificationCallScene Vdcapi__VdsmNotificationCallScene;
@@ -168,7 +168,7 @@ struct  _Vdcapi__VdcResponseGetProperty
     , 0,NULL }
 
 
-struct  _Vdcapi__VdsmSendSetProperty
+struct  _Vdcapi__VdsmRequestSetProperty
 {
   ProtobufCMessage base;
   char *dsuid;
@@ -180,8 +180,8 @@ struct  _Vdcapi__VdsmSendSetProperty
   size_t n_properties;
   Vdcapi__Property **properties;
 };
-#define VDCAPI__VDSM__SEND_SET_PROPERTY__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__send_set_property__descriptor) \
+#define VDCAPI__VDSM__REQUEST_SET_PROPERTY__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_set_property__descriptor) \
     , NULL, NULL, 0,0, 0,1, 0,NULL }
 
 
@@ -542,24 +542,24 @@ Vdcapi__VdcResponseGetProperty *
 void   vdcapi__vdc__response_get_property__free_unpacked
                      (Vdcapi__VdcResponseGetProperty *message,
                       ProtobufCAllocator *allocator);
-/* Vdcapi__VdsmSendSetProperty methods */
-void   vdcapi__vdsm__send_set_property__init
-                     (Vdcapi__VdsmSendSetProperty         *message);
-size_t vdcapi__vdsm__send_set_property__get_packed_size
-                     (const Vdcapi__VdsmSendSetProperty   *message);
-size_t vdcapi__vdsm__send_set_property__pack
-                     (const Vdcapi__VdsmSendSetProperty   *message,
+/* Vdcapi__VdsmRequestSetProperty methods */
+void   vdcapi__vdsm__request_set_property__init
+                     (Vdcapi__VdsmRequestSetProperty         *message);
+size_t vdcapi__vdsm__request_set_property__get_packed_size
+                     (const Vdcapi__VdsmRequestSetProperty   *message);
+size_t vdcapi__vdsm__request_set_property__pack
+                     (const Vdcapi__VdsmRequestSetProperty   *message,
                       uint8_t             *out);
-size_t vdcapi__vdsm__send_set_property__pack_to_buffer
-                     (const Vdcapi__VdsmSendSetProperty   *message,
+size_t vdcapi__vdsm__request_set_property__pack_to_buffer
+                     (const Vdcapi__VdsmRequestSetProperty   *message,
                       ProtobufCBuffer     *buffer);
-Vdcapi__VdsmSendSetProperty *
-       vdcapi__vdsm__send_set_property__unpack
+Vdcapi__VdsmRequestSetProperty *
+       vdcapi__vdsm__request_set_property__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   vdcapi__vdsm__send_set_property__free_unpacked
-                     (Vdcapi__VdsmSendSetProperty *message,
+void   vdcapi__vdsm__request_set_property__free_unpacked
+                     (Vdcapi__VdsmRequestSetProperty *message,
                       ProtobufCAllocator *allocator);
 /* Vdcapi__VdsmSendPing methods */
 void   vdcapi__vdsm__send_ping__init
@@ -786,8 +786,8 @@ typedef void (*Vdcapi__VdsmRequestGetProperty_Closure)
 typedef void (*Vdcapi__VdcResponseGetProperty_Closure)
                  (const Vdcapi__VdcResponseGetProperty *message,
                   void *closure_data);
-typedef void (*Vdcapi__VdsmSendSetProperty_Closure)
-                 (const Vdcapi__VdsmSendSetProperty *message,
+typedef void (*Vdcapi__VdsmRequestSetProperty_Closure)
+                 (const Vdcapi__VdsmRequestSetProperty *message,
                   void *closure_data);
 typedef void (*Vdcapi__VdsmSendPing_Closure)
                  (const Vdcapi__VdsmSendPing *message,
@@ -836,7 +836,7 @@ extern const ProtobufCMessageDescriptor vdcapi__property_element__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor;
-extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_set_property__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_ping__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_pong__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_call_scene__descriptor;

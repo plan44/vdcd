@@ -55,7 +55,8 @@ message vdc_ResponseGetProperty {
     repeated Property properties = 1;
 }
 
-message vdsm_SendSetProperty {
+// expects generic response
+message vdsm_RequestSetProperty {
     optional string dSUID = 1;
     optional string name = 2;
     optional uint32 offset = 3 [ default = 0 ];

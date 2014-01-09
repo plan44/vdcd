@@ -11,23 +11,25 @@ enum Type {
     VDSM_REQUEST_GET_PROPERTY = 4;
     VDC_RESPONSE_GET_PROPERTY = 5;
 
-    VDSM_SEND_PING = 6;
-    VDC_SEND_PONG = 7;
-    VDC_SEND_ANNOUNCE = 8;
-    VDC_SEND_VANISH = 9;
-    VDC_SEND_PUSH_PROPERTY = 10;
-    VDSM_SEND_SET_PROPERTY = 11;
-    VDSM_SEND_REMOVE = 12;
-    VDSM_SEND_BYE = 13;
+    VDSM_REQUEST_SET_PROPERTY = 6;
+    VDC_RESPONSE_SET_PROPERTY = 7;
+
+    VDSM_SEND_PING = 8;
+    VDC_SEND_PONG = 9;
+    VDC_SEND_ANNOUNCE = 10;
+    VDC_SEND_VANISH = 11;
+    VDC_SEND_PUSH_PROPERTY = 12;
+    VDSM_SEND_REMOVE = 13;
+    VDSM_SEND_BYE = 14;
 
     
-    VDSM_NOTIFICATION_CALL_SCENE = 14;
-    VDSM_NOTIFICATION_SAVE_SCENE = 15;
-    VDSM_NOTIFICATION_UNDO_SCENE = 16;
-    VDSM_NOTIFICATION_SET_LOCAL_PRIO = 17;
-    VDSM_NOTIFICATION_CALL_MIN_SCENE = 18;
-    VDSM_NOTIFICATION_IDENTIFY = 19;
-    VDSM_NOTIFICATION_SET_CONTROL_VALUE = 20;
+    VDSM_NOTIFICATION_CALL_SCENE = 15;
+    VDSM_NOTIFICATION_SAVE_SCENE = 16;
+    VDSM_NOTIFICATION_UNDO_SCENE = 17;
+    VDSM_NOTIFICATION_SET_LOCAL_PRIO = 18;
+    VDSM_NOTIFICATION_CALL_MIN_SCENE = 19;
+    VDSM_NOTIFICATION_IDENTIFY = 20;
+    VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21;
 }
 
 message Message {
@@ -45,11 +47,13 @@ message Message {
     optional vdsm_RequestGetProperty vdsm_request_get_property = 102;
     optional vdc_ResponseGetProperty vdc_response_get_property = 103;
 
+    // expects generic response
+    optional vdsm_RequestSetProperty vdsm_request_set_property = 104;
+
     // requests that only expect a response in case of error
-    optional vdsm_SendPing vdsm_send_ping = 104;
-    optional vdc_SendPong vdc_send_pong = 105;
-    optional vdc_SendAnnounce vdc_send_announce = 106;
-    optional vdsm_SendSetProperty vdsm_send_set_property = 107;
+    optional vdsm_SendPing vdsm_send_ping = 105;
+    optional vdc_SendPong vdc_send_pong = 106;
+    optional vdc_SendAnnounce vdc_send_announce = 107;
     optional vdc_SendVanish vdc_send_vanish = 108;
     optional vdc_SendPushProperty vdc_send_push_property = 109;
     optional vdsm_SendRemove vdsm_send_remove = 110;
