@@ -664,9 +664,16 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
       }
     }
   }
-  // report back error if any
+  // check error
   if (!Error::isOK(respErr)) {
-    aRequest->sendError(respErr);
+    if (aRequest) {
+      // report back in case of method call
+      aRequest->sendError(respErr);
+    }
+    else {
+      // just log in case of notification
+      LOG(LOG_WARNING, "Notification '%s' processing error: %s\n", aMethod.c_str(), respErr->description().c_str());
+    }
   }
 }
 
