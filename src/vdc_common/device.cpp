@@ -442,10 +442,17 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       if (!scene->dontCare) {
         // Scene found and dontCare not set, check details
         // - check local priority
-        if (!area && localPriority && !scene->ignoreLocalPriority && !aForce) {
-          // non-area scene call, but device is in local priority and scene does not ignore local priority and is not forced
-          LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
-          return; // suppress scene call entirely
+        if (!area && localPriority) {
+          // non-area scene call, but device is in local priority and scene does not ignore local priority
+          if (!aForce && !scene->ignoreLocalPriority) {
+            // not forced nor localpriority ignored, localpriority prevents applying non-area scene
+            LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
+            return; // suppress scene call entirely
+          }
+          else {
+            // forced or scene ignores local priority, scene is applied anyway, and also clears localPriority
+            localPriority = false;
+          }
         }
         // - make sure we have the lastState pseudo-scene for undo (but not for dimming scenes)
         if (dimSceneNo==0) {
