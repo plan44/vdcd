@@ -580,7 +580,7 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
     case PROTOBUF_C_TYPE_INT32:
     case PROTOBUF_C_TYPE_SINT32:
     case PROTOBUF_C_TYPE_SFIXED32:
-      if (allocatedType==apivalue_int64) {
+      if (allocatedType==apivalue_int64 || allocatedType==apivalue_uint64) {
         if (allocArray) dataP = new int32_t[aArraySize];
         *((int32_t *)dataP+aIndex) = int32Value();
       }
@@ -588,21 +588,21 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
     case PROTOBUF_C_TYPE_INT64:
     case PROTOBUF_C_TYPE_SINT64:
     case PROTOBUF_C_TYPE_SFIXED64:
-      if (allocatedType==apivalue_int64) {
+      if (allocatedType==apivalue_int64 || allocatedType==apivalue_uint64) {
         if (allocArray) dataP = new int64_t[aArraySize];
         *((int64_t *)dataP+aIndex) = int64Value();
       }
       break;
     case PROTOBUF_C_TYPE_UINT32:
     case PROTOBUF_C_TYPE_FIXED32:
-      if (allocatedType==apivalue_uint64) {
+      if (allocatedType==apivalue_uint64 || allocatedType==apivalue_int64) {
         if (allocArray) dataP = new uint32_t[aArraySize];
         *((uint32_t *)dataP+aIndex) = uint32Value();
       }
       break;
     case PROTOBUF_C_TYPE_UINT64:
     case PROTOBUF_C_TYPE_FIXED64:
-      if (allocatedType==apivalue_uint64) {
+      if (allocatedType==apivalue_uint64 || allocatedType==apivalue_int64) {
         if (allocArray) dataP = new uint64_t[aArraySize];
         *((uint64_t *)dataP+aIndex) = uint64Value();
       }
