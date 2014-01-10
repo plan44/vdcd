@@ -247,7 +247,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       callSceneMin(sceneNo);
     }
     if (!Error::isOK(err)) {
-      LOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+      LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
     }
   }
   else if (aMethod=="identify") {

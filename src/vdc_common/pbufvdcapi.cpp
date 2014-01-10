@@ -240,7 +240,9 @@ double PbufApiValue::doubleValue()
   if (allocatedType==apivalue_double) {
     return objectValue.doubleVal;
   }
-  return 0.0;
+  else {
+    return int64Value(); // int (or int derived from uint) can also be read as double
+  }
 }
 
 
@@ -249,7 +251,9 @@ bool PbufApiValue::boolValue()
   if (allocatedType==apivalue_bool) {
     return objectValue.boolVal;
   }
-  return false;
+  else {
+    return int64Value()!=0; // non-zero int is also true
+  }
 }
 
 
