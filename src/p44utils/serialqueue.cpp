@@ -277,6 +277,7 @@ void SerialOperationQueue::receiveHandler(FdComm *aFdCommP, ErrorPtr aError)
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
     size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
+    DBGLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }
@@ -328,6 +329,7 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t *aBytes)
 {
+  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d) called\n", aNumBytes);
   ssize_t res = 0;
   ErrorPtr err = serialComm.establishConnection();
   if (Error::isOK(err)) {
@@ -344,6 +346,7 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
       DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
     }
   }
+  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter() returns %d\n", res);
   return res;
 }
 
@@ -351,12 +354,14 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
 
 size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
 {
+  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d) called\n", aMaxBytes);
+  size_t gotBytes = 0;
   if (serialComm.connectionIsOpen()) {
 		// get number of bytes available
     ErrorPtr err;
-    size_t gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
+    gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGLOG(LOG_DEBUG,"Error reading serial: %s\n", err->description().c_str());
+      DBGLOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
       return 0;
     }
     else if (DBGLOGENABLED(LOG_DEBUG)) {
@@ -365,11 +370,14 @@ size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
         for (size_t i=0; i<gotBytes; i++) {
           string_format_append(s, "%02X ",aBytes[i]);
         }
-        DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
+        DBGLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
       }
     }
-		return gotBytes;
   }
+  else {
+    DBGLOG(LOG_DEBUG, "- connection is not open!\n");
+  }
+  return gotBytes;
 }
 
 
