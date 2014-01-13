@@ -1055,6 +1055,9 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
 ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage)
 {
   ErrorPtr err;
+  if (DBGLOGENABLED(LOG_DEBUG)) {
+    protobufMessagePrint(&aVdcApiMessage->base);
+  }
   // generate the binary message
   size_t packedSize = vdcapi__message__get_packed_size(aVdcApiMessage);
   uint8_t *packedMsg = new uint8_t[packedSize+2]; // leave room for header
@@ -1189,6 +1192,10 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
     err = ErrorPtr(new VdcApiError(400,"error unpacking incoming message"));
   }
   else {
+    // print it
+    if (DBGLOGENABLED(LOG_DEBUG)) {
+      protobufMessagePrint(&decodedMsg->base);
+    }
     // successful message decoding
     string method;
     int responseType = 0; // none
@@ -1468,3 +1475,105 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
   // done
   return err;
 }
+
+
+#pragma mark - generic protobuf-C message printing
+
+
+void protobufFieldPrint(const ProtobufCFieldDescriptor *aFieldDescriptorP, const void *aData, size_t aIndex)
+{
+  switch (aFieldDescriptorP->type) {
+    case PROTOBUF_C_TYPE_BOOL:
+      printf("%s", *((protobuf_c_boolean *)aData+aIndex) ? "true" : "false");
+      break;
+    case PROTOBUF_C_TYPE_INT32:
+    case PROTOBUF_C_TYPE_SINT32:
+    case PROTOBUF_C_TYPE_SFIXED32:
+      printf("(int32)%d", *((int32_t *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_INT64:
+    case PROTOBUF_C_TYPE_SINT64:
+    case PROTOBUF_C_TYPE_SFIXED64:
+      printf("(int64)%lld", *((int64_t *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_UINT32:
+    case PROTOBUF_C_TYPE_FIXED32:
+      printf("(uint32)%u", *((uint32_t *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_UINT64:
+    case PROTOBUF_C_TYPE_FIXED64:
+      printf("(uint64)%llu", *((uint64_t *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_FLOAT:
+      printf("(float)%f", *((float *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_DOUBLE:
+      printf("(double)%f", *((double *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_ENUM:
+      printf("(enum)%d", *((int *)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_STRING:
+      printf("\"%s\"", *((const char **)aData+aIndex));
+      break;
+    case PROTOBUF_C_TYPE_BYTES:
+      // TODO: implement it
+      break;
+    case PROTOBUF_C_TYPE_MESSAGE: {
+      // submessage, pack into object value
+      const ProtobufCMessage *subMessageP = *((const ProtobufCMessage **)aData+aIndex);
+      protobufMessagePrint(subMessageP);
+      break;
+    }
+  }
+}
+
+void protobufMessagePrint(const ProtobufCMessage *aMessageP)
+{
+  const ProtobufCFieldDescriptor *fieldDescP;
+  unsigned f;
+
+  // Name
+  printf("\n(%s){", aMessageP->descriptor->name);
+  // Fields
+  fieldDescP = aMessageP->descriptor->fields;
+  for (f = 0; f<aMessageP->descriptor->n_fields; f++) {
+    const uint8_t *baseP = (const uint8_t *)(aMessageP);
+    const uint8_t *fieldBaseP = baseP+fieldDescP->offset;
+    if (fieldDescP->label==PROTOBUF_C_LABEL_REPEATED) {
+      // repeated field, show all elements
+      size_t arraySize = *((size_t *)(baseP+fieldDescP->quantifier_offset));
+      for (int i = 0; i<arraySize; i++) {
+        printf("\n%s[%d]: ", fieldDescP->name, i);
+        protobufFieldPrint(fieldDescP, *((void **)fieldBaseP), i);
+      }
+    }
+    else {
+      // not repeated (array), but single field
+      bool hasField = false;
+      if (fieldDescP->label==PROTOBUF_C_LABEL_OPTIONAL) {
+        if (fieldDescP->quantifier_offset) {
+          // scalar that needs quantifier
+          hasField = *((protobuf_c_boolean *)(baseP+fieldDescP->quantifier_offset));
+        }
+        else {
+          // value is a pointer, exists if not NULL
+          hasField = *((const void **)(baseP+fieldDescP->offset))!=NULL;
+        }
+      }
+      else {
+        // must be mandatory
+        hasField = true;
+      }
+      // get value, if available
+      if (hasField) {
+        printf("\n%s: ", fieldDescP->name);
+        // get value
+        protobufFieldPrint(fieldDescP, fieldBaseP, 0);
+      }
+    }
+    fieldDescP++; // next field descriptor
+  }
+  printf("\n}");
+}
+

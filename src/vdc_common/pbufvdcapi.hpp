@@ -271,9 +271,12 @@ namespace p44 {
 
 
   };
-  
-  
+
 }
+
+// C helper functions to print protobuf
+void protobufFieldPrint(const ProtobufCFieldDescriptor *aFieldDescriptorP, const void *aData, size_t aIndex);
+void protobufMessagePrint(const ProtobufCMessage *aMessageP);
 
 
 #endif /* defined(__vdcd__pbufvdcapi__) */
