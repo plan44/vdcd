@@ -86,24 +86,31 @@ bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycle
   // Note: test POLLIN first, because we might get a POLLHUP in parallel - so make sure we process data before hanging up
   if ((aPollFlags & POLLIN) && receiveHandler) {
     // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
-    if (numBytesReady()>0) {
+    size_t bytes = numBytesReady();
+    DBGLOG(LOG_DEBUG, "- POLLIN with %d bytes ready\n", bytes);
+    if (bytes>0) {
+      DBGLOG(LOG_DEBUG, "- calling receive handler\n");
       receiveHandler(this, ErrorPtr());
     }
     else {
       // alerted for read, but nothing to read any more - is also an exception
+      DBGLOG(LOG_DEBUG, "- POLLIN with no data - calling data exception handler\n");
       dataExceptionHandler(aFd, aPollFlags);
       aPollFlags = 0; // handle only once
     }
   }
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
+    DBGLOG(LOG_DEBUG, "- POLLHUP - calling data exception handler\n");
     dataExceptionHandler(aFd, aPollFlags);
   }
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
+    DBGLOG(LOG_DEBUG, "- POLLOUT - calling data transmit handler\n");
     transmitHandler(this, ErrorPtr());
   }
   else if (aPollFlags & POLLERR) {
     // error
+    DBGLOG(LOG_DEBUG, "- POLLERR - calling data exception handler\n");
     dataExceptionHandler(aFd, aPollFlags);
   }
   // handled

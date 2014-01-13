@@ -605,7 +605,7 @@ bool Esp3Packet::eepHasTeachInfo(int aMinLearnDBm, bool aMinDBmForAll)
     case rorg_SM_LRN_REQ:
       return explicitLearnOK; // smart ack learn requests are by definition teach-in commands and have full EEP signature
     default:
-      return false; // no learn-in, regular data 
+      return false; // no learn-in, regular data
   }
 }
 
@@ -863,6 +863,7 @@ EnoceanComm::~EnoceanComm()
 
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
 {
+  LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
   serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
 	// open connection so we can receive
 	serialComm.requestConnection();

@@ -19,6 +19,8 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+#define ALWAYS_DEBUG 1
+
 #include "pbufvdcapi.hpp"
 
 
@@ -460,7 +462,7 @@ void PbufApiValue::addObjectFieldFromMessage(const ProtobufCMessage &aMessage, c
     PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
     val->getValueFromMessageField(*fieldDescP, aMessage);
     if (!val->isNull()) {
-      // don't add NULL values, because this means field was not set in message, which means no value, not NULL value 
+      // don't add NULL values, because this means field was not set in message, which means no value, not NULL value
       add(aObjectFieldName, val); // add with specified name
     }
   }
