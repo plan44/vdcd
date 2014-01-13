@@ -1004,16 +1004,21 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // no error
     size_t dataSz = socketComm->numBytesReady();
+    DBGLOG(LOG_DEBUG, "gotData: numBytesReady()=%d\n", dataSz);
     // read data we've got so far
     if (dataSz>0) {
       // temporary buffer
       uint8_t *buf = new uint8_t[dataSz];
       size_t receivedBytes = socketComm->receiveBytes(dataSz, buf, aError);
+      DBGLOG(LOG_DEBUG, "gotData: receiveBytes(%d)=%d\n", dataSz, receivedBytes);
+      DBGLOG(LOG_DEBUG, "gotData: before appending: receivedMessage.size()=%d\n", receivedMessage.size());
       if (Error::isOK(aError)) {
         // append to receive buffer
         receivedMessage.append((const char *)buf, receivedBytes);
+        DBGLOG(LOG_DEBUG, "gotData: after appending: receivedMessage.size()=%d\n", receivedMessage.size());
         // single message extraction
         while(true) {
+          DBGLOG(LOG_DEBUG, "gotData: processing loop beginning, expectedMsgBytes=%d\n", expectedMsgBytes);
           if(expectedMsgBytes==0 && receivedMessage.size()>=2) {
             // got 2-byte length header, decode it
             const uint8_t *sz = (const uint8_t *)receivedMessage.c_str();
@@ -1021,6 +1026,8 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
               (sz[0]<<8) +
               sz[1];
             receivedMessage.erase(0,2);
+            DBGLOG(LOG_DEBUG, "gotData: parsed new header, now expectedMsgBytes=%d\n", expectedMsgBytes);
+            DBGLOG(LOG_DEBUG, "gotData: after removing header: receivedMessage.size()=%d\n", receivedMessage.size());
             if (expectedMsgBytes>MAX_DATA_SIZE) {
               aError = ErrorPtr(new VdcApiError(413, "message exceeds maximum length of 16kB"));
               break;
@@ -1028,10 +1035,12 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
           }
           // check for complete message
           if (expectedMsgBytes && (receivedMessage.size()>=expectedMsgBytes)) {
+            DBGLOG(LOG_DEBUG, "gotData: receivedMessage.size()=%d >= expectedMsgBytes=%d -> process\n", receivedMessage.size(), expectedMsgBytes);
             // process message
-            aError = processMessage(receivedMessage);
+            aError = processMessage((uint8_t *)receivedMessage.c_str(),expectedMsgBytes);
             // erase processed message
             receivedMessage.erase(0,expectedMsgBytes);
+            DBGLOG(LOG_DEBUG, "gotData: after removing message: receivedMessage.size()=%d\n", receivedMessage.size());
             expectedMsgBytes = 0; // reset to unknown
             // repeat evaluation with remaining bytes (could be another message)
           }
@@ -1040,6 +1049,7 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
             break;
           }
         }
+        DBGLOG(LOG_DEBUG, "gotData: end of processing loop: receivedMessage.size()=%d\n", receivedMessage.size());
       }
       // forget buffer
       delete[] buf; buf = NULL;
@@ -1179,9 +1189,9 @@ Vdcapi__ResultCode VdcPbufApiConnection::internalToPbufError(ErrorCode aErrorCod
 
 
 
+static int highestMsgId = -1;
 
-
-ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
+ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, size_t aPackedMessageSize)
 {
   Vdcapi__Message *decodedMsg;
   ProtobufCMessage *paramsMsg = NULL;
@@ -1189,7 +1199,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
 
   ErrorPtr err;
 
-  decodedMsg = vdcapi__message__unpack(NULL, aPackedMessage.size(), (const uint8_t *)aPackedMessage.c_str()); // Deserialize the serialized input
+  decodedMsg = vdcapi__message__unpack(NULL, aPackedMessageSize, aPackedMessageP); // Deserialize the serialized input
   if (decodedMsg == NULL) {
     err = ErrorPtr(new VdcApiError(400,"error unpacking incoming message"));
   }
@@ -1198,6 +1208,12 @@ ErrorPtr VdcPbufApiConnection::processMessage(const string &aPackedMessage)
     if (DBGLOGENABLED(LOG_DEBUG)) {
       protobufMessagePrint(&decodedMsg->base);
     }
+
+    if (decodedMsg->has_message_id && (int)decodedMsg->message_id<=highestMsgId && decodedMsg->type!=VDCAPI__TYPE__GENERIC_RESPONSE) {
+      LOG(LOG_ERR,"Error: message_id=%d out of sequence; expected >%d\n", decodedMsg->message_id, highestMsgId);
+    }
+    highestMsgId = decodedMsg->message_id;
+
     // successful message decoding
     string method;
     int responseType = 0; // none

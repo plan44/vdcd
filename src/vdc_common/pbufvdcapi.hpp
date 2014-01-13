@@ -263,7 +263,7 @@ namespace p44 {
     void gotData(ErrorPtr aError);
     void canSendData(ErrorPtr aError);
 
-    ErrorPtr processMessage(const string &aPackedMessage);
+    ErrorPtr processMessage(const uint8_t *aPackedMessageP, size_t aPackedMessageSize);
     ErrorPtr sendMessage(const Vdcapi__Message *aVdcApiMessage);
 
     static ErrorCode pbufToInternalError(Vdcapi__ResultCode aVdcApiResultCode);
