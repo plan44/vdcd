@@ -236,14 +236,21 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 // Link into mainloop
 SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
   inherited(aMainLoop),
-  fdToMonitor(-1)
+  serialComm(aMainLoop)
 {
+  // Set handlers for FdComm
+  serialComm.setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1, _2));
+  // TODO: once we implement buffered write, install the ready-for-transmission handler here
+  //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1, _2));
+  // Set standard transmitter and receiver for operations
+  setTransmitter(boost::bind(&SerialOperationQueue::standardTransmitter, this, _1, _2));
+	setReceiver(boost::bind(&SerialOperationQueue::standardReceiver, this, _1, _2));
 }
 
 
 SerialOperationQueue::~SerialOperationQueue()
 {
-	setFDtoMonitor(-1); // causes unregistering from mainloop
+  serialComm.closeConnection();
 }
 
 
@@ -261,32 +268,11 @@ void SerialOperationQueue::setReceiver(SerialOperationReceiver aReceiver)
 }
 
 
-// set filedescriptor to be monitored by SyncIO mainloop
-void SerialOperationQueue::setFDtoMonitor(int aFileDescriptor)
-{
-  if (aFileDescriptor!=fdToMonitor) {
-    // unregister previous one, if any
-    if (fdToMonitor>=0) {
-      SyncIOMainLoop::currentMainLoop().unregisterPollHandler(fdToMonitor);
-    }
-    // unregister new one, if any
-    if (aFileDescriptor>=0) {
-      // register
-      SyncIOMainLoop::currentMainLoop().registerPollHandler(
-        aFileDescriptor,
-        POLLIN,
-        boost::bind(&SerialOperationQueue::pollHandler, this, _1, _2, _3, _4)
-      );
-    }
-    // save new FD
-    fdToMonitor = aFileDescriptor;
-  }
-}
-
-
 #define RECBUFFER_SIZE 100
 
-bool SerialOperationQueue::pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)
+
+// handles incoming data from serial interface
+void SerialOperationQueue::receiveHandler(FdComm *aFdCommP, ErrorPtr aError)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
@@ -295,24 +281,7 @@ bool SerialOperationQueue::pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds
       acceptBytes(numBytes, buffer);
     }
   }
-  return true;
 }
-
-
-//bool SerialOperationQueue::readyForWrite(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
-//{
-//
-//  return true;
-//}
-//
-//
-//bool SerialOperationQueue::errorOccurred(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD)
-//{
-//
-//  return true;
-//}
-
-
 
 
 // queue a new serial I/O operation
@@ -350,6 +319,58 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
   // return number of accepted bytes
   return acceptedBytes;
 };
+
+
+#pragma mark - standard transmitter and receivers
+
+
+
+
+size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t *aBytes)
+{
+  ssize_t res = 0;
+  ErrorPtr err = serialComm.establishConnection();
+  if (Error::isOK(err)) {
+    res = serialComm.transmitBytes(aNumBytes, aBytes, err);
+    if (!Error::isOK(err)) {
+      DBGLOG(LOG_DEBUG,"Error writing serial: %s\n", err->description().c_str());
+      res = 0; // none written
+    }
+    else if (DBGLOGENABLED(LOG_DEBUG)) {
+      std::string s;
+      for (size_t i=0; i<res; i++) {
+        string_format_append(s, "%02X ",aBytes[i]);
+      }
+      DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
+    }
+  }
+  return res;
+}
+
+
+
+size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
+{
+  if (serialComm.connectionIsOpen()) {
+		// get number of bytes available
+    ErrorPtr err;
+    size_t gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
+    if (!Error::isOK(err)) {
+      DBGLOG(LOG_DEBUG,"Error reading serial: %s\n", err->description().c_str());
+      return 0;
+    }
+    else if (DBGLOGENABLED(LOG_DEBUG)) {
+      if (gotBytes>0) {
+        std::string s;
+        for (size_t i=0; i<gotBytes; i++) {
+          string_format_append(s, "%02X ",aBytes[i]);
+        }
+        DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
+      }
+    }
+		return gotBytes;
+  }
+}
 
 
 

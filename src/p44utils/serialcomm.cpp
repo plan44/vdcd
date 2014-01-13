@@ -30,10 +30,9 @@ SerialComm::SerialComm(SyncIOMainLoop &aMainLoop) :
 	inherited(aMainLoop),
   connectionPort(0),
   baudRate(9600),
-  connectionOpen(false)
+  connectionOpen(false),
+  reconnecting(false)
 {
-  setTransmitter(boost::bind(&SerialComm::transmitBytes, this, _1, _2));
-	setReceiver(boost::bind(&SerialComm::receiveBytes, this, _1, _2));
 }
 
 
@@ -80,64 +79,7 @@ void SerialComm::setConnectionParameters(const char* aConnectionPath, uint16_t a
 }
 
 
-
-
-size_t SerialComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes)
-{
-  ssize_t res = 0;
-  if (establishConnection()) {
-    res = write(connectionFd,aBytes,aNumBytes);
-    if (res<0) {
-      DBGLOG(LOG_DEBUG,"Error writing serial\n");
-      res = 0; // none written
-    }
-    if (DBGLOGENABLED(LOG_DEBUG)) {
-      std::string s;
-      for (size_t i=0; i<aNumBytes; i++) {
-        string_format_append(s, "%02X ",aBytes[i]);
-      }
-      DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
-    }
-  }
-  return res;
-}
-
-
-
-size_t SerialComm::receiveBytes(size_t aMaxBytes, uint8_t *aBytes)
-{
-  if (connectionOpen) {
-		// get number of bytes available
-		int numBytes; // must be int!! FIONREAD defines parameter as *int
-		ioctl(connectionFd, FIONREAD, &numBytes);
-		// limit to max buffer size
-		if (numBytes>aMaxBytes)
-			numBytes = (int)aMaxBytes;
-		// read
-    ssize_t gotBytes = 0;
-		if (numBytes>0)
-			gotBytes = read(connectionFd,aBytes,numBytes); // read available bytes
-    if (DBGLOGENABLED(LOG_DEBUG)) {
-      if (gotBytes>0) {
-        std::string s;
-        for (size_t i=0; i<gotBytes; i++) {
-          string_format_append(s, "%02X ",aBytes[i]);
-        }
-        DBGLOG(LOG_DEBUG,"   Received bytes: %s\n", s.c_str());
-      }
-    }
-    if (gotBytes<0) {
-      DBGLOG(LOG_DEBUG,"   Error reading serial\n");
-      gotBytes = 0; // none read
-    }
-		return gotBytes;
-  }
-	return 0;
-}
-
-
-
-bool SerialComm::establishConnection()
+ErrorPtr SerialComm::establishConnection()
 {
   if (!connectionOpen) {
     // Open connection to bridge
@@ -169,15 +111,12 @@ bool SerialComm::establishConnection()
         case 230400 : baudRateCode = B230400; break;
       }
       if (baudRateCode==0) {
-        setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorUnknownBaudrate)));
-        return false;
+        return ErrorPtr(new SerialCommError(SerialCommErrorUnknownBaudrate));
       }
       // assume it's a serial port
       connectionFd = open(connectionPath.c_str(), O_RDWR | O_NOCTTY);
       if (connectionFd<0) {
-        LOGERRNO(LOG_ERR);
-        setUnhandledError(SysError::errNo("Cannot open serial port: "));
-        return false;
+        return SysError::errNo("Cannot open serial port: ");
       }
       tcgetattr(connectionFd,&oldTermIO); // save current port settings
       // see "man termios" for details
@@ -204,9 +143,7 @@ bool SerialComm::establishConnection()
       // assume it's an IP address or hostname
       struct sockaddr_in conn_addr;
       if ((connectionFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        LOG(LOG_ERR,"Error: Could not create socket\n");
-        setUnhandledError(SysError::errNo("Cannot create socket: "));
-        return false;
+        return SysError::errNo("Cannot create socket: ");
       }
       // prepare IP address
       memset(&conn_addr, '0', sizeof(conn_addr));
@@ -215,31 +152,46 @@ bool SerialComm::establishConnection()
       struct hostent *server;
       server = gethostbyname(connectionPath.c_str());
       if (server == NULL) {
-        LOG(LOG_ERR,"Error: no such host\n");
-        setUnhandledError(ErrorPtr(new SerialCommError(SerialCommErrorInvalidHost)));
-        return false;
+        return ErrorPtr(new SerialCommError(SerialCommErrorInvalidHost));
       }
       memcpy((char *)&conn_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
       if ((res = connect(connectionFd, (struct sockaddr *)&conn_addr, sizeof(conn_addr))) < 0) {
-        LOGERRNO(LOG_ERR);
-        setUnhandledError(SysError::errNo("Cannot open socket: "));
-        return false;
+        return SysError::errNo("Cannot open socket: ");
       }
     }
     // successfully opened
     connectionOpen = true;
-		// now set FD for serialqueue to monitor
-		setFDtoMonitor(connectionFd);
+		// now set FD for FdComm to monitor
+		setFd(connectionFd);
   }
-  return connectionOpen;
+  reconnecting = false; // successfully opened, don't try to reconnect any more
+  return ErrorPtr(); // ok
 }
+
+
+bool SerialComm::requestConnection()
+{
+  ErrorPtr err = establishConnection();
+  if (!Error::isOK(err)) {
+    if (!reconnecting) {
+      DBGLOG(LOG_ERR, "SerialComm: requestConnection() could not open connection now: %s -> entering background retry mode\n", err->description().c_str());
+      reconnecting = true;
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&SerialComm::reconnectHandler, this), 5*Second);
+    }
+    return false;
+  }
+  return true;
+}
+
+
 
 
 void SerialComm::closeConnection()
 {
+  reconnecting = false; // explicit close, don't try to reconnect any more
   if (connectionOpen) {
 		// stop monitoring
-		setFDtoMonitor();
+		setFd(-1);
     // restore IO settings
     if (serialConnection) {
       tcsetattr(connectionFd,TCSANOW,&oldTermIO);
@@ -248,25 +200,64 @@ void SerialComm::closeConnection()
     close(connectionFd);
     // closed
     connectionOpen = false;
-    // abort all pending operations
-    abortOperations();
   }
 }
 
 
-void SerialComm::setUnhandledError(ErrorPtr aError)
+bool SerialComm::connectionIsOpen()
 {
-  if (aError) {
-    unhandledError = aError;
-    LOG(LOG_ERR,"Unhandled error set: %s\n",aError->description().c_str());
+  return connectionOpen;
+}
+
+
+
+#pragma mark - handling data exception
+
+
+void SerialComm::dataExceptionHandler(int aFd, int aPollFlags)
+{
+  DBGLOG(LOG_DEBUG, "SerialComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
+  bool reEstablish = false;
+  if (aPollFlags & POLLHUP) {
+    // other end has closed connection
+    DBGLOG(LOG_ERR, "SerialComm: serial connection was hung up unexpectely\n");
+    reEstablish = true;
+  }
+  else if (aPollFlags & POLLIN) {
+    // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
+    // alerted for read, but nothing to read any more: assume connection closed
+    DBGLOG(LOG_ERR, "SerialComm: serial connection returns POLLIN with no data: assuming connection broken\n");
+    reEstablish = true;
+  }
+  else if (aPollFlags & POLLERR) {
+    // error
+    DBGLOG(LOG_ERR, "SerialComm: error on serial connection: assuming connection broken\n");
+    reEstablish = true;
+  }
+  // in case of error, close and re-open connection
+  if (reEstablish && !reconnecting) {
+    DBGLOG(LOG_ERR, "SerialComm: closing and re-opening connection in attempt to re-establish it after error\n");
+    closeConnection();
+    // try re-opening right now
+    reconnecting = true;
+    reconnectHandler();
   }
 }
 
 
-
-ErrorPtr SerialComm::getLastUnhandledError()
+void SerialComm::reconnectHandler()
 {
-  ErrorPtr err = unhandledError;
-  unhandledError.reset(); // no error
-  return err;
+  if (reconnecting) {
+    ErrorPtr err = establishConnection();
+    if (!Error::isOK(err)) {
+      DBGLOG(LOG_ERR, "SerialComm: re-connect failed: %s -> retry again later\n", err->description().c_str());
+      reconnecting = true;
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&SerialComm::reconnectHandler, this), 15*Second);
+    }
+    else {
+      DBGLOG(LOG_NOTICE, "SerialComm: successfully reconnected to %s\n", connectionPath.c_str());
+    }
+  }
 }
+
+

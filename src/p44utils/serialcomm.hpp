@@ -24,7 +24,7 @@
 
 #include "p44_common.hpp"
 
-#include "serialqueue.hpp"
+#include "fdcomm.hpp"
 
 // unix I/O and network
 #include <sys/types.h>
@@ -71,9 +71,9 @@ namespace p44 {
   typedef boost::intrusive_ptr<SerialComm> SerialCommPtr;
 
   /// A class providing serialized access to a serial device attached directly or via a TCP proxy
-  class SerialComm : public SerialOperationQueue
+  class SerialComm : public FdComm
   {
-    typedef SerialOperationQueue inherited;
+    typedef FdComm inherited;
 
     // serial connection
     string connectionPath;
@@ -83,8 +83,8 @@ namespace p44 {
     int connectionFd;
     struct termios oldTermIO;
     bool serialConnection;
-  protected:
-    ErrorPtr unhandledError;
+    bool reconnecting;
+
   public:
 
     SerialComm(SyncIOMainLoop &aMainLoop);
@@ -102,25 +102,31 @@ namespace p44 {
     /// @param aBaudRate baud rate for serial connection (irrelevant for TCP connection)
     void setConnectionParameters(const char* aConnectionPath, uint16_t aPortNo, int aBaudRate);
 
-    /// transmit data
-    size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes);
-
-    /// receive data
-    size_t receiveBytes(size_t aMaxBytes, uint8_t *aBytes);
-
-
     /// establish the serial connection
     /// @note can be called multiple times, opens connection only if not already open
-    bool establishConnection();
+    /// @return error in case connection cannot be opened
+    ErrorPtr establishConnection();
+
+    /// tries to establish the connection, and will retry if opening fails right now
+    /// @return true if connection is open now
+    bool requestConnection();
 
     /// close the current connection, if any
     void closeConnection();
 
-    /// set Error not handled by a callback
-    void setUnhandledError(ErrorPtr aError);
+    /// check if connection is currently open
+    bool connectionIsOpen();
 
-    /// get last unhandled error and clear it
-    ErrorPtr getLastUnhandledError();
+  protected:
+
+    /// This is called when
+    /// an exception (HUP or error) occurs on the file descriptor
+    virtual void dataExceptionHandler(int aFd, int aPollFlags);
+
+
+  private:
+
+    void reconnectHandler();
 
   };
 

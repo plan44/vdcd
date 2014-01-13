@@ -12,7 +12,7 @@
 
 #include "vdcd_common.hpp"
 
-#include "serialcomm.hpp"
+#include "serialqueue.hpp"
 
 #include "dalidefs.h"
 
@@ -84,9 +84,9 @@ namespace p44 {
   typedef boost::intrusive_ptr<DaliComm> DaliCommPtr;
 
   /// A class providing low level access to the DALI bus
-  class DaliComm : public SerialComm
+  class DaliComm : public SerialOperationQueue
   {
-    typedef SerialComm inherited;
+    typedef SerialOperationQueue inherited;
 
     int runningProcedures;
 

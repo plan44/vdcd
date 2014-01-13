@@ -24,7 +24,7 @@
 
 #include "vdcd_common.hpp"
 
-#include "serialcomm.hpp"
+#include "serialqueue.hpp"
 
 using namespace std;
 
@@ -305,9 +305,9 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication
-	class EnoceanComm : public SerialComm
+	class EnoceanComm : public SerialOperationQueue
 	{
-		typedef SerialComm inherited;
+		typedef SerialOperationQueue inherited;
 		
 		Esp3PacketPtr currentIncomingPacket;
     RadioPacketCB radioPacketHandler;

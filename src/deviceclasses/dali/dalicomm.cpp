@@ -81,7 +81,7 @@ bool DaliComm::isBusy()
 
 void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
 {
-  inherited::setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
+  serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
 }
 
 
@@ -125,30 +125,24 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliComm::connectionTimeout, this), closeAfterIdleTime);
   }
   // deliver unhandled error
-  if (unhandledError && aResultCB) {
-    // return and clear last unhandled error
-    aResultCB(*this, 0, 0, getLastUnhandledError());
+  SerialOperation *opP = NULL;
+  if (aCmd<8) {
+    // single byte command
+    opP = new SerialOperationSendAndReceive(1, &aCmd, 2, BridgeResponseHandler(*this, aResultCB));
   }
   else {
-    SerialOperation *opP = NULL;
-    if (aCmd<8) {
-      // single byte command
-      opP = new SerialOperationSendAndReceive(1, &aCmd, 2, BridgeResponseHandler(*this, aResultCB));
-    }
-    else {
-      // 3 byte command
-      uint8_t cmd3[3];
-      cmd3[0] = aCmd;
-      cmd3[1] = aDali1;
-      cmd3[2] = aDali2;
-      opP = new SerialOperationSendAndReceive(3, cmd3, 2, BridgeResponseHandler(*this, aResultCB));
-    }
-    if (opP) {
-      SerialOperationPtr op(opP);
-      if (aWithDelay>0)
-        op->setInitiationDelay(aWithDelay);
-      queueSerialOperation(op);
-    }
+    // 3 byte command
+    uint8_t cmd3[3];
+    cmd3[0] = aCmd;
+    cmd3[1] = aDali1;
+    cmd3[2] = aDali2;
+    opP = new SerialOperationSendAndReceive(3, cmd3, 2, BridgeResponseHandler(*this, aResultCB));
+  }
+  if (opP) {
+    SerialOperationPtr op(opP);
+    if (aWithDelay>0)
+      op->setInitiationDelay(aWithDelay);
+    queueSerialOperation(op);
   }
   // process operations
   processOperations();
@@ -157,7 +151,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
 
 void DaliComm::connectionTimeout()
 {
-  closeConnection();
+  serialComm.closeConnection();
 }
 
 #pragma mark - DALI bus communication basics
@@ -214,8 +208,6 @@ public:
     // execute callback if any
     if (callback)
       callback(daliComm, aError);
-    else
-      daliComm.setUnhandledError(aError);
   }
 };
 
@@ -236,8 +228,6 @@ public:
     // execute callback if any
     if (callback)
       callback(daliComm, noOrTimeout, aResp2, aError);
-    else
-      daliComm.setUnhandledError(aError);
   };
 };
 
@@ -247,13 +237,9 @@ public:
 
 void DaliComm::reset(DaliCommandStatusCB aStatusCB)
 {
-  getLastUnhandledError(); // clear pending error
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
-  getLastUnhandledError(); // clear pending error
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
-  getLastUnhandledError(); // clear pending error
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL); // 3 reset commands in row will terminate any out-of-sync commands
-  getLastUnhandledError(); // clear pending error
   daliSend(DALICMD_TERMINATE, 0, aStatusCB); // terminate any special commands on the DALI bus
 }
 
@@ -320,9 +306,6 @@ void DaliComm::daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQu
 {
   daliSendAndReceive(dali1FromAddress(aAddress)+1, aQueryCommand, aResultCB, aWithDelay);
 }
-
-
-
 
 
 

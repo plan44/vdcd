@@ -863,9 +863,9 @@ EnoceanComm::~EnoceanComm()
 
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
 {
-  inherited::setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
+  serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
 	// open connection so we can receive
-	establishConnection();
+	serialComm.requestConnection();
 }
 
 
@@ -926,9 +926,15 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
   aPacket->finalize();
   // transmit
   // - fixed header
-  transmitBytes(ESP3_HEADERBYTES, aPacket->header);
-  // - payload
-  transmitBytes(aPacket->payloadSize, aPacket->payloadP);
+  ErrorPtr err;
+  serialComm.transmitBytes(ESP3_HEADERBYTES, aPacket->header, err);
+  if (Error::isOK(err)) {
+    // - payload
+    serialComm.transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
+  }
+  if (!Error::isOK(err)) {
+    LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
+  }
 }
 
 

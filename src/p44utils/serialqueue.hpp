@@ -30,6 +30,8 @@
 
 #include "operationqueue.hpp"
 
+#include "serialcomm.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -157,24 +159,25 @@ namespace p44 {
   {
     typedef OperationQueue inherited;
 
-    int fdToMonitor;
     SerialOperationTransmitter transmitter;
     SerialOperationReceiver receiver;
-  
+
 	public:
+
+    /// the serial communication channel
+    SerialComm serialComm;
+
     /// create operation queue linked into specified Synchronous IO mainloop
     SerialOperationQueue(SyncIOMainLoop &aMainLoop);
+
     /// destructor
     virtual ~SerialOperationQueue();
 
     /// set transmitter to be used for all operations
     void setTransmitter(SerialOperationTransmitter aTransmitter);
+
     /// set receiver
     void setReceiver(SerialOperationReceiver aReceiver);
-
-    /// set filedescriptor to be monitored by SyncIO mainloop
-    /// @param aFileDescriptor open file descriptor for file/socket, <0 to remove monitoring
-    void setFDtoMonitor(int aFileDescriptor = -1);
 
     /// queue a new operation
     /// @param aOperation the serial IO operation to queue
@@ -184,9 +187,14 @@ namespace p44 {
     /// base class implementation: deliver bytes to the most recent waiting operation
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
-    /// SyncIOMainloop handlers
-    bool pollHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags);
+    /// FdComm handler
+    void receiveHandler(FdComm *aFdCommP, ErrorPtr aError);
 
+    /// standard transmitter
+    size_t standardTransmitter(size_t aNumBytes, const uint8_t *aBytes);
+
+    /// standard receiver
+    size_t standardReceiver(size_t aMaxBytes, uint8_t *aBytes);
 
   };
 

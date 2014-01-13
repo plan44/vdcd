@@ -62,7 +62,6 @@ namespace p44 {
 
   class SocketComm;
 
-
   typedef boost::intrusive_ptr<SocketComm> SocketCommPtr;
   typedef std::list<SocketCommPtr> SocketCommList;
 
