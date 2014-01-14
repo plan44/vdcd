@@ -19,8 +19,6 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#define ALWAYS_DEBUG 1
-
 #include "pbufvdcapi.hpp"
 
 
@@ -1067,9 +1065,11 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
 ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage)
 {
   ErrorPtr err;
+  #if defined(DEBUG) || ALWAYS_DEBUG
   if (DBGLOGENABLED(LOG_DEBUG)) {
     protobufMessagePrint(stdout, &aVdcApiMessage->base, 0);
   }
+  #endif
   // generate the binary message
   size_t packedSize = vdcapi__message__get_packed_size(aVdcApiMessage);
   uint8_t *packedMsg = new uint8_t[packedSize+2]; // leave room for header
@@ -1202,9 +1202,11 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
   }
   else {
     // print it
+    #if defined(DEBUG) || ALWAYS_DEBUG
     if (DBGLOGENABLED(LOG_DEBUG)) {
       protobufMessagePrint(stdout, &decodedMsg->base, 0);
     }
+    #endif
     // successful message decoding
     string method;
     int responseType = 0; // none
