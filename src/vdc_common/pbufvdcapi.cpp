@@ -1068,7 +1068,7 @@ ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage
 {
   ErrorPtr err;
   if (DBGLOGENABLED(LOG_DEBUG)) {
-    protobufMessagePrint(&aVdcApiMessage->base);
+    protobufMessagePrint(stdout, &aVdcApiMessage->base, 0);
   }
   // generate the binary message
   size_t packedSize = vdcapi__message__get_packed_size(aVdcApiMessage);
@@ -1188,9 +1188,6 @@ Vdcapi__ResultCode VdcPbufApiConnection::internalToPbufError(ErrorCode aErrorCod
 
 
 
-
-static int highestMsgId = -1;
-
 ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, size_t aPackedMessageSize)
 {
   Vdcapi__Message *decodedMsg;
@@ -1206,14 +1203,8 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
   else {
     // print it
     if (DBGLOGENABLED(LOG_DEBUG)) {
-      protobufMessagePrint(&decodedMsg->base);
+      protobufMessagePrint(stdout, &decodedMsg->base, 0);
     }
-
-    if (decodedMsg->has_message_id && (int)decodedMsg->message_id<=highestMsgId && decodedMsg->type!=VDCAPI__TYPE__GENERIC_RESPONSE) {
-      LOG(LOG_ERR,"Error: message_id=%d out of sequence; expected >%d\n", decodedMsg->message_id, highestMsgId);
-    }
-    highestMsgId = decodedMsg->message_id;
-
     // successful message decoding
     string method;
     int responseType = 0; // none
@@ -1497,42 +1488,54 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
 
 #pragma mark - generic protobuf-C message printing
 
+#if defined(DEBUG) || ALWAYS_DEBUG
 
-void protobufFieldPrint(const ProtobufCFieldDescriptor *aFieldDescriptorP, const void *aData, size_t aIndex)
+
+static void printLfAndIndent(FILE *aOutFile, int aIndent)
+{
+  int i;
+  fputc('\n', aOutFile);
+  for (i = 0; i<aIndent; i++) fputc(' ', aOutFile);
+}
+
+
+void protobufMessagePrintInternal(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent);
+
+static void protobufFieldPrint(FILE *aOutFile, const ProtobufCFieldDescriptor *aFieldDescriptorP, const void *aData, size_t aIndex, int aIndent)
 {
   switch (aFieldDescriptorP->type) {
     case PROTOBUF_C_TYPE_BOOL:
-      printf("%s", *((protobuf_c_boolean *)aData+aIndex) ? "true" : "false");
+      fprintf(aOutFile, "(bool)%s", *((protobuf_c_boolean *)aData+aIndex) ? "true" : "false");
       break;
     case PROTOBUF_C_TYPE_INT32:
     case PROTOBUF_C_TYPE_SINT32:
     case PROTOBUF_C_TYPE_SFIXED32:
-      printf("(int32)%d", *((int32_t *)aData+aIndex));
+      fprintf(aOutFile, "(int32)%d", *((int32_t *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_INT64:
     case PROTOBUF_C_TYPE_SINT64:
     case PROTOBUF_C_TYPE_SFIXED64:
-      printf("(int64)%lld", *((int64_t *)aData+aIndex));
+      fprintf(aOutFile, "(int64)%lld", *((int64_t *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_UINT32:
     case PROTOBUF_C_TYPE_FIXED32:
-      printf("(uint32)%u", *((uint32_t *)aData+aIndex));
+      fprintf(aOutFile, "(uint32)%u", *((uint32_t *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_UINT64:
     case PROTOBUF_C_TYPE_FIXED64:
-      printf("(uint64)%llu", *((uint64_t *)aData+aIndex));
+      fprintf(aOutFile, "(uint64)%llu", *((uint64_t *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_FLOAT:
-      printf("(float)%f", *((float *)aData+aIndex));
+      fprintf(aOutFile, "(float)%f", *((float *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_DOUBLE:
-      printf("(double)%f", *((double *)aData+aIndex));
+      fprintf(aOutFile, "(double)%f", *((double *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_ENUM:
-      printf("(enum)%d", *((int *)aData+aIndex));
+      fprintf(aOutFile, "(enum)%d", *((int *)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_STRING:
-      printf("\"%s\"", *((const char **)aData+aIndex));
+      fprintf(aOutFile, "(string)\"%s\"", *((const char **)aData+aIndex));
       break;
     case PROTOBUF_C_TYPE_BYTES:
       // TODO: implement it
@@ -1540,19 +1543,31 @@ void protobufFieldPrint(const ProtobufCFieldDescriptor *aFieldDescriptorP, const
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage, pack into object value
       const ProtobufCMessage *subMessageP = *((const ProtobufCMessage **)aData+aIndex);
-      protobufMessagePrint(subMessageP);
+      protobufMessagePrintInternal(aOutFile, subMessageP, aIndent-2);
       break;
     }
+    default:
+      fprintf(aOutFile, "(unknown field type)");
+      break;
   }
 }
 
-void protobufMessagePrint(const ProtobufCMessage *aMessageP)
+void protobufMessagePrint(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent)
+{
+  // Start and end with a LF
+  printLfAndIndent(aOutFile, aIndent);
+  protobufMessagePrintInternal(aOutFile, aMessageP, aIndent);
+  fprintf(aOutFile, "\n\n");
+}
+
+
+void protobufMessagePrintInternal(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent)
 {
   const ProtobufCFieldDescriptor *fieldDescP;
   unsigned f;
 
-  // Name
-  printf("\n(%s){", aMessageP->descriptor->name);
+  fprintf(aOutFile, "(%s) {", aMessageP->descriptor->name);
+  aIndent += 2; // contents of message always indented
   // Fields
   fieldDescP = aMessageP->descriptor->fields;
   for (f = 0; f<aMessageP->descriptor->n_fields; f++) {
@@ -1562,8 +1577,9 @@ void protobufMessagePrint(const ProtobufCMessage *aMessageP)
       // repeated field, show all elements
       size_t arraySize = *((size_t *)(baseP+fieldDescP->quantifier_offset));
       for (int i = 0; i<arraySize; i++) {
-        printf("\n%s[%d]: ", fieldDescP->name, i);
-        protobufFieldPrint(fieldDescP, *((void **)fieldBaseP), i);
+        printLfAndIndent(aOutFile, aIndent);
+        fprintf(aOutFile, "%s[%d]: ", fieldDescP->name, i);
+        protobufFieldPrint(aOutFile, fieldDescP, *((void **)fieldBaseP), i, aIndent+2); // every subsequent line of content indented
       }
     }
     else {
@@ -1585,13 +1601,19 @@ void protobufMessagePrint(const ProtobufCMessage *aMessageP)
       }
       // get value, if available
       if (hasField) {
-        printf("\n%s: ", fieldDescP->name);
+        printLfAndIndent(aOutFile, aIndent);
+        fprintf(aOutFile, "%s: ", fieldDescP->name);
         // get value
-        protobufFieldPrint(fieldDescP, fieldBaseP, 0);
+        protobufFieldPrint(aOutFile, fieldDescP, fieldBaseP, 0, aIndent+2); // every subsequent line of content indented
       }
     }
     fieldDescP++; // next field descriptor
   }
-  printf("\n}");
+  aIndent -= 2; // end of message bracket unindented
+  printLfAndIndent(aOutFile, aIndent);
+  fprintf(aOutFile, "}");
 }
+
+
+#endif // DEBUG | ALWAYS_DEBUG
 

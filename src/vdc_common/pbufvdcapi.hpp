@@ -274,9 +274,12 @@ namespace p44 {
 
 }
 
+#if defined(DEBUG) || ALWAYS_DEBUG
+
 // C helper functions to print protobuf
-void protobufFieldPrint(const ProtobufCFieldDescriptor *aFieldDescriptorP, const void *aData, size_t aIndex);
-void protobufMessagePrint(const ProtobufCMessage *aMessageP);
+void protobufMessagePrint(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent);
+
+#endif // DEBUG | ALWAYS_DEBUG
 
 
 #endif /* defined(__vdcd__pbufvdcapi__) */
