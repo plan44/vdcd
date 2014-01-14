@@ -19,6 +19,8 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+//#define ALWAYS_DEBUG 1
+
 #include "serialqueue.hpp"
 
 using namespace p44;
@@ -340,7 +342,7 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
     }
     else if (DBGLOGENABLED(LOG_DEBUG)) {
       std::string s;
-      for (size_t i=0; i<res; i++) {
+      for (ssize_t i=0; i<res; i++) {
         string_format_append(s, "%02X ",aBytes[i]);
       }
       DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
@@ -361,7 +363,7 @@ size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
     ErrorPtr err;
     gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGLOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
+      LOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
       return 0;
     }
     else if (DBGLOGENABLED(LOG_DEBUG)) {
@@ -375,8 +377,9 @@ size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
     }
   }
   else {
-    DBGLOG(LOG_DEBUG, "- connection is not open!\n");
+    LOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver error - connection is not open!\n");
   }
+  DBGLOG(LOG_DEBUG,"- got %d bytes\n", gotBytes);
   return gotBytes;
 }
 
