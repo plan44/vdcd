@@ -184,7 +184,7 @@ int BinaryInputBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptor *BinaryInputBehaviour::getStateDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_double, false, value_key+states_key_offset, &binaryInput_key },
+    { "value", apivalue_bool, false, value_key+states_key_offset, &binaryInput_key },
     { "age", apivalue_double, false, age_key+states_key_offset, &binaryInput_key },
   };
   return &properties[aPropIndex];

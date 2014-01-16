@@ -79,6 +79,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--vdsmnonlocal"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--cfgapiport 8090"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -91,7 +95,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.134"
+            argument = "--dali 192.168.59.173"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
