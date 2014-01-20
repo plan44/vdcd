@@ -127,6 +127,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--sparkcore 53ff6a065067544840510687:82431330cc25c76230acae5269d8044acbfa21cc"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-k testin:in -k testout:out"
             isEnabled = "YES">
          </CommandLineArgument>

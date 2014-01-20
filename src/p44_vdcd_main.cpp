@@ -217,6 +217,9 @@ public:
     else if (strcmp(aOptionDescriptor.longOptionName,"consoleio")==0) {
       staticDeviceConfigs.insert(make_pair("console", aOptionValue));
     }
+    else if (strcmp(aOptionDescriptor.longOptionName,"sparkcore")==0) {
+      staticDeviceConfigs.insert(make_pair("spark", aOptionValue));
+    }
     else {
       return inherited::processOption(aOptionDescriptor, aOptionValue);
     }
@@ -246,6 +249,7 @@ public:
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
+      { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "ioname[:[!](in|out)];add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
                                      "ioname is of form [bus.[device.]]pin:\n"

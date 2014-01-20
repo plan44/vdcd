@@ -23,6 +23,7 @@
 
 #include "digitaliodevice.hpp"
 #include "consoledevice.hpp"
+#include "sparkiodevice.hpp"
 
 using namespace p44;
 
@@ -62,6 +63,10 @@ void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncre
       else if (pos->first=="console") {
         // console based simulated device
         newDev = DevicePtr(new ConsoleDevice(this, pos->second));
+      }
+      else if (pos->first=="spark") {
+        // spark core based device
+        newDev = DevicePtr(new SparkIoDevice(this, pos->second));
       }
       if (newDev) {
         // add to container
