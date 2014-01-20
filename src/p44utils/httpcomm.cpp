@@ -215,5 +215,67 @@ void HttpComm::cancelRequest()
   }
 }
 
+#pragma mark - Utilities
+
+
+//  8.2.1. The form-urlencoded Media Type
+//
+//     The default encoding for all forms is `application/x-www-form-
+//     urlencoded'. A form data set is represented in this media type as
+//     follows:
+//
+//          1. The form field names and values are escaped: space
+//          characters are replaced by `+', and then reserved characters
+//          are escaped as per [URL]; that is, non-alphanumeric
+//          characters are replaced by `%HH', a percent sign and two
+//          hexadecimal digits representing the ASCII code of the
+//          character. Line breaks, as in multi-line text field values,
+//          are represented as CR LF pairs, i.e. `%0D%0A'.
+//
+//          2. The fields are listed in the order they appear in the
+//          document with the name separated from the value by `=' and
+//          the pairs separated from each other by `&'. Fields with null
+//          values may be omitted. In particular, unselected radio
+//          buttons and checkboxes should not appear in the encoded
+//          data, but hidden fields with VALUE attributes present
+//          should.
+//
+//              NOTE - The URI from a query form submission can be
+//              used in a normal anchor style hyperlink.
+//              Unfortunately, the use of the `&' character to
+//              separate form fields interacts with its use in SGML
+//              attribute values as an entity reference delimiter.
+//              For example, the URI `http://host/?x=1&y=2' must be
+//              written `<a href="http://host/?x=1&#38;y=2"' or `<a
+//              href="http://host/?x=1&amp;y=2">'.
+//
+//              HTTP server implementors, and in particular, CGI
+//              implementors are encouraged to support the use of
+//              `;' in place of `&' to save users the trouble of
+//              escaping `&' characters this way.
+
+string HttpComm::urlEncode(const string &aString, bool aFormURLEncoded)
+{
+  string result;
+  const char *p = aString.c_str();
+  while (char c = *p++) {
+    if (aFormURLEncoded && c==' ')
+      result += '+'; // replace spaces by pluses
+    else if (c=='&' || c=='%' || c=='=' || (aFormURLEncoded && c=='+') || c<=0x20 || c>0x7E)
+      string_format_append(result, "%%%02X", c);
+    else
+      result += c; // just append
+  }
+  return result;
+}
+
+
+void HttpComm::appendFormValue(string &aDataString, const string &aFieldname, const string &aValue)
+{
+  if (aDataString.size()>0) aDataString += '&';
+  aDataString += urlEncode(aFieldname, true);
+  aDataString += '=';
+  aDataString += urlEncode(aValue, true);
+}
 
 

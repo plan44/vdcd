@@ -111,6 +111,11 @@ namespace p44 {
     /// cancel request
     void cancelRequest();
 
+    // Utilities
+    static string urlEncode(const string &aString, bool aFormURLEncoded);
+    static void appendFormValue(string &aDataString, const string &aFieldname, const string &aValue);
+
+
   protected:
     virtual const char *defaultContentType() { return "text/html"; };
 

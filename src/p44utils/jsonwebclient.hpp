@@ -65,6 +65,16 @@ namespace p44 {
     ///   If false, aHttpCallback will not be called
     bool jsonRequest(const char *aURL, JsonWebClientCB aResponseCallback, const char *aMethod = "GET", JsonObjectPtr aJsonRequest = JsonObjectPtr());
 
+    /// send a request expected to return JSON via HTTP or HTTPS
+    /// @param aURL the http or https URL to send JSON request to
+    /// @param responseCallback will be called when request completes, returning response or error
+    /// @param aMethod the HTTP method to use (defaults to "POST")
+    /// @param aPostData the raw POST data to send (for POST or PUT requests)
+    /// @param aContentType the content type, default is "application/x-www-form-urlencoded"
+    /// @return false if no request could be initiated (already busy with another request).
+    ///   If false, aHttpCallback will not be called
+    bool jsonReturningRequest(const char *aURL, JsonWebClientCB aResponseCallback, const char *aMethod = "POST", const string &aPostData = "", const char* aContentType = NULL);
+
   protected:
 
     virtual const char *defaultContentType() { return "application/json"; };
