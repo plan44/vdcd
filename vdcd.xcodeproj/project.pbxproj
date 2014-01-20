@@ -157,6 +157,7 @@
 		EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDBC78541818227000A3E46C /* libcrypto.dylib */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
+		EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
 		EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */; };
@@ -383,6 +384,8 @@
 		EDC1166B177EDC1800F27115 /* consoledevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consoledevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166C177EDDDF00F27115 /* consolekey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = consolekey.cpp; sourceTree = "<group>"; };
 		EDC1166D177EDDDF00F27115 /* consolekey.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consolekey.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sparkiodevice.cpp; sourceTree = "<group>"; };
+		EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sparkiodevice.hpp; sourceTree = "<group>"; };
 		EDCFE855171FE841001D35F3 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = device.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE856171FE841001D35F3 /* device.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = device.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalidevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -597,6 +600,8 @@
 				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
 				ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */,
 				ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */,
+				EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */,
+				EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */,
 			);
 			path = simpleio;
 			sourceTree = "<group>";
@@ -1000,6 +1005,7 @@
 				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
+				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,

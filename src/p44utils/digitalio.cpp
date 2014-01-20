@@ -2,7 +2,7 @@
 //  digitalio.cpp
 //  p44utils
 //
-//  Copyright (c) 2013 plan44.ch. All rights reserved.
+//  Copyright (c) 2013-2014 plan44.ch. All rights reserved.
 //
 
 #include "digitalio.hpp"

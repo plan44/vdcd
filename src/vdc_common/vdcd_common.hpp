@@ -3,7 +3,7 @@
  *
  *  Created on: Apr 10, 2013
  *      Author: Lukas Zeller / luz@plan44.ch
- *   Copyright: 2012-2013 by plan44.ch/luz
+ *   Copyright: 2012-2014 by plan44.ch/luz
  */
 
 #ifndef P44BRIDGED_COMMON_HPP_
