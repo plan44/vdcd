@@ -26,7 +26,7 @@
 #include "device.hpp"
 
 #include "jsonwebclient.hpp"
-
+#include "lightbehaviour.hpp"
 
 using namespace std;
 
@@ -34,16 +34,103 @@ namespace p44 {
 
   class StaticDeviceContainer;
   class SparkIoDevice;
+
+  class SparkLightScene : public LightScene
+  {
+    typedef LightScene inherited;
+  public:
+    SparkLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+
+    /// @name spark core based light scene specific values
+    /// @{
+
+    uint32_t extendedState; // extended state (beyond brightness) of the spark core light
+
+    /// @}
+
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+
+  protected:
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+
+    // property access implementation
+    virtual int numProps(int aDomain);
+    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
+    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+
+  };
+  typedef boost::intrusive_ptr<SparkLightScene> SparkLightScenePtr;
+
+
+  class SparkLightBehaviour : public LightBehaviour
+  {
+    typedef LightBehaviour inherited;
+
+  public:
+
+    SparkLightBehaviour(Device &aDevice);
+
+    /// capture current state into passed scene object
+    /// @param aScene the scene object to update
+    /// @param aCompletedCB will be called when capture is complete
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
+
+  protected:
+
+    /// called by applyScene to actually recall a scene from the scene table
+    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
+    /// additional values that were saved at captureScene()
+    virtual void recallScene(LightScenePtr aLightScene);
+
+  private:
+
+    void sceneStateReceived(SparkLightScenePtr aSparkScene, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+
+  };
+  typedef boost::intrusive_ptr<SparkLightBehaviour> SparkLightBehaviourPtr;
+
+
+
+  /// the persistent parameters of a light scene device (including scene table)
+  class SparkDeviceSettings : public LightDeviceSettings
+  {
+    typedef LightDeviceSettings inherited;
+
+  public:
+    SparkDeviceSettings(Device &aDevice);
+
+  protected:
+
+    /// factory method to create the correct subclass type of DsScene with default values
+    /// @param aSceneNo the scene number to create a scene object with proper default values for.
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+    
+  };
+  
+  
+
   typedef boost::intrusive_ptr<SparkIoDevice> SparkIoDevicePtr;
   class SparkIoDevice : public Device
   {
     typedef Device inherited;
+    friend class SparkLightBehaviour;
+
     int32_t outputValue;
     string sparkCoreID;
     string sparkCoreToken;
     JsonWebClient sparkCloudComm;
     int apiVersion;
     bool outputChangePending;
+    SparkLightScenePtr pendingSparkScene;
 
   public:
     SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -61,6 +148,10 @@ namespace p44 {
     /// @note this is called before interaction with dS system starts (usually just after collecting devices)
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
+
+    /// check presence of this addressable
+    /// @param aPresenceResultHandler will be called to report presence status
+    virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
     /// set new output value on device
     /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
@@ -85,7 +176,11 @@ namespace p44 {
 
   private:
 
+    bool sparkApiCall(JsonWebClientCB aResponseCB, string aArgs);
+
     void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+
     void postOutputValue(OutputBehaviour &aOutputBehaviour);
     void outputChanged(OutputBehaviour &aOutputBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 

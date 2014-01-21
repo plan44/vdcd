@@ -354,7 +354,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
   setPrimaryGroup(group_yellow_light);
   // derive the dSUID
   deriveDsUid();
-  // use light settings, which include a scene table
+  // use hue light settings, which include a extended scene table
   deviceSettings = DeviceSettingsPtr(new HueDeviceSettings(*this));
   // set the behaviour
   HueLightBehaviourPtr l = HueLightBehaviourPtr(new HueLightBehaviour(*this));
