@@ -72,11 +72,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
@@ -125,10 +125,6 @@
          <CommandLineArgument
             argument = "--digitalio testbutton:in --digitalio testlamp:out --digitalio i2c1.TCA9555@25.7:out"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sparkcore 53ff6a065067544840510687:82431330cc25c76230acae5269d8044acbfa21cc"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:in -k testout:out"
