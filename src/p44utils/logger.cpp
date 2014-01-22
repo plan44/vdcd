@@ -70,18 +70,20 @@ void Logger::log(int aErrLevel, const char *aFmt, ... )
       i++;
     }
     // create date
-    char tsbuf[30];
+    char tsbuf[40];
+    char *p = tsbuf;
     struct timeval t;
     gettimeofday(&t, NULL);
-    strftime(tsbuf, sizeof(tsbuf), "%Y-%m-%d %H:%M:%S", localtime(&t.tv_sec));
+    p += strftime(p, sizeof(tsbuf), "[%Y-%m-%d %H:%M:%S", localtime(&t.tv_sec));
+    p += sprintf(p, ".%03d]", t.tv_usec/1000);
     // output
     if (aErrLevel<=stderrLevel) {
       // must go to stderr anyway
       fputs(tsbuf, stderr);
       if (isMultiline)
-        fputs(":\n", stderr);
+        fputs("\n", stderr);
       else
-        fputs(": ", stderr);
+        fputs(" ", stderr);
       fputs(message.c_str(), stderr);
       fflush(stderr);
     }
@@ -89,9 +91,9 @@ void Logger::log(int aErrLevel, const char *aFmt, ... )
       // must go to stdout as well
       fputs(tsbuf, stdout);
       if (isMultiline)
-        fputs(":\n", stdout);
+        fputs("\n", stdout);
       else
-        fputs(": ", stdout);
+        fputs(" ", stdout);
       fputs(message.c_str(), stdout);
       fflush(stdout);
     }
