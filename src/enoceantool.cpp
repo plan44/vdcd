@@ -52,8 +52,7 @@ public:
   {
     fprintf(stderr, "usage:\n");
     fprintf(stderr, "  %s [options]\n", name);
-    fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr\n");
-    fprintf(stderr, "    -B enoceanport : port number for enocean proxy ipaddr (default=%d)\n", DEFAULT_ENOCEANPORT);
+    fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr[:port]\n");
     fprintf(stderr, "    -d destination  : enOcean destination hex address (default: 0xFFFFFFFF = broadcast)\n");
     fprintf(stderr, "    -4 D3D2D1D0     : send enOcean 4BS packet\n");
     fprintf(stderr, "    -l loglevel     : set loglevel (default = %d)\n", DEFAULT_LOGLEVEL);
@@ -79,9 +78,6 @@ public:
         case 'b':
           enoceanname = optarg;
           break;
-        case 'B':
-          enoceanport = atoi(optarg);
-          break;
         case '4':
           send4BS = true;
           sscanf(optarg, "%x", &data4BS);
@@ -101,7 +97,7 @@ public:
 
     // set enocean comm params
     if (enoceanname) {
-      enoceanComm.setConnectionParameters(enoceanname, enoceanport);
+      enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
     }
 
     // app now ready to run
