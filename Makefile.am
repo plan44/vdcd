@@ -110,6 +110,8 @@ vdcd_SOURCES = \
   src/vdc_common/deviceclasscontainer.hpp \
   src/vdc_common/devicecontainer.cpp \
   src/vdc_common/devicecontainer.hpp \
+  src/vdc_common/p44_vdcd_host.cpp \
+  src/vdc_common/p44_vdcd_host.hpp \
   src/vdc_common/dsdefs.h \
   src/vdc_common/dsuid.cpp \
   src/vdc_common/dsuid.hpp \
@@ -128,6 +130,8 @@ vdcd_SOURCES = \
   src/behaviours/lightbehaviour.hpp \
   src/deviceclasses/simpleio/consoledevice.cpp \
   src/deviceclasses/simpleio/consoledevice.hpp \
+  src/deviceclasses/simpleio/sparkiodevice.cpp \
+  src/deviceclasses/simpleio/sparkiodevice.hpp \
   src/deviceclasses/simpleio/digitaliodevice.cpp \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
   src/deviceclasses/simpleio/staticdevicecontainer.cpp \
