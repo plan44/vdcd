@@ -8,7 +8,7 @@
 
 #include "application.hpp"
 
-#include "devicecontainer.hpp"
+#include "p44_vdcd_host.hpp"
 
 // APIs to be used
 #include "jsonvdcapi.hpp"
@@ -73,7 +73,7 @@ class P44bridged : public CmdLineApp
   long tempStatusTicket;
 
   // the device container
-  DeviceContainer deviceContainer;
+  P44VdcHost p44VdcHost;
 
   // indicators and button
   IndicatorOutput redLED;
@@ -82,9 +82,6 @@ class P44bridged : public CmdLineApp
 
   // learning
   long learningTimerTicket;
-
-  // Configuration API
-  SocketComm configApiServer;
 
 public:
 
@@ -96,8 +93,7 @@ public:
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
     tempStatusTicket(0),
-    learningTimerTicket(0),
-    configApiServer(SyncIOMainLoop::currentMainLoop())
+    learningTimerTicket(0)
   {
     showAppStatus();
   }
@@ -303,7 +299,7 @@ public:
       // - set DB dir
       const char *dbdir = DEFAULT_DBDIR;
       getStringOption("sqlitedir", dbdir);
-      deviceContainer.setPersistentDataDir(dbdir);
+      p44VdcHost.setPersistentDataDir(dbdir);
 
       // - set dSUID mode
       int modernids = DEFAULT_USE_MODERN_DSUIDS;
@@ -323,32 +319,32 @@ public:
         externalDsUid->setGTIN(gcp, itemref, part);
         externalDsUid->setSerial(serial);
       }
-      deviceContainer.setIdMode(modernids!=0, externalDsUid);
+      p44VdcHost.setIdMode(modernids!=0, externalDsUid);
 
       // - set API
       int protobufapi = DEFAULT_USE_PROTOBUF_API;
       getIntOption("protobufapi", protobufapi);
       const char *vdsmport;
       if (protobufapi) {
-        deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+        p44VdcHost.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
         vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
       }
       else {
-        deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+        p44VdcHost.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
         vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
       }
       // set up server for vdSM to connect to
       getStringOption("vdsmport", vdsmport);
-      deviceContainer.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-      deviceContainer.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+      p44VdcHost.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+      p44VdcHost.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
 
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");
       if (configApiPort) {
-        configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-        configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
-        configApiServer.startServer(boost::bind(&P44bridged::configApiConnectionHandler, this, _1), 3);
+        p44VdcHost.configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
+        p44VdcHost.configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
+        p44VdcHost.startConfigApi();
       }
 
       // Create static container structure
@@ -357,63 +353,34 @@ public:
       if (daliname) {
         int sec = 0;
         getIntOption("daliportidle", sec);
-        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &deviceContainer));
+        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &p44VdcHost));
         daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
         daliDeviceContainer->addClassToDeviceContainer();
       }
       // - Add enOcean devices class if enOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       if (enoceanname) {
-        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &deviceContainer));
+        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &p44VdcHost));
         enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
       if (getOption("huelights")) {
-        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &deviceContainer));
+        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &p44VdcHost));
         hueDeviceContainer->addClassToDeviceContainer();
       }
       // - Add static devices if we have collected any config from the command line
       if (staticDeviceConfigs.size()>0) {
-        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &deviceContainer));
+        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &p44VdcHost));
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
 
       // install activity monitor
-      deviceContainer.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+      p44VdcHost.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
     }
     // app now ready to run
     return run();
-  }
-
-
-
-
-  SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP)
-  {
-    JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
-    conn->setMessageHandler(boost::bind(&P44bridged::configApiRequestHandler, this, _1, _2, _3));
-    return conn;
-  }
-
-
-  void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
-  {
-    ErrorPtr err;
-    // TODO: actually do something
-    JsonObjectPtr json = JsonObject::newObj();
-    if (Error::isOK(aError)) {
-      // %%% just show
-      LOG(LOG_DEBUG,"Config API request: %s", aJsonObject->c_strValue());
-      // %%% and return dummy response
-      json->add("Echo", aJsonObject);
-    }
-    else {
-      LOG(LOG_DEBUG,"Invalid JSON request");
-      json->add("Error", JsonObject::newString(aError->description()));
-    }
-    aJsonCommP->sendMessage(json);
   }
 
 
@@ -445,7 +412,7 @@ public:
 
   void stopLearning(bool aFromTimeout)
   {
-    deviceContainer.stopLearning();
+    p44VdcHost.stopLearning();
     MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
     setAppStatus(status_ok);
     if (aFromTimeout) {
@@ -477,7 +444,7 @@ public:
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
         button.setButtonHandler(NULL, true); // disconnect button
-        deviceContainer.setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
         redLED.steadyOff();
         greenLED.steadyOff();
@@ -493,7 +460,7 @@ public:
         setAppStatus(status_busy);
         LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(-3) in 500 mS\n");
         button.setButtonHandler(NULL, true); // disconnect button
-        deviceContainer.setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -3), 500*MilliSecond);
       }
@@ -503,7 +470,7 @@ public:
           // start
           setAppStatus(status_interaction);
           learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this, true), LEARN_TIMEOUT);
-          deviceContainer.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
+          p44VdcHost.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
         }
         else {
           // stop
@@ -575,7 +542,7 @@ public:
       // - connect button
       button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
       // - initialize the device container
-      deviceContainer.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+      p44VdcHost.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
     }
   }
 
@@ -598,7 +565,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    deviceContainer.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
+    p44VdcHost.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
   }
 
 
@@ -606,7 +573,7 @@ public:
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
-      DBGLOG(LOG_INFO, deviceContainer.description().c_str());
+      DBGLOG(LOG_INFO, p44VdcHost.description().c_str());
     }
     else
       setAppStatus(status_error);

@@ -152,6 +152,7 @@
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */; };
+		EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
 		EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */; };
@@ -378,6 +379,8 @@
 		EDC1166D177EDDDF00F27115 /* consolekey.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consolekey.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = sparkiodevice.cpp; sourceTree = "<group>"; };
 		EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = sparkiodevice.hpp; sourceTree = "<group>"; };
+		EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p44_vdcd_host.cpp; sourceTree = "<group>"; };
+		EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44_vdcd_host.hpp; sourceTree = "<group>"; };
 		EDCFE855171FE841001D35F3 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = device.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE856171FE841001D35F3 /* device.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = device.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalidevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -487,6 +490,8 @@
 				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
 				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
+				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
+				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 			);
 			path = vdc_common;
 			sourceTree = "<group>";
@@ -981,6 +986,7 @@
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
+				EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
