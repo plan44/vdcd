@@ -117,7 +117,7 @@ message vdsm_NotificationIdentify {
 message vdsm_NotificationSetControlValue {
     optional string dSUID = 1;
     optional string name = 2;
-    optional int32 value = 3;
+    optional double value = 3;
     optional int32 group = 4;
     optional int32 zoneID = 5;
 }

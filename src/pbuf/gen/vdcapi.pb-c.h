@@ -307,7 +307,7 @@ struct  _Vdcapi__VdsmNotificationSetControlValue
   char *dsuid;
   char *name;
   protobuf_c_boolean has_value;
-  int32_t value;
+  double value;
   protobuf_c_boolean has_group;
   int32_t group;
   protobuf_c_boolean has_zoneid;

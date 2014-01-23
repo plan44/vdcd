@@ -2176,7 +2176,7 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_control_val
     "value",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_TYPE_DOUBLE,
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, has_value),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, value),
     NULL,
