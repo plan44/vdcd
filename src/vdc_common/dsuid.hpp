@@ -120,6 +120,13 @@ namespace p44 {
     bool operator== (const DsUid &aDsUid) const;
     bool operator< (const DsUid &aDsUid) const;
 
+    // test
+    // @return true if empty (no value assigned)
+    bool empty() const;
+
+    // clear, make empty()==true
+    void clear();
+
     /// @}
 
 

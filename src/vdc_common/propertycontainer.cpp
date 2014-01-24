@@ -31,7 +31,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
   ErrorPtr err;
   // TODO: separate dot notation name?
   // all or single field in this container?
-  if (aName=="*") {
+  if (aName=="*" || aName=="#") {
     // all fields in this container
     if (aForWrite) {
       // write: write all fields of input object into properties of this container
@@ -58,8 +58,17 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
       for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
         const PropertyDescriptor *propDescP = getPropertyDescriptor(propIndex, aDomain);
         if (!propDescP) break; // safety only, propIndex should never be invalid
-        ApiValuePtr propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
-        err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
+        ApiValuePtr propField;
+        if (propDescP->isArray && aName=="#") {
+          // for arrays, only report size, not entire contents
+          propField = aApiObject->newValue(apivalue_int64); // size of array as int
+          err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, -1, 1); // only size of array
+        }
+        else {
+          // value or complete contents of array
+          propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
+          err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
+        }
         if (Error::isOK(err)) {
           // add to resulting object, if not no object returned at all (explicit JsonObject::newNull()) will be returned!)
           aApiObject->add(propDescP->propertyName, propField);

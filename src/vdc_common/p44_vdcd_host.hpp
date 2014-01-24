@@ -30,9 +30,63 @@ using namespace std;
 
 namespace p44 {
 
+  class P44VdcError : public Error
+  {
+  public:
+    static const char *domain() { return "p44vdc"; }
+    virtual const char *getErrorDomain() const { return P44VdcError::domain(); };
+    P44VdcError(ErrorCode aError) : Error(aError) {};
+    P44VdcError(ErrorCode aError, const std::string &aErrorMessage) : Error(aError, aErrorMessage) {};
+  };
+
+
+
+  class P44JsonApiRequest : public VdcApiRequest
+  {
+    typedef VdcApiRequest inherited;
+    JsonCommPtr jsonComm;
+
+  public:
+
+    /// constructor
+    P44JsonApiRequest(JsonCommPtr aJsonComm);
+
+    /// return the request ID as a string
+    /// @return request ID as string
+    virtual string requestId() { return ""; }
+
+    /// get the API connection this request originates from
+    /// @return API connection
+    virtual VdcApiConnectionPtr connection() { return VdcApiConnectionPtr(); } // is not really a regular VDC API call, so there's no connection
+
+    /// get a new API value suitable for answering this request connection
+    /// @return new API value of suitable internal implementation to be used on this API connection
+    virtual ApiValuePtr newApiValue();
+
+    /// send a vDC API result (answer for successful method call)
+    /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
+    /// @result empty or Error object in case of error sending result response
+    virtual ErrorPtr sendResult(ApiValuePtr aResult);
+
+    /// send a vDC API error (answer for unsuccesful method call)
+    /// @param aErrorCode the error code
+    /// @param aErrorMessage the error message or NULL to generate a standard text
+    /// @param aErrorData the optional "data" member for the vDC API error object
+    /// @result empty or Error object in case of error sending error response
+    virtual ErrorPtr sendError(uint32_t aErrorCode, string aErrorMessage = "", ApiValuePtr aErrorData = ApiValuePtr());
+    
+  };
+  typedef boost::intrusive_ptr<P44JsonApiRequest> P44JsonApiRequestPtr;
+
+
+
+
   class P44VdcHost : public DeviceContainer
   {
     typedef DeviceContainer inherited;
+    friend class P44JsonApiRequest;
+
+    long learnTicket;
 
   public:
 
@@ -47,6 +101,13 @@ namespace p44 {
 
     SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP);
     void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject);
+    void learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError);
+
+    ErrorPtr processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);
+    ErrorPtr processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);
+
+    static void sendCfgApiResponse(JsonCommPtr aJsonComm, JsonObjectPtr aResult, ErrorPtr aError);
+
 
   };
 

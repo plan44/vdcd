@@ -173,6 +173,10 @@ namespace p44 {
     /// @return API connection
     virtual VdcApiConnectionPtr connection() = 0;
 
+    /// get a new API value suitable for answering this request connection
+    /// @return new API value of suitable internal implementation to be used on this API connection
+    virtual ApiValuePtr newApiValue() { return connection()->newApiValue(); }; // default is asking connection
+
     /// send a vDC API result (answer for successful method call)
     /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
     /// @result empty or Error object in case of error sending result response

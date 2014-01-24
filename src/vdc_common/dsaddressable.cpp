@@ -117,7 +117,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         rangeSize = o->int32Value();
       }
       // now read
-      ApiValuePtr result = aRequest->connection()->newApiValue();
+      ApiValuePtr result = aRequest->newApiValue();
       respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
       if (Error::isOK(respErr)) {
         // send back property result

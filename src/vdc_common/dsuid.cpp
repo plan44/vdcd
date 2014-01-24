@@ -43,6 +43,19 @@ DsUid::DsUid()
 }
 
 
+bool DsUid::empty() const
+{
+  return idType==idtype_undefined;
+}
+
+
+void DsUid::clear()
+{
+  internalInit();
+}
+
+
+
 
 // Byte offset         0 1 2 3  4 5  6 7  8 9 101112131415 16
 // dSUID with UUID  : xxxxxxxx-xxxx-Vxxx-Txxx-xxxxxxxxxxxx ii   (V=version, T=type/variant, ii=subdevice index)

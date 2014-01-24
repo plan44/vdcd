@@ -283,6 +283,10 @@ namespace p44 {
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
     virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
+    // method and notification dispatching
+    ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
+    void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
+
   private:
 
     // derive dSUID
@@ -300,10 +304,6 @@ namespace p44 {
 
     // generic session handling
     void sessionTimeoutHandler();
-
-    // method and notification dispatching
-    ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
-    void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
 
     // vDC level method and notification handlers
     ErrorPtr helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);

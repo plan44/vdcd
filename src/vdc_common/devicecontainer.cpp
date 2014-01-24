@@ -741,8 +741,8 @@ ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aPar
 
 ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  if (aDsUid==dSUID) {
-    // container level method
+  if (aDsUid==dSUID || aDsUid.empty()) {
+    // no ID or that of myself: container level method
     return handleMethod(aRequest, aMethod, aParams);
   }
   else {
