@@ -7,6 +7,7 @@
 # install needed packages from brew
 brew install json-c
 brew install protobuf-c
+brew install boost
 
 # create a project directory
 mkdir <project dir of your choice>
