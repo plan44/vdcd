@@ -158,7 +158,7 @@ string EnoceanDevice::hardwareGUID()
 
 string EnoceanDevice::modelName()
 {
-  return string_format("%s enOcean device", manufacturerName().c_str());
+  return string_format("%s enOcean device (%02X-%02X-%02X)", manufacturerName().c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
 }
 
 

@@ -97,7 +97,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "plan44 DALI device"; }
+    virtual string modelName() { return "p44-dsb DALI bus device"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
