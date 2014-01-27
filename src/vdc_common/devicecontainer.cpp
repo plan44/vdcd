@@ -419,7 +419,10 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 
 
 
-#pragma mark - activity monitor
+
+
+
+#pragma mark - activity monitoring
 
 
 void DeviceContainer::setActivityMonitor(DoneCB aActivityCB)
@@ -434,6 +437,24 @@ void DeviceContainer::signalActivity()
     activityHandler();
   }
 }
+
+
+
+void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
+{
+  deviceUserActionHandler = aUserActionCB;
+}
+
+
+void DeviceContainer::signalDeviceUserAction(Device &aDevice)
+{
+  LOG(LOG_INFO,"--- device %s reports user action\n", aDevice.shortDesc().c_str());
+  if (deviceUserActionHandler) {
+    deviceUserActionHandler(DevicePtr(&aDevice));
+  }
+}
+
+
 
 
 #pragma mark - periodic activity

@@ -69,7 +69,7 @@ ApiValuePtr P44JsonApiRequest::newApiValue()
 
 P44VdcHost::P44VdcHost() :
   configApiServer(SyncIOMainLoop::currentMainLoop()),
-  learnTicket(0)
+  learnIdentifyTicket(0)
 {
 }
 
@@ -244,7 +244,22 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       else {
         // start learning
         startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2));
-        learnTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, false, ErrorPtr(new P44VdcError(408, "learn timeout"))), seconds*Second);
+        learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, false, ErrorPtr(new P44VdcError(408, "learn timeout"))), seconds*Second);
+      }
+    }
+    else if (method=="identify") {
+      // get timeout
+      JsonObjectPtr o = aRequest->get("seconds");
+      int seconds = 30; // default to 30
+      if (o) seconds = o->int32Value();
+      if (seconds==0) {
+        // end reporting user activity
+        setUserActionMonitor(NULL);
+      }
+      else {
+        // wait for next user activity
+        setUserActionMonitor(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, _1));
+        learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, DevicePtr()), seconds*Second);
       }
     }
     else {
@@ -257,7 +272,22 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
 
 void P44VdcHost::learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError)
 {
-  MainLoop::currentMainLoop().cancelExecutionTicket(learnTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
+  stopLearning();
   sendCfgApiResponse(aJsonComm, JsonObject::newBool(aLearnIn), aError);
 }
+
+
+void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
+{
+  MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
+  setUserActionMonitor(NULL);
+  if (aDevice) {
+    sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->dSUID.getString()), ErrorPtr());
+  }
+  else {
+    sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr(new P44VdcError(408, "identify timeout")));
+  }
+}
+
 

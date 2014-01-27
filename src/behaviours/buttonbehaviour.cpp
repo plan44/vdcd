@@ -72,6 +72,8 @@ void ButtonBehaviour::buttonAction(bool aPressed)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
+  // button presses are considered user actions
+  device.getDeviceContainer().signalDeviceUserAction(device);
   checkStateMachine(true, MainLoop::now());
 }
 

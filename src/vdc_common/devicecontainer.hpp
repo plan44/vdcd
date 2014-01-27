@@ -55,6 +55,10 @@ namespace p44 {
   /// @param aError error occurred during learn-in
   typedef boost::function<void (bool aLearnIn, ErrorPtr aError)> LearnCB;
 
+  /// Callback for device identification (user action) events
+  /// @param aDevice device that was activated
+  typedef boost::function<void (DevicePtr aDevice)> DeviceUserActionCB;
+
 
   /// persistence for digitalSTROM paramters
   class DsParamStore : public ParamStore
@@ -106,6 +110,9 @@ namespace p44 {
     bool learningMode;
     LearnCB learnHandler;
 
+    // user action monitor (learn)buttons
+    DeviceUserActionCB deviceUserActionHandler;
+
     // activity monitor
     DoneCB activityHandler;
 
@@ -149,6 +156,10 @@ namespace p44 {
     /// activity monitor
     /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.
     void setActivityMonitor(DoneCB aActivityCB);
+
+    /// activity monitor
+    /// @param aUserActionCB will be called when the user has performed an action (usually: button press) in a device
+    void setUserActionMonitor(DeviceUserActionCB aUserActionCB);
 
 
 		/// @name device detection and registration
@@ -216,6 +227,9 @@ namespace p44 {
     /// @param aLearnIn true if new device learned in, false if device learned out
     /// @param aError error occurred during learn-in
     void reportLearnEvent(bool aLearnIn, ErrorPtr aError);
+
+    /// called to signal a user-generated action from a device, which may be used to detect a device
+    void signalDeviceUserAction(Device &aDevice);
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dSUID

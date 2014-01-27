@@ -86,7 +86,7 @@ namespace p44 {
     typedef DeviceContainer inherited;
     friend class P44JsonApiRequest;
 
-    long learnTicket;
+    long learnIdentifyTicket;
 
   public:
 
@@ -102,6 +102,7 @@ namespace p44 {
     SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP);
     void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject);
     void learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError);
+    void identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice);
 
     ErrorPtr processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);
     ErrorPtr processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);
