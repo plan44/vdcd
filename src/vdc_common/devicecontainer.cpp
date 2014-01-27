@@ -446,12 +446,14 @@ void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 }
 
 
-void DeviceContainer::signalDeviceUserAction(Device &aDevice)
+bool DeviceContainer::signalDeviceUserAction(Device &aDevice)
 {
   LOG(LOG_INFO,"--- device %s reports user action\n", aDevice.shortDesc().c_str());
   if (deviceUserActionHandler) {
     deviceUserActionHandler(DevicePtr(&aDevice));
+    return true; // suppress normal action
   }
+  return false; // normal processing
 }
 
 

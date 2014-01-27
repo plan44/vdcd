@@ -281,13 +281,20 @@ void P44VdcHost::learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aEr
 void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
-  setUserActionMonitor(NULL);
   if (aDevice) {
     sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->dSUID.getString()), ErrorPtr());
+    // keep monitor mode for 2 seconds to consume possibly related button releases as well
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::endIdentify, this), 2*Second);
   }
   else {
     sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr(new P44VdcError(408, "identify timeout")));
+    setUserActionMonitor(NULL);
   }
+}
+
+void P44VdcHost::endIdentify()
+{
+  setUserActionMonitor(NULL);
 }
 
 

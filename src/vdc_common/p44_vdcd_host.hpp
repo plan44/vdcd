@@ -103,6 +103,7 @@ namespace p44 {
     void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject);
     void learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError);
     void identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice);
+    void endIdentify();
 
     ErrorPtr processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);
     ErrorPtr processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aRequest);

@@ -229,7 +229,9 @@ namespace p44 {
     void reportLearnEvent(bool aLearnIn, ErrorPtr aError);
 
     /// called to signal a user-generated action from a device, which may be used to detect a device
-    void signalDeviceUserAction(Device &aDevice);
+    /// @param aDevice device where user action was detected
+    /// @return true if normal user action processing should be suppressed
+    bool signalDeviceUserAction(Device &aDevice);
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dSUID
