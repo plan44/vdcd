@@ -581,8 +581,8 @@ void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
       // alerted for read, but nothing to read any more: assume connection closed
       ErrorPtr err = socketError(aFd);
       if (Error::isOK(err))
-        err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection alerts POLLIN but has no more data (intepreted as HUP)"));
-      LOG(LOG_WARNING, "Connection to %s:%s reported POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+        err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (POLLIN but no data -> interpreted as HUP)"));
+      DBGLOG(LOG_DEBUG, "Connection to %s:%s has POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
       // - report
       if (connectionStatusHandler) {
         // report reason for closing
