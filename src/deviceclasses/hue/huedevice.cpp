@@ -331,11 +331,16 @@ void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB a
       if (newXOrHueOrCt!=aHueScene->XOrHueOrCt) { aHueScene->XOrHueOrCt = newXOrHueOrCt; aHueScene->markDirty(); }
       if (newXOrHueOrCt!=aHueScene->YOrSat) { aHueScene->YOrSat = newYOrSat; aHueScene->markDirty(); }
       // in any case, update current output value (cache in outputbehaviour) as well, so base class will capture a current level
-      o = state->get("bri");
-      if (o) {
-        Brightness bri = (Brightness)o->int32Value();
-        initOutputValue(bri);
+      Brightness bri = 0; // assume off
+      o = state->get("on");
+      if (o && o->boolValue()) {
+        // lamp is on, get brightness
+        o = state->get("bri");
+        if (o) {
+          bri = (Brightness)o->int32Value();
+        }
       }
+      initOutputValue(bri);
     }
   }
   // anyway, let base class capture brightness
