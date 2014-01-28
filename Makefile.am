@@ -3,6 +3,29 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
 bin_PROGRAMS = vdcd demovdc jsonrpctool
 
+# common stuff for protobuf - NOTE: need to "make all" to get BUILT_SOURCES made
+
+PROTOBUF_GENERATED = \
+  src/pbuf/gen/messages.pb-c.h \
+  src/pbuf/gen/messages.pb-c.c \
+  src/pbuf/gen/vdcapi.pb-c.h \
+  src/pbuf/gen/vdcapi.pb-c.c
+
+#dist_noinst_DATA = messages.proto vdcapi.proto
+
+MOSTLYCLEANFILES = $(PROTOBUF_GENERATED)
+
+BUILT_SOURCES = $(PROTOBUF_GENERATED)
+
+src/pbuf/gen/messages.pb-c.h src/pbuf/gen/messages.pb-c.c:	src/pbuf/messages.proto
+	$(PROTOC) --proto_path=src/pbuf --c_out=src/pbuf/gen src/pbuf/messages.proto
+
+src/pbuf/gen/vdcapi.pb-c.h src/pbuf/gen/vdcapi.pb-c.c:	src/pbuf/vdcapi.proto
+	$(PROTOC) --proto_path=src/pbuf --c_out=src/pbuf/gen src/pbuf/vdcapi.proto
+
+
+# vdcd
+
 vdcd_CPPFLAGS = \
   -I src/p44utils \
   -I src \
@@ -17,9 +40,11 @@ vdcd_CPPFLAGS = \
   -I src/deviceclasses/hue \
   -D DEBUG=1
 
-vdcd_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
+nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
-vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
+vdcd_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBUFC_CFLAGS)
+
+vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -94,10 +119,6 @@ vdcd_SOURCES = \
   src/vdc_common/propertycontainer.hpp \
   src/vdc_common/pbufvdcapi.cpp \
   src/vdc_common/pbufvdcapi.hpp \
-  src/pbuf/gen/vdcapi.pb-c.c \
-  src/pbuf/gen/vdcapi.pb-c.h \
-  src/pbuf/gen/messages.pb-c.c \
-  src/pbuf/gen/messages.pb-c.h \
   src/vdc_common/jsonvdcapi.cpp \
   src/vdc_common/jsonvdcapi.hpp \
   src/vdc_common/vdcapi.cpp \
@@ -163,6 +184,9 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevice.hpp \
   src/p44_vdcd_main.cpp
 
+
+# demovdc
+
 demovdc_CPPFLAGS = \
   -I src/p44utils \
   -I src \
@@ -174,9 +198,11 @@ demovdc_CPPFLAGS = \
   -I src/deviceclasses/upnphack \
   -D DEBUG=1
 
-demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS)
+demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBUFC_CFLAGS)
 
-demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
+demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+
+nodist_demovdc_SOURCES = $(PROTOBUF_GENERATED)
 
 demovdc_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -228,10 +254,6 @@ demovdc_SOURCES = \
   src/vdc_common/propertycontainer.hpp \
   src/vdc_common/pbufvdcapi.cpp \
   src/vdc_common/pbufvdcapi.hpp \
-  src/pbuf/gen/vdcapi.pb-c.c \
-  src/pbuf/gen/vdcapi.pb-c.h \
-  src/pbuf/gen/messages.pb-c.c \
-  src/pbuf/gen/messages.pb-c.h \
   src/vdc_common/jsonvdcapi.cpp \
   src/vdc_common/jsonvdcapi.hpp \
   src/vdc_common/vdcapi.cpp \
@@ -270,7 +292,7 @@ demovdc_SOURCES = \
   src/deviceclasses/upnphack/upnpdevicecontainer.hpp \
   src/demo_main.cpp
 
-
+# jsonrpctool
 
 jsonrpctool_CPPFLAGS = \
   -I src/p44utils \
@@ -311,3 +333,4 @@ jsonrpctool_SOURCES = \
   src/p44utils/utils.hpp \
   src/p44utils/p44_common.hpp \
   src/jsonrpctool.cpp
+
