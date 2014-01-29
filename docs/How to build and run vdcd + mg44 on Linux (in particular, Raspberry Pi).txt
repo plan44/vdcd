@@ -1,0 +1,78 @@
+# Prepare
+# =======
+
+# install needed packages
+sudo apt-get install autoconf libtool automake
+sudo apt-get install json-c protobuf-c
+sudo apt-get install boost
+
+# create a project directory
+mkdir <project dir of your choice>
+cd <project dir of your choice>
+
+# clone the git repositories
+# - substitute your git user name for <username>, enter password when asked
+git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mongoose44.git libmongoose
+git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mg44.git mg44
+git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/vdcd.git vdcd
+
+# Build
+# =====
+
+cd <project dir of your choice>
+
+# vdcd
+cd vdcd
+autoreconf -fi
+./configure
+make
+sudo make install
+cd ..
+
+# mg44
+cd vdcd
+autoreconf -fi
+./configure
+make
+sudo make install
+
+
+# Run
+# ===
+
+# the mg44 web server in minimal configuration
+# Note: the directory specified for -document_root will be accessible from the web!
+
+mg44 -document_root /var/www -listening_ports 8080 -jsonapi_path /api/json/ -jsonapi_host localhost -jsonapi_port 8090
+
+
+# the vdcd with each a console input and a console output device
+vdcd --cfgapiport 8090 -k testin:in -k testout:out -l 7
+
+# the vdcd with an enocean gateway
+vdcd --cfgapiport 8090 --enocean <ip_of_enocean_gateway>:<portno> -l 7
+
+
+# Use API
+# =======
+
+# send API request to http:://localhost:8080 to issue API requests, e.g.
+
+# - list of all device classes
+http://localhost:8080/api/json/vdc?method=getProperty&name=x-p44-vdcs&dSUID=root
+
+# - list of all devices of a class
+http://localhost:8080/api/json/vdc?method=getProperty&name=x-p44-devices&dSUID=<device class dSUID>
+
+# - list of all properties of a device
+http://localhost:8080/api/json/vdc?method=getProperty&name=*&dSUID=<device dSUID>
+
+# - set vdcd to enOcean learn mode for max 30 seconds:
+http://localhost:8080/api/json/p44?method=learn&seconds=30
+#   will return timeout, true (=learned device) or false (=unlearned device)
+
+
+
+
+
+
