@@ -2,9 +2,9 @@
 # =======
 
 # install needed packages
-sudo apt-get install autoconf libtool automake
-sudo apt-get install json-c protobuf-c
-sudo apt-get install boost
+sudo apt-get install autoconf automake
+sudo apt-get install libjson0-dev protobuf-c-compiler libprotobuf-c0-dev libssl-dev libsqlite3-dev
+sudo apt-get install libboost-dev
 
 # create a project directory
 mkdir <project dir of your choice>
@@ -15,6 +15,7 @@ cd <project dir of your choice>
 git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mongoose44.git libmongoose
 git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mg44.git mg44
 git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/vdcd.git vdcd
+
 
 # Build
 # =====
@@ -42,7 +43,9 @@ sudo make install
 
 # the mg44 web server in minimal configuration
 # Note: the directory specified for -document_root will be accessible from the web!
-
+# if webdir does not yet exist:
+sudo mkdir /var/www
+# run it
 mg44 -document_root /var/www -listening_ports 8080 -jsonapi_path /api/json/ -jsonapi_host localhost -jsonapi_port 8090
 
 
