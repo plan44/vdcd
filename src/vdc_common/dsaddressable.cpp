@@ -296,6 +296,7 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 
 enum {
   dSUID_key,
+  classicid_key,
   model_key,
   hardwareVersion_key,
   hardwareGUID_key,
@@ -319,6 +320,7 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
 {
   static const PropertyDescriptor properties[numDsAddressableProperties] = {
     { "dSUID", apivalue_string, false, dSUID_key, &dsAddressable_key },
+    { "x-p44-classicid", apivalue_string, false, classicid_key, &dsAddressable_key },
     { "model", apivalue_string, false, model_key, &dsAddressable_key },
     { "hardwareVersion", apivalue_string, false, hardwareVersion_key, &dsAddressable_key },
     { "hardwareGuid", apivalue_string, false, hardwareGUID_key, &dsAddressable_key },
@@ -346,6 +348,7 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
     else {
       switch (aPropertyDescriptor.accessKey) {
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true;
+        case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true;
         case model_key: aPropValue->setStringValue(modelName()); return true;
         case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
