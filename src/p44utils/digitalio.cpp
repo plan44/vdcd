@@ -31,6 +31,12 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   output = aOutput;
   inverted = aInverted;
   name = aName;
+  bool initialPinState = aInitialState!=inverted;
+  // check for missing pin (no pin, just silently keeping state)
+  if (name=="missing") {
+    ioPin = IOPinPtr(new MissingPin(initialPinState));
+    return;
+  }
   // dissect name into bus, device, pin
   string busName;
   string deviceName;
@@ -60,7 +66,7 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     // Linux generic GPIO
     // gpio.<gpionumber>
     int pinNumber = atoi(pinName.c_str());
-    ioPin = IOPinPtr(new GpioPin(pinNumber, output, aInitialState));
+    ioPin = IOPinPtr(new GpioPin(pinNumber, output, initialPinState));
   }
   else
   #endif
@@ -68,7 +74,7 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   if (busName=="gpioNS9XXXX") {
     // gpioNS9XXXX.<pinname>
     // NS9XXX driver based GPIO (Digi ME 9210 LX)
-    ioPin = IOPinPtr(new GpioNS9XXXPin(pinName.c_str(), output, aInitialState));
+    ioPin = IOPinPtr(new GpioNS9XXXPin(pinName.c_str(), output, initialPinState));
   }
   else
   #endif
@@ -76,11 +82,11 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     // i2c<busnum>.<devicespec>.<pinnum>
     int busNumber = atoi(busName.c_str()+3);
     int pinNumber = atoi(pinName.c_str());
-    ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, aInitialState));
+    ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, initialPinState));
   }
   else {
-    // default to simulated pin
-    ioPin = IOPinPtr(new SimPin(name.c_str(), output, aInitialState!=inverted)); // set even for inputs
+    // all other/unknown bus names default to simulated pin
+    ioPin = IOPinPtr(new SimPin(name.c_str(), output, initialPinState)); // set even for inputs
   }
 }
 

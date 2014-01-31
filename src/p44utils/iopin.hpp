@@ -69,6 +69,25 @@ namespace p44 {
   };
 
 
+  /// missing (dummy) I/O pin
+  class MissingPin : public IOPin
+  {
+    bool pinState;
+
+  public:
+    // create a missing pin (not connected, just keeping state)
+    MissingPin(bool aInitialState) : pinState(aInitialState) {};
+
+    /// get state of pin
+    /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
+    virtual bool getState() { return pinState; } // return state (which is initialstate or state set with setState later on)
+
+    /// set state of pin (NOP)
+    /// @param aState new state (changes initial state)
+    virtual void setState(bool aState) { pinState = aState; }; // remember
+  };
+
+
 } // namespace
 
 #endif /* defined(__p44utils__iopin__) */

@@ -76,9 +76,9 @@ class P44bridged : public CmdLineApp
   P44VdcHost p44VdcHost;
 
   // indicators and button
-  IndicatorOutput redLED;
-  IndicatorOutput greenLED;
-  ButtonInput button;
+  IndicatorOutputPtr redLED;
+  IndicatorOutputPtr greenLED;
+  ButtonInputPtr button;
 
   // learning
   long learningTimerTicket;
@@ -86,16 +86,12 @@ class P44bridged : public CmdLineApp
 public:
 
   P44bridged() :
-    redLED("gpioNS9XXXX.ledred", false, false),
-    greenLED("gpioNS9XXXX.ledgreen", false, false),
-    button("gpioNS9XXXX.button", true),
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
     tempStatusTicket(0),
     learningTimerTicket(0)
   {
-    showAppStatus();
   }
 
   void setAppStatus(AppStatus aStatus)
@@ -119,8 +115,8 @@ public:
           if (appStatus==status_ok) {
             // activity flashes only during normal operation
             timer = 50*MilliSecond;
-            redLED.steadyOn();
-            greenLED.steadyOn();
+            redLED->steadyOn();
+            greenLED->steadyOn();
           }
           else {
             currentTempStatus = tempstatus_none;
@@ -128,28 +124,28 @@ public:
           break;
         case tempstatus_buttonpressed:
           // just yellow
-          redLED.steadyOn();
-          greenLED.steadyOn();
+          redLED->steadyOn();
+          greenLED->steadyOn();
           break;
         case tempstatus_buttonpressedlong:
           // just red
-          redLED.steadyOn();
-          greenLED.steadyOff();
+          redLED->steadyOn();
+          greenLED->steadyOff();
           break;
         case tempstatus_factoryresetwait:
           // fast red blinking
-          greenLED.steadyOff();
-          redLED.blinkFor(p44::Infinite, 200*MilliSecond, 20);
+          greenLED->steadyOff();
+          redLED->blinkFor(p44::Infinite, 200*MilliSecond, 20);
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
-          redLED.steadyOff();
-          greenLED.blinkFor(timer, 400*MilliSecond, 30);
+          redLED->steadyOff();
+          greenLED->blinkFor(timer, 400*MilliSecond, 30);
           break;
         case tempstatus_failure:
           timer = 1600*MilliSecond;
-          greenLED.steadyOff();
-          redLED.blinkFor(timer, 400*MilliSecond, 30);
+          greenLED->steadyOff();
+          redLED->blinkFor(timer, 400*MilliSecond, 30);
           break;
         default:
           break;
@@ -175,24 +171,24 @@ public:
     if (currentTempStatus==tempstatus_none) {
       switch (appStatus) {
         case status_ok:
-          redLED.steadyOff();
-          greenLED.steadyOn();
+          redLED->steadyOff();
+          greenLED->steadyOn();
           break;
         case status_busy:
-          greenLED.steadyOn();
-          redLED.steadyOn();
+          greenLED->steadyOn();
+          redLED->steadyOn();
           break;
         case status_interaction:
-          greenLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
-          redLED.blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          greenLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
-          greenLED.steadyOff();
-          redLED.steadyOn();
+          greenLED->steadyOff();
+          redLED->steadyOn();
           break;
         case status_fatalerror:
-          greenLED.steadyOff();
-          redLED.blinkFor(p44::Infinite, 800*MilliSecond, 50);;
+          greenLED->steadyOff();
+          redLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
       }
     }
@@ -254,6 +250,9 @@ public:
                                      "  (supported for device : TCA9555)" },
       { 'k', "consoleio",     true,  "name[:(in|out|io)];add static debug device which reads and writes console\n"
                                      "(for inputs: first char of name=action key)" },
+      { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
+      { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
+      { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
       { 'h', "help",          false, "show this text" },
       { 0, NULL } // list terminator
     };
@@ -287,9 +286,24 @@ public:
       sleep(startupDelay);
     }
 
+    // Connect LEDs and button
+    const char *pinName;
+    pinName = "missing";
+    getStringOption("greenled", pinName);
+    greenLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false, false));
+    pinName = "missing";
+    getStringOption("redled", pinName);
+    redLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false, false));
+    pinName = "missing";
+    getStringOption("button", pinName);
+    button = ButtonInputPtr(new ButtonInput(pinName, true));
+
+    // now show status for the first time
+    showAppStatus();
+
     // Check for factory reset as very first action, to avoid that corrupt data might already crash the daemon
     // before we can do the factory reset
-    if (button.isSet()) {
+    if (button->isSet()) {
       // started with button pressed - go into factory reset wait mode
       factoryResetWait = true;
       indicateTempStatus(tempstatus_factoryresetwait);
@@ -443,11 +457,11 @@ public:
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
-        button.setButtonHandler(NULL, true); // disconnect button
+        button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
-        redLED.steadyOff();
-        greenLED.steadyOff();
+        redLED->steadyOff();
+        greenLED->steadyOff();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -2), 2*Second);
         return true;
@@ -459,7 +473,7 @@ public:
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
         LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(-3) in 500 mS\n");
-        button.setButtonHandler(NULL, true); // disconnect button
+        button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -3), 500*MilliSecond);
@@ -491,8 +505,8 @@ public:
         // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
         LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(-42) in 2 seconds\n");
         // indicate red "error/danger" state
-        redLED.steadyOn();
-        greenLED.steadyOff();
+        redLED->steadyOn();
+        greenLED->steadyOff();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -42), 2*Second);
         return true;
@@ -501,8 +515,8 @@ public:
         // held in waiting-for-reset state less than 20 seconds or more than 30 seconds -> just restart
         LOG(LOG_WARNING,"Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds\n");
         // indicate yellow "busy" state
-        redLED.steadyOn();
-        greenLED.steadyOn();
+        redLED->steadyOn();
+        greenLED->steadyOn();
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 0), 500*MilliSecond);
         return true;
@@ -514,14 +528,14 @@ public:
         // end factory reset wait, assume button stuck or something
         factoryResetWait = false;
         // fast yellow blinking
-        greenLED.blinkFor(p44::Infinite, 200*MilliSecond, 60);
-        redLED.blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        greenLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        redLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
         // when button is released, a normal restart will occur, otherwise we'll remain in this state
       }
       else if (aTimeSincePreviousChange>20*Second) {
         // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode
-        redLED.steadyOn();
-        greenLED.steadyOff();
+        redLED->steadyOn();
+        greenLED->steadyOff();
       }
     }
     return true;
@@ -535,12 +549,12 @@ public:
     if (factoryResetWait) {
       // button held during startup, check for factory reset
       // - connect special button hander
-      button.setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
     }
     else {
       // normal init
       // - connect button
-      button.setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
       // - initialize the device container
       p44VdcHost.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
     }
