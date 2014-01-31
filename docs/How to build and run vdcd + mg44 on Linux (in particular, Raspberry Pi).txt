@@ -31,7 +31,7 @@ sudo make install
 cd ..
 
 # mg44
-cd vdcd
+cd mg44
 autoreconf -fi
 ./configure
 make
