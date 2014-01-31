@@ -24,7 +24,7 @@
 
 
 #define DEFAULT_USE_MODERN_DSUIDS 0 // 0: no, 1: yes
-#define DEFAULT_USE_PROTOBUF_API 0 // 0: no, 1: yes
+#define DEFAULT_USE_PROTOBUF_API 1 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102

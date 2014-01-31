@@ -21,7 +21,7 @@
 #include "upnpdevicecontainer.hpp"
 
 #define DEFAULT_USE_MODERN_DSIDS 0 // 0: no, 1: yes
-#define DEFAULT_USE_PROTOBUF_API 0 // 0: no, 1: yes
+#define DEFAULT_USE_PROTOBUF_API 1 // 0: no, 1: yes
 
 #define DEFAULT_JSON_VDSMSERVICE "8440"
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
