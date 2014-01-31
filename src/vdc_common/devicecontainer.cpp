@@ -880,13 +880,13 @@ void DeviceContainer::resetAnnouncing()
 
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
-#define ANNOUNCE_TIMEOUT (15*Second)
+#define ANNOUNCE_TIMEOUT (30*Second)
 
 // how long until a not acknowledged announcement for a device is retried again for the same device
 #define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
 // how long vDC waits after receiving ok from one announce until it fires the next
-#define ANNOUNCE_PAUSE (1*Second)
+#define ANNOUNCE_PAUSE (5*Second)
 
 /// start announcing all not-yet announced entities to the vdSM
 void DeviceContainer::startAnnouncing()
