@@ -936,7 +936,7 @@ void DeviceContainer::announceNext()
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
-      (!dsUids || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
+      (!(dsUids && HAS_VDCANNOUNCE) || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
@@ -945,7 +945,7 @@ void DeviceContainer::announceNext()
       // call announce method
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      if (dsUids) {
+      if (dsUids && HAS_VDCANNOUNCE) {
         // vcds were announced, include link to vdc for device announcements
         params->add("vdcdSUID", params->newString(dev->classContainerP->dSUID.getString()));
       }
