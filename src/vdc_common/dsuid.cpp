@@ -23,6 +23,7 @@
 
 #include <openssl/sha.h>
 
+#include "fnv.hpp"
 
 using namespace p44;
 
@@ -386,6 +387,31 @@ bool DsUid::setAsString(const string &aString)
     return false;
   }
   return true;
+}
+
+#pragma mark - getting derived classic equivalent of a dSUID (FNV hashing method)
+
+
+DsUid DsUid::getDerivedClassicId() const
+{
+  if (idType==idtype_classic) {
+    // already classic, just return myself
+    return *this;
+  }
+  // all other ID types: generate a hashed derivate
+  DsUid classicId;
+  // Calculation of serial (i.e serial number part of classic dsid)
+  Fnv32 hash;
+  hash.addBytes(idBytes-1, raw);
+  uint32_t serial = hash.getHash();
+  serial ^= (serial>>28); // fold 4 MSBits into 4 LSBits, so hash has now 28 bits of length
+  serial <<= 3; // reserve three LSBits for enumerated devices
+  serial |= raw[idBytes-1] & 0x07; // add in last three bits of dSUID's enumeration byte
+  serial |= 0x80000000; // Always set MSBit to make sure these hashed IDs cannot collide with real terminal blocks
+  // create ID now
+  classicId.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  classicId.setDsSerialNo(serial);
+  return classicId;
 }
 
 

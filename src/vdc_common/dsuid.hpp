@@ -178,9 +178,12 @@ namespace p44 {
     ///   This method maps bits 48..51 of aSerial into bits 32..35 of the serial number field
     void setDsSerialNo(DsSerialNo aSerialNo);
 
-    /// get upper 8 bit of object class
-    /// @return upper 8bit of object class
-    uint8_t getObjectClassMSB() const;
+    /// get classic dsid derived via standard hashing procedure from dSUID
+    /// @return a classic 12-byte dsid in the terminal block domain (32 bit serial) with same
+    ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
+    ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
+    DsUid getDerivedClassicId() const;
+
 
     /// @}
 
