@@ -41,6 +41,7 @@
 // components for classic dsids
 #define DSID_OBJECTCLASS_DSDEVICE 0x000000
 #define DSID_OBJECTCLASS_DSMETER 0x000001
+#define DSID_OBJECTCLASS_DS485IF 0x00000F
 #define DSID_OBJECTCLASS_MACADDRESS 0xFF0000
 
 
@@ -179,10 +180,11 @@ namespace p44 {
     void setDsSerialNo(DsSerialNo aSerialNo);
 
     /// get classic dsid derived via standard hashing procedure from dSUID
+    /// @param aObjectClass to set in derived ID
     /// @return a classic 12-byte dsid in the terminal block domain (32 bit serial) with same
     ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
     ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
-    DsUid getDerivedClassicId() const;
+    DsUid getDerivedClassicId(ObjectClass aObjectClass) const;
 
 
     /// @}

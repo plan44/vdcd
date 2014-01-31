@@ -392,7 +392,7 @@ bool DsUid::setAsString(const string &aString)
 #pragma mark - getting derived classic equivalent of a dSUID (FNV hashing method)
 
 
-DsUid DsUid::getDerivedClassicId() const
+DsUid DsUid::getDerivedClassicId(ObjectClass aObjectClass) const
 {
   if (idType==idtype_classic) {
     // already classic, just return myself
@@ -409,7 +409,7 @@ DsUid DsUid::getDerivedClassicId() const
   serial |= raw[idBytes-1] & 0x07; // add in last three bits of dSUID's enumeration byte
   serial |= 0x80000000; // Always set MSBit to make sure these hashed IDs cannot collide with real terminal blocks
   // create ID now
-  classicId.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
+  classicId.setObjectClass(aObjectClass);
   classicId.setDsSerialNo(serial);
   return classicId;
 }
