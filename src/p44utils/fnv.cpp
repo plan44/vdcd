@@ -59,7 +59,7 @@ void Fnv32::addByte(uint8_t aByte)
 }
 
 
-void Fnv32::addBytes(size_t aNumBytes, uint8_t *aBytesP)
+void Fnv32::addBytes(size_t aNumBytes, const uint8_t *aBytesP)
 {
   for (size_t i=0; i<aNumBytes; ++i) {
     addByte(aBytesP[i]);
@@ -103,7 +103,7 @@ void Fnv64::addByte(uint8_t aByte)
 }
 
 
-void Fnv64::addBytes(size_t aNumBytes, uint8_t *aBytesP)
+void Fnv64::addBytes(size_t aNumBytes, const uint8_t *aBytesP)
 {
   for (size_t i=0; i<aNumBytes; ++i) {
     addByte(aBytesP[i]);
