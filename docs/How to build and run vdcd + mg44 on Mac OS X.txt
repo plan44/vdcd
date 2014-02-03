@@ -14,10 +14,13 @@ mkdir <project dir of your choice>
 cd <project dir of your choice>
 
 # clone the git repositories
-# - substitute your git user name for <username>, enter password when asked
-git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mongoose44.git libmongoose
-git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/mg44.git mg44
-git clone -b luz ssh://<username>@plan44.ch/home/plan44/sharedgit/vdcd.git vdcd
+git clone -b master git://gitorious.digitalstrom.org/virtual-devices/vdcd.git vdcd
+# - substitute your plan44 git user name for <username>, enter password when asked for the following:
+git clone -b master ssh://<username>@plan44.ch/home/plan44/sharedgit/mongoose44.git libmongoose
+git clone -b master ssh://<username>@plan44.ch/home/plan44/sharedgit/mg44.git mg44
+
+# Note: to get the most recent beta stuff, consider checking out "luz" branch instead of "master"
+
 
 # Build
 # =====
