@@ -65,8 +65,7 @@ int DeviceClassContainer::getInstanceNumber() const
 
 void DeviceClassContainer::deriveDsUid()
 {
-  // Note: device class containers ALWAYS have a modern dSUID, as these are not exposed in systms with old dsids at all
-  // - class containers have v5 UUIDs based on the device container's master UUID as namespace
+  // class containers have v5 UUIDs based on the device container's master UUID as namespace
   string name = string_format("%s.%d", deviceClassIdentifier(), getInstanceNumber()); // name is class identifier plus instance number: classID.instNo
   dSUID.setNameInSpace(name, getDeviceContainer().dSUID); // domain is dSUID of device container
 }
@@ -76,15 +75,7 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 {
   string s(deviceClassIdentifier());
   string_format_append(s, ".%d@", getInstanceNumber());
-  if (deviceContainerP->usingDsUids()) {
-    // with modern dSUIDs, device container is always identified via its dSUID
-    s.append(deviceContainerP->dSUID.getString());
-  }
-  else {
-    // with classic dsids, device container was identified by its MAC address, so we simulate that to
-    // avoid generating another set of different dSUIDs (classic dsids are beta only anyway).
-    s.append(deviceContainerP->macAddressString());
-  }
+  s.append(deviceContainerP->dSUID.getString());
   return s;
 }
 
@@ -179,7 +170,7 @@ bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, c
         }
         else if (aIndex<devices.size()) {
           // return dSUID of contained devices
-          aPropValue->setStringValue(devices[aIndex]->dSUID.getString());
+          aPropValue->setStringValue(devices[aIndex]->getApiDsUid().getString());
           return true;
         }
       }

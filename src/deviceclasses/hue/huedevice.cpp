@@ -583,33 +583,13 @@ void HueDevice::outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aEr
 
 void HueDevice::deriveDsUid()
 {
-  #warning "lightID is not exactly a stable ID. But the hue API does not provide anything better at this time"
-  if (getDeviceContainer().usingDsUids()) {
-    // vDC implementation specific UUID:
-    //   UUIDv5 with name = classcontainerinstanceid::huelightid
-    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    s += "::" + lightID;
-    dSUID.setNameInSpace(s, vdcNamespace);
-  }
-  else {
-    Fnv64 hash;
-    // we have no unqiquely defining device information, construct something as reproducible as possible
-    // - use class container's ID
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    // - add-in the console device name
-    hash.addBytes(lightID.length(), (uint8_t *)lightID.c_str());
-    #if FAKE_REAL_DSD_IDS
-    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-    #else
-    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
-    #endif
-    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  }
+  // NOTE: lightID is not exactly a stable ID. But the hue API does not provide anything better at this time
+  // vDC implementation specific UUID:
+  //   UUIDv5 with name = classcontainerinstanceid::huelightid
+  DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
+  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  s += "::" + lightID;
+  dSUID.setNameInSpace(s, vdcNamespace);
 }
 
 

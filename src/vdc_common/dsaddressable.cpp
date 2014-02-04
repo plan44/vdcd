@@ -40,6 +40,25 @@ DsAddressable::~DsAddressable()
 }
 
 
+const DsUid &DsAddressable::getApiDsUid()
+{
+  #if LEGACY_DSID_SUPPORT
+  if (deviceContainerP->usingDsUids())
+    return dSUID;
+  else {
+    // needs classic ID
+    if (classidDsid.empty()) {
+      classidDsid = dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE);
+    }
+    return classidDsid;
+  }
+  #else
+  return dSUID;
+  #endif
+}
+
+
+
 void DsAddressable::setName(const string &aName)
 {
   // TODO: for now dsm API truncates names to 20 bytes. Therefore,
@@ -260,7 +279,7 @@ bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApi
       aParams = api->newApiValue();
       aParams->setType(apivalue_object);
     }
-    aParams->add("dSUID", aParams->newString(dSUID.getString()));
+    aParams->add("dSUID", aParams->newString(getApiDsUid().getString()));
     return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
   }
   return false; // no connection
@@ -347,8 +366,8 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
     }
     else {
       switch (aPropertyDescriptor.accessKey) {
-        case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true;
-        case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true;
+        case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
+        case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true; // always the classic dSUID
         case model_key: aPropValue->setStringValue(modelName()); return true;
         case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
@@ -382,8 +401,13 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
 
 string DsAddressable::shortDesc()
 {
-  // short description is dSUID and name if available
+  // short description is dSUID...
   string s = dSUID.getString();
+  #if LEGACY_DSID_SUPPORT
+  // ...with classic dsid in case we still have legacy ID support
+  string_format_append(s, "/%s", dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString().c_str());
+  #endif
+  // ...and user-set name, if any
   if (!name.empty())
     string_format_append(s, " (%s)", name.c_str());
   return s;

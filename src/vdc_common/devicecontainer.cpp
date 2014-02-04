@@ -74,28 +74,11 @@ string DeviceContainer::macAddressString()
 void DeviceContainer::deriveDsUid()
 {
   if (!externalDsuid) {
-    // we don't have a fixed external dSUID to base everything on, derive a dSUID of our own
-    if (usingDsUids()) {
-      // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
-      // - calculate UUIDv5 based dSUID
-      DsUid vdcNamespace(DSUID_VDC_NAMESPACE_UUID);
-      dSUID.setNameInSpace(macAddressString(), vdcNamespace);
-    }
-    else {
-      // classic dsids: create a hash from MAC hex string
-      Fnv64 hash;
-      string s = macAddressString();
-      hash.addBytes(s.size(), (uint8_t *)s.c_str());
-      #if FAKE_REAL_DSD_IDS
-      dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-      dSUID.setDsSerialNo(hash.getHash32());
-      #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-      #else
-      // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-      dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS);
-      dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
-      #endif
-    }
+    // we don't have a fixed external dSUID to base everything on, so create a dSUID of our own:
+    // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
+    // - calculate UUIDv5 based dSUID
+    DsUid vdcNamespace(DSUID_VDC_NAMESPACE_UUID);
+    dSUID.setNameInSpace(macAddressString(), vdcNamespace);
   }
 }
 
@@ -114,7 +97,7 @@ void DeviceContainer::setIdMode(bool aDsUids, DsUidPtr aExternalDsUid)
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
-  deviceClassContainers[aDeviceClassContainerPtr->dSUID] = aDeviceClassContainerPtr;
+  deviceClassContainers[aDeviceClassContainerPtr->getApiDsUid()] = aDeviceClassContainerPtr;
 }
 
 
@@ -212,7 +195,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", dSUID.getString().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str());
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -346,13 +329,13 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   if (!aDevice)
     return false; // no device, nothing added
   // check if device with same dSUID already exists
-  DsDeviceMap::iterator pos = dSDevices.find(aDevice->dSUID);
+  DsDeviceMap::iterator pos = dSDevices.find(aDevice->getApiDsUid());
   if (pos!=dSDevices.end()) {
-    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->dSUID.getString().c_str());
+    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->shortDesc().c_str());
     return false; // duplicate dSUID, not added
   }
   // set for given dSUID in the container-wide map of devices
-  dSDevices[aDevice->dSUID] = aDevice;
+  dSDevices[aDevice->getApiDsUid()] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
   LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
@@ -375,7 +358,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     aDevice->save();
   }
   // remove from container-wide map of devices
-  dSDevices.erase(aDevice->dSUID);
+  dSDevices.erase(aDevice->getApiDsUid());
   LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
 }
 
@@ -728,7 +711,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           // - create answer
           ApiValuePtr result = activeSessionConnection->newApiValue();
           result->setType(apivalue_object);
-          result->add("dSUID", aParams->newString(dSUID.getString()));
+          result->add("dSUID", aParams->newString(getApiDsUid().getString()));
           result->add("allowDisconnect", aParams->newBool(false));
           aRequest->sendResult(result);
           // - trigger announcing devices
@@ -764,7 +747,7 @@ ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aPar
 
 ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  if (aDsUid==dSUID || aDsUid.empty()) {
+  if (aDsUid==getApiDsUid() || aDsUid.empty()) {
     // no ID or that of myself: container level method
     return handleMethod(aRequest, aMethod, aParams);
   }
@@ -802,7 +785,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
 
 void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  if (aDsUid==dSUID) {
+  if (aDsUid==getApiDsUid()) {
     // container level notification
     handleNotification(aMethod, aParams);
   }
@@ -947,7 +930,7 @@ void DeviceContainer::announceNext()
       params->setType(apivalue_object);
       if (dsUids && HAS_VDCANNOUNCE) {
         // vcds were announced, include link to vdc for device announcements
-        params->add("vdcdSUID", params->newString(dev->classContainerP->dSUID.getString()));
+        params->add("vdcdSUID", params->newString(dev->classContainerP->getApiDsUid().getString()));
       }
       if (!dev->sendRequest("announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());

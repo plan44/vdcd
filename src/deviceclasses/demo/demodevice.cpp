@@ -75,24 +75,12 @@ void DemoDevice::deriveDsUid()
 {
   Fnv64 hash;
 
-  if (getDeviceContainer().usingDsUids()) {
-    // vDC implementation specific UUID:
-    //   UUIDv5 with name = classcontainerinstanceid::SingularDemoDevice
-    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    s += "::SingularDemoDevice";
-    dSUID.setNameInSpace(s, vdcNamespace);
-  }
-  else {
-    // we have no unqiquely defining device information, construct something as reproducible as possible
-    // - use class container's ID
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    // - add-in the Demo name
-    hash.addCStr("SingularDemoDevice");
-    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-  }
+  // vDC implementation specific UUID:
+  //   UUIDv5 with name = classcontainerinstanceid::SingularDemoDevice
+  DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
+  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  s += "::SingularDemoDevice";
+  dSUID.setNameInSpace(s, vdcNamespace);
 }
 
 

@@ -222,68 +222,26 @@ Brightness DaliDevice::arcpowerToBrightness(int aArcpower)
 
 void DaliDevice::deriveDsUid()
 {
-  if (getDeviceContainer().usingDsUids()) {
-    // vDC implementation specific UUID:
-    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-    string s;
-    if (deviceInfo.uniquelyIdentifying()) {
-      // uniquely identified by GTIN+Serial, but unknown partition value:
-      // - Proceed according to dS rule 2:
-      //   "vDC can determine GTIN and serial number of Device → combine GTIN and
-      //    serial number to form a GS1-128 with Application Identifier 21:
-      //    "(01)<GTIN>(21)<serial number>” and use the resulting string to
-      //    generate a UUIDv5 in the GS1-128 name space"
-      s = string_format("(01)%lld(21)%lld", deviceInfo.gtin, deviceInfo.serialNo);
-    }
-    else {
-      // not uniquely identified by itself:
-      // - generate id in vDC namespace
-      //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
-      s = classContainerP->deviceClassContainerInstanceIdentifier();
-      string_format_append(s, "::%d", deviceInfo.shortAddress);
-    }
-    dSUID.setNameInSpace(s, vdcNamespace);
+  // vDC implementation specific UUID:
+  DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
+  string s;
+  if (deviceInfo.uniquelyIdentifying()) {
+    // uniquely identified by GTIN+Serial, but unknown partition value:
+    // - Proceed according to dS rule 2:
+    //   "vDC can determine GTIN and serial number of Device → combine GTIN and
+    //    serial number to form a GS1-128 with Application Identifier 21:
+    //    "(01)<GTIN>(21)<serial number>" and use the resulting string to
+    //    generate a UUIDv5 in the GS1-128 name space"
+    s = string_format("(01)%llu(21)%llu", deviceInfo.gtin, deviceInfo.serialNo);
   }
   else {
-    // create a hash
-    Fnv64 hash;
-    if (deviceInfo.uniquelyIdentifying()) {
-      // Valid device info
-      // - add GTIN (6 bytes = 48bits, MSB to LSB)
-      hash.addByte((deviceInfo.gtin>>40) & 0xFF);
-      hash.addByte((deviceInfo.gtin>>32) & 0xFF);
-      hash.addByte((deviceInfo.gtin>>24) & 0xFF);
-      hash.addByte((deviceInfo.gtin>>16) & 0xFF);
-      hash.addByte((deviceInfo.gtin>>8) & 0xFF);
-      hash.addByte((deviceInfo.gtin) & 0xFF);
-      // - add Serial number (all 8 bytes, usually only last 4 are used)
-      hash.addByte((deviceInfo.serialNo>>56) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>52) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>48) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>40) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>32) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>16) & 0xFF);
-      hash.addByte((deviceInfo.serialNo>>8) & 0xFF);
-      hash.addByte((deviceInfo.serialNo) & 0xFF);
-    }
-    else {
-      // no unqiquely defining device information, construct something as reproducible as possible
-      // - use class container's ID
-      string s = classContainerP->deviceClassContainerInstanceIdentifier();
-      hash.addBytes(s.size(), (uint8_t *)s.c_str());
-      // - and add the DALI short address
-      hash.addByte(deviceInfo.shortAddress);
-    }
-    #if FAKE_REAL_DSD_IDS
-    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dSUID.setDsSerialNo(hash.getHash32());
-    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-    #else
-    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
-    #endif
+    // not uniquely identified by itself:
+    // - generate id in vDC namespace
+    //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
+    s = classContainerP->deviceClassContainerInstanceIdentifier();
+    string_format_append(s, "::%d", deviceInfo.shortAddress);
   }
+  dSUID.setNameInSpace(s, vdcNamespace);
 }
 
 

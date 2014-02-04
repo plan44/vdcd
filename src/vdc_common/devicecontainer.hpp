@@ -94,7 +94,7 @@ namespace p44 {
     bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
     uint64_t mac; ///< MAC address as found at startup
 
-    DsDeviceMap dSDevices; ///< available devices by dSUID
+    DsDeviceMap dSDevices; ///< available devices by API-exposed ID (dSUID or derived dsid)
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
     string persistentDataDir;
@@ -125,7 +125,7 @@ namespace p44 {
 
     DeviceContainer();
 
-    /// the list of containers
+    /// the list of containers by API-exposed ID (dSUID or derived dsid)
     ContainerMap deviceClassContainers;
 
     /// API for vdSM

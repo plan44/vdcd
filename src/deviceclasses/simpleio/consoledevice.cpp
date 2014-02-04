@@ -110,32 +110,12 @@ void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 void ConsoleDevice::deriveDsUid()
 {
-  if (getDeviceContainer().usingDsUids()) {
-    // vDC implementation specific UUID:
-    //   UUIDv5 with name = classcontainerinstanceid::consoledevicename
-    DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    s += "::" + getName();
-    dSUID.setNameInSpace(s, vdcNamespace);
-  }
-  else {
-    Fnv64 hash;
-    // we have no unqiquely defining device information, construct something as reproducible as possible
-    // - use class container's ID
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    // - add-in the console device name
-    hash.addCStr(getName().c_str());
-    #if FAKE_REAL_DSD_IDS
-    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-    #warning "TEST ONLY: faking digitalSTROM device addresses, possibly colliding with real devices"
-    #else
-    dSUID.setObjectClass(DSID_OBJECTCLASS_MACADDRESS); // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-    dSUID.setSerialNo(0x7000000000000ll+hash.getHash48());
-    #endif
-    // TODO: validate, now we are using the MAC-address class with bits 48..51 set to 7
-  }
+  // vDC implementation specific UUID:
+  //   UUIDv5 with name = classcontainerinstanceid::consoledevicename
+  DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
+  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  s += "::" + getName();
+  dSUID.setNameInSpace(s, vdcNamespace);
 }
 
 

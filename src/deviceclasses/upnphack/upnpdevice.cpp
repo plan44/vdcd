@@ -60,20 +60,8 @@ void UpnpDevice::deriveDsUid()
 {
   Fnv64 hash;
 
-  if (getDeviceContainer().usingDsUids()) {
-    // UPnP devices do have a uuid, use this as dSUID
-    dSUID.setAsString(upnpDeviceUUID);
-  }
-  else {
-    // for classic dsid, use a hash of the uuid + device class container identifier
-    // - use class container's ID
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
-    hash.addBytes(s.size(), (uint8_t *)s.c_str());
-    // - add-in the UPnP UUID
-    hash.addCStr(upnpDeviceUUID.c_str());
-    dSUID.setObjectClass(DSID_OBJECTCLASS_DSDEVICE);
-    dSUID.setDsSerialNo(hash.getHash28()<<4); // leave lower 4 bits for input number
-  }
+  // UPnP devices do have a uuid, use this as dSUID
+  dSUID.setAsString(upnpDeviceUUID);
 }
 
 

@@ -282,7 +282,7 @@ void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
   if (aDevice) {
-    sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->dSUID.getString()), ErrorPtr());
+    sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->getApiDsUid().getString()), ErrorPtr());
     // keep monitor mode for 2 seconds to consume possibly related button releases as well
     MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::endIdentify, this), 2*Second);
   }
