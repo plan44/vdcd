@@ -849,9 +849,15 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 // pseudo baudrate for dali bridge must be 9600bd
 #define ENOCEAN_ESP3_BAUDRATE 57600
 
+#define ENOCEAN_ESP3_ALIVECHECK_INTERVAL (30*Second)
+#define ENOCEAN_ESP3_ALIVECHECK_TIMEOUT (1*Second)
+
+
 
 EnoceanComm::EnoceanComm(SyncIOMainLoop &aMainLoop) :
-	inherited(aMainLoop)
+	inherited(aMainLoop),
+  aliveCheckTicket(0),
+  aliveTimeoutTicket(0)
 {
 }
 
@@ -861,12 +867,63 @@ EnoceanComm::~EnoceanComm()
 }
 
 
-void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort)
+void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName)
 {
   LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
   serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
+  // create the enOcean reset IO pin
+  if (aEnoceanResetPinName) {
+    // init, initially LO = not reset
+    enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false, false));
+  }
 	// open connection so we can receive
 	serialComm.requestConnection();
+  // schedule first alive check quickly
+  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 2*Second);
+}
+
+
+void EnoceanComm::aliveCheck()
+{
+  LOG(LOG_DEBUG, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
+  // send a EPS3 command to the modem to check if it is alive
+  Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
+  checkPacket->setPacketType(pt_common_cmd);
+  // command data is command byte plus params (if any)
+  checkPacket->setDataLength(1); // CO_RD_VERSION has no parameters
+  // set the command
+  checkPacket->data()[0] = CO_RD_VERSION;
+  // send packet
+  sendPacket(checkPacket);
+  // schedule a response timeout.
+  // Note: for now, reception of any packet counts as successful alive check, actual response is not yet checked
+  aliveTimeoutTicket= MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheckTimeout, this), ENOCEAN_ESP3_ALIVECHECK_TIMEOUT);
+  // also schedule the next alive check
+  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), ENOCEAN_ESP3_ALIVECHECK_INTERVAL);
+}
+
+
+void EnoceanComm::aliveCheckTimeout()
+{
+  // alive check failed, try to recover enOcean interface
+  LOG(LOG_ERR, "EnoceanComm: alive check of enOcean module failed -> restarting module\n");
+  // - cancel alive checks for now
+  MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
+  // - close the connection
+  serialComm.closeConnection();
+  // - do a hardware reset of the module if possible
+  if (enoceanResetPin) enoceanResetPin->set(true); // reset
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 1*Second);
+}
+
+
+void EnoceanComm::resetDone()
+{
+  LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset and re-opening connection\n");
+  if (enoceanResetPin) enoceanResetPin->set(false); // release reset
+	serialComm.requestConnection(); // re-open connection
+  // restart alive checks
+  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 5*Second);
 }
 
 
@@ -874,8 +931,6 @@ void EnoceanComm::setRadioPacketHandler(RadioPacketCB aRadioPacketCB)
 {
   radioPacketHandler = aRadioPacketCB;
 }
-
-
 
 
 size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
@@ -903,6 +958,9 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
 {
+  // for now: any packet reception counts as successful alive check
+  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
+  // dispatch the packet
   PacketType pt = aPacket->packetType();
   if (pt==pt_radio) {
     // incoming radio packet

@@ -264,7 +264,7 @@ void EnoceanRpsWindowHandleHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketP
         bb->updateInputState(tilted); // report the tilted status
       }
       else {
-        bb->updateInputState(!closed); // report the tilted status
+        bb->updateInputState(!closed); // report the open/close status
       }
     }
   }

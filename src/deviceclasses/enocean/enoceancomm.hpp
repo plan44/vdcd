@@ -25,6 +25,7 @@
 #include "vdcd_common.hpp"
 
 #include "serialqueue.hpp"
+#include "digitalio.hpp"
 
 using namespace std;
 
@@ -86,6 +87,29 @@ namespace p44 {
   // learn bit
   #define LRN_BIT_MASK 0x08 // Bit 3, Byte 0 (4th data byte)
 
+  // common commands
+  #define CO_WR_SLEEP 0x01 // Order to enter in energy saving mode Order to reset the device
+  #define CO_WR_RESET 0x02 // Reset
+  #define CO_RD_VERSION 0x03 // Read the device (SW) version / (HW) version, chip ID etc.
+  #define CO_RD_SYS_LOG 0x04 // Read system log from device databank
+  #define CO_WR_SYS_LOG 0x05 // Reset System log from device databank
+  #define CO_WR_BIST 0x06 // Perform Flash BIST operation
+  #define CO_WR_IDBASE 0x07 // Write ID range base number
+  #define CO_RD_IDBASE 0x08 // Read ID range base number
+  #define CO_WR_REPEATER 0x09 // Write Repeater Level off,1,2
+  #define CO_RD_REPEATER 0x0A // Read Repeater Level off,1,2
+  #define CO_WR_FILTER_ADD 0x0B // Add filter to filter list
+  #define CO_WR_FILTER_DEL 0x0C // Delete filter from filter list
+  #define CO_WR_FILTER_DEL_ALL 0x0D // Delete all filter
+  #define CO_WR_FILTER_ENABLE 0x0E // Enable/Disable supplied filters
+  #define CO_RD_FILTER 0x0F // Read supplied filters
+  #define CO_WR_WAIT_MATURITY 0x10 // Waiting till end of maturity time before received radio telegrams will transmitted
+  #define CO_WR_SUBTEL 0x11 // Enable/Disable transmitting additional subtelegram info
+  #define CO_WR_MEM 0x12 // Write x bytes of the Flash, XRAM, RAM0 ....
+  #define CO_RD_MEM 0x13 // Read x bytes of the Flash, XRAM, RAM0 ....
+  #define CO_RD_MEM_ADDRESS 0x14 // Feedback about the used address and length of the config area and the Smart Ack Table
+  #define CO_RD_SECURITY 0x15 // Read security information (level, keys)
+  #define CO_WR_SECURITY 0x16 // Write security information (level, keys)
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;
@@ -311,6 +335,10 @@ namespace p44 {
 		
 		Esp3PacketPtr currentIncomingPacket;
     RadioPacketCB radioPacketHandler;
+
+    DigitalIoPtr enoceanResetPin;
+    long aliveCheckTicket;
+    long aliveTimeoutTicket;
 		
 	public:
 		
@@ -320,7 +348,8 @@ namespace p44 {
     /// set the connection parameters to connect to the enOcean TCM310 modem
     /// @param aConnectionSpec serial device path (/dev/...) or host name/address[:port] (1.2.3.4 or xxx.yy)
     /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
-    void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort);
+    /// @param aEnoceanResetPinName name of a DigitalIO pin connected to an enOcean module's reset pin (active HI), or NULL if none
+    void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName);
 		
     /// derived implementation: deliver bytes to the ESP3 parser
     /// @param aNumBytes number of bytes ready for accepting
@@ -345,6 +374,12 @@ namespace p44 {
 
     /// dispatch received Esp3 packets to approriate receiver
     void dispatchPacket(Esp3PacketPtr aPacket);
+
+  private:
+
+    void aliveCheck();
+    void aliveCheckTimeout();
+    void resetDone();
 
 	};
 

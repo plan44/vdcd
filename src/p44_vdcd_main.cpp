@@ -231,6 +231,7 @@ public:
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
+      { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to enOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -373,9 +374,10 @@ public:
       }
       // - Add enOcean devices class if enOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
+      const char *enoceanresetpin = getOption("enoceanreset");
       if (enoceanname) {
         EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &p44VdcHost));
-        enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT);
+        enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
