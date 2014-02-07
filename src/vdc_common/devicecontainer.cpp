@@ -389,10 +389,12 @@ void DeviceContainer::stopLearning()
 void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    if (aLearnIn)
+    if (aLearnIn) {
       LOG(LOG_NOTICE,"--- learned in (paired) new device(s)\n");
-    else
+    }
+    else {
       LOG(LOG_NOTICE,"--- learned out (unpaired) device(s)\n");
+    }
   }
   // report status
   if (learnHandler) {

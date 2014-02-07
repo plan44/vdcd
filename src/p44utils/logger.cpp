@@ -38,15 +38,22 @@ Logger::Logger()
 #define LOGBUFSIZ 8192
 
 
-bool Logger::logEnabled(int aErrLevel)
+bool Logger::stdoutLogEnabled(int aErrLevel)
 {
   return (aErrLevel<=logLevel);
 }
 
 
+bool Logger::logEnabled(int aErrLevel)
+{
+  return stdoutLogEnabled(aErrLevel) || aErrLevel<=stderrLevel;
+}
+
+
+
 void Logger::log(int aErrLevel, const char *aFmt, ... )
 {
-  if (logEnabled(aErrLevel) || aErrLevel<=stderrLevel) {
+  if (logEnabled(aErrLevel)) {
     pthread_mutex_lock(&reportMutex);
     va_list args;
     va_start(args, aFmt);
@@ -87,7 +94,7 @@ void Logger::log(int aErrLevel, const char *aFmt, ... )
       fputs(message.c_str(), stderr);
       fflush(stderr);
     }
-    if (logEnabled(aErrLevel) && (aErrLevel>stderrLevel || errToStdout)) {
+    if (stdoutLogEnabled(aErrLevel) && (aErrLevel>stderrLevel || errToStdout)) {
       // must go to stdout as well
       fputs(tsbuf, stdout);
       if (isMultiline)

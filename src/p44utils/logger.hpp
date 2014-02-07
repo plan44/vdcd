@@ -43,20 +43,16 @@
 
 #if defined(DEBUG) || ALWAYS_DEBUG
 #define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
-#define DBGLOG(lvl,...) globalLogger.log(lvl,##__VA_ARGS__)
-#define DBGLOGERRNO(lvl) globalLogger.logSysError(lvl)
+#define DBGLOG(lvl,...) { if (globalLogger.logEnabled(lvl)) globalLogger.log(lvl,##__VA_ARGS__); }
 #define LOGGER_DEFAULT_LOGLEVEL LOG_DEBUG
 #else
 #define DBGLOGENABLED(lvl) false
 #define DBGLOG(lvl,...)
-#define DBGLOGERRNO(lvl)
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
 #define LOGENABLED(lvl) globalLogger.logEnabled(lvl)
-#define LOG(lvl,...) globalLogger.log(lvl,##__VA_ARGS__)
-#define LOGERR(lvl,err) globalLogger.logSysError(lvl,err)
-#define LOGERRNO(lvl) globalLogger.logSysError(lvl)
+#define LOG(lvl,...) { if (globalLogger.logEnabled(lvl)) globalLogger.log(lvl,##__VA_ARGS__); }
 
 #define SETLOGLEVEL(lvl) globalLogger.setLogLevel(lvl)
 #define SETERRLEVEL(lvl, dup) globalLogger.setErrLevel(lvl, dup)
@@ -74,8 +70,15 @@ namespace p44 {
 
     /// test if log is enabled at a given level
     /// @param aErrLevel level to check
-    /// @return true if logging is enabled at the specified level
+    /// @return true if any logging (stderr or stdout) is enabled at the specified level
     bool logEnabled(int aErrLevel);
+
+    /// test if log to std out is enabled at a given level
+    /// @param aErrLevel level to check
+    /// @return true if logging to stdout is enabled at this level.
+    /// Note: logging might still occur on stderr, even if this function returns false
+    bool stdoutLogEnabled(int aErrLevel);
+
 
     /// log a message
     /// @param aErrLevel error level of the message
