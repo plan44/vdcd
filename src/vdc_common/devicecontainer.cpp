@@ -474,7 +474,7 @@ void DeviceContainer::localDimHandler()
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
     if (dev->isMember(group_yellow_light)) {
-      signalActivity();
+      // do not signal activity for speed reasons
       dev->callScene(localDimDown ? DEC_S : INC_S, true);
     }
   }

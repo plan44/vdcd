@@ -81,8 +81,8 @@ void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
 void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
 {
   LOG(LOG_INFO,
-    "Output '%s' in device %s: is requested to apply new value %d, last known value is %d\n",
-    hardwareName.c_str(), device.shortDesc().c_str(), aNewValue, cachedOutputValue
+    "Output '%s' in device %s: is requested to apply new value %d (transition time=%lld uS), last known value is %d\n",
+    hardwareName.c_str(), device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedOutputValue
   );
   if (aNewValue!=cachedOutputValue) {
     cachedOutputValue = aNewValue;

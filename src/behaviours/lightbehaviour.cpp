@@ -458,13 +458,17 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
         }
         if (nb!=b) {
           setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-          LOG(LOG_NOTICE,"- ApplyScene(DIM): Dimmed to new value %d\n", nb);
+          LOG(LOG_DEBUG,"- ApplyScene(DIM): Dimming in progress, %d -> %d\n", b, nb);
         }
       }
     }
     else if (sceneNo==STOP_S) {
       // stop dimming
       // TODO: when fine tuning dimming, we'll need to actually stop ongoing dimming. For now, it's just a NOP
+      if (LOGENABLED(LOG_NOTICE)) {
+        Brightness b = getLogicalBrightness();
+        LOG(LOG_NOTICE,"- ApplyScene(DIM): Stopped dimming, final value is %d\n", b);
+      }
     }
     else if (sceneNo==MIN_S) {
       Brightness b = minBrightness;

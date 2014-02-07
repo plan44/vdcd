@@ -389,7 +389,6 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
   // see if we have a scene table at all
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    LOG(LOG_NOTICE, "%s: callScene(%d):\n", shortDesc().c_str(), aSceneNo);
     DsScenePtr scene;
     // check special scene numbers first
     SceneNo dimSceneNo = 0;
@@ -406,6 +405,9 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
     dimSceneNo = mainDimScene(aSceneNo);
+    if (dimSceneNo==0) {
+      LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
+    }
     lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
     // check for area
     int area = areaFromScene(aSceneNo);
@@ -465,18 +467,17 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
           OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
           if (output) {
-            if (dimSceneNo==0) {
+            if (dimSceneNo) {
+              // Dimming scene: apply right now
+              output->applyScene(scene);
+              // Note: no special actions are performed on dimming scene
+            }
+            else {
               // Non-dimming scene: have output save its current state into the previousState pseudo scene
               // Note: the actual updating might happen later (when the hardware responds) but
               //   implementations must make sure access to the hardware is serialized such that
               //   the values are captured before values from applyScene() below are applied.
               output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
-            }
-            else {
-              // apply the new scene right now
-              output->applyScene(scene);
-              // and perform the special actions, if any
-              output->performSceneActions(scene);
             }
           } // if output
         } // for
