@@ -250,7 +250,7 @@ typedef enum {
 typedef enum {
   sensorType_none,
   sensorType_temperature, ///< temperature in degrees celsius
-  sensorType_humitity, ///< relative humitity in %
+  sensorType_humidity, ///< relative humidity in %
   sensorType_illumination, ///< illumination in lux
   sensorType_supplyVoltage, ///< supply voltage level in Volts
   sensorType_gas_CO, ///< CO concentration in ppm

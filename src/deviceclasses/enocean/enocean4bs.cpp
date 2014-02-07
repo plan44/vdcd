@@ -214,7 +214,7 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // A5-04-01: Temperature and Humidity
   // - e.g. Alpha Sense
   { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, &stdSensorHandler,  tempText, tempUnit, dflag_climatecontrolbehaviour },
-  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_humitity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, &stdSensorHandler,  humText,  humUnit,  dflag_climatecontrolbehaviour },
+  { 0x04, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, &stdSensorHandler,  humText,  humUnit,  dflag_climatecontrolbehaviour },
 
   // A5-06-xx: Light Sensor
   { 0x06, 0x01, 0, group_black_joker,  behaviour_sensor,      sensorType_illumination,usage_outdoors,    600,60000, DB(2,0), DB(1,0),  100, &illumHandler,     illumText, illumUnit, dflag_none },
