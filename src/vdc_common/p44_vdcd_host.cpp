@@ -232,8 +232,14 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
   else {
     string method = m->stringValue();
     if (method=="learn") {
+      // check proximity check disabling
+      bool disableProximity = false;
+      JsonObjectPtr o = aRequest->get("disableProximityCheck");
+      if (o) {
+        disableProximity = o->boolValue();
+      }
       // get timeout
-      JsonObjectPtr o = aRequest->get("seconds");
+      o = aRequest->get("seconds");
       int seconds = 30; // default to 30
       if (o) seconds = o->int32Value();
       if (seconds==0) {
@@ -243,7 +249,7 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       }
       else {
         // start learning
-        startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2));
+        startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2), disableProximity);
         learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, false, ErrorPtr(new P44VdcError(408, "learn timeout"))), seconds*Second);
       }
     }
@@ -261,6 +267,18 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
         setUserActionMonitor(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, _1));
         learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, DevicePtr()), seconds*Second);
       }
+    }
+    else if (method=="logLevel") {
+      // get or set logging level for vdcd
+      JsonObjectPtr o = aRequest->get("value");
+      if (o) {
+        // set new value first
+        int newLevel = o->int32Value();
+        SETLOGLEVEL(newLevel);
+        LOG(LOG_WARNING,"\n========== changed log level to %d ===============\n", newLevel);
+      }
+      // anyway: return current value
+      sendCfgApiResponse(aJsonComm, JsonObject::newInt32(LOGLEVEL), ErrorPtr());
     }
     else {
       err = ErrorPtr(new P44VdcError(400, "unknown method"));

@@ -64,11 +64,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--modernids 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
