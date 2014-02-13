@@ -232,8 +232,14 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
   else {
     string method = m->stringValue();
     if (method=="learn") {
+      // check proximity check disabling
+      bool disableProximity = false;
+      JsonObjectPtr o = aRequest->get("disableProximityCheck");
+      if (o) {
+        disableProximity = o->boolValue();
+      }
       // get timeout
-      JsonObjectPtr o = aRequest->get("seconds");
+      o = aRequest->get("seconds");
       int seconds = 30; // default to 30
       if (o) seconds = o->int32Value();
       if (seconds==0) {
@@ -243,7 +249,7 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       }
       else {
         // start learning
-        startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2));
+        startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2), disableProximity);
         learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, false, ErrorPtr(new P44VdcError(408, "learn timeout"))), seconds*Second);
       }
     }

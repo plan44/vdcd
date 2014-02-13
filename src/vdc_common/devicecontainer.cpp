@@ -364,14 +364,15 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 
 
 
-void DeviceContainer::startLearning(LearnCB aLearnHandler)
+void DeviceContainer::startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck)
 {
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
-    pos->second->setLearnMode(true);
+    pos->second->setLearnMode(true, aDisableProximityCheck);
   }
+  LOG(LOG_NOTICE,"=== started learning%s\n", aDisableProximityCheck ? " with proximity check disabled" : "");
 }
 
 
@@ -379,8 +380,9 @@ void DeviceContainer::stopLearning()
 {
   // disable learning in all class containers
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
-    pos->second->setLearnMode(false);
+    pos->second->setLearnMode(false, false);
   }
+  LOG(LOG_NOTICE,"=== stopped learning\n");
   learningMode = false;
   learnHandler.clear();
 }

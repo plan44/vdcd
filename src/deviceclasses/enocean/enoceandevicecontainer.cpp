@@ -27,6 +27,7 @@ using namespace p44;
 EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
   learningMode(false),
+  disableProximityCheck(false),
 	enoceanComm(SyncIOMainLoop::currentMainLoop())
 {
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _2, _3));
@@ -245,8 +246,9 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // - check if we know that device address already. If so, it is a learn-out
     bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
     // now add/remove the device (if the action is a valid learn/unlearn)
-    // detect implicit (RPS) learn in only with sufficient radio strength, explicit ones are always recognized
-    if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false)) {
+    // detect implicit (RPS) learn in only with sufficient radio strength (or explicit override of that check),
+    // explicit ones are always recognized
+    if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
       LOG(LOG_NOTICE, "Received enOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
       ErrorPtr learnStatus;
@@ -290,9 +292,10 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
 #pragma mark - learning / unlearning
 
 
-void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning)
+void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
 {
   learningMode = aEnableLearning;
+  disableProximityCheck = aDisableProximityCheck;
 }
 
 
