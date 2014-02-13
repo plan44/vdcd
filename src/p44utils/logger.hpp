@@ -56,6 +56,8 @@
 
 #define SETLOGLEVEL(lvl) globalLogger.setLogLevel(lvl)
 #define SETERRLEVEL(lvl, dup) globalLogger.setErrLevel(lvl, dup)
+#define LOGLEVEL (globalLogger.getLogLevel())
+
 
 namespace p44 {
 
@@ -95,6 +97,10 @@ namespace p44 {
     /// @note even if aLogLevel is set to suppress messages, messages that qualify for going to stderr
     ///   (see setErrorLevel) will still be shown on stderr, but not on stdout.
     void setLogLevel(int aLogLevel);
+
+    /// return current log level
+    /// @return current log level
+    int getLogLevel() { return logLevel; }
 
     /// set level required to send messages to stderr
     /// @param aStderrLevel any messages with this or a lower (=higher priority) level will be sent to stderr (default = LOG_ERR)
