@@ -1055,7 +1055,7 @@
 <builder buildPath="${workspace_loc:/p44bridged/Release}" id="com.digi.lxnetes.builder.exe.release.160383975" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="com.digi.lxnetes.builder.exe.release"/>
 <tool id="com.digi.lxnetes.managedbuild.archiver.base.993090639" name="GCC C Cross-Archiver" superClass="com.digi.lxnetes.managedbuild.archiver.base"/>
 <tool command="$(CC)" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="com.digi.lxnetes.managedbuild.c.compiler.release.1716932832" name="GCC C Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.c.compiler.release">
-<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1831859778" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1831859778" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.more" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.debugging.level.1301704598" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.635601814" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="WCHAR_MIN=0"/>
@@ -1071,7 +1071,7 @@
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.release.1529185694" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.release">
-<option id="gnu.cpp.compiler.option.optimization.level.521294615" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.optimization.level.521294615" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.more" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.691393519" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.565727891" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="../boost_1_53_0"/>
