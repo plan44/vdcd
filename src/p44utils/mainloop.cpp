@@ -38,7 +38,7 @@
 
 using namespace p44;
 
-// time reference in milliseconds
+// time reference in microseconds
 MLMicroSeconds MainLoop::now()
 {
 #ifdef __APPLE__
@@ -52,7 +52,7 @@ MLMicroSeconds MainLoop::now()
 #else
   struct timespec tsp;
   clock_gettime(CLOCK_MONOTONIC, &tsp);
-  // return milliseconds
+  // return microseconds
   return ((uint64_t)(tsp.tv_sec))*1000000ll + tsp.tv_nsec/1000; // uS
 #endif
 }
