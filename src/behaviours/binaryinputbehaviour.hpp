@@ -48,6 +48,7 @@ namespace p44 {
     /// @{
     DsBinaryInputType configuredInputType; ///< the configurable input type (aka Sensor Function)
     MLMicroSeconds minPushInterval; ///< minimum time between two state pushes
+    MLMicroSeconds changesOnlyInterval; ///< time span during which only actual value changes are reported. After this interval, next hardware sensor update, even without value change, will cause a push)
     /// @}
 
 

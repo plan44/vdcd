@@ -28,6 +28,7 @@ BinaryInputBehaviour::BinaryInputBehaviour(Device &aDevice) :
   // persistent settings
   configuredInputType(binInpType_none),
   minPushInterval(200*MilliSecond),
+  changesOnlyInterval(15*Minute), // report unchanged state updates max once every 15 minutes
   // state
   lastUpdate(Never),
   lastPush(Never),
@@ -53,12 +54,16 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
-  LOG(LOG_NOTICE, "BinaryInput %s in device %s received new state = %d\n", hardwareName.c_str(),  device.shortDesc().c_str(), aNewState);
-  if (aNewState!=currentState) {
+  LOG(LOG_NOTICE,
+    "BinaryInput %s in device %s received new state = %d\n",
+    hardwareName.c_str(),  device.shortDesc().c_str(), aNewState
+  );
+  // always update age, even if value itself may not have changed
+  MLMicroSeconds now = MainLoop::now();
+  lastUpdate = now;
+  if (aNewState!=currentState || now>lastPush+changesOnlyInterval) {
     // changed state
     currentState = aNewState;
-    MLMicroSeconds now = MainLoop::now();
-    lastUpdate = now;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
       device.pushProperty("binaryInputStates", VDC_API_DOMAIN, (int)index);
@@ -80,7 +85,7 @@ const char *BinaryInputBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 2;
+static const size_t numFields = 3;
 
 size_t BinaryInputBehaviour::numFieldDefs()
 {
@@ -92,6 +97,7 @@ const FieldDefinition *BinaryInputBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "minPushInterval", SQLITE_INTEGER },
+    { "changesOnlyInterval", SQLITE_INTEGER },
     { "configuredInputType", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
@@ -108,7 +114,8 @@ void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  minPushInterval = aRow->get<int>(aIndex++);
+  minPushInterval = aRow->get<long long int>(aIndex++);
+  changesOnlyInterval = aRow->get<long long int>(aIndex++);
   configuredInputType = (DsBinaryInputType)aRow->get<int>(aIndex++);
 }
 
@@ -118,8 +125,9 @@ void BinaryInputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the fields
-  aStatement.bind(aIndex++, (int)minPushInterval);
-  aStatement.bind(aIndex++, (int)configuredInputType);
+  aStatement.bind(aIndex++, (long long int)minPushInterval);
+  aStatement.bind(aIndex++, (long long int)changesOnlyInterval);
+  aStatement.bind(aIndex++, (long long int)configuredInputType);
 }
 
 
@@ -156,6 +164,7 @@ const PropertyDescriptor *BinaryInputBehaviour::getDescDescriptor(int aPropIndex
 
 enum {
   minPushInterval_key,
+  changesOnlyInterval_key,
   configuredInputType_key,
   numSettingsProperties
 };
@@ -166,6 +175,7 @@ const PropertyDescriptor *BinaryInputBehaviour::getSettingsDescriptor(int aPropI
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &binaryInput_key },
+    { "changesOnlyInterval", apivalue_double, false, changesOnlyInterval_key+settings_key_offset, &binaryInput_key },
     { "sensorFunction", apivalue_uint64, false, configuredInputType_key+settings_key_offset, &binaryInput_key },
   };
   return &properties[aPropIndex];
@@ -215,6 +225,9 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
         case minPushInterval_key+settings_key_offset:
           aPropValue->setDoubleValue((double)minPushInterval/Second);
           return true;
+        case changesOnlyInterval_key+settings_key_offset:
+          aPropValue->setDoubleValue((double)changesOnlyInterval/Second);
+          return true;
         case configuredInputType_key+settings_key_offset: // aka "sensorFunction"
           aPropValue->setUint8Value(configuredInputType);
           return true;
@@ -241,6 +254,10 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
         // Settings properties
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
+          markDirty();
+          return true;
+        case changesOnlyInterval_key+settings_key_offset:
+          changesOnlyInterval = aPropValue->doubleValue()*Second;
           markDirty();
           return true;
         case configuredInputType_key+settings_key_offset: // aka "sensorFunction"
