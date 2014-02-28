@@ -54,7 +54,7 @@ void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aU
 void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 {
   double newCurrentValue = min+(aEngineeringValue*resolution);
-  LOG(LOG_INFO,
+  LOG(LOG_NOTICE,
     "Sensor %s in device %s received engineering value %d = physical units value %0.3f\n",
     hardwareName.c_str(),  device.shortDesc().c_str(), aEngineeringValue, newCurrentValue
   );
