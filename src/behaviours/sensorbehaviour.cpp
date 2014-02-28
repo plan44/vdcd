@@ -27,7 +27,7 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
   minPushInterval(2*Second), // do not push more often than every 2 seconds
-  changesOnlyInterval(0), // report every sensor update
+  changesOnlyInterval(0), // report every sensor update (even if value unchanged)
   // state
   lastUpdate(Never),
   lastPush(Never),
@@ -113,7 +113,8 @@ void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  minPushInterval = aRow->get<int>(aIndex++);
+  minPushInterval = aRow->get<long long int>(aIndex++);
+  changesOnlyInterval = aRow->get<long long int>(aIndex++);
 }
 
 
@@ -122,7 +123,8 @@ void SensorBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the fields
-  aStatement.bind(aIndex++, (int)minPushInterval);
+  aStatement.bind(aIndex++, (long long int)minPushInterval);
+  aStatement.bind(aIndex++, (long long int)changesOnlyInterval);
 }
 
 
