@@ -57,7 +57,7 @@ namespace p44 {
 
   /// Callback for device identification (user action) events
   /// @param aDevice device that was activated
-  typedef boost::function<void (DevicePtr aDevice)> DeviceUserActionCB;
+  typedef boost::function<void (DevicePtr aDevice, bool aRegular)> DeviceUserActionCB;
 
 
   /// persistence for digitalSTROM paramters
@@ -231,8 +231,9 @@ namespace p44 {
 
     /// called to signal a user-generated action from a device, which may be used to detect a device
     /// @param aDevice device where user action was detected
+    /// @param aRegular if true, the user action is a regular action, such as a button press
     /// @return true if normal user action processing should be suppressed
-    bool signalDeviceUserAction(Device &aDevice);
+    bool signalDeviceUserAction(Device &aDevice, bool aRegular);
 
     /// called by device class containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dSUID

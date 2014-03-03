@@ -71,8 +71,8 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
-  // button presses are considered user actions
-  if (!device.getDeviceContainer().signalDeviceUserAction(device)) {
+  // button press is considered a (regular!) user action
+  if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
     // not suppressed
     buttonPressed = aPressed; // remember state
     checkStateMachine(true, MainLoop::now());

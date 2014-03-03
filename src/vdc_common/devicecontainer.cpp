@@ -433,12 +433,21 @@ void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 }
 
 
-bool DeviceContainer::signalDeviceUserAction(Device &aDevice)
+bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 {
-  LOG(LOG_INFO,"--- device %s reports user action\n", aDevice.shortDesc().c_str());
+  LOG(LOG_INFO,"--- device %s reports %s user action\n", aRegular ? "regular" : "identification", aDevice.shortDesc().c_str());
   if (deviceUserActionHandler) {
-    deviceUserActionHandler(DevicePtr(&aDevice));
+    deviceUserActionHandler(DevicePtr(&aDevice), aRegular);
     return true; // suppress normal action
+  }
+  if (!aRegular) {
+    // this is a non-regular user action, i.e. one for identification purposes. Generate special identification notification
+    VdcApiConnectionPtr api = getSessionConnection();
+    if (api) {
+      // send an identify notification
+      aDevice.sendRequest("identify", ApiValuePtr(), NULL);
+    }
+    return true; // no normal action, prevent further processing
   }
   return false; // normal processing
 }
@@ -873,7 +882,7 @@ void DeviceContainer::resetAnnouncing()
 #define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
 // how long vDC waits after receiving ok from one announce until it fires the next
-#define ANNOUNCE_PAUSE (5*Second)
+#define ANNOUNCE_PAUSE (100*MilliSecond)
 
 /// start announcing all not-yet announced entities to the vdSM
 void DeviceContainer::startAnnouncing()

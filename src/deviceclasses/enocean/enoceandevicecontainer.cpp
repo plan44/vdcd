@@ -276,8 +276,8 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // not learning mode, dispatch packet to all devices known for that address
     for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
       if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false)) {
-        // learning packet in non-learn mode -> report as user action, may be attempt to identify a device
-        if (getDeviceContainer().signalDeviceUserAction(*(pos->second))) {
+        // learning packet in non-learn mode -> report as non-regular user action, may be attempt to identify a device
+        if (getDeviceContainer().signalDeviceUserAction(*(pos->second), false)) {
           // consumed for device identification purposes, suppress further processing
           break;
         }

@@ -1454,6 +1454,14 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     // params processed explicitly, prevent generic assignments
     params.reset();
   }
+  else if (aMethod=="identify") {
+    // Note: this is the same message as used by vdsm to identify (blink) a device. So that's why it has
+    //   the wrong name (VDSM_NOTIFICATION... vdsm_send...) for now.
+    msg.type = VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY;
+    msg.vdsm_send_identify = new Vdcapi__VdsmNotificationIdentify;
+    vdcapi__vdsm__notification_identify__init(msg.vdsm_send_identify);
+    subMessageP = &(msg.vdsm_send_identify->base);
+  }
   else {
     // no suitable submessage, cannot send
     LOG(LOG_INFO,"vdSM <- vDC (pbuf) method '%s' cannot be sent because no message is implemented for it at the pbuf level\n", aMethod.c_str());
