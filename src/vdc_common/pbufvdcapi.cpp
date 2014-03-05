@@ -1455,12 +1455,12 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     params.reset();
   }
   else if (aMethod=="identify") {
-    // Note: this is the same message as used by vdsm to identify (blink) a device. So that's why it has
-    //   the wrong name (VDSM_NOTIFICATION... vdsm_send...) for now.
-    msg.type = VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY;
-    msg.vdsm_send_identify = new Vdcapi__VdsmNotificationIdentify;
-    vdcapi__vdsm__notification_identify__init(msg.vdsm_send_identify);
-    subMessageP = &(msg.vdsm_send_identify->base);
+    // Note: this method has the same (JSON) name as the method from the vdsm used to identify (blink) a device.
+    //   In protobuf API however this is a different message type
+    msg.type = VDCAPI__TYPE__VDC_SEND_IDENTIFY;
+    msg.vdc_send_identify = new Vdcapi__VdcSendIdentify;
+    vdcapi__vdc__send_identify__init(msg.vdc_send_identify);
+    subMessageP = &(msg.vdc_send_identify->base);
   }
   else {
     // no suitable submessage, cannot send

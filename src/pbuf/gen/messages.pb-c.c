@@ -94,7 +94,7 @@ void   vdcapi__generic_response__free_unpacked
 }
 static const Vdcapi__Type vdcapi__message__type__default_value = VDCAPI__TYPE__GENERIC_RESPONSE;
 static const uint32_t vdcapi__message__message_id__default_value = 0;
-static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
+static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[23] =
 {
   {
     "type",
@@ -360,6 +360,18 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[22] =
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "vdc_send_identify",
+    119,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_MESSAGE,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_identify),
+    &vdcapi__vdc__send_identify__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__message__field_indices_by_name[] = {
   2,   /* field[2] = generic_response */
@@ -368,6 +380,7 @@ static const unsigned vdcapi__message__field_indices_by_name[] = {
   6,   /* field[6] = vdc_response_get_property */
   4,   /* field[4] = vdc_response_hello */
   10,   /* field[10] = vdc_send_announce */
+  22,   /* field[22] = vdc_send_identify */
   9,   /* field[9] = vdc_send_pong */
   12,   /* field[12] = vdc_send_push_property */
   11,   /* field[11] = vdc_send_vanish */
@@ -389,7 +402,7 @@ static const ProtobufCIntRange vdcapi__message__number_ranges[2 + 1] =
 {
   { 1, 0 },
   { 100, 3 },
-  { 0, 22 }
+  { 0, 23 }
 };
 const ProtobufCMessageDescriptor vdcapi__message__descriptor =
 {
@@ -399,7 +412,7 @@ const ProtobufCMessageDescriptor vdcapi__message__descriptor =
   "Vdcapi__Message",
   "vdcapi",
   sizeof(Vdcapi__Message),
-  22,
+  23,
   vdcapi__message__field_descriptors,
   vdcapi__message__field_indices_by_name,
   2,  vdcapi__message__number_ranges,
@@ -458,7 +471,7 @@ const ProtobufCMessageDescriptor vdcapi__generic_response__descriptor =
   (ProtobufCMessageInit) vdcapi__generic_response__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue vdcapi__type__enum_values_by_number[21] =
+const ProtobufCEnumValue vdcapi__type__enum_values_by_number[22] =
 {
   { "GENERIC_RESPONSE", "VDCAPI__TYPE__GENERIC_RESPONSE", 1 },
   { "VDSM_REQUEST_HELLO", "VDCAPI__TYPE__VDSM_REQUEST_HELLO", 2 },
@@ -481,17 +494,19 @@ const ProtobufCEnumValue vdcapi__type__enum_values_by_number[21] =
   { "VDSM_NOTIFICATION_CALL_MIN_SCENE", "VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE", 19 },
   { "VDSM_NOTIFICATION_IDENTIFY", "VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY", 20 },
   { "VDSM_NOTIFICATION_SET_CONTROL_VALUE", "VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE", 21 },
+  { "VDC_SEND_IDENTIFY", "VDCAPI__TYPE__VDC_SEND_IDENTIFY", 22 },
 };
 static const ProtobufCIntRange vdcapi__type__value_ranges[] = {
-{1, 0},{0, 21}
+{1, 0},{0, 22}
 };
-const ProtobufCEnumValueIndex vdcapi__type__enum_values_by_name[21] =
+const ProtobufCEnumValueIndex vdcapi__type__enum_values_by_name[22] =
 {
   { "GENERIC_RESPONSE", 0 },
   { "VDC_RESPONSE_GET_PROPERTY", 4 },
   { "VDC_RESPONSE_HELLO", 2 },
   { "VDC_RESPONSE_SET_PROPERTY", 6 },
   { "VDC_SEND_ANNOUNCE", 9 },
+  { "VDC_SEND_IDENTIFY", 21 },
   { "VDC_SEND_PONG", 8 },
   { "VDC_SEND_PUSH_PROPERTY", 11 },
   { "VDC_SEND_VANISH", 10 },
@@ -516,9 +531,9 @@ const ProtobufCEnumDescriptor vdcapi__type__descriptor =
   "Type",
   "Vdcapi__Type",
   "vdcapi",
-  21,
+  22,
   vdcapi__type__enum_values_by_number,
-  21,
+  22,
   vdcapi__type__enum_values_by_name,
   1,
   vdcapi__type__value_ranges,

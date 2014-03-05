@@ -19,6 +19,10 @@ message vdc_SendVanish {
     optional string dSUID = 1;
 }
 
+message vdc_SendIdentify {
+    optional string dSUID = 1;
+}
+
 message vdsm_SendBye {
     optional string dSUID = 1;
 }

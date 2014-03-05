@@ -30,6 +30,8 @@ enum Type {
     VDSM_NOTIFICATION_CALL_MIN_SCENE = 19;
     VDSM_NOTIFICATION_IDENTIFY = 20;
     VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21;
+
+    VDC_SEND_IDENTIFY = 22;
 }
 
 message Message {
@@ -67,6 +69,7 @@ message Message {
     optional vdsm_NotificationCallMinScene vdsm_send_call_min_scene = 116;
     optional vdsm_NotificationIdentify vdsm_send_identify = 117;
     optional vdsm_NotificationSetControlValue vdsm_send_set_control_value = 118;
+    optional vdc_SendIdentify vdc_send_identify = 119;
 }
 
 enum ResultCode {
