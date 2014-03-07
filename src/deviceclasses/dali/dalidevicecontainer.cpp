@@ -100,8 +100,10 @@ private:
   void deviceInfoReceived(DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
   {
     bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
-    if (!aError || missingData) {
-      if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info: %d\n",aDaliDeviceInfoPtr->shortAddress); }
+    bool badData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum);
+    if (!aError || missingData || badData) {
+      if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
+      if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have invalid device info (checksum error)\n",aDaliDeviceInfoPtr->shortAddress); }
       #if MAX_DEVICES_COLLECTED
       if (collectedDevices<MAX_DEVICES_COLLECTED) {
         collectedDevices++;

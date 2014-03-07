@@ -128,14 +128,13 @@ namespace p44 {
     // clear, make empty()==true
     void clear();
 
-    /// @}
-
-
     /// set the function/subdevice index of the dSUID
     /// @param aSubDeviceIndex a subdevice index. Devices containing multiple, logically independent subdevices
     ///   or functionality (like 2 or 4 buttons in one enOcean device) must use this index to differentiate
     ///   the subdevices.
     void setSubdeviceIndex(uint8_t aSubDeviceIndex);
+
+    /// @}
 
 
     /// @name SGTIN96 based dsUIDs

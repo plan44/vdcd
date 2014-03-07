@@ -29,6 +29,7 @@ namespace p44 {
     DaliCommErrorBridgeUnknown,
     DaliCommErrorDALIFrame,
     DaliCommErrorMissingData,
+    DaliCommErrorBadChecksum,
     DaliCommErrorInvalidAnswer,
     DaliCommErrorNeedFullScan,
     DaliCommErrorDeviceSearch,
@@ -75,8 +76,6 @@ namespace p44 {
     string description();
     /// returns true if uniquely identifying the device (real GTIN + serial found)
     bool uniquelyIdentifying();
-    /// if not yet uniquely identifying (no real GTIN + serial found), but there is a OEM GTIN+serial, use that one
-    void makeUniquelyIdentifyingFromOEM();
   };
 
 

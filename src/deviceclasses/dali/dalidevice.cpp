@@ -49,8 +49,6 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
   // store the info record
   deviceInfo = aDeviceInfo; // copy
-  // use OEM GTIN/Serial if this is set, but main GTIN/Serial is not (some Meanwell LED dimmers)
-  deviceInfo.makeUniquelyIdentifyingFromOEM();
   // derive the dSUID
   deriveDsUid();
   // use light settings, which include a scene table
@@ -198,7 +196,6 @@ void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
 
 
 #warning "// TODO: add error status polling and use DsBehaviour::setHardwareError() to report it"
-
 
 
 uint8_t DaliDevice::brightnessToArcpower(Brightness aBrightness)
