@@ -435,7 +435,7 @@ void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 
 bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 {
-  LOG(LOG_INFO,"--- device %s reports %s user action\n", aRegular ? "regular" : "identification", aDevice.shortDesc().c_str());
+  LOG(LOG_INFO,"--- device %s reports %s user action\n", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
   if (deviceUserActionHandler) {
     deviceUserActionHandler(DevicePtr(&aDevice), aRegular);
     return true; // suppress normal action

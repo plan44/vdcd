@@ -277,7 +277,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
       if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false)) {
         // learning packet in non-learn mode -> report as non-regular user action, may be attempt to identify a device
-        if (getDeviceContainer().signalDeviceUserAction(*(pos->second), false)) {
+        if (getDeviceContainer().signalDeviceUserAction(*(pos->second), aEsp3PacketPtr->eepRorg()==rorg_RPS)) { // RPS learn-in telegrams are ALWAYS also regular telegrams, even in close proximity!
           // consumed for device identification purposes, suppress further processing
           break;
         }
