@@ -41,12 +41,6 @@ const char *DaliDeviceContainer::deviceClassIdentifier() const
 }
 
 
-
-#ifdef DEBUG
-//  #warning "%%% limiting number of devices"
-//  #define MAX_DEVICES_COLLECTED 1
-#endif
-
 class DaliDeviceCollector
 {
   DaliComm *daliCommP;
@@ -55,9 +49,6 @@ class DaliDeviceCollector
   DaliComm::ShortAddressList::iterator nextDev;
   DaliDeviceContainer *daliDeviceContainerP;
   bool incremental;
-  #if MAX_DEVICES_COLLECTED
-  int collectedDevices;
-  #endif
 public:
   static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aIncremental, bool aForceFullScan)
   {
@@ -71,9 +62,6 @@ private:
     incremental(aIncremental),
     daliDeviceContainerP(aDaliDeviceContainerP)
   {
-    #if MAX_DEVICES_COLLECTED
-    collectedDevices = 0;
-    #endif
     daliCommP->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _2, _3), !aForceFullScan); // allow quick scan when not forced
   }
 
@@ -104,21 +92,14 @@ private:
     if (!aError || missingData || badData) {
       if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
       if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have invalid device info (checksum error)\n",aDaliDeviceInfoPtr->shortAddress); }
-      #if MAX_DEVICES_COLLECTED
-      if (collectedDevices<MAX_DEVICES_COLLECTED) {
-        collectedDevices++;
-      #else
-      {
-      #endif
-        // - create device
-        DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
-        // - give it device info (such that it can calculate its dSUID)
-        //   Note: device info might be empty except for short address
-        daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
-        // - make it 
-        // - add it to our collection (if not already there)
-        daliDeviceContainerP->addDevice(daliDevice);
-      }
+      // - create device
+      DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
+      // - give it device info (such that it can calculate its dSUID)
+      //   Note: device info might be empty except for short address
+      daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
+      // - make it 
+      // - add it to our collection (if not already there)
+      daliDeviceContainerP->addDevice(daliDevice);
     }
     else {
       LOG(LOG_ERR,"Error reading device info: %s\n",aError->description().c_str());
@@ -151,3 +132,70 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
   DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aIncremental, aExhaustive);
 }
 
+
+#pragma mark - Self test
+
+void DaliDeviceContainer::selfTest(CompletedCB aCompletedCB)
+{
+  // do bus short address scan
+  daliComm.daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _2, _3));
+}
+
+
+void DaliDeviceContainer::testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
+{
+  if (Error::isOK(aError) && aShortAddressListPtr && aShortAddressListPtr->size()>0) {
+    // found at least one device, do a R/W test using the DTR
+    DaliAddress testAddr = aShortAddressListPtr->front();
+    LOG(LOG_NOTICE,"- DALI self test: switch all lights on, then do R/W tests with DTR of device short address %d\n",testAddr);
+    daliComm.daliSendDirectPower(DaliBroadcast, 0, NULL); // off
+    daliComm.daliSendDirectPower(DaliBroadcast, 254, NULL, 2*Second); // max
+    testRW(aCompletedCB, testAddr, 0x55); // use first found device
+  }
+  else {
+    // return error
+    if (Error::isOK(aError)) aError = ErrorPtr(new DaliCommError(DaliCommErrorDeviceSearch)); // no devices is also an error
+    aCompletedCB(aError);
+  }
+}
+
+
+void DaliDeviceContainer::testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte)
+{
+  // set DTR
+  daliComm.daliSend(DALICMD_SET_DTR, aTestByte);
+  // query DTR again, with 200mS delay
+  daliComm.daliSendQuery(aShortAddr, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliDeviceContainer::testRWResponse, this, aCompletedCB, aShortAddr, aTestByte, _2, _3, _4), 200*MilliSecond);
+}
+
+
+void DaliDeviceContainer::testRWResponse(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  if (Error::isOK(aError) && !aNoOrTimeout && aResponse==aTestByte) {
+    LOG(LOG_NOTICE,"  - sent 0x%02X, received 0x%02X\n",aTestByte, aResponse, aNoOrTimeout);
+    // successfully read back same value from DTR as sent before
+    // - check if more tests
+    switch (aTestByte) {
+      case 0x55: aTestByte = 0xAA; break; // next test: inverse
+      case 0xAA: aTestByte = 0x00; break; // next test: all 0
+      case 0x00: aTestByte = 0xFF; break; // next test: all 1
+      case 0xFF: aTestByte = 0xF0; break; // next test: half / half
+      case 0xF0: aTestByte = 0x0F; break; // next test: half / half inverse
+      default:
+        // all tests done
+        aCompletedCB(aError);
+        // turn off lights
+        daliComm.daliSendDirectPower(DaliBroadcast, 0); // off
+        return;
+    }
+    // launch next test
+    testRW(aCompletedCB, aShortAddr, aTestByte);
+  }
+  else {
+    // not ok
+    if (Error::isOK(aError) && aNoOrTimeout) aError = ErrorPtr(new DaliCommError(DaliCommErrorMissingData));
+    // report
+    LOG(LOG_ERR,"DALI self test error: sent 0x%02X, error: %s\n",aTestByte, aError->description().c_str());
+    aCompletedCB(aError);
+  }
+}

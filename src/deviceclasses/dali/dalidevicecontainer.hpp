@@ -45,10 +45,21 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
+    /// perform self test
+    /// @param aCompletedCB will be called when self test is done, returning ok or error
+    virtual void selfTest(CompletedCB aCompletedCB);
+
+    /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
     /// @return human readable model name/short description
     virtual string modelName() { return "DALI vDC"; }
+
+  private:
+
+    void testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
+    void testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);
+    void testRWResponse(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
   };
 
