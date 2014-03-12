@@ -289,6 +289,7 @@ typedef enum {
   binInpType_rain, ///< rain
   binInpType_sun, ///< solar radiation
   binInpType_thermostat, ///< thermostat
+  
 } DsBinaryInputType;
 
 

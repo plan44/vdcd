@@ -26,9 +26,10 @@
 using namespace p44;
 
 
-DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
+DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   inherited(aDeviceContainerP),
-  instanceNumber(aInstanceNumber)
+  instanceNumber(aInstanceNumber),
+  tag(aTag)
 {
 }
 
@@ -48,6 +49,14 @@ void DeviceClassContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRes
 {
   // done
 	aCompletedCB(ErrorPtr()); // default to error-free initialisation
+}
+
+
+void DeviceClassContainer::selfTest(CompletedCB aCompletedCB)
+{
+  // by default, assume everything ok
+  aCompletedCB(ErrorPtr());
+//%%%  aCompletedCB(ErrorPtr(new Error(-42, "universal error :-)")));
 }
 
 

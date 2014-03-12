@@ -37,7 +37,7 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
 
   public:
-    DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+    DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
     virtual const char *deviceClassIdentifier() const;
 

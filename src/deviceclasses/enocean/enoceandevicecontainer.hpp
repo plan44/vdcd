@@ -92,7 +92,7 @@ namespace p44 {
 
   public:
 
-    EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+    EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 		
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 

@@ -24,8 +24,8 @@
 using namespace p44;
 
 
-EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP),
+EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
   learningMode(false),
   disableProximityCheck(false),
 	enoceanComm(SyncIOMainLoop::currentMainLoop())
@@ -287,9 +287,6 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     }
   }
 }
-
-
-#pragma mark - learning / unlearning
 
 
 void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)

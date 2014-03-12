@@ -28,6 +28,7 @@
 
 #include "persistentparams.hpp"
 #include "dsaddressable.hpp"
+#include "digitalio.hpp"
 
 #include "vdcapi.hpp"
 
@@ -152,6 +153,16 @@ namespace p44 {
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
     void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+
+    /// start running normally
+    void startRunning();
+
+		/// perform self testing
+    /// @param aCompletedCB will be called when the entire self test is done
+    /// @param aButton button for interacting with tests
+    /// @param aRedLED red LED output
+    /// @param aRedLED green LED output
+    void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
 
     /// activity monitor
     /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.

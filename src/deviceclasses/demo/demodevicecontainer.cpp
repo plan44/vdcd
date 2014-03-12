@@ -26,8 +26,8 @@
 using namespace p44;
 
 
-DemoDeviceContainer::DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP)
+DemoDeviceContainer::DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
 }
 

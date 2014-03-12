@@ -39,7 +39,7 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
 		DeviceConfigMap deviceConfigs;
   public:
-    StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP);
+    StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP, int aTag);
 
     virtual const char *deviceClassIdentifier() const;
 

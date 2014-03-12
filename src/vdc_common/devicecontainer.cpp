@@ -127,28 +127,28 @@ class DeviceClassInitializer
 {
   CompletedCB callback;
   ContainerMap::iterator nextContainer;
-  DeviceContainer *deviceContainerP;
+  DeviceContainer &deviceContainer;
   bool factoryReset;
 public:
-  static void initialize(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aFactoryReset)
+  static void initialize(DeviceContainer &aDeviceContainer, CompletedCB aCallback, bool aFactoryReset)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassInitializer(aDeviceContainerP, aCallback, aFactoryReset);
+    new DeviceClassInitializer(aDeviceContainer, aCallback, aFactoryReset);
   };
 private:
-  DeviceClassInitializer(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aFactoryReset) :
+  DeviceClassInitializer(DeviceContainer &aDeviceContainer, CompletedCB aCallback, bool aFactoryReset) :
 		callback(aCallback),
-		deviceContainerP(aDeviceContainerP),
+		deviceContainer(aDeviceContainer),
     factoryReset(aFactoryReset)
   {
-    nextContainer = deviceContainerP->deviceClassContainers.begin();
+    nextContainer = deviceContainer.deviceClassContainers.begin();
     queryNextContainer(ErrorPtr());
   }
 
 
   void queryNextContainer(ErrorPtr aError)
   {
-    if ((!aError || factoryReset) && nextContainer!=deviceContainerP->deviceClassContainers.end())
+    if ((!aError || factoryReset) && nextContainer!=deviceContainer.deviceClassContainers.end())
       nextContainer->second->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
     else
       completed(aError);
@@ -163,8 +163,6 @@ private:
 
   void completed(ErrorPtr aError)
   {
-    // start periodic tasks like registration checking and saving parameters
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
     // callback
     callback(aError);
     // done, delete myself
@@ -207,10 +205,131 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, aFactoryReset);
 
   // start initialisation of class containers
-  DeviceClassInitializer::initialize(this, aCompletedCB, aFactoryReset);
+  DeviceClassInitializer::initialize(*this, aCompletedCB, aFactoryReset);
 }
 
 
+void DeviceContainer::startRunning()
+{
+  // start periodic tasks needed during normal running like announcement checking and saving parameters
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
+}
+
+
+
+#pragma mark - perform self test
+
+
+class SelfTestRunner
+{
+  CompletedCB completedCB;
+  ContainerMap::iterator nextContainer;
+  DeviceContainer &deviceContainer;
+  ButtonInputPtr button;
+  IndicatorOutputPtr redLED;
+  IndicatorOutputPtr greenLED;
+  long errorReportTicket;
+  ErrorPtr globalError;
+public:
+  static void initialize(DeviceContainer &aDeviceContainer, CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
+  {
+    // create new instance, deletes itself when finished
+    new SelfTestRunner(aDeviceContainer, aCompletedCB, aButton, aRedLED, aGreenLED);
+  };
+private:
+  SelfTestRunner(DeviceContainer &aDeviceContainer, CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED) :
+    completedCB(aCompletedCB),
+    deviceContainer(aDeviceContainer),
+    button(aButton),
+    redLED(aRedLED),
+    greenLED(aGreenLED),
+    errorReportTicket(0)
+  {
+    // start testing
+    nextContainer = deviceContainer.deviceClassContainers.begin();
+    testNextContainer();
+  }
+
+
+  void testNextContainer()
+  {
+    if (nextContainer!=deviceContainer.deviceClassContainers.end()) {
+      // ok, test next
+      // - start green/yellow blinking = test in progress
+      greenLED->steadyOn();
+      redLED->blinkFor(Infinite, 600, 50);
+      // - run the test
+      LOG(LOG_WARNING,"Starting Test of %s (Tag=%d, %s)\n", nextContainer->second->deviceClassIdentifier(), nextContainer->second->getTag(), nextContainer->second->shortDesc().c_str());
+      nextContainer->second->selfTest(boost::bind(&SelfTestRunner::containerTested, this, _1));
+    }
+    else
+      testCompleted(); // done
+  }
+
+
+  void containerTested(ErrorPtr aError)
+  {
+    if (!Error::isOK(aError)) {
+      // test failed
+      LOG(LOG_ERR,"****** Test of '%s' FAILED with error: %s\n", nextContainer->second->deviceClassIdentifier(), aError->description().c_str());
+      // remember
+      globalError = aError;
+      // morse out tag number of device class failing self test until button is pressed
+      greenLED->steadyOff();
+      int numBlinks = nextContainer->second->getTag();
+      redLED->blinkFor(600*MilliSecond*numBlinks, 600*MilliSecond, 50);
+      // call myself again later
+      errorReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SelfTestRunner::containerTested, this, aError), 600*MilliSecond*numBlinks+2*Second);
+      // also install button responder
+      button->setButtonHandler(boost::bind(&SelfTestRunner::errorAcknowledged, this), false); // report only release
+    }
+    else {
+      // test was ok
+      LOG(LOG_ERR,"------ Test of '%s' OK\n", nextContainer->second->deviceClassIdentifier());
+      // check next
+      ++nextContainer;
+      testNextContainer();
+    }
+  }
+
+
+  void errorAcknowledged()
+  {
+    // stop error morse
+    redLED->steadyOff();
+    greenLED->steadyOff();
+    MainLoop::currentMainLoop().cancelExecutionTicket(errorReportTicket);
+    // test next (if any)
+    ++nextContainer;
+    testNextContainer();
+  }
+
+
+  void testCompleted()
+  {
+    if (Error::isOK(globalError)) {
+      LOG(LOG_ERR,"Self test OK\n");
+      redLED->steadyOff();
+      greenLED->blinkFor(Infinite, 500, 85); // slow green blinking = good
+    }
+    else  {
+      LOG(LOG_ERR,"Self test has FAILED\n");
+      greenLED->steadyOff();
+      redLED->blinkFor(Infinite, 250, 60); // faster red blinking = not good
+    }
+    // callback, report last error seen
+    completedCB(globalError);
+    // done, delete myself
+    delete this;
+  }
+  
+};
+
+
+void DeviceContainer::selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
+{
+  SelfTestRunner::initialize(*this, aCompletedCB, aButton, aRedLED, aGreenLED);
+}
 
 
 #pragma mark - collect devices

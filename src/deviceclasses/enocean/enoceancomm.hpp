@@ -379,6 +379,7 @@ namespace p44 {
 
     void aliveCheck();
     void aliveCheckTimeout();
+    void aliveCheckOK();
     void resetDone();
 
 	};

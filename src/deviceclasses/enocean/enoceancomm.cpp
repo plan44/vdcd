@@ -917,6 +917,13 @@ void EnoceanComm::aliveCheckTimeout()
 }
 
 
+void EnoceanComm::aliveCheckOK()
+{
+  // cancel timeout (watchdog)
+  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
+}
+
+
 void EnoceanComm::resetDone()
 {
   LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset and re-opening connection\n");
@@ -959,7 +966,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
 {
   // for now: any packet reception counts as successful alive check
-  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
+  aliveCheckOK();
   // dispatch the packet
   PacketType pt = aPacket->packetType();
   if (pt==pt_radio) {

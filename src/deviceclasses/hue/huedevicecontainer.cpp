@@ -26,8 +26,8 @@
 using namespace p44;
 
 
-HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP) :
-  inherited(aInstanceNumber, aDeviceContainerP),
+HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
+  inherited(aInstanceNumber, aDeviceContainerP, aTag),
   hueComm()
 {
 }

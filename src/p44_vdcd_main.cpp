@@ -71,6 +71,7 @@ class P44bridged : public CmdLineApp
   AppStatus appStatus;
   TempStatus currentTempStatus;
   long tempStatusTicket;
+  bool selfTesting;
 
   // the device container
   P44VdcHost p44VdcHost;
@@ -90,7 +91,8 @@ public:
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
     tempStatusTicket(0),
-    learningTimerTicket(0)
+    learningTimerTicket(0),
+    selfTesting(false)
   {
   }
 
@@ -254,6 +256,7 @@ public:
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
+      { 0,   "selftest",      false, "run in self test mode" },
       { 'h', "help",          false, "show this text" },
       { 0, NULL } // list terminator
     };
@@ -286,6 +289,9 @@ public:
       LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
       sleep(startupDelay);
     }
+
+    // test or operation
+    selfTesting = getOption("selftest");
 
     // Connect LEDs and button
     const char *pinName;
@@ -368,7 +374,7 @@ public:
       if (daliname) {
         int sec = 0;
         getIntOption("daliportidle", sec);
-        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &p44VdcHost));
+        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &p44VdcHost, 1)); // Tag 1 = DALI
         daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
         daliDeviceContainer->addClassToDeviceContainer();
       }
@@ -376,18 +382,18 @@ public:
       const char *enoceanname = getOption("enocean");
       const char *enoceanresetpin = getOption("enoceanreset");
       if (enoceanname) {
-        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &p44VdcHost));
+        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &p44VdcHost, 2)); // Tag 2 = enOcean
         enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
       if (getOption("huelights")) {
-        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &p44VdcHost));
+        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &p44VdcHost, 3)); // Tag 3 = hue
         hueDeviceContainer->addClassToDeviceContainer();
       }
       // - Add static devices if we have collected any config from the command line
       if (staticDeviceConfigs.size()>0) {
-        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &p44VdcHost));
+        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &p44VdcHost, 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
@@ -548,7 +554,12 @@ public:
 
   virtual void initialize()
   {
-    if (factoryResetWait) {
+    if (selfTesting) {
+      // self testing
+      // - initialize the device container
+      p44VdcHost.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+    }
+    else if (factoryResetWait) {
       // button held during startup, check for factory reset
       // - connect special button hander
       button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
@@ -563,17 +574,39 @@ public:
   }
 
 
+
   virtual void initialized(ErrorPtr aError)
   {
-    if (!Error::isOK(aError)) {
+    if (selfTesting) {
+      // self test mode
+      if (Error::isOK(aError)) {
+        // start self testing (which might do some collecting if needed for testing)
+        p44VdcHost.selfTest(boost::bind(&P44bridged::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
+      }
+      else {
+        // - init already unsuccessful, consider test failed, call test end routine directly
+        selfTestDone(aError);
+      }
+    }
+    else if (!Error::isOK(aError)) {
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // TODO: what should happen next? Wait for restart?
     }
     else {
-      // collect devices
+      // Initialized ok and not testing
+      // - start running normally
+      p44VdcHost.startRunning();
+      // - collect devices
       collectDevices(false);
     }
+  }
+
+
+  void selfTestDone(ErrorPtr aError)
+  {
+    // test done, exit with success or failure
+    terminateApp(Error::isOK(aError) ? EXIT_SUCCESS : EXIT_FAILURE);
   }
 
 

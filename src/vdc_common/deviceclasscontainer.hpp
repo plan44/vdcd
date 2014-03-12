@@ -63,21 +63,25 @@ namespace p44 {
 
     DeviceVector devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
+    int tag; ///< tag used to in self test failures for showing on LEDs
 
   public:
+
 
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsuids for devices that don't have their own
     ///   unique ID, by using a hashOf(DeviceContainer's id, deviceClassIdentifier(), aInstanceNumber)
     /// @param aDeviceContainerP device container this device class is contained in
-    DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+    /// @param numeric tag for this device container (e.g. for blinking self test error messages)
+    DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
     /// add device class to device container.
     void addClassToDeviceContainer();
 
 		/// initialize
 		/// @param aCompletedCB will be called when initialisation is complete
-		///  callback will return an error if initialisation has failed and the device class is not functional
+		///   callback will return an error if initialisation has failed and the device class is not functional
+		/// @param aFactoryReset if set, also perform factory reset for data persisted for this device class
     virtual void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 		
     /// @name persistence
@@ -86,6 +90,9 @@ namespace p44 {
 		/// get the persistent data dir path
 		/// @return full path to directory to save persistent data
 		const char *getPersistentDataDir();
+
+    /// get the tag
+    int getTag() { return tag; };
 		
     /// @}
 		
@@ -114,10 +121,10 @@ namespace p44 {
     /// @}
 
 
-    /// @name device collection and learning/pairing
+    /// @name device collection, learning/pairing, self test
     /// @{
 
-    /// collect devices from this device classes
+    /// collect devices from this device classes for normal operation
     /// @param aCompletedCB will be called when device scan for this device class has been completed
     /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices
     ///   might not get detected this way
@@ -125,6 +132,13 @@ namespace p44 {
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive) = 0;
+
+    /// perform self test
+    /// @param aCompletedCB will be called when self test is done, returning ok or error
+    /// @note self will be called *instead* of collectDevices() but might need to do some form of
+    ///   collecting devices to perform the test. It might do that by calling collectDevices(), but
+    ///   must make sure NOT to modify or generate any persistent data for the class.
+    virtual void selfTest(CompletedCB aCompletedCB);
 
     /// Forget all previously collected devices
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that

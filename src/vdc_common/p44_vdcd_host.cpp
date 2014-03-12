@@ -29,7 +29,7 @@
 using namespace p44;
 
 
-#pragma mark - P44JsonApiRequest
+#pragma mark - config API - P44JsonApiRequest
 
 
 P44JsonApiRequest::P44JsonApiRequest(JsonCommPtr aJsonComm)
@@ -64,7 +64,7 @@ ApiValuePtr P44JsonApiRequest::newApiValue()
 }
 
 
-#pragma mark - P44VdcHost
+#pragma mark - Config API
 
 
 P44VdcHost::P44VdcHost() :
@@ -314,5 +314,9 @@ void P44VdcHost::endIdentify()
 {
   setUserActionMonitor(NULL);
 }
+
+
+#pragma mark - self test procedure
+
 
 

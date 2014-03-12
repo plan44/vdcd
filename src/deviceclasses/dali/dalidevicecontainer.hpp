@@ -38,7 +38,7 @@ namespace p44 {
   {
     typedef DeviceClassContainer inherited;
   public:
-    DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+    DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
     // the DALI communication object
     DaliComm daliComm;

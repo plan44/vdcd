@@ -68,7 +68,7 @@ namespace p44 {
     /// @}
 
   public:
-    HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP);
+    HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
