@@ -27,10 +27,10 @@ using namespace p44;
 EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
   learningMode(false),
+  selfTesting(false),
   disableProximityCheck(false),
 	enoceanComm(SyncIOMainLoop::currentMainLoop())
 {
-  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _2, _3));
 }
 
 
@@ -116,6 +116,10 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 
 void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
+  // install standard packet handler
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _2, _3));
+  // start enOcean module operation watchdog
+  enoceanComm.startWatchDog();
   // incrementally collecting enOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
@@ -295,5 +299,32 @@ void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisablePro
   disableProximityCheck = aDisableProximityCheck;
 }
 
+
+#pragma mark - Self test
+
+void EnoceanDeviceContainer::selfTest(CompletedCB aCompletedCB)
+{
+  // install test packet handler
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _2, _3));
+  // start watchdog
+  enoceanComm.startWatchDog();
+}
+
+
+void EnoceanDeviceContainer::handleTestRadioPacket(CompletedCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+{
+  // ignore packets with error
+  if (Error::isOK(aError)) {
+    if (aEsp3PacketPtr->eepRorg()==rorg_RPS && aEsp3PacketPtr->radioDBm()>MIN_LEARN_DBM && enoceanComm.modemAppVersion()>0) {
+      // seen both watchdog response (modem works) and independent RPS telegram (RF is ok)
+      LOG(LOG_NOTICE, "- enocean modem info: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", enoceanComm.modemAppVersion(), enoceanComm.modemApiVersion(), enoceanComm.modemAddress());
+      aCompletedCB(ErrorPtr());
+      // done
+      return;
+    }
+  }
+  // - still waiting
+  LOG(LOG_NOTICE, "- enocean test: still waiting for RPS telegram in learn distance\n");
+}
 
 

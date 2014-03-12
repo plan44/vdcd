@@ -83,6 +83,7 @@ namespace p44 {
 
     bool learningMode;
     bool disableProximityCheck;
+    bool selfTesting;
 
     KeyEventHandlerCB keyEventHandler;
 
@@ -100,6 +101,10 @@ namespace p44 {
     EnoceanComm enoceanComm;
 
     virtual const char *deviceClassIdentifier() const;
+
+    /// perform self test
+    /// @param aCompletedCB will be called when self test is done, returning ok or error
+    virtual void selfTest(CompletedCB aCompletedCB);
 
     /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
@@ -142,6 +147,7 @@ namespace p44 {
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void handleTestRadioPacket(CompletedCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
 
   };
 

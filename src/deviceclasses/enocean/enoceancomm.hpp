@@ -339,6 +339,10 @@ namespace p44 {
     DigitalIoPtr enoceanResetPin;
     long aliveCheckTicket;
     long aliveTimeoutTicket;
+
+    uint32_t appVersion;
+    uint32_t apiVersion;
+    EnoceanAddress myAddress;
 		
 	public:
 		
@@ -350,7 +354,23 @@ namespace p44 {
     /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
     /// @param aEnoceanResetPinName name of a DigitalIO pin connected to an enOcean module's reset pin (active HI), or NULL if none
     void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName);
-		
+
+    /// start the enOcean modem watchdog (regular version commands, hard reset if no answer in time)
+    void startWatchDog();
+
+    /// get modem application version
+    /// @return modem application version in 0xmmbbaaBB (mm=main version, bb=beta/minor, aa=alpha/revision, BB=build)
+    uint32_t modemAppVersion() { return appVersion; }
+
+    /// get modem API version
+    /// @return modem API version in 0xmmbbaaBB (mm=main version, bb=beta/minor, aa=alpha/revision, BB=build)
+    uint32_t modemApiVersion() { return apiVersion; }
+
+    /// get modem Enocean chip ID (enocean address)
+    /// @return modem enocean address
+    EnoceanAddress modemAddress() { return myAddress; }
+
+
     /// derived implementation: deliver bytes to the ESP3 parser
     /// @param aNumBytes number of bytes ready for accepting
     /// @param aBytes pointer to bytes buffer

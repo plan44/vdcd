@@ -857,7 +857,10 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 EnoceanComm::EnoceanComm(SyncIOMainLoop &aMainLoop) :
 	inherited(aMainLoop),
   aliveCheckTicket(0),
-  aliveTimeoutTicket(0)
+  aliveTimeoutTicket(0),
+  apiVersion(0),
+  appVersion(0),
+  myAddress(0)
 {
 }
 
@@ -878,9 +881,15 @@ void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16
   }
 	// open connection so we can receive
 	serialComm.requestConnection();
+}
+
+
+void EnoceanComm::startWatchDog()
+{
   // schedule first alive check quickly
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 2*Second);
 }
+
 
 
 void EnoceanComm::aliveCheck()
@@ -978,6 +987,16 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
   }
   else if (pt==pt_response) {
     // TODO: %%% have queue check for operations awaiting a response command
+    // check for version
+    if (aPacket->dataLength()==33) {
+      // %%% for now, the only pt_response is that related to CO_RD_VERSION sent by watchdog
+      // - extract versions
+      uint8_t *d = aPacket->data();
+      appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
+      apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
+      myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
+      LOG(LOG_DEBUG, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+    }
   }
   else {
     // TODO: %%% handle other packet types
