@@ -91,20 +91,16 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.173"
-            isEnabled = "NO">
+            argument = "--dali 192.168.59.170"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.194"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.1.73"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
@@ -117,6 +113,10 @@
          <CommandLineArgument
             argument = "--huelights"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--digitalio testbutton:in --digitalio testlamp:out --digitalio i2c1.TCA9555@25.7:out"

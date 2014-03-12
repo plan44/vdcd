@@ -271,11 +271,14 @@ public:
       terminateApp(EXIT_SUCCESS);
     }
 
+    // test or operation
+    selfTesting = getOption("selftest");
+
     // log level?
     int loglevel = DEFAULT_LOGLEVEL;
     getIntOption("loglevel", loglevel);
     SETLOGLEVEL(loglevel);
-    int errlevel = LOG_ERR;
+    int errlevel = selfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
     getIntOption("errlevel", errlevel);
     SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
 
@@ -289,9 +292,6 @@ public:
       LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
       sleep(startupDelay);
     }
-
-    // test or operation
-    selfTesting = getOption("selftest");
 
     // Connect LEDs and button
     const char *pinName;

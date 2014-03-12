@@ -257,7 +257,7 @@ private:
       // ok, test next
       // - start green/yellow blinking = test in progress
       greenLED->steadyOn();
-      redLED->blinkFor(Infinite, 600, 50);
+      redLED->blinkFor(Infinite, 600*MilliSecond, 50);
       // - run the test
       LOG(LOG_WARNING,"Starting Test of %s (Tag=%d, %s)\n", nextContainer->second->deviceClassIdentifier(), nextContainer->second->getTag(), nextContainer->second->shortDesc().c_str());
       nextContainer->second->selfTest(boost::bind(&SelfTestRunner::containerTested, this, _1));
