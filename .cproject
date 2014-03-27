@@ -33,6 +33,7 @@
 </option>
 <option id="gnu.c.compiler.option.include.paths.2033005810" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 <listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
@@ -43,11 +44,11 @@
 <option id="gnu.cpp.compiler.option.optimization.level.740853414" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.617989829" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1154051835" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-<listOptionValue builtIn="false" value="../classes"/>
 <listOptionValue builtIn="false" value="../boost_1_53_0"/>
 <listOptionValue builtIn="false" value="../."/>
-<listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 <listOptionValue builtIn="false" value="../src/behaviours"/>
@@ -81,6 +82,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.1280385530" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>
 </option>
@@ -1065,6 +1067,7 @@
 </option>
 <option id="gnu.c.compiler.option.include.paths.1678086436" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 <listOptionValue builtIn="false" value="../src/pbuf/gen"/>
 </option>
@@ -1077,6 +1080,7 @@
 <listOptionValue builtIn="false" value="../boost_1_53_0"/>
 <listOptionValue builtIn="false" value="../."/>
 <listOptionValue builtIn="false" value="../src"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
@@ -1110,6 +1114,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.471327307" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>
 </option>
