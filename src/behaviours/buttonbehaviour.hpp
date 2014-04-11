@@ -51,6 +51,7 @@ namespace p44 {
     /// @{
     DsButtonFunc buttonFunc; ///< the button function (LTNUM)
     DsButtonMode buttonMode; ///< the button mode (LTMODE)
+    DsChannelType buttonChannel; ///< the channel the button is supposed to control
     bool setsLocalPriority; ///< button should set local priority
     bool callsPresent; ///< button should call "present" scene
     /// @}

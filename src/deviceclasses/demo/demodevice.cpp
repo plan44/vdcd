@@ -40,7 +40,7 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
   // - create one output with light behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   // - set default config to act as dimmer with variable ramps
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
   addBehaviour(l);
   // - hardware is defined, now derive dSUID
 	deriveDsUid();

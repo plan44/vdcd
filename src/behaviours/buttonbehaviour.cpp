@@ -29,6 +29,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  buttonChannel(channeltype_default), // by default, buttons act on default channel
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
   clickType(ct_none),
@@ -360,7 +361,7 @@ const char *ButtonBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numFields = 4;
 
 size_t ButtonBehaviour::numFieldDefs()
 {
@@ -373,7 +374,8 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
   static const FieldDefinition dataDefs[numFields] = {
     { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
-    { "buttonFlags", SQLITE_INTEGER }
+    { "buttonFlags", SQLITE_INTEGER },
+    { "buttonChannel", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -397,6 +399,7 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
+  buttonChannel = (DsChannelType)aRow->get<int>(aIndex++);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
@@ -415,6 +418,7 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   aStatement.bind(aIndex++, buttonMode);
   aStatement.bind(aIndex++, buttonFunc);
   aStatement.bind(aIndex++, flags);
+  aStatement.bind(aIndex++, buttonChannel);
 }
 
 
@@ -452,6 +456,7 @@ const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
 enum {
   mode_key,
   function_key,
+  channel_key,
   setsLocalPriority_key,
   callsPresent_key,
   numSettingsProperties
@@ -464,6 +469,7 @@ const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &button_key },
     { "function", apivalue_uint64, false, function_key+settings_key_offset, &button_key },
+    { "channel", apivalue_uint64, false, channel_key+settings_key_offset, &button_key },
     { "setsLocalPriority", apivalue_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
     { "callsPresent", apivalue_bool, false, callsPresent_key+settings_key_offset, &button_key },
   };
@@ -520,6 +526,9 @@ bool ButtonBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         case function_key+settings_key_offset:
           aPropValue->setUint64Value(buttonFunc);
           return true;
+        case channel_key+settings_key_offset:
+          aPropValue->setUint64Value(buttonChannel);
+          return true;
         case setsLocalPriority_key+settings_key_offset:
           aPropValue->setBoolValue(setsLocalPriority);
           return true;
@@ -557,6 +566,10 @@ bool ButtonBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
           buttonFunc = (DsButtonFunc)aPropValue->int32Value();
           markDirty();
           return true;
+        case channel_key+settings_key_offset:
+          buttonChannel = (DsChannelType)aPropValue->int32Value();
+          markDirty();
+          return true;
         case setsLocalPriority_key+settings_key_offset:
           setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
           markDirty();
@@ -580,7 +593,7 @@ string ButtonBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- buttonID: %d, buttonType: %d, buttonElementID: %d\n", buttonID, buttonType, buttonElementID);
-  string_format_append(s, "- buttonFunc: %d, buttonmode/LTMODE: %d\n", buttonFunc, buttonMode);
+  string_format_append(s, "- buttonChannel: %d, buttonFunc: %d, buttonmode/LTMODE: %d\n", buttonChannel, buttonFunc, buttonMode);
   s.append(inherited::description());
   return s;
 }

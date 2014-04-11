@@ -142,6 +142,7 @@ int DsScene::numProps(int aDomain)
 const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numSceneProperties] = {
+    #warning "move value# here as well, restructure for MOC"
     { "dontCare", apivalue_bool, false, dontCare_key, &dsscene_key },
     { "ignoreLocalPriority", apivalue_bool, false, ignoreLocalPriority_key, &dsscene_key },
   };

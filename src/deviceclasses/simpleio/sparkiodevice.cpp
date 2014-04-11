@@ -261,7 +261,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   deviceSettings = DeviceSettingsPtr(new SparkDeviceSettings(*this));
   // - create one output
   SparkLightBehaviourPtr l = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
   l->setHardwareName("spark core output");
   addBehaviour(l);
   // dsuid

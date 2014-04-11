@@ -55,7 +55,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
+  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
   l->setHardwareName(string_format("DALI %d",deviceInfo.shortAddress));
   addBehaviour(l);
 }

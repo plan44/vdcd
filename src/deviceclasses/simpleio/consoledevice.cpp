@@ -60,7 +60,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
     l->setHardwareName("console output");
     addBehaviour(l);
   }

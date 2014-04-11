@@ -341,7 +341,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
           ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
           ob->setGroup(subdeviceDescP->group); // same group as device
         }
-        ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
+        ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, channeltype_default, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = ob;
         break;

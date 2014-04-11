@@ -41,6 +41,7 @@ namespace p44 {
     /// @{
     DsOutputFunction outputFunction; ///< the function of the output
     DsUsageHint outputUsage; ///< the input type when device has hardwired functions
+    DsChannelType defaultChannel; ///< the default (hardware-predefined) channel type of the output
     bool variableRamp; ///< output has variable ramp times
     double maxPower; ///< max power in Watts the output can control
     /// @}
@@ -49,6 +50,7 @@ namespace p44 {
     /// @name persistent settings
     /// @{
     DsOutputMode outputMode; ///< the mode of the output
+    DsChannelType channel; ///< the channel type of the output
     bool pushChanges; ///< if set, local changes to output will be pushed upstreams
     /// @}
 
@@ -69,7 +71,7 @@ namespace p44 {
     /// @{
 
     /// Configure hardware parameters of the output
-    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
+    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsChannelType aDefaultChannel, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
     /// set actual current output value as read from the device on startup, to update local cache value
     /// @param aActualOutputValue the value as read from the device
@@ -93,6 +95,10 @@ namespace p44 {
 
     /// @name interaction with digitalSTROM system
     /// @{
+
+    /// get the channel type
+    /// @return the current channel type of this output
+    DsChannelType getChannel() { return channel; }
 
     /// apply scene to output
     /// @param aScene the scene to apply to the output

@@ -34,15 +34,17 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   pushChanges(false) // do not push changes
 {
   // set default hardware default configuration
-  setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+  setHardwareOutputConfig(outputFunction_switch, channeltype_undefined, usage_undefined, false, -1);
   // default to joker
   setGroup(group_black_joker);
 }
 
 
-void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
+void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsChannelType aDefaultChannel, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
 {
   outputFunction = aOutputFunction;
+  defaultChannel = aDefaultChannel;
+  channel = defaultChannel;
   outputUsage = aUsage;
   variableRamp = aVariableRamp;
   maxPower = aMaxPower;
@@ -123,7 +125,7 @@ const char *OutputBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 2;
+static const size_t numFields = 3;
 
 size_t OutputBehaviour::numFieldDefs()
 {
@@ -135,7 +137,8 @@ const FieldDefinition *OutputBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "outputMode", SQLITE_INTEGER },
-    { "outputFlags", SQLITE_INTEGER }
+    { "outputFlags", SQLITE_INTEGER },
+    { "outputChannel", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -157,6 +160,7 @@ void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   // get the fields
   outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
+  channel = (DsChannelType)aRow->get<int>(aIndex++);
   // decode the flags
   pushChanges = flags & outputflag_pushChanges;
 }
@@ -172,6 +176,7 @@ void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   // bind the fields
   aStatement.bind(aIndex++, outputMode);
   aStatement.bind(aIndex++, flags);
+  aStatement.bind(aIndex++, channel);
 }
 
 
@@ -184,6 +189,7 @@ static char output_key;
 
 enum {
   outputFunction_key,
+  defaultChannel_key,
   outputUsage_key,
   variableRamp_key,
   maxPower_key,
@@ -196,6 +202,7 @@ const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numDescProperties] = {
     { "function", apivalue_uint64, false, outputFunction_key+descriptions_key_offset, &output_key },
+    { "channel", apivalue_uint64, false, defaultChannel_key+descriptions_key_offset, &output_key },
     { "outputUsage", apivalue_uint64, false, outputUsage_key+descriptions_key_offset, &output_key },
     { "variableRamp", apivalue_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
     { "maxPower", apivalue_double, false, maxPower_key+descriptions_key_offset, &output_key },
@@ -208,6 +215,7 @@ const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
 
 enum {
   mode_key,
+  channel_key,
   pushChanges_key,
   numSettingsProperties
 };
@@ -218,6 +226,7 @@ const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
 {
   static const PropertyDescriptor properties[numSettingsProperties] = {
     { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &output_key },
+    { "channel", apivalue_uint64, false, channel_key+settings_key_offset, &output_key },
     { "pushChanges", apivalue_bool, false, pushChanges_key+settings_key_offset, &output_key },
   };
   return &properties[aPropIndex];
@@ -255,6 +264,9 @@ bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         case outputFunction_key+descriptions_key_offset:
           aPropValue->setUint8Value(outputFunction);
           return true;
+        case defaultChannel_key+descriptions_key_offset:
+          aPropValue->setUint8Value(defaultChannel);
+          return true;
         case outputUsage_key+descriptions_key_offset:
           aPropValue->setUint16Value(outputUsage);
           return true;
@@ -267,6 +279,9 @@ bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         // Settings properties
         case mode_key+settings_key_offset:
           aPropValue->setUint8Value(outputMode);
+          return true;
+        case channel_key+settings_key_offset:
+          aPropValue->setUint8Value(channel);
           return true;
         case pushChanges_key+settings_key_offset:
           aPropValue->setBoolValue(pushChanges);
@@ -289,6 +304,10 @@ bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
         // Settings properties
         case mode_key+settings_key_offset:
           outputMode = (DsOutputMode)aPropValue->int32Value();
+          markDirty();
+          return true;
+        case channel_key+settings_key_offset:
+          channel = (DsChannelType)aPropValue->int32Value();
           markDirty();
           return true;
         case pushChanges_key+settings_key_offset:
@@ -315,7 +334,7 @@ string OutputBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- hardware output function: %d (%s)\n", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
-  string_format_append(s, "- output mode: %d\n", outputMode);
+  string_format_append(s, "- hardware-defined channel: %d, channel: %d, output mode: %d\n", defaultChannel, channel, outputMode);
   s.append(inherited::description());
   return s;
 }

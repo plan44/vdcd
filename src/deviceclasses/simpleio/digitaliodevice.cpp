@@ -58,7 +58,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Simulate light device
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_switch, channeltype_brightness, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else {

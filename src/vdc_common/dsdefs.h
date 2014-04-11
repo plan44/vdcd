@@ -234,6 +234,25 @@ typedef enum {
   outputmode_gradual, ///< gradual output value (dimmer, positional etc.)
 } DsOutputMode;
 
+/// output channel types
+typedef enum {
+  channeltype_default = 0, ///< default channel (main output value, e.g. brightness for lights)
+  channeltype_undefined = 0, ///< undefined channel (in output descriptions)
+  channeltype_brightness = 1, ///< brightness for lights
+  channeltype_hue = 2, ///< hue for color lights
+  channeltype_saturation = 3, ///< saturation for color lights
+  channeltype_colortemp = 4, ///< color temperature for lights with variable white point
+  channeltype_cie_x = 5, ///< X in CIE Color Model for color lights
+  channeltype_cie_y = 6, ///< Y in CIE Color Model for color lights
+  channeltype_position_v = 7, ///< vertical position
+  channeltype_position_h = 8, ///< horizontal position
+  channeltype_position_angle = 9, ///< opening angle position
+  channeltype_permeability = 10, ///< permeability
+  numChannelTypes = 240 // 0..239 are channel types
+} DsChannelTypeEnum;
+typedef uint8_t DsChannelType;
+
+
 /// hardware error status
 typedef enum {
   hardwareError_none, ///< hardware is ok
