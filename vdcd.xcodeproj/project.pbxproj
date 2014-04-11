@@ -462,6 +462,7 @@
 		ED31268518311BD300FAF28B /* vdc_common */ = {
 			isa = PBXGroup;
 			children = (
+				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				ED81337117C644AE003982CC /* dsscene.cpp */,
 				ED81337217C644AE003982CC /* dsscene.hpp */,
 				ED81337417C65F7E003982CC /* devicesettings.cpp */,
@@ -470,7 +471,6 @@
 				EDCFE856171FE841001D35F3 /* device.hpp */,
 				EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */,
 				EDCFE85C171FFAF5001D35F3 /* dsuid.hpp */,
-				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				EDADCAD91846373300297214 /* apivalue.cpp */,
 				EDADCADA1846373300297214 /* apivalue.hpp */,
 				ED1F82FF184F2D2100339A22 /* vdcapi.cpp */,

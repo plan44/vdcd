@@ -189,6 +189,11 @@ namespace p44 {
     /// @note only updates the scene if aScene is marked dirty
     void updateScene(DsScenePtr aScene);
 
+    /// start or stop dimming channel of this device
+    /// @param aChannel the channel to start or stop dimming for
+    /// @param aDimMode 1=start dimming up, -1=start dimming down, 0=stop dimming
+    void dimChannel(DsChannelType aChannel, int aDimMode, int aArea);
+
     /// identify the device to the user
     /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
     ///   this can be anything.

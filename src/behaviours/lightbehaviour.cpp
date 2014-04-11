@@ -128,7 +128,7 @@ int LightScene::numProps(int aDomain)
 const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
   static const PropertyDescriptor properties[numLightSceneProperties] = {
-    { "value", apivalue_uint64, false, value_key, &lightscene_key },
+    { "value", apivalue_uint64, true, value_key, &lightscene_key },
     { "flashing", apivalue_bool, false, flashing_key, &lightscene_key },
     { "dimTimeSelector", apivalue_uint64, false, dimTimeSelector_key, &lightscene_key },
   };
@@ -147,7 +147,13 @@ bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prope
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case value_key:
-          aPropValue->setUint8Value(sceneBrightness);
+          // TODO: implement MOC
+          if (aIndex==PROP_ARRAY_SIZE)
+            aPropValue->setInt32Value(1); // %%% single element for now
+          else if (aIndex==0)  // %%% single element for now
+            aPropValue->setUint8Value(sceneBrightness);
+          else
+            return false; // %%% not the one single element we have -> nothing to read here
           return true;
         case flashing_key:
           aPropValue->setBoolValue(flashing);
@@ -161,6 +167,7 @@ bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prope
       // write properties
       switch (aPropertyDescriptor.accessKey) {
         case value_key:
+          // TODO: implement MOC
           sceneBrightness = (Brightness)aPropValue->int32Value();
           markDirty();
           return true;

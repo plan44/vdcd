@@ -929,7 +929,6 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         subMessageP = &(msg.vdc_response_hello->base);
         // pbuf API structure and field names are different, we need to map them
         if (result) {
-          result->putObjectFieldIntoMessage(*subMessageP, "allow_disconnect", "allowDisconnect");
           result->putObjectFieldIntoMessage(*subMessageP, "dSUID");
         }
         break;
@@ -1219,7 +1218,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         paramsMsg = &(decodedMsg->vdsm_request_hello->base);
         // pbuf API structure and field names are different, we need to map them
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "api_version", "APIVersion");
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "push_uri", "pushURI");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_HELLO;
         goto getDsUid;
       }
@@ -1228,7 +1226,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         paramsMsg = &(decodedMsg->vdsm_request_get_property->base);
         // pbuf API structure and field names are different, we need to map them
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "name");
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "offset", "index");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "index");
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
         goto getDsUid;
@@ -1237,7 +1235,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         method = "setProperty";
         paramsMsg = &(decodedMsg->vdsm_request_set_property->base);
         // pbuf API structure and field names are different, we need to map them
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "offset", "index");
+        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "index");
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         // write has always a single property, never multiple, so just get the first or if none, write NULL
         // also we need derive "name" from examining content AND the "name" property, as it might be at either place :-(
@@ -1304,6 +1302,11 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       case VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY:
         method = "identify";
         paramsMsg = &(decodedMsg->vdsm_send_identify->base);
+        // pbuf API field names match, we can use generic decoding
+        break;
+      case VDCAPI__TYPE__VDSM_NOTIFICATION_DIM_CHANNEL:
+        method = "dimChannel";
+        paramsMsg = &(decodedMsg->vdsm_send_dim_channel->base);
         // pbuf API field names match, we can use generic decoding
         break;
       // incoming responses
@@ -1425,11 +1428,10 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     subMessageP = &(msg.vdc_send_announce->base);
   }
   else if (aMethod=="announcevdc") {
-    #warning "currently missing in libdsvdc, so commented out for now"
-//    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
-//    msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
-//    vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
-//    subMessageP = &(msg.vdc_send_announce_vdc->base);
+    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
+    msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
+    vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
+    subMessageP = &(msg.vdc_send_announce_vdc->base);
   }
   else if (aMethod=="vanish") {
     msg.type = VDCAPI__TYPE__VDC_SEND_VANISH;
@@ -1444,7 +1446,7 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     subMessageP = &(msg.vdc_send_push_property->base);
     // pbuf API structure and field names are different, we need to map them
     params->putObjectFieldIntoMessage(*subMessageP, "name");
-    params->putObjectFieldIntoMessage(*subMessageP, "offset", "index");
+    params->putObjectFieldIntoMessage(*subMessageP, "index");
     params->putObjectFieldIntoMessage(*subMessageP, "dSUID");
     // transform the value
     PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(params->get("value"));

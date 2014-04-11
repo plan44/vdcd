@@ -143,7 +143,7 @@ const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDo
 {
   static const PropertyDescriptor properties[numSceneProperties] = {
     #warning "move value# here as well, restructure for MOC"
-    { "dontCare", apivalue_bool, false, dontCare_key, &dsscene_key },
+    { "dontCare", apivalue_bool, true, dontCare_key, &dsscene_key },
     { "ignoreLocalPriority", apivalue_bool, false, ignoreLocalPriority_key, &dsscene_key },
   };
   int n = inheritedProps::numProps(aDomain);
@@ -161,7 +161,11 @@ bool DsScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Property
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case dontCare_key:
-          aPropValue->setBoolValue(dontCare);
+          // TODO: implement MOC
+          if (aIndex==PROP_ARRAY_SIZE)
+            aPropValue->setInt32Value(1); // %%% single element for now
+          else
+            aPropValue->setBoolValue(dontCare);
           return true;
         case ignoreLocalPriority_key:
           aPropValue->setBoolValue(ignoreLocalPriority);

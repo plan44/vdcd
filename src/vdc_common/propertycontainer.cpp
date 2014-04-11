@@ -26,7 +26,7 @@ using namespace p44;
 
 #pragma mark - property access API
 
-ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount)
+ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel)
 {
   ErrorPtr err;
   // TODO: separate dot notation name?
@@ -45,7 +45,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         ApiValuePtr value;
         while (aApiObject->nextKeyValue(key, value)) {
           // write single field
-          err = accessProperty(true, value, key, aDomain, PROP_ARRAY_SIZE, 0); // if array, write size (writing array is not supported)
+          err = accessProperty(true, value, key, aDomain, PROP_ARRAY_SIZE, 0, aNestLevel+1); // if array, write size (writing array is not supported)
           if (!Error::isOK(err))
             break;
         }
@@ -60,9 +60,27 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         if (!propDescP) break; // safety only, propIndex should never be invalid
         ApiValuePtr propField;
         if (propDescP->isArray && aName=="#") {
-          // for arrays, only report size, not entire contents
+          // for arrays (at any level), only report size, not entire contents
           propField = aApiObject->newValue(apivalue_int64); // size of array as int
           err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, -1, 1); // only size of array
+        }
+        else if (propDescP->isArray && aNestLevel>0) {
+          // second level array -> render existing elements as fields with index integrated into name
+          // - get size
+          ApiValuePtr sz = aApiObject->newValue(apivalue_int64); // size of array as int
+          err = accessPropertyByDescriptor(false, sz, *propDescP, aDomain, -1, 1); // only size of array
+          size_t maxIndex = sz->int32Value();
+          for (size_t index=0; index<maxIndex; index++) {
+            propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
+            err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, 0); // only one element
+            if (Error::isOK(err) && !propField->isNull()) {
+              // this array element exists, add it as a field with index appended to name
+              string elementName = string_format("%s%d", propDescP->propertyName, index);
+              aApiObject->add(elementName, propField);
+            }
+          }
+          // elements (if any) added, don't add property itself again
+          continue;
         }
         else {
           // value or complete contents of array
@@ -89,9 +107,22 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
       // search for descriptor by name
       for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
         const PropertyDescriptor *p = getPropertyDescriptor(propIndex, aDomain);
-        if (aName==p->propertyName) {
-          propDescP = p;
-          break;
+        size_t propNameLen=strlen(p->propertyName);
+        if (strncmp(aName.c_str(),p->propertyName,propNameLen)==0) {
+          // specified name matches up to length of property name
+          if (aName.size()==propNameLen) {
+            // exact match, single property field
+            propDescP = p;
+            break;
+          }
+          else if (p->isArray && aNestLevel>0) {
+            // beginning matches, but specfied name is longer and property is a second level array -> could be array index embedded in name
+            if (sscanf(aName.c_str()+propNameLen, "%d", &aIndex)==1) {
+              // array access using index appended to property name
+              propDescP = p;
+              break;
+            }
+          }
         }
       }
     }
@@ -193,7 +224,7 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
     }
     else {
       // access all fields of structured object (named "*"), or single default field of proxied property (named "^")
-      err = container->accessProperty(aForWrite, aApiObject, aPropertyDescriptor.propertyType==apivalue_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0);
+      err = container->accessProperty(aForWrite, aApiObject, aPropertyDescriptor.propertyType==apivalue_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0, 1 /* second level */);
       if (aForWrite && Error::isOK(err)) {
         // give this container a chance to post-process write access
         err = writtenProperty(aPropertyDescriptor, aDomain, aIndex, container);

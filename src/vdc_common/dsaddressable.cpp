@@ -122,22 +122,15 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       if (o) {
         arrayIndex = o->int32Value();
         rangeSize = 0; // single element by default, unless count is explicitly specified
-      }
-      else {
-        o = aParams->get("offset");
+        // check optional max count of elements
+        o = aParams->get("count");
         if (o) {
-          // range access
-          arrayIndex = o->int32Value(); // same as index for lower level property access mechanism
+          rangeSize = o->int32Value();
         }
-      }
-      // check optional max count of elements
-      o = aParams->get("count");
-      if (o) {
-        rangeSize = o->int32Value();
       }
       // now read
       ApiValuePtr result = aRequest->newApiValue();
-      respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize);
+      respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize, 0);
       if (Error::isOK(respErr)) {
         // send back property result
         aRequest->sendResult(result);
@@ -154,7 +147,6 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
         rangeSize = 1; // default to single element access
         arrayIndex = 0; // default to first element
         o = aParams->get("index");
-        if (!o) o = aParams->get("offset");
         if (o) {
           arrayIndex = o->int32Value();
           // - check optional max count of elements to fill with SAME VALUE
@@ -168,7 +160,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
           respErr = ErrorPtr(new VdcApiError(400, "array batch write needs offset AND count"));
         else {
           do {
-            respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
+            respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0, 0);
             arrayIndex++;
           } while (--rangeSize>0 && Error::isOK(respErr));
         }

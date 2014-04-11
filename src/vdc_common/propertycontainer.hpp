@@ -62,9 +62,10 @@ namespace p44 {
     ///   for non-array properties, aIndex is ignored
     /// @param aElementCount in case of array, the number of elements to collect starting at aIndex
     ///   and return as JSON array. 0 = single element only. PROP_ARRAY_SIZE = all elements up to end of array.
+    /// @param aNestLevel level of nesting (0 = API call level, 1=sub-access for collecting result for API call, etc.)
     /// @return Error 501 if property is unknown, 204 if aIndex addresses a non-existing element,
     ///   403 if property exists but cannot be accessed, 415 if value type is incompatible with the property
-    ErrorPtr accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount);
+    ErrorPtr accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel);
 
     /// @}
 
@@ -99,7 +100,7 @@ namespace p44 {
     /// @param aDomain the domain for which to access properties. Call might modify the domain such that it fits
     ///   to the accessed container. For example, one container might support different sets of properties
     ///   (like description/settings/states for DsBehaviours)
-    /// @param aIndex for array properties the element to access (0..size)
+    /// @param aIndex for array properties: the element to access (0..size)
     /// @return PropertyContainer representing the property or property array element
     /// @note base class always returns NULL, which means no structured or proxy properties
     virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0) { return NULL; };

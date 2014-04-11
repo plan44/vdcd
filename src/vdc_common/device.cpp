@@ -250,6 +250,26 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
     }
   }
+  else if (aMethod=="dimChannel") {
+    // start or stop dimming a channel
+    ApiValuePtr o;
+    if (Error::isOK(err = checkParam(aParams, "channel", o))) {
+      DsChannelType channel = (DsChannelType)o->int32Value();
+      if (Error::isOK(err = checkParam(aParams, "mode", o))) {
+        int mode = o->int32Value();
+        int area = 0;
+        o = aParams->get("area");
+        if (o) {
+          area = o->int32Value();
+        }
+        // start/stop dimming
+        dimChannel(channel,mode,area);
+      }
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
+    }
+  }
   else if (aMethod=="identify") {
     // identify to user
     LOG(LOG_NOTICE, "%s: identify:\n", shortDesc().c_str());
@@ -280,6 +300,7 @@ void Device::hasVanished(bool aForgetParams)
   // Note that disconnect() might delete the Device object (so 'this' gets invalid)
   disconnect(aForgetParams, NULL);
 }
+
 
 
 // returns 0 for non-area scenes, area number for area scenes
@@ -382,6 +403,13 @@ static SceneNo mainDimScene(SceneNo aSceneNo)
   }
   return dimScene;
 }
+
+
+void Device::dimChannel(DsChannelType aChannel, int aDimMode, int aArea)
+{
+  #warning "%%% to be implemented"
+}
+
 
 
 void Device::callScene(SceneNo aSceneNo, bool aForce)
@@ -686,13 +714,17 @@ enum {
   binaryInputDescriptions_key,
   binaryInputSettings_key,
   binaryInputStates_key,
-  outputDescriptions_key,
-  outputSettings_key,
-  outputStates_key,
   sensorDescriptions_key,
   sensorSettings_key,
   sensorStates_key,
-  scenes_key,
+  outputDescriptions_key,
+  outputSettings_key,
+  outputStates_key,
+  channelDescriptions_key,
+  channelSettings_key,
+  channelStates_key,
+  outputScenes_key,
+  channelScenes_key,
   undoState_key,
   numDeviceProperties
 };
@@ -711,9 +743,9 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
   static const PropertyDescriptor properties[numDeviceProperties] = {
     // common device properties
     { "primaryGroup", apivalue_uint64, false, primaryGroup_key, &device_key },
-    { "isMember", apivalue_bool, true, isMember_key, &device_key },
+    { "outputIsMemberOfGroup", apivalue_bool, true, isMember_key, &device_key },
     { "zoneID", apivalue_uint64, false, zoneID_key, &device_key },
-    { "localPriority", apivalue_bool, false, progMode_key, &device_key },
+    { "outputLocalPriority", apivalue_bool, false, localPriority_key, &device_key },
     { "progMode", apivalue_bool, false, progMode_key, &device_key },
     { "idBlockSize", apivalue_uint64, false, idBlockSize_key, &device_key },
     // the behaviour arrays
@@ -725,14 +757,18 @@ const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDom
     { "binaryInputDescriptions", apivalue_object, true, binaryInputDescriptions_key, &device_key },
     { "binaryInputSettings", apivalue_object, true, binaryInputSettings_key, &device_key },
     { "binaryInputStates", apivalue_object, true, binaryInputStates_key, &device_key },
-    { "outputDescriptions", apivalue_object, true, outputDescriptions_key, &device_key },
-    { "outputSettings", apivalue_object, true, outputSettings_key, &device_key },
-    { "outputStates", apivalue_object, true, outputStates_key, &device_key },
     { "sensorDescriptions", apivalue_object, true, sensorDescriptions_key, &device_key },
     { "sensorSettings", apivalue_object, true, sensorSettings_key, &device_key },
     { "sensorStates", apivalue_object, true, sensorStates_key, &device_key },
+    { "outputDescriptions", apivalue_object, true, outputDescriptions_key, &device_key },
+    { "outputSettings", apivalue_object, true, outputSettings_key, &device_key },
+    { "outputStates", apivalue_object, true, outputStates_key, &device_key },
+    { "channelDescriptions", apivalue_object, true, channelDescriptions_key, &device_key },
+    { "channelSettings", apivalue_object, true, channelSettings_key, &device_key },
+    { "channelStates", apivalue_object, true, channelStates_key, &device_key },
     // the scenes array
-    { "scenes", apivalue_object, true, scenes_key, &device_key },
+    { "outputScenes", apivalue_object, true, outputScenes_key, &device_key },
+    { "channelScenes", apivalue_object, true, channelScenes_key, &device_key },
     { "undoState", apivalue_object, false, undoState_key, &device_key },
   };
   int n = inherited::numProps(aDomain);
@@ -773,7 +809,7 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
       binaryInputs:
         if (aIndex<binaryInputs.size()) return binaryInputs[aIndex];
         break;
-      // outputs
+      // outputs by index
       case outputDescriptions_key:
         aDomain = VDC_API_BHVR_DESC;
         goto outputs;
@@ -785,6 +821,29 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
       outputs:
         if (aIndex<outputs.size()) return outputs[aIndex];
         break;
+      // outputs by channel
+      case channelDescriptions_key:
+        aDomain = VDC_API_BHVR_DESC;
+        goto channels;
+      case channelSettings_key:
+        aDomain = VDC_API_BHVR_SETTINGS;
+        goto channels;
+      case channelStates_key:
+        aDomain = VDC_API_BHVR_STATES;
+      channels: {
+        // look up the output by channel
+        size_t i=0;
+        for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+          OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+          if (o->getChannel()==aIndex) {
+            return outputs[i];
+          }
+          // next
+          i++;
+        }
+        // no channel found
+        break;
+      }
       // sensors
       case sensorDescriptions_key:
         aDomain = VDC_API_BHVR_DESC;
@@ -798,7 +857,12 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
         if (aIndex<sensors.size()) return sensors[aIndex];
         break;
       // scenes
-      case scenes_key: {
+      case outputScenes_key:
+        aDomain = VDC_API_OUTPUT_SCENES;
+        goto scenes;
+      case channelScenes_key:
+        aDomain = VDC_API_CHANNEL_SCENES;
+      scenes: {
         SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
         if (scenes) {
           return scenes->getScene(aIndex);
@@ -821,7 +885,8 @@ ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, 
 {
   if (aPropertyDescriptor.objectKey==&device_key) {
     switch (aPropertyDescriptor.accessKey) {
-      case scenes_key: {
+      case outputScenes_key:
+      case channelScenes_key: {
         // scene was written, update needed if dirty
         DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
         SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
@@ -863,17 +928,23 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
           case binaryInputStates_key:
             aPropValue->setUint16Value((int)binaryInputs.size());
             return true;
-          case outputDescriptions_key:
-          case outputSettings_key:
-          case outputStates_key:
-            aPropValue->setUint16Value((int)outputs.size());
-            return true;
           case sensorDescriptions_key:
           case sensorSettings_key:
           case sensorStates_key:
             aPropValue->setUint16Value((int)sensors.size());
             return true;
-          case scenes_key:
+          case outputDescriptions_key:
+          case outputSettings_key:
+          case outputStates_key:
+            aPropValue->setUint16Value((int)outputs.size());
+            return true;
+          case channelDescriptions_key:
+          case channelSettings_key:
+          case channelStates_key:
+            aPropValue->setUint16Value(numChannelTypes); // fixed number of possible channels
+            return true;
+          case outputScenes_key:
+          case channelScenes_key:
             if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
               aPropValue->setUint16Value(MAX_SCENE_NO);
             else
