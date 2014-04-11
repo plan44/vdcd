@@ -157,13 +157,6 @@ namespace p44 {
     /// start running normally
     void startRunning();
 
-		/// perform self testing
-    /// @param aCompletedCB will be called when the entire self test is done
-    /// @param aButton button for interacting with tests
-    /// @param aRedLED red LED output
-    /// @param aRedLED green LED output
-    void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
-
     /// activity monitor
     /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.
     void setActivityMonitor(DoneCB aActivityCB);
