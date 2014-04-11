@@ -708,8 +708,8 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
   string s;
   // check API version
   if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
-    if (s!="1.0" && s!="1")
-      respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.0'"));
+    if (s!="1.1")
+      respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.1'"));
     else {
       // API version ok, check dSUID
       if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
@@ -897,8 +897,8 @@ void DeviceContainer::startAnnouncing()
 }
 
 
-#warning "no VDC announce for now"
-#define HAS_VDCANNOUNCE false
+#warning "make VDC announce permanent once API v1.1 is final"
+#define HAS_VDCANNOUNCE true
 
 void DeviceContainer::announceNext()
 {
