@@ -97,6 +97,13 @@ namespace p44 {
 
     void startConfigApi();
 
+		/// perform self testing
+    /// @param aCompletedCB will be called when the entire self test is done
+    /// @param aButton button for interacting with tests
+    /// @param aRedLED red LED output
+    /// @param aRedLED green LED output
+    void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
+
   private:
 
     SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP);

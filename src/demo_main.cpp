@@ -104,10 +104,10 @@ public:
 
     // Now add device class(es)
     // - the demo device (dimmer value output to console as bar of hashes ######) class
-    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1, &deviceContainer));
+    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1, &deviceContainer, 1));
     demoDeviceContainer->addClassToDeviceContainer();
     // - the UPnP skeleton device from the developer days 2013 hackaton
-    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1, &deviceContainer));
+    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1, &deviceContainer, 2));
     upnpDeviceContainer->addClassToDeviceContainer();
     // now start running the mainloop
     return run();
