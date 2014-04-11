@@ -198,15 +198,6 @@ namespace p44 {
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
     virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
-    // user property mapping
-    // @param aUserPropertyIndex the index (0..n) of the user property to access
-    // @param aName will be set to the name of the mapped property
-    // @param aIndex will be set to the array index to access within the mapped property
-    // @return error when user property index is unknown in a given device, empty when ok
-    // @note user properties are a workaround to access specific device properties by means of an index for
-    //   in environments not yet fully ready for name properties.
-    ErrorPtr getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex);
-
   private:
 
     void presenceResultHandler(bool aIsPresent);

@@ -179,57 +179,11 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       }
     }
   }
-  else if (aMethod=="getUserProperty") {
-    // Shortcut access to some specific "user" properties
-    // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
-    ApiValuePtr propindex;
-    if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
-      int userPropIndex = propindex->int32Value();
-      // look up name and index of real property
-      if (Error::isOK(respErr = getUserPropertyMapping(userPropIndex, name, arrayIndex))) {
-        // this dsAdressable supports this user property index, read it
-        ApiValuePtr result;
-        respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, 0); // always single element
-        if (Error::isOK(respErr)) {
-          // send back property result
-          aRequest->sendResult(result);
-        }
-      }
-    }
-  }
-  else if (aMethod=="setUserProperty") {
-    // Shortcut access to some specific "user" properties
-    // TODO: maybe remove this once real named properties are implemented in vdSM/ds485
-    ApiValuePtr propindex;
-    ApiValuePtr value;
-    if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
-      if (Error::isOK(respErr = checkParam(aParams, "index", propindex))) {
-        int userPropIndex = propindex->int32Value();
-        // look up name and index of real property
-        if (Error::isOK(respErr = getUserPropertyMapping(userPropIndex, name, arrayIndex))) {
-          // this dsAdressable supports this user property index, write it
-          respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0);
-          if (Error::isOK(respErr)) {
-            // send back OK if write was successful
-            aRequest->sendResult(ApiValuePtr());
-          }
-        }
-      }
-    }
-  }
   else {
     respErr = ErrorPtr(new VdcApiError(405, "unknown method"));
   }
   return respErr;
 }
-
-
-ErrorPtr DsAddressable::getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex)
-{
-  // base class implements no user properties
-  return ErrorPtr(new VdcApiError(400, string_format("Unknown user property index %d", aUserPropertyIndex)));
-}
-
 
 
 bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
@@ -238,7 +192,7 @@ bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
   if (api) {
     // get the value
     ApiValuePtr value = api->newApiValue();
-    ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0);
+    ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0, 0);
     if (Error::isOK(err)) {
       ApiValuePtr pushParams = api->newApiValue();
       pushParams->setType(apivalue_object);

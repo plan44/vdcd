@@ -68,19 +68,6 @@ void UpnpDevice::deriveDsUid()
 
 #pragma mark - property access
 
-ErrorPtr UpnpDevice::getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex)
-{
-  if (aUserPropertyIndex==0) {
-    // for UPnP devices, this maps to "descriptionURL"
-    aName = "descriptionURL";
-    aIndex = 0; // not an array
-  }
-  // unknown, let superclass handle it
-  return inherited::getUserPropertyMapping(aUserPropertyIndex, aName, aIndex);
-}
-
-
-
 
 enum {
   descriptionURL_key,
