@@ -3,16 +3,21 @@ package vdcapi;
 message vdsm_RequestHello {
     optional string dSUID = 1;
     optional uint32 api_version = 2;
-    optional string push_uri = 3;
+    // optional string push_uri = 3; // OBSOLETED in v1.1, kept here as comment to avoid accidental field ID reuse
 }
 
 message vdc_ResponseHello {
     optional string dSUID = 1;
-    optional bool allow_disconnect = 2 [ default = false ];
+    // optional bool allow_disconnect = 2 [ default = false ]; // OBSOLETED in API v1.1, kept here as comment to avoid accidental field ID reuse
 }
 
 message vdc_SendAnnounce {
     optional string dSUID = 1;
+    optional string vdcdSUID = 2; // new in API v1.1
+}
+
+message vdc_SendAnnounceVdc { // new in API v1.1
+    optional string vdcdSUID = 1;
 }
 
 message vdc_SendVanish {
@@ -51,7 +56,7 @@ message Property {
 message vdsm_RequestGetProperty {
     optional string dSUID = 1;
     optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
+    optional uint32 index = 3 [ default = 0 ]; // renamed to align with API docs, was called "offset" before (but this is not an API change, only relevant for build)
     optional uint32 count = 4 [ default = 0 ]; // 0 means "all"
 }
 
@@ -63,7 +68,7 @@ message vdc_ResponseGetProperty {
 message vdsm_RequestSetProperty {
     optional string dSUID = 1;
     optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
+    optional uint32 index = 3 [ default = 0 ];
     optional uint32 count = 4 [ default = 1 ];
     repeated Property properties = 5;
 }
@@ -126,10 +131,20 @@ message vdsm_NotificationSetControlValue {
     optional int32 zoneID = 5;
 }
 
+message vdsm_NotificationDimChannel {
+    optional string dSUID = 1;
+    optional int32 channel = 2;
+    optional int32 mode = 3;
+    optional int32 area = 4;
+    optional int32 group = 5;
+    optional int32 zoneID = 6;
+}
+
+
 message vdc_SendPushProperty {
     optional string dSUID = 1;
     optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
+    optional uint32 index = 3 [ default = 0 ];
     repeated Property properties = 4;
 }
 

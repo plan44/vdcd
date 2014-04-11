@@ -21,6 +21,7 @@ enum Type {
     VDC_SEND_PUSH_PROPERTY = 12;
     VDSM_SEND_REMOVE = 13;
     VDSM_SEND_BYE = 14;
+    VDC_SEND_ANNOUNCEVDC = 23; // new in API v1.1
 
     
     VDSM_NOTIFICATION_CALL_SCENE = 15;
@@ -30,6 +31,7 @@ enum Type {
     VDSM_NOTIFICATION_CALL_MIN_SCENE = 19;
     VDSM_NOTIFICATION_IDENTIFY = 20;
     VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21;
+    VDSM_NOTIFICATION_DIM_CHANNEL = 24; // new in API v1.1
 
     VDC_SEND_IDENTIFY = 22;
 }
@@ -60,6 +62,7 @@ message Message {
     optional vdc_SendPushProperty vdc_send_push_property = 109;
     optional vdsm_SendRemove vdsm_send_remove = 110;
     optional vdsm_SendBye vdsm_send_bye = 111;
+    optional vdc_SendAnnounceVdc vdc_send_announce_vdc = 120; // new in API v1.1
 
     // notifications do not expect any response, not even error responses
     optional vdsm_NotificationCallScene vdsm_send_call_scene = 112;
@@ -69,6 +72,7 @@ message Message {
     optional vdsm_NotificationCallMinScene vdsm_send_call_min_scene = 116;
     optional vdsm_NotificationIdentify vdsm_send_identify = 117;
     optional vdsm_NotificationSetControlValue vdsm_send_set_control_value = 118;
+    optional vdsm_NotificationDimChannel vdsm_send_dim_channel = 121; // new in API v1.1
     optional vdc_SendIdentify vdc_send_identify = 119;
 }
 
