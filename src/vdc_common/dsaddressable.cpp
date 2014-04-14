@@ -130,7 +130,7 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
       }
       // now read
       ApiValuePtr result = aRequest->newApiValue();
-      respErr = accessProperty(false, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize, 0);
+      respErr = accessProperty(access_read, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize, 0);
       if (Error::isOK(respErr)) {
         // send back property result
         aRequest->sendResult(result);
@@ -155,12 +155,18 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
             rangeSize = o->int32Value();
           }
         }
+        // check preload flag
+        bool preload = false;
+        o = aParams->get("preload");
+        if (o) {
+          preload = o->boolValue();
+        }
         // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 && rangeSize==1 is single element write)
         if (rangeSize==PROP_ARRAY_SIZE)
           respErr = ErrorPtr(new VdcApiError(400, "array batch write needs offset AND count"));
         else {
           do {
-            respErr = accessProperty(true, value, name, VDC_API_DOMAIN, arrayIndex, 0, 0);
+            respErr = accessProperty(preload ? access_write_preload : access_write, value, name, VDC_API_DOMAIN, arrayIndex, 0, 0);
             arrayIndex++;
           } while (--rangeSize>0 && Error::isOK(respErr));
         }
@@ -184,7 +190,7 @@ bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
   if (api) {
     // get the value
     ApiValuePtr value = api->newApiValue();
-    ErrorPtr err = accessProperty(false, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0, 0);
+    ErrorPtr err = accessProperty(access_read, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0, 0);
     if (Error::isOK(err)) {
       ApiValuePtr pushParams = api->newApiValue();
       pushParams->setType(apivalue_object);
@@ -302,10 +308,10 @@ const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, i
 }
 
 
-bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsAddressable_key) {
-    if (aForWrite) {
+    if (aMode!=access_read) {
       switch (aPropertyDescriptor.accessKey) {
         case name_key: setName(aPropValue->stringValue()); return true;
       }
@@ -337,7 +343,7 @@ bool DsAddressable::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
 }
 
 

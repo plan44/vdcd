@@ -42,6 +42,12 @@ namespace p44 {
     void *objectKey; ///< identifier for object this property belongs to (for properties spread over sublcasses)
   } PropertyDescriptor;
 
+  typedef enum {
+    access_read,
+    access_write,
+    access_write_preload
+  } PropertyAccessMode;
+
 
   typedef boost::intrusive_ptr<PropertyContainer> PropertyContainerPtr;
 
@@ -54,7 +60,7 @@ namespace p44 {
     /// @{
 
     /// read or write property
-    /// @param aForWrite false for reading, true for writing
+    /// @param aMode access mode (see PropertyAccessMode: read, write or write preload)
     /// @param aApiObject the object to be read or written. For read, the object will be set to the type of the property returned
     /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
     ///   "^" to return the default property value (internally used for apivalue_proxy).
@@ -65,7 +71,7 @@ namespace p44 {
     /// @param aNestLevel level of nesting (0 = API call level, 1=sub-access for collecting result for API call, etc.)
     /// @return Error 501 if property is unknown, 204 if aIndex addresses a non-existing element,
     ///   403 if property exists but cannot be accessed, 415 if value type is incompatible with the property
-    ErrorPtr accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel);
+    ErrorPtr accessProperty(PropertyAccessMode aMode, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel);
 
     /// @}
 
@@ -87,13 +93,13 @@ namespace p44 {
     virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain) { return NULL; }
 
     /// access single field in this container
-    /// @param aForWrite false for reading, true for writing
+    /// @param aMode access mode (see PropertyAccessMode: read, write or write preload)
     /// @param aPropertyDescriptor decriptor for a single value field/array in this container
     /// @param aPropValue JsonObject with a single value
     /// @param aIndex in case of array, the index of the element to access
     /// @return false if value could not be accessed
     /// @note this base class always returns false, as it does not have any properties implemented
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex) { return false; };
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex) { return false; };
 
     /// get subcontainer for a apivalue_object or apivalue_proxy property
     /// @param aPropertyDescriptor decriptor for a structured (object) property or a apivalue_proxy property
@@ -121,9 +127,9 @@ namespace p44 {
 
   private:
 
-    ErrorPtr accessPropertyByDescriptor(bool aForWrite, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount);
+    ErrorPtr accessPropertyByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount);
 
-    ErrorPtr accessElementByDescriptor(bool aForWrite, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex);
+    ErrorPtr accessElementByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex);
 
 
 

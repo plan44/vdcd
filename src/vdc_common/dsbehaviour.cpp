@@ -246,10 +246,10 @@ const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int
 }
 
 
-bool DsBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // Read
       switch (aPropertyDescriptor.accessKey) {
         // descriptions
@@ -273,7 +273,7 @@ bool DsBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prop
 
     }
   }
-  return inheritedProps::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
 }
 
 

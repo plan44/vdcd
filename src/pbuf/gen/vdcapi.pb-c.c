@@ -1709,7 +1709,8 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor 
 };
 static const uint32_t vdcapi__vdsm__request_set_property__index__default_value = 0;
 static const uint32_t vdcapi__vdsm__request_set_property__count__default_value = 1;
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[5] =
+static const protobuf_c_boolean vdcapi__vdsm__request_set_property__preload__default_value = 0;
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[6] =
 {
   {
     "dSUID",
@@ -1771,18 +1772,31 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "preload",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BOOL,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_preload),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, preload),
+    NULL,
+    &vdcapi__vdsm__request_set_property__preload__default_value,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__vdsm__request_set_property__field_indices_by_name[] = {
   3,   /* field[3] = count */
   0,   /* field[0] = dSUID */
   2,   /* field[2] = index */
   1,   /* field[1] = name */
+  5,   /* field[5] = preload */
   4,   /* field[4] = properties */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_set_property__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor =
 {
@@ -1792,7 +1806,7 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor 
   "Vdcapi__VdsmRequestSetProperty",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestSetProperty),
-  5,
+  6,
   vdcapi__vdsm__request_set_property__field_descriptors,
   vdcapi__vdsm__request_set_property__field_indices_by_name,
   1,  vdcapi__vdsm__request_set_property__number_ranges,

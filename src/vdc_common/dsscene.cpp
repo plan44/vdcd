@@ -154,10 +154,10 @@ const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDo
 }
 
 
-bool DsScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&dsscene_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case dontCare_key:
@@ -186,7 +186,7 @@ bool DsScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Property
       }
     }
   }
-  return inheritedProps::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

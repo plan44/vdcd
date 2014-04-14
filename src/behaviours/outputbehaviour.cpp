@@ -254,10 +254,10 @@ const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&output_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
@@ -322,7 +322,7 @@ bool OutputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

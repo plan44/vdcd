@@ -26,14 +26,14 @@ using namespace p44;
 
 #pragma mark - property access API
 
-ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel)
+ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel)
 {
   ErrorPtr err;
   // TODO: separate dot notation name?
   // all or single field in this container?
   if (aName=="*" || aName=="#") {
     // all fields in this container
-    if (aForWrite) {
+    if (aMode!=access_read) {
       // write: write all fields of input object into properties of this container
       // - input JSON object must be a object
       if (!aApiObject->isType(apivalue_object))
@@ -45,7 +45,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         ApiValuePtr value;
         while (aApiObject->nextKeyValue(key, value)) {
           // write single field
-          err = accessProperty(true, value, key, aDomain, PROP_ARRAY_SIZE, 0, aNestLevel+1); // if array, write size (writing array is not supported)
+          err = accessProperty(aMode, value, key, aDomain, PROP_ARRAY_SIZE, 0, aNestLevel+1); // if array, write size (writing array is not supported)
           if (!Error::isOK(err))
             break;
         }
@@ -62,17 +62,17 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         if (propDescP->isArray && aName=="#") {
           // for arrays (at any level), only report size, not entire contents
           propField = aApiObject->newValue(apivalue_int64); // size of array as int
-          err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, -1, 1); // only size of array
+          err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, -1, 1); // only size of array
         }
         else if (propDescP->isArray && aNestLevel>0) {
           // second level array -> render existing elements as fields with index integrated into name
           // - get size
           ApiValuePtr sz = aApiObject->newValue(apivalue_int64); // size of array as int
-          err = accessPropertyByDescriptor(false, sz, *propDescP, aDomain, -1, 1); // only size of array
+          err = accessPropertyByDescriptor(access_read, sz, *propDescP, aDomain, -1, 1); // only size of array
           size_t maxIndex = sz->int32Value();
           for (size_t index=0; index<maxIndex; index++) {
             propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
-            err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, 0); // only one element
+            err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, 0, 0); // only one element
             if (Error::isOK(err) && !propField->isNull()) {
               // this array element exists, add it as a field with index appended to name
               string elementName = string_format("%s%d", propDescP->propertyName, index);
@@ -85,7 +85,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
         else {
           // value or complete contents of array
           propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
-          err = accessPropertyByDescriptor(false, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
+          err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
         }
         if (Error::isOK(err)) {
           // add to resulting object, if not no object returned at all (explicit JsonObject::newNull()) will be returned!)
@@ -133,7 +133,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
     }
     else {
       // access the property
-      err = accessPropertyByDescriptor(aForWrite, aApiObject, *propDescP, aDomain, aIndex, aElementCount);
+      err = accessPropertyByDescriptor(aMode, aApiObject, *propDescP, aDomain, aIndex, aElementCount);
     }
   }
   return err;
@@ -141,7 +141,7 @@ ErrorPtr PropertyContainer::accessProperty(bool aForWrite, ApiValuePtr aApiObjec
 
 
 
-ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount)
+ErrorPtr PropertyContainer::accessPropertyByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount)
 {
   ErrorPtr err;
   if (aPropertyDescriptor.isArray) {
@@ -150,17 +150,17 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
     if (aIndex==PROP_ARRAY_SIZE) {
       // get array size
       aApiObject->setType(apivalue_uint64); // force integer value
-      accessField(aForWrite, aApiObject, aPropertyDescriptor, PROP_ARRAY_SIZE);
+      accessField(aMode, aApiObject, aPropertyDescriptor, PROP_ARRAY_SIZE);
     }
     else {
       // get size of array
       ApiValuePtr o = aApiObject->newValue(apivalue_uint64); // size is an integer value
-      accessField(false, o, aPropertyDescriptor, PROP_ARRAY_SIZE); // query size
+      accessField(access_read, o, aPropertyDescriptor, PROP_ARRAY_SIZE); // query size
       int arrSz = o->int32Value();
       // single element or range?
       if (aElementCount!=0) {
         // Range of elements: only allowed for reading
-        if (aForWrite)
+        if (aMode!=access_read)
           err = ErrorPtr(new VdcApiError(403,"Arrays can only be written one element at a time"));
         else {
           // return array
@@ -175,7 +175,7 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
             // - create element of appropriate type
             ApiValuePtr elementObj = aApiObject->newValue(aPropertyDescriptor.propertyType);
             // - collect single element
-            err = accessPropertyByDescriptor(false, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
+            err = accessPropertyByDescriptor(access_read, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
             if (Error::isError(err, VdcApiError::domain(), 204)) {
               // array exhausted
               err.reset(); // is not a real error
@@ -196,20 +196,20 @@ ErrorPtr PropertyContainer::accessPropertyByDescriptor(bool aForWrite, ApiValueP
         if (aIndex>=arrSz)
           err = ErrorPtr(new VdcApiError(204,"Invalid array index"));
         else
-          err = accessElementByDescriptor(aForWrite, aApiObject, aPropertyDescriptor, aDomain, aIndex);
+          err = accessElementByDescriptor(aMode, aApiObject, aPropertyDescriptor, aDomain, aIndex);
       }
     }
   }
   else {
     // non-array property
-    err = accessElementByDescriptor(aForWrite, aApiObject, aPropertyDescriptor, aDomain, 0);
+    err = accessElementByDescriptor(aMode, aApiObject, aPropertyDescriptor, aDomain, 0);
   }
   return err;
 }
 
 
 
-ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
+ErrorPtr PropertyContainer::accessElementByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
 {
   ErrorPtr err;
   if (aPropertyDescriptor.propertyType==apivalue_object || aPropertyDescriptor.propertyType==apivalue_proxy) {
@@ -224,8 +224,8 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
     }
     else {
       // access all fields of structured object (named "*"), or single default field of proxied property (named "^")
-      err = container->accessProperty(aForWrite, aApiObject, aPropertyDescriptor.propertyType==apivalue_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0, 1 /* second level */);
-      if (aForWrite && Error::isOK(err)) {
+      err = container->accessProperty(aMode, aApiObject, aPropertyDescriptor.propertyType==apivalue_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0, 1 /* second level */);
+      if ((aMode!=access_read) && Error::isOK(err)) {
         // give this container a chance to post-process write access
         err = writtenProperty(aPropertyDescriptor, aDomain, aIndex, container);
       }
@@ -233,8 +233,8 @@ ErrorPtr PropertyContainer::accessElementByDescriptor(bool aForWrite, ApiValuePt
   }
   else {
     // single value property
-    if (!aForWrite) aApiObject->setType(aPropertyDescriptor.propertyType); // for read, set correct type for value (for write, type should match already)
-    if (!accessField(aForWrite, aApiObject, aPropertyDescriptor, aIndex)) {
+    if (aMode==access_read) aApiObject->setType(aPropertyDescriptor.propertyType); // for read, set correct type for value (for write, type should match already)
+    if (!accessField(aMode, aApiObject, aPropertyDescriptor, aIndex)) {
       err = ErrorPtr(new VdcApiError(403,"Access denied"));
     }
   }

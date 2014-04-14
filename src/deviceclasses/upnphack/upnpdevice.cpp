@@ -93,10 +93,10 @@ const PropertyDescriptor *UpnpDevice::getPropertyDescriptor(int aPropIndex, int 
 
 
 // access to all fields
-bool UpnpDevice::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool UpnpDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&upnpDevice_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
           // Description properties
@@ -110,7 +110,7 @@ bool UpnpDevice::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prope
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

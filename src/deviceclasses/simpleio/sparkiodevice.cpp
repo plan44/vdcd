@@ -120,10 +120,10 @@ const PropertyDescriptor *SparkLightScene::getPropertyDescriptor(int aPropIndex,
 }
 
 
-bool SparkLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool SparkLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&sparklightscene_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case extendedState_key:
@@ -141,7 +141,7 @@ bool SparkLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

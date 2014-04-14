@@ -140,10 +140,10 @@ const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int 
 }
 
 
-bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&lightscene_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case value_key:
@@ -182,7 +182,7 @@ bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prope
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 
@@ -729,10 +729,10 @@ const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool LightBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&light_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         // Settings properties
@@ -787,7 +787,7 @@ bool LightBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const P
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

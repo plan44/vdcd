@@ -1028,7 +1028,7 @@ const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex,
 }
 
 
-bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&devicecontainer_key) {
     if (aPropertyDescriptor.accessKey==vdcs_key) {
@@ -1053,7 +1053,7 @@ bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
       return false;
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

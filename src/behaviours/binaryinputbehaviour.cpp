@@ -202,10 +202,10 @@ const PropertyDescriptor *BinaryInputBehaviour::getStateDescriptor(int aPropInde
 
 
 // access to all fields
-bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&binaryInput_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
@@ -268,7 +268,7 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

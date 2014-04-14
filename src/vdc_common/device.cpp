@@ -903,11 +903,11 @@ ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, 
 
 
 
-bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&device_key) {
     if (aIndex==PROP_ARRAY_SIZE) {
-      if (aForWrite) {
+      if (aMode!=access_read) {
         return false;
       }
       else {
@@ -953,7 +953,7 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
         }
       }
     }
-    else if (!aForWrite) {
+    else if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case primaryGroup_key:
@@ -1000,7 +1000,7 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 #pragma mark - Device description/shortDesc

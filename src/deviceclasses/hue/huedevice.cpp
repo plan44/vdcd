@@ -137,10 +137,10 @@ const PropertyDescriptor *HueLightScene::getPropertyDescriptor(int aPropIndex, i
 }
 
 
-bool HueLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool HueLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&huelightscene_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         case colorMode_key:
@@ -194,7 +194,7 @@ bool HueLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const Pr
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

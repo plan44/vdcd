@@ -198,12 +198,14 @@ struct  _Vdcapi__VdsmRequestSetProperty
   uint32_t index;
   protobuf_c_boolean has_count;
   uint32_t count;
+  protobuf_c_boolean has_preload;
+  protobuf_c_boolean preload;
   size_t n_properties;
   Vdcapi__Property **properties;
 };
 #define VDCAPI__VDSM__REQUEST_SET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_set_property__descriptor) \
-    , NULL, NULL, 0,0, 0,1, 0,NULL }
+    , NULL, NULL, 0,0, 0,1, 0,0, 0,NULL }
 
 
 struct  _Vdcapi__VdsmSendPing

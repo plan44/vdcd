@@ -500,10 +500,10 @@ const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
 
 // access to all fields
 
-bool ButtonBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&button_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor.accessKey) {
         // Description properties
@@ -582,7 +582,7 @@ bool ButtonBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const 
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

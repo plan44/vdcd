@@ -166,10 +166,10 @@ const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropI
 
 
 
-bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
 {
   if (aPropertyDescriptor.objectKey==&deviceclass_key) {
-    if (!aForWrite) {
+    if (aMode==access_read) {
       // read only
       if (aPropertyDescriptor.accessKey==devices_key) {
         if (aIndex==PROP_ARRAY_SIZE) {
@@ -185,7 +185,7 @@ bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, c
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
 }
 
 

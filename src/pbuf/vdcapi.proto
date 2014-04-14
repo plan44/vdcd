@@ -70,6 +70,7 @@ message vdsm_RequestSetProperty {
     optional string name = 2;
     optional uint32 index = 3 [ default = 0 ];
     optional uint32 count = 4 [ default = 1 ];
+    optional bool preload = 6 [ default = false ];
     repeated Property properties = 5;
 }
 
