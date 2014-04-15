@@ -42,12 +42,26 @@ namespace p44 {
   const MLMicroSeconds Second = 1000*MilliSecond;
   const MLMicroSeconds Minute = 60*Second;
 
-  /// Mainloop callback
+  /// @name Mainloop callbacks
+  /// @{
+
+  /// Callback for idle handlers
+  /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+
+  /// Callback for one-time handlers
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+
+  /// Callback for handling termination of a subprocess
+  /// @param aPid the PID of the process that has terminated
+  /// @param aStatus the exit status of the process that has terminated
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
+
+  /// Callback for handling termination of executing a command in a subprocess and getting back stdout data in a string
+  /// @param aOutputString the output of the executed command
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
+  /// @}
 
   class ExecError : public Error
   {
