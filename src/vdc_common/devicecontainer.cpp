@@ -701,15 +701,20 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
 }
 
 
+/// vDC API version
+/// 1 (aka 1.0 in JSON) : first version, used in P44-DSB-DEH versions up to 0.5.0.x
+/// 2 : cleanup, no official JSON support any more, added MOC extensions
+#define VDC_API_VERSION 2
 
 ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
+  ApiValuePtr v;
   string s;
   // check API version
-  if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
-    if (s!="1.1")
-      respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.1'"));
+  if (Error::isOK(respErr = checkParam(aParams, "APIVersion", v))) {
+    if (v->int32Value()!=VDC_API_VERSION)
+      respErr = ErrorPtr(new VdcApiError(505, string_format("Incompatible vDC API version - found %d, expected %d", v->int32Value(), VDC_API_VERSION)));
     else {
       // API version ok, check dSUID
       if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
