@@ -1,7 +1,11 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
+if RASPBERRYPI
+bin_PROGRAMS = vdcd
+else
 bin_PROGRAMS = vdcd demovdc jsonrpctool
+endif
 
 # common stuff for protobuf - NOTE: need to "make all" to get BUILT_SOURCES made
 
@@ -26,25 +30,43 @@ src/pbuf/gen/vdcapi.pb-c.h src/pbuf/gen/vdcapi.pb-c.c:	src/pbuf/vdcapi.proto
 
 # vdcd
 
-vdcd_CPPFLAGS = \
-  -I src/p44utils \
-  -I src \
-  -I src/thirdparty/mongoose \
-  -I src/thirdparty \
-  -I src/pbuf/gen \
-  -I src/vdc_common \
-  -I src/behaviours \
-  -I src/deviceclasses/simpleio \
-  -I src/deviceclasses/enocean \
-  -I src/deviceclasses/dali \
-  -I src/deviceclasses/hue \
-  -D DEBUG=1
+vdcd_CXXFLAGS = \
+  -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src \
+  -I ${srcdir}/src/thirdparty/mongoose \
+  -I ${srcdir}/src/thirdparty \
+  -I ${srcdir}/src/pbuf/gen \
+  -I ${srcdir}/src/vdc_common \
+  -I ${srcdir}/src/behaviours \
+  -I ${srcdir}/src/deviceclasses/simpleio \
+  -I ${srcdir}/src/deviceclasses/enocean \
+  -I ${srcdir}/src/deviceclasses/dali \
+  -I ${srcdir}/src/deviceclasses/hue \
+  ${BOOST_CPPFLAGS} \
+  ${JSONC_CFLAGS} \
+  ${PTHREAD_CFLAGS} \
+  ${SQLITE3_CFLAGS} \
+  ${PROTOBUFC_CFLAGS} \
+  ${vdcd_DEBUG}
+
+if DEBUG
+vdcd_DEBUG = -D DEBUG=1
+else
+vdcd_DEBUG =
+endif
 
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
-vdcd_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBUFC_CFLAGS)
 
+if RASPBERRYPI
+# This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
+# Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
+TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
+vdcd_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+else
 vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+endif
+
 
 vdcd_SOURCES = \
   src/p44utils/p44obj.cpp \
@@ -141,12 +163,12 @@ vdcd_SOURCES = \
   src/behaviours/outputbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/buttonbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
   src/behaviours/sensorbehaviour.hpp \
   src/behaviours/sensorbehaviour.cpp \
   src/behaviours/binaryinputbehaviour.hpp \
   src/behaviours/binaryinputbehaviour.cpp \
-  src/behaviours/buttonbehaviour.hpp \
   src/behaviours/lightbehaviour.cpp \
   src/behaviours/lightbehaviour.hpp \
   src/deviceclasses/simpleio/consoledevice.cpp \
@@ -185,17 +207,24 @@ vdcd_SOURCES = \
   src/p44_vdcd_main.cpp
 
 
+if !RASPBERRYPI
+
 # demovdc
 
 demovdc_CPPFLAGS = \
-  -I src/p44utils \
-  -I src \
-  -I src/thirdparty \
-  -I src/pbuf/gen \
-  -I src/vdc_common \
-  -I src/behaviours \
-  -I src/deviceclasses/demo \
-  -I src/deviceclasses/upnphack \
+  -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src \
+  -I ${srcdir}/src/thirdparty \
+  -I ${srcdir}/src/pbuf/gen \
+  -I ${srcdir}/src/vdc_common \
+  -I ${srcdir}/src/behaviours \
+  -I ${srcdir}/src/deviceclasses/demo \
+  -I ${srcdir}/src/deviceclasses/upnphack \
+  ${BOOST_CPPFLAGS} \
+  $(JSONC_CFLAGS) \
+  $(PTHREAD_CFLAGS) \
+  $(SQLITE3_CFLAGS) \
+  $(PROTOBUFC_CFLAGS) \
   -D DEBUG=1
 
 demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBUFC_CFLAGS)
@@ -334,3 +363,4 @@ jsonrpctool_SOURCES = \
   src/p44utils/p44_common.hpp \
   src/jsonrpctool.cpp
 
+endif

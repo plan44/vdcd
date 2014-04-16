@@ -11,47 +11,77 @@ AC_PROG_CXX
 
 AC_CONFIG_FILES([Makefile])
 
-PKG_CHECK_MODULES([JSONC], [json], [],
-    [
-        AC_MSG_ERROR([Missing json-c / libjson0])
-    ])
+# options
+AC_ARG_ENABLE([debug],
+[  --enable-debug    Turn on debugging],
+[case "${enableval}" in
+  yes) debug=true ;;
+  no)  debug=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],[debug=false])
+AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
+
+AC_ARG_ENABLE([raspberrypi],
+[  --enable-raspberrypi    Turn on special hacks for RPi cross build],
+[case "${enableval}" in
+  yes) raspberrypi=true ;;
+  no)  raspberrypi=false ;;
+  *) AC_MSG_ERROR([bad value ${enableval} for --enable-raspberrypi]) ;;
+esac],[raspberrypi=false])
+AM_CONDITIONAL([RASPBERRYPI], [test x$raspberrypi = xtrue])
+
+
+
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m)])])
-#AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
-AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto])])
-#AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
 AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clock_gettime])])
-
 AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
+AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
 
+#AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
+#AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
 #AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
 
 
 
 PKG_PROG_PKG_CONFIG
 
-PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
-    [
-        AC_MSG_ERROR([$JSON_PKG_ERRORS])
-    ])
+# AM_COND_IF ([RASPBERRYPI], [
+#   # hacked RPi cross build
+#
+# ], [
+#
+#   # normal Linux build
+#   PKG_CHECK_MODULES([JSONC], [json], [],
+#       [
+#           AC_MSG_ERROR([Missing json-c / libjson0])
+#       ])
+#
+#   PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
+#       [
+#           AC_MSG_ERROR([$JSON_PKG_ERRORS])
+#       ])
+#
+#   PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
+#       [
+#           AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
+#       ])
+#
+#   PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [],
+#       [
+#           AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [],
+#               [
+#                   AC_MSG_ERROR([coult not find protobuf-c headers])
+#               ])
+#
+#           AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [],
+#               [
+#                   AC_MSG_ERROR([coult not find protobuf-c library])
+#               ])
+#       ])
+#
+# ])
 
-PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
-    [
-        AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
-    ])
-
-PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [],
-    [
-        AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [],
-            [
-                AC_MSG_ERROR([coult not find protobuf-c headers])
-            ])
-
-        AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [],
-            [
-                AC_MSG_ERROR([coult not find protobuf-c library])
-            ])
-    ])
 
 AC_PATH_PROG(PROTOC, protoc-c, "")
 if (test -z "$PROTOC"); then
