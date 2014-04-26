@@ -3,20 +3,20 @@ package vdcapi;
 message vdsm_RequestHello {
     optional string dSUID = 1;
     optional uint32 api_version = 2;
-    // optional string push_uri = 3; // OBSOLETED in v1.1, kept here as comment to avoid accidental field ID reuse
+    // optional string push_uri = 3; // OBSOLETED in v2, kept here as comment to avoid accidental field ID reuse
 }
 
 message vdc_ResponseHello {
     optional string dSUID = 1;
-    // optional bool allow_disconnect = 2 [ default = false ]; // OBSOLETED in API v1.1, kept here as comment to avoid accidental field ID reuse
+    // optional bool allow_disconnect = 2 [ default = false ]; // OBSOLETED in API v2, kept here as comment to avoid accidental field ID reuse
 }
 
 message vdc_SendAnnounce {
     optional string dSUID = 1;
-    optional string vdcdSUID = 2; // new in API v1.1
+    optional string vdcdSUID = 2; // new in API v2
 }
 
-message vdc_SendAnnounceVdc { // new in API v1.1
+message vdc_SendAnnounceVdc { // new in API v2
     optional string vdcdSUID = 1;
 }
 
