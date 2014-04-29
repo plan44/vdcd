@@ -1,19 +1,17 @@
 package vdcapi;
 
 message vdsm_RequestHello {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional uint32 api_version = 2;
-    // optional string push_uri = 3; // OBSOLETED in v2, kept here as comment to avoid accidental field ID reuse
 }
 
 message vdc_ResponseHello {
-    optional string dSUID = 1;
-    // optional bool allow_disconnect = 2 [ default = false ]; // OBSOLETED in API v2, kept here as comment to avoid accidental field ID reuse
+    optional bytes dSUID = 1;
 }
 
 message vdc_SendAnnounce {
-    optional string dSUID = 1;
-    optional string vdcdSUID = 2; // new in API v2
+    optional bytes dSUID = 1;
+    optional bytes vdcdSUID = 2; // new in API v2
 }
 
 message vdc_SendAnnounceVdc { // new in API v2
@@ -21,43 +19,42 @@ message vdc_SendAnnounceVdc { // new in API v2
 }
 
 message vdc_SendVanish {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
 message vdc_SendIdentify {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
 message vdsm_SendBye {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
 message vdsm_SendRemove {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
-message PropertyValue {
-    optional bool v_bool = 1;
-    optional uint64 v_uint64 = 2;
-    optional int64 v_int64 = 3;
-    optional double v_double = 4;
-    optional string v_string = 5;
+message Property { // new internal structure in API v2, no auxiliary PropertyValue and PropertyElement auxiliary messages any more
+    optional string name = 1; // name of the property
+    optional uint64 index = 2; // index position property has/had in its container. Makes the "Property" message fully self describing.
+    // 6 value variants, mutually exclusive (one of 5 scalar variants, or a list of sub-properties.)
+    optional bool v_bool = 3;
+    optional uint64 v_uint64 = 4;
+    optional int64 v_int64 = 5;
+    optional double v_double = 6;
+    optional string v_string = 7;
+    optional bytes v_bytes = 8;
+    repeated Property v_subproperties = 9;
 }
 
-message PropertyElement {
-    optional string name  = 1;
-    optional PropertyValue value = 2;
-}
-
-message Property {
-    repeated PropertyElement elements = 1;
-}
 
 message vdsm_RequestGetProperty {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional string name = 2;
-    optional uint32 index = 3 [ default = 0 ]; // renamed to align with API docs, was called "offset" before (but this is not an API change, only relevant for build)
-    optional uint32 count = 4 [ default = 0 ]; // 0 means "all"
+    optional uint32 index = 3; //  (renamed to align with API docs where it always was called "index", not "offset")
+    optional string subproperty_name = 4; // subproperty within main property to pick (optional, only specify to address single subproperty)
+    optional string subproperty_index = 5; // first array element to access within subproperty (optional, only specify to address elements of subproperty)
+    optional uint32 count = 6 [ default = 0 ]; // when accessing array, number of elements to return. 0 = all up to end of array
 }
 
 message vdc_ResponseGetProperty {
@@ -66,24 +63,22 @@ message vdc_ResponseGetProperty {
 
 // expects generic response
 message vdsm_RequestSetProperty {
-    optional string dSUID = 1;
-    optional string name = 2;
-    optional uint32 index = 3 [ default = 0 ];
-    optional uint32 count = 4 [ default = 1 ];
-    optional bool preload = 6 [ default = false ];
-    repeated Property properties = 5;
+    optional bytes dSUID = 1;
+    optional bool preload = 2 [ default = false ];
+    // Note: setProperty does NOT need name/index fields any more, because addressing is contained within the properties submessages (name/index) already!
+    repeated Property properties = 3;
 }
 
 message vdsm_SendPing {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
 message vdc_SendPong {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
 }
 
 message vdsm_NotificationCallScene {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 scene = 2;
     optional bool force = 3;
     optional int32 group = 4;
@@ -91,41 +86,41 @@ message vdsm_NotificationCallScene {
 }
 
 message vdsm_NotificationSaveScene {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationUndoScene {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationSetLocalPrio {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationCallMinScene {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationIdentify {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 group = 2;
     optional int32 zoneID = 3;
 }
 
 message vdsm_NotificationSetControlValue {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional string name = 2;
     optional double value = 3;
     optional int32 group = 4;
@@ -133,7 +128,7 @@ message vdsm_NotificationSetControlValue {
 }
 
 message vdsm_NotificationDimChannel {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional int32 channel = 2;
     optional int32 mode = 3;
     optional int32 area = 4;
@@ -143,7 +138,7 @@ message vdsm_NotificationDimChannel {
 
 
 message vdc_SendPushProperty {
-    optional string dSUID = 1;
+    optional bytes dSUID = 1;
     optional string name = 2;
     optional uint32 index = 3 [ default = 0 ];
     repeated Property properties = 4;
