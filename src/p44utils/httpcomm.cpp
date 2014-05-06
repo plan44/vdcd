@@ -126,7 +126,17 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
       requestError = ErrorPtr(new HttpCommError(HttpCommError_mongooseError, ebuf));
     }
     else {
-      // successfully initiated connection, now read from it
+      // successfully initiated connection
+      // - get headers if requested
+      if (responseHeaders) {
+        struct mg_request_info *requestInfo = mg_get_request_info(mgConn);
+        if (requestInfo) {
+          for (int i=0; i<requestInfo->num_headers; i++) {
+            (*responseHeaders)[requestInfo->http_headers[i].name] = requestInfo->http_headers[i].value;
+          }
+        }
+      }
+      // - read data
       const size_t bufferSz = 2048;
       uint8_t *bufferP = new uint8_t[bufferSz];
       while (true) {
@@ -184,11 +194,22 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
 
 
 
-bool HttpComm::httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod, const char* aRequestBody, const char* aContentType, int aResponseDataFd)
+bool HttpComm::httpRequest(
+  const char *aURL,
+  HttpCommCB aResponseCallback,
+  const char *aMethod,
+  const char* aRequestBody,
+  const char* aContentType,
+  int aResponseDataFd,
+  bool aSaveHeaders
+)
 {
   if (requestInProgress || !aURL)
     return false; // blocked or no URL
   responseDataFd = aResponseDataFd;
+  responseHeaders.reset();
+  if (aSaveHeaders)
+    responseHeaders = HttpHeaderMapPtr(new HttpHeaderMap);
   requestURL = aURL;
   responseCallback = aResponseCallback;
   method = aMethod;

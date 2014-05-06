@@ -45,20 +45,24 @@ namespace p44 {
   /// @name Mainloop callbacks
   /// @{
 
-  /// Callback for idle handlers
+  /// Generic handler or returning a status (ok or error)
+  /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
+  typedef boost::function<void (ErrorPtr aError)> StatusCB;
+
+  /// Handler for idle time processing (called when other mainloop tasks are done)
   /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
 
-  /// Callback for one-time handlers
+  /// Handler for one time processing (scheduled by executeOnce()/executeOnceAt())
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
 
-  /// Callback for handling termination of a subprocess
+  /// Handler for getting signalled when child process terminates
   /// @param aPid the PID of the process that has terminated
   /// @param aStatus the exit status of the process that has terminated
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
 
-  /// Callback for handling termination of executing a command in a subprocess and getting back stdout data in a string
-  /// @param aOutputString the output of the executed command
+  /// Handler called when fork_and_execve() or fork_and_system() terminate
+  /// @param aOutputString the stdout output of the executed command
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
   /// @}
@@ -223,6 +227,9 @@ namespace p44 {
   } ThreadSignals;
 
 
+  /// @name SyncIOMainLoop callbacks
+  /// @{
+
   /// I/O callback
   /// @param aMainLoop the mainloop which calls this handler
   /// @param aCycleStartTime the time when the current mainloop cycle has started
@@ -243,6 +250,7 @@ namespace p44 {
   /// @param aSignalCode the signal received from the child thread
   typedef boost::function<void (SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
 
+  /// @}
 
 
   typedef boost::intrusive_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;

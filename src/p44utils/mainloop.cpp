@@ -225,7 +225,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
 
   // prepare environment
   if (aEnvp==NULL) {
-    aEnvp = environ;
+    aEnvp = environ; // use my own environment
   }
   // prepare pipe in case we want answer collected
   if (aPipeBackStdOut) {

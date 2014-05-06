@@ -464,14 +464,14 @@ public:
       if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Very long button press detected -> clean exit(-2) in 2 seconds\n");
+        LOG(LOG_WARNING,"Very long button press detected -> clean exit(2) in 2 seconds\n");
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
-        // for now exit(-2) is switching off daemon, so we switch off the LEDs as well
+        // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -2), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 2), 2*Second);
         return true;
       }
     }
@@ -480,11 +480,11 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
-        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(-3) in 500 mS\n");
+        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(3) in 500 mS\n");
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -3), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 3), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
@@ -516,7 +516,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, -42), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 42), 2*Second);
         return true;
       }
       else {
