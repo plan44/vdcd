@@ -42,11 +42,27 @@ namespace p44 {
   const MLMicroSeconds Second = 1000*MilliSecond;
   const MLMicroSeconds Minute = 60*Second;
 
-  /// Mainloop callback
+  /// @name Mainloop callbacks
+  /// @{
+
+  /// Generic handler or returning a status (ok or error)
+  /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
+  typedef boost::function<void (ErrorPtr aError)> StatusCB;
+
+  /// Handler for idle time processing (called when other mainloop tasks are done)
+  /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
   typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+
+  /// Handler for one time processing (scheduled by executeOnce()/executeOnceAt())
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+
+  /// Handler for getting signalled when child process terminates
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
+
+  /// Handler called when fork_and_execve() or fork_and_system() terminate
   typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
+
+  /// @}
 
 
   class ExecError : public Error
@@ -209,6 +225,9 @@ namespace p44 {
   } ThreadSignals;
 
 
+  /// @name SyncIOMainLoop callbacks
+  /// @{
+
   /// I/O callback
   /// @param aMainLoop the mainloop which calls this handler
   /// @param aCycleStartTime the time when the current mainloop cycle has started
@@ -229,6 +248,7 @@ namespace p44 {
   /// @param aSignalCode the signal received from the child thread
   typedef boost::function<void (SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
 
+  /// @}
 
 
   typedef boost::intrusive_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
