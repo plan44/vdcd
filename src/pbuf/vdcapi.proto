@@ -34,39 +34,38 @@ message vdsm_SendRemove {
     optional bytes dSUID = 1;
 }
 
-message Property { // new internal structure in API v2, no auxiliary PropertyValue and PropertyElement auxiliary messages any more
-    optional string name = 1; // name of the property
-    optional uint64 index = 2; // index position property has/had in its container. Makes the "Property" message fully self describing.
-    // 6 value variants, mutually exclusive (one of 5 scalar variants, or a list of sub-properties.)
-    optional bool v_bool = 3;
-    optional uint64 v_uint64 = 4;
-    optional int64 v_int64 = 5;
-    optional double v_double = 6;
-    optional string v_string = 7;
-    optional bytes v_bytes = 8;
-    repeated Property v_subproperties = 9;
+message PropertyValue {
+    optional bool v_bool = 1;
+    optional uint64 v_uint64 = 2;
+    optional int64 v_int64 = 3;
+    optional double v_double = 4;
+    optional string v_string = 5;
+    optional bytes v_bytes = 6;
+}
+
+message PropertyElement {
+    optional string name  = 1;
+    optional PropertyValue value = 2;
+    repeated PropertyElement elements = 3; // <- NEW: allow nesting
 }
 
 
 message vdsm_RequestGetProperty {
     optional bytes dSUID = 1;
-    optional string name = 2;
-    optional uint32 index = 3; //  (renamed to align with API docs where it always was called "index", not "offset")
-    optional string subproperty_name = 4; // subproperty within main property to pick (optional, only specify to address single subproperty)
-    optional string subproperty_index = 5; // first array element to access within subproperty (optional, only specify to address elements of subproperty)
-    optional uint32 count = 6 [ default = 0 ]; // when accessing array, number of elements to return. 0 = all up to end of array
+    repeated PropertyElement query = 2;
 }
 
+
 message vdc_ResponseGetProperty {
-    repeated Property properties = 1;
+    repeated PropertyElement properties = 1;
 }
+
 
 // expects generic response
 message vdsm_RequestSetProperty {
     optional bytes dSUID = 1;
     optional bool preload = 2 [ default = false ];
-    // Note: setProperty does NOT need name/index fields any more, because addressing is contained within the properties submessages (name/index) already!
-    repeated Property properties = 3;
+    repeated PropertyElement properties = 3;
 }
 
 message vdsm_SendPing {
@@ -136,11 +135,8 @@ message vdsm_NotificationDimChannel {
     optional int32 zoneID = 6;
 }
 
-
 message vdc_SendPushProperty {
-    optional bytes dSUID = 1;
-    optional string name = 2;
-    optional uint32 index = 3 [ default = 0 ];
-    repeated Property properties = 4;
+    optional string dSUID = 1;
+    repeated PropertyElement properties = 2;
 }
 
