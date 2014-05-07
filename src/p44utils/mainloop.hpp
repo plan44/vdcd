@@ -45,8 +45,11 @@ namespace p44 {
   /// @name Mainloop callbacks
   /// @{
 
+
+  /// Generic handler without any arguments
+  typedef boost::function<void ()> SimpleCB;
+
   /// Generic handler or returning a status (ok or error)
-  /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
   typedef boost::function<void (ErrorPtr aError)> StatusCB;
 
   /// Handler for idle time processing (called when other mainloop tasks are done)
