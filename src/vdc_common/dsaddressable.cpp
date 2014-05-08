@@ -220,6 +220,7 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 #pragma mark - property access
 
 enum {
+  type_key,
   dSUID_key,
   classicid_key,
   model_key,
@@ -273,6 +274,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
     }
     else {
       switch (aPropertyDescriptor->fieldKey()) {
+        case type_key: aPropValue->setStringValue(entityType()); return true; // the entity type
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
         case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true; // always the classic dSUID
         case model_key: aPropValue->setStringValue(modelName()); return true;
