@@ -47,7 +47,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<ApiValue> ApiValuePtr;
 
-  /// wrapper around json-c / libjson0 object
+  /// abstracted API value object
   class ApiValue : public P44Obj
   {
   protected:
@@ -75,6 +75,10 @@ namespace p44 {
     /// @param type to convert object into
     /// @note existing data will be discarded (not converted)!
     virtual void setType(ApiValueType aType);
+
+    /// set API value to value of another API value
+    /// @param aApiValue to get value of
+    virtual void operator=(ApiValue &aApiValue) = 0;
 
     /// clear object to "empty" or "zero" value of its type
     /// @note does not change the type (unlike setNull)

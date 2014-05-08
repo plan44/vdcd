@@ -45,13 +45,13 @@ void JsonApiValue::clear()
 {
   switch (getType()) {
     case apivalue_object:
-      // just assign new object an forget old one
+      // just assign new object and forget old one
       jsonObj = JsonObject::newObj();
       break;
     case apivalue_array:
       jsonObj = JsonObject::newArray();
       break;
-      // for unstuctured values, the json obj will be created on assign, so clear it now
+    // for unstuctured values, the json obj will be created on assign, so clear it now
     default:
       jsonObj.reset();
       break;
@@ -72,9 +72,9 @@ bool JsonApiValue::setStringValue(const string &aString)
 
 
 
-JsonApiValue::JsonApiValue(JsonObjectPtr aWithObject)
+void JsonApiValue::setJsonObject(JsonObjectPtr aJsonObject)
 {
-  jsonObj = aWithObject;
+  jsonObj = aJsonObject;
   // derive type
   if (!jsonObj) {
     setType(apivalue_null);
@@ -96,9 +96,22 @@ JsonApiValue::JsonApiValue(JsonObjectPtr aWithObject)
 }
 
 
+void JsonApiValue::operator=(ApiValue &aApiValue)
+{
+  JsonApiValue *javP = dynamic_cast<JsonApiValue *>(&aApiValue);
+  if (javP)
+    setJsonObject(javP->jsonObj);
+  else
+    setNull(); // not assignable
+}
+
+
+
 ApiValuePtr JsonApiValue::newValueFromJson(JsonObjectPtr aJsonObject)
 {
-  return ApiValuePtr(new JsonApiValue(aJsonObject));
+  JsonApiValue *javP = new JsonApiValue;
+  javP->setJsonObject(aJsonObject);
+  return ApiValuePtr(javP);
 }
 
 

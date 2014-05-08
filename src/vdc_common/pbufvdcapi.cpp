@@ -48,6 +48,34 @@ ApiValuePtr PbufApiValue::newValue(ApiValueType aObjectType)
 }
 
 
+void PbufApiValue::operator=(ApiValue &aApiValue)
+{
+  setNull(); // forget old content
+  PbufApiValue *pavP = dynamic_cast<PbufApiValue *>(&aApiValue);
+  if (pavP) {
+    setType(aApiValue.getType());
+    allocate();
+    switch (allocatedType) {
+      case apivalue_string:
+        objectValue.stringP = new string(*(pavP->objectValue.stringP));
+        break;
+      case apivalue_object:
+        objectValue.objectMapP = new ApiValueFieldMap(*(pavP->objectValue.objectMapP));
+        break;
+      case apivalue_array:
+        objectValue.arrayVectorP = new ApiValueArray(*(pavP->objectValue.arrayVectorP));
+        break;
+      default:
+        objectValue = pavP->objectValue; // copy union containing a scalar value
+        break;
+    }
+  }
+  else
+    setNull(); // not assignable
+}
+
+
+
 
 void PbufApiValue::clear()
 {

@@ -77,6 +77,7 @@ namespace p44 {
     virtual ApiValuePtr newValue(ApiValueType aObjectType);
 
     virtual void clear();
+    virtual void operator=(ApiValue &aApiValue);
 
     virtual void add(const string &aKey, ApiValuePtr aObj);
     virtual ApiValuePtr get(const string &aKey);
