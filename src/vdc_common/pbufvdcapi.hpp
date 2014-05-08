@@ -149,9 +149,9 @@ namespace p44 {
     void getValueFromPropVal(Vdcapi__PropertyValue &aPropVal);
     void putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal);
 
-    void getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName);
-    Vdcapi__PropertyElement *propElementFromValue(const char *aName);
-    void putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName);
+//    void getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName);
+//    Vdcapi__PropertyElement *propElementFromValue(const char *aName);
+//    void putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName);
 
 
     size_t numObjectFields();

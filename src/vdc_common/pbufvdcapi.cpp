@@ -683,11 +683,11 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
       // check for property special case
       if (strcmp(subMsgDescP->short_name,"Property")==0) {
         // generic property value submessage
-        Vdcapi__Property *propP = new Vdcapi__Property;
-        vdcapi__property__init(propP);
-        *((Vdcapi__Property **)dataP+aIndex) = propP;
-        if (!aBaseName) aBaseName = "value";
-        putValueIntoProp(*propP,aBaseName);
+//        Vdcapi__Property *propP = new Vdcapi__Property;
+//        vdcapi__property__init(propP);
+//        *((Vdcapi__Property **)dataP+aIndex) = propP;
+//        if (!aBaseName) aBaseName = "value";
+//        putValueIntoProp(*propP,aBaseName);
       }
       else {
         // specific pre-existing message, fields will be filled from message
@@ -808,98 +808,98 @@ void PbufApiValue::putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal)
 
 
 
-void PbufApiValue::getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName)
-{
-  // A property is always a list of ProperyValues in protobuf now
-  // so we need some ugly case distinction here to normalize the data:
-  // - if aProp has no elements, this is a NULL value
-  // - if aProp has one element
-  //   - if the element has no or empty name or a name matching aBaseName,
-  //      or the "name" param in the request was empty, this is a single value
-  //   - otherwise, this is an object with a single element in it
-  // - if aProp has multiple elements, this is an object with multiple fields
-  if (aProp.n_elements==0) {
-    // null
-    setType(apivalue_null);
-    return; // done
-  }
-  if (aProp.n_elements==1) {
-    // exactly one element, could be plain value
-    if (
-      aBaseName==NULL || // no basename
-      aProp.elements[0]->name==NULL || // no element name
-      *(aProp.elements[0]->name)==0 || // empty element name
-      (aBaseName && strcasecmp(aProp.elements[0]->name, aBaseName)==0) // element name is same as property name itself
-    ) {
-      // single plain value
-      getValueFromPropVal(*(aProp.elements[0]->value));
-      if (aBaseName==NULL) {
-        // apparently, the name of the property is in the (single) element, and request has no "name" param -> return element's name
-        aBaseName = aProp.elements[0]->name;
-      }
-      return; // done
-    }
-  }
-  // must be object, collect elements
-  setType(apivalue_object);
-  for (int i=0; i<aProp.n_elements; i++) {
-    PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
-    val->getValueFromPropVal(*(aProp.elements[i]->value));
-    add(aProp.elements[i]->name, val);
-  }
-}
-
-
-
-Vdcapi__PropertyElement *PbufApiValue::propElementFromValue(const char *aName)
-{
-  Vdcapi__PropertyElement *elemP = new Vdcapi__PropertyElement;
-  vdcapi__property_element__init(elemP);
-  elemP->name = NULL;
-  if (aName) {
-    elemP->name = new char [strlen(aName)+1];
-    strcpy(elemP->name, aName);
-  }
-  elemP->value = new Vdcapi__PropertyValue;
-  vdcapi__property_value__init(elemP->value);
-  putValueIntoPropVal(*(elemP->value));
-  return elemP;
-}
-
-
-void PbufApiValue::putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName)
-{
-  aProp.n_elements = 0; // assume none
-  aProp.elements = NULL; // none
-  if (isNull()) {    // NULL value is represented by property with no elements, so we are done
-    return; // done
-  }
-  if (!isType(apivalue_object)) {
-    // single value: create single element containing value
-    aProp.n_elements = 1;
-    aProp.elements = new Vdcapi__PropertyElement *[1];
-    Vdcapi__PropertyElement *elem = propElementFromValue(aBaseName);
-    aProp.elements[0] = elem;
-    return; // done
-  }
-  // object: create element for each object field
-  aProp.n_elements = numObjectFields();
-  if (aProp.n_elements>0) {
-    aProp.elements = new Vdcapi__PropertyElement *[aProp.n_elements];
-    // fill in fields
-    resetKeyIteration();
-    string key;
-    ApiValuePtr val;
-    size_t i = 0;
-    while (nextKeyValue(key, val)) {
-      PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
-      Vdcapi__PropertyElement *elem = pval->propElementFromValue(key.c_str());
-      aProp.elements[i] = elem;
-      i++;
-    }
-  }
-  return; // done
-}
+//void PbufApiValue::getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName)
+//{
+//  // A property is always a list of ProperyValues in protobuf now
+//  // so we need some ugly case distinction here to normalize the data:
+//  // - if aProp has no elements, this is a NULL value
+//  // - if aProp has one element
+//  //   - if the element has no or empty name or a name matching aBaseName,
+//  //      or the "name" param in the request was empty, this is a single value
+//  //   - otherwise, this is an object with a single element in it
+//  // - if aProp has multiple elements, this is an object with multiple fields
+//  if (aProp.n_elements==0) {
+//    // null
+//    setType(apivalue_null);
+//    return; // done
+//  }
+//  if (aProp.n_elements==1) {
+//    // exactly one element, could be plain value
+//    if (
+//      aBaseName==NULL || // no basename
+//      aProp.elements[0]->name==NULL || // no element name
+//      *(aProp.elements[0]->name)==0 || // empty element name
+//      (aBaseName && strcasecmp(aProp.elements[0]->name, aBaseName)==0) // element name is same as property name itself
+//    ) {
+//      // single plain value
+//      getValueFromPropVal(*(aProp.elements[0]->value));
+//      if (aBaseName==NULL) {
+//        // apparently, the name of the property is in the (single) element, and request has no "name" param -> return element's name
+//        aBaseName = aProp.elements[0]->name;
+//      }
+//      return; // done
+//    }
+//  }
+//  // must be object, collect elements
+//  setType(apivalue_object);
+//  for (int i=0; i<aProp.n_elements; i++) {
+//    PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
+//    val->getValueFromPropVal(*(aProp.elements[i]->value));
+//    add(aProp.elements[i]->name, val);
+//  }
+//}
+//
+//
+//
+//Vdcapi__PropertyElement *PbufApiValue::propElementFromValue(const char *aName)
+//{
+//  Vdcapi__PropertyElement *elemP = new Vdcapi__PropertyElement;
+//  vdcapi__property_element__init(elemP);
+//  elemP->name = NULL;
+//  if (aName) {
+//    elemP->name = new char [strlen(aName)+1];
+//    strcpy(elemP->name, aName);
+//  }
+//  elemP->value = new Vdcapi__PropertyValue;
+//  vdcapi__property_value__init(elemP->value);
+//  putValueIntoPropVal(*(elemP->value));
+//  return elemP;
+//}
+//
+//
+//void PbufApiValue::putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName)
+//{
+//  aProp.n_elements = 0; // assume none
+//  aProp.elements = NULL; // none
+//  if (isNull()) {    // NULL value is represented by property with no elements, so we are done
+//    return; // done
+//  }
+//  if (!isType(apivalue_object)) {
+//    // single value: create single element containing value
+//    aProp.n_elements = 1;
+//    aProp.elements = new Vdcapi__PropertyElement *[1];
+//    Vdcapi__PropertyElement *elem = propElementFromValue(aBaseName);
+//    aProp.elements[0] = elem;
+//    return; // done
+//  }
+//  // object: create element for each object field
+//  aProp.n_elements = numObjectFields();
+//  if (aProp.n_elements>0) {
+//    aProp.elements = new Vdcapi__PropertyElement *[aProp.n_elements];
+//    // fill in fields
+//    resetKeyIteration();
+//    string key;
+//    ApiValuePtr val;
+//    size_t i = 0;
+//    while (nextKeyValue(key, val)) {
+//      PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+//      Vdcapi__PropertyElement *elem = pval->propElementFromValue(key.c_str());
+//      aProp.elements[i] = elem;
+//      i++;
+//    }
+//  }
+//  return; // done
+//}
 
 
 
@@ -1267,14 +1267,14 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         // write has always a single property, never multiple, so just get the first or if none, write NULL
         // also we need derive "name" from examining content AND the "name" property, as it might be at either place :-(
-        const char *name = decodedMsg->vdsm_request_set_property->name; // default to "name" field in request
+//        const char *name = decodedMsg->vdsm_request_set_property->name; // default to "name" field in request
         PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue); // NULL value to start with
         if (decodedMsg->vdsm_request_set_property->n_properties>0) {
           // there is a value to set (first, others are ignored
-          val->getValueFromProp(*(decodedMsg->vdsm_request_set_property->properties[0]), name);
+//          val->getValueFromProp(*(decodedMsg->vdsm_request_set_property->properties[0]), name);
         }
         msgFieldsObj->add("value", val);
-        msgFieldsObj->add("name", msgFieldsObj->newString(name)); // add property name as found in request or in passed property.
+//        msgFieldsObj->add("name", msgFieldsObj->newString(name)); // add property name as found in request or in passed property.
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
         goto getDsUid;
       }
@@ -1403,7 +1403,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         request->responseType = (Vdcapi__Type)responseType; // save the response type for sending answers later
         // special case for getProperty - need to remember the requested name as result must contain it again (ugh!)
         if (decodedMsg->type==VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY) {
-          request->requestedPropertyName = nonNullCStr(decodedMsg->vdsm_request_get_property->name);
+//          request->requestedPropertyName = nonNullCStr(decodedMsg->vdsm_request_get_property->name);
         }
         LOG(LOG_INFO,"vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s\n", request->reqId, method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
@@ -1480,7 +1480,7 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(params->get("value"));
     // result object is property value(s)
     // and the 4th field in VdcSendPushProperty is the "properties" repeating field
-    if (val) val->putValueIntoMessageField(subMessageP->descriptor->fields[4-1], *subMessageP, msg.vdc_send_push_property->name);
+//    if (val) val->putValueIntoMessageField(subMessageP->descriptor->fields[4-1], *subMessageP, msg.vdc_send_push_property->name);
     // params processed explicitly, prevent generic assignments
     params.reset();
   }
