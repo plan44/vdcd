@@ -902,16 +902,13 @@ void DeviceContainer::startAnnouncing()
 }
 
 
-#warning "make VDC announce permanent once API v1.1 is final"
-#define HAS_VDCANNOUNCE true
-
 void DeviceContainer::announceNext()
 {
   if (collecting) return; // prevent announcements during collect.
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // first check for unnannounced device classes
-  if (dsUids && HAS_VDCANNOUNCE) {
+  if (dsUids) {
     // only announce vdcs when using modern dSUIDs
     for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
       DeviceClassContainerPtr vdc = pos->second;
@@ -941,7 +938,7 @@ void DeviceContainer::announceNext()
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
-      (!(dsUids && HAS_VDCANNOUNCE) || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
+      (!dsUids || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
@@ -950,7 +947,7 @@ void DeviceContainer::announceNext()
       // call announce method
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      if (dsUids && HAS_VDCANNOUNCE) {
+      if (dsUids) {
         // vcds were announced, include link to vdc for device announcements
         params->add("vdcdSUID", params->newString(dev->classContainerP->getApiDsUid().getString()));
       }
@@ -1022,8 +1019,8 @@ int DeviceContainer::numProps(int aDomain)
 
 const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
 {
-  static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "x-p44-vdcs", apivalue_string, true, vdcs_key, &devicecontainer_key }
+  static const PropertyDescription properties[numDeviceContainerProperties] = {
+    { "x-p44-vdcs", apivalue_string, vdcs_key, &devicecontainer_key }
   };
   int n = inherited::numProps(aDomain);
   if (aPropIndex<n)
