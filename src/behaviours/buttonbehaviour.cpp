@@ -338,7 +338,7 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
     // button press not consumed on global level, forward to upstream dS
     LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
     // issue a state property push
-    device.pushProperty("buttonInputStates", VDC_API_DOMAIN, (int)index);
+    pushBehaviourState();
     // also let device container know for local click handling
     #warning "%%% TODO: more elegant solution for this"
     device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
@@ -438,15 +438,15 @@ enum {
 
 
 int ButtonBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *ButtonBehaviour::getDescDescriptor(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getDescDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numDescProperties] = {
-    { "supportsLocalKeyMode", apivalue_bool, false, supportsLocalKeyMode_key+descriptions_key_offset, &button_key },
-    { "buttonID", apivalue_uint64, false, buttonID_key+descriptions_key_offset, &button_key },
-    { "buttonType", apivalue_uint64, false, buttonType_key+descriptions_key_offset, &button_key },
-    { "buttonElementID", apivalue_uint64, false, buttonElementID_key+descriptions_key_offset, &button_key },
+  static const PropertyDescription properties[numDescProperties] = {
+    { "supportsLocalKeyMode", apivalue_bool, supportsLocalKeyMode_key+descriptions_key_offset, OKEY(button_key) },
+    { "buttonID", apivalue_uint64, buttonID_key+descriptions_key_offset, OKEY(button_key) },
+    { "buttonType", apivalue_uint64, buttonType_key+descriptions_key_offset, OKEY(button_key) },
+    { "buttonElementID", apivalue_uint64, buttonElementID_key+descriptions_key_offset, OKEY(button_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
@@ -463,16 +463,16 @@ enum {
 
 
 int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *ButtonBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &button_key },
-    { "function", apivalue_uint64, false, function_key+settings_key_offset, &button_key },
-    { "channel", apivalue_uint64, false, channel_key+settings_key_offset, &button_key },
-    { "setsLocalPriority", apivalue_bool, false, setsLocalPriority_key+settings_key_offset, &button_key },
-    { "callsPresent", apivalue_bool, false, callsPresent_key+settings_key_offset, &button_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(button_key) },
+    { "function", apivalue_uint64, function_key+settings_key_offset, OKEY(button_key) },
+    { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(button_key) },
+    { "setsLocalPriority", apivalue_bool, setsLocalPriority_key+settings_key_offset, OKEY(button_key) },
+    { "callsPresent", apivalue_bool, callsPresent_key+settings_key_offset, OKEY(button_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 // state properties
@@ -486,25 +486,25 @@ enum {
 
 
 int ButtonBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *ButtonBehaviour::getStateDescriptor(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getStateDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_uint64, false, value_key+states_key_offset, &button_key },
-    { "clickType", apivalue_uint64, false, clickType_key+states_key_offset, &button_key },
-    { "age", apivalue_double, false, age_key+states_key_offset, &button_key },
+  static const PropertyDescription properties[numStateProperties] = {
+    { "value", apivalue_uint64, value_key+states_key_offset, OKEY(button_key) },
+    { "clickType", apivalue_uint64, clickType_key+states_key_offset, OKEY(button_key) },
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(button_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
 
-bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&button_key) {
+  if (aPropertyDescriptor->hasObjectKey(button_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case supportsLocalKeyMode_key+descriptions_key_offset:
           aPropValue->setBoolValue(supportsLocalKeyMode);
@@ -555,7 +555,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case mode_key+settings_key_offset:
           buttonMode = (DsButtonMode)aPropValue->int32Value();
@@ -581,7 +581,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

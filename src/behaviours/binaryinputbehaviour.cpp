@@ -66,7 +66,12 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
     currentState = aNewState;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
-      device.pushProperty("binaryInputStates", VDC_API_DOMAIN, (int)index);
+      VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
+      ApiValuePtr query = api->newApiValue();
+      ApiValuePtr subQuery = query->newValue(apivalue_object);
+      subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+      query->add("binaryInputStates", subQuery);
+      device.pushProperty(query, VDC_API_DOMAIN);
       lastPush = now;
     }
   }
@@ -148,15 +153,15 @@ enum {
 
 
 int BinaryInputBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getDescDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getDescDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numDescProperties] = {
-    { "hardwareSensorFunction", apivalue_uint64, false, hardwareInputType_key+descriptions_key_offset, &binaryInput_key },
-    { "inputUsage", apivalue_uint64, false, inputUsage_key+descriptions_key_offset, &binaryInput_key },
-    { "inputType", apivalue_bool, false, reportsChanges_key+descriptions_key_offset, &binaryInput_key },
-    { "updateInterval", apivalue_double, false, updateInterval_key+descriptions_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numDescProperties] = {
+    { "hardwareSensorFunction", apivalue_uint64, hardwareInputType_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "inputUsage", apivalue_uint64, inputUsage_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "inputType", apivalue_bool, reportsChanges_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
@@ -171,14 +176,14 @@ enum {
 
 
 int BinaryInputBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &binaryInput_key },
-    { "changesOnlyInterval", apivalue_double, false, changesOnlyInterval_key+settings_key_offset, &binaryInput_key },
-    { "sensorFunction", apivalue_uint64, false, configuredInputType_key+settings_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(binaryInput_key) },
+    { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(binaryInput_key) },
+    { "sensorFunction", apivalue_uint64, configuredInputType_key+settings_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 // state properties
@@ -191,23 +196,23 @@ enum {
 
 
 int BinaryInputBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getStateDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getStateDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_bool, false, value_key+states_key_offset, &binaryInput_key },
-    { "age", apivalue_double, false, age_key+states_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numStateProperties] = {
+    { "value", apivalue_bool, value_key+states_key_offset, OKEY(binaryInput_key) },
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
-bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&binaryInput_key) {
+  if (aPropertyDescriptor->hasObjectKey(binaryInput_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case hardwareInputType_key+descriptions_key_offset: // aka "hardwareSensorFunction"
           aPropValue->setUint8Value(hardwareInputType);
@@ -250,7 +255,7 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
@@ -268,7 +273,7 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

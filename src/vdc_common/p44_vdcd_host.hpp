@@ -117,8 +117,8 @@ namespace p44 {
 
     static void sendCfgApiResponse(JsonCommPtr aJsonComm, JsonObjectPtr aResult, ErrorPtr aError);
 
-
   };
+  typedef boost::intrusive_ptr<P44VdcHost> P44VdcHostPtr;
 
 
 

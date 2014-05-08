@@ -133,39 +133,36 @@ enum {
 
 
 
-int DsScene::numProps(int aDomain)
+int DsScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inheritedProps::numProps(aDomain)+numSceneProperties;
+  return inheritedProps::numProps(aDomain, aParentDescriptor)+numSceneProperties;
 }
 
 
-const PropertyDescriptor *DsScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr DsScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numSceneProperties] = {
+  static const PropertyDescription properties[numSceneProperties] = {
     #warning "move value# here as well, restructure for MOC"
-    { "dontCare", apivalue_bool, true, dontCare_key, &dsscene_key },
-    { "ignoreLocalPriority", apivalue_bool, false, ignoreLocalPriority_key, &dsscene_key },
+    { "dontCare", apivalue_bool, dontCare_key, OKEY(dsscene_key) },
+    { "ignoreLocalPriority", apivalue_bool, ignoreLocalPriority_key, OKEY(dsscene_key) },
   };
-  int n = inheritedProps::numProps(aDomain);
+  int n = inheritedProps::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inheritedProps::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inheritedProps::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
-bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&dsscene_key) {
+  if (aPropertyDescriptor->hasObjectKey(dsscene_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case dontCare_key:
           // TODO: implement MOC
-          if (aIndex==PROP_ARRAY_SIZE)
-            aPropValue->setInt32Value(1); // %%% single element for now
-          else
-            aPropValue->setBoolValue(dontCare);
+          aPropValue->setBoolValue(dontCare);
           return true;
         case ignoreLocalPriority_key:
           aPropValue->setBoolValue(ignoreLocalPriority);
@@ -174,7 +171,7 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, cons
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case dontCare_key:
           dontCare = aPropValue->boolValue();
           markDirty();
@@ -186,7 +183,7 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, cons
       }
     }
   }
-  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

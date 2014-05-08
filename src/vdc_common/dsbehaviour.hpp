@@ -33,7 +33,7 @@ using namespace std;
 
 namespace p44 {
 
-  // offset to differentiate property keys for descriptions, settings and states
+  // offset to differentiate containers and property keys for descriptions, settings and states
   enum {
     descriptions_key_offset = 1000,
     settings_key_offset = 2000,
@@ -112,6 +112,10 @@ namespace p44 {
     /// update of hardware status
     void setHardwareError(DsHardwareError aHardwareError);
 
+    /// push state
+    void pushBehaviourState();
+
+
     /// @name persistent settings management
     /// @{
 
@@ -165,21 +169,21 @@ namespace p44 {
 
     /// @param aPropIndex the description property index
     /// @return description (readonly) property descriptor
-    virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex) { return NULL; };
 
     /// @return number of settings (read/write) properties
     virtual int numSettingsProps() { return 0; };
 
     /// @param aPropIndex the settings property index
     /// @return settings (read/write) property descriptor
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex) { return NULL; };
 
     /// @return number of states (read/write) properties
     virtual int numStateProps() { return 0; };
 
     /// @param aPropIndex the states property index
     /// @return states (read/write) property descriptor
-    virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex) { return NULL; };
 
 
     /// access single field in this behaviour
@@ -188,7 +192,7 @@ namespace p44 {
     /// @param aPropValue JsonObject with a single value
     /// @param aIndex in case of array, the index of the element to access
     /// @return false if value could not be accessed
-    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     /// @}
 
@@ -205,9 +209,9 @@ namespace p44 {
     string getDbKey();
 
     // property access basic dispatcher implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    int numLocalProps(int aDomain);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    int numLocalProps(PropertyDescriptorPtr aParentDescriptor);
 
   };
   typedef boost::intrusive_ptr<DsBehaviour> DsBehaviourPtr;

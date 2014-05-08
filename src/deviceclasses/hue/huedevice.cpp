@@ -113,36 +113,36 @@ enum {
 };
 
 
-int HueLightScene::numProps(int aDomain)
+int HueLightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numHueLightSceneProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numHueLightSceneProperties;
 }
 
 
-const PropertyDescriptor *HueLightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr HueLightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numHueLightSceneProperties] = {
-    { "x-p44-colorMode", apivalue_uint64, false, colorMode_key, &huelightscene_key },
-    { "x-p44-hue", apivalue_double, false, hue_key, &huelightscene_key },
-    { "x-p44-saturation", apivalue_double, false, saturation_key, &huelightscene_key },
-    { "x-p44-X", apivalue_double, false, X_key, &huelightscene_key },
-    { "x-p44-Y", apivalue_double, false, Y_key, &huelightscene_key },
-    { "x-p44-colorTemperature", apivalue_double, false, colorTemperature_key, &huelightscene_key },
+  static const PropertyDescription properties[numHueLightSceneProperties] = {
+    { "x-p44-colorMode", apivalue_uint64, colorMode_key, OKEY(huelightscene_key) },
+    { "x-p44-hue", apivalue_double, hue_key, OKEY(huelightscene_key) },
+    { "x-p44-saturation", apivalue_double, saturation_key, OKEY(huelightscene_key) },
+    { "x-p44-X", apivalue_double, X_key, OKEY(huelightscene_key) },
+    { "x-p44-Y", apivalue_double, Y_key, OKEY(huelightscene_key) },
+    { "x-p44-colorTemperature", apivalue_double, colorTemperature_key, OKEY(huelightscene_key) },
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
-bool HueLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool HueLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&huelightscene_key) {
+  if (aPropertyDescriptor->hasObjectKey(huelightscene_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case colorMode_key:
           aPropValue->setUint16Value(colorMode);
           return true;
@@ -165,7 +165,7 @@ bool HueLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case colorMode_key:
           colorMode = (HueColorMode)aPropValue->int32Value();
           markDirty();
@@ -194,7 +194,7 @@ bool HueLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
       }
     }
   }
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

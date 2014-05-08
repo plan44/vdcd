@@ -38,7 +38,6 @@ namespace p44 {
     apivalue_string, // std::string
     apivalue_object, // object containing multiple named ApiValues
     apivalue_array, // array of multiple ApiValues
-    apivalue_proxy, // not used in actual ApiValues, but reserved to describe properties
   } ApiValueType;
 
 

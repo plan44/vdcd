@@ -77,28 +77,28 @@ enum {
 static char upnpDevice_key;
 
 
-int UpnpDevice::numProps(int aDomain)
+int UpnpDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
 }
 
 
-const PropertyDescriptor *UpnpDevice::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr UpnpDevice::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numProperties] = {
-    { "descriptionURL", apivalue_string, false, descriptionURL_key, &upnpDevice_key }, // custom UPnP property revealing the description URL
+  static const PropertyDescription properties[numProperties] = {
+    { "descriptionURL", apivalue_string, descriptionURL_key, OKEY(upnpDevice_key) }, // custom UPnP property revealing the description URL
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
-bool UpnpDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool UpnpDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&upnpDevice_key) {
+  if (aPropertyDescriptor->hasObjectKey(upnpDevice_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
           // Description properties
         case descriptionURL_key:
           aPropValue->setStringValue(descriptionURL); return true;
@@ -110,7 +110,7 @@ bool UpnpDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, c
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

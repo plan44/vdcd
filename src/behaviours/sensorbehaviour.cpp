@@ -66,7 +66,12 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
     currentValue = newCurrentValue;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
-      device.pushProperty("sensorStates", VDC_API_DOMAIN, (int)index);
+      VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
+      ApiValuePtr query = api->newApiValue();
+      ApiValuePtr subQuery = query->newValue(apivalue_object);
+      subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+      query->add("sensorStates", subQuery);
+      device.pushProperty(query, VDC_API_DOMAIN);
       lastPush = now;
     }
   }
@@ -147,17 +152,17 @@ enum {
 
 
 int SensorBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *SensorBehaviour::getDescDescriptor(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numDescProperties] = {
-    { "sensorType", apivalue_uint64, false, sensorType_key+descriptions_key_offset, &sensor_key },
-    { "sensorUsage", apivalue_uint64, false, sensorUsage_key+descriptions_key_offset, &sensor_key },
-    { "min", apivalue_double, false, min_key+descriptions_key_offset, &sensor_key },
-    { "max", apivalue_double, false, max_key+descriptions_key_offset, &sensor_key },
-    { "resolution", apivalue_double, false, resolution_key+descriptions_key_offset, &sensor_key },
-    { "updateInterval", apivalue_double, false, updateInterval_key+descriptions_key_offset, &sensor_key },
+  static const PropertyDescription properties[numDescProperties] = {
+    { "sensorType", apivalue_uint64, sensorType_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "sensorUsage", apivalue_uint64, sensorUsage_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "min", apivalue_double, min_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "max", apivalue_double, max_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "resolution", apivalue_double, resolution_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(sensor_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
@@ -171,13 +176,13 @@ enum {
 
 
 int SensorBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *SensorBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &sensor_key },
-    { "changesOnlyInterval", apivalue_double, false, changesOnlyInterval_key+settings_key_offset, &sensor_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(sensor_key) },
+    { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(sensor_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 // state properties
@@ -190,24 +195,24 @@ enum {
 
 
 int SensorBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *SensorBehaviour::getStateDescriptor(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getStateDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_double, false, value_key+states_key_offset, &sensor_key },
-    { "age", apivalue_double, false, age_key+states_key_offset, &sensor_key },
+  static const PropertyDescription properties[numStateProperties] = {
+    { "value", apivalue_double, value_key+states_key_offset, OKEY(sensor_key) },
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(sensor_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
 
-bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&sensor_key) {
+  if (aPropertyDescriptor->hasObjectKey(sensor_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case sensorType_key+descriptions_key_offset:
           aPropValue->setUint16Value(sensorType);
@@ -253,7 +258,7 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
@@ -267,7 +272,7 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

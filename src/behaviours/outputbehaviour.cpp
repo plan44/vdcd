@@ -198,16 +198,16 @@ enum {
 
 
 int OutputBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *OutputBehaviour::getDescDescriptor(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numDescProperties] = {
-    { "function", apivalue_uint64, false, outputFunction_key+descriptions_key_offset, &output_key },
-    { "channel", apivalue_uint64, false, defaultChannel_key+descriptions_key_offset, &output_key },
-    { "outputUsage", apivalue_uint64, false, outputUsage_key+descriptions_key_offset, &output_key },
-    { "variableRamp", apivalue_bool, false, variableRamp_key+descriptions_key_offset, &output_key },
-    { "maxPower", apivalue_double, false, maxPower_key+descriptions_key_offset, &output_key },
+  static const PropertyDescription properties[numDescProperties] = {
+    { "function", apivalue_uint64, outputFunction_key+descriptions_key_offset, OKEY(output_key) },
+    { "channel", apivalue_uint64, defaultChannel_key+descriptions_key_offset, OKEY(output_key) },
+    { "outputUsage", apivalue_uint64, outputUsage_key+descriptions_key_offset, OKEY(output_key) },
+    { "variableRamp", apivalue_bool, variableRamp_key+descriptions_key_offset, OKEY(output_key) },
+    { "maxPower", apivalue_double, maxPower_key+descriptions_key_offset, OKEY(output_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
@@ -222,14 +222,14 @@ enum {
 
 
 int OutputBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *OutputBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "mode", apivalue_uint64, false, mode_key+settings_key_offset, &output_key },
-    { "channel", apivalue_uint64, false, channel_key+settings_key_offset, &output_key },
-    { "pushChanges", apivalue_bool, false, pushChanges_key+settings_key_offset, &output_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(output_key) },
+    { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(output_key) },
+    { "pushChanges", apivalue_bool, pushChanges_key+settings_key_offset, OKEY(output_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 // state properties
@@ -242,24 +242,24 @@ enum {
 
 
 int OutputBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *OutputBehaviour::getStateDescriptor(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getStateDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_uint64, false, value_key+states_key_offset, &output_key }, // note: so far, pbuf API requires uint here
-    { "age", apivalue_double, false, age_key+states_key_offset, &output_key },
+  static const PropertyDescription properties[numStateProperties] = {
+    { "value", apivalue_uint64, value_key+states_key_offset, OKEY(output_key) }, // note: so far, pbuf API requires uint here
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(output_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
 
-bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&output_key) {
+  if (aPropertyDescriptor->hasObjectKey(output_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case outputFunction_key+descriptions_key_offset:
           aPropValue->setUint8Value(outputFunction);
@@ -300,7 +300,7 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case mode_key+settings_key_offset:
           outputMode = (DsOutputMode)aPropValue->int32Value();
@@ -322,7 +322,7 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

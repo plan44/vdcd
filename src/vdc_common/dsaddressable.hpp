@@ -34,13 +34,6 @@ namespace p44 {
   #define VDC_API_DOMAIN 0x0000
   #define VDC_CFG_DOMAIN 0x1000
 
-  #define VDC_API_BHVR_DESC (VDC_API_DOMAIN+1)
-  #define VDC_API_BHVR_SETTINGS (VDC_API_DOMAIN+2)
-  #define VDC_API_BHVR_STATES (VDC_API_DOMAIN+3)
-  #define VDC_API_OUTPUT_SCENES (VDC_API_DOMAIN+4)
-  #define VDC_API_CHANNEL_SCENES (VDC_API_DOMAIN+5)
-
-
   class DeviceContainer;
 
   /// base class representing a entity which is addressable with a dSUID
@@ -131,12 +124,10 @@ namespace p44 {
     bool sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
     /// push property value
-    /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
-    ///   "^" to return the default property value (internally used for apivalue_proxy).
+    /// @param aQuery description of what should be pushed (same syntax as in getProperty API)
     /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
-    /// @param aIndex in case of array, the array element to push. Pass negative value for non-array properties
     /// @return true if push could be sent, false otherwise (e.g. no vdSM connection)
-    bool pushProperty(const string &aName, int aDomain, int aIndex = -1);
+    bool pushProperty(ApiValuePtr aQuery, int aDomain);
 
     /// @}
 
@@ -196,9 +187,9 @@ namespace p44 {
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
   private:
 

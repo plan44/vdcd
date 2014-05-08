@@ -119,41 +119,38 @@ enum {
 };
 
 
-int LightScene::numProps(int aDomain)
+int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numLightSceneProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numLightSceneProperties;
 }
 
 
-const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numLightSceneProperties] = {
-    { "value", apivalue_uint64, true, value_key, &lightscene_key },
-    { "flashing", apivalue_bool, false, flashing_key, &lightscene_key },
-    { "dimTimeSelector", apivalue_uint64, false, dimTimeSelector_key, &lightscene_key },
+  static const PropertyDescription properties[numLightSceneProperties] = {
+    { "value", apivalue_uint64, value_key, OKEY(lightscene_key) },
+    { "flashing", apivalue_bool, flashing_key, OKEY(lightscene_key) },
+    { "dimTimeSelector", apivalue_uint64, dimTimeSelector_key, OKEY(lightscene_key) },
+    #warning "TODO: add channels MOC"
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
-bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&lightscene_key) {
+  if (aPropertyDescriptor->hasObjectKey(lightscene_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case value_key:
+          #warning "TODO: implement MOC"
           // TODO: implement MOC
-          if (aIndex==PROP_ARRAY_SIZE)
-            aPropValue->setInt32Value(1); // %%% single element for now
-          else if (aIndex==0)  // %%% single element for now
-            aPropValue->setUint8Value(sceneBrightness);
-          else
-            return false; // %%% not the one single element we have -> nothing to read here
+          aPropValue->setUint8Value(sceneBrightness);
           return true;
         case flashing_key:
           aPropValue->setBoolValue(flashing);
@@ -165,8 +162,9 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, c
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case value_key:
+          #warning "TODO: implement MOC"
           // TODO: implement MOC
           sceneBrightness = (Brightness)aPropValue->int32Value();
           markDirty();
@@ -182,7 +180,7 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, c
       }
     }
   }
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 
@@ -706,35 +704,35 @@ enum {
 
 
 int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
-const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "onThreshold", apivalue_uint64, false, onThreshold_key+settings_key_offset, &light_key },
-    { "minBrightness", apivalue_uint64, false, minBrightness_key+settings_key_offset, &light_key },
-    { "maxBrightness", apivalue_uint64, false, maxBrightness_key+settings_key_offset, &light_key },
-    { "dimTimeUp", apivalue_uint64, false, dimTimeUp_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt1", apivalue_uint64, false, dimTimeUpAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt2", apivalue_uint64, false, dimTimeUpAlt2_key+settings_key_offset, &light_key },
-    { "dimTimeDown", apivalue_uint64, false, dimTimeDown_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt1", apivalue_uint64, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt2", apivalue_uint64, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "onThreshold", apivalue_uint64, onThreshold_key+settings_key_offset, OKEY(light_key) },
+    { "minBrightness", apivalue_uint64, minBrightness_key+settings_key_offset, OKEY(light_key) },
+    { "maxBrightness", apivalue_uint64, maxBrightness_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUp", apivalue_uint64, dimTimeUp_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUpAlt1", apivalue_uint64, dimTimeUpAlt1_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUpAlt2", apivalue_uint64, dimTimeUpAlt2_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDown", apivalue_uint64, dimTimeDown_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDownAlt1", apivalue_uint64, dimTimeDownAlt1_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDownAlt2", apivalue_uint64, dimTimeDownAlt2_key+settings_key_offset, OKEY(light_key) },
   };
   int n = inherited::numSettingsProps();
   if (aPropIndex<n)
-    return inherited::getSettingsDescriptor(aPropIndex);
+    return inherited::getSettingsDescriptorByIndex(aPropIndex);
   aPropIndex -= n;
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
 // access to all fields
 
-bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&light_key) {
+  if (aPropertyDescriptor->hasObjectKey(light_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
           aPropValue->setUint8Value(onThreshold);
@@ -748,18 +746,18 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          aPropValue->setUint8Value(dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)]);
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)]);
           return true;
       }
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
           onThreshold = (Brightness)aPropValue->int32Value();
@@ -776,18 +774,18 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
           return true;
       }
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

@@ -26,222 +26,225 @@ using namespace p44;
 
 #pragma mark - property access API
 
-ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr aApiObject, const string &aName, int aDomain, int aIndex, int aElementCount, int aNestLevel)
+
+
+ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr aQueryObject, ApiValuePtr aResultObject, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   ErrorPtr err;
-  // TODO: separate dot notation name?
-  // all or single field in this container?
-  if (aName=="*" || aName=="#") {
-    // all fields in this container
-    if (aMode!=access_read) {
-      // write: write all fields of input object into properties of this container
-      // - input JSON object must be a object
-      if (!aApiObject->isType(apivalue_object))
-        err = ErrorPtr(new VdcApiError(415, "Value must be object"));
-      else {
-        // iterate over fields in object and access them one by one
-        aApiObject->resetKeyIteration();
-        string key;
-        ApiValuePtr value;
-        while (aApiObject->nextKeyValue(key, value)) {
-          // write single field
-          err = accessProperty(aMode, value, key, aDomain, PROP_ARRAY_SIZE, 0, aNestLevel+1); // if array, write size (writing array is not supported)
-          if (!Error::isOK(err))
-            break;
-        }
-      }
-    }
-    else {
-      // read: collect all fields of this container into a object type API value
-      aApiObject->setType(apivalue_object);
-      // - iterate over my own descriptors
-      for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
-        const PropertyDescriptor *propDescP = getPropertyDescriptor(propIndex, aDomain);
-        if (!propDescP) break; // safety only, propIndex should never be invalid
-        ApiValuePtr propField;
-        if (propDescP->isArray && aName=="#") {
-          // for arrays (at any level), only report size, not entire contents
-          propField = aApiObject->newValue(apivalue_int64); // size of array as int
-          err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, -1, 1); // only size of array
-        }
-        else if (propDescP->isArray && aNestLevel>0) {
-          // second level array -> render existing elements as fields with index integrated into name
-          // - get size
-          ApiValuePtr sz = aApiObject->newValue(apivalue_int64); // size of array as int
-          err = accessPropertyByDescriptor(access_read, sz, *propDescP, aDomain, -1, 1); // only size of array
-          size_t maxIndex = sz->int32Value();
-          for (size_t index=0; index<maxIndex; index++) {
-            propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
-            err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, 0, 0); // only one element
-            if (Error::isOK(err) && !propField->isNull()) {
-              // this array element exists, add it as a field with index appended to name
-              string elementName = string_format("%s%d", propDescP->propertyName, index);
-              aApiObject->add(elementName, propField);
-            }
-          }
-          // elements (if any) added, don't add property itself again
-          continue;
-        }
-        else {
-          // value or complete contents of array
-          propField = aApiObject->newValue(propDescP->propertyType); // create field value of correct type
-          err = accessPropertyByDescriptor(access_read, propField, *propDescP, aDomain, 0, PROP_ARRAY_SIZE); // if array, entire array
-        }
-        if (Error::isOK(err)) {
-          // add to resulting object, if not no object returned at all (explicit JsonObject::newNull()) will be returned!)
-          aApiObject->add(propDescP->propertyName, propField);
-        }
-      }
-    }
+  #if DEBUGLOGGING
+  DBGLOG(LOG_DEBUG,"\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
+  if (aParentDescriptor) {
+    DBGLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->name(), aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
-  else {
-    // single field from this container
-    // - find descriptor
-    const PropertyDescriptor *propDescP = NULL;
-    if (aName=="^") {
-      // access first property (default property, internally used for apivalue_proxy)
-      if (numProps(aDomain)>0)
-        propDescP = getPropertyDescriptor(0, aDomain);
+  #endif
+  // aApiObject must be of type apivalue_object
+  if (!aQueryObject->isType(apivalue_object))
+    return ErrorPtr(new VdcApiError(415, "Query or Value written must be object"));
+  if (aMode==access_read) {
+    if (!aResultObject)
+      return ErrorPtr(new VdcApiError(415, "accessing property for read must provide result object"));
+    aResultObject->setType(apivalue_object); // must be object
+  }
+  // Iterate trough elements of query object
+  aQueryObject->resetKeyIteration();
+  string queryName;
+  ApiValuePtr queryValue;
+  while (aQueryObject->nextKeyValue(queryName, queryValue)) {
+    DBGLOG(LOG_DEBUG,"- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
+    if (aMode==access_read && queryName=="#") {
+      // asking for number of elements at this level -> generate and return int value
+      queryValue = queryValue->newValue(apivalue_int64); // integer
+      queryValue->setInt32Value(numProps(aDomain, aParentDescriptor));
+      aResultObject->add(queryName, queryValue);
     }
     else {
-      // search for descriptor by name
-      for (int propIndex = 0; propIndex<numProps(aDomain); propIndex++) {
-        const PropertyDescriptor *p = getPropertyDescriptor(propIndex, aDomain);
-        size_t propNameLen=strlen(p->propertyName);
-        if (strncmp(aName.c_str(),p->propertyName,propNameLen)==0) {
-          // specified name matches up to length of property name
-          if (aName.size()==propNameLen) {
-            // exact match, single property field
-            propDescP = p;
-            break;
+      // accessing an element or series of elements at this level
+      bool wildcard = isMatchAll(queryName);
+      // - find all descriptor(s) for this queryName
+      PropertyDescriptorPtr propDesc;
+      int propIndex = 0;
+      do {
+        propDesc = getDescriptorByName(queryName, propIndex, aDomain, aParentDescriptor);
+        if (propDesc) {
+          DBGLOG(LOG_DEBUG,"  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
+          // actually access by descriptor
+          if (propDesc->isStructured()) {
+            ApiValuePtr subQuery;
+            // property is a container. Now check the value
+            if (queryValue->isType(apivalue_object)) {
+              subQuery = queryValue; // query specifies next level, just use it
+            }
+            else if (queryName!="*") {
+              // special case is "*" as leaf in query - only recurse if it is not present
+              // - autocreate subquery
+              subQuery = queryValue->newValue(apivalue_object);
+              subQuery->add("", queryValue->newValue(apivalue_null));
+            }
+            if (subQuery) {
+              // addressed property is a container by itself -> recurse
+              // - get the PropertyContainer
+              int containerDomain = aDomain; // default to same, but getContainer may modify it
+              PropertyDescriptorPtr containerPropDesc = propDesc;
+              PropertyContainerPtr container = getContainer(containerPropDesc, containerDomain);
+              if (container) {
+                DBGLOG(LOG_DEBUG,"  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
+                DBGLOG(LOG_DEBUG,"    >>>> RECURSING into accessProperty()\n");
+                if (aMode==access_read) {
+                  // read needs a result object
+                  ApiValuePtr resultValue = queryValue->newValue(apivalue_object);
+                  err = container->accessProperty(aMode, subQuery, resultValue, containerDomain, containerPropDesc);
+                  if (Error::isOK(err)) {
+                    // add to result with actual name (from descriptor)
+                    DBGLOG(LOG_DEBUG,"\n  <<<< RETURNED from accessProperty() recursion\n");
+                    DBGLOG(LOG_DEBUG,"  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
+                    aResultObject->add(propDesc->name(), resultValue);
+                  }
+                }
+                else {
+                  // for write, just pass the query value
+                  err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, propDesc);
+                  DBGLOG(LOG_DEBUG,"    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
+                }
+                if ((aMode!=access_read) && Error::isOK(err)) {
+                  // give this container a chance to post-process write access
+                  err = writtenProperty(propDesc, aDomain, container);
+                }
+              }
+            }
           }
-          else if (p->isArray && aNestLevel>0) {
-            // beginning matches, but specfied name is longer and property is a second level array -> could be array index embedded in name
-            if (sscanf(aName.c_str()+propNameLen, "%d", &aIndex)==1) {
-              // array access using index appended to property name
-              propDescP = p;
-              break;
+          else {
+            // addressed property is a simple value field -> access it
+            bool accessOk = true;
+            if (aMode==access_read) {
+              // read access: create a new apiValue and have it filled
+              ApiValuePtr fieldValue = queryValue->newValue(propDesc->type()); // create a value of correct type to get filled
+              accessOk = accessField(aMode, fieldValue, propDesc); // read
+              if (accessOk) {
+                // add to result with actual name (from descriptor)
+                aResultObject->add(propDesc->name(), fieldValue);
+                DBGLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
+              }
+            }
+            else {
+              // write access: just pass the value
+              accessOk = accessField(aMode, queryValue, propDesc); // write
+            }
+            // check failure
+            if (!accessOk && (aMode!=access_read || !wildcard)) {
+              err = ErrorPtr(new VdcApiError(403,"Access denied"));
             }
           }
         }
-      }
+      } while (Error::isOK(err) && propIndex!=PROPINDEX_NONE);
     }
-    // - now use descriptor
-    if (!propDescP) {
-      // named property not found
-      err = ErrorPtr(new VdcApiError(501,"Unknown property name"));
+    #if DEBUGLOGGING
+    if (aMode==access_read) {
+      DBGLOG(LOG_DEBUG,"- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
     }
-    else {
-      // access the property
-      err = accessPropertyByDescriptor(aMode, aApiObject, *propDescP, aDomain, aIndex, aElementCount);
-    }
+    #endif
   }
   return err;
 }
 
 
-
-ErrorPtr PropertyContainer::accessPropertyByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, int aElementCount)
+bool PropertyContainer::isMatchAll(string &aPropMatch)
 {
-  ErrorPtr err;
-  if (aPropertyDescriptor.isArray) {
-    // array property
-    // - size access is like a single value
-    if (aIndex==PROP_ARRAY_SIZE) {
-      // get array size
-      aApiObject->setType(apivalue_uint64); // force integer value
-      accessField(aMode, aApiObject, aPropertyDescriptor, PROP_ARRAY_SIZE);
-    }
-    else {
-      // get size of array
-      ApiValuePtr o = aApiObject->newValue(apivalue_uint64); // size is an integer value
-      accessField(access_read, o, aPropertyDescriptor, PROP_ARRAY_SIZE); // query size
-      int arrSz = o->int32Value();
-      // single element or range?
-      if (aElementCount!=0) {
-        // Range of elements: only allowed for reading
-        if (aMode!=access_read)
-          err = ErrorPtr(new VdcApiError(403,"Arrays can only be written one element at a time"));
-        else {
-          // return array
-          aApiObject->setType(apivalue_array);
-          // limit range to actual array size
-          if (aIndex>arrSz)
-            aElementCount = 0; // invalid start index, return empty array
-          else if (aElementCount==PROP_ARRAY_SIZE || aIndex+aElementCount>arrSz)
-            aElementCount = arrSz-aIndex; // limit to number of elements from current index to end of array
-          // collect range of elements into JSON array
-          for (int n = 0; n<aElementCount; n++) {
-            // - create element of appropriate type
-            ApiValuePtr elementObj = aApiObject->newValue(aPropertyDescriptor.propertyType);
-            // - collect single element
-            err = accessPropertyByDescriptor(access_read, elementObj, aPropertyDescriptor, aDomain, aIndex+n, 0);
-            if (Error::isError(err, VdcApiError::domain(), 204)) {
-              // array exhausted
-              err.reset(); // is not a real error
-              break; // but stop collecting elements
-            }
-            else if(!Error::isOK(err)) {
-              // other error, stop collecting elements
-              break;
-            }
-            // - got array element, add it to result array
-            aApiObject->arrayAppend(elementObj);
-          }
-        }
-      }
-      else {
-        // Single element of the array
-        // - check index
-        if (aIndex>=arrSz)
-          err = ErrorPtr(new VdcApiError(204,"Invalid array index"));
-        else
-          err = accessElementByDescriptor(aMode, aApiObject, aPropertyDescriptor, aDomain, aIndex);
-      }
-    }
-  }
-  else {
-    // non-array property
-    err = accessElementByDescriptor(aMode, aApiObject, aPropertyDescriptor, aDomain, 0);
-  }
-  return err;
+  return aPropMatch=="*" || aPropMatch.empty();
 }
 
 
 
-ErrorPtr PropertyContainer::accessElementByDescriptor(PropertyAccessMode aMode, ApiValuePtr aApiObject, const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex)
+bool PropertyContainer::isNamedPropSpec(string &aPropMatch)
 {
-  ErrorPtr err;
-  if (aPropertyDescriptor.propertyType==apivalue_object || aPropertyDescriptor.propertyType==apivalue_proxy) {
-    // structured property with subproperties, get container
-    int containerDomain = aDomain;
-    PropertyContainerPtr container = getContainer(aPropertyDescriptor, containerDomain, aIndex);
-    if (!container) {
-      if (aPropertyDescriptor.isArray)
-        err = ErrorPtr(new VdcApiError(204,"Invalid array index")); // Note: must be array index problem, because there's no other reason for a array object/proxy to return no container
-      else
-        aApiObject->setNull(); // NULL value
-    }
-    else {
-      // access all fields of structured object (named "*"), or single default field of proxied property (named "^")
-      err = container->accessProperty(aMode, aApiObject, aPropertyDescriptor.propertyType==apivalue_object ? "*" : "^", containerDomain, PROP_ARRAY_SIZE, 0, 1 /* second level */);
-      if ((aMode!=access_read) && Error::isOK(err)) {
-        // give this container a chance to post-process write access
-        err = writtenProperty(aPropertyDescriptor, aDomain, aIndex, container);
-      }
-    }
-  }
-  else {
-    // single value property
-    if (aMode==access_read) aApiObject->setType(aPropertyDescriptor.propertyType); // for read, set correct type for value (for write, type should match already)
-    if (!accessField(aMode, aApiObject, aPropertyDescriptor, aIndex)) {
-      err = ErrorPtr(new VdcApiError(403,"Access denied"));
-    }
-  }
-  return err;
+  if (isMatchAll(aPropMatch)) return false; // matchall is not named access
+  if (aPropMatch[0]=='#') return false; // #n is not named access
+  return true; // everything else can be named access
 }
 
 
+bool PropertyContainer::getNextPropIndex(string aPropMatch, int &aStartIndex)
+{
+  if (isMatchAll(aPropMatch)) {
+    // next property to return is just the aStartIndex we are on as-is
+    return false; // no specific numeric index
+  }
+  // get index from numeric specification
+  bool numericName = true;
+  int currentIndex = aStartIndex;
+  const char *s = aPropMatch.c_str();
+  if (*s=='#') { s++; numericName = false; }
+  if (sscanf(s, "%d", &aStartIndex)==1) {
+    // index found, must be higher or same as than current start
+    if (aStartIndex<currentIndex)
+      aStartIndex = PROPINDEX_NONE; // index out of range
+    return numericName;
+  }
+  aStartIndex = PROPINDEX_NONE; // no valid index specified
+  return false; // invalid numeric name does not count as name
+}
+
+
+
+
+// default implementation based on numProps/getDescriptorByIndex
+// Derived classes with array-like container may directly override this method for more efficient access
+PropertyDescriptorPtr PropertyContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  int n = numProps(aDomain, aParentDescriptor);
+  if (aStartIndex>=n || aStartIndex==PROPINDEX_NONE)
+    return PropertyDescriptorPtr(); // no descriptor
+  // aPropMatch syntax
+  // - simple name to match a specific property
+  // - empty name or only "*" to match all properties. At this level, there's no difference, but empty causes deep traversal, * does not
+  // - name part with a trailing asterisk: wildcard.
+  // - #n to access n-th property
+  PropertyDescriptorPtr propDesc;
+  bool wildcard;
+  if (aPropMatch.empty()) {
+    wildcard = true; // implicit wildcard, empty name counts like "*"
+  }
+  else if (aPropMatch[aPropMatch.size()-1]=='*') {
+    wildcard = true; // explicit wildcard at end of string
+    aPropMatch.erase(aPropMatch.size()-1); // remove the wildcard char
+  }
+  else if (aPropMatch[0]=='#') {
+    // special case 2 for reading: #n to access n-th subproperty
+    sscanf(aPropMatch.c_str()+1, "%d", &aStartIndex);
+    // name does not matter, pick item at aStartindex
+    wildcard = true;
+    aPropMatch.clear();
+  }
+  while (aStartIndex<n) {
+    propDesc = getDescriptorByIndex(aStartIndex, aDomain, aParentDescriptor);
+    // check for match
+    if (wildcard && aPropMatch.size()==0)
+      break; // shortcut for "match all" case
+    // match beginning
+    if (
+      (!wildcard && aPropMatch==propDesc->name()) || // complete match
+      (wildcard && (strncmp(aPropMatch.c_str(),propDesc->name(),aPropMatch.size())==0)) // match of name's beginning
+    ) {
+      break; // this entry matches
+    }
+    // next
+    aStartIndex++;
+  }
+  // success or failure?
+  if (aStartIndex>=n) {
+    // no more descriptors
+    aStartIndex=PROPINDEX_NONE;
+    return PropertyDescriptorPtr(); // no descriptor
+  }
+  else {
+    // found a descriptor
+    // - determine next index
+    aStartIndex++;
+    if (aStartIndex>=n)
+      aStartIndex=PROPINDEX_NONE;
+    // - return the descriptor
+    return propDesc;
+  }
+}
 
 
 

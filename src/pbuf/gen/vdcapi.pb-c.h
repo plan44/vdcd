@@ -18,7 +18,6 @@ typedef struct _Vdcapi__VdsmSendBye Vdcapi__VdsmSendBye;
 typedef struct _Vdcapi__VdsmSendRemove Vdcapi__VdsmSendRemove;
 typedef struct _Vdcapi__PropertyValue Vdcapi__PropertyValue;
 typedef struct _Vdcapi__PropertyElement Vdcapi__PropertyElement;
-typedef struct _Vdcapi__Property Vdcapi__Property;
 typedef struct _Vdcapi__VdsmRequestGetProperty Vdcapi__VdsmRequestGetProperty;
 typedef struct _Vdcapi__VdcResponseGetProperty Vdcapi__VdcResponseGetProperty;
 typedef struct _Vdcapi__VdsmRequestSetProperty Vdcapi__VdsmRequestSetProperty;
@@ -43,34 +42,38 @@ typedef struct _Vdcapi__VdcSendPushProperty Vdcapi__VdcSendPushProperty;
 struct  _Vdcapi__VdsmRequestHello
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_api_version;
   uint32_t api_version;
 };
 #define VDCAPI__VDSM__REQUEST_HELLO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_hello__descriptor) \
-    , NULL, 0,0 }
+    , 0,{0,NULL}, 0,0 }
 
 
 struct  _Vdcapi__VdcResponseHello
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDC__RESPONSE_HELLO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__response_hello__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdcSendAnnounce
 {
   ProtobufCMessage base;
-  char *dsuid;
-  char *vdcdsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
+  protobuf_c_boolean has_vdcdsuid;
+  ProtobufCBinaryData vdcdsuid;
 };
 #define VDCAPI__VDC__SEND_ANNOUNCE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce__descriptor) \
-    , NULL, NULL }
+    , 0,{0,NULL}, 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdcSendAnnounceVdc
@@ -86,41 +89,45 @@ struct  _Vdcapi__VdcSendAnnounceVdc
 struct  _Vdcapi__VdcSendVanish
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDC__SEND_VANISH__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_vanish__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdcSendIdentify
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDC__SEND_IDENTIFY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_identify__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdsmSendBye
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDSM__SEND_BYE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__send_bye__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdsmSendRemove
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDSM__SEND_REMOVE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__send_remove__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__PropertyValue
@@ -135,10 +142,12 @@ struct  _Vdcapi__PropertyValue
   protobuf_c_boolean has_v_double;
   double v_double;
   char *v_string;
+  protobuf_c_boolean has_v_bytes;
+  ProtobufCBinaryData v_bytes;
 };
 #define VDCAPI__PROPERTY_VALUE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__property_value__descriptor) \
-    , 0,0, 0,0, 0,0, 0,0, NULL }
+    , 0,0, 0,0, 0,0, 0,0, NULL, 0,{0,NULL} }
 
 
 struct  _Vdcapi__PropertyElement
@@ -146,43 +155,32 @@ struct  _Vdcapi__PropertyElement
   ProtobufCMessage base;
   char *name;
   Vdcapi__PropertyValue *value;
-};
-#define VDCAPI__PROPERTY_ELEMENT__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vdcapi__property_element__descriptor) \
-    , NULL, NULL }
-
-
-struct  _Vdcapi__Property
-{
-  ProtobufCMessage base;
   size_t n_elements;
   Vdcapi__PropertyElement **elements;
 };
-#define VDCAPI__PROPERTY__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vdcapi__property__descriptor) \
-    , 0,NULL }
+#define VDCAPI__PROPERTY_ELEMENT__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__property_element__descriptor) \
+    , NULL, NULL, 0,NULL }
 
 
 struct  _Vdcapi__VdsmRequestGetProperty
 {
   ProtobufCMessage base;
-  char *dsuid;
-  char *name;
-  protobuf_c_boolean has_index;
-  uint32_t index;
-  protobuf_c_boolean has_count;
-  uint32_t count;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
+  size_t n_query;
+  Vdcapi__PropertyElement **query;
 };
 #define VDCAPI__VDSM__REQUEST_GET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_get_property__descriptor) \
-    , NULL, NULL, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,NULL }
 
 
 struct  _Vdcapi__VdcResponseGetProperty
 {
   ProtobufCMessage base;
   size_t n_properties;
-  Vdcapi__Property **properties;
+  Vdcapi__PropertyElement **properties;
 };
 #define VDCAPI__VDC__RESPONSE_GET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__response_get_property__descriptor) \
@@ -192,46 +190,45 @@ struct  _Vdcapi__VdcResponseGetProperty
 struct  _Vdcapi__VdsmRequestSetProperty
 {
   ProtobufCMessage base;
-  char *dsuid;
-  char *name;
-  protobuf_c_boolean has_index;
-  uint32_t index;
-  protobuf_c_boolean has_count;
-  uint32_t count;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_preload;
   protobuf_c_boolean preload;
   size_t n_properties;
-  Vdcapi__Property **properties;
+  Vdcapi__PropertyElement **properties;
 };
 #define VDCAPI__VDSM__REQUEST_SET_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_set_property__descriptor) \
-    , NULL, NULL, 0,0, 0,1, 0,0, 0,NULL }
+    , 0,{0,NULL}, 0,0, 0,NULL }
 
 
 struct  _Vdcapi__VdsmSendPing
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDSM__SEND_PING__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__send_ping__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdcSendPong
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
 };
 #define VDCAPI__VDC__SEND_PONG__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_pong__descriptor) \
-    , NULL }
+    , 0,{0,NULL} }
 
 
 struct  _Vdcapi__VdsmNotificationCallScene
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_force;
@@ -243,13 +240,14 @@ struct  _Vdcapi__VdsmNotificationCallScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_scene__descriptor) \
-    , NULL, 0,0, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSaveScene
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -259,13 +257,14 @@ struct  _Vdcapi__VdsmNotificationSaveScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_SAVE_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_save_scene__descriptor) \
-    , NULL, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationUndoScene
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -275,13 +274,14 @@ struct  _Vdcapi__VdsmNotificationUndoScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_UNDO_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_undo_scene__descriptor) \
-    , NULL, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSetLocalPrio
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -291,13 +291,14 @@ struct  _Vdcapi__VdsmNotificationSetLocalPrio
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_LOCAL_PRIO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_local_prio__descriptor) \
-    , NULL, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationCallMinScene
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -307,13 +308,14 @@ struct  _Vdcapi__VdsmNotificationCallMinScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_MIN_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_min_scene__descriptor) \
-    , NULL, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationIdentify
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_group;
   int32_t group;
   protobuf_c_boolean has_zoneid;
@@ -321,13 +323,14 @@ struct  _Vdcapi__VdsmNotificationIdentify
 };
 #define VDCAPI__VDSM__NOTIFICATION_IDENTIFY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_identify__descriptor) \
-    , NULL, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSetControlValue
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   char *name;
   protobuf_c_boolean has_value;
   double value;
@@ -338,13 +341,14 @@ struct  _Vdcapi__VdsmNotificationSetControlValue
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_CONTROL_VALUE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_control_value__descriptor) \
-    , NULL, NULL, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationDimChannel
 {
   ProtobufCMessage base;
-  char *dsuid;
+  protobuf_c_boolean has_dsuid;
+  ProtobufCBinaryData dsuid;
   protobuf_c_boolean has_channel;
   int32_t channel;
   protobuf_c_boolean has_mode;
@@ -358,22 +362,19 @@ struct  _Vdcapi__VdsmNotificationDimChannel
 };
 #define VDCAPI__VDSM__NOTIFICATION_DIM_CHANNEL__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_dim_channel__descriptor) \
-    , NULL, 0,0, 0,0, 0,0, 0,0, 0,0 }
+    , 0,{0,NULL}, 0,0, 0,0, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdcSendPushProperty
 {
   ProtobufCMessage base;
   char *dsuid;
-  char *name;
-  protobuf_c_boolean has_index;
-  uint32_t index;
   size_t n_properties;
-  Vdcapi__Property **properties;
+  Vdcapi__PropertyElement **properties;
 };
 #define VDCAPI__VDC__SEND_PUSH_PROPERTY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_push_property__descriptor) \
-    , NULL, NULL, 0,0, 0,NULL }
+    , NULL, 0,NULL }
 
 
 /* Vdcapi__VdsmRequestHello methods */
@@ -565,25 +566,6 @@ Vdcapi__PropertyElement *
                       const uint8_t       *data);
 void   vdcapi__property_element__free_unpacked
                      (Vdcapi__PropertyElement *message,
-                      ProtobufCAllocator *allocator);
-/* Vdcapi__Property methods */
-void   vdcapi__property__init
-                     (Vdcapi__Property         *message);
-size_t vdcapi__property__get_packed_size
-                     (const Vdcapi__Property   *message);
-size_t vdcapi__property__pack
-                     (const Vdcapi__Property   *message,
-                      uint8_t             *out);
-size_t vdcapi__property__pack_to_buffer
-                     (const Vdcapi__Property   *message,
-                      ProtobufCBuffer     *buffer);
-Vdcapi__Property *
-       vdcapi__property__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   vdcapi__property__free_unpacked
-                     (Vdcapi__Property *message,
                       ProtobufCAllocator *allocator);
 /* Vdcapi__VdsmRequestGetProperty methods */
 void   vdcapi__vdsm__request_get_property__init
@@ -883,9 +865,6 @@ typedef void (*Vdcapi__PropertyValue_Closure)
 typedef void (*Vdcapi__PropertyElement_Closure)
                  (const Vdcapi__PropertyElement *message,
                   void *closure_data);
-typedef void (*Vdcapi__Property_Closure)
-                 (const Vdcapi__Property *message,
-                  void *closure_data);
 typedef void (*Vdcapi__VdsmRequestGetProperty_Closure)
                  (const Vdcapi__VdsmRequestGetProperty *message,
                   void *closure_data);
@@ -944,7 +923,6 @@ extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_bye__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_remove__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__property_value__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__property_element__descriptor;
-extern const ProtobufCMessageDescriptor vdcapi__property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor;

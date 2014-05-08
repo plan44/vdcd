@@ -42,10 +42,12 @@
 #include "p44obj.hpp"
 
 #if defined(DEBUG) || ALWAYS_DEBUG
+#define DEBUGLOGGING 1
 #define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define DBGLOG(lvl,...) { if (globalLogger.logEnabled(lvl)) globalLogger.log(lvl,##__VA_ARGS__); }
 #define LOGGER_DEFAULT_LOGLEVEL LOG_DEBUG
 #else
+#define DEBUGLOGGING 0
 #define DBGLOGENABLED(lvl) false
 #define DBGLOG(lvl,...)
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE

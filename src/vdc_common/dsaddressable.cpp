@@ -110,27 +110,13 @@ ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParam
 ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
-  string name;
-  int arrayIndex = 0; // default to start at first element
-  int rangeSize = PROP_ARRAY_SIZE; // entire array by default if no "index" or "offset"/"count" is given
-  ApiValuePtr o;
   if (aMethod=="getProperty") {
-    // name must be present
-    if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
-      // get optional index
-      o = aParams->get("index");
-      if (o) {
-        arrayIndex = o->int32Value();
-        rangeSize = 0; // single element by default, unless count is explicitly specified
-        // check optional max count of elements
-        o = aParams->get("count");
-        if (o) {
-          rangeSize = o->int32Value();
-        }
-      }
+    // query must be present
+    ApiValuePtr query;
+    if (Error::isOK(respErr = checkParam(aParams, "query", query))) {
       // now read
       ApiValuePtr result = aRequest->newApiValue();
-      respErr = accessProperty(access_read, result, name, VDC_API_DOMAIN, arrayIndex, rangeSize, 0);
+      respErr = accessProperty(access_read, query, result, VDC_API_DOMAIN, PropertyDescriptorPtr());
       if (Error::isOK(respErr)) {
         // send back property result
         aRequest->sendResult(result);
@@ -138,42 +124,19 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
     }
   }
   else if (aMethod=="setProperty") {
-    // name must be present
-    if (Error::isOK(respErr = checkStringParam(aParams, "name", name))) {
-      // value must be present
-      ApiValuePtr value;
-      if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
-        // get optional index
-        rangeSize = 1; // default to single element access
-        arrayIndex = 0; // default to first element
-        o = aParams->get("index");
-        if (o) {
-          arrayIndex = o->int32Value();
-          // - check optional max count of elements to fill with SAME VALUE
-          o = aParams->get("count");
-          if (o) {
-            rangeSize = o->int32Value();
-          }
-        }
-        // check preload flag
-        bool preload = false;
-        o = aParams->get("preload");
-        if (o) {
-          preload = o->boolValue();
-        }
-        // now write (possibly batch to multiple elements if rangeSize>1. rangeSize==0 && rangeSize==1 is single element write)
-        if (rangeSize==PROP_ARRAY_SIZE)
-          respErr = ErrorPtr(new VdcApiError(400, "array batch write needs offset AND count"));
-        else {
-          do {
-            respErr = accessProperty(preload ? access_write_preload : access_write, value, name, VDC_API_DOMAIN, arrayIndex, 0, 0);
-            arrayIndex++;
-          } while (--rangeSize>0 && Error::isOK(respErr));
-        }
-        if (Error::isOK(respErr)) {
-          // send back OK if write was successful
-          aRequest->sendResult(ApiValuePtr());
-        }
+    // value must be present
+    ApiValuePtr value;
+    if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
+      // check preload flag
+      bool preload = false;
+      ApiValuePtr o = aParams->get("preload");
+      if (o) {
+        preload = o->boolValue();
+      }
+      respErr = accessProperty(preload ? access_write_preload : access_write, value, ApiValuePtr(), VDC_API_DOMAIN, PropertyDescriptorPtr());
+      if (Error::isOK(respErr)) {
+        // send back OK if write was successful
+        aRequest->sendResult(ApiValuePtr());
       }
     }
   }
@@ -184,24 +147,15 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
 }
 
 
-bool DsAddressable::pushProperty(const string &aName, int aDomain, int aIndex)
+bool DsAddressable::pushProperty(ApiValuePtr aQuery, int aDomain)
 {
-  VdcApiConnectionPtr api = getDeviceContainer().getSessionConnection();
-  if (api) {
-    // get the value
-    ApiValuePtr value = api->newApiValue();
-    ErrorPtr err = accessProperty(access_read, value, aName, aDomain, aIndex<0 ? 0 : aIndex, 0, 0);
-    if (Error::isOK(err)) {
-      ApiValuePtr pushParams = api->newApiValue();
-      pushParams->setType(apivalue_object);
-      pushParams->add("name", pushParams->newString(aName));
-      if (aIndex>=0) {
-        // array property push
-        pushParams->add("index", pushParams->newInt64(aIndex));
-      }
-      pushParams->add("value", value);
-      return sendRequest("pushProperty", pushParams);
-    }
+  // get the value
+  ApiValuePtr value = aQuery->newValue(apivalue_object);
+  ErrorPtr err = accessProperty(access_read, aQuery, value, aDomain, PropertyDescriptorPtr());
+  if (Error::isOK(err)) {
+    ApiValuePtr pushParams = aQuery->newValue(apivalue_object);
+    pushParams->add("value", value);
+    return sendRequest("pushProperty", pushParams);
   }
   return false;
 }
@@ -281,43 +235,44 @@ enum {
 
 static char dsAddressable_key;
 
-int DsAddressable::numProps(int aDomain)
+int DsAddressable::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numDsAddressableProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numDsAddressableProperties;
 }
 
 
-const PropertyDescriptor *DsAddressable::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numDsAddressableProperties] = {
-    { "dSUID", apivalue_string, false, dSUID_key, &dsAddressable_key },
-    { "x-p44-classicid", apivalue_string, false, classicid_key, &dsAddressable_key },
-    { "model", apivalue_string, false, model_key, &dsAddressable_key },
-    { "hardwareVersion", apivalue_string, false, hardwareVersion_key, &dsAddressable_key },
-    { "hardwareGuid", apivalue_string, false, hardwareGUID_key, &dsAddressable_key },
-    { "numDevicesInHW", apivalue_uint64, false, numDevicesInHW_key, &dsAddressable_key },
-    { "deviceIndexInHW", apivalue_uint64, false, deviceIndexInHW_key, &dsAddressable_key },
-    { "oemGuid", apivalue_string, false, oemGUID_key, &dsAddressable_key },
-    { "name", apivalue_string, false, name_key, &dsAddressable_key }
+  static const PropertyDescription properties[numDsAddressableProperties] = {
+    { "type", apivalue_string, type_key, OKEY(dsAddressable_key) },
+    { "dSUID", apivalue_string, dSUID_key, OKEY(dsAddressable_key) },
+    { "x-p44-classicid", apivalue_string, classicid_key, OKEY(dsAddressable_key) },
+    { "model", apivalue_string, model_key, OKEY(dsAddressable_key) },
+    { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
+    { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
+    { "numDevicesInHW", apivalue_uint64, numDevicesInHW_key, OKEY(dsAddressable_key) },
+    { "deviceIndexInHW", apivalue_uint64, deviceIndexInHW_key, OKEY(dsAddressable_key) },
+    { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
+    { "name", apivalue_string, name_key, OKEY(dsAddressable_key) }
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
-bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&dsAddressable_key) {
+  if (aPropertyDescriptor->hasObjectKey(dsAddressable_key)) {
     if (aMode!=access_read) {
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case name_key: setName(aPropValue->stringValue()); return true;
       }
     }
     else {
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
         case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true; // always the classic dSUID
         case model_key: aPropValue->setStringValue(modelName()); return true;
@@ -343,7 +298,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor); // let base class handle it
 }
 
 

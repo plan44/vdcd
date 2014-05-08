@@ -101,31 +101,31 @@ enum {
 };
 
 
-int SparkLightScene::numProps(int aDomain)
+int SparkLightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numSparkLightSceneProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numSparkLightSceneProperties;
 }
 
 
-const PropertyDescriptor *SparkLightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr SparkLightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numSparkLightSceneProperties] = {
-    { "x-p44-extendedState", apivalue_uint64, false, extendedState_key, &sparklightscene_key }
+  static const PropertyDescription properties[numSparkLightSceneProperties] = {
+    { "x-p44-extendedState", apivalue_uint64, extendedState_key, OKEY(sparklightscene_key) }
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
 }
 
 
-bool SparkLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool SparkLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&sparklightscene_key) {
+  if (aPropertyDescriptor->hasObjectKey(sparklightscene_key)) {
     if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case extendedState_key:
           aPropValue->setUint32Value(extendedState);
           return true;
@@ -133,7 +133,7 @@ bool SparkLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case extendedState_key:
           extendedState = aPropValue->uint32Value();
           markDirty();
@@ -141,7 +141,7 @@ bool SparkLightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       }
     }
   }
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

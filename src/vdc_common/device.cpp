@@ -707,173 +707,197 @@ enum {
   localPriority_key,
   progMode_key,
   idBlockSize_key,
-  // the behaviour arrays
-  buttonInputDescriptions_key,
-  buttonInputSettings_key,
-  buttonInputStates_key,
-  binaryInputDescriptions_key,
-  binaryInputSettings_key,
-  binaryInputStates_key,
-  sensorDescriptions_key,
-  sensorSettings_key,
-  sensorStates_key,
-  outputDescriptions_key,
-  outputSettings_key,
-  outputStates_key,
-  channelDescriptions_key,
-  channelSettings_key,
-  channelStates_key,
-  outputScenes_key,
-  channelScenes_key,
+  // the scenes + undo
+  scenes_key,
   undoState_key,
-  numDeviceProperties
+  numDeviceFieldKeys
 };
 
 
-static char device_key;
+const int numBehaviourArrays = 5; // buttons, binaryInputs, Sensors, Outputs, Channels
+const int numDeviceProperties = numDeviceFieldKeys+3*numBehaviourArrays;
 
-int Device::numProps(int aDomain)
+
+
+static char device_key;
+static char device_groups_key;
+
+static char device_buttons_key;
+static char device_inputs_key;
+static char device_sensors_key;
+static char device_outputs_key;
+static char device_channels_key;
+static char device_scenes_key;
+
+
+int Device::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numDeviceProperties;
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level
+    return inherited::numProps(aDomain, aParentDescriptor)+numDeviceProperties;
+  }
+  else if (aParentDescriptor->hasObjectKey(device_buttons_key)) {
+    return (int)buttons.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_inputs_key)) {
+    return (int)binaryInputs.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_sensors_key)) {
+    return (int)sensors.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_outputs_key)) {
+    return (int)outputs.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+    // Note: represent every output as a channel. For devices with no default channel IDs or
+    //   improperly configured channels, we might get multiple channels with same name (=ID)
+    return (int)outputs.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_scenes_key)) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes)
+      return MAX_SCENE_NO;
+    else
+      return 0; // device with no scenes
+  }
+  else if (aParentDescriptor->hasObjectKey(device_groups_key)) {
+    return 64; // group mask has 64 bits for now
+  }
+  return 0; // none
 }
 
 
-const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDomain)
+
+
+PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numDeviceProperties] = {
+  if (aParentDescriptor && aParentDescriptor->isArrayContainer()) {
+    // array-like container
+    PropertyDescriptorPtr propDesc;
+    bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
+    if (numericName && aParentDescriptor->hasObjectKey(device_channels_key)) {
+      // specific channel addressed by ID, look up index for it
+      int i=0;
+      int channelIndex=-1;
+      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+        if (o->getChannel()==aStartIndex) {
+          channelIndex = i;
+          break;
+        }
+        i++; // next
+      }
+      aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
+    }
+    int n = numProps(aDomain, aParentDescriptor);
+    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+      // within range, create descriptor
+      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor;
+      if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(outputs[aStartIndex]);
+        descP->propertyName = string_format("%d", o->getChannel());
+      }
+      else {
+        // by index
+        descP->propertyName = string_format("%d", aStartIndex);
+      }
+      descP->propertyType = aParentDescriptor->type();
+      descP->propertyFieldKey = aStartIndex;
+      descP->propertyParentFieldKey = aParentDescriptor->fieldKey();
+      descP->propertyObjectKey = aParentDescriptor->objectKey();
+      propDesc = PropertyDescriptorPtr(descP);
+      // advance index
+      aStartIndex++;
+    }
+    if (aStartIndex>=n)
+      aStartIndex = PROPINDEX_NONE;
+    return propDesc;
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+}
+
+
+
+PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numDeviceProperties] = {
     // common device properties
-    { "primaryGroup", apivalue_uint64, false, primaryGroup_key, &device_key },
-    { "outputIsMemberOfGroup", apivalue_bool, true, isMember_key, &device_key },
-    { "zoneID", apivalue_uint64, false, zoneID_key, &device_key },
-    { "outputLocalPriority", apivalue_bool, false, localPriority_key, &device_key },
-    { "progMode", apivalue_bool, false, progMode_key, &device_key },
-    { "idBlockSize", apivalue_uint64, false, idBlockSize_key, &device_key },
+    { "primaryGroup", apivalue_uint64, primaryGroup_key, OKEY(device_key) },
+    { "outputIsMemberOfGroup", apivalue_bool+propflag_container, isMember_key, OKEY(device_groups_key) },
+    { "zoneID", apivalue_uint64, zoneID_key, OKEY(device_key) },
+    { "outputLocalPriority", apivalue_bool, localPriority_key, OKEY(device_key) },
+    { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
+    { "idBlockSize", apivalue_uint64, idBlockSize_key, OKEY(device_key) },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
-    { "buttonInputDescriptions", apivalue_object, true, buttonInputDescriptions_key, &device_key },
-    { "buttonInputSettings", apivalue_object, true, buttonInputSettings_key, &device_key },
-    { "buttonInputStates", apivalue_object, true, buttonInputStates_key, &device_key },
-    { "binaryInputDescriptions", apivalue_object, true, binaryInputDescriptions_key, &device_key },
-    { "binaryInputSettings", apivalue_object, true, binaryInputSettings_key, &device_key },
-    { "binaryInputStates", apivalue_object, true, binaryInputStates_key, &device_key },
-    { "sensorDescriptions", apivalue_object, true, sensorDescriptions_key, &device_key },
-    { "sensorSettings", apivalue_object, true, sensorSettings_key, &device_key },
-    { "sensorStates", apivalue_object, true, sensorStates_key, &device_key },
-    { "outputDescriptions", apivalue_object, true, outputDescriptions_key, &device_key },
-    { "outputSettings", apivalue_object, true, outputSettings_key, &device_key },
-    { "outputStates", apivalue_object, true, outputStates_key, &device_key },
-    { "channelDescriptions", apivalue_object, true, channelDescriptions_key, &device_key },
-    { "channelSettings", apivalue_object, true, channelSettings_key, &device_key },
-    { "channelStates", apivalue_object, true, channelStates_key, &device_key },
+    { "buttonInputDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_buttons_key) },
+    { "buttonInputSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_buttons_key) },
+    { "buttonInputStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_buttons_key) },
+    { "binaryInputDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_inputs_key) },
+    { "binaryInputSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_inputs_key) },
+    { "binaryInputStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_inputs_key) },
+    { "sensorDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_sensors_key) },
+    { "sensorSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_sensors_key) },
+    { "sensorStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_sensors_key) },
+    { "outputDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_outputs_key) },
+    { "outputSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_outputs_key) },
+    { "outputStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_outputs_key) },
+    { "channelDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_channels_key) },
+    { "channelSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_channels_key) },
+    { "channelStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_channels_key) },
     // the scenes array
-    { "outputScenes", apivalue_object, true, outputScenes_key, &device_key },
-    { "channelScenes", apivalue_object, true, channelScenes_key, &device_key },
-    { "undoState", apivalue_object, false, undoState_key, &device_key },
+    { "scenes", apivalue_object+propflag_container, scenes_key, OKEY(device_scenes_key) },
+    { "undoState", apivalue_object, undoState_key, OKEY(device_key) },
   };
-  int n = inherited::numProps(aDomain);
-  if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
-  aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  // C++ object manages different levels, check aParentObjectKey
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  }
+  return PropertyDescriptorPtr();
 }
 
 
 
-PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
+PropertyContainerPtr Device::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
 {
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    switch (aPropertyDescriptor.accessKey) {
-      // Note: domain is adjusted to differentiate between descriptions, settings and states of the same object
-      // buttons
-      case buttonInputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto buttons;
-      case buttonInputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto buttons;
-      case buttonInputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      buttons:
-        if (aIndex<buttons.size()) return buttons[aIndex];
-        break;
-      // binaryInputs
-      case binaryInputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto binaryInputs;
-      case binaryInputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto binaryInputs;
-      case binaryInputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      binaryInputs:
-        if (aIndex<binaryInputs.size()) return binaryInputs[aIndex];
-        break;
-      // outputs by index
-      case outputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto outputs;
-      case outputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto outputs;
-      case outputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      outputs:
-        if (aIndex<outputs.size()) return outputs[aIndex];
-        break;
-      // outputs by channel
-      case channelDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto channels;
-      case channelSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto channels;
-      case channelStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      channels: {
-        // look up the output by channel
-        size_t i=0;
-        for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-          OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-          if (o->getChannel()==aIndex) {
-            return outputs[i];
-          }
-          // next
-          i++;
-        }
-        // no channel found
-        break;
-      }
-      // sensors
-      case sensorDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto sensors;
-      case sensorSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto sensors;
-      case sensorStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      sensors:
-        if (aIndex<sensors.size()) return sensors[aIndex];
-        break;
-      // scenes
-      case outputScenes_key:
-        aDomain = VDC_API_OUTPUT_SCENES;
-        goto scenes;
-      case channelScenes_key:
-        aDomain = VDC_API_CHANNEL_SCENES;
-      scenes: {
-        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-        if (scenes) {
-          return scenes->getScene(aIndex);
-        }
-      }
-      // pseudo scene which saves the values before last scene call, used for undoScene
-      case undoState_key: {
-        if (previousState) {
-          return previousState;
-        }
-      }
+  // might be virtual container
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // is one of the local array containers
+    return PropertyContainerPtr(this);
+  }
+  // containers are elements from the behaviour arrays
+  else if (aPropertyDescriptor->hasObjectKey(device_buttons_key)) {
+    return buttons[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_inputs_key)) {
+    return binaryInputs[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_sensors_key)) {
+    return sensors[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_outputs_key)) {
+    return outputs[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_channels_key)) {
+    return outputs[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes) {
+      return scenes->getScene(aPropertyDescriptor->fieldKey());
+    }
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    // device level object properties
+    if (aPropertyDescriptor->fieldKey()==undoState_key) {
+      return previousState;
     }
   }
   // unknown here
@@ -881,87 +905,43 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
 }
 
 
-ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer)
+ErrorPtr Device::writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
 {
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    switch (aPropertyDescriptor.accessKey) {
-      case outputScenes_key:
-      case channelScenes_key: {
-        // scene was written, update needed if dirty
-        DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
-        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-        if (scenes && scene && scene->isDirty()) {
-          scenes->updateScene(scene);
-          return ErrorPtr();
-        }
-      }
+  if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
+    // a scene was written, update needed if dirty
+    DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes && scene && scene->isDirty()) {
+      scenes->updateScene(scene);
+      return ErrorPtr();
     }
   }
-  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aIndex, aContainer);
+  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aContainer);
 }
 
 
 
 
-bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    if (aIndex==PROP_ARRAY_SIZE) {
-      if (aMode!=access_read) {
-        return false;
-      }
-      else {
-        // array size query
-        switch (aPropertyDescriptor.accessKey) {
-          // the isMember pseudo-array
-          case isMember_key:
-            aPropValue->setUint16Value(64); // max 64 groups
-            return true;
-          // the behaviour arrays
-          case buttonInputDescriptions_key:
-          case buttonInputSettings_key:
-          case buttonInputStates_key:
-            aPropValue->setUint16Value((int)buttons.size());
-            return true;
-          case binaryInputDescriptions_key:
-          case binaryInputSettings_key:
-          case binaryInputStates_key:
-            aPropValue->setUint16Value((int)binaryInputs.size());
-            return true;
-          case sensorDescriptions_key:
-          case sensorSettings_key:
-          case sensorStates_key:
-            aPropValue->setUint16Value((int)sensors.size());
-            return true;
-          case outputDescriptions_key:
-          case outputSettings_key:
-          case outputStates_key:
-            aPropValue->setUint16Value((int)outputs.size());
-            return true;
-          case channelDescriptions_key:
-          case channelSettings_key:
-          case channelStates_key:
-            aPropValue->setUint16Value(numChannelTypes); // fixed number of possible channels
-            return true;
-          case outputScenes_key:
-          case channelScenes_key:
-            if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
-              aPropValue->setUint16Value(MAX_SCENE_NO);
-            else
-              aPropValue->setUint16Value(0); // no scene table
-            return true;
-        }
-      }
+  if (aPropertyDescriptor->hasObjectKey(device_groups_key)) {
+    if (aMode==access_read) {
+      // read group
+      aPropValue->setBoolValue(isMember((DsGroup)aPropertyDescriptor->fieldKey()));
+      return true;
     }
-    else if (aMode==access_read) {
+    else {
+      // write group
+      setGroupMembership((DsGroup)aPropertyDescriptor->fieldKey(), aPropValue->boolValue());
+      return true;
+    }
+  }
+  if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case primaryGroup_key:
           aPropValue->setUint16Value(primaryGroup);
-          return true;
-        case isMember_key:
-          // test group bit
-          aPropValue->setBoolValue(isMember((DsGroup)aIndex));
           return true;
         case zoneID_key:
           if (deviceSettings)
@@ -980,10 +960,7 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
-        case isMember_key:
-          setGroupMembership((DsGroup)aIndex, aPropValue->boolValue());
-          return true;
+      switch (aPropertyDescriptor->fieldKey()) {
         case zoneID_key:
           if (deviceSettings) {
             deviceSettings->zoneID = aPropValue->int32Value();
@@ -1000,7 +977,7 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 #pragma mark - Device description/shortDesc

@@ -54,9 +54,24 @@ void DsBehaviour::setHardwareError(DsHardwareError aHardwareError)
     hardwareError = aHardwareError;
     hardwareErrorUpdated = MainLoop::now();
     // push the error status change
-    device.pushProperty(string(getTypeName()).append("States"), VDC_API_DOMAIN, (int)index);
+    pushBehaviourState();
   }
 }
+
+
+void DsBehaviour::pushBehaviourState()
+{
+  VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
+  if (api) {
+    ApiValuePtr query = api->newApiValue();
+    query->setType(apivalue_object);
+    ApiValuePtr subQuery = query->newValue(apivalue_object);
+    subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+    query->add(string(getTypeName()).append("States"), subQuery);
+    device.pushProperty(query, VDC_API_DOMAIN);
+  }
+}
+
 
 
 void DsBehaviour::setGroup(DsGroup aGroup)
@@ -183,75 +198,75 @@ enum {
 
 static char dsBehaviour_Key;
 
-int DsBehaviour::numLocalProps(int aDomain)
+int DsBehaviour::numLocalProps(PropertyDescriptorPtr aParentDescriptor)
 {
-  switch (aDomain) {
-    case VDC_API_BHVR_DESC: return numDescProps()+numDsBehaviourDescProperties;
-    case VDC_API_BHVR_SETTINGS: return numSettingsProps()+numDsBehaviourSettingsProperties;
-    case VDC_API_BHVR_STATES: return numStateProps()+numDsBehaviourStateProperties;
+  switch (aParentDescriptor->parentFieldKey()) {
+    case descriptions_key_offset: return numDescProps()+numDsBehaviourDescProperties;
+    case settings_key_offset: return numSettingsProps()+numDsBehaviourSettingsProperties;
+    case states_key_offset: return numStateProps()+numDsBehaviourStateProperties;
     default: return 0;
   }
 }
 
 
-int DsBehaviour::numProps(int aDomain)
+int DsBehaviour::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inheritedProps::numProps(aDomain)+numLocalProps(aDomain);
+  return inheritedProps::numProps(aDomain, aParentDescriptor)+numLocalProps(aParentDescriptor);
 }
 
 
-const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor descProperties[numDsBehaviourDescProperties] = {
-    { "name", apivalue_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
-    { "type", apivalue_string, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
+  static const PropertyDescription descProperties[numDsBehaviourDescProperties] = {
+    { "name", apivalue_string, name_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
+    { "type", apivalue_string, type_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
   };
-  static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
-    { "group", apivalue_uint64, false, group_key+settings_key_offset, &dsBehaviour_Key },
+  static const PropertyDescription settingsProperties[numDsBehaviourSettingsProperties] = {
+    { "group", apivalue_uint64, group_key+settings_key_offset, OKEY(dsBehaviour_Key) },
   };
-  static const PropertyDescriptor stateProperties[numDsBehaviourStateProperties] = {
-    { "error", apivalue_uint64, false, error_key+states_key_offset, &dsBehaviour_Key },
+  static const PropertyDescription stateProperties[numDsBehaviourStateProperties] = {
+    { "error", apivalue_uint64, error_key+states_key_offset, OKEY(dsBehaviour_Key) },
   };
-  int n = inheritedProps::numProps(aDomain);
+  int n = inheritedProps::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inheritedProps::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inheritedProps::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  if (aPropIndex>=numLocalProps(aDomain))
+  if (aPropIndex>=numLocalProps(aParentDescriptor))
     return NULL;
-  switch (aDomain) {
-    case VDC_API_BHVR_DESC:
+  switch (aParentDescriptor->parentFieldKey()) {
+    case descriptions_key_offset:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)
-        return &descProperties[aPropIndex];
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&descProperties[aPropIndex]));
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
-      return getDescDescriptor(aPropIndex);
-    case VDC_API_BHVR_SETTINGS:
+      return getDescDescriptorByIndex(aPropIndex);
+    case settings_key_offset:
       // check for generic settings properties
       if (aPropIndex<numDsBehaviourSettingsProperties)
-        return &settingsProperties[aPropIndex];
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&settingsProperties[aPropIndex]));
       aPropIndex -= numDsBehaviourSettingsProperties;
       // check type-specific settings
-      return getSettingsDescriptor(aPropIndex);
-    case VDC_API_BHVR_STATES:
+      return getSettingsDescriptorByIndex(aPropIndex);
+    case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
-        return &stateProperties[aPropIndex];
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&stateProperties[aPropIndex]));
       aPropIndex -= numDsBehaviourStateProperties;
       // check type-specific states
-      return getStateDescriptor(aPropIndex);
+      return getStateDescriptorByIndex(aPropIndex);
     default:
       return NULL;
   }
 }
 
 
-bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
+  if (aPropertyDescriptor->hasObjectKey(dsBehaviour_Key)) {
     if (aMode==access_read) {
       // Read
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // descriptions
         case name_key+descriptions_key_offset: aPropValue->setStringValue(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue->setStringValue(getTypeName()); return true;
@@ -263,7 +278,7 @@ bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
     }
     else {
       // Write
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // settings
         case group_key+settings_key_offset:
           setGroup((DsGroup)aPropValue->int32Value());
@@ -273,7 +288,7 @@ bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
 
     }
   }
-  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor); // let base class handle it
 }
 
 
