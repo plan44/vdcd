@@ -1,17 +1,17 @@
 package vdcapi;
 
 message vdsm_RequestHello {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional uint32 api_version = 2;
 }
 
 message vdc_ResponseHello {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdc_SendAnnounce {
-    optional bytes dSUID = 1;
-    optional bytes vdcdSUID = 2; // new in API v2
+    optional string dSUID = 1;
+    optional string vdcdSUID = 2; // new in API v2
 }
 
 message vdc_SendAnnounceVdc { // new in API v2
@@ -19,19 +19,19 @@ message vdc_SendAnnounceVdc { // new in API v2
 }
 
 message vdc_SendVanish {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdc_SendIdentify {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdsm_SendBye {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdsm_SendRemove {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message PropertyValue {
@@ -51,7 +51,7 @@ message PropertyElement {
 
 
 message vdsm_RequestGetProperty {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     repeated PropertyElement query = 2;
 }
 
@@ -63,21 +63,21 @@ message vdc_ResponseGetProperty {
 
 // expects generic response
 message vdsm_RequestSetProperty {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional bool preload = 2 [ default = false ];
     repeated PropertyElement properties = 3;
 }
 
 message vdsm_SendPing {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdc_SendPong {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
 }
 
 message vdsm_NotificationCallScene {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional bool force = 3;
     optional int32 group = 4;
@@ -85,41 +85,41 @@ message vdsm_NotificationCallScene {
 }
 
 message vdsm_NotificationSaveScene {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationUndoScene {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationSetLocalPrio {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationCallMinScene {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zoneID = 4;
 }
 
 message vdsm_NotificationIdentify {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 group = 2;
     optional int32 zoneID = 3;
 }
 
 message vdsm_NotificationSetControlValue {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional string name = 2;
     optional double value = 3;
     optional int32 group = 4;
@@ -127,7 +127,7 @@ message vdsm_NotificationSetControlValue {
 }
 
 message vdsm_NotificationDimChannel {
-    optional bytes dSUID = 1;
+    optional string dSUID = 1;
     optional int32 channel = 2;
     optional int32 mode = 3;
     optional int32 area = 4;
