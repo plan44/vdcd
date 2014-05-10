@@ -73,7 +73,7 @@ namespace p44 {
 
 
   /// will be called to deliver api result
-  /// @param the result in case of success.
+  /// @param aResult the result in case of success.
   /// - In case of PUT, POST and DELETE requests, it is the contents of the "success" response object
   /// - In case of GET requests, it is the entire answer object
   /// @param aError error in case of failure, error code is either a HueCommErrors enum or the error code as
@@ -161,7 +161,6 @@ namespace p44 {
     /// @{
 
     /// will be called when findBridge completes
-    /// @param aHueComm the HueComm object
     /// @param aError error if find/learn was not successful. If no error, HueComm is now ready to
     ///   send API commands
     typedef boost::function<void (ErrorPtr aError)> HueBridgeFindCB;

@@ -59,6 +59,7 @@ namespace p44 {
 
   typedef std::multimap<EnoceanAddress, EnoceanDevicePtr> EnoceanDeviceMap;
 
+  /// @param aEnoceanDevicePtr the EnOcean device the key event originates from
   /// @param aSubDeviceIndex subdevice, can be -1 if subdevice cannot be determined (multiple rockers released)
   /// @return true if locally handled such that no further operation is needed, false otherwise
   typedef boost::function<bool (EnoceanDevicePtr aEnoceanDevicePtr, int aSubDeviceIndex, uint8_t aAction)> KeyEventHandlerCB;

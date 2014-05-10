@@ -49,13 +49,11 @@ namespace p44 {
   class JsonRpcComm;
 
   /// callback for delivering a received JSON-RPC method or notification request
-  /// @param aJsonRpcComm the JsonRpcComm calling this handler
   /// @param aMethod If this is a method call, this is the JSON-RPC (2.0) method or notification requested by the peer.
   /// @param aJsonRpcId the client id. The handler must use this id when calling sendResult(). If this is a notification request, aJsonRpcId is NULL.
   typedef boost::function<void (const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)> JsonRpcRequestCB;
 
   /// callback for delivering a received JSON-RPC method result
-  /// @param aJsonRpcComm the JsonRpcComm calling this handler
   /// @param aResponseId the response Id (
   /// @param aError the referenced ErrorPtr will be set when an error occurred.
   ///   If the error returned is an JsonRpcError, aError.getErrorCode() will return the "code" member from the JSON-RPC error object,
