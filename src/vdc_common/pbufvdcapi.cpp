@@ -57,6 +57,7 @@ void PbufApiValue::operator=(ApiValue &aApiValue)
     allocate();
     switch (allocatedType) {
       case apivalue_string:
+      case apivalue_binary:
         objectValue.stringP = new string(*(pavP->objectValue.stringP));
         break;
       case apivalue_object:
@@ -83,6 +84,7 @@ void PbufApiValue::clear()
   if (allocatedType!=apivalue_null) {
     switch (allocatedType) {
       case apivalue_string:
+      case apivalue_binary:
         if (objectValue.stringP) delete objectValue.stringP;
         break;
       case apivalue_object:
@@ -108,6 +110,7 @@ void PbufApiValue::allocate()
     allocatedType = getType();
     switch (allocatedType) {
       case apivalue_string:
+      case apivalue_binary:
         objectValue.stringP = new string;
         break;
       case apivalue_object:
@@ -285,10 +288,30 @@ bool PbufApiValue::boolValue()
 }
 
 
+string PbufApiValue::binaryValue()
+{
+  if (allocatedType==apivalue_binary) {
+    return *(objectValue.stringP);
+  }
+  else {
+    return ""; // not binary
+  }
+}
+
+
 string PbufApiValue::stringValue()
 {
   if (allocatedType==apivalue_string) {
     return *(objectValue.stringP);
+  }
+  else if (allocatedType==apivalue_binary) {
+    // render as hex string
+    string s;
+    size_t n = objectValue.stringP->size();
+    for (int i=0; i<n; i++) {
+      string_format_append(s, "%02X", (uint8_t)(*(objectValue.stringP))[i]);
+    }
+    return s;
   }
   // let base class render the contents as string
   return inherited::stringValue();
@@ -327,10 +350,44 @@ void PbufApiValue::setBoolValue(bool aBool)
 }
 
 
+void PbufApiValue::setBinaryValue(const string &aBinary)
+{
+  if (allocateIf(apivalue_binary)) {
+    objectValue.stringP->assign(aBinary);
+  }
+}
+
+
 bool PbufApiValue::setStringValue(const string &aString)
 {
   if (allocateIf(apivalue_string)) {
     objectValue.stringP->assign(aString);
+    return true;
+  }
+  else if (allocateIf(apivalue_binary)) {
+    // parse string as hex
+    string bs;
+    const char *p = aString.c_str();
+    uint8_t b = 0;
+    bool firstNibble = true;
+    char c;
+    while ((c = *p++)!=0) {
+      if (c=='-') continue; // dashes allowed but ignored
+      c = toupper(c)-'0';
+      if (c>9) c -= ('A'-'9'-1);
+      if (c<0 || c>0xF)
+        break; // invalid char, done
+      if (firstNibble) {
+        b = c<<4;
+        firstNibble = false;
+      }
+      else {
+        b |= c;
+        bs.append((char *)&b,1);
+        firstNibble = true;
+      }
+    }
+    objectValue.stringP->assign(bs);
     return true;
   }
   else {
@@ -350,16 +407,32 @@ void PbufApiValue::setNull()
 void PbufApiValue::getValueFromMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage)
 {
   const uint8_t *baseP = (const uint8_t *)(&aMessage);
-  const uint8_t *fieldBaseP = baseP+aFieldDescriptor.offset;
+  const void *fieldBaseP = baseP+aFieldDescriptor.offset;
   // check quantifier
   if (aFieldDescriptor.label==PROTOBUF_C_LABEL_REPEATED) {
-    // repeated field, pack into array
+    // repeated field
     size_t arraySize = *((size_t *)(baseP+aFieldDescriptor.quantifier_offset));
-    setType(apivalue_array);
-    for (int i = 0; i<arraySize; i++) {
-      PbufApiValuePtr element = PbufApiValuePtr(new PbufApiValue);
-      element->setValueFromField(aFieldDescriptor, fieldBaseP, i, arraySize);
-      arrayAppend(element);
+    // - check for special processing of PropertyElement arrays
+    if (aFieldDescriptor.descriptor==&vdcapi__property_element__descriptor) {
+      // add elements as key/val to myself
+      if (arraySize==0)
+        setNull(); // avoid empty object, return simple NULL value instead
+      else {
+        for (int i = 0; i<arraySize; i++) {
+          // is an array, dereference the data pointer once to get to elements
+          const Vdcapi__PropertyElement **elements = (const Vdcapi__PropertyElement **)(*((void **)fieldBaseP));
+          addKeyValFromPropertyElementField(elements[i]);
+        }
+      }
+    }
+    else {
+      // pack into array
+      setType(apivalue_array);
+      for (int i = 0; i<arraySize; i++) {
+        PbufApiValuePtr element = PbufApiValuePtr(new PbufApiValue);
+        element->setValueFromField(aFieldDescriptor, fieldBaseP, i, arraySize);
+        arrayAppend(element);
+      }
     }
   }
   else {
@@ -386,6 +459,11 @@ void PbufApiValue::getValueFromMessageField(const ProtobufCFieldDescriptor &aFie
     }
     else {
       // get value
+      // - check special case of single PropertyElement
+      if (aFieldDescriptor.descriptor==&vdcapi__property_element__descriptor) {
+        // add element as single key/val to myself
+        addKeyValFromPropertyElementField(*((const Vdcapi__PropertyElement **)fieldBaseP));
+      }
       setValueFromField(aFieldDescriptor, fieldBaseP, 0, -1); // not array
     }
   }
@@ -393,27 +471,49 @@ void PbufApiValue::getValueFromMessageField(const ProtobufCFieldDescriptor &aFie
 
 
 
-void PbufApiValue::putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage, const char *aBaseName)
+void PbufApiValue::putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage)
 {
   uint8_t *baseP = (uint8_t *)(&aMessage);
   uint8_t *fieldBaseP = baseP+aFieldDescriptor.offset;
   // check quantifier
   if (aFieldDescriptor.label==PROTOBUF_C_LABEL_REPEATED) {
-    // repeated field. If this value is an array, assign elements
-    if (getType()==apivalue_array) {
-      // set size
+    // repeated field
+    // - check special case of repeated Property Element
+    if (aFieldDescriptor.descriptor==&vdcapi__property_element__descriptor && getType()==apivalue_object) {
+      // - set size
+      size_t numElems = numObjectFields();
+      *((size_t *)(baseP+aFieldDescriptor.quantifier_offset)) = numElems;
+      // - set contents
+      Vdcapi__PropertyElement **elems = NULL;
+      if (numElems>0) {
+        elems = new Vdcapi__PropertyElement *[numElems];
+        Vdcapi__PropertyElement **elemP = elems;
+        // fill in fields
+        resetKeyIteration();
+        string key;
+        ApiValuePtr val;
+        while (nextKeyValue(key, val)) {
+          PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+          pval->storeKeyValIntoPropertyElementField(key, *(elemP++));
+        }
+      }
+      *((Vdcapi__PropertyElement ***)fieldBaseP) = elems;
+    }
+    else if (getType()==apivalue_array) {
+      // value is an array, just assign elements
+      // - set size
       *((size_t *)(baseP+aFieldDescriptor.quantifier_offset)) = arrayLength();
       // iterate over existing elements
       for (int i = 0; i<arrayLength(); i++) {
         PbufApiValuePtr element = boost::dynamic_pointer_cast<PbufApiValue>(arrayGet(i));
-        element->putValueIntoField(aFieldDescriptor, fieldBaseP, i, arrayLength(), aBaseName);
+        element->putValueIntoField(aFieldDescriptor, fieldBaseP, i, arrayLength());
       }
     }
     else {
       // non array value into repeated field - store as single repetition
       *((size_t *)(baseP+aFieldDescriptor.quantifier_offset)) = 1; // single element
       // put value into that single element
-      putValueIntoField(aFieldDescriptor, fieldBaseP, 0, 1, aBaseName);
+      putValueIntoField(aFieldDescriptor, fieldBaseP, 0, 1);
     }
   }
   else {
@@ -432,7 +532,19 @@ void PbufApiValue::putValueIntoMessageField(const ProtobufCFieldDescriptor &aFie
     }
     // put value, if available
     if (hasField) {
-      putValueIntoField(aFieldDescriptor, fieldBaseP, 0, -1, aBaseName); // not array
+      // - check special case of single Property Element
+      if (aFieldDescriptor.descriptor==&vdcapi__property_element__descriptor && getType()==apivalue_object) {
+        // store first element of object (rest will be ignored)
+        resetKeyIteration();
+        string key;
+        ApiValuePtr val;
+        nextKeyValue(key, val);
+        PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
+        pval->storeKeyValIntoPropertyElementField(key, *((Vdcapi__PropertyElement **)fieldBaseP));
+      }
+      else {
+        putValueIntoField(aFieldDescriptor, fieldBaseP, 0, -1); // not array
+      }
     }
   }
 }
@@ -469,7 +581,7 @@ void PbufApiValue::putObjectIntoMessageFields(ProtobufCMessage &aMessage)
       // see if value object has a key for this field
       PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(get(fieldDescP->name));
       if (val) {
-        val->putValueIntoMessageField(*fieldDescP, aMessage, fieldDescP->name);
+        val->putValueIntoMessageField(*fieldDescP, aMessage);
       }
       fieldDescP++; // next field descriptor
     }
@@ -478,33 +590,31 @@ void PbufApiValue::putObjectIntoMessageFields(ProtobufCMessage &aMessage)
 
 
 
-void PbufApiValue::addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName)
+void PbufApiValue::addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aFieldName)
 {
-  if (!aObjectFieldName) aObjectFieldName = aMessageFieldName;
   // must be an object
   setType(apivalue_object);
-  const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aMessageFieldName);
+  const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aFieldName);
   if (fieldDescP) {
     PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
     val->getValueFromMessageField(*fieldDescP, aMessage);
     if (!val->isNull()) {
       // don't add NULL values, because this means field was not set in message, which means no value, not NULL value
-      add(aObjectFieldName, val); // add with specified name
+      add(aFieldName, val); // add with specified name
     }
   }
 }
 
 
 
-void PbufApiValue::putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName)
+void PbufApiValue::putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aFieldName)
 {
-  if (!aObjectFieldName) aObjectFieldName = aMessageFieldName;
   if (isType(apivalue_object)) {
-    const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aMessageFieldName);
+    const ProtobufCFieldDescriptor *fieldDescP = protobuf_c_message_descriptor_get_field_by_name(aMessage.descriptor, aFieldName);
     if (fieldDescP) {
-      PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(get(aObjectFieldName));
+      PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(get(aFieldName));
       if (val) {
-        val->putValueIntoMessageField(*fieldDescP, aMessage, fieldDescP->name);
+        val->putValueIntoMessageField(*fieldDescP, aMessage);
       }
     }
   }
@@ -562,20 +672,18 @@ void PbufApiValue::setValueFromField(const ProtobufCFieldDescriptor &aFieldDescr
       setType(apivalue_string);
       setStringValue(*((const char **)aData+aIndex));
       break;
-    case PROTOBUF_C_TYPE_BYTES:
-      // TODO: implement it
+    case PROTOBUF_C_TYPE_BYTES: {
+      setType(apivalue_binary);
+      ProtobufCBinaryData *p = (ProtobufCBinaryData *)aData+aIndex;
+      string b = string((const char *)p->data, p->len);
+      setBinaryValue(b);
       break;
+    }
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage, pack into object value
       const ProtobufCMessage *subMessageP = *((const ProtobufCMessage **)aData+aIndex);
-      ProtobufCMessageDescriptor *msgDescP = (ProtobufCMessageDescriptor *)aFieldDescriptor.descriptor;
-      if (strcmp(msgDescP->short_name,"PropertyValue")==0) {
-        getValueFromPropVal(*((Vdcapi__PropertyValue *)subMessageP));
-      }
-      else {
-        setType(apivalue_object);
-        getObjectFromMessageFields(*subMessageP);
-      }
+      setType(apivalue_object);
+      getObjectFromMessageFields(*subMessageP);
       break;
     }
     default:
@@ -585,7 +693,8 @@ void PbufApiValue::setValueFromField(const ProtobufCFieldDescriptor &aFieldDescr
 }
 
 
-void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize, const char *aBaseName)
+
+void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize)
 {
   // check array case
   bool allocArray = false;
@@ -658,45 +767,42 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
       }
       break;
     case PROTOBUF_C_TYPE_STRING:
-      if (allocatedType==apivalue_string) {
+      if (allocatedType==apivalue_string || allocatedType==apivalue_binary) {
         if (allocArray) {
           dataP = new char*[aArraySize];
           memset(dataP, 0, aArraySize*sizeof(char *)); // null the array
         }
-        string s = stringValue();
+        string s = stringValue(); // might also be binary converted to hex string
         char * p = new char [s.size()+1];
         strcpy(p, s.c_str());
         *((char **)dataP+aIndex) = p;
       }
       break;
     case PROTOBUF_C_TYPE_BYTES:
-      // TODO: implement it
-      break;
+      if (allocatedType==apivalue_binary) {
+        if (allocArray) {
+          dataP = new ProtobufCBinaryData[aArraySize];
+          memset(dataP, 0, aArraySize*sizeof(ProtobufCBinaryData)); // null the array
+        }
+        string b = binaryValue();
+        uint8_t *p = new uint8_t[b.size()];
+        memcpy(p, b.c_str(), b.size());
+        ((ProtobufCBinaryData *)dataP+aIndex)->data = p;
+        ((ProtobufCBinaryData *)dataP+aIndex)->len = b.size();
+        break;
+      }
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage
-      const ProtobufCMessageDescriptor *subMsgDescP = static_cast<const ProtobufCMessageDescriptor *>(aFieldDescriptor.descriptor);
-      // field is a message, we might need to allocate the pointer array
+      // - field is a message, we might need to allocate the pointer array
       if (allocArray) {
         dataP = new void *[aArraySize];
         memset(dataP, 0, aArraySize*sizeof(void *)); // null the array
       }
-      // check for property special case
-      if (strcmp(subMsgDescP->short_name,"Property")==0) {
-        // generic property value submessage
-//        Vdcapi__Property *propP = new Vdcapi__Property;
-//        vdcapi__property__init(propP);
-//        *((Vdcapi__Property **)dataP+aIndex) = propP;
-//        if (!aBaseName) aBaseName = "value";
-//        putValueIntoProp(*propP,aBaseName);
-      }
-      else {
-        // specific pre-existing message, fields will be filled from message
-        if (allocatedType==apivalue_object && !allocArray) {
-          ProtobufCMessage *aSubMessageP = *((ProtobufCMessage **)dataP+aIndex);
-          if (aSubMessageP) {
-            // submessage exists, have it filled in
-            putObjectIntoMessageFields(*aSubMessageP);
-          }
+      if (allocatedType==apivalue_object && !allocArray) {
+        ProtobufCMessage *aSubMessageP = *((ProtobufCMessage **)dataP+aIndex);
+        if (aSubMessageP) {
+          // submessage exists, have it filled in
+          putObjectIntoMessageFields(*aSubMessageP);
         }
       }
       break;
@@ -710,6 +816,66 @@ void PbufApiValue::putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescr
     *((void **)aData) = dataP;
   }
 }
+
+
+//  struct  _Vdcapi__PropertyElement
+//  {
+//    ProtobufCMessage base;
+//    char *name;
+//    Vdcapi__PropertyValue *value;
+//    size_t n_elements;
+//    Vdcapi__PropertyElement **elements;
+//  };
+
+void PbufApiValue::addKeyValFromPropertyElementField(const Vdcapi__PropertyElement *aPropertyElementP)
+{
+  // add the property element as a key/val to myself (and make me object)
+  // in a key/val, there must always be a value
+  PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
+  if (aPropertyElementP->value) {
+    // simple value
+    val->getValueFromPropVal(*aPropertyElementP->value);
+  }
+  else if (aPropertyElementP->n_elements) {
+    // nested object, "elements" is field #2
+    val->getValueFromMessageField(aPropertyElementP->base.descriptor->fields[2], aPropertyElementP->base);
+  }
+  // get the name
+  const char *name = aPropertyElementP->name;
+  if (!name) name="<none>";
+  // add it now
+  setType(apivalue_object);
+  add(name,val);
+}
+
+
+
+void PbufApiValue::storeKeyValIntoPropertyElementField(string aKey, Vdcapi__PropertyElement *&aPropertyElementP)
+{
+  // create a PropertyElement and store my value plus specified key into
+  // - create the element
+  aPropertyElementP = new Vdcapi__PropertyElement;
+  vdcapi__property_element__init(aPropertyElementP);
+  // - store the value/subvalues
+  if (isType(apivalue_object)) {
+    // create nested value, "elements" is field #2
+    putValueIntoMessageField(aPropertyElementP->base.descriptor->fields[2], aPropertyElementP->base);
+  }
+  else {
+    // create the value
+    aPropertyElementP->value = new Vdcapi__PropertyValue;
+    vdcapi__property_value__init(aPropertyElementP->value);
+    // store value
+    putValueIntoPropVal(*aPropertyElementP->value);
+  }
+  // store name
+  aPropertyElementP->name = new char[aKey.size()+1];
+  strcpy(aPropertyElementP->name, aKey.c_str());
+}
+
+
+
+
 
 
 void PbufApiValue::getValueFromPropVal(Vdcapi__PropertyValue &aPropVal)
@@ -733,6 +899,10 @@ void PbufApiValue::getValueFromPropVal(Vdcapi__PropertyValue &aPropVal)
   else if (aPropVal.v_string) {
     setType(apivalue_string);
     setStringValue(aPropVal.v_string);
+  }
+  else if (aPropVal.has_v_bytes) {
+    setType(apivalue_binary);
+    setBinaryValue(string((const char *)aPropVal.v_bytes.data, aPropVal.v_bytes.len));
   }
   else {
     // null value
@@ -762,144 +932,25 @@ void PbufApiValue::putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal)
       break;
     case apivalue_string: {
       string s = stringValue();
-      char * p = new char [s.size()+1];
+      char *p = new char [s.size()+1];
       strcpy(p, s.c_str());
       aPropVal.v_string = p;
       break;
     }
-//    case apivalue_object: {
-//      aPropVal.type = VDCAPI__VALUE_TYPE__STRUCT_VALUE;
-//      // put key/values of this object into repeated structval field
-//      size_t numFields = numObjectFields();
-//      if (numFields>0) {
-//        // - create pointer array
-//        aPropVal.structval = new Vdcapi__SubProperty *[numFields];
-//        memset(aPropVal.structval, 0, numFields*sizeof(Vdcapi__SubProperty *)); // null the array
-//        aPropVal.n_structval = numFields;
-//        // - fill in fields
-//        resetKeyIteration();
-//        string key;
-//        ApiValuePtr val;
-//        size_t i = 0;
-//        while (nextKeyValue(key, val)) {
-//          PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
-//          Vdcapi__SubProperty *subPropP = new Vdcapi__SubProperty;
-//          vdcapi__sub_property__init(subPropP);
-//          subPropP->name = new char[key.size()+1];
-//          strcpy(subPropP->name, key.c_str());
-//          aPropVal.structval[i] = subPropP;
-//          subPropP->value = new Vdcapi__PropertyValue;
-//          vdcapi__property_value__init(subPropP->value);
-//          pval->putValueIntoPropVal(*(subPropP->value));
-//          i++;
-//        }
-//      }
-//      break;
-//    }
-    case apivalue_array:
-      #warning "for now, arrays nested withing property values are not supported"
-      aPropVal.v_string = (char *)"warning: property subfield is array";
+    case apivalue_binary: {
+      aPropVal.has_v_bytes = true;
+      string b = binaryValue();
+      aPropVal.v_bytes.len = b.size();
+      uint8_t *p = new uint8_t [b.size()];
+      memcpy(p, b.c_str(),b.size());
+      aPropVal.v_bytes.data = p;
       break;
+    }
     default:
       // null value, do nothing
       break;
   }
 }
-
-
-
-//void PbufApiValue::getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName)
-//{
-//  // A property is always a list of ProperyValues in protobuf now
-//  // so we need some ugly case distinction here to normalize the data:
-//  // - if aProp has no elements, this is a NULL value
-//  // - if aProp has one element
-//  //   - if the element has no or empty name or a name matching aBaseName,
-//  //      or the "name" param in the request was empty, this is a single value
-//  //   - otherwise, this is an object with a single element in it
-//  // - if aProp has multiple elements, this is an object with multiple fields
-//  if (aProp.n_elements==0) {
-//    // null
-//    setType(apivalue_null);
-//    return; // done
-//  }
-//  if (aProp.n_elements==1) {
-//    // exactly one element, could be plain value
-//    if (
-//      aBaseName==NULL || // no basename
-//      aProp.elements[0]->name==NULL || // no element name
-//      *(aProp.elements[0]->name)==0 || // empty element name
-//      (aBaseName && strcasecmp(aProp.elements[0]->name, aBaseName)==0) // element name is same as property name itself
-//    ) {
-//      // single plain value
-//      getValueFromPropVal(*(aProp.elements[0]->value));
-//      if (aBaseName==NULL) {
-//        // apparently, the name of the property is in the (single) element, and request has no "name" param -> return element's name
-//        aBaseName = aProp.elements[0]->name;
-//      }
-//      return; // done
-//    }
-//  }
-//  // must be object, collect elements
-//  setType(apivalue_object);
-//  for (int i=0; i<aProp.n_elements; i++) {
-//    PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue);
-//    val->getValueFromPropVal(*(aProp.elements[i]->value));
-//    add(aProp.elements[i]->name, val);
-//  }
-//}
-//
-//
-//
-//Vdcapi__PropertyElement *PbufApiValue::propElementFromValue(const char *aName)
-//{
-//  Vdcapi__PropertyElement *elemP = new Vdcapi__PropertyElement;
-//  vdcapi__property_element__init(elemP);
-//  elemP->name = NULL;
-//  if (aName) {
-//    elemP->name = new char [strlen(aName)+1];
-//    strcpy(elemP->name, aName);
-//  }
-//  elemP->value = new Vdcapi__PropertyValue;
-//  vdcapi__property_value__init(elemP->value);
-//  putValueIntoPropVal(*(elemP->value));
-//  return elemP;
-//}
-//
-//
-//void PbufApiValue::putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName)
-//{
-//  aProp.n_elements = 0; // assume none
-//  aProp.elements = NULL; // none
-//  if (isNull()) {    // NULL value is represented by property with no elements, so we are done
-//    return; // done
-//  }
-//  if (!isType(apivalue_object)) {
-//    // single value: create single element containing value
-//    aProp.n_elements = 1;
-//    aProp.elements = new Vdcapi__PropertyElement *[1];
-//    Vdcapi__PropertyElement *elem = propElementFromValue(aBaseName);
-//    aProp.elements[0] = elem;
-//    return; // done
-//  }
-//  // object: create element for each object field
-//  aProp.n_elements = numObjectFields();
-//  if (aProp.n_elements>0) {
-//    aProp.elements = new Vdcapi__PropertyElement *[aProp.n_elements];
-//    // fill in fields
-//    resetKeyIteration();
-//    string key;
-//    ApiValuePtr val;
-//    size_t i = 0;
-//    while (nextKeyValue(key, val)) {
-//      PbufApiValuePtr pval = boost::dynamic_pointer_cast<PbufApiValue>(val);
-//      Vdcapi__PropertyElement *elem = pval->propElementFromValue(key.c_str());
-//      aProp.elements[i] = elem;
-//      i++;
-//    }
-//  }
-//  return; // done
-//}
 
 
 
@@ -957,7 +1008,7 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         subMessageP = &(msg.vdc_response_hello->base);
         // pbuf API structure and field names are different, we need to map them
         if (result) {
-          result->putObjectFieldIntoMessage(*subMessageP, "dSUID");
+          result->putObjectFieldIntoMessage(*subMessageP, "vdcdSUID");
         }
         break;
       case VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY:
@@ -966,7 +1017,9 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         subMessageP = &(msg.vdc_response_get_property->base);
         // result object is property value(s)
         // and only field in VdcResponseGetProperty is the "properties" repeating field
-        if (result) result->putValueIntoMessageField(subMessageP->descriptor->fields[1-1], *subMessageP, requestedPropertyName.c_str());
+        if (result) {
+          result->putValueIntoMessageField(subMessageP->descriptor->fields[0], *subMessageP);
+        }
         break;
       default:
         LOG(LOG_INFO,"vdSM <- vDC (pbuf) response '%s' cannot be sent because no message is implemented for it at the pbuf level\n", aResult->description().c_str());
@@ -1244,39 +1297,31 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       case VDCAPI__TYPE__VDSM_REQUEST_HELLO: {
         method = "hello";
         paramsMsg = &(decodedMsg->vdsm_request_hello->base);
-        // pbuf API structure and field names are different, we need to map them
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "api_version", "APIVersion");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_HELLO;
-        goto getDsUid;
+        // pbuf API field names match, we can use generic decoding
+        break;
+//        // pbuf API structure and field names are different, we need to map them
+//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "APIVersion");
+//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY: {
         method = "getProperty";
         paramsMsg = &(decodedMsg->vdsm_request_get_property->base);
-        // pbuf API structure and field names are different, we need to map them
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "name");
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "index");
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
-        goto getDsUid;
+        // pbuf API field names match, we can use generic decoding
+        break;
+//        // pbuf API structure and field names are different, we need to map them
+//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "query");
+//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_SET_PROPERTY: {
         method = "setProperty";
         paramsMsg = &(decodedMsg->vdsm_request_set_property->base);
-        // pbuf API structure and field names are different, we need to map them
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "index");
-        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "count");
-        // write has always a single property, never multiple, so just get the first or if none, write NULL
-        // also we need derive "name" from examining content AND the "name" property, as it might be at either place :-(
-//        const char *name = decodedMsg->vdsm_request_set_property->name; // default to "name" field in request
-        PbufApiValuePtr val = PbufApiValuePtr(new PbufApiValue); // NULL value to start with
-        if (decodedMsg->vdsm_request_set_property->n_properties>0) {
-          // there is a value to set (first, others are ignored
-//          val->getValueFromProp(*(decodedMsg->vdsm_request_set_property->properties[0]), name);
-        }
-        msgFieldsObj->add("value", val);
-//        msgFieldsObj->add("name", msgFieldsObj->newString(name)); // add property name as found in request or in passed property.
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
-        goto getDsUid;
+        // pbuf API field names match, we can use generic decoding
+        break;
+//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "properties");
+//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_SEND_REMOVE: {
         method = "remove";
@@ -1292,7 +1337,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       }
       // Notifications
       case VDCAPI__TYPE__VDSM_SEND_PING: {
-//      case VDCAPI__TYPE__VDSM_NOTIFICATION_PING: {
         method = "ping";
         paramsMsg = &(decodedMsg->vdsm_send_ping->base);
         goto getDsUid;
@@ -1401,10 +1445,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         // method call, we need a request reference object
         request = VdcPbufApiRequestPtr(new VdcPbufApiRequest(VdcPbufApiConnectionPtr(this), decodedMsg->message_id));
         request->responseType = (Vdcapi__Type)responseType; // save the response type for sending answers later
-        // special case for getProperty - need to remember the requested name as result must contain it again (ugh!)
-        if (decodedMsg->type==VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY) {
-//          request->requestedPropertyName = nonNullCStr(decodedMsg->vdsm_request_get_property->name);
-        }
         LOG(LOG_INFO,"vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s\n", request->reqId, method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
       else {
@@ -1443,7 +1483,6 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
   // find out which type and which submessage applies
   ProtobufCMessage *subMessageP = NULL;
   if (aMethod=="pong") {
-//    msg.type = VDCAPI__TYPE__VDC_NOTIFICATION_PONG;
     msg.type = VDCAPI__TYPE__VDC_SEND_PONG;
     msg.vdc_send_pong = new Vdcapi__VdcSendPong;
     vdcapi__vdc__send_pong__init(msg.vdc_send_pong);
@@ -1472,17 +1511,6 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     msg.vdc_send_push_property = new Vdcapi__VdcSendPushProperty;
     vdcapi__vdc__send_push_property__init(msg.vdc_send_push_property);
     subMessageP = &(msg.vdc_send_push_property->base);
-    // pbuf API structure and field names are different, we need to map them
-    params->putObjectFieldIntoMessage(*subMessageP, "name");
-    params->putObjectFieldIntoMessage(*subMessageP, "index");
-    params->putObjectFieldIntoMessage(*subMessageP, "dSUID");
-    // transform the value
-    PbufApiValuePtr val = boost::dynamic_pointer_cast<PbufApiValue>(params->get("value"));
-    // result object is property value(s)
-    // and the 4th field in VdcSendPushProperty is the "properties" repeating field
-//    if (val) val->putValueIntoMessageField(subMessageP->descriptor->fields[4-1], *subMessageP, msg.vdc_send_push_property->name);
-    // params processed explicitly, prevent generic assignments
-    params.reset();
   }
   else if (aMethod=="identify") {
     // Note: this method has the same (JSON) name as the method from the vdsm used to identify (blink) a device.
@@ -1577,9 +1605,14 @@ static void protobufFieldPrint(FILE *aOutFile, const ProtobufCFieldDescriptor *a
     case PROTOBUF_C_TYPE_STRING:
       fprintf(aOutFile, "(string)\"%s\"", *((const char **)aData+aIndex));
       break;
-    case PROTOBUF_C_TYPE_BYTES:
-      // TODO: implement it
+    case PROTOBUF_C_TYPE_BYTES: {
+      fprintf(aOutFile, "(bytes)");
+      ProtobufCBinaryData *bd = ((ProtobufCBinaryData *)aData+aIndex);
+      for (int i=0; i<bd->len; i++) {
+        fprintf(aOutFile, "%02X", bd->data[i]);
+      }
       break;
+    }
     case PROTOBUF_C_TYPE_MESSAGE: {
       // submessage, pack into object value
       const ProtobufCMessage *subMessageP = *((const ProtobufCMessage **)aData+aIndex);

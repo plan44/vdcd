@@ -1044,8 +1044,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descrip
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, dsuid),
     NULL,
     NULL,
@@ -1053,12 +1053,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descrip
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "api_version",
+    "APIVersion",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, has_api_version),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, api_version),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, has_apiversion),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, apiversion),
     NULL,
     NULL,
     0,            /* packed */
@@ -1066,7 +1066,7 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descrip
   },
 };
 static const unsigned vdcapi__vdsm__request_hello__field_indices_by_name[] = {
-  1,   /* field[1] = api_version */
+  1,   /* field[1] = APIVersion */
   0,   /* field[0] = dSUID */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_hello__number_ranges[1 + 1] =
@@ -1095,8 +1095,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__response_hello__field_descrip
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseHello, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseHello, dsuid),
     NULL,
     NULL,
@@ -1133,8 +1133,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descript
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, dsuid),
     NULL,
     NULL,
@@ -1145,8 +1145,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descript
     "vdcdSUID",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, has_vdcdsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, vdcdsuid),
     NULL,
     NULL,
@@ -1222,8 +1222,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_vanish__field_descriptor
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendVanish, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendVanish, dsuid),
     NULL,
     NULL,
@@ -1260,8 +1260,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_identify__field_descript
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendIdentify, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendIdentify, dsuid),
     NULL,
     NULL,
@@ -1298,8 +1298,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__send_bye__field_descriptors[
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendBye, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendBye, dsuid),
     NULL,
     NULL,
@@ -1336,8 +1336,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__send_remove__field_descripto
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendRemove, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendRemove, dsuid),
     NULL,
     NULL,
@@ -1541,8 +1541,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, dsuid),
     NULL,
     NULL,
@@ -1631,8 +1631,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, dsuid),
     NULL,
     NULL,
@@ -1695,8 +1695,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__send_ping__field_descriptors
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendPing, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmSendPing, dsuid),
     NULL,
     NULL,
@@ -1733,8 +1733,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_pong__field_descriptors[
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPong, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPong, dsuid),
     NULL,
     NULL,
@@ -1771,8 +1771,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_scene__fie
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, dsuid),
     NULL,
     NULL,
@@ -1861,8 +1861,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_save_scene__fie
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, dsuid),
     NULL,
     NULL,
@@ -1938,8 +1938,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_undo_scene__fie
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, dsuid),
     NULL,
     NULL,
@@ -2015,8 +2015,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_local_prio_
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, dsuid),
     NULL,
     NULL,
@@ -2092,8 +2092,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_min_scene_
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, dsuid),
     NULL,
     NULL,
@@ -2169,8 +2169,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_identify__field
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, dsuid),
     NULL,
     NULL,
@@ -2233,8 +2233,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_control_val
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, dsuid),
     NULL,
     NULL,
@@ -2323,8 +2323,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_dim_channel__fi
     "dSUID",
     1,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BYTES,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_dsuid),
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, dsuid),
     NULL,
     NULL,

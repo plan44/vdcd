@@ -599,7 +599,6 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 
 bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
-  // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (activeSessionConnection) {
     signalActivity();
     return Error::isOK(activeSessionConnection->sendRequest(aMethod, aParams, aResponseHandler));
@@ -669,10 +668,10 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
       }
       else {
         // session active - all commands need dSUID parameter
-        string dsuidstring;
-        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
+        DsUid dsuid;
+        if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", dsuid))) {
           // operation method
-          respErr = handleMethodForDsUid(aMethod, aRequest, DsUid(dsuidstring), aParams);
+          respErr = handleMethodForDsUid(aMethod, aRequest, dsuid, aParams);
         }
       }
     }
@@ -681,9 +680,9 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
     // Notifications
     if (activeSessionConnection) {
       // out of session, notifications are simply ignored
-      string dsuidstring;
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
-        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), aParams);
+      DsUid dsuid;
+      if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", dsuid))) {
+        handleNotificationForDsUid(aMethod, dsuid, aParams);
       }
     }
   }
@@ -717,8 +716,8 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
       respErr = ErrorPtr(new VdcApiError(505, string_format("Incompatible vDC API version - found %d, expected %d", v->int32Value(), VDC_API_VERSION)));
     else {
       // API version ok, check dSUID
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
-        DsUid vdsmDsUid = DsUid(s);
+      DsUid vdsmDsUid;
+      if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", vdsmDsUid))) {
         // same vdSM can restart session any time. Others will be rejected
         if (!activeSessionConnection || vdsmDsUid==connectedVdsm) {
           // ok to start new session
@@ -733,8 +732,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           // - create answer
           ApiValuePtr result = activeSessionConnection->newApiValue();
           result->setType(apivalue_object);
-          result->add("dSUID", aParams->newString(getApiDsUid().getString()));
-          result->add("allowDisconnect", aParams->newBool(false));
+          result->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
           aRequest->sendResult(result);
           // - trigger announcing devices
           startAnnouncing();
@@ -918,9 +916,12 @@ void DeviceContainer::announceNext()
       ) {
         // mark device as being in process of getting announced
         vdc->announcing = MainLoop::now();
-        // call announce method
-        if (!vdc->sendRequest("announcevdc", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
-          LOG(LOG_ERR, "Could not send announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+        // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
+        ApiValuePtr params = getSessionConnection()->newApiValue();
+        params->setType(apivalue_object);
+        params->add("vdcdSUID", params->newBinary(getApiDsUid().getBinary()));
+        if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
+          LOG(LOG_ERR, "Could not send announcevdc message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
           vdc->announcing = Never; // not registering
         }
         else {
@@ -949,7 +950,7 @@ void DeviceContainer::announceNext()
       params->setType(apivalue_object);
       if (dsUids) {
         // vcds were announced, include link to vdc for device announcements
-        params->add("vdcdSUID", params->newString(dev->classContainerP->getApiDsUid().getString()));
+        params->add("vdcdSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
       }
       if (!dev->sendRequest("announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());

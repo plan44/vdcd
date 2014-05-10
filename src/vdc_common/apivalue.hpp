@@ -36,6 +36,7 @@ namespace p44 {
     apivalue_uint64,
     apivalue_double,
     apivalue_string, // std::string
+    apivalue_binary, // also std::string
     apivalue_object, // object containing multiple named ApiValues
     apivalue_array, // array of multiple ApiValues
   } ApiValueType;
@@ -135,11 +136,13 @@ namespace p44 {
     virtual int64_t int64Value() = 0;
     virtual double doubleValue() = 0;
     virtual bool boolValue() = 0;
+    virtual string binaryValue() = 0;
 
     virtual void setUint64Value(uint64_t aUint64) = 0;
     virtual void setInt64Value(int64_t aInt64) = 0;
     virtual void setDoubleValue(double aDouble) = 0;
     virtual void setBoolValue(bool aBool) = 0;
+    virtual void setBinaryValue(const string &aBinary) = 0;
 
     /// @}
 
@@ -153,6 +156,7 @@ namespace p44 {
     ApiValuePtr newBool(bool aBool);
     ApiValuePtr newString(const char *aString);
     ApiValuePtr newString(const string &aString);
+    ApiValuePtr newBinary(const string &aBinary);
     ApiValuePtr newObject();
     ApiValuePtr newArray();
 

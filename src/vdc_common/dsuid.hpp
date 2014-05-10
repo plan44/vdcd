@@ -87,6 +87,8 @@ namespace p44 {
 
     void setIdType(DsUidType aIdType);
 
+    void detectSubType();
+
   public:
 
     /// @name generic dSUID operations
@@ -110,12 +112,28 @@ namespace p44 {
     /// @return true if valid dSUID could be read
     bool setAsString(const string &aString);
 
+    /// set as binary
+    /// @param aBinary binary string representing a dSUID. Must be in one of the following formats
+    /// - a 12 byte binary string for classic dsids
+    /// - a 17 byte binary string for dsUIDs
+    /// @return true if valid dSUID could be read
+    bool setAsBinary(const string &aBinary);
+
+
     /// get dSUID in official string representation
     /// @return string representation of dSUID, depending on the type
     /// - empty string for idtype_undefined
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
     string getString() const;
+
+    /// get dSUID in binary representation
+    /// @return binary string representation of dSUID, depending on the type
+    /// - empty string for idtype_undefined
+    /// - a 12 byte binary string for classic dsids
+    /// - a 17 byte binary string for dsUIDs
+    string getBinary() const;
+
 
     // comparison
     bool operator== (const DsUid &aDsUid) const;

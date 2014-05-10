@@ -309,6 +309,29 @@ void DsUid::setDsSerialNo(DsSerialNo aSerialNo)
 }
 
 
+#pragma mark - binary string (bytes) representation
+
+bool DsUid::setAsBinary(const string &aBinary)
+{
+  if (aBinary.size()==dsuidBytes) {
+    idBytes = dsuidBytes;
+    memcpy(raw, aBinary.c_str(), idBytes);
+    detectSubType();
+  }
+  else if (aBinary.size()==dsidBytes) {
+    idBytes = dsidBytes;
+    memcpy(raw, aBinary.c_str(), idBytes);
+    idType = idtype_classic;
+  }
+  return false;
+}
+
+
+string DsUid::getBinary() const
+{
+  return string((const char *)raw,idBytes);
+}
+
 
 
 #pragma mark - set/create DsUid from string representation
@@ -327,6 +350,21 @@ DsUid::DsUid(const char *aString)
   setAsString(aString);
 }
 
+
+void DsUid::detectSubType()
+{
+  if (raw[6]==0 && raw[7]==0 && raw[8]==0 && raw[9]==0) {
+    // EPC96, check which one
+    if (raw[0]==SGTIN96Header)
+      idType = idtype_sgtin;
+    else if (raw[0]==GID96Header)
+      idType = idtype_gid;
+  }
+  else {
+    // UUID
+    idType = idtype_uuid;
+  }
+}
 
 
 bool DsUid::setAsString(const string &aString)
@@ -367,17 +405,7 @@ bool DsUid::setAsString(const string &aString)
     idType = idtype_other;
     idBytes = dsuidBytes;
     // - determine subtype
-    if (raw[6]==0 && raw[7]==0 && raw[8]==0 && raw[9]==0) {
-      // EPC96, check which one
-      if (raw[0]==SGTIN96Header)
-        idType = idtype_sgtin;
-      else if (raw[0]==GID96Header)
-        idType = idtype_gid;
-    }
-    else {
-      // UUID
-      idType = idtype_uuid;
-    }
+    detectSubType();
     if (byteIndex==uuidBytes)
       raw[16] = 0; // specified as pure UUID, set subdevice index == 0
   }

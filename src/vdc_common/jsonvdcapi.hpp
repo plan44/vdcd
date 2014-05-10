@@ -81,12 +81,14 @@ namespace p44 {
     virtual int64_t int64Value() { return jsonObj ? jsonObj->int64Value() : 0; };
     virtual double doubleValue() { return jsonObj ? jsonObj->doubleValue() : 0; };
     virtual bool boolValue() { return jsonObj ? jsonObj->boolValue() : false; };
+    virtual string binaryValue();
     virtual string stringValue() { if (getType()==apivalue_string) { return jsonObj ? jsonObj->stringValue() : ""; } else return inherited::stringValue(); };
 
     virtual void setUint64Value(uint64_t aUint64) { jsonObj = JsonObject::newInt64(aUint64); }
     virtual void setInt64Value(int64_t aInt64) { jsonObj = JsonObject::newInt64(aInt64); };
     virtual void setDoubleValue(double aDouble) { jsonObj = JsonObject::newDouble(aDouble); };
     virtual void setBoolValue(bool aBool) { jsonObj = JsonObject::newBool(aBool); };
+    virtual void setBinaryValue(const string &aBinary);
     virtual bool setStringValue(const string &aString);
     virtual void setNull() { jsonObj.reset(); }
 

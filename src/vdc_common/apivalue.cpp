@@ -101,6 +101,8 @@ string ApiValue::stringValue()
       return string_format("%llu", uint64Value());
     case apivalue_double:
       return string_format("%f", doubleValue());
+    case apivalue_binary:
+      return "<binary>";
     case apivalue_object:
       return "<object>";
     case apivalue_array:
@@ -223,6 +225,14 @@ ApiValuePtr ApiValue::newBool(bool aBool)
 {
   ApiValuePtr newVal = newValue(apivalue_bool);
   newVal->setBoolValue(aBool);
+  return newVal;
+}
+
+
+ApiValuePtr ApiValue::newBinary(const string &aBinary)
+{
+  ApiValuePtr newVal = newValue(apivalue_binary);
+  newVal->setBinaryValue(aBinary);
   return newVal;
 }
 

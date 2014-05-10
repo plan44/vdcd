@@ -96,9 +96,11 @@ namespace p44 {
     /// convenience method to check for existence of a parameter and return appropriate error if not
     static ErrorPtr checkParam(ApiValuePtr aParams, const char *aParamName, ApiValuePtr &aParam);
 
-    /// convenience method to check for existence of a string value and if it does, return its value in one call
+    /// convenience method to check if a string value exists and if yes, return its value in one call
     static ErrorPtr checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue);
 
+    /// convenience method to check if a dSUID value exists and if it does, return its value in one call
+    static ErrorPtr checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid);
 
     /// called by DeviceContainer to handle methods directed to a dSUID
     /// @param aRequest this is the request to respond to

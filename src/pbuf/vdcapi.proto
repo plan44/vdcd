@@ -2,7 +2,7 @@ package vdcapi;
 
 message vdsm_RequestHello {
     optional string dSUID = 1;
-    optional uint32 api_version = 2;
+    optional uint32 APIVersion = 2;
 }
 
 message vdc_ResponseHello {

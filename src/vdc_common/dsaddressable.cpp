@@ -106,6 +106,19 @@ ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParam
 }
 
 
+ErrorPtr DsAddressable::checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid)
+{
+  ErrorPtr err;
+  ApiValuePtr o;
+  err = checkParam(aParams, aParamName, o);
+  if (Error::isOK(err)) {
+    aDsUid.setAsBinary(o->binaryValue());
+  }
+  return err;
+}
+
+
+
 
 ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
@@ -185,7 +198,7 @@ bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApi
       aParams = api->newApiValue();
       aParams->setType(apivalue_object);
     }
-    aParams->add("dSUID", aParams->newString(getApiDsUid().getString()));
+    aParams->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
     return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
   }
   return false; // no connection
@@ -246,8 +259,8 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
 {
   static const PropertyDescription properties[numDsAddressableProperties] = {
     { "type", apivalue_string, type_key, OKEY(dsAddressable_key) },
-    { "dSUID", apivalue_string, dSUID_key, OKEY(dsAddressable_key) },
-    { "x-p44-classicid", apivalue_string, classicid_key, OKEY(dsAddressable_key) },
+    { "dSUID", apivalue_binary, dSUID_key, OKEY(dsAddressable_key) },
+    { "x-p44-classicid", apivalue_binary, classicid_key, OKEY(dsAddressable_key) },
     { "model", apivalue_string, model_key, OKEY(dsAddressable_key) },
     { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
