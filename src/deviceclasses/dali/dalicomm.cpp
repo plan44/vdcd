@@ -81,7 +81,7 @@ bool DaliComm::isBusy()
 
 void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
 {
-  serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
+  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
 }
 
 
@@ -152,7 +152,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
 
 void DaliComm::connectionTimeout()
 {
-  serialComm.closeConnection();
+  serialComm->closeConnection();
 }
 
 #pragma mark - DALI bus communication basics

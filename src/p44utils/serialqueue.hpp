@@ -165,7 +165,7 @@ namespace p44 {
 	public:
 
     /// the serial communication channel
-    SerialComm serialComm;
+    SerialCommPtr serialComm;
 
     /// create operation queue linked into specified Synchronous IO mainloop
     SerialOperationQueue(SyncIOMainLoop &aMainLoop);

@@ -367,8 +367,8 @@ public:
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");
       if (configApiPort) {
-        p44VdcHost->configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-        p44VdcHost->configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
+        p44VdcHost->configApiServer->setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
+        p44VdcHost->configApiServer->setAllowNonlocalConnections(getOption("cfgapinonlocal"));
         p44VdcHost->startConfigApi();
       }
 
@@ -379,7 +379,7 @@ public:
         int sec = 0;
         getIntOption("daliportidle", sec);
         DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
-        daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+        daliDeviceContainer->daliComm->setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
         daliDeviceContainer->addClassToDeviceContainer();
       }
       // - Add enOcean devices class if enOcean modem serialport/host is specified

@@ -70,7 +70,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     primaryGroup = group_black_joker;
     // - console key input as button
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
+    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);

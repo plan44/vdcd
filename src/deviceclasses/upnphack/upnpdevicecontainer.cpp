@@ -11,9 +11,9 @@ using namespace p44;
 
 
 UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
-  m_dmr_search(SyncIOMainLoop::currentMainLoop())
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
+  m_dmr_search = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
 }
 
 
@@ -53,7 +53,7 @@ void UpnpDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
     removeDevices(false);
   }
   // start a search (which times out after a while)
-  m_dmr_search.startSearchForTarget(
+  m_dmr_search->startSearchForTarget(
     boost::bind(&UpnpDeviceContainer::collectHandler, this, aCompletedCB, _1, _2),
     "urn:schemas-upnp-org:device:MediaRenderer:1",
     false, // not single device, we want to get all of them

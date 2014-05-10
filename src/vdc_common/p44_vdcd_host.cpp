@@ -185,20 +185,20 @@ void P44VdcHost::selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, Indi
 
 
 P44VdcHost::P44VdcHost() :
-  configApiServer(SyncIOMainLoop::currentMainLoop()),
   learnIdentifyTicket(0)
 {
+  configApiServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
 }
 
 
 void P44VdcHost::startConfigApi()
 {
-  configApiServer.startServer(boost::bind(&P44VdcHost::configApiConnectionHandler, this, _1), 3);
+  configApiServer->startServer(boost::bind(&P44VdcHost::configApiConnectionHandler, this, _1), 3);
 }
 
 
 
-SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketComm *aServerSocketCommP)
+SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketCommPtr aServerSocketCommP)
 {
   JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
   conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, _1, _2, _3));
@@ -206,7 +206,7 @@ SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketComm *aServerSocketCo
 }
 
 
-void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
+void P44VdcHost::configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError, JsonObjectPtr aJsonObject)
 {
   ErrorPtr err;
   // when coming from mg44, requests have the following form
@@ -247,11 +247,11 @@ void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, 
         // Notes:
         // - if dSUID is specified invalid or empty, the vdc host itself is addressed.
         // - use x-p44-vdcs and x-p44-devices properties to find dsuids
-        aError = processVdcRequest(JsonCommPtr(aJsonCommP), request);
+        aError = processVdcRequest(aJsonComm, request);
       }
       else if (apiselector=="p44") {
         // process p44 specific requests
-        aError = processP44Request(JsonCommPtr(aJsonCommP), request);
+        aError = processP44Request(aJsonComm, request);
       }
       else {
         // unknown API selector
@@ -261,7 +261,7 @@ void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, 
   }
   // if error or explicit OK, send response now. Otherwise, request processing will create and send the response
   if (aError) {
-    sendCfgApiResponse(JsonCommPtr(aJsonCommP), JsonObjectPtr(), aError);
+    sendCfgApiResponse(aJsonComm, JsonObjectPtr(), aError);
   }
 }
 

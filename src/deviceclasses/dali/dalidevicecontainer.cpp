@@ -27,9 +27,9 @@ using namespace p44;
 
 
 DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
-	daliComm(SyncIOMainLoop::currentMainLoop())
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
+  daliComm = DaliCommPtr(new 	DaliComm(SyncIOMainLoop::currentMainLoop()));
 }
 
 
@@ -43,26 +43,26 @@ const char *DaliDeviceContainer::deviceClassIdentifier() const
 
 class DaliDeviceCollector
 {
-  DaliComm *daliCommP;
+  DaliCommPtr daliComm;
   CompletedCB callback;
   DaliComm::ShortAddressListPtr deviceShortAddresses;
   DaliComm::ShortAddressList::iterator nextDev;
   DaliDeviceContainer *daliDeviceContainerP;
   bool incremental;
 public:
-  static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aIncremental, bool aForceFullScan)
+  static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliCommPtr aDaliComm, CompletedCB aCallback, bool aIncremental, bool aForceFullScan)
   {
     // create new instance, deletes itself when finished
-    new DaliDeviceCollector(aDaliDeviceContainerP, aDaliCommP, aCallback, aIncremental, aForceFullScan);
+    new DaliDeviceCollector(aDaliDeviceContainerP, aDaliComm, aCallback, aIncremental, aForceFullScan);
   };
 private:
-  DaliDeviceCollector(DaliDeviceContainer *aDaliDeviceContainerP, DaliComm *aDaliCommP, CompletedCB aCallback, bool aIncremental, bool aForceFullScan) :
-    daliCommP(aDaliCommP),
+  DaliDeviceCollector(DaliDeviceContainer *aDaliDeviceContainerP, DaliCommPtr aDaliComm, CompletedCB aCallback, bool aIncremental, bool aForceFullScan) :
+    daliComm(aDaliComm),
     callback(aCallback),
     incremental(aIncremental),
     daliDeviceContainerP(aDaliDeviceContainerP)
   {
-    daliCommP->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _2, _3), !aForceFullScan); // allow quick scan when not forced
+    daliComm->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _2, _3), !aForceFullScan); // allow quick scan when not forced
   }
 
   void deviceListReceived(DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
@@ -80,7 +80,7 @@ private:
   void queryNextDev(ErrorPtr aError)
   {
     if (!aError && nextDev!=deviceShortAddresses->end())
-      daliCommP->daliReadDeviceInfo(boost::bind(&DaliDeviceCollector::deviceInfoReceived, this, _2, _3), *nextDev);
+      daliComm->daliReadDeviceInfo(boost::bind(&DaliDeviceCollector::deviceInfoReceived, this, _2, _3), *nextDev);
     else
       return completed(aError);
   }
@@ -129,7 +129,7 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
   if (!aIncremental) {
     removeDevices(false);
   }
-  DaliDeviceCollector::collectDevices(this, &daliComm, aCompletedCB, aIncremental, aExhaustive);
+  DaliDeviceCollector::collectDevices(this, daliComm, aCompletedCB, aIncremental, aExhaustive);
 }
 
 
@@ -138,7 +138,7 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
 void DaliDeviceContainer::selfTest(CompletedCB aCompletedCB)
 {
   // do bus short address scan
-  daliComm.daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _2, _3));
+  daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _2, _3));
 }
 
 
@@ -148,8 +148,8 @@ void DaliDeviceContainer::testScanDone(CompletedCB aCompletedCB, DaliComm::Short
     // found at least one device, do a R/W test using the DTR
     DaliAddress testAddr = aShortAddressListPtr->front();
     LOG(LOG_NOTICE,"- DALI self test: switch all lights on, then do R/W tests with DTR of device short address %d\n",testAddr);
-    daliComm.daliSendDirectPower(DaliBroadcast, 0, NULL); // off
-    daliComm.daliSendDirectPower(DaliBroadcast, 254, NULL, 2*Second); // max
+    daliComm->daliSendDirectPower(DaliBroadcast, 0, NULL); // off
+    daliComm->daliSendDirectPower(DaliBroadcast, 254, NULL, 2*Second); // max
     testRW(aCompletedCB, testAddr, 0x55); // use first found device
   }
   else {
@@ -163,9 +163,9 @@ void DaliDeviceContainer::testScanDone(CompletedCB aCompletedCB, DaliComm::Short
 void DaliDeviceContainer::testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte)
 {
   // set DTR
-  daliComm.daliSend(DALICMD_SET_DTR, aTestByte);
+  daliComm->daliSend(DALICMD_SET_DTR, aTestByte);
   // query DTR again, with 200mS delay
-  daliComm.daliSendQuery(aShortAddr, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliDeviceContainer::testRWResponse, this, aCompletedCB, aShortAddr, aTestByte, _2, _3, _4), 200*MilliSecond);
+  daliComm->daliSendQuery(aShortAddr, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliDeviceContainer::testRWResponse, this, aCompletedCB, aShortAddr, aTestByte, _2, _3, _4), 200*MilliSecond);
 }
 
 
@@ -185,7 +185,7 @@ void DaliDeviceContainer::testRWResponse(CompletedCB aCompletedCB, DaliAddress a
         // all tests done
         aCompletedCB(aError);
         // turn off lights
-        daliComm.daliSendDirectPower(DaliBroadcast, 0); // off
+        daliComm->daliSendDirectPower(DaliBroadcast, 0); // off
         return;
     }
     // launch next test

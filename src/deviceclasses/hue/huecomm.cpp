@@ -165,7 +165,7 @@ public:
 
   // discovery
   bool refind;
-  SsdpSearch bridgeDetector;
+  SsdpSearchPtr bridgeDetector;
   typedef map<string, string> StringStringMap;
   StringStringMap bridgeCandiates; ///< possible candidates for hue bridges, key=uuid, value=description URL
   StringStringMap::iterator currentBridgeCandidate; ///< next candidate for bridge
@@ -185,9 +185,9 @@ public:
     callback(aFindHandler),
     hueComm(aHueComm),
     startedAuth(Never),
-    retryLoginTicket(0),
-    bridgeDetector(SyncIOMainLoop::currentMainLoop())
+    retryLoginTicket(0)
   {
+    bridgeDetector = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
   }
 
   virtual ~BridgeFinder()
@@ -203,7 +203,7 @@ public:
     deviceType = nonNullCStr(aDeviceType);
     authTimeWindow = aAuthTimeWindow;
     keepAlive = BridgeFinderPtr(this);
-    bridgeDetector.startSearch(boost::bind(&BridgeFinder::bridgeDiscoveryHandler, this, _1, _2), NULL);
+    bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeDiscoveryHandler, this, _1, _2), NULL);
   };
 
 
@@ -214,7 +214,7 @@ public:
     uuid = hueComm.uuid;;
     userName = hueComm.userName;
     keepAlive = BridgeFinderPtr(this);
-    bridgeDetector.startSearch(boost::bind(&BridgeFinder::bridgeRefindHandler, this, _1, _2), uuid.c_str());
+    bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeRefindHandler, this, _1, _2), uuid.c_str());
   };
 
 

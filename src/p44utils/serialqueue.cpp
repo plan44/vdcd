@@ -237,11 +237,11 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 
 // Link into mainloop
 SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
-  inherited(aMainLoop),
-  serialComm(aMainLoop)
+  inherited(aMainLoop)
 {
   // Set handlers for FdComm
-  serialComm.setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1, _2));
+  serialComm = SerialCommPtr(new SerialComm(aMainLoop));
+  serialComm->setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1, _2));
   // TODO: once we implement buffered write, install the ready-for-transmission handler here
   //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1, _2));
   // Set standard transmitter and receiver for operations
@@ -252,7 +252,7 @@ SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
 
 SerialOperationQueue::~SerialOperationQueue()
 {
-  serialComm.closeConnection();
+  serialComm->closeConnection();
 }
 
 
@@ -333,9 +333,9 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
 {
   DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d) called\n", aNumBytes);
   ssize_t res = 0;
-  ErrorPtr err = serialComm.establishConnection();
+  ErrorPtr err = serialComm->establishConnection();
   if (Error::isOK(err)) {
-    res = serialComm.transmitBytes(aNumBytes, aBytes, err);
+    res = serialComm->transmitBytes(aNumBytes, aBytes, err);
     if (!Error::isOK(err)) {
       DBGLOG(LOG_DEBUG,"Error writing serial: %s\n", err->description().c_str());
       res = 0; // none written
@@ -358,10 +358,10 @@ size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
 {
   DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d) called\n", aMaxBytes);
   size_t gotBytes = 0;
-  if (serialComm.connectionIsOpen()) {
+  if (serialComm->connectionIsOpen()) {
 		// get number of bytes available
     ErrorPtr err;
-    gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
+    gotBytes = serialComm->receiveBytes(aMaxBytes, aBytes, err);
     if (!Error::isOK(err)) {
       LOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
       return 0;

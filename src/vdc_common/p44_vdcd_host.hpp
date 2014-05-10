@@ -93,7 +93,7 @@ namespace p44 {
     P44VdcHost();
 
     /// JSON API for web interface
-    SocketComm configApiServer;
+    SocketCommPtr configApiServer;
 
     void startConfigApi();
 
@@ -106,8 +106,8 @@ namespace p44 {
 
   private:
 
-    SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP);
-    void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject);
+    SocketCommPtr configApiConnectionHandler(SocketCommPtr aServerSocketComm);
+    void configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError, JsonObjectPtr aJsonObject);
     void learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError);
     void identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice);
     void endIdentify();

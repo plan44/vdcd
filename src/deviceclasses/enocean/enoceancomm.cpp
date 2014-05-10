@@ -873,14 +873,14 @@ EnoceanComm::~EnoceanComm()
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName)
 {
   LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
-  serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
+  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
   // create the enOcean reset IO pin
   if (aEnoceanResetPinName) {
     // init, initially LO = not reset
     enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false, false));
   }
 	// open connection so we can receive
-	serialComm.requestConnection();
+	serialComm->requestConnection();
 }
 
 
@@ -919,7 +919,7 @@ void EnoceanComm::aliveCheckTimeout()
   // - cancel alive checks for now
   MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
   // - close the connection
-  serialComm.closeConnection();
+  serialComm->closeConnection();
   // - do a hardware reset of the module if possible
   if (enoceanResetPin) enoceanResetPin->set(true); // reset
   MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 1*Second);
@@ -937,7 +937,7 @@ void EnoceanComm::resetDone()
 {
   LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset and re-opening connection\n");
   if (enoceanResetPin) enoceanResetPin->set(false); // release reset
-	serialComm.requestConnection(); // re-open connection
+	serialComm->requestConnection(); // re-open connection
   // restart alive checks
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 5*Second);
 }
@@ -1012,10 +1012,10 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
   // transmit
   // - fixed header
   ErrorPtr err;
-  serialComm.transmitBytes(ESP3_HEADERBYTES, aPacket->header, err);
+  serialComm->transmitBytes(ESP3_HEADERBYTES, aPacket->header, err);
   if (Error::isOK(err)) {
     // - payload
-    serialComm.transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
+    serialComm->transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
   }
   if (!Error::isOK(err)) {
     LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());

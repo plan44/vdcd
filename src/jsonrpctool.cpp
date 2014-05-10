@@ -33,9 +33,9 @@ using namespace p44;
 class JsonRpcTool : public Application
 {
   JsonRpcCommPtr jsonRpcComm; // current connection
-  FdComm userInput;
+  FdCommPtr userInput;
 
-  SocketComm jsonRpcServer; // server waiting for connection
+  SocketCommPtr jsonRpcServer; // server waiting for connection
 
   typedef enum {
     idle,
@@ -56,11 +56,11 @@ class JsonRpcTool : public Application
 public:
 
   JsonRpcTool() :
-    jsonRpcServer(SyncIOMainLoop::currentMainLoop()),
-    userInput(SyncIOMainLoop::currentMainLoop()),
     inputState(idle),
     autoaccept(false)
   {
+    userInput = FdCommPtr(new FdComm(SyncIOMainLoop::currentMainLoop()));
+    jsonRpcServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
   }
 
 
@@ -122,15 +122,15 @@ public:
     }
     else {
       // be server
-      jsonRpcServer.setConnectionParams(NULL, jsonrpcport, SOCK_STREAM, AF_INET);
-      jsonRpcServer.setAllowNonlocalConnections(true);
-      jsonRpcServer.startServer(boost::bind(&JsonRpcTool::jsonRpcServerConnectionHandler, this, _1), 1);
+      jsonRpcServer->setConnectionParams(NULL, jsonrpcport, SOCK_STREAM, AF_INET);
+      jsonRpcServer->setAllowNonlocalConnections(true);
+      jsonRpcServer->startServer(boost::bind(&JsonRpcTool::jsonRpcServerConnectionHandler, this, _1), 1);
     }
 
     // init user input
-    userInput.setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1, _2));
-    userInput.setFd(STDIN_FILENO);
-    userInput.makeNonBlocking();
+    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1, _2));
+    userInput->setFd(STDIN_FILENO);
+    userInput->makeNonBlocking();
 
     // app now ready to run
     return run();
@@ -138,7 +138,7 @@ public:
 
 
 
-  SocketCommPtr jsonRpcServerConnectionHandler(SocketComm *aServerSocketCommP)
+  SocketCommPtr jsonRpcServerConnectionHandler(SocketCommPtr aServerSocketComm)
   {
     printf("++++++++++++++ Connection from server\n");
     jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
@@ -253,7 +253,7 @@ public:
   {
     // get user input
     string text;
-    userInput.receiveString(text);
+    userInput->receiveString(text);
     text.erase(text.size()-1, 1); // remove CR
     //printf("User input = %s\n", jsonText.c_str());
     if (inputState==waiting_for_method) {

@@ -64,7 +64,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query actual arc power level
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_ACTUAL_LEVEL,
     boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
@@ -81,7 +81,7 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
     LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, bri);
   }
   // query the minimum dimming level
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_MIN_LEVEL,
     boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
@@ -122,7 +122,7 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
     }
     if (tr!=fadeTime || transitionTime==Infinite) {
       LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", tr);
-      daliDeviceContainer().daliComm.daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+      daliDeviceContainer().daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       fadeTime = tr;
     }
     transitionTime = aTransitionTime;
@@ -134,7 +134,7 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 void DaliDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress, DALICMD_QUERY_CONTROL_GEAR,
     boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _2, _3, _4)
   );
@@ -186,7 +186,7 @@ void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(aOutputBehaviour.valueForHardware());
     LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aOutputBehaviour.valueForHardware(), aOutputBehaviour.transitionTimeForHardware()/MilliSecond, power);
-    daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
+    daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
     aOutputBehaviour.outputValueApplied(); // confirm having applied the value
   }
   else

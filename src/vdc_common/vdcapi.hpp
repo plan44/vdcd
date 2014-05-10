@@ -151,8 +151,8 @@ namespace p44 {
 
   private:
 
-    SocketCommPtr serverConnectionHandler(SocketComm *aServerSocketCommP);
-    void connectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError);
+    SocketCommPtr serverConnectionHandler(SocketCommPtr aServerSocketComm);
+    void connectionStatusHandler(SocketCommPtr aSocketComm, ErrorPtr aError);
 
   };
 
