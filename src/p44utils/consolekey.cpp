@@ -117,7 +117,7 @@ void ConsoleKey::pulseEnd()
 void ConsoleKey::reportState()
 {
   if (keyHandler) {
-    keyHandler(this, state, MainLoop::now());
+    keyHandler(state, MainLoop::now());
   }
 }
 
@@ -200,7 +200,7 @@ bool ConsoleKeyManager::consoleKeyPoll()
     bool handled = false;
     if (keyPressHandler) {
       // call custom keypress handler
-      handled = keyPressHandler(this, c);
+      handled = keyPressHandler(c);
     }
     if (!handled) {
       bool toggle = false;

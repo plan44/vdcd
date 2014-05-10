@@ -40,7 +40,7 @@ namespace p44 {
     /// @param aConsoleKeyP the consolekey object
     /// @param aNewState the current state of the key
     /// @param aTimestamp the main loop timestamp of the key action
-    typedef boost::function<void (ConsoleKey *aConsoleKeyP, bool aNewState, MLMicroSeconds aTimestamp)> ConsoleKeyHandlerCB;
+    typedef boost::function<void (bool aNewState, MLMicroSeconds aTimestamp)> ConsoleKeyHandlerCB;
 
   private:
     char keyCode;
@@ -89,7 +89,7 @@ namespace p44 {
     /// @param aKeyPress key pressed
     /// @param aTimestamp the main loop timestamp of the button action
     /// @return true if fully handled already
-    typedef boost::function<bool (ConsoleKeyManager *aConsoleKeyManagerP, char aKeyPress)> ConsoleKeyPressCB;
+    typedef boost::function<bool (char aKeyPress)> ConsoleKeyPressCB;
 
   private:
 
