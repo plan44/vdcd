@@ -269,3 +269,42 @@ void p44::splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNum
     if (aHostName) aHostName->assign(p);
   }
 }
+
+
+
+string p44::hexToBinaryString(const char *aHexString)
+{
+  string bs;
+  uint8_t b = 0;
+  bool firstNibble = true;
+  char c;
+  while ((c = *aHexString++)!=0) {
+    if (c=='-') continue; // dashes allowed but ignored
+    c = toupper(c)-'0';
+    if (c>9) c -= ('A'-'9'-1);
+    if (c<0 || c>0xF)
+      break; // invalid char, done
+    if (firstNibble) {
+      b = c<<4;
+      firstNibble = false;
+    }
+    else {
+      b |= c;
+      bs.append((char *)&b,1);
+      firstNibble = true;
+    }
+  }
+  return bs;
+}
+
+
+string p44::binaryToHexString(const string &aBinaryString)
+{
+  string s;
+  size_t n = aBinaryString.size();
+  for (int i=0; i<n; i++) {
+    string_format_append(s, "%02X", (uint8_t)aBinaryString[i]);
+  }
+  return s;
+}
+

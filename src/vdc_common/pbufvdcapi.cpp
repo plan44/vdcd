@@ -293,6 +293,9 @@ string PbufApiValue::binaryValue()
   if (allocatedType==apivalue_binary) {
     return *(objectValue.stringP);
   }
+  else if (allocatedType==apivalue_string) {
+    return hexToBinaryString(objectValue.stringP->c_str());
+  }
   else {
     return ""; // not binary
   }
@@ -306,12 +309,7 @@ string PbufApiValue::stringValue()
   }
   else if (allocatedType==apivalue_binary) {
     // render as hex string
-    string s;
-    size_t n = objectValue.stringP->size();
-    for (int i=0; i<n; i++) {
-      string_format_append(s, "%02X", (uint8_t)(*(objectValue.stringP))[i]);
-    }
-    return s;
+    return binaryToHexString(*(objectValue.stringP));
   }
   // let base class render the contents as string
   return inherited::stringValue();
@@ -366,28 +364,7 @@ bool PbufApiValue::setStringValue(const string &aString)
   }
   else if (allocateIf(apivalue_binary)) {
     // parse string as hex
-    string bs;
-    const char *p = aString.c_str();
-    uint8_t b = 0;
-    bool firstNibble = true;
-    char c;
-    while ((c = *p++)!=0) {
-      if (c=='-') continue; // dashes allowed but ignored
-      c = toupper(c)-'0';
-      if (c>9) c -= ('A'-'9'-1);
-      if (c<0 || c>0xF)
-        break; // invalid char, done
-      if (firstNibble) {
-        b = c<<4;
-        firstNibble = false;
-      }
-      else {
-        b |= c;
-        bs.append((char *)&b,1);
-        firstNibble = true;
-      }
-    }
-    objectValue.stringP->assign(bs);
+    objectValue.stringP->assign(hexToBinaryString(aString.c_str()));
     return true;
   }
   else {
@@ -1236,9 +1213,6 @@ ErrorCode VdcPbufApiConnection::pbufToInternalError(Vdcapi__ResultCode aVdcApiRe
     case VDCAPI__RESULT_CODE__ERR_NOT_IMPLEMENTED: errorCode = 501; break;
     case VDCAPI__RESULT_CODE__ERR_NO_CONTENT_FOR_ARRAY: errorCode = 204; break;
     case VDCAPI__RESULT_CODE__ERR_INVALID_VALUE_TYPE: errorCode = 415; break;
-    // TODO: what were these intended for?
-    case VDCAPI__RESULT_CODE__ERR_MISSING_SUBMESSAGE: errorCode = 400; break;
-    case VDCAPI__RESULT_CODE__ERR_MISSING_DATA: errorCode = 400; break;
     default: errorCode = 500; break; // general error
   }
   return errorCode;

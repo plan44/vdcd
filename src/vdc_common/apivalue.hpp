@@ -190,7 +190,6 @@ namespace p44 {
     void setInt32Value(int32_t aInt32);
 
 
-
     /// utilities
     virtual size_t stringLength();
     bool setStringValue(const char *aCString);

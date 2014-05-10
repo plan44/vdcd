@@ -73,40 +73,14 @@ bool JsonApiValue::setStringValue(const string &aString)
 void JsonApiValue::setBinaryValue(const string &aBinary)
 {
   // represent as hex string in JSON
-  string s;
-  for (int i=0; i<aBinary.size(); i++) {
-    string_format_append(s, "%02X", (uint8_t)aBinary[i]);
-  }
-  setStringValue(s);
+  setStringValue(binaryToHexString(aBinary));
 }
 
 
 string JsonApiValue::binaryValue()
 {
   // parse binary string as hex
-  string bs;
-  string s = stringValue();
-  const char *p = s.c_str();
-  uint8_t b = 0;
-  bool firstNibble = true;
-  char c;
-  while ((c = *p++)!=0) {
-    if (c=='-') continue; // dashes allowed but ignored
-    c = toupper(c)-'0';
-    if (c>9) c -= ('A'-'9'-1);
-    if (c<0 || c>0xF)
-      break; // invalid char, done
-    if (firstNibble) {
-      b = c<<4;
-      firstNibble = false;
-    }
-    else {
-      b |= c;
-      bs.append((char *)&b,1);
-      firstNibble = true;
-    }
-  }
-  return bs;
+  return hexToBinaryString(stringValue().c_str());
 }
 
 
