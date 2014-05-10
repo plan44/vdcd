@@ -212,10 +212,16 @@ PropertyDescriptorPtr PropertyContainer::getDescriptorByName(string aPropMatch, 
   }
   else if (aPropMatch[0]=='#') {
     // special case 2 for reading: #n to access n-th subproperty
-    sscanf(aPropMatch.c_str()+1, "%d", &aStartIndex);
-    // name does not matter, pick item at aStartindex
-    wildcard = true;
-    aPropMatch.clear();
+    int newIndex = n; // set out of range by default
+    if (sscanf(aPropMatch.c_str()+1, "%d", &newIndex)==1) {
+      // name does not matter, pick item at newIndex unless below current start
+      wildcard = true;
+      aPropMatch.clear();
+      if(newIndex>=aStartIndex)
+        aStartIndex = newIndex; // not yet passed this index in iteration -> use it
+      else
+        aStartIndex = n; // already passed -> make out of range
+    }
   }
   while (aStartIndex<n) {
     propDesc = getDescriptorByIndex(aStartIndex, aDomain, aParentDescriptor);
