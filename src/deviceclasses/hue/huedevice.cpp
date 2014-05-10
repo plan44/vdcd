@@ -284,7 +284,7 @@ void HueLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
       string url = string_format("/lights/%s", devP->lightID.c_str());
-      devP->hueComm().apiQuery(url.c_str(), boost::bind(&HueLightBehaviour::sceneColorsReceived, this, hueScene, aDoneCB, _2, _3));
+      devP->hueComm().apiQuery(url.c_str(), boost::bind(&HueLightBehaviour::sceneColorsReceived, this, hueScene, aDoneCB, _1, _2));
     }
   }
 }
@@ -404,7 +404,7 @@ void HueDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query light attributes and state
   string url = string_format("/lights/%s", lightID.c_str());
-  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::deviceStateReceived, this, aCompletedCB, aFactoryReset, _2, _3));
+  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::deviceStateReceived, this, aCompletedCB, aFactoryReset, _1, _2));
 }
 
 
@@ -449,7 +449,7 @@ void HueDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
   string url = string_format("/lights/%s", lightID.c_str());
-  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::presenceStateReceived, this, aPresenceResultHandler, _2, _3));
+  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::presenceStateReceived, this, aPresenceResultHandler, _1, _2));
 }
 
 
@@ -507,7 +507,7 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
   else {
     // not disconnectable
     if (aDisconnectResultHandler) {
-      aDisconnectResultHandler(DevicePtr(this), false);
+      aDisconnectResultHandler(false);
     }
   }
 }
@@ -565,7 +565,7 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
     // for on and off, set transition time (1/10 second resolution)
     newState->add("transitiontime", JsonObject::newInt64(aOutputBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aOutputBehaviour, _3));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aOutputBehaviour, _2));
   }
   else
     return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this

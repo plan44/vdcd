@@ -66,8 +66,8 @@ namespace p44 {
   private:
 
     void deriveDsUid();
-    void presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError);
-    void timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch);
+    void presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
+    void timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch);
 
   };
 

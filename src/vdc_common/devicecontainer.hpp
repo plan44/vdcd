@@ -333,7 +333,7 @@ namespace p44 {
     ErrorPtr helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
     ErrorPtr byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
     ErrorPtr removeHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice);
-    void removeResultHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice, bool aDisconnected);
+    void removeResultHandler(VdcApiRequestPtr aForRequest, bool aDisconnected);
 
     // announcing dSUID addressable entities within the device container (vdc host)
     void resetAnnouncing();

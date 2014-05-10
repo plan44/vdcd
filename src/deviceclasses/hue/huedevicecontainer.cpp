@@ -96,7 +96,7 @@ void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremen
     // we know a bridge by UUID, try to refind it
     hueComm.uuid = bridgeUuid;
     hueComm.userName = bridgeUserName;
-    hueComm.refindBridge(boost::bind(&HueDeviceContainer::refindResultHandler, this, _2));
+    hueComm.refindBridge(boost::bind(&HueDeviceContainer::refindResultHandler, this, _1));
   }
   else {
     // no bridge known, can't collect anything at this time
@@ -139,7 +139,7 @@ void HueDeviceContainer::setLearnMode(bool aEnableLearning)
       getDeviceContainer().getDsUid().getString().c_str(), // dSUID is suitable as hue login name
       getDeviceContainer().modelName().c_str(),
       15*Second, // try to login for 15 secs
-      boost::bind(&HueDeviceContainer::searchResultHandler, this, _2)
+      boost::bind(&HueDeviceContainer::searchResultHandler, this, _1)
     );
   }
   else {
@@ -208,7 +208,7 @@ void HueDeviceContainer::collectLights()
 {
   // Note: can be used to incrementally search additional lights
   // issue lights query
-  hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _2, _3));
+  hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _1, _2));
 }
 
 

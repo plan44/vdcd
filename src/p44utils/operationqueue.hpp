@@ -95,6 +95,7 @@ namespace p44 {
 
 
   /// Operation queue
+  typedef boost::intrusive_ptr<OperationQueue> OperationQueuePtr;
   class OperationQueue : public P44Obj
   {
     MainLoop &mainLoop;

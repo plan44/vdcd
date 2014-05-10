@@ -68,7 +68,7 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
         // use this callback, but as callback routine might post another request immediately, we need to free the member first
         JsonWebClientCB cb = jsonResponseCallback;
         jsonResponseCallback.clear();
-        cb(*this, message, requestError);
+        cb(message, requestError);
       }
       // release child thread object now
       childThread.reset();

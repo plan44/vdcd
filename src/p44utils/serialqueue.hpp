@@ -52,19 +52,21 @@ namespace p44 {
   };
 
 
+
   class SerialOperation;
   class SerialOperationQueue;
   class SerialOperationSendAndReceive;
 
+  typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
+
   /// SerialOperation completion callback
-  typedef boost::function<void (SerialOperation &aSerialOperation, OperationQueue *aQueueP, ErrorPtr aError)> SerialOperationFinalizeCB;
+  typedef boost::function<void (SerialOperationPtr aSerialOperation, OperationQueuePtr aQueue, ErrorPtr aError)> SerialOperationFinalizeCB;
 
   /// SerialOperation transmitter
   typedef boost::function<size_t (size_t aNumBytes, const uint8_t *aBytes)> SerialOperationTransmitter;
 
 
   /// Serial operation
-  typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
   class SerialOperation : public Operation
   {
     friend class SerialOperationSendAndReceive;
@@ -188,7 +190,7 @@ namespace p44 {
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// FdComm handler
-    void receiveHandler(FdComm *aFdCommP, ErrorPtr aError);
+    void receiveHandler(ErrorPtr aError);
 
     /// standard transmitter
     size_t standardTransmitter(size_t aNumBytes, const uint8_t *aBytes);

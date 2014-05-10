@@ -64,7 +64,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   else {
     // Digital input as button
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
-    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _2, _3), true);
+    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _1, _2), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);

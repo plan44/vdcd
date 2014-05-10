@@ -31,7 +31,7 @@ JsonRpcComm::JsonRpcComm(SyncIOMainLoop &aMainLoop) :
   reportAllErrors(false)
 {
   // set myself as handler of incoming JSON objects (which are supposed to be JSON-RPC 2.0
-  setMessageHandler(boost::bind(&JsonRpcComm::gotJson, this, _2, _3));
+  setMessageHandler(boost::bind(&JsonRpcComm::gotJson, this, _1, _2));
 }
 
 
@@ -186,7 +186,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
               }
               else {
                 // call handler to execute method or notification
-                jsonRequestHandler(this, method, idString, paramsObj);
+                jsonRequestHandler(method, idString, paramsObj);
               }
             }
           }
@@ -233,7 +233,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
               // found callback
               JsonRpcResponseCB cb = pos->second;
               pendingAnswers.erase(pos); // erase
-              cb(this, requestId, respErr, respObj); // call
+              cb(requestId, respErr, respObj); // call
             }
             respErr.reset(); // handled
           }

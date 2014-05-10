@@ -187,7 +187,7 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
     childThread.reset();
     // now execute callback
     if (cb) {
-      cb(*this, resp, reqErr);
+      cb(resp, reqErr);
     }
   }
 }

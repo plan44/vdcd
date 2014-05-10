@@ -288,7 +288,7 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
   classContainerP->removeDevice(dev, aForgetParams);
   // that's all for the base class
   if (aDisconnectResultHandler)
-    aDisconnectResultHandler(dev, true);
+    aDisconnectResultHandler(true);
 }
 
 

@@ -67,7 +67,7 @@ void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
   daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_ACTUAL_LEVEL,
-    boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+    boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _1, _2, _3)
   );
 }
 
@@ -84,7 +84,7 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
   daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_MIN_LEVEL,
-    boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+    boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _1, _2, _3)
   );
 }
 
@@ -136,7 +136,7 @@ void DaliDevice::checkPresence(PresenceCB aPresenceResultHandler)
   // query the device
   daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress, DALICMD_QUERY_CONTROL_GEAR,
-    boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _2, _3, _4)
+    boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _1, _2, _3)
   );
 }
 
@@ -172,7 +172,7 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
   else {
     // not disconnectable
     if (aDisconnectResultHandler) {
-      aDisconnectResultHandler(DevicePtr(this), false);
+      aDisconnectResultHandler(false);
     }
   }
 }

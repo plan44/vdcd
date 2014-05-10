@@ -116,7 +116,7 @@ public:
       jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
       jsonRpcComm->setConnectionParams(jsonrpchost, jsonrpcport, SOCK_STREAM, AF_INET);
       jsonRpcComm->setConnectionStatusHandler(boost::bind(&JsonRpcTool::jsonRpcClientConnectionHandler, this, _2));
-      jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3, _4));
+      jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
       jsonRpcComm->initiateConnection();
 
     }
@@ -128,7 +128,7 @@ public:
     }
 
     // init user input
-    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1, _2));
+    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1));
     userInput->setFd(STDIN_FILENO);
     userInput->makeNonBlocking();
 
@@ -143,7 +143,7 @@ public:
     printf("++++++++++++++ Connection from server\n");
     jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
     jsonRpcComm->setReportAllErrors(true); // server should report all errors
-    jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3, _4));
+    jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
     askMethod();
     return jsonRpcComm;
   }
@@ -165,7 +165,7 @@ public:
   }
 
 
-  void jsonRpcRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+  void jsonRpcRequestHandler(const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
   {
     printf("\nJSON-RPC request id='%s', method='%s', params=%s\n\n", aJsonRpcId ? aJsonRpcId : "<none>", aMethod, aParams ? aParams->c_strValue() : "<none>");
     if (aJsonRpcId) {
@@ -186,7 +186,7 @@ public:
   }
 
 
-  void jsonRpcResponseHandler(JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
+  void jsonRpcResponseHandler(int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
   {
     if (Error::isOK(aError)) {
       printf("\nJSON-RPC result id=%d, result=%s\n", aResponseId, aResultOrErrorData ? aResultOrErrorData->c_strValue() : "NULL");
@@ -249,7 +249,7 @@ public:
   }
 
 
-  void userInputHandler(FdComm *aFdCommP, ErrorPtr aError)
+  void userInputHandler(ErrorPtr aError)
   {
     // get user input
     string text;

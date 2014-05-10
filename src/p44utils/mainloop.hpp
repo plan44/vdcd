@@ -54,19 +54,19 @@ namespace p44 {
 
   /// Handler for idle time processing (called when other mainloop tasks are done)
   /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
-  typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+  typedef boost::function<bool (MLMicroSeconds aCycleStartTime)> IdleCB;
 
   /// Handler for one time processing (scheduled by executeOnce()/executeOnceAt())
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime)> OneTimeCB;
 
   /// Handler for getting signalled when child process terminates
   /// @param aPid the PID of the process that has terminated
   /// @param aStatus the exit status of the process that has terminated
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
 
   /// Handler called when fork_and_execve() or fork_and_system() terminate
   /// @param aOutputString the stdout output of the executed command
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
   /// @}
 

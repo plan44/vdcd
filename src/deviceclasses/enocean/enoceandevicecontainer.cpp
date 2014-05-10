@@ -117,7 +117,7 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
   // install standard packet handler
-  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _2, _3));
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
   // start enOcean module operation watchdog
   enoceanComm.startWatchDog();
   // incrementally collecting enOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
@@ -305,7 +305,7 @@ void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisablePro
 void EnoceanDeviceContainer::selfTest(CompletedCB aCompletedCB)
 {
   // install test packet handler
-  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _2, _3));
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _1, _2));
   // start watchdog
   enoceanComm.startWatchDog();
 }

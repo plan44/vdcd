@@ -23,13 +23,13 @@ const char *UpnpDeviceContainer::deviceClassIdentifier() const
   return "UPnP_Device_Container";
 }
 
-void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearch *aSsdpSearchP, ErrorPtr aError)
+void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // found a result (not just timeout)
-    printf("SSDP discovery:\n%s\n", aSsdpSearchP->response.c_str());
+    printf("SSDP discovery:\n%s\n", aSsdpSearch->response.c_str());
     // this is an answer to our M-SEARCH, so it has the right device type and should be added
-    DevicePtr newDev = DevicePtr(new UpnpDevice(this, aSsdpSearchP->locationURL, aSsdpSearchP->uuid));
+    DevicePtr newDev = DevicePtr(new UpnpDevice(this, aSsdpSearch->locationURL, aSsdpSearch->uuid));
     addDevice(newDev);
   }
   else {

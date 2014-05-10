@@ -195,7 +195,7 @@ void SparkLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
     // query light attributes and state
     SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
     if (devP) {
-      devP->sparkApiCall(boost::bind(&SparkLightBehaviour::sceneStateReceived, this, sparkScene, aDoneCB, _2, _3), "state0");
+      devP->sparkApiCall(boost::bind(&SparkLightBehaviour::sceneStateReceived, this, sparkScene, aDoneCB, _1, _2), "state0");
     }
   }
 }
@@ -284,7 +284,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
 void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // get vdsd API version
-  if (!sparkApiCall(boost::bind(&SparkIoDevice::apiVersionReceived, this, aCompletedCB, aFactoryReset, _2, _3), "version")) {
+  if (!sparkApiCall(boost::bind(&SparkIoDevice::apiVersionReceived, this, aCompletedCB, aFactoryReset, _1, _2), "version")) {
     // could not even issue request, init complete
     inherited::initializeDevice(aCompletedCB, aFactoryReset);
   }
@@ -311,7 +311,7 @@ void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryRe
 void SparkIoDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
-  sparkApiCall(boost::bind(&SparkIoDevice::presenceStateReceived, this, aPresenceResultHandler, _2, _3), "version");
+  sparkApiCall(boost::bind(&SparkIoDevice::presenceStateReceived, this, aPresenceResultHandler, _1, _2), "version");
 }
 
 
@@ -354,7 +354,7 @@ void SparkIoDevice::postOutputValue(OutputBehaviour &aOutputBehaviour)
       args = string_format("output0=%d", outputValue);
     }
     // posting might fail if done too early
-    if (!sparkApiCall(boost::bind(&SparkIoDevice::outputChanged, this, aOutputBehaviour, _2, _3), args)) {
+    if (!sparkApiCall(boost::bind(&SparkIoDevice::outputChanged, this, aOutputBehaviour, _1, _2), args)) {
       outputChangePending = true; // retry when previous request done
     }
   }

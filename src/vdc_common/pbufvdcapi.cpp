@@ -1045,7 +1045,7 @@ VdcPbufApiConnection::VdcPbufApiConnection() :
 {
   socketComm = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
   // install data handler
-  socketComm->setReceiveHandler(boost::bind(&VdcPbufApiConnection::gotData, this, _2));
+  socketComm->setReceiveHandler(boost::bind(&VdcPbufApiConnection::gotData, this, _1));
 }
 
 
@@ -1150,7 +1150,7 @@ ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage
       if (sentBytes<packedSize) {
         // Not everything (or maybe nothing, transmitBytes() can return 0) was sent
         // - enable callback for ready-for-send
-        socketComm->setTransmitHandler(boost::bind(&VdcPbufApiConnection::canSendData, this, _2));
+        socketComm->setTransmitHandler(boost::bind(&VdcPbufApiConnection::canSendData, this, _1));
         // buffer the rest, canSendData handler will take care of writing it out
         transmitBuffer.assign((char *)packedMsg+sentBytes, packedSize-sentBytes);
       }

@@ -185,12 +185,12 @@ VdcJsonApiConnection::VdcJsonApiConnection()
 {
   jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
   // install JSON request handler locally
-  jsonRpcComm->setRequestHandler(boost::bind(&VdcJsonApiConnection::jsonRequestHandler, this, _1, _2, _3, _4));
+  jsonRpcComm->setRequestHandler(boost::bind(&VdcJsonApiConnection::jsonRequestHandler, this, _1, _2, _3));
 }
 
 
 
-void VdcJsonApiConnection::jsonRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+void VdcJsonApiConnection::jsonRequestHandler(const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
 {
   ErrorPtr respErr;
   if (apiRequestHandler) {
@@ -231,7 +231,7 @@ ErrorPtr VdcJsonApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
   ErrorPtr err;
   if (aResponseHandler) {
     // method call expecting response
-    err = jsonRpcComm->sendRequest(aMethod.c_str(), params->jsonObject(), boost::bind(&VdcJsonApiConnection::jsonResponseHandler, this, aResponseHandler, _2, _3, _4));
+    err = jsonRpcComm->sendRequest(aMethod.c_str(), params->jsonObject(), boost::bind(&VdcJsonApiConnection::jsonResponseHandler, this, aResponseHandler, _1, _2, _3));
     LOG(LOG_INFO,"vdSM <- vDC (JSON) method call sent: requestid='%d', method='%s', params=%s\n", jsonRpcComm->lastRequestId(), aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
   }
   else {

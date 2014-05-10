@@ -38,18 +38,18 @@ void UpnpDevice::checkPresence(PresenceCB aPresenceResultHandler)
 
 
 
-void UpnpDevice::presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError)
+void UpnpDevice::presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch, ErrorPtr aError)
 {
-  printf("Ping response notify\n%s\n", aSsdpSearchP->response.c_str());
+  printf("Ping response notify\n%s\n", aSsdpSearch->response.c_str());
   aPresenceResultHandler(true);
-  aSsdpSearchP->stopSearch();
+  aSsdpSearch->stopSearch();
   MainLoop::currentMainLoop().cancelExecutionTicket(presenceTicket);
 }
 
 
-void UpnpDevice::timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch)
+void UpnpDevice::timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch)
 {
-  aSrch->stopSearch();
+  aSsdpSearch->stopSearch();
   aPresenceResultHandler(false);
   presenceTicket = 0;
 }

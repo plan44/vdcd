@@ -54,7 +54,7 @@ size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 OperationPtr SerialOperation::finalize(OperationQueue *aQueueP)
 {
   if (callback) {
-    callback(*this,aQueueP,ErrorPtr());
+    callback(SerialOperationPtr(this), aQueueP, ErrorPtr());
     callback = NULL; // call once only
   }
   return OperationPtr(); // no operation to insert
@@ -65,7 +65,7 @@ void SerialOperation::abortOperation(ErrorPtr aError)
 {
   if (callback && !aborted) {
     aborted = true;
-    callback(*this,NULL,aError);
+    callback(SerialOperationPtr(this), NULL, aError);
     callback = NULL; // call once only
   }
 }
@@ -241,9 +241,9 @@ SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
 {
   // Set handlers for FdComm
   serialComm = SerialCommPtr(new SerialComm(aMainLoop));
-  serialComm->setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1, _2));
+  serialComm->setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1));
   // TODO: once we implement buffered write, install the ready-for-transmission handler here
-  //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1, _2));
+  //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1));
   // Set standard transmitter and receiver for operations
   setTransmitter(boost::bind(&SerialOperationQueue::standardTransmitter, this, _1, _2));
 	setReceiver(boost::bind(&SerialOperationQueue::standardReceiver, this, _1, _2));
@@ -274,7 +274,7 @@ void SerialOperationQueue::setReceiver(SerialOperationReceiver aReceiver)
 
 
 // handles incoming data from serial interface
-void SerialOperationQueue::receiveHandler(FdComm *aFdCommP, ErrorPtr aError)
+void SerialOperationQueue::receiveHandler(ErrorPtr aError)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];

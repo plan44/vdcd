@@ -159,6 +159,7 @@ namespace p44 {
     ApiValuePtr newBinary(const string &aBinary);
     ApiValuePtr newObject();
     ApiValuePtr newArray();
+    ApiValuePtr newNull();
 
     /// @}
 

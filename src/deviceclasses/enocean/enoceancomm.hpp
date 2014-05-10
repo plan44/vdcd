@@ -325,7 +325,7 @@ namespace p44 {
   };
 
 
-  typedef boost::function<void (EnoceanComm &aEnoceanComm, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
+  typedef boost::function<void (Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
 
   typedef boost::intrusive_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication

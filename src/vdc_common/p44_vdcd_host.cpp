@@ -201,7 +201,7 @@ void P44VdcHost::startConfigApi()
 SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketCommPtr aServerSocketCommP)
 {
   JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
-  conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, _1, _2, _3));
+  conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, conn, _1, _2));
   return conn;
 }
 
@@ -317,6 +317,21 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       if (isMethod) {
         // create request
         P44JsonApiRequestPtr request = P44JsonApiRequestPtr(new P44JsonApiRequest(aJsonComm));
+        // check for old-style name/index and generate basic query (1 or 2 levels)
+        ApiValuePtr query = params->newObject();
+        ApiValuePtr name = params->get("name");
+        if (name) {
+          ApiValuePtr index = params->get("index");
+          ApiValuePtr subquery = params->newNull();
+          if (index) {
+            // subquery
+            subquery->setType(apivalue_object);
+            subquery->add(index->stringValue(), subquery->newNull());
+          }
+          string nm = trimWhiteSpace(name->stringValue()); // to allow a single space for deep recursing wildcard
+          query->add(nm, subquery);
+          params->add("query", query);
+        }
         // handle method
         err = handleMethodForDsUid(cmd, request, dsuid, params);
         // methods send results themselves

@@ -283,7 +283,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
   if (timerRef!=Never) {
     // need timing, schedule calling again
     timerPending = true;
-    MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkTimer, this, _2), aNow+10*MilliSecond, this);
+    MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkTimer, this, _1), aNow+10*MilliSecond, this);
   }
 }
 

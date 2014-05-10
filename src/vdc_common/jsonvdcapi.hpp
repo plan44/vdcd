@@ -185,7 +185,7 @@ namespace p44 {
 
   private:
 
-    void jsonRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void jsonRequestHandler(const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
     void jsonResponseHandler(VdcApiResponseCB aResponseHandler, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
   };

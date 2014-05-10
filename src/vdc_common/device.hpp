@@ -226,7 +226,7 @@ namespace p44 {
     virtual void processControlValue(const string &aName, double aValue);
 
 
-    typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
+    typedef boost::function<void (bool aDisconnected)> DisconnectCB;
 
     /// disconnect device. If presence is represented by data stored in the vDC rather than
     /// detection of real physical presence on a bus, this call must clear the data that marks

@@ -49,7 +49,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<FdComm> FdCommPtr;
 
   /// callback for signalling ready for receive or transmit, or error
-  typedef boost::function<void (FdComm *aFdCommP, ErrorPtr aError)> FdCommCB;
+  typedef boost::function<void (ErrorPtr aError)> FdCommCB;
 
 
   /// wrapper for non-blocking I/O on a file descriptor
@@ -156,7 +156,7 @@ namespace p44 {
 
   private:
 
-    void gotData(FdComm *aFdCommP, ErrorPtr aError);
+    void gotData(ErrorPtr aError);
 
   };
   typedef boost::intrusive_ptr<FdStringCollector> FdStringCollectorPtr;

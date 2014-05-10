@@ -65,7 +65,7 @@ namespace p44 {
   /// @param aHttpCommP the HttpComm object this callback comes from
   /// @param aResponse the response string
   /// @param aError an error object if an error occurred, empty pointer otherwise
-  typedef boost::function<void (HttpComm &aHttpComm, const string &aResponse, ErrorPtr aError)> HttpCommCB;
+  typedef boost::function<void (const string &aResponse, ErrorPtr aError)> HttpCommCB;
 
 
   /// wrapper for non-blocking http client communication

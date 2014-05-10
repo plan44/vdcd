@@ -62,7 +62,7 @@ private:
     incremental(aIncremental),
     daliDeviceContainerP(aDaliDeviceContainerP)
   {
-    daliComm->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _2, _3), !aForceFullScan); // allow quick scan when not forced
+    daliComm->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _1, _2), !aForceFullScan); // allow quick scan when not forced
   }
 
   void deviceListReceived(DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
@@ -80,7 +80,7 @@ private:
   void queryNextDev(ErrorPtr aError)
   {
     if (!aError && nextDev!=deviceShortAddresses->end())
-      daliComm->daliReadDeviceInfo(boost::bind(&DaliDeviceCollector::deviceInfoReceived, this, _2, _3), *nextDev);
+      daliComm->daliReadDeviceInfo(boost::bind(&DaliDeviceCollector::deviceInfoReceived, this, _1, _2), *nextDev);
     else
       return completed(aError);
   }
@@ -138,7 +138,7 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
 void DaliDeviceContainer::selfTest(CompletedCB aCompletedCB)
 {
   // do bus short address scan
-  daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _2, _3));
+  daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _1, _2));
 }
 
 
@@ -165,7 +165,7 @@ void DaliDeviceContainer::testRW(CompletedCB aCompletedCB, DaliAddress aShortAdd
   // set DTR
   daliComm->daliSend(DALICMD_SET_DTR, aTestByte);
   // query DTR again, with 200mS delay
-  daliComm->daliSendQuery(aShortAddr, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliDeviceContainer::testRWResponse, this, aCompletedCB, aShortAddr, aTestByte, _2, _3, _4), 200*MilliSecond);
+  daliComm->daliSendQuery(aShortAddr, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliDeviceContainer::testRWResponse, this, aCompletedCB, aShortAddr, aTestByte, _1, _2, _3), 200*MilliSecond);
 }
 
 

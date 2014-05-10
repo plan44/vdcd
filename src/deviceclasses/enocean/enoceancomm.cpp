@@ -982,7 +982,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
     // incoming radio packet
     if (radioPacketHandler) {
       // call the handler
-      radioPacketHandler(*this, aPacket, ErrorPtr());
+      radioPacketHandler(aPacket, ErrorPtr());
     }
   }
   else if (pt==pt_response) {

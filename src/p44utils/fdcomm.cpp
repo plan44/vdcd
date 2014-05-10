@@ -91,7 +91,7 @@ bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycle
     DBGLOG(LOG_DEBUG, "- POLLIN with %d bytes ready\n", bytes);
     if (bytes>0) {
       DBGLOG(LOG_DEBUG, "- calling receive handler\n");
-      receiveHandler(this, ErrorPtr());
+      receiveHandler(ErrorPtr());
     }
     else {
       // alerted for read, but nothing to read any more - is also an exception
@@ -107,7 +107,7 @@ bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycle
   }
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
     DBGLOG(LOG_DEBUG, "- POLLOUT - calling data transmit handler\n");
-    transmitHandler(this, ErrorPtr());
+    transmitHandler(ErrorPtr());
   }
   else if (aPollFlags & POLLERR) {
     // error
@@ -259,11 +259,11 @@ FdStringCollector::FdStringCollector(SyncIOMainLoop &aMainLoop) :
   FdComm(aMainLoop),
   ended(false)
 {
-  setReceiveHandler(boost::bind(&FdStringCollector::gotData, this, _1, _2));
+  setReceiveHandler(boost::bind(&FdStringCollector::gotData, this, _1));
 }
 
 
-void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
+void FdStringCollector::gotData(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     receiveAndAppendToString(collectedData);
@@ -288,7 +288,7 @@ void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
     setReceiveHandler(NULL);
     // if ending first time, call back
     if (!ended && endedCallback) {
-      endedCallback(this, ErrorPtr());
+      endedCallback(ErrorPtr());
       // Note: we do not clear the callback here, as it might hold references which are not cleanly disposable right now
     }
     // anyway, ended now
@@ -304,7 +304,7 @@ void FdStringCollector::collectToEnd(FdCommCB aEndedCallback)
   if (ended) {
     // if already ended when called, end right away
     if (endedCallback) {
-      endedCallback(this, ErrorPtr());
+      endedCallback(ErrorPtr());
       endedCallback = NULL;
     }
   }

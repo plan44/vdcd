@@ -33,7 +33,7 @@ namespace p44 {
   private:
     SsdpSearchPtr m_dmr_search;
 
-    void collectHandler(CompletedCB aCompletedCB, SsdpSearch *aSsdpSearchP, ErrorPtr aError);
+    void collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
   };
 
 } // namespace p44

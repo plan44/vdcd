@@ -566,12 +566,12 @@ public:
     else if (factoryResetWait) {
       // button held during startup, check for factory reset
       // - connect special button hander
-      button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _1, _2, _3), true, 1*Second);
     }
     else {
       // normal init
       // - connect button
-      button->setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _1, _2, _3), true, 1*Second);
       // - initialize the device container
       p44VdcHost->initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
     }

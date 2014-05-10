@@ -33,7 +33,7 @@ namespace p44 {
   class JsonComm;
 
   /// generic callback for delivering a received JSON object or an error occurred when receiving JSON
-  typedef boost::function<void (JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)> JSonMessageCB;
+  typedef boost::function<void (ErrorPtr aError, JsonObjectPtr aJsonObject)> JSonMessageCB;
 
   typedef boost::intrusive_ptr<JsonComm> JsonCommPtr;
   /// A class providing low level access to the DALI bus

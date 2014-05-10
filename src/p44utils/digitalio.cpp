@@ -157,7 +157,7 @@ void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAn
   repeatActiveReport = aRepeatActiveReport;
   buttonHandler = aButtonHandler;
   if (buttonHandler) {
-    MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _2));
+    MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _1));
   }
   else {
     // unregister
@@ -174,7 +174,7 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
   if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
     // report if needed
     if (!newState || reportPressAndRelease) {
-      buttonHandler(this, newState, true, aTimestamp-lastChangeTime);
+      buttonHandler(newState, true, aTimestamp-lastChangeTime);
     }
     // consider this a state change
     lastState = newState;
@@ -188,7 +188,7 @@ bool ButtonInput::poll(MLMicroSeconds aTimestamp)
     if (newState && repeatActiveReport!=Never && aTimestamp-lastActiveReport>=repeatActiveReport) {
       lastActiveReport = aTimestamp;
       // re-report pressed state
-      buttonHandler(this, true, false, aTimestamp-lastChangeTime);
+      buttonHandler(true, false, aTimestamp-lastChangeTime);
     }
   }
   return true;
@@ -204,7 +204,7 @@ IndicatorOutput::IndicatorOutput(const char* aName, bool aInverted, bool aInitia
   blinkOnTime(Never),
   blinkOffTime(Never)
 {
-  MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _2));
+  MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&IndicatorOutput::timer, this, _1));
 }
 
 

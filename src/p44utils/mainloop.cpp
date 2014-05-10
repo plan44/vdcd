@@ -231,7 +231,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
   if (aPipeBackStdOut) {
     if(pipe(answerPipe)<0) {
       // pipe could not be created
-      aCallback(*this, cycleStartTime, SysError::errNo(),"");
+      aCallback(cycleStartTime, SysError::errNo(),"");
       return;
     }
   }
@@ -267,13 +267,13 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
         ans->setFd(answerPipe[0]);
       }
       LOG(LOG_DEBUG,"fork_and_execve: now calling waitForPid(%d)\n", child_pid);
-      waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _3, _4), child_pid);
+      waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _2, _3), child_pid);
     }
   }
   else {
     if (aCallback) {
       // fork failed, call back with error
-      aCallback(*this, cycleStartTime, SysError::errNo(),"");
+      aCallback(cycleStartTime, SysError::errNo(),"");
     }
   }
   return;
@@ -304,7 +304,7 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
     else {
       // call back directly
       LOG(LOG_DEBUG,"- no aAnswerCollector: callback immediately\n");
-      aCallback(*this, cycleStartTime, err, "");
+      aCallback(cycleStartTime, err, "");
     }
   }
 }
@@ -319,7 +319,7 @@ void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnsw
   string answer = aAnswerCollector->collectedData;
   LOG(LOG_DEBUG,"- Answer = %s\n", answer.c_str());
   // call back directly
-  aCallback(*this, cycleStartTime, aError, answer);
+  aCallback(cycleStartTime, aError, answer);
 }
 
 
@@ -373,7 +373,7 @@ void MainLoop::runOnetimeHandlers()
       if (terminated) return; // terminated means everything is considered complete
       OneTimeCB cb = pos->callback; // get handler
       pos = onetimeHandlers.erase(pos); // remove from queue
-      cb(*this, cycleStartTime); // call handler
+      cb(cycleStartTime); // call handler
       if (oneTimeHandlersChanged) {
         // callback has caused change of onetime handlers list, pos gets invalid
         break; // but done for now
@@ -392,7 +392,7 @@ bool MainLoop::runIdleHandlers()
   while (pos!=idleHandlers.end()) {
     if (terminated) return true; // terminated means everything is considered complete
     IdleCB cb = pos->callback; // get handler
-    allCompleted = allCompleted && cb(*this, cycleStartTime); // call handler
+    allCompleted = allCompleted && cb(cycleStartTime); // call handler
     if (idleHandlersChanged) {
       // callback has caused change of idlehandlers list, pos gets invalid
       return false; // not really completed, cause calling again soon
@@ -420,7 +420,7 @@ bool MainLoop::checkWait()
         waitHandlers.erase(pos);
         // call back
         LOG(LOG_DEBUG,"- calling wait handler for pid=%d now\n", pid);
-        cb(*this, cycleStartTime, pid, status);
+        cb(cycleStartTime, pid, status);
         return false; // more process status could be ready, call soon again
       }
     }
@@ -435,7 +435,7 @@ bool MainLoop::checkWait()
         waitHandlers.clear(); // remove all handlers from real list, as new handlers might be added in handlers we'll call now
         for (WaitHandlerMap::iterator pos = oldHandlers.begin(); pos!=oldHandlers.end(); pos++) {
           WaitCB cb = pos->second.callback; // get callback
-          cb(*this, cycleStartTime, pos->second.pid, 0); // fake status
+          cb(cycleStartTime, pos->second.pid, 0); // fake status
         }
       }
       else {

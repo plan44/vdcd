@@ -212,7 +212,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 void DeviceContainer::startRunning()
 {
   // start periodic tasks needed during normal running like announcement checking and saving parameters
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _1), 1*Second, deviceContainerP);
 }
 
 
@@ -477,7 +477,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
     }
   }
   // schedule next run
-  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL, this);
 }
 
 
@@ -840,12 +840,12 @@ ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDe
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
   // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete
-  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1, _2));
+  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1));
   return ErrorPtr();
 }
 
 
-void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice, bool aDisconnected)
+void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, bool aDisconnected)
 {
   if (aDisconnected)
     aRequest->sendResult(ApiValuePtr()); // disconnected successfully

@@ -73,13 +73,12 @@ namespace p44 {
 
 
   /// will be called to deliver api result
-  /// @param aHueComm the HueComm object
   /// @param the result in case of success.
   /// - In case of PUT, POST and DELETE requests, it is the contents of the "success" response object
   /// - In case of GET requests, it is the entire answer object
   /// @param aError error in case of failure, error code is either a HueCommErrors enum or the error code as
   ///   delivered by the hue brigde itself.
-  typedef boost::function<void (HueComm &aHueComm, JsonObjectPtr aResult, ErrorPtr aError)> HueApiResultCB;
+  typedef boost::function<void (JsonObjectPtr aResult, ErrorPtr aError)> HueApiResultCB;
 
 
   class HueApiOperation : public Operation
@@ -165,7 +164,7 @@ namespace p44 {
     /// @param aHueComm the HueComm object
     /// @param aError error if find/learn was not successful. If no error, HueComm is now ready to
     ///   send API commands
-    typedef boost::function<void (HueComm &aHueComm, ErrorPtr aError)> HueBridgeFindCB;
+    typedef boost::function<void (ErrorPtr aError)> HueBridgeFindCB;
 
     /// find and try to pair new hue bridge
     /// @param aUserName the suggested user name for the hue bridge. Identifier without spaces and funny characters

@@ -39,7 +39,7 @@ namespace p44 {
   /// @param aJsonWebClientP the JsonWebClient object this callback comes from
   /// @param aResponse the response string
   /// @param aError an error object if an error occurred, empty pointer otherwise
-  typedef boost::function<void (JsonWebClient &aJsonWebClient, JsonObjectPtr aJsonResponse, ErrorPtr aError)> JsonWebClientCB;
+  typedef boost::function<void (JsonObjectPtr aJsonResponse, ErrorPtr aError)> JsonWebClientCB;
 
 
   /// wrapper for non-blocking http client communication

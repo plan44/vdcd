@@ -264,6 +264,12 @@ ApiValuePtr ApiValue::newArray()
 }
 
 
+ApiValuePtr ApiValue::newNull()
+{
+  return newValue(apivalue_null);
+}
+
+
 
 
 // get in different int types
