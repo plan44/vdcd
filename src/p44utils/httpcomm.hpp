@@ -135,7 +135,7 @@ namespace p44 {
   protected:
     virtual const char *defaultContentType() { return "text/html"; };
 
-    virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+    virtual void requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   private:
     void requestThread(ChildThreadWrapper &aThread);

@@ -138,7 +138,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
       mainLoop.registerPollHandler(
         connectionFd,
         POLLIN,
-        boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3, _4)
+        boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3)
       );
     }
   }
@@ -147,7 +147,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 }
 
 
-bool SocketComm::connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionAcceptHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if (aPollFlags & POLLIN) {
@@ -366,7 +366,7 @@ ErrorPtr SocketComm::connectNextAddress()
       mainLoop.registerPollHandler(
         connectionFd,
         POLLOUT,
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
+        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3)
       );
     }
     else {
@@ -411,7 +411,7 @@ ErrorPtr SocketComm::socketError(int aSocketFd)
 
 
 
-bool SocketComm::connectionMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if ((aPollFlags & POLLOUT) && isConnecting) {

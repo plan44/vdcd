@@ -239,7 +239,7 @@ namespace p44 {
   /// @param aFD the file descriptor that was signalled and has caused this call
   /// @param aPollFlags the poll flags describing the reason for the callback
   /// @return should true if callback really handled some I/O, false if it only checked flags and found nothing to do
-  typedef boost::function<bool (SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
+  typedef boost::function<bool (MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
   /// thread routine, will be called on a separate thread
   /// @param aThreadWrapper the object that wraps the thread and allows sending signals to the parent thread
@@ -251,7 +251,7 @@ namespace p44 {
   /// @param aMainLoop the mainloop of the parent thread which has started the child thread
   /// @param aChildThread the ChildThreadWrapper object which sent the signal
   /// @param aSignalCode the signal received from the child thread
-  typedef boost::function<void (SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
+  typedef boost::function<void (ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
 
   /// @}
 

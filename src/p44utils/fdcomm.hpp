@@ -132,7 +132,7 @@ namespace p44 {
 
   private:
 
-    bool dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool dataMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
   };
 
 

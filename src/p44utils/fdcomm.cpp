@@ -55,7 +55,7 @@ void FdComm::setFd(int aFd)
         dataFd,
         (receiveHandler ? POLLIN : 0) | // report ready to read if we have a handler
         (transmitHandler ? POLLOUT : 0), // report ready to transmit if we have a handler
-        boost::bind(&FdComm::dataMonitorHandler, this, _1, _2, _3, _4)
+        boost::bind(&FdComm::dataMonitorHandler, this, _1, _2, _3)
       );
     }
   }
@@ -80,7 +80,7 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 
 
 
-bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool FdComm::dataMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);

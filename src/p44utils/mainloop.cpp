@@ -566,7 +566,7 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
         SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
         if (pos!=syncIOHandlers.end()) {
           // - there is a handler
-          if (pos->second.pollHandler(*this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+          if (pos->second.pollHandler(cycleStartTime, pollfdP->fd, pollfdP->revents))
             didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
         }
       }
@@ -661,14 +661,14 @@ ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, Th
     parentSignalFd = pipeFdPair[0]; // 0 is the reading end
     childSignalFd = pipeFdPair[1]; // 1 is the writing end
     // - install poll handler in the parent mainloop
-    parentThreadMainLoop.registerPollHandler(parentSignalFd, POLLIN, boost::bind(&ChildThreadWrapper::signalPipeHandler, this, _4));
+    parentThreadMainLoop.registerPollHandler(parentSignalFd, POLLIN, boost::bind(&ChildThreadWrapper::signalPipeHandler, this, _3));
     // create a pthread (with default attrs for now
     threadRunning = true; // before creating it, to make sure it is set when child starts to run
     if (pthread_create(&pthread, NULL, thread_start_function, this)!=0) {
       // error, could not create thread, fake a signal callback immediately
       threadRunning = false;
       if (parentSignalHandler)
-        parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+        parentSignalHandler(*this, threadSignalFailedToStart);
     }
     else {
       // thread created ok, keep wrapper object alive
@@ -678,7 +678,7 @@ ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, Th
   else {
     // pipe could not be created
     if (parentSignalHandler)
-      parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+      parentSignalHandler(*this, threadSignalFailedToStart);
   }
 }
 
@@ -733,7 +733,7 @@ void ChildThreadWrapper::cancel()
     finalizeThreadExecution();
     // cancelled
     if (parentSignalHandler)
-      parentSignalHandler(parentThreadMainLoop, *this, threadSignalCancelled);
+      parentSignalHandler(*this, threadSignalCancelled);
   }
 }
 
@@ -764,7 +764,7 @@ bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
     }
     // got signal byte, call handler
     if (parentSignalHandler) {
-      parentSignalHandler(parentThreadMainLoop, *this, sig);
+      parentSignalHandler(*this, sig);
     }
     // in case nobody keeps this object any more, it might be deleted now
     selfRef.reset();

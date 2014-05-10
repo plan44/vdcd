@@ -78,7 +78,7 @@ namespace p44 {
 
     virtual const char *defaultContentType() { return "application/json"; };
 
-    virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+    virtual void requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   };
 

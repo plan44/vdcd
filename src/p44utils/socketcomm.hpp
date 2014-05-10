@@ -183,11 +183,11 @@ namespace p44 {
     void freeAddressInfo();
     ErrorPtr socketError(int aSocketFd);
     ErrorPtr connectNextAddress();
-    bool connectionMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool connectionMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void internalCloseConnection();
     virtual void dataExceptionHandler(int aFd, int aPollFlags);
 
-    bool connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
+    bool connectionAcceptHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
     void passClientConnection(int aFD, SocketCommPtr aServerConnection); // used by listening SocketComm to pass accepted client connection to child SocketComm
     SocketCommPtr returnClientConnection(SocketCommPtr aClientConnection); // used to notify listening SocketComm when client connection ends
 
