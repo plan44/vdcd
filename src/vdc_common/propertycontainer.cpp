@@ -19,6 +19,10 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 1
+
 #include "propertycontainer.hpp"
 
 using namespace p44;
@@ -27,14 +31,13 @@ using namespace p44;
 #pragma mark - property access API
 
 
-
 ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr aQueryObject, ApiValuePtr aResultObject, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   ErrorPtr err;
-  #if DEBUGLOGGING
-  DBGLOG(LOG_DEBUG,"\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
+  #if DEBUGFOCUSLOGGING
+  DBGFLOG(LOG_DEBUG,"\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
   if (aParentDescriptor) {
-    DBGLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->name(), aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
+    DBGFLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->name(), aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
   #endif
   // aApiObject must be of type apivalue_object
@@ -50,7 +53,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
   string queryName;
   ApiValuePtr queryValue;
   while (aQueryObject->nextKeyValue(queryName, queryValue)) {
-    DBGLOG(LOG_DEBUG,"- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
+    DBGFLOG(LOG_DEBUG,"- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
     if (aMode==access_read && queryName=="#") {
       // asking for number of elements at this level -> generate and return int value
       queryValue = queryValue->newValue(apivalue_int64); // integer
@@ -66,7 +69,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
       do {
         propDesc = getDescriptorByName(queryName, propIndex, aDomain, aParentDescriptor);
         if (propDesc) {
-          DBGLOG(LOG_DEBUG,"  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
+          DBGFLOG(LOG_DEBUG,"  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
           // actually access by descriptor
           if (propDesc->isStructured()) {
             ApiValuePtr subQuery;
@@ -87,23 +90,23 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
               PropertyDescriptorPtr containerPropDesc = propDesc;
               PropertyContainerPtr container = getContainer(containerPropDesc, containerDomain);
               if (container) {
-                DBGLOG(LOG_DEBUG,"  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
-                DBGLOG(LOG_DEBUG,"    >>>> RECURSING into accessProperty()\n");
+                DBGFLOG(LOG_DEBUG,"  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
+                DBGFLOG(LOG_DEBUG,"    >>>> RECURSING into accessProperty()\n");
                 if (aMode==access_read) {
                   // read needs a result object
                   ApiValuePtr resultValue = queryValue->newValue(apivalue_object);
                   err = container->accessProperty(aMode, subQuery, resultValue, containerDomain, containerPropDesc);
                   if (Error::isOK(err)) {
                     // add to result with actual name (from descriptor)
-                    DBGLOG(LOG_DEBUG,"\n  <<<< RETURNED from accessProperty() recursion\n");
-                    DBGLOG(LOG_DEBUG,"  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
+                    DBGFLOG(LOG_DEBUG,"\n  <<<< RETURNED from accessProperty() recursion\n");
+                    DBGFLOG(LOG_DEBUG,"  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
                     aResultObject->add(propDesc->name(), resultValue);
                   }
                 }
                 else {
                   // for write, just pass the query value
                   err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, propDesc);
-                  DBGLOG(LOG_DEBUG,"    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
+                  DBGFLOG(LOG_DEBUG,"    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
                 }
                 if ((aMode!=access_read) && Error::isOK(err)) {
                   // give this container a chance to post-process write access
@@ -122,7 +125,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
               if (accessOk) {
                 // add to result with actual name (from descriptor)
                 aResultObject->add(propDesc->name(), fieldValue);
-                DBGLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
+                DBGFLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
               }
             }
             else {
@@ -139,7 +142,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
     }
     #if DEBUGLOGGING
     if (aMode==access_read) {
-      DBGLOG(LOG_DEBUG,"- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
+      DBGFLOG(LOG_DEBUG,"- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
     }
     #endif
   }

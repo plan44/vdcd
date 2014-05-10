@@ -53,6 +53,14 @@
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
+#if DEBUGLOGGING && DEBUGFOCUS
+#define DBGFLOG(lvl,...) DBGLOG(lvl,##__VA_ARGS__)
+#define DEBUGFOCUSLOGGING 1
+#else
+#define DEBUGFOCUSLOGGING 0
+#define DBGFLOG(lvl,...)
+#endif
+
 #define LOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define LOG(lvl,...) { if (globalLogger.logEnabled(lvl)) globalLogger.log(lvl,##__VA_ARGS__); }
 
