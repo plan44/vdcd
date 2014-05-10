@@ -66,10 +66,10 @@ namespace p44 {
   typedef std::list<SocketCommPtr> SocketCommList;
 
   /// callback for signalling ready for receive or transmit, or error
-  typedef boost::function<void (SocketComm *aSocketCommP, ErrorPtr aError)> SocketCommCB;
+  typedef boost::function<void (SocketCommPtr aSocketComm, ErrorPtr aError)> SocketCommCB;
   /// callback for accepting new server connections
   /// @return must return a new SocketComm connection object which will handle the connection
-  typedef boost::function<SocketCommPtr (SocketComm *aServerSocketCommP)> ServerConnectionCB;
+  typedef boost::function<SocketCommPtr (SocketCommPtr aServerSocketComm)> ServerConnectionCB;
 
 
   /// A class providing socket communication (client and server)
@@ -101,7 +101,7 @@ namespace p44 {
     int maxServerConnections;
     ServerConnectionCB serverConnectionHandler;
     SocketCommList clientConnections;
-    SocketComm *serverConnection;
+    SocketCommPtr serverConnection;
   public:
 
     SocketComm(SyncIOMainLoop &aMainLoop);
@@ -188,8 +188,8 @@ namespace p44 {
     virtual void dataExceptionHandler(int aFd, int aPollFlags);
 
     bool connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags);
-    void passClientConnection(int aFD, SocketComm *aServerConnectionP); // used by listening SocketComm to pass accepted client connection to child SocketComm
-    SocketCommPtr returnClientConnection(SocketComm *aClientConnectionP); // used to notify listening SocketComm when client connection ends
+    void passClientConnection(int aFD, SocketCommPtr aServerConnection); // used by listening SocketComm to pass accepted client connection to child SocketComm
+    SocketCommPtr returnClientConnection(SocketCommPtr aClientConnection); // used to notify listening SocketComm when client connection ends
 
   };
   
