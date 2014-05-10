@@ -82,6 +82,7 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 
 bool FdComm::dataMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
+  FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
   // Note: test POLLIN first, because we might get a POLLHUP in parallel - so make sure we process data before hanging up
   if ((aPollFlags & POLLIN) && receiveHandler) {
@@ -277,6 +278,7 @@ void FdStringCollector::gotData(p44::FdComm *aFdCommP, ErrorPtr aError)
 
 void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
 {
+  FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   DBGLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X), numBytesReady()=%d\n", aFd, aPollFlags, numBytesReady());
   if ((aPollFlags & (POLLHUP|POLLIN|POLLERR)) != 0) {
     // - other end has closed connection (POLLHUP)
@@ -297,6 +299,7 @@ void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
 
 void FdStringCollector::collectToEnd(FdCommCB aEndedCallback)
 {
+  FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   endedCallback = aEndedCallback;
   if (ended) {
     // if already ended when called, end right away

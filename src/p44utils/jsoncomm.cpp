@@ -51,6 +51,7 @@ void JsonComm::setMessageHandler(JSonMessageCB aJsonMessageHandler)
 
 void JsonComm::gotData(ErrorPtr aError)
 {
+  JsonCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   if (Error::isOK(aError)) {
     // no error, read data we've got so far
     size_t dataSz = numBytesReady();
