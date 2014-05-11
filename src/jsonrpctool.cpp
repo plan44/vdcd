@@ -290,7 +290,7 @@ public:
       if (sendNotification)
         jsonRpcComm->sendRequest(method.c_str(), params); // no answer expected
       else
-        jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3, _4)); // answer expected, add handler
+        jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3)); // answer expected, add handler
       // and ask for next method
       inputState = waiting_for_method;
       MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);
