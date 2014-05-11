@@ -1023,54 +1023,39 @@ int DeviceContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescript
 }
 
 
+// note: is only called when getDescriptorByName does not resolve the name
+PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numDeviceContainerProperties] = {
+    { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) }
+  };
+  int n = inherited::numProps(aDomain, aParentDescriptor);
+  if (aPropIndex<n)
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+}
+
+
 PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
-    // accessing one of the vdcs
-    PropertyDescriptorPtr propDesc;
-    getNextPropIndex(aPropMatch, aStartIndex);
-    int n = numProps(aDomain, aParentDescriptor);
-    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
-      // within range, create descriptor
-      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor;
-      descP->propertyName = string_format("%d", aStartIndex);
-      descP->propertyType = apivalue_object;
-      descP->propertyFieldKey = aStartIndex;
-      descP->propertyObjectKey = OKEY(vdc_key);
-      propDesc = PropertyDescriptorPtr(descP);
-      // advance index
-      aStartIndex++;
-    }
-    if (aStartIndex>=n)
-      aStartIndex = PROPINDEX_NONE;
-    return propDesc;
+    // accessing one of the vdcs by numeric index
+    return getDescriptorByNumericName(
+      aPropMatch, aStartIndex, aDomain, aParentDescriptor,
+      OKEY(vdc_key)
+    );
   }
   // None of the containers within Device - let base class handle Device-Level properties
   return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
 }
 
 
-// note: is only called when getDescriptorByName does not resolve the name
-PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
-{
-  static const PropertyDescription properties[numDeviceContainerProperties] = {
-    { "x-p44-vdcs", apivalue_object, vdcs_key, OKEY(vdc_container_key) }
-  };
-  int n = inherited::numProps(aDomain, aParentDescriptor);
-  if (aPropIndex<n)
-    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
-  aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
-}
-
-
-
-
-
 PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
 {
-  if (aPropertyDescriptor->hasObjectKey(vdc_container_key)) {
-    return PropertyContainerPtr(this); // myself
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // local container
+    return PropertyContainerPtr(this); // handle myself
   }
   else if (aPropertyDescriptor->hasObjectKey(vdc_key)) {
     // - just iterate into map, we'll never have more than a few logical vdcs!
@@ -1089,12 +1074,10 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
 }
 
 
-
-
-
 bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   // no device container level non-container fields yet
+  // NOTE: if we get some, they will be OKEY(devicecontainer_key)
   return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 

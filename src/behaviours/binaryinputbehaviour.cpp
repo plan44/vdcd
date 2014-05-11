@@ -153,7 +153,7 @@ enum {
 
 
 int BinaryInputBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptorPtr BinaryInputBehaviour::getDescDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDescProperties] = {
     { "hardwareSensorFunction", apivalue_uint64, hardwareInputType_key+descriptions_key_offset, OKEY(binaryInput_key) },
@@ -161,7 +161,7 @@ const PropertyDescriptorPtr BinaryInputBehaviour::getDescDescriptorByIndex(int a
     { "inputType", apivalue_bool, reportsChanges_key+descriptions_key_offset, OKEY(binaryInput_key) },
     { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(binaryInput_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
@@ -176,14 +176,14 @@ enum {
 
 
 int BinaryInputBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptorPtr BinaryInputBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(binaryInput_key) },
     { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(binaryInput_key) },
     { "sensorFunction", apivalue_uint64, configuredInputType_key+settings_key_offset, OKEY(binaryInput_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 // state properties
@@ -196,13 +196,13 @@ enum {
 
 
 int BinaryInputBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptorPtr BinaryInputBehaviour::getStateDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_bool, value_key+states_key_offset, OKEY(binaryInput_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(binaryInput_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

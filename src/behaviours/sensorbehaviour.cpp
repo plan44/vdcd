@@ -152,7 +152,7 @@ enum {
 
 
 int SensorBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDescProperties] = {
     { "sensorType", apivalue_uint64, sensorType_key+descriptions_key_offset, OKEY(sensor_key) },
@@ -162,7 +162,7 @@ const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropI
     { "resolution", apivalue_double, resolution_key+descriptions_key_offset, OKEY(sensor_key) },
     { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(sensor_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
@@ -176,13 +176,13 @@ enum {
 
 
 int SensorBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptorPtr SensorBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(sensor_key) },
     { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(sensor_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 // state properties
@@ -195,13 +195,13 @@ enum {
 
 
 int SensorBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptorPtr SensorBehaviour::getStateDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr SensorBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_double, value_key+states_key_offset, OKEY(sensor_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(sensor_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

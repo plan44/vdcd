@@ -25,6 +25,139 @@
 
 using namespace p44;
 
+static char dsscene_key;
+
+#pragma mark - private scene channel access class
+
+static char dsscene_channels_key;
+static char dsscene_outputs_key;
+static char scenevalue_key;
+
+// local property container for channels/outputs
+class SceneChannels : public PropertyContainer
+{
+  typedef PropertyContainer inherited;
+
+  enum {
+    value_key,
+    dontCare_key,
+    numValueProperties
+  };
+
+  DsScene &scene;
+
+public:
+  SceneChannels(DsScene &aScene) : scene(aScene) {};
+
+protected:
+
+  int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+  {
+    if (!aParentDescriptor->hasObjectKey(scenevalue_key)) {
+      // channels/outputs container
+      return scene.numSceneValues();
+    }
+    // actual fields of channel/output
+    // Note: SceneChannels is private an can't be derived, so no subclass adding properties must be considered
+    return numValueProperties;
+  }
+
+
+  PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+  {
+    // scene value level properties
+    static const PropertyDescription valueproperties[numValueProperties] = {
+      { "value", apivalue_double, value_key, OKEY(scenevalue_key) },
+      { "dontCare", apivalue_bool, dontCare_key, OKEY(scenevalue_key) },
+    };
+    // Note: SceneChannels is private an can't be derived, so no subclass adding properties must be considered
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&valueproperties[aPropIndex], aParentDescriptor));
+  }
+
+
+  PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+  {
+    if (!aParentDescriptor->hasObjectKey(scenevalue_key)) {
+      // array-like container
+      PropertyDescriptorPtr propDesc;
+      bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
+      if (numericName && aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
+        // specific channel addressed by ID, look up index for it
+        int channelIndex = (int)scene.getOutputIndexByChannel(aStartIndex);
+        aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
+      }
+      int n = numProps(aDomain, aParentDescriptor);
+      if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+        // within range, create descriptor
+        DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+        if (aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
+          // name by channel
+          descP->propertyName = string_format("%d", scene.getChannelId(aStartIndex));
+        }
+        else {
+          // name by output
+          descP->propertyName = string_format("%d", aStartIndex);
+        }
+        descP->propertyType = aParentDescriptor->type();
+        descP->propertyFieldKey = aStartIndex;
+        descP->propertyObjectKey = OKEY(scenevalue_key);
+        propDesc = PropertyDescriptorPtr(descP);
+        // advance index
+        aStartIndex++;
+      }
+      if (aStartIndex>=n)
+        aStartIndex = PROPINDEX_NONE;
+      return propDesc;
+    }
+    // actual fields of channel/output
+    return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+  }
+
+
+  PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+  {
+    // the only subcontainer are the fields, handled by myself
+    return PropertyContainerPtr(this);
+  }
+
+
+
+  bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+  {
+    if (aPropertyDescriptor->hasObjectKey(scenevalue_key)) {
+      // Scene value level
+      // - get the output index
+      size_t outputIndex = aPropertyDescriptor->parentDescriptor->fieldKey();
+      if (aMode==access_read) {
+        // read properties
+        switch (aPropertyDescriptor->fieldKey()) {
+          case value_key:
+            aPropValue->setDoubleValue(scene.sceneValue(outputIndex));
+            return true;
+          case dontCare_key:
+            aPropValue->setBoolValue(scene.isSceneValueFlagSet(outputIndex, valueflags_dontCare));
+            return true;
+        }
+      }
+      else {
+        // write properties
+        switch (aPropertyDescriptor->fieldKey()) {
+          case value_key:
+            scene.setSceneValue(outputIndex, aPropValue->doubleValue());
+            scene.markDirty();
+            return true;
+          case dontCare_key:
+            scene.setSceneValueFlags(outputIndex, valueflags_dontCare, aPropValue->boolValue());
+            scene.markDirty();
+            return true;
+        }
+      }
+    }
+    return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+  }
+};
+typedef boost::intrusive_ptr<SceneChannels> SceneChannelsPtr;
+
 
 #pragma mark - scene base class
 
@@ -34,10 +167,10 @@ DsScene::DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
   sceneDeviceSettings(aSceneDeviceSettings),
   sceneNo(aSceneNo)
 {
+  sceneChannels = SceneChannelsPtr(new SceneChannels(*this));
 }
 
 #pragma mark - scene persistence
-
 
 // primary key field definitions
 
@@ -86,10 +219,11 @@ const FieldDefinition *DsScene::getFieldDef(size_t aIndex)
 }
 
 
+// flags in globalSceneFlags
 enum {
-  commonflags_dontCare = 0x0001,
-  commonflags_ignoreLocalPriority = 0x0002,
-  commonflags_mask = 0x0003
+  globalflags_dontCare = 0x0001, ///< dontcare of main output is stored globally
+  globalflags_ignoreLocalPriority = 0x0002,
+  globalflags_mask = 0x0003
 };
 
 
@@ -99,10 +233,9 @@ void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inheritedParams::loadFromRow(aRow, aIndex);
   // get the fields
   sceneNo = aRow->get<int>(aIndex++);
-  sceneFlags = aRow->get<int>(aIndex++);
+  globalSceneFlags = aRow->get<int>(aIndex++);
   // decode the flags
-  dontCare = sceneFlags & commonflags_dontCare;
-  ignoreLocalPriority = sceneFlags & commonflags_ignoreLocalPriority;
+  ignoreLocalPriority = globalSceneFlags & globalflags_ignoreLocalPriority;
 }
 
 
@@ -111,21 +244,87 @@ void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, con
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // encode the flags
-  sceneFlags &= ~commonflags_mask; // clear my flags
-  if (dontCare) sceneFlags |= commonflags_dontCare;
-  if (ignoreLocalPriority) sceneFlags |= commonflags_ignoreLocalPriority;
+  globalSceneFlags &= globalflags_mask; // clear my flags
+  if (ignoreLocalPriority) globalSceneFlags |= globalflags_ignoreLocalPriority;
   // bind the fields
   aStatement.bind(aIndex++, (int)sceneNo);
-  aStatement.bind(aIndex++, sceneFlags);
+  aStatement.bind(aIndex++, (int)globalSceneFlags);
 }
+
+
+#pragma mark - scene values/channels
+
+
+int DsScene::numSceneValues()
+{
+  return 1; // default to single value
+}
+
+uint32_t DsScene::sceneValueFlags(size_t aOutputIndex)
+{
+  // only don't care of output 0
+  return globalSceneFlags & ((aOutputIndex==0) && globalflags_dontCare) ? valueflags_dontCare : 0;
+}
+
+
+void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool aSet)
+{
+  if (aOutputIndex==0) {
+    // only don't care of output 0
+    if (aSet)
+      globalSceneFlags |= (aFlagMask & valueflags_dontCare) ? globalflags_dontCare : 0;
+    else
+      globalSceneFlags &= ~((aFlagMask & valueflags_dontCare) ? globalflags_dontCare : 0);
+  }
+}
+
+
+//  double DsScene::sceneValue(int aOutputIndex)
+//  {
+//  }
+//
+//
+//  void DsScene::setSceneValue(int aOutputIndex, double aValue)
+//  {
+//  }
+
+
+int DsScene::getChannelId(size_t aOutputIndex)
+{
+  #warning "%%% todo: determine real channel ID"
+  return 1; // %%% default channel is brightness
+}
+
+
+
+// utility function to check scene value flag
+bool DsScene::isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask)
+{
+  // only don't care of output 0
+  return sceneValueFlags(aOutputIndex) & aFlagMask;
+}
+
+
+// utility function to find index by channelID
+size_t DsScene::getOutputIndexByChannel(int aChannelID)
+{
+  for (int index=0; index<numSceneValues(); index++) {
+    if (aChannelID==getChannelId(index)) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+
 
 
 #pragma mark - scene property access
 
-static char dsscene_key;
 
 enum {
-  dontCare_key,
+  channels_key,
+  outputs_key,
   ignoreLocalPriority_key,
   numSceneProperties
 };
@@ -139,31 +338,38 @@ int DsScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 }
 
 
+
 PropertyDescriptorPtr DsScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescription properties[numSceneProperties] = {
-    #warning "move value# here as well, restructure for MOC"
-    { "dontCare", apivalue_bool, dontCare_key, OKEY(dsscene_key) },
+  // scene level properties
+  static const PropertyDescription sceneproperties[numSceneProperties] = {
+    { "channels", apivalue_object+propflag_container, channels_key, OKEY(dsscene_channels_key) },
+    { "outputs", apivalue_object+propflag_container, outputs_key, OKEY(dsscene_outputs_key) },
     { "ignoreLocalPriority", apivalue_bool, ignoreLocalPriority_key, OKEY(dsscene_key) },
   };
   int n = inheritedProps::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
     return inheritedProps::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&sceneproperties[aPropIndex], aParentDescriptor));
 }
+
+
+PropertyContainerPtr DsScene::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+{
+  // the only container is sceneChannels
+  return sceneChannels;
+}
+
 
 
 bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   if (aPropertyDescriptor->hasObjectKey(dsscene_key)) {
+    // global scene level
     if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
-        case dontCare_key:
-          // TODO: implement MOC
-          aPropValue->setBoolValue(dontCare);
-          return true;
         case ignoreLocalPriority_key:
           aPropValue->setBoolValue(ignoreLocalPriority);
           return true;
@@ -172,10 +378,6 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prop
     else {
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
-        case dontCare_key:
-          dontCare = aPropValue->boolValue();
-          markDirty();
-          return true;
         case ignoreLocalPriority_key:
           ignoreLocalPriority = aPropValue->boolValue();
           markDirty();

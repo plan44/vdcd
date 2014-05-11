@@ -91,11 +91,11 @@ namespace p44 {
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();
-    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex);
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numStateProps();
-    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex);
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 

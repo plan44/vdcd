@@ -198,7 +198,7 @@ enum {
 
 
 int OutputBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDescProperties] = {
     { "function", apivalue_uint64, outputFunction_key+descriptions_key_offset, OKEY(output_key) },
@@ -207,7 +207,7 @@ const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropI
     { "variableRamp", apivalue_bool, variableRamp_key+descriptions_key_offset, OKEY(output_key) },
     { "maxPower", apivalue_double, maxPower_key+descriptions_key_offset, OKEY(output_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
@@ -222,14 +222,14 @@ enum {
 
 
 int OutputBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptorPtr OutputBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(output_key) },
     { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(output_key) },
     { "pushChanges", apivalue_bool, pushChanges_key+settings_key_offset, OKEY(output_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 // state properties
@@ -242,13 +242,13 @@ enum {
 
 
 int OutputBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptorPtr OutputBehaviour::getStateDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr OutputBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_uint64, value_key+states_key_offset, OKEY(output_key) }, // note: so far, pbuf API requires uint here
     { "age", apivalue_double, age_key+states_key_offset, OKEY(output_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

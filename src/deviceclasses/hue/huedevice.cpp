@@ -133,7 +133,7 @@ PropertyDescriptorPtr HueLightScene::getDescriptorByIndex(int aPropIndex, int aD
   if (aPropIndex<n)
     return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

@@ -200,7 +200,7 @@ static char dsBehaviour_Key;
 
 int DsBehaviour::numLocalProps(PropertyDescriptorPtr aParentDescriptor)
 {
-  switch (aParentDescriptor->parentFieldKey()) {
+  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
     case descriptions_key_offset: return numDescProps()+numDsBehaviourDescProperties;
     case settings_key_offset: return numSettingsProps()+numDsBehaviourSettingsProperties;
     case states_key_offset: return numStateProps()+numDsBehaviourStateProperties;
@@ -233,25 +233,25 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
   aPropIndex -= n; // rebase to 0 for my own first property
   if (aPropIndex>=numLocalProps(aParentDescriptor))
     return NULL;
-  switch (aParentDescriptor->parentFieldKey()) {
+  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
     case descriptions_key_offset:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)
-        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&descProperties[aPropIndex]));
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&descProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
       return getDescDescriptorByIndex(aPropIndex);
     case settings_key_offset:
       // check for generic settings properties
       if (aPropIndex<numDsBehaviourSettingsProperties)
-        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&settingsProperties[aPropIndex]));
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&settingsProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourSettingsProperties;
       // check type-specific settings
       return getSettingsDescriptorByIndex(aPropIndex);
     case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
-        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&stateProperties[aPropIndex]));
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&stateProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourStateProperties;
       // check type-specific states
       return getStateDescriptorByIndex(aPropIndex);

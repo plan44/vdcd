@@ -444,7 +444,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       LOG(LOG_DEBUG, "callScene(%d): is area #%d scene\n", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
       scene = scenes->getScene(mainSceneForArea(area));
-      if (scene->dontCare) {
+      if (scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
         LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress\n", mainSceneForArea(area));
         return; // not in this area, suppress callScene entirely
       }
@@ -468,8 +468,8 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       scene = scenes->getScene(aSceneNo);
     }
     if (scene) {
-      LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->dontCare);
-      if (!scene->dontCare) {
+      LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->isSceneValueFlagSet(0, valueflags_dontCare));
+      if (!scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
         // Scene found and dontCare not set, check details
         // - check local priority
         if (!area && localPriority) {
@@ -561,7 +561,7 @@ void Device::setLocalPriority(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: setLocalPriority(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->dontCare) {
+    if (scene && !scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
       LOG(LOG_DEBUG, "setLocalPriority(%d): localPriority set\n", aSceneNo);
       localPriority = true;
     }
@@ -576,7 +576,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: callSceneMin(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->dontCare) {
+    if (scene && !scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
       for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
         OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
         if (output) {
@@ -768,57 +768,6 @@ int Device::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 
 
 
-
-PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
-{
-  if (aParentDescriptor && aParentDescriptor->isArrayContainer()) {
-    // array-like container
-    PropertyDescriptorPtr propDesc;
-    bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
-    if (numericName && aParentDescriptor->hasObjectKey(device_channels_key)) {
-      // specific channel addressed by ID, look up index for it
-      int i=0;
-      int channelIndex=-1;
-      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-        if (o->getChannel()==aStartIndex) {
-          channelIndex = i;
-          break;
-        }
-        i++; // next
-      }
-      aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
-    }
-    int n = numProps(aDomain, aParentDescriptor);
-    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
-      // within range, create descriptor
-      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor;
-      if (aParentDescriptor->hasObjectKey(device_channels_key)) {
-        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(outputs[aStartIndex]);
-        descP->propertyName = string_format("%d", o->getChannel());
-      }
-      else {
-        // by index
-        descP->propertyName = string_format("%d", aStartIndex);
-      }
-      descP->propertyType = aParentDescriptor->type();
-      descP->propertyFieldKey = aStartIndex;
-      descP->propertyParentFieldKey = aParentDescriptor->fieldKey();
-      descP->propertyObjectKey = aParentDescriptor->objectKey();
-      propDesc = PropertyDescriptorPtr(descP);
-      // advance index
-      aStartIndex++;
-    }
-    if (aStartIndex>=n)
-      aStartIndex = PROPINDEX_NONE;
-    return propDesc;
-  }
-  // None of the containers within Device - let base class handle Device-Level properties
-  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
-}
-
-
-
 PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDeviceProperties] = {
@@ -858,9 +807,58 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     if (aPropIndex<n)
       return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
     aPropIndex -= n; // rebase to 0 for my own first property
-    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
   }
   return PropertyDescriptorPtr();
+}
+
+
+
+PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  if (aParentDescriptor && aParentDescriptor->isArrayContainer()) {
+    // array-like container
+    PropertyDescriptorPtr propDesc;
+    bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
+    if (numericName && aParentDescriptor->hasObjectKey(device_channels_key)) {
+      // specific channel addressed by ID, look up index for it
+      int i=0;
+      int channelIndex=-1;
+      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+        if (o->getChannel()==aStartIndex) {
+          channelIndex = i;
+          break;
+        }
+        i++; // next
+      }
+      aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
+    }
+    int n = numProps(aDomain, aParentDescriptor);
+    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+      // within range, create descriptor
+      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+      if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(outputs[aStartIndex]);
+        descP->propertyName = string_format("%d", o->getChannel());
+      }
+      else {
+        // by index
+        descP->propertyName = string_format("%d", aStartIndex);
+      }
+      descP->propertyType = aParentDescriptor->type();
+      descP->propertyFieldKey = aStartIndex;
+      descP->propertyObjectKey = aParentDescriptor->objectKey();
+      propDesc = PropertyDescriptorPtr(descP);
+      // advance index
+      aStartIndex++;
+    }
+    if (aStartIndex>=n)
+      aStartIndex = PROPINDEX_NONE;
+    return propDesc;
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
 }
 
 
@@ -869,8 +867,8 @@ PropertyContainerPtr Device::getContainer(PropertyDescriptorPtr &aPropertyDescri
 {
   // might be virtual container
   if (aPropertyDescriptor->isArrayContainer()) {
-    // is one of the local array containers
-    return PropertyContainerPtr(this);
+    // on of the local containers
+    return PropertyContainerPtr(this); // handle myself
   }
   // containers are elements from the behaviour arrays
   else if (aPropertyDescriptor->hasObjectKey(device_buttons_key)) {
@@ -903,22 +901,6 @@ PropertyContainerPtr Device::getContainer(PropertyDescriptorPtr &aPropertyDescri
   // unknown here
   return NULL;
 }
-
-
-ErrorPtr Device::writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
-{
-  if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
-    // a scene was written, update needed if dirty
-    DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
-    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-    if (scenes && scene && scene->isDirty()) {
-      scenes->updateScene(scene);
-      return ErrorPtr();
-    }
-  }
-  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aContainer);
-}
-
 
 
 
@@ -979,6 +961,22 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
   // not my field, let base class handle it
   return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
+
+
+ErrorPtr Device::writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
+{
+  if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
+    // a scene was written, update needed if dirty
+    DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes && scene && scene->isDirty()) {
+      scenes->updateScene(scene);
+      return ErrorPtr();
+    }
+  }
+  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aContainer);
+}
+
 
 #pragma mark - Device description/shortDesc
 

@@ -21,7 +21,7 @@
 
 // set to 1 to get focus (extensive logging) for this file
 // Note: must be before including "logger.hpp"
-#define DEBUGFOCUS 0
+#define DEBUGFOCUS 1
 
 #include "propertycontainer.hpp"
 
@@ -37,7 +37,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
   #if DEBUGFOCUSLOGGING
   DBGFLOG(LOG_DEBUG,"\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
   if (aParentDescriptor) {
-    DBGFLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->name(), aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
+    DBGFLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
   #endif
   // aApiObject must be of type apivalue_object
@@ -117,24 +117,24 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
           }
           else {
             // addressed property is a simple value field -> access it
-            bool accessOk = true;
             if (aMode==access_read) {
               // read access: create a new apiValue and have it filled
               ApiValuePtr fieldValue = queryValue->newValue(propDesc->type()); // create a value of correct type to get filled
-              accessOk = accessField(aMode, fieldValue, propDesc); // read
-              if (accessOk) {
-                // add to result with actual name (from descriptor)
-                aResultObject->add(propDesc->name(), fieldValue);
-                DBGFLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
+              bool accessOk = accessField(aMode, fieldValue, propDesc); // read
+              if (!accessOk) {
+                fieldValue->setNull(); // access not working -> return NULL
               }
+              if (accessOk || !wildcard) {
+                aResultObject->add(propDesc->name(), fieldValue);
+              }
+              // add to result with actual name (from descriptor)
+              DBGFLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
             }
             else {
               // write access: just pass the value
-              accessOk = accessField(aMode, queryValue, propDesc); // write
-            }
-            // check failure
-            if (!accessOk && (aMode!=access_read || !wildcard)) {
-              err = ErrorPtr(new VdcApiError(403,"Access denied"));
+              if (!accessField(aMode, queryValue, propDesc)) { // write
+                err = ErrorPtr(new VdcApiError(403,string_format("Write access to '%s' denied", propDesc->name())));
+              }
             }
           }
         }
@@ -255,6 +255,30 @@ PropertyDescriptorPtr PropertyContainer::getDescriptorByName(string aPropMatch, 
   }
 }
 
+
+PropertyDescriptorPtr PropertyContainer::getDescriptorByNumericName(
+  string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor,
+  intptr_t aObjectKey
+)
+{
+  PropertyDescriptorPtr propDesc;
+  getNextPropIndex(aPropMatch, aStartIndex);
+  int n = numProps(aDomain, aParentDescriptor);
+  if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+    // within range, create descriptor
+    DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+    descP->propertyName = string_format("%d", aStartIndex);
+    descP->propertyType = aParentDescriptor->type();
+    descP->propertyFieldKey = aStartIndex;
+    descP->propertyObjectKey = aObjectKey;
+    propDesc = PropertyDescriptorPtr(descP);
+    // advance index
+    aStartIndex++;
+  }
+  if (aStartIndex>=n)
+    aStartIndex = PROPINDEX_NONE;
+  return propDesc;
+}
 
 
 

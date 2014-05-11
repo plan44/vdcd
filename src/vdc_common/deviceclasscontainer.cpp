@@ -161,25 +161,11 @@ int DeviceClassContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDes
 PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
-    // accessing one of the devices
-    #warning "TODO: %%% make this a standard routine for numerically addressed containers
-    PropertyDescriptorPtr propDesc;
-    getNextPropIndex(aPropMatch, aStartIndex);
-    int n = numProps(aDomain, aParentDescriptor);
-    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
-      // within range, create descriptor
-      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor;
-      descP->propertyName = string_format("%d", aStartIndex);
-      descP->propertyType = apivalue_object;
-      descP->propertyFieldKey = aStartIndex;
-      descP->propertyObjectKey = OKEY(device_key);
-      propDesc = PropertyDescriptorPtr(descP);
-      // advance index
-      aStartIndex++;
-    }
-    if (aStartIndex>=n)
-      aStartIndex = PROPINDEX_NONE;
-    return propDesc;
+    // accessing one of the devices by numeric index
+    return getDescriptorByNumericName(
+      aPropMatch, aStartIndex, aDomain, aParentDescriptor,
+      OKEY(device_key)
+    );
   }
   // None of the containers within Device - let base class handle Device-Level properties
   return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
@@ -188,8 +174,9 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatc
 
 PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
 {
-  if (aPropertyDescriptor->hasObjectKey(device_container_key)) {
-    return PropertyContainerPtr(this); // myself
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // local container
+    return PropertyContainerPtr(this); // handle myself
   }
   else if (aPropertyDescriptor->hasObjectKey(device_key)) {
     // - get device
@@ -208,13 +195,13 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
 {
   static const PropertyDescription properties[numClassContainerProperties] = {
     { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
-    { "x-p44-devices", apivalue_object, devices_key, OKEY(device_container_key) }
+    { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
     return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

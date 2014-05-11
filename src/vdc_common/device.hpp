@@ -253,11 +253,11 @@ namespace p44 {
 
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
-    virtual ErrorPtr writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+    virtual ErrorPtr writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
 
     /// add a behaviour and set its index
     /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output

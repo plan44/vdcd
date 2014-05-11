@@ -36,6 +36,12 @@ namespace p44 {
 
   typedef uint8_t SceneNo;
 
+  // per scene value flags as represented in sceneValueFlags
+  enum {
+    valueflags_dontCare = 0x0001, ///< if set, value of this channel/output will not be recalled with scene
+  };
+
+
   class SceneDeviceSettings;
   class Device;
   class DeviceSettings;
@@ -53,7 +59,7 @@ namespace p44 {
 
     /// generic DB persisted scene flag word, can be used by subclasses to map flags onto in loadFromRow() and bindToStatement()
     /// @note base class already maps some flags, see commonflags_xxx enum in implementation.
-    int sceneFlags;
+    uint32_t globalSceneFlags;
 
   public:
     DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, creates empty scene
@@ -64,9 +70,53 @@ namespace p44 {
 
     SceneNo sceneNo; ///< scene number
 
-    // flags mapped into sceneFlags for storage
-    bool dontCare; ///< if set, applying this scene does not change the output value(s). This is used for configuration of areas
+    /// flags mapped into sceneFlags for storage
     bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
+
+    /// @}
+
+    /// @name access to scene values (1 or more for MOC)
+    /// @{
+
+    /// number of scene values (=usually number of outputs/channels of device )
+    /// @return number of scene values
+    virtual int numSceneValues();
+
+    /// get per-value scene flags
+    /// @param aOutputIndex the output index
+    /// @return the flag word
+    virtual uint32_t sceneValueFlags(size_t aOutputIndex);
+
+    /// modify per-value scene flags
+    /// @param aOutputIndex the output index
+    /// @param aFlagMask the flags to set or clear
+    /// @param aSet if true, flags set in aFlagMask will be set, otherwise cleared
+    virtual void setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool aSet);
+
+    /// get scene value
+    /// @param aOutputIndex the output index
+    /// @return the scene value
+    virtual double sceneValue(size_t aOutputIndex) = 0;
+
+    /// modify per-value scene flags
+    /// @param aOutputIndex the output index
+    /// @param aValue the new scene value
+    virtual void setSceneValue(size_t aOutputIndex, double aValue) = 0;
+
+    /// get output index by channelID
+    /// @param aChannelID a channe ID
+    /// @return 0 for unknown channel, 1..n for channel
+    virtual int getChannelId(size_t aOutputIndex);
+
+    /// utility: get output index by channelID
+    /// @param aChannelID a channe ID
+    /// @return -1 if channel does not exist, output index of that channel otherwise
+    size_t getOutputIndexByChannel(int aChannelID);
+
+    /// utility: check a scene value flag
+    /// @param aOutputIndex the output index
+    /// @param aFlagMask the flag to check
+    bool isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask);
 
     /// @}
 
@@ -75,6 +125,7 @@ namespace p44 {
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
@@ -86,7 +137,10 @@ namespace p44 {
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
-    /// @}
+  private:
+
+    PropertyContainerPtr sceneChannels; // private container for implementing scene channels/outputs
+
   };
   typedef boost::intrusive_ptr<DsScene> DsScenePtr;
   typedef map<SceneNo, DsScenePtr> DsSceneMap;

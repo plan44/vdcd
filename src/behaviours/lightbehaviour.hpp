@@ -54,8 +54,11 @@ namespace p44 {
     /// @param aSceneNo the scene number to set default values
     virtual void setDefaultSceneValues(SceneNo aSceneNo);
 
-  protected:
+    // scene values implementation
+    virtual double sceneValue(size_t aOutputIndex);
+    virtual void setSceneValue(size_t aOutputIndex, double aValue);
 
+  protected:
 
     // persistence implementation
     virtual const char *tableName();
@@ -203,11 +206,11 @@ namespace p44 {
 
     // property access implementation for descriptor/settings/states
     //virtual int numDescProps();
-    //virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex);
+    //virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     //virtual int numStateProps();
-    //virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex);
+    //virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 

@@ -438,7 +438,7 @@ enum {
 
 
 int ButtonBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptorPtr ButtonBehaviour::getDescDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDescProperties] = {
     { "supportsLocalKeyMode", apivalue_bool, supportsLocalKeyMode_key+descriptions_key_offset, OKEY(button_key) },
@@ -446,7 +446,7 @@ const PropertyDescriptorPtr ButtonBehaviour::getDescDescriptorByIndex(int aPropI
     { "buttonType", apivalue_uint64, buttonType_key+descriptions_key_offset, OKEY(button_key) },
     { "buttonElementID", apivalue_uint64, buttonElementID_key+descriptions_key_offset, OKEY(button_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
@@ -463,7 +463,7 @@ enum {
 
 
 int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(button_key) },
@@ -472,7 +472,7 @@ const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aP
     { "setsLocalPriority", apivalue_bool, setsLocalPriority_key+settings_key_offset, OKEY(button_key) },
     { "callsPresent", apivalue_bool, callsPresent_key+settings_key_offset, OKEY(button_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 // state properties
@@ -486,14 +486,14 @@ enum {
 
 
 int ButtonBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptorPtr ButtonBehaviour::getStateDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr ButtonBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_uint64, value_key+states_key_offset, OKEY(button_key) },
     { "clickType", apivalue_uint64, clickType_key+states_key_offset, OKEY(button_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(button_key) },
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

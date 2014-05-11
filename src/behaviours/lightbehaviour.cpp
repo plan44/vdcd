@@ -38,6 +38,23 @@ LightScene::LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aScene
 }
 
 
+#pragma mark - scene values/channels
+
+
+double LightScene::sceneValue(size_t aOutputIndex)
+{
+  return sceneBrightness;
+}
+
+
+void LightScene::setSceneValue(size_t aOutputIndex, double aValue)
+{
+  if (aOutputIndex==0) {
+    sceneBrightness = aValue;
+  }
+}
+
+
 #pragma mark - Light Scene persistence
 
 const char *LightScene::tableName()
@@ -112,7 +129,7 @@ void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, 
 static char lightscene_key;
 
 enum {
-  value_key,
+//  value_key,
   flashing_key,
   dimTimeSelector_key,
   numLightSceneProperties
@@ -128,7 +145,7 @@ int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numLightSceneProperties] = {
-    { "value", apivalue_uint64, value_key, OKEY(lightscene_key) },
+//    { "value", apivalue_uint64, value_key, OKEY(lightscene_key) },
     { "flashing", apivalue_bool, flashing_key, OKEY(lightscene_key) },
     { "dimTimeSelector", apivalue_uint64, dimTimeSelector_key, OKEY(lightscene_key) },
     #warning "TODO: add channels MOC"
@@ -137,7 +154,7 @@ PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDoma
   if (aPropIndex<n)
     return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
@@ -147,11 +164,11 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
     if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
-        case value_key:
-          #warning "TODO: implement MOC"
-          // TODO: implement MOC
-          aPropValue->setUint8Value(sceneBrightness);
-          return true;
+//        case value_key:
+//          #warning "TODO: implement MOC"
+//          // TODO: implement MOC
+//          aPropValue->setUint8Value(sceneBrightness);
+//          return true;
         case flashing_key:
           aPropValue->setBoolValue(flashing);
           return true;
@@ -163,12 +180,12 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
     else {
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
-        case value_key:
-          #warning "TODO: implement MOC"
-          // TODO: implement MOC
-          sceneBrightness = (Brightness)aPropValue->int32Value();
-          markDirty();
-          return true;
+//        case value_key:
+//          #warning "TODO: implement MOC"
+//          // TODO: implement MOC
+//          sceneBrightness = (Brightness)aPropValue->int32Value();
+//          markDirty();
+//          return true;
         case flashing_key:
           flashing = aPropValue->boolValue();
           markDirty();
@@ -319,8 +336,9 @@ void LightScene::setDefaultSceneValues(SceneNo aSceneNo)
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
   // now set default values
   // - common scene flags
-  dontCare = p.dontCare;
   ignoreLocalPriority = p.ignoreLocalPriority;
+  // - scene value flags (only one value for now)
+  setSceneValueFlags(0, valueflags_dontCare, p.dontCare);
   // - light scene specifics
   sceneBrightness = p.brightness;
   dimTimeSelector = p.dimTimeSelector;
@@ -704,7 +722,7 @@ enum {
 
 
 int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
-const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPropIndex)
+const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "onThreshold", apivalue_uint64, onThreshold_key+settings_key_offset, OKEY(light_key) },
@@ -719,9 +737,9 @@ const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPr
   };
   int n = inherited::numSettingsProps();
   if (aPropIndex<n)
-    return inherited::getSettingsDescriptorByIndex(aPropIndex);
+    return inherited::getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
   aPropIndex -= n;
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 

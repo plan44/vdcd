@@ -68,7 +68,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -92,7 +92,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.173"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.194"
