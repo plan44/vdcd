@@ -88,7 +88,7 @@ PropertyDescriptorPtr UpnpDevice::getDescriptorByIndex(int aPropIndex, int aDoma
   static const PropertyDescription properties[numProperties] = {
     { "descriptionURL", apivalue_string, descriptionURL_key, OKEY(upnpDevice_key) }, // custom UPnP property revealing the description URL
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex]));
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
