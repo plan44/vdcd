@@ -919,7 +919,7 @@ void DeviceContainer::announceNext()
         // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
         ApiValuePtr params = getSessionConnection()->newApiValue();
         params->setType(apivalue_object);
-        params->add("vdcdSUID", params->newBinary(getApiDsUid().getBinary()));
+        params->add("vdcdSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
         if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
           LOG(LOG_ERR, "Could not send announcevdc message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
           vdc->announcing = Never; // not registering
