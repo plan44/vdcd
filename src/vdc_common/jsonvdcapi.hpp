@@ -46,6 +46,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<JsonApiValue> JsonApiValuePtr;
 
+  /// JSON specific implementation of ApiValue
   class JsonApiValue : public ApiValue
   {
     typedef ApiValue inherited;
@@ -115,6 +116,7 @@ namespace p44 {
 
 
 
+  /// a JSON API request
   class VdcJsonApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -151,6 +153,7 @@ namespace p44 {
 
 
 
+  /// a JSON API connection
   class VdcJsonApiConnection : public VdcApiConnection
   {
     typedef VdcApiConnection inherited;

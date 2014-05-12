@@ -57,6 +57,10 @@ namespace p44 {
   class DeviceClassContainer;
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef std::vector<DevicePtr> DeviceVector;
+
+
+  /// This is the base class for a "class" (usually: type of hardware) of virtual devices.
+  /// In dS terminology, this object represents a vDC (virtual device connector).
   class DeviceClassContainer : public DsAddressable
   {
     typedef DsAddressable inherited;

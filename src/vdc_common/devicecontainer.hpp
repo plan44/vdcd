@@ -72,16 +72,17 @@ namespace p44 {
 
 
 
-  /// container for all devices hosted by this application
-  /// - is the connection point to a vDSM
-  /// - contains one or multiple device class containers
-  ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer;
   typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
   typedef map<DsUid, DeviceClassContainerPtr> ContainerMap;
   typedef map<DsUid, DevicePtr> DsDeviceMap;
 
 
+  /// container for all devices hosted by this application
+  /// In dS terminology, this object represents the vDC host (a program/daemon hosting one or multiple virtual device connectors).
+  /// - is the connection point to a vDSM
+  /// - contains one or multiple device class containers
+  ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer : public DsAddressable
   {
     typedef DsAddressable inherited;

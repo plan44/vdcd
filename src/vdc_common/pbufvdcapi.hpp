@@ -50,6 +50,7 @@ namespace p44 {
   typedef map<string, PbufApiValuePtr> ApiValueFieldMap;
   typedef vector<PbufApiValuePtr> ApiValueArray;
 
+  /// Protocol buffer specific implementation of ApiValue
   class PbufApiValue : public ApiValue
   {
     typedef ApiValue inherited;
@@ -172,7 +173,7 @@ namespace p44 {
   };
 
 
-
+  /// Protocol buffer specific implementation of VdcApiRequest
   class VdcPbufApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -212,6 +213,7 @@ namespace p44 {
 
 
 
+  /// Protocol buffer specific implementation of VdcApiConnection
   class VdcPbufApiConnection : public VdcApiConnection
   {
     typedef VdcApiConnection inherited;

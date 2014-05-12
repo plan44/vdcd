@@ -30,6 +30,9 @@ using namespace std;
 namespace p44 {
 
 
+  /// Implements the basic behaviour of a primary output, "primary" meaning the default or channel of a device for
+  /// MOC devices (for example: brightness for a color light). It might have a number of associated AuxChannelBehaviour
+  /// objects representing auxiliary parameters for the same device (such as color for a light).
   class OutputBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
@@ -120,7 +123,6 @@ namespace p44 {
     virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
 
     /// get currently set output value from device hardware
-    /// @param aOutputBehaviour the output behaviour which wants to know the output value as set in the hardware
     virtual int32_t getOutputValue();
 
     /// set new output value on device

@@ -34,7 +34,9 @@ namespace p44 {
   class DeviceSettings;
 
 
-  /// common settings for devices, can be used when device does not need a scene table, but has some global settings
+  /// Base class for persistent settings common to all devices.
+  /// @note This class can be used as-is for devices without a scene table (such as pure inputs and sensors),
+  ///   but it also is the base class for SceneDeviceSettings which implements a scene table on top of it.
   class DeviceSettings : public PersistentParams, public P44Obj
   {
     typedef PersistentParams inherited;

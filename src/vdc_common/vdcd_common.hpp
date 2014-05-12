@@ -6,8 +6,8 @@
  *   Copyright: 2012-2014 by plan44.ch/luz
  */
 
-#ifndef P44BRIDGED_COMMON_HPP_
-#define P44BRIDGED_COMMON_HPP_
+#ifndef P44VDCD_COMMON_HPP_
+#define P44VDCD_COMMON_HPP_
 
 #define LEGACY_DSID_SUPPORT 1 // if set to 1, classic dsids are still supported (using --modernids 0 command line)
 
@@ -21,4 +21,4 @@
 
 
 
-#endif /* P44BRIDGED_COMMON_HPP_ */
+#endif /* P44VDCD_COMMON_HPP_ */

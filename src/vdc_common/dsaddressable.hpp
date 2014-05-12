@@ -37,7 +37,7 @@ namespace p44 {
   class DeviceContainer;
 
   /// base class representing a entity which is addressable with a dSUID
-  /// dS devices are most obvious addressables, but the vDC itself is also addressable and uses this base class
+  /// dS devices are most obvious addressables, but vDCs and the vDC host itself is also addressable and uses this base class
   class DsAddressable : public PropertyContainer
   {
     typedef PropertyContainer inherited;

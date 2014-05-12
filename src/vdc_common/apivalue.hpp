@@ -47,7 +47,11 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<ApiValue> ApiValuePtr;
 
-  /// abstracted API value object
+  /// Abstract base class for API value object. ApiValues shield the rest of the framework from API technology
+  /// (protobuf, JSON) specific representation of a structured value tree. Internal processing of
+  /// API requests are all based on ApiValue.
+  /// @note concrete subclasses like JsonApiValue and PbufApiValue contain the actual implementation of
+  ///   Api values in a way suitable for the API technology used.
   class ApiValue : public P44Obj
   {
   protected:

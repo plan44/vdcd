@@ -34,6 +34,7 @@
 using namespace p44;
 
 
+/// A command line app for a Demo vdc host
 class DemoVdc : public CmdLineApp
 {
   typedef CmdLineApp inherited;

@@ -35,9 +35,10 @@ namespace p44 {
   typedef vector<DsBehaviourPtr> BehaviourVector;
 
   typedef boost::intrusive_ptr<Device> DevicePtr;
-  /// base class representing a virtual digitalSTROM device
-  /// for each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
-  /// the device class' specifics.
+  
+  /// base class representing a virtual digitalSTROM device.
+  /// For each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
+  /// the device class' specifics, in particular the interface with the hardware.
   class Device : public DsAddressable
   {
     typedef DsAddressable inherited;

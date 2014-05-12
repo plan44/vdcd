@@ -30,6 +30,8 @@ using namespace std;
 namespace p44 {
 
 
+  /// Implements the behaviour of climate control outputs, in particular evaluating
+  /// control values with processControlValue()
   class ClimateControlBehaviour : public OutputBehaviour
   {
     typedef OutputBehaviour inherited;

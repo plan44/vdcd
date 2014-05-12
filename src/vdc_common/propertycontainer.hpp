@@ -57,8 +57,9 @@ namespace p44 {
   } PropertyFlags;
 
 
-  /// description of a property
   typedef boost::intrusive_ptr<PropertyDescriptor> PropertyDescriptorPtr;
+
+  /// description of a property
   class PropertyDescriptor : public P44Obj
   {
   public:
@@ -85,7 +86,7 @@ namespace p44 {
   };
 
 
-
+  /// description of a static property (usually a named field described via a PropertyDescription in a const table)
   class StaticPropertyDescriptor : public PropertyDescriptor
   {
     typedef PropertyDescriptor inherited;
@@ -106,6 +107,7 @@ namespace p44 {
   };
 
 
+  /// description of a dynamic property (such as an element of a container, created on the fly when accessed)
   class DynamicPropertyDescriptor : public PropertyDescriptor
   {
     typedef PropertyDescriptor inherited;
@@ -135,6 +137,12 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<PropertyContainer> PropertyContainerPtr;
 
+  /// Base class for objects providing API properties
+  /// Implements generic mechanisms to handle accessing elements and subtrees of named propeties.
+  /// There is no strict relation between C++ classes of the framework and the property tree;
+  /// a single C++ class can implement multiple levels of the property tree.
+  /// PropertyContainer is also designed to allow subclasses adding property fields to the fields
+  /// provided by base classes, without modifications of the base class.
   class PropertyContainer : public P44Obj
   {
 

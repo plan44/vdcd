@@ -34,6 +34,8 @@ namespace p44 {
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
 
 
+  /// A concrete class implementing the Scene object for a simple (single channel = brightness) light device
+  /// @note subclasses can implement more parameters, like for exampe ColorLightScene for color lights.
   class LightScene : public DsScene
   {
     typedef DsScene inherited;
@@ -80,6 +82,7 @@ namespace p44 {
 
 
   /// the persistent parameters of a light scene device (including scene table)
+  /// @note subclasses can implement more parameters, like for exampe ColorLightDeviceSettings for color lights.
   class LightDeviceSettings : public SceneDeviceSettings
   {
     typedef SceneDeviceSettings inherited;
@@ -97,7 +100,8 @@ namespace p44 {
   };
 
 
-
+  /// Implements the behaviour of a digitalSTROM Light device, such as maintaining the logical brightness,
+  /// dimming and alert (blinking) functions.
   class LightBehaviour : public OutputBehaviour
   {
     typedef OutputBehaviour inherited;

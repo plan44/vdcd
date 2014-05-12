@@ -46,6 +46,15 @@ namespace p44 {
   class Device;
   class DeviceSettings;
 
+  /// Abstract base class for a single entry of a device's scene table. Implements the basic persistence
+  /// and property access mechanisms which can be extended in concrete subclasses.
+  /// @note concrete subclasses for standard dS behaviours exist as part of the behaviour implementation
+  ///   (such as light, colorlight) - so usually device makers don't need to implement subclasses of DsScene.
+  /// @note DsScene objects are managed by the SceneDeviceSettings container class in a way that tries
+  ///   to minimize the number of actual DsScene objects in memory for efficiency reasons. So
+  ///   most DsScene objects are created on the fly via the newDefaultScene() factory method when
+  ///   used. Also, only scenes explicitly configured to differ from the standard scene values for
+  ///   the behaviour are actually persisted into the database.
   class DsScene : public PropertyContainer, public PersistentParams
   {
     typedef PersistentParams inheritedParams;
@@ -147,7 +156,14 @@ namespace p44 {
 
 
 
-  /// the persistent parameters of a device with a scene table
+  /// Abstract base class for the persistent parameters of a device with a scene table
+  /// @note concrete subclasses for standard dS behaviours exist as part of the behaviour implementation
+  ///   (such as light, colorlight) - so usually device makers don't need to implement subclasses of SceneDeviceSettings.
+  /// @note The SceneDeviceSettings object manages the scene table in a way that tries
+  ///   to minimize the number of actual DsScene objects in memory for efficiency reasons. So
+  ///   most DsScene objects are created on the fly via the newDefaultScene() factory method only when
+  ///   needed e.g. for calling a scene. Only scenes that were explicitly configured to differ from the
+  ///   standard scene values for the behaviour are actually persisted into the database.
   class SceneDeviceSettings : public DeviceSettings
   {
     typedef DeviceSettings inherited;

@@ -28,7 +28,11 @@ using namespace std;
 
 namespace p44 {
 
-
+  /// Implements the behaviour of a digitalSTROM button, in particular the
+  /// state machine which generates the different click types for the dS upstream
+  /// from button press + button release events.
+  /// This class should be used as-is for any virtual device which represents
+  /// a user button or rocker switch.
   class ButtonBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;

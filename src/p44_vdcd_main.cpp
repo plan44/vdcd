@@ -40,7 +40,8 @@
 using namespace p44;
 
 
-class P44bridged : public CmdLineApp
+/// Main program for plan44.ch P44-DSB-DEH in form of the "vdcd" daemon)
+class P44Vdcd : public CmdLineApp
 {
   typedef CmdLineApp inherited;
 
@@ -87,7 +88,7 @@ class P44bridged : public CmdLineApp
 
 public:
 
-  P44bridged() :
+  P44Vdcd() :
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
@@ -154,7 +155,7 @@ public:
           break;
       }
       if (timer!=Never) {
-        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::endTempStatus, this), timer);
+        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
       }
     }
   }
@@ -403,7 +404,7 @@ public:
       }
 
       // install activity monitor
-      p44VdcHost->setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+      p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
     }
     // app now ready to run
     return run();
@@ -418,7 +419,7 @@ public:
     // back to normal...
     stopLearning(false);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isOK(aError)) {
       if (aLearnIn) {
@@ -475,7 +476,7 @@ public:
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 2), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 2), 2*Second);
         return true;
       }
     }
@@ -488,15 +489,15 @@ public:
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 3), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 3), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
         if (!learningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this, true), LEARN_TIMEOUT);
-          p44VdcHost->startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
+          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
+          p44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
         }
         else {
           // stop
@@ -520,7 +521,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 42), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 42), 2*Second);
         return true;
       }
       else {
@@ -530,7 +531,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOn();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 0), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 0), 500*MilliSecond);
         return true;
       }
     }
@@ -561,19 +562,19 @@ public:
     if (selfTesting) {
       // self testing
       // - initialize the device container
-      p44VdcHost->initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
     else if (factoryResetWait) {
       // button held during startup, check for factory reset
       // - connect special button hander
-      button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _1, _2, _3), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44Vdcd::fromStartButtonHandler, this, _1, _2, _3), true, 1*Second);
     }
     else {
       // normal init
       // - connect button
-      button->setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _1, _2, _3), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
       // - initialize the device container
-      p44VdcHost->initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
   }
 
@@ -585,7 +586,7 @@ public:
       // self test mode
       if (Error::isOK(aError)) {
         // start self testing (which might do some collecting if needed for testing)
-        p44VdcHost->selfTest(boost::bind(&P44bridged::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
+        p44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
       }
       else {
         // - init already unsuccessful, consider test failed, call test end routine directly
@@ -618,7 +619,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    p44VdcHost->collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
+    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
   }
 
 
@@ -643,7 +644,7 @@ int main(int argc, char **argv)
   // create the mainloop
   SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
-  static P44bridged application;
+  static P44Vdcd application;
   // pass control
   return application.main(argc, argv);
 }

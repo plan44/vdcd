@@ -50,6 +50,9 @@ using namespace std;
 
 namespace p44 {
 
+  /// Implements the dSUID, methods to generate it from SGTIN, UUID or hex string and to
+  /// represent it as as hex string
+  /// Currently, it also contains support for the old dsid, but this will be removed later
   class DsUid : public P44Obj
   {
   public:
@@ -185,18 +188,18 @@ namespace p44 {
     /// @name classic dsids
     /// @{
 
-    /// set object class
+    /// @deprecated set object class
     /// @param aObjectClass 24 bit object class. If 0xFF0000, aSerialNo can be up to 52 bits
     void setObjectClass(ObjectClass aObjectClass);
 
-    /// set serial number
+    /// @deprecated set serial number
     /// @param aSerialNo 36 bit serial number except if object class is already set 0xFFxxxx, in this case
     ///   aSerialNo can be up to 52 bits.
     ///   dS defines only 48 bits for MAC address (bits 48..51 in aSerialNo zero)
     ///   This method maps bits 48..51 of aSerial into bits 32..35 of the serial number field
     void setDsSerialNo(DsSerialNo aSerialNo);
 
-    /// get classic dsid derived via standard hashing procedure from dSUID
+    /// @deprecated get classic dsid derived via standard hashing procedure from dSUID
     /// @param aObjectClass to set in derived ID
     /// @return a classic 12-byte dsid in the terminal block domain (32 bit serial) with same
     ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to

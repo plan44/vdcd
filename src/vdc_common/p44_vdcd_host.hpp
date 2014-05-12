@@ -41,6 +41,7 @@ namespace p44 {
 
 
 
+  /// plan44 specific config API JSON request
   class P44JsonApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -80,7 +81,7 @@ namespace p44 {
 
 
 
-
+  /// plan44 specific implementation of a vdc host, with a separate API used by WebUI components.
   class P44VdcHost : public DeviceContainer
   {
     typedef DeviceContainer inherited;

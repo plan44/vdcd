@@ -823,7 +823,7 @@ void PbufApiValue::addKeyValFromPropertyElementField(const Vdcapi__PropertyEleme
   }
   // get the name
   const char *name = aPropertyElementP->name;
-  if (!name) name="<none>";
+  if (!name) name="";
   // add it now
   setType(apivalue_object);
   add(name,val);

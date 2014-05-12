@@ -29,6 +29,8 @@ using namespace std;
 namespace p44 {
 
 
+  /// Implements the behaviour of a digitalSTROM binary input
+  /// This class should be used as-is in virtual devices representing binary inputs
   class BinaryInputBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
