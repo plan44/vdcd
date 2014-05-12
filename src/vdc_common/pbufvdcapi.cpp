@@ -817,6 +817,10 @@ void PbufApiValue::addKeyValFromPropertyElementField(const Vdcapi__PropertyEleme
     // nested object, "elements" is field #2
     val->getValueFromMessageField(aPropertyElementP->base.descriptor->fields[2], aPropertyElementP->base);
   }
+  else {
+    // neither value nor object -> NULL
+    val->setNull();
+  }
   // get the name
   const char *name = aPropertyElementP->name;
   if (!name) name="<none>";
@@ -838,7 +842,7 @@ void PbufApiValue::storeKeyValIntoPropertyElementField(string aKey, Vdcapi__Prop
     // create nested value, "elements" is field #2
     putValueIntoMessageField(aPropertyElementP->base.descriptor->fields[2], aPropertyElementP->base);
   }
-  else {
+  else if (!isNull()) {
     // create the value
     aPropertyElementP->value = new Vdcapi__PropertyValue;
     vdcapi__property_value__init(aPropertyElementP->value);
