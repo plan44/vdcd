@@ -777,7 +777,7 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
   static const PropertyDescription properties[numDeviceProperties] = {
     // common device properties
     { "primaryGroup", apivalue_uint64, primaryGroup_key, OKEY(device_key) },
-    { "outputIsMemberOfGroup", apivalue_bool+propflag_container, isMember_key, OKEY(device_groups_key) },
+    { "outputGroups", apivalue_bool+propflag_container, isMember_key, OKEY(device_groups_key) },
     { "zoneID", apivalue_uint64, zoneID_key, OKEY(device_key) },
     { "outputLocalPriority", apivalue_bool, localPriority_key, OKEY(device_key) },
     { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
@@ -912,9 +912,12 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
 {
   if (aPropertyDescriptor->hasObjectKey(device_groups_key)) {
     if (aMode==access_read) {
-      // read group
-      aPropValue->setBoolValue(isMember((DsGroup)aPropertyDescriptor->fieldKey()));
-      return true;
+      // read group membership
+      if (isMember((DsGroup)aPropertyDescriptor->fieldKey())) {
+        aPropValue->setBoolValue(true);
+        return true;
+      }
+      return false;
     }
     else {
       // write group
