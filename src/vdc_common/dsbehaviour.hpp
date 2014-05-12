@@ -154,7 +154,7 @@ namespace p44 {
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
-    virtual string shortDesc() { return getTypeName(); }
+    virtual string shortDesc();
 
   protected:
 

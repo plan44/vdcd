@@ -139,6 +139,8 @@ vdcd_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/outputbehaviour.cpp \
   src/behaviours/outputbehaviour.hpp \
+  src/behaviours/auxchannelbehaviour.cpp \
+  src/behaviours/auxchannelbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
@@ -149,6 +151,8 @@ vdcd_SOURCES = \
   src/behaviours/buttonbehaviour.hpp \
   src/behaviours/lightbehaviour.cpp \
   src/behaviours/lightbehaviour.hpp \
+  src/behaviours/colorlightbehaviour.cpp \
+  src/behaviours/colorlightbehaviour.hpp \
   src/deviceclasses/simpleio/consoledevice.cpp \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
@@ -272,6 +276,8 @@ demovdc_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/outputbehaviour.cpp \
   src/behaviours/outputbehaviour.hpp \
+  src/behaviours/auxchannelbehaviour.cpp \
+  src/behaviours/auxchannelbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
@@ -282,6 +288,8 @@ demovdc_SOURCES = \
   src/behaviours/buttonbehaviour.hpp \
   src/behaviours/lightbehaviour.cpp \
   src/behaviours/lightbehaviour.hpp \
+  src/behaviours/colorlightbehaviour.cpp \
+  src/behaviours/colorlightbehaviour.hpp \
   src/deviceclasses/demo/demodevice.cpp \
   src/deviceclasses/demo/demodevice.hpp \
   src/deviceclasses/demo/demodevicecontainer.cpp \

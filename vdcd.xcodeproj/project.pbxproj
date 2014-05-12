@@ -115,6 +115,8 @@
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED7627281920E8F70068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED76272A1920E8F70068D9A3 /* auxchannelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */; };
+		ED76272F192109690068D9A3 /* auxchannelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */; };
+		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
 		ED81337917C6C765003982CC /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
@@ -972,6 +974,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
+				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
@@ -995,6 +998,7 @@
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
 				EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
+				ED76272F192109690068D9A3 /* auxchannelbehaviour.cpp in Sources */,
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,

@@ -296,6 +296,12 @@ bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
 #pragma mark - description/shortDesc
 
 
+string DsBehaviour::shortDesc()
+{
+  return getTypeName();
+}
+
+
 string DsBehaviour::description()
 {
   string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());

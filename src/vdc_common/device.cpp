@@ -131,10 +131,14 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
         aBehaviour->index = sensors.size();
         sensors.push_back(aBehaviour);
         break;
-      case behaviour_output:
+      case behaviour_output: {
         aBehaviour->index = outputs.size();
         outputs.push_back(aBehaviour);
+        // give behaviour chance to add auxiliary channels
+        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(aBehaviour);
+        if (o) o->createAuxChannels();
         break;
+      }
       default:
         LOG(LOG_ERR,"Device::addBehaviour: unknown behaviour type\n");
     }

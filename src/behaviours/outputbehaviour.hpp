@@ -70,6 +70,12 @@ namespace p44 {
 
     OutputBehaviour(Device &aDevice);
 
+    /// create and add auxiliary channels to the device
+    /// @note this is called after adding an output channel to a device
+    ///   and is intended for autocreating needed auxiliary channels like hsb/rgb/ct for color lights
+    virtual void createAuxChannels() { /* NOP in standard outputs */ }
+
+
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
