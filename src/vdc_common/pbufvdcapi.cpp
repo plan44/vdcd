@@ -987,9 +987,8 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         msg.vdc_response_hello = new Vdcapi__VdcResponseHello;
         vdcapi__vdc__response_hello__init(msg.vdc_response_hello);
         subMessageP = &(msg.vdc_response_hello->base);
-        // pbuf API structure and field names are different, we need to map them
         if (result) {
-          result->putObjectFieldIntoMessage(*subMessageP, "vdcdSUID");
+          result->putObjectFieldIntoMessage(*subMessageP, "dSUID");
         }
         break;
       case VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY:
