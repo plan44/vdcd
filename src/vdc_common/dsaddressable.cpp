@@ -137,9 +137,9 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
     }
   }
   else if (aMethod=="setProperty") {
-    // value must be present
+    // properties must be present
     ApiValuePtr value;
-    if (Error::isOK(respErr = checkParam(aParams, "value", value))) {
+    if (Error::isOK(respErr = checkParam(aParams, "properties", value))) {
       // check preload flag
       bool preload = false;
       ApiValuePtr o = aParams->get("preload");
