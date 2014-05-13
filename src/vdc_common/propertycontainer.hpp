@@ -156,8 +156,7 @@ namespace p44 {
     /// @param aQueryObject the object defining the read or write query
     /// @param aResultObject for read, must be an object
     /// @param aParentDescriptor the descriptor of the parent property, can be NULL at root level
-    /// @return Error 501 if property is unknown, 204 if aIndex addresses a non-existing element,
-    ///   403 if property exists but cannot be accessed, 415 if value type is incompatible with the property
+    /// @return Error 501 if property is unknown, 403 if property exists but cannot be accessed, 415 if value type is incompatible with the property
     ErrorPtr accessProperty(PropertyAccessMode aMode, ApiValuePtr aQueryObject, ApiValuePtr aResultObject, int aDomain, PropertyDescriptorPtr aParentDescriptor);
 
     /// @}

@@ -129,7 +129,6 @@ void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, 
 static char lightscene_key;
 
 enum {
-//  value_key,
   flashing_key,
   dimTimeSelector_key,
   numLightSceneProperties
@@ -145,7 +144,6 @@ int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numLightSceneProperties] = {
-//    { "value", apivalue_uint64, value_key, OKEY(lightscene_key) },
     { "flashing", apivalue_bool, flashing_key, OKEY(lightscene_key) },
     { "dimTimeSelector", apivalue_uint64, dimTimeSelector_key, OKEY(lightscene_key) },
     #warning "TODO: add channels MOC"
@@ -164,11 +162,6 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
     if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
-//        case value_key:
-//          #warning "TODO: implement MOC"
-//          // TODO: implement MOC
-//          aPropValue->setUint8Value(sceneBrightness);
-//          return true;
         case flashing_key:
           aPropValue->setBoolValue(flashing);
           return true;
@@ -180,12 +173,6 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
     else {
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
-//        case value_key:
-//          #warning "TODO: implement MOC"
-//          // TODO: implement MOC
-//          sceneBrightness = (Brightness)aPropValue->int32Value();
-//          markDirty();
-//          return true;
         case flashing_key:
           flashing = aPropValue->boolValue();
           markDirty();

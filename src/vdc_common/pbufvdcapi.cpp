@@ -1277,9 +1277,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         responseType = VDCAPI__TYPE__VDC_RESPONSE_HELLO;
         // pbuf API field names match, we can use generic decoding
         break;
-//        // pbuf API structure and field names are different, we need to map them
-//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "APIVersion");
-//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY: {
         method = "getProperty";
@@ -1287,9 +1284,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
         // pbuf API field names match, we can use generic decoding
         break;
-//        // pbuf API structure and field names are different, we need to map them
-//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "query");
-//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_SET_PROPERTY: {
         method = "setProperty";
@@ -1297,8 +1291,6 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
         // pbuf API field names match, we can use generic decoding
         break;
-//        msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "properties");
-//        goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_SEND_REMOVE: {
         method = "remove";
@@ -1430,9 +1422,9 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       // call handler
       apiRequestHandler(VdcPbufApiConnectionPtr(this), request, method, msgFieldsObj);
     }
+    // free the unpacked message
+    vdcapi__message__free_unpacked(decodedMsg, NULL); // Free the message from unpack()
   }
-  // free the unpacked message
-  vdcapi__message__free_unpacked(decodedMsg, NULL); // Free the message from unpack()
   // return error, in case one is left
   return err;
 }
