@@ -240,21 +240,21 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
         return PropertyDescriptorPtr(new StaticPropertyDescriptor(&descProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
-      return getDescDescriptorByIndex(aPropIndex);
+      return getDescDescriptorByIndex(aPropIndex, aParentDescriptor);
     case settings_key_offset:
       // check for generic settings properties
       if (aPropIndex<numDsBehaviourSettingsProperties)
         return PropertyDescriptorPtr(new StaticPropertyDescriptor(&settingsProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourSettingsProperties;
       // check type-specific settings
-      return getSettingsDescriptorByIndex(aPropIndex);
+      return getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
     case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
         return PropertyDescriptorPtr(new StaticPropertyDescriptor(&stateProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourStateProperties;
       // check type-specific states
-      return getStateDescriptorByIndex(aPropIndex);
+      return getStateDescriptorByIndex(aPropIndex, aParentDescriptor);
     default:
       return NULL;
   }

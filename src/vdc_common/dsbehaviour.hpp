@@ -169,21 +169,21 @@ namespace p44 {
 
     /// @param aPropIndex the description property index
     /// @return description (readonly) property descriptor
-    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
     /// @return number of settings (read/write) properties
     virtual int numSettingsProps() { return 0; };
 
     /// @param aPropIndex the settings property index
     /// @return settings (read/write) property descriptor
-    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
     /// @return number of states (read/write) properties
     virtual int numStateProps() { return 0; };
 
     /// @param aPropIndex the states property index
     /// @return states (read/write) property descriptor
-    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
 
     /// access single field in this behaviour
