@@ -57,6 +57,10 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<HttpComm> HttpCommPtr;
 
+  typedef std::map<string,string> HttpHeaderMap;
+  typedef boost::shared_ptr<HttpHeaderMap> HttpHeaderMapPtr;
+
+
   /// callback for returning response data or reporting error
   /// @param aHttpCommP the HttpComm object this callback comes from
   /// @param aResponse the response string
@@ -81,6 +85,10 @@ namespace p44 {
     int responseDataFd;
     struct mg_connection *mgConn; // mongoose connection
 
+  public:
+
+    HttpHeaderMapPtr responseHeaders; ///< the response headers when httpRequest is called with aSaveHeaders
+
   protected:
 
     SyncIOMainLoop &mainLoop;
@@ -104,9 +112,18 @@ namespace p44 {
     /// @param aRequestBody a C string containing the request body to send, or NULL if none
     /// @param aContentType the content type for the body to send, or NULL to use default
     /// @param aResponseDataFd if>=0, response data will be written to that file descriptor
+    /// @param aSaveHeaders if true, responseHeaders will be set to a string,string map containing the headers
     /// @return false if no request could be initiated (already busy with another request).
     ///   If false, aHttpCallback will not be called
-    bool httpRequest(const char *aURL, HttpCommCB aResponseCallback, const char *aMethod = "GET", const char* aRequestBody = NULL, const char *aContentType = NULL, int aResponseDataFd = -1);
+    bool httpRequest(
+      const char *aURL,
+      HttpCommCB aResponseCallback,
+      const char *aMethod = "GET",
+      const char* aRequestBody = NULL,
+      const char *aContentType = NULL,
+      int aResponseDataFd = -1,
+      bool aSaveHeaders = false
+    );
 
     /// cancel request
     void cancelRequest();

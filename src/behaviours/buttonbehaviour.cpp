@@ -71,12 +71,8 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
   LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
-  // button press is considered a (regular!) user action
-  if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
-    // not suppressed
-    buttonPressed = aPressed; // remember state
-    checkStateMachine(true, MainLoop::now());
-  }
+  buttonPressed = aPressed; // remember state
+  checkStateMachine(true, MainLoop::now());
 }
 
 
@@ -336,13 +332,16 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
   // update button state
   lastClick = MainLoop::now();
   clickType = aClickType;
-  LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
-  // issue a state porperty push
-  device.pushProperty("buttonInputStates", VDC_API_DOMAIN, (int)index);
-  // also let device container know for local click handling
-  #warning "%%% TODO: more elegant solution for this"
-  device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
-//  sendMessage("DeviceButtonClick", params);
+  // button press is considered a (regular!) user action, have it checked globally first
+  if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
+    // button press not consumed on global level, forward to upstream dS
+    LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
+    // issue a state property push
+    device.pushProperty("buttonInputStates", VDC_API_DOMAIN, (int)index);
+    // also let device container know for local click handling
+    #warning "%%% TODO: more elegant solution for this"
+    device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
+  }
 }
 
 

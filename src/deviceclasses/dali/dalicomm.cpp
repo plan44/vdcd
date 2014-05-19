@@ -849,6 +849,8 @@ private:
   {
     daliComm.startProcedure();
     // read the memory
+    #warning "official checksum algorithm is different: 0-byte2-byte3...byteLast, check with checksum+byte2+byte3...byteLast==0"
+    #warning "however, OSRAM QTI use the currently implemented version!?!"
     bankChecksum = 0; // !(sum(byte2..byteLast). Check with sum(byte1..byteLast)==0xFF
     DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0Data, this, _2, _3), busAddress, 0, 0, DALIMEM_BANK0_MINBYTES);
   };
