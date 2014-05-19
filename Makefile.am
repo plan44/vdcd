@@ -30,6 +30,25 @@ src/pbuf/gen/vdcapi.pb-c.h src/pbuf/gen/vdcapi.pb-c.c:	src/pbuf/vdcapi.proto
 
 # vdcd
 
+if DEBUG
+vdcd_DEBUG = -D DEBUG=1
+else
+vdcd_DEBUG =
+endif
+
+nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
+
+
+if RASPBERRYPI
+# This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
+# Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
+TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
+vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+else
+vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+endif
+
+
 vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src \
@@ -48,24 +67,6 @@ vdcd_CXXFLAGS = \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${vdcd_DEBUG}
-
-if DEBUG
-vdcd_DEBUG = -D DEBUG=1
-else
-vdcd_DEBUG =
-endif
-
-nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
-
-
-if RASPBERRYPI
-# This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
-# Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
-TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
-else
-vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
-endif
 
 
 vdcd_SOURCES = \
