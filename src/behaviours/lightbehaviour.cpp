@@ -144,7 +144,7 @@ int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numLightSceneProperties] = {
-    { "flashing", apivalue_bool, flashing_key, OKEY(lightscene_key) },
+    { "alerting", apivalue_bool, flashing_key, OKEY(lightscene_key) },
     { "dimTimeSelector", apivalue_uint64, dimTimeSelector_key, OKEY(lightscene_key) },
     #warning "TODO: add channels MOC"
   };
