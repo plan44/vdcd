@@ -21,7 +21,7 @@
 
 // set to 1 to get focus (extensive logging) for this file
 // Note: must be before including "logger.hpp"
-#define DEBUGFOCUS 1
+#define DEBUGFOCUS 0
 
 #include "propertycontainer.hpp"
 
@@ -66,9 +66,11 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
       // - find all descriptor(s) for this queryName
       PropertyDescriptorPtr propDesc;
       int propIndex = 0;
+      bool foundone = false;
       do {
         propDesc = getDescriptorByName(queryName, propIndex, aDomain, aParentDescriptor);
         if (propDesc) {
+          foundone = true; // found at least one descriptor for this query element
           DBGFLOG(LOG_DEBUG,"  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
           // actually access by descriptor
           if (propDesc->isStructured()) {
@@ -136,6 +138,15 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                 err = ErrorPtr(new VdcApiError(403,string_format("Write access to '%s' denied", propDesc->name())));
               }
             }
+          }
+        }
+        else {
+          // no descriptor found for this query element
+          // Note: this means that property is not KNOWN, which is NOT the same as getting false from accessField
+          //   (latter means that property IS known, but has no value in the context it was queried)
+          if (!wildcard && !foundone) {
+            // query did address a specific property but it is unknown -> report as error (for read AND write!)
+            err = ErrorPtr(new VdcApiError(404,string_format("Unknown property '%s' -> operation aborted", queryName.c_str())));
           }
         }
       } while (Error::isOK(err) && propIndex!=PROPINDEX_NONE);
