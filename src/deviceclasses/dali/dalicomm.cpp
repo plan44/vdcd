@@ -75,6 +75,7 @@ bool DaliComm::isBusy()
 #define ACK_OK 0x30 // ok status
 #define ACK_TIMEOUT 0x31 // timeout receiving from DALI
 #define ACK_FRAME_ERR 0x32 // rx frame error
+#define ACK_OVERLOAD 0x33 // bus overload (max current for longer period = possibly shortened)
 #define ACK_INVALIDCMD 0x39 // invalid command
 
 
@@ -821,9 +822,8 @@ private:
   {
     daliComm.startProcedure();
     // read the memory
-    #warning "official checksum algorithm is different: 0-byte2-byte3...byteLast, check with checksum+byte2+byte3...byteLast==0"
-    #warning "however, OSRAM QTI use the currently implemented version!?!"
-    bankChecksum = 0; // !(sum(byte2..byteLast). Check with sum(byte1..byteLast)==0xFF
+    // Note: official checksum algorithm is: 0-byte2-byte3...byteLast, check with checksum+byte2+byte3...byteLast==0
+    bankChecksum = 0;
     DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0Data, this, _1, _2), busAddress, 0, 0, DALIMEM_BANK0_MINBYTES);
   };
 
@@ -837,6 +837,24 @@ private:
       // sum up starting with checksum itself, result must be 0xFF in the end
       for (int i=0x01; i<DALIMEM_BANK0_MINBYTES; i++) {
         bankChecksum += (*aBank0Data)[i];
+      }
+      // check plausibility of data
+      uint8_t refByte = 0;
+      uint8_t numSame = 0;
+      for (int i=0x03; i<=0x0E; i++) {
+        uint8_t b = (*aBank0Data)[i];
+        if(b==refByte) {
+          numSame++;
+          // - report error
+          if (numSame>=10) {
+            LOG(LOG_ERR, "DALI shortaddress %d Bank 0 has >%d consecutive bytes of 0x%02X - indicates invalid GTIN/Serial data -> ignoring\n", busAddress, numSame, refByte);
+            return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadDeviceInfo,string_format("bad repetitive DALI memory bank 0 contents shortAddress %d", busAddress))));
+          }
+        }
+        else {
+          refByte = b;
+          numSame = 0;
+        }
       }
       // GTIN: bytes 0x03..0x08, MSB first
       deviceInfo->gtin = 0;
@@ -887,7 +905,10 @@ private:
   void bank0readcomplete()
   {
     // verify checksum of bank0 data first
-    if (bankChecksum!=0xFF) {
+    // - per specs, correct sum should be 0x00 here.
+    // - However, for example Osram QTI seem to have it implemented incorrectly, and sum up to 0xFF instead,
+    //   so we allow this as well (altough it doubles probability of false positives).
+    if (bankChecksum!=0x00 && bankChecksum!=0xFF) {
       // checksum error
       // - invalidate gtin, serial and fw version
       deviceInfo->gtin = 0;
@@ -895,8 +916,8 @@ private:
       deviceInfo->fw_version_minor = 0;
       deviceInfo->serialNo = 0;
       // - report error
-      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0xFF, actual sum is 0x%02X\n", busAddress, bankChecksum);
-      return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memeory bank 0 checksum at shortAddress %d", busAddress))));
+      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0x00 (0xFF accepted as well for bad devices), actual sum is 0x%02X\n", busAddress, bankChecksum);
+      return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memory bank 0 checksum at shortAddress %d", busAddress))));
     }
     // now read OEM info from bank1
     bankChecksum = 0;
@@ -961,13 +982,16 @@ private:
   {
     if (Error::isOK(aError)) {
       // test checksum
-      if (bankChecksum!=0xFF) {
+      // - per specs, correct sum should be 0x00 here.
+      // - However, for example Osram QTI seem to have it implemented incorrectly, and sum up to 0xFF instead,
+      //   so we allow this as well (altough it doubles probability of false positives).
+      if (bankChecksum!=0x00 && bankChecksum!=0xFF) {
         // checksum error
         // - invalidate gtin, serial and fw version
         deviceInfo->oem_gtin = 0;
         deviceInfo->oem_serialNo = 0;
         // - report error
-        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0xFF, actual sum is 0x%02X\n", busAddress, bankChecksum);
+        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0x00 (0xFF accepted as well for bad devices), actual sum is 0x%02X\n", busAddress, bankChecksum);
         aError = ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memeory bank 1 checksum at shortAddress %d", busAddress)));
       }
     }

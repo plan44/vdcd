@@ -88,10 +88,12 @@ private:
   void deviceInfoReceived(DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
   {
     bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
-    bool badData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum);
+    bool badData =
+      aError &&
+      (aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum) || aError->isError(DaliCommError::domain(), DaliCommErrorBadDeviceInfo));
     if (!aError || missingData || badData) {
       if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
-      if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have invalid device info (checksum error)\n",aDaliDeviceInfoPtr->shortAddress); }
+      if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have valid device info\n",aDaliDeviceInfoPtr->shortAddress); }
       // - create device
       DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
       // - give it device info (such that it can calculate its dSUID)

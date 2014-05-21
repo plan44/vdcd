@@ -30,6 +30,7 @@ namespace p44 {
     DaliCommErrorDALIFrame,
     DaliCommErrorMissingData,
     DaliCommErrorBadChecksum,
+    DaliCommErrorBadDeviceInfo,
     DaliCommErrorInvalidAnswer,
     DaliCommErrorNeedFullScan,
     DaliCommErrorDeviceSearch,
