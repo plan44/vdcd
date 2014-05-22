@@ -79,10 +79,30 @@ namespace p44 {
 
     SceneNo sceneNo; ///< scene number
 
-    /// flags mapped into sceneFlags for storage
-    bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
+    /// @}
+
+
+    /// @name access to scene level flags
+    /// @{
+
+    /// check if scene is dontCare (on the scene level, regardless of individual value's dontCare)
+    /// @return dontCare status
+    bool isDontCare();
+
+    /// set if scene should have dontCare status on scene level
+    /// @param aDontCare new flag state
+    void setDontCare(bool aDontCare);
+
+    /// check if scene ignores local priority
+    /// @return dontCare status
+    bool ignoresLocalPriority();
+
+    /// set if scene should ignore local priority
+    /// @param aIgnoreLocalPriority new flag state
+    void setIgnoreLocalPriority(bool aIgnoreLocalPriority);
 
     /// @}
+
 
     /// @name access to scene values (1 or more for MOC)
     /// @{

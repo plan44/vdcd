@@ -323,9 +323,8 @@ void LightScene::setDefaultSceneValues(SceneNo aSceneNo)
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
   // now set default values
   // - common scene flags
-  ignoreLocalPriority = p.ignoreLocalPriority;
-  // - scene value flags (only one value for now)
-  setSceneValueFlags(0, valueflags_dontCare, p.dontCare);
+  setIgnoreLocalPriority(p.ignoreLocalPriority);
+  setDontCare(p.dontCare);
   // - light scene specifics
   sceneBrightness = p.brightness;
   dimTimeSelector = p.dimTimeSelector;

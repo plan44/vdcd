@@ -448,7 +448,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       LOG(LOG_DEBUG, "callScene(%d): is area #%d scene\n", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
       scene = scenes->getScene(mainSceneForArea(area));
-      if (scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
+      if (scene->isDontCare()) {
         LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress\n", mainSceneForArea(area));
         return; // not in this area, suppress callScene entirely
       }
@@ -473,12 +473,12 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
     if (scene) {
       LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->isSceneValueFlagSet(0, valueflags_dontCare));
-      if (!scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
+      if (!scene->isDontCare()) {
         // Scene found and dontCare not set, check details
         // - check local priority
         if (!area && localPriority) {
           // non-area scene call, but device is in local priority and scene does not ignore local priority
-          if (!aForce && !scene->ignoreLocalPriority) {
+          if (!aForce && !scene->ignoresLocalPriority()) {
             // not forced nor localpriority ignored, localpriority prevents applying non-area scene
             LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
             return; // suppress scene call entirely
@@ -565,7 +565,7 @@ void Device::setLocalPriority(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: setLocalPriority(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
+    if (scene && !scene->isDontCare()) {
       LOG(LOG_DEBUG, "setLocalPriority(%d): localPriority set\n", aSceneNo);
       localPriority = true;
     }
@@ -580,7 +580,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: callSceneMin(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->isSceneValueFlagSet(0, valueflags_dontCare)) {
+    if (scene && !scene->isDontCare()) {
       for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
         OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
         if (output) {

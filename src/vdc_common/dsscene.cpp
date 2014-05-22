@@ -165,7 +165,8 @@ typedef boost::intrusive_ptr<SceneChannels> SceneChannelsPtr;
 DsScene::DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
   inheritedParams(aSceneDeviceSettings.paramStore),
   sceneDeviceSettings(aSceneDeviceSettings),
-  sceneNo(aSceneNo)
+  sceneNo(aSceneNo),
+  globalSceneFlags(0)
 {
   sceneChannels = SceneChannelsPtr(new SceneChannels(*this));
 }
@@ -221,9 +222,14 @@ const FieldDefinition *DsScene::getFieldDef(size_t aIndex)
 
 // flags in globalSceneFlags
 enum {
-  globalflags_dontCare = 0x0001, ///< dontcare of main output is stored globally
+  // scene global
+  globalflags_sceneDontCare = 0x0001, ///< scene level dontcare
   globalflags_ignoreLocalPriority = 0x0002,
-  globalflags_mask = 0x0003
+  globalflags_sceneLevelMask = 0x0003,
+
+  // per value dontCare flags, 8 channels max
+  globalflags_valueDontCare0 = 0x100,
+  globalflags_valueDontCareMask = 0xFF00,
 };
 
 
@@ -234,8 +240,6 @@ void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   // get the fields
   sceneNo = aRow->get<int>(aIndex++);
   globalSceneFlags = aRow->get<int>(aIndex++);
-  // decode the flags
-  ignoreLocalPriority = globalSceneFlags & globalflags_ignoreLocalPriority;
 }
 
 
@@ -243,12 +247,34 @@ void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // encode the flags
-  globalSceneFlags &= globalflags_mask; // clear my flags
-  if (ignoreLocalPriority) globalSceneFlags |= globalflags_ignoreLocalPriority;
   // bind the fields
   aStatement.bind(aIndex++, (int)sceneNo);
   aStatement.bind(aIndex++, (int)globalSceneFlags);
+}
+
+
+#pragma mark - scene flags
+
+bool DsScene::isDontCare()
+{
+  return globalSceneFlags & globalflags_sceneDontCare;
+}
+
+void DsScene::setDontCare(bool aDontCare)
+{
+  globalSceneFlags = (globalSceneFlags & ~globalflags_sceneDontCare) | (aDontCare ? globalflags_sceneDontCare : 0);
+}
+
+
+
+bool DsScene::ignoresLocalPriority()
+{
+  return globalSceneFlags & globalflags_ignoreLocalPriority;
+}
+
+void DsScene::setIgnoreLocalPriority(bool aIgnoreLocalPriority)
+{
+  globalSceneFlags = (globalSceneFlags & ~globalflags_ignoreLocalPriority) | (aIgnoreLocalPriority ? globalflags_ignoreLocalPriority : 0);
 }
 
 
@@ -262,19 +288,26 @@ int DsScene::numSceneValues()
 
 uint32_t DsScene::sceneValueFlags(size_t aOutputIndex)
 {
-  // only don't care of output 0
-  return globalSceneFlags & ((aOutputIndex==0) && globalflags_dontCare) ? valueflags_dontCare : 0;
+  uint32_t flags = 0;
+  // up to 8 channel's dontCare flags are mapped into globalSceneFlags
+  if (aOutputIndex<numSceneValues()) {
+    if (globalSceneFlags & (globalflags_valueDontCare0<<aOutputIndex)) {
+      flags |= valueflags_dontCare; // this value's dontCare is set
+    }
+  }
+  return flags;
 }
 
 
 void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool aSet)
 {
-  if (aOutputIndex==0) {
-    // only don't care of output 0
+  // up to 8 channel's dontCare flags are mapped into globalSceneFlags
+  if (aOutputIndex<numSceneValues()) {
+    uint32_t flagmask = globalflags_valueDontCare0<<aOutputIndex;
     if (aSet)
-      globalSceneFlags |= (aFlagMask & valueflags_dontCare) ? globalflags_dontCare : 0;
+      globalSceneFlags |= (aFlagMask & valueflags_dontCare) ? flagmask : 0;
     else
-      globalSceneFlags &= ~((aFlagMask & valueflags_dontCare) ? globalflags_dontCare : 0);
+      globalSceneFlags &= ~((aFlagMask & valueflags_dontCare) ? flagmask : 0);
   }
 }
 
@@ -326,6 +359,7 @@ enum {
   channels_key,
   outputs_key,
   ignoreLocalPriority_key,
+  dontCare_key,
   numSceneProperties
 };
 
@@ -346,6 +380,7 @@ PropertyDescriptorPtr DsScene::getDescriptorByIndex(int aPropIndex, int aDomain,
     { "channels", apivalue_object+propflag_container, channels_key, OKEY(dsscene_channels_key) },
     { "outputs", apivalue_object+propflag_container, outputs_key, OKEY(dsscene_outputs_key) },
     { "ignoreLocalPriority", apivalue_bool, ignoreLocalPriority_key, OKEY(dsscene_key) },
+    { "dontCare", apivalue_bool, dontCare_key, OKEY(dsscene_key) },
   };
   int n = inheritedProps::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
@@ -371,7 +406,10 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prop
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
         case ignoreLocalPriority_key:
-          aPropValue->setBoolValue(ignoreLocalPriority);
+          aPropValue->setBoolValue(ignoresLocalPriority());
+          return true;
+        case dontCare_key:
+          aPropValue->setBoolValue(isDontCare());
           return true;
       }
     }
@@ -379,7 +417,11 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prop
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         case ignoreLocalPriority_key:
-          ignoreLocalPriority = aPropValue->boolValue();
+          setIgnoreLocalPriority(aPropValue->boolValue());
+          markDirty();
+          return true;
+        case dontCare_key:
+          setDontCare(aPropValue->boolValue());
           markDirty();
           return true;
       }
