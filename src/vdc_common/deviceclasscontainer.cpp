@@ -212,8 +212,7 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
     if (aMode==access_read) {
       switch (aPropertyDescriptor->fieldKey()) {
         case webui_url_key:
-          #warning "TODO: %%% construct real device webui URL here"
-          aPropValue->setStringValue("http://www.plan44.ch/automation");
+          aPropValue->setStringValue(webuiURLString());
           return true;
       }
     }

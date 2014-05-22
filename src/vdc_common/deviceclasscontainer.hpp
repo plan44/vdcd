@@ -111,7 +111,9 @@ namespace p44 {
     /// Instance number (to differentiate multiple device class containers of the same class)
 		/// @return instance index number
 		int getInstanceNumber() const;
-		
+
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString() { return deviceContainerP->webuiURLString(); /* by default, return vDC host's config URL */ };
 
     /// get a sufficiently unique identifier for this class container
     /// @return ID that identifies this container running on a specific hardware

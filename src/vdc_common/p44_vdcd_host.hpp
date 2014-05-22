@@ -105,6 +105,9 @@ namespace p44 {
     /// @param aRedLED green LED output
     void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
 
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString();
+
   private:
 
     SocketCommPtr configApiConnectionHandler(SocketCommPtr aServerSocketComm);

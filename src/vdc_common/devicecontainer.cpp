@@ -70,6 +70,14 @@ string DeviceContainer::macAddressString()
 }
 
 
+string DeviceContainer::ipv4AddressString()
+{
+  uint32_t ip = ipv4Address();
+  string ipStr = string_format("%d.%d.%d.%d", (ip>>24) & 0xFF, (ip>>16) & 0xFF, (ip>>8) & 0xFF, ip & 0xFF);
+  return ipStr;
+}
+
+
 
 void DeviceContainer::deriveDsUid()
 {
@@ -193,7 +201,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -1009,6 +1017,7 @@ static char vdc_key;
 
 enum {
   vdcs_key,
+  webui_url_key,
   numDeviceContainerProperties
 };
 
@@ -1027,7 +1036,8 @@ int DeviceContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescript
 PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDeviceContainerProperties] = {
-    { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) }
+    { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
+    { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
@@ -1076,8 +1086,16 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
 
 bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  // no device container level non-container fields yet
-  // NOTE: if we get some, they will be OKEY(devicecontainer_key)
+  if (aPropertyDescriptor->hasObjectKey(devicecontainer_key)) {
+    if (aMode==access_read) {
+      switch (aPropertyDescriptor->fieldKey()) {
+        case webui_url_key:
+          aPropValue->setStringValue(webuiURLString());
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
   return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 

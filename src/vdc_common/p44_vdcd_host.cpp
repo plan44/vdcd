@@ -180,6 +180,12 @@ void P44VdcHost::selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, Indi
 
 
 
+string P44VdcHost::webuiURLString()
+{
+  return "http://" + ipv4AddressString() + ":80";
+}
+
+
 
 #pragma mark - Config API
 

@@ -151,6 +151,12 @@ namespace p44 {
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
 
+    /// @return IPv4 address as string
+    string ipv4AddressString();
+
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString() { return ""; /* none by default */ }
+
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
     void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
