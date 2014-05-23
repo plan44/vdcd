@@ -38,6 +38,7 @@ namespace p44 {
     typedef Device inherited;
     bool hasButton;
     bool hasOutput;
+    bool hasColor;
     ConsoleKeyPtr consoleKey;
     int32_t outputValue;
 

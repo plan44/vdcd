@@ -32,6 +32,7 @@ namespace p44 {
 
   class Device;
   class DeviceSettings;
+  class DsScene;
 
 
   /// Base class for persistent settings common to all devices.
@@ -41,6 +42,7 @@ namespace p44 {
   {
     typedef PersistentParams inherited;
     friend class Device;
+    friend class DsScene;
 
     Device &device;
 

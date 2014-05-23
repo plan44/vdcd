@@ -369,6 +369,8 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
 {
   // should always be a member of the light group
   setGroup(group_yellow_light);
+  // primary output controls brightness
+  setHardwareName("brightness");
   // persistent settings
   dimTimeUp[0] = 0x0F; // 100mS
   dimTimeUp[1] = 0x3F; // 800mS

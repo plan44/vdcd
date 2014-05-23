@@ -35,7 +35,9 @@ namespace p44 {
   typedef vector<DsBehaviourPtr> BehaviourVector;
 
   typedef boost::intrusive_ptr<Device> DevicePtr;
-  
+
+  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
+
   /// base class representing a virtual digitalSTROM device.
   /// For each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
   /// the device class' specifics, in particular the interface with the hardware.
@@ -45,7 +47,9 @@ namespace p44 {
 
     friend class DeviceContainer;
     friend class DsBehaviour;
-    
+    friend class DsScene;
+    friend class SceneChannels;
+
   protected:
 
     /// the class container
@@ -246,6 +250,30 @@ namespace p44 {
     /// @}
 
 
+    /// add a behaviour and set its index
+    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
+    ///   array and given the correct index value. Primary output must be added first as it needs to have index 0.
+    void addBehaviour(DsBehaviourPtr aBehaviour);
+
+
+    /// @name channels
+    /// @{
+
+    /// @return number of output channels in this device
+    int numChannels();
+
+    /// get output by channel ID
+    /// @param aChannelType type of channel, channeltype_default for primary output
+    /// @return NULL if channel does not exist in this device, output behaviour pointer otherwise
+    OutputBehaviourPtr outputByChannel(DsChannelType aChannelType);
+
+    /// get output by output index
+    /// @param aChannelType type of channel, channeltype_default for primary output
+    /// @return NULL if channel does not exist in this device, output behaviour pointer otherwise
+    OutputBehaviourPtr outputByIndex(size_t aOutputIndex);
+
+    /// @}
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
@@ -259,11 +287,6 @@ namespace p44 {
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
     virtual ErrorPtr writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
-
-    /// add a behaviour and set its index
-    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
-    ///   array and given the correct index value
-    void addBehaviour(DsBehaviourPtr aBehaviour);
 
     /// set local priority of the device if specified scene does not have dontCare set.
     /// @param aSceneNo the scene to check don't care for

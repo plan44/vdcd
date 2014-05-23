@@ -22,6 +22,7 @@
 #include "dsscene.hpp"
 
 #include "device.hpp"
+#include "outputbehaviour.hpp"
 
 using namespace p44;
 
@@ -83,8 +84,11 @@ protected:
       bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
       if (numericName && aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
         // specific channel addressed by ID, look up index for it
-        int channelIndex = (int)scene.getOutputIndexByChannel(aStartIndex);
-        aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
+        OutputBehaviourPtr o = scene.getDevice().outputByChannel(aStartIndex);
+        if (o)
+          aStartIndex = (int)o->getIndex(); // found, return index
+        else
+          aStartIndex = PROPINDEX_NONE; // not found
       }
       int n = numProps(aDomain, aParentDescriptor);
       if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
@@ -170,6 +174,14 @@ DsScene::DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
 {
   sceneChannels = SceneChannelsPtr(new SceneChannels(*this));
 }
+
+
+Device &DsScene::getDevice()
+{
+  return sceneDeviceSettings.device;
+}
+
+
 
 #pragma mark - scene persistence
 
@@ -283,8 +295,9 @@ void DsScene::setIgnoreLocalPriority(bool aIgnoreLocalPriority)
 
 int DsScene::numSceneValues()
 {
-  return 1; // default to single value
+  return getDevice().numChannels();
 }
+
 
 uint32_t DsScene::sceneValueFlags(size_t aOutputIndex)
 {
@@ -324,8 +337,11 @@ void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool a
 
 int DsScene::getChannelId(size_t aOutputIndex)
 {
-  #warning "%%% todo: determine real channel ID"
-  return 1; // %%% default channel is brightness
+  OutputBehaviourPtr o = sceneDeviceSettings.device.outputByIndex(aOutputIndex);
+  if (o) {
+    return o->getChannel();
+  }
+  return -1;
 }
 
 
@@ -341,10 +357,9 @@ bool DsScene::isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask)
 // utility function to find index by channelID
 size_t DsScene::getOutputIndexByChannel(int aChannelID)
 {
-  for (int index=0; index<numSceneValues(); index++) {
-    if (aChannelID==getChannelId(index)) {
-      return index;
-    }
+  OutputBehaviourPtr o = sceneDeviceSettings.device.outputByChannel(aChannelID);
+  if (o) {
+    return o->index;
   }
   return -1;
 }

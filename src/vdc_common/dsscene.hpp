@@ -149,6 +149,10 @@ namespace p44 {
 
     /// @}
 
+    /// get device
+    /// @return the device this scene belongs to
+    Device &getDevice();
+
   protected:
 
     // property access implementation
@@ -190,6 +194,7 @@ namespace p44 {
 
     friend class DsScene;
     friend class Device;
+    friend class SceneChannels;
 
     DsSceneMap scenes; ///< the user defined scenes (default scenes will be created on the fly)
 

@@ -97,8 +97,8 @@ void HueLightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aInde
 }
 
 
-#pragma mark - Light scene property access
 
+#pragma mark - Light scene property access
 
 static char huelightscene_key;
 

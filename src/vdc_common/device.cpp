@@ -149,6 +149,40 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
 }
 
 
+#pragma mark - Channels
+
+
+int Device::numChannels()
+{
+  return (int)outputs.size();
+}
+
+
+OutputBehaviourPtr Device::outputByChannel(DsChannelType aChannelType)
+{
+  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
+    OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
+    if (
+      (aChannelType==channeltype_default && o->getIndex()==0) ||
+      (o->getChannel()==aChannelType)
+    ) {
+      // found
+      return o;
+    }
+  }
+  return OutputBehaviourPtr(); // not found
+}
+
+
+
+OutputBehaviourPtr Device::outputByIndex(size_t aOutputIndex)
+{
+  if (aOutputIndex<outputs.size()) {
+    return boost::dynamic_pointer_cast<OutputBehaviour>(outputs[aOutputIndex]);
+  }
+  return OutputBehaviourPtr(); // not found
+}
+
 
 
 #pragma mark - Device level vDC API
@@ -826,24 +860,18 @@ PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStart
     bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
     if (numericName && aParentDescriptor->hasObjectKey(device_channels_key)) {
       // specific channel addressed by ID, look up index for it
-      int i=0;
-      int channelIndex=-1;
-      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-        if (o->getChannel()==aStartIndex) {
-          channelIndex = i;
-          break;
-        }
-        i++; // next
-      }
-      aStartIndex = channelIndex>=0 ? channelIndex : PROPINDEX_NONE;
+      OutputBehaviourPtr o = outputByChannel(aStartIndex);
+      if (o)
+        aStartIndex = (int)o->index; // found, return index
+      else
+        aStartIndex = PROPINDEX_NONE; // not found
     }
     int n = numProps(aDomain, aParentDescriptor);
     if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
       // within range, create descriptor
       DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
       if (aParentDescriptor->hasObjectKey(device_channels_key)) {
-        OutputBehaviourPtr o = boost::dynamic_pointer_cast<OutputBehaviour>(outputs[aStartIndex]);
+        OutputBehaviourPtr o = outputByIndex(aStartIndex);
         descP->propertyName = string_format("%d", o->getChannel());
       }
       else {

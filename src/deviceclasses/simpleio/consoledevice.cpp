@@ -25,6 +25,7 @@
 
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
+#include "colorlightbehaviour.hpp"
 
 using namespace p44;
 
@@ -33,6 +34,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   Device((DeviceClassContainer *)aClassContainerP),
   hasButton(false),
   hasOutput(false),
+  hasColor(false),
   outputValue(0)
 {
   size_t i = aDeviceConfig.find_first_of(':');
@@ -48,6 +50,10 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       hasButton = true;
       hasOutput = true;
     }
+    else if (mode=="color") {
+      hasOutput = true;
+      hasColor = true;
+    }
   }
   // assign name
   initializeName(name);
@@ -56,13 +62,24 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // Simulate light device
     // - defaults to yellow (light)
     primaryGroup = group_yellow_light;
-    // - use light settings, which include a scene table
-    deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
-    // - create one output
-    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
-    l->setHardwareName("console output");
-    addBehaviour(l);
+    // - create output(s)
+    if (hasColor) {
+      // Color light
+      // - use color light settings, which include a color scene table
+      deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
+      // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
+      ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
+      addBehaviour(l);
+    }
+    else {
+      // Simple single-channel light
+      // - use light settings, which include a scene table
+      deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+      // - add simple single-channel light behaviour
+      LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+      l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
+      addBehaviour(l);
+    }
   }
   else if (hasButton) {
     // Simulate Button device

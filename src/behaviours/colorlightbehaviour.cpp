@@ -39,14 +39,29 @@ ColorLightScene::ColorLightScene(SceneDeviceSettings &aSceneDeviceSettings, Scen
 
 double ColorLightScene::sceneValue(size_t aOutputIndex)
 {
-  return sceneBrightness;
+  OutputBehaviourPtr o = getDevice().outputByIndex(aOutputIndex);
+  switch (o->getChannel()) {
+    case channeltype_hue: return colorMode==ColorLightModeHueSaturation ? XOrHueOrCt : 0;
+    case channeltype_saturation: return colorMode==ColorLightModeHueSaturation ? YOrSat : 0;
+    case channeltype_colortemp: return colorMode==ColorLightModeCt ? XOrHueOrCt : 0;
+    case channeltype_cie_x: return colorMode==ColorLightModeXY ? XOrHueOrCt : 0;
+    case channeltype_cie_y: return colorMode==ColorLightModeXY ? YOrSat : 0;
+    default: return inherited::sceneValue(aOutputIndex);
+  }
+  return 0;
 }
 
 
 void ColorLightScene::setSceneValue(size_t aOutputIndex, double aValue)
 {
-  if (aOutputIndex==0) {
-    sceneBrightness = aValue;
+  OutputBehaviourPtr o = getDevice().outputByIndex(aOutputIndex);
+  switch (o->getChannel()) {
+    case channeltype_hue: XOrHueOrCt = aValue; colorMode=ColorLightModeHueSaturation; break;
+    case channeltype_saturation: YOrSat = aValue; colorMode=ColorLightModeHueSaturation; break;
+    case channeltype_colortemp: XOrHueOrCt = aValue; colorMode=ColorLightModeCt; break;
+    case channeltype_cie_x: XOrHueOrCt = aValue; colorMode=ColorLightModeXY; break;
+    case channeltype_cie_y: YOrSat = aValue; colorMode=ColorLightModeXY; break;
+    default: inherited::setSceneValue(aOutputIndex, aValue);
   }
 }
 
@@ -60,34 +75,28 @@ const char *ColorLightScene::tableName()
 
 // data field definitions
 
-static const size_t numSceneFields = 3;
+static const size_t numColorSceneFields = 3;
 
 size_t ColorLightScene::numFieldDefs()
 {
-  return inherited::numFieldDefs()+numSceneFields;
+  return inherited::numFieldDefs()+numColorSceneFields;
 }
 
 
 const FieldDefinition *ColorLightScene::getFieldDef(size_t aIndex)
 {
-  static const FieldDefinition dataDefs[numSceneFields] = {
-    { "brightness", SQLITE_INTEGER },
-    { "lightFlags", SQLITE_INTEGER },
-    { "dimTimeSelector", SQLITE_INTEGER }
+  static const FieldDefinition dataDefs[numColorSceneFields] = {
+    { "colorMode", SQLITE_INTEGER },
+    { "XOrHueOrCt", SQLITE_FLOAT },
+    { "YOrSat", SQLITE_FLOAT }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
   aIndex -= inherited::numFieldDefs();
-  if (aIndex<numSceneFields)
+  if (aIndex<numColorSceneFields)
     return &dataDefs[aIndex];
   return NULL;
 }
-
-
-enum {
-  lightflag_specialBehaviour = 0x0001,
-  lightflag_flashing = 0x0002
-};
 
 
 /// load values from passed row
@@ -95,12 +104,9 @@ void ColorLightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  sceneBrightness = aRow->get<int>(aIndex++);
-  int lightflags = aRow->get<int>(aIndex++);
-  dimTimeSelector = aRow->get<int>(aIndex++);
-  // decode the flags
-  specialBehaviour = lightflags & lightflag_specialBehaviour;
-  flashing = lightflags & lightflag_flashing;
+  colorMode = (ColorLightMode)aRow->get<int>(aIndex++);
+  XOrHueOrCt = aRow->get<double>(aIndex++);
+  YOrSat = aRow->get<double>(aIndex++);
 }
 
 
@@ -108,14 +114,10 @@ void ColorLightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void ColorLightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // encode the flags
-  int lightflags = 0;
-  if (specialBehaviour) lightflags |= lightflag_specialBehaviour;
-  if (flashing) lightflags |= lightflag_flashing;
   // bind the fields
-  aStatement.bind(aIndex++, sceneBrightness);
-  aStatement.bind(aIndex++, lightflags);
-  aStatement.bind(aIndex++, dimTimeSelector);
+  aStatement.bind(aIndex++, (int)colorMode);
+  aStatement.bind(aIndex++, XOrHueOrCt);
+  aStatement.bind(aIndex++, YOrSat);
 }
 
 
@@ -159,13 +161,39 @@ DsScenePtr ColorLightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   inherited(aDevice)
 {
+  // primary channel of a color light is always a dimmer controlling the brightness
+  setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
 }
 
 
 
 void ColorLightBehaviour::createAuxChannels()
 {
-  // TODO: create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
+  // Create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
+  // - hue
+  hue = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
+  hue->setHardwareName("hue");
+  hue->setHardwareOutputConfig(outputFunction_dimmer, channeltype_hue, usage_undefined, true, -1);
+  device.addBehaviour(hue);
+  // - saturation
+  saturation = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
+  saturation->setHardwareName("saturation");
+  saturation->setHardwareOutputConfig(outputFunction_dimmer, channeltype_saturation, usage_undefined, true, -1);
+  device.addBehaviour(saturation);
+  // - color temperature
+  ct = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
+  ct->setHardwareName("color temperature");
+  ct->setHardwareOutputConfig(outputFunction_dimmer, channeltype_colortemp, usage_undefined, true, -1);
+  device.addBehaviour(ct);
+  // - CIE x and y
+  cieX = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
+  cieX->setHardwareName("CIE X");
+  cieX->setHardwareOutputConfig(outputFunction_dimmer, channeltype_cie_x, usage_undefined, true, -1);
+  device.addBehaviour(cieX);
+  cieY = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
+  cieY->setHardwareName("CIE Y");
+  cieY->setHardwareOutputConfig(outputFunction_dimmer, channeltype_cie_y, usage_undefined, true, -1);
+  device.addBehaviour(cieY);
 }
 
 
@@ -183,7 +211,7 @@ void ColorLightBehaviour::recallScene(LightScenePtr aLightScene)
     // prepare next color values in device
 //    HueDevice *devP = dynamic_cast<HueDevice *>(&device);
 //    if (devP) {
-//      devP->pendingColorScene = hueScene;
+//      devP->pendingColorScene = colorLightScene;
 //      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
 //    }
   }

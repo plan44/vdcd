@@ -38,9 +38,12 @@ namespace p44 {
   {
     typedef OutputBehaviour inherited;
 
+    /// the primary output for which this channel is a auxiliary channel
+    OutputBehaviour &primaryOutput;
+
   public:
 
-    AuxiliaryChannelBehaviour(Device &aDevice);
+    AuxiliaryChannelBehaviour(Device &aDevice, OutputBehaviour &PrimaryOutput);
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
@@ -71,7 +74,7 @@ namespace p44 {
 
   };
   
-  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
+  typedef boost::intrusive_ptr<AuxiliaryChannelBehaviour> AuxiliaryChannelBehaviourPtr;
 
 } // namespace p44
 

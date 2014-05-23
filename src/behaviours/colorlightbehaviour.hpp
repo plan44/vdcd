@@ -25,6 +25,7 @@
 #include "device.hpp"
 #include "dsscene.hpp"
 #include "lightbehaviour.hpp"
+#include "auxchannelbehaviour.hpp"
 
 using namespace std;
 
@@ -112,6 +113,18 @@ namespace p44 {
     /// @{
     /// @}
 
+
+    /// @name auxiliary behaviours
+    /// @{
+    AuxiliaryChannelBehaviourPtr hue;
+    AuxiliaryChannelBehaviourPtr saturation;
+    AuxiliaryChannelBehaviourPtr ct;
+    AuxiliaryChannelBehaviourPtr cieX;
+    AuxiliaryChannelBehaviourPtr cieY;
+    /// @}
+
+
+
   public:
     ColorLightBehaviour(Device &aDevice);
 
@@ -185,7 +198,7 @@ namespace p44 {
 
   };
 
-  typedef boost::intrusive_ptr<LightBehaviour> LightBehaviourPtr;
+  typedef boost::intrusive_ptr<ColorLightBehaviour> ColorLightBehaviourPtr;
 
 } // namespace p44
 

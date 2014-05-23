@@ -54,6 +54,8 @@ namespace p44 {
 
   class DsBehaviour;
 
+  class DsScene;
+
   class ButtonBehaviour;
   class OutputBehaviour;
   class BinaryInputBehaviour;
@@ -70,6 +72,7 @@ namespace p44 {
     typedef PersistentParams inheritedParams;
 
     friend class Device;
+    friend class DsScene;
 
   protected:
 

@@ -23,8 +23,9 @@
 
 using namespace p44;
 
-AuxiliaryChannelBehaviour::AuxiliaryChannelBehaviour(Device &aDevice) :
-  inherited(aDevice)
+AuxiliaryChannelBehaviour::AuxiliaryChannelBehaviour(Device &aDevice, OutputBehaviour &aPrimaryOutput) :
+  inherited(aDevice),
+  primaryOutput(aPrimaryOutput)
 {
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, channeltype_undefined, usage_undefined, false, -1);
