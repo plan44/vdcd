@@ -109,8 +109,10 @@ protected:
         // advance index
         aStartIndex++;
       }
-      if (aStartIndex>=n)
+      if (aStartIndex>=n || numericName) {
+        // no more descriptors OR specific descriptor accessed -> no "next" descriptor
         aStartIndex = PROPINDEX_NONE;
+      }
       return propDesc;
     }
     // actual fields of channel/output

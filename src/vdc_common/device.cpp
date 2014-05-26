@@ -885,8 +885,10 @@ PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStart
       // advance index
       aStartIndex++;
     }
-    if (aStartIndex>=n)
+    if (aStartIndex>=n || numericName) {
+      // no more descriptors OR specific descriptor accessed -> no "next" descriptor
       aStartIndex = PROPINDEX_NONE;
+    }
     return propDesc;
   }
   // None of the containers within Device - let base class handle Device-Level properties
