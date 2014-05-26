@@ -179,7 +179,7 @@ bool p44::getIfInfo(uint64_t *aMacAddressP, uint32_t *aIPv4AddressP)
             }
             // this is our MAC unless it is zero
             if (mac!=0) {
-              *aMacAddress = mac; // found, return it
+              *aMacAddressP = mac; // found, return it
               found=true; // done, use it (even if IP is 0)
             }
           }
