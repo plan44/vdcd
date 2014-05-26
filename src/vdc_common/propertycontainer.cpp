@@ -52,6 +52,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
   aQueryObject->resetKeyIteration();
   string queryName;
   ApiValuePtr queryValue;
+  string errorMsg;
   while (aQueryObject->nextKeyValue(queryName, queryValue)) {
     DBGFLOG(LOG_DEBUG,"- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
     if (aMode==access_read && queryName=="#") {
@@ -114,6 +115,12 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                   // give this container a chance to post-process write access
                   err = writtenProperty(propDesc, aDomain, container);
                 }
+                // 404 errors are collected, but dont abort the query
+                if (Error::isError(err, VdcApiError::domain(), 404)) {
+                  if (!errorMsg.empty()) errorMsg += "; ";
+                  errorMsg += string_format("Error(s) accessing subproperties of '%s' : { %s }", queryName.c_str(), err->description().c_str());
+                  err.reset(); // forget the error on this level
+                }
               }
             }
           }
@@ -146,10 +153,16 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
           //   (latter means that property IS known, but has no value in the context it was queried)
           if (!wildcard && !foundone) {
             // query did address a specific property but it is unknown -> report as error (for read AND write!)
-            err = ErrorPtr(new VdcApiError(404,string_format("Unknown property '%s' -> operation aborted", queryName.c_str())));
+            // - collect error message, but do not abort query processing
+            if (!errorMsg.empty()) errorMsg += "; ";
+            errorMsg += string_format("Unknown property '%s' -> ignored", queryName.c_str());
           }
         }
       } while (Error::isOK(err) && propIndex!=PROPINDEX_NONE);
+    }
+    // now generate error if we have collected a non-empty error message
+    if (!errorMsg.empty()) {
+      err = ErrorPtr(new VdcApiError(404,errorMsg));
     }
     #if DEBUGLOGGING
     if (aMode==access_read) {
