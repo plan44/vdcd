@@ -26,11 +26,17 @@ namespace p44 {
     bool inverted;
   public:
     /// Create general purpose I/O
-    /// @param aGpioName name of the IO (in form bus.device.pin, where bus & device can be omitted for normal GPIOs)
+    /// @param aGpioName name of the IO; form is [/][bus.device.]pin, where optional leading slash inverts the polarity
+    ///   (again, in addition to aInverted) and where bus & device can be omitted for normal GPIOs.
     /// @param aOutput use as output
     /// @param aInverted inverted polarity (output high level is treated as logic false)
     /// @param aInitialState initial state (to set for output, to expect without triggering change for input)
-    ///   Note: aInitialState is logic state (pin state will be inverse if aInverted is set)
+    ///   Note: aInitialState is logic state (pin state will be inverse if aInverted is set or name is slash-prefixed)
+    /// @note possible pin types are
+    ///   "missing" : dummy (non-connected) pin
+    ///   "gpio.N" or just "N": standard Linux GPIO number N
+    ///   "gpioNS9XXXX.NAME" : DigiESP Linux GPIO named specification DEV, pin number N
+    ///   (DEV: TCA9555@bb for chip at hex bus address bb, complete pin would be like "i2c.TCA9555@20.3")
     DigitalIo(const char* aName, bool aOutput, bool aInverted = false, bool aInitialState = false);
     virtual ~DigitalIo();
 
@@ -86,7 +92,7 @@ namespace p44 {
     
   public:
     /// Create pushbutton
-    /// @param aGpioName name of the GPIO where the pushbutton is connected
+    /// @param aGpioName name of the GPIO where the pushbutton is connected (can be prefixed with slash to invert again on top of aInverted)
     /// @param aInverted inverted polarity (output high level is treated as logic false)
     ButtonInput(const char* aGpioName, bool aInverted);
 
@@ -120,7 +126,7 @@ namespace p44 {
 
   public:
     /// Create indicator output
-    /// @param aGpioName name of the GPIO where the indicator is connected
+    /// @param aGpioName name of the GPIO where the indicator is connected (can be prefixed with slash to invert again on top of aInverted)
     /// @param aInverted inverted polarity (output high level means indicator off)
     /// @param aInitiallyOn initial state (on or off) of the indicator
     IndicatorOutput(const char* aGpioName, bool aInverted, bool aInitiallyOn = false);

@@ -29,7 +29,13 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
 {
   // save params
   output = aOutput;
-  inverted = aInverted;
+  // allow inverting via prefixing name with slash
+  if (aName && *aName=='/') {
+    inverted = !aInverted;
+    ++aName; // skip first char of name for further processing
+  }
+  else
+    inverted = aInverted;
   name = aName;
   bool initialPinState = aInitialState!=inverted;
   // check for missing pin (no pin, just silently keeping state)
