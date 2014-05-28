@@ -37,6 +37,50 @@
 using namespace p44;
 
 
+#pragma mark - LEDs via modern kernel support
+
+#define GPIO_LED_CLASS_PATH "/sys/class/leds"
+
+GpioLedPin::GpioLedPin(int aLEDNo, bool aInitialState) :
+  ledNo(aLEDNo),
+  ledState(aInitialState),
+  ledFD(-1)
+{
+  string name = string_format("%s/led%d/brightness", GPIO_LED_CLASS_PATH, ledNo);
+  ledFD = open(name.c_str(), O_RDWR);
+  if (ledFD<0) { LOG(LOG_ERR,"Cannot open LED brightness file %s: %s\n", name.c_str(), strerror(errno)); return; }
+  // set initial state
+  setState(ledState);
+}
+
+
+GpioLedPin::~GpioLedPin()
+{
+  if (ledFD>0) {
+    close(ledFD);
+  }
+}
+
+
+bool GpioLedPin::getState()
+{
+  return ledState; // just return last set state
+}
+
+
+void GpioLedPin::setState(bool aState)
+{
+  if (ledFD<0) return; // non-existing pins cannot be set
+  ledState = aState;
+  // - set value
+  char buf[2];
+  buf[0] = ledState ? '1' : '0';
+  buf[1] = 0;
+  write(ledFD, buf, 1);
+}
+
+
+
 #pragma mark - GPIO via modern kernel support
 
 #define GPIO_SYS_CLASS_PATH "/sys/class/gpio"
