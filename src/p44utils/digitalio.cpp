@@ -74,6 +74,12 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     int pinNumber = atoi(pinName.c_str());
     ioPin = IOPinPtr(new GpioPin(pinNumber, output, initialPinState));
   }
+  else if (busName=="led") {
+    // Linux generic LED
+    // led.<lednumber>
+    int pinNumber = atoi(pinName.c_str());
+    ioPin = IOPinPtr(new GpioLedPin(pinNumber, initialPinState));
+  }
   else
   #endif
   #ifdef DIGI_ESP

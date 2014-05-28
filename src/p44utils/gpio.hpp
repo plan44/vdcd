@@ -36,6 +36,31 @@ using namespace std;
 namespace p44 {
 
 
+  /// Wrapper for LED output accessed via
+  /// generic Linux kernel SysFS support for LEDs (
+  class GpioLedPin : public IOPin
+  {
+    int ledNo;
+    int ledFD;
+    bool ledState;
+  public:
+
+    /// Create general purpose I/O pin
+    /// @param aLEDNo number of the LED
+    /// @param aInitialState initial state for the LED
+    GpioLedPin(int aLEDNo, bool aInitialState);
+    virtual ~GpioLedPin();
+
+    /// get state of LED
+    /// @return current state of LED
+    virtual bool getState();
+
+    /// set state of LED
+    /// @param aState new state to set LED to
+    virtual void setState(bool aState);
+  };
+
+
   /// Wrapper for General Purpose I/O pin as accessed via
   /// generic Linux kernel SysFS support for GPIOs (
   class GpioPin : public IOPin
@@ -47,7 +72,7 @@ namespace p44 {
   public:
 
     /// Create general purpose I/O pin
-    /// @param aGpioName name of the GPIO (files found in GPIO_DEVICES_BASEPATH)
+    /// @param aGpioNo numberof the GPIO
     /// @param aOutput use as output
     /// @param aInitialState initial state assumed for inputs and enforced for outputs
     GpioPin(int aGpioNo, bool aOutput, bool aInitialState);
