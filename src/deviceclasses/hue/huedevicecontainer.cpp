@@ -132,7 +132,7 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
 }
 
 
-void HueDeviceContainer::setLearnMode(bool aEnableLearning)
+void HueDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
 {
   if (aEnableLearning) {
     hueComm.findNewBridge(

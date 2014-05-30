@@ -180,28 +180,12 @@ void SsdpSearch::gotData(ErrorPtr aError)
           string k,v;
           if (keyAndValue(value, k, v)) {
             if (k=="uuid") {
-              string u;
               size_t i = v.find("::");
               if (i!=string::npos)
-                u = v.substr(0,i);
+                uuid = v.substr(0,i);
               else
-                u = v;
-//              // check if matches
-//              if (uuidMustMatch) {
-//                uuidFound = uuid==u;
-//                if (!uuidFound) {
-//                  // wrong UUID, discard
-//                  LOG(LOG_INFO,"Received search response from %s, but wrong UUID (%s, expected: %s) -> ignored\n", locationURL.c_str(), u.c_str(), uuid.c_str());
-//                  // no more action, wait for response with correct UUID
-//                  return;
-//                }
-//              }
-//              else
-              {
-                uuid = u;
-                uuidFound = true;
-              }
-              //LOG(LOG_NOTICE,"uuid: %s\n", uuid.c_str());
+                uuid = v;
+              uuidFound = true;
             }
           }
         }
