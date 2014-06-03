@@ -167,7 +167,7 @@ bool DsAddressable::pushProperty(ApiValuePtr aQuery, int aDomain)
   ErrorPtr err = accessProperty(access_read, aQuery, value, aDomain, PropertyDescriptorPtr());
   if (Error::isOK(err)) {
     ApiValuePtr pushParams = aQuery->newValue(apivalue_object);
-    pushParams->add("value", value);
+    pushParams->add("properties", value);
     return sendRequest("pushProperty", pushParams);
   }
   return false;
