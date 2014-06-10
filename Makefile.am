@@ -139,8 +139,6 @@ vdcd_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/outputbehaviour.cpp \
   src/behaviours/outputbehaviour.hpp \
-  src/behaviours/auxchannelbehaviour.cpp \
-  src/behaviours/auxchannelbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
@@ -276,8 +274,6 @@ demovdc_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/outputbehaviour.cpp \
   src/behaviours/outputbehaviour.hpp \
-  src/behaviours/auxchannelbehaviour.cpp \
-  src/behaviours/auxchannelbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \

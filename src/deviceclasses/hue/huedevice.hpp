@@ -193,11 +193,11 @@ namespace p44 {
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// set new channel value on device
+    /// @param aChannelBehaviour the channel behaviour which has a new output value to be sent to the hardware output
     /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    ///   channel behaviours to collect data for an outgoing message.
+    virtual void updateChannelValue(ChannelBehaviour &aChannelBehaviour);
 
     /// @}
 
@@ -221,7 +221,7 @@ namespace p44 {
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
     void alertHandler(int aLeftCycles);
-    void outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aError);
+    void outputChangeSent(ChannelBehaviour &aChannelBehaviour, ErrorPtr aError);
 
   };
   

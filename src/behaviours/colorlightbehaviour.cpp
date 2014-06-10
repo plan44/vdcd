@@ -37,31 +37,31 @@ ColorLightScene::ColorLightScene(SceneDeviceSettings &aSceneDeviceSettings, Scen
 #pragma mark - color scene values/channels
 
 
-double ColorLightScene::sceneValue(size_t aOutputIndex)
+double ColorLightScene::sceneValue(size_t aChannelIndex)
 {
-  OutputBehaviourPtr o = getDevice().outputByIndex(aOutputIndex);
-  switch (o->getChannel()) {
+  ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
+  switch (cb->getChannelType()) {
     case channeltype_hue: return colorMode==ColorLightModeHueSaturation ? XOrHueOrCt : 0;
     case channeltype_saturation: return colorMode==ColorLightModeHueSaturation ? YOrSat : 0;
     case channeltype_colortemp: return colorMode==ColorLightModeCt ? XOrHueOrCt : 0;
     case channeltype_cie_x: return colorMode==ColorLightModeXY ? XOrHueOrCt : 0;
     case channeltype_cie_y: return colorMode==ColorLightModeXY ? YOrSat : 0;
-    default: return inherited::sceneValue(aOutputIndex);
+    default: return inherited::sceneValue(aChannelIndex);
   }
   return 0;
 }
 
 
-void ColorLightScene::setSceneValue(size_t aOutputIndex, double aValue)
+void ColorLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
-  OutputBehaviourPtr o = getDevice().outputByIndex(aOutputIndex);
-  switch (o->getChannel()) {
+  ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
+  switch (cb->getChannelType()) {
     case channeltype_hue: XOrHueOrCt = aValue; colorMode=ColorLightModeHueSaturation; break;
     case channeltype_saturation: YOrSat = aValue; colorMode=ColorLightModeHueSaturation; break;
     case channeltype_colortemp: XOrHueOrCt = aValue; colorMode=ColorLightModeCt; break;
     case channeltype_cie_x: XOrHueOrCt = aValue; colorMode=ColorLightModeXY; break;
     case channeltype_cie_y: YOrSat = aValue; colorMode=ColorLightModeXY; break;
-    default: inherited::setSceneValue(aOutputIndex, aValue);
+    default: inherited::setSceneValue(aChannelIndex, aValue);
   }
 }
 
@@ -162,39 +162,29 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   inherited(aDevice)
 {
   // primary channel of a color light is always a dimmer controlling the brightness
-  setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
-}
-
-
-
-void ColorLightBehaviour::createAuxChannels()
-{
+  setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
   // Create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
   // - hue
-  hue = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
-  hue->setHardwareName("hue");
-  hue->setHardwareOutputConfig(outputFunction_dimmer, channeltype_hue, usage_undefined, true, -1);
-  device.addBehaviour(hue);
+  hue = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  hue->setChannelIdentification(channeltype_hue, "hue");
+  addChannel(hue);
   // - saturation
-  saturation = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
-  saturation->setHardwareName("saturation");
-  saturation->setHardwareOutputConfig(outputFunction_dimmer, channeltype_saturation, usage_undefined, true, -1);
-  device.addBehaviour(saturation);
+  saturation = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  saturation->setChannelIdentification(channeltype_saturation, "saturation");
+  addChannel(saturation);
   // - color temperature
-  ct = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
-  ct->setHardwareName("color temperature");
-  ct->setHardwareOutputConfig(outputFunction_dimmer, channeltype_colortemp, usage_undefined, true, -1);
-  device.addBehaviour(ct);
+  ct = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  ct->setChannelIdentification(channeltype_colortemp, "color temperature");
+  addChannel(ct);
   // - CIE x and y
-  cieX = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
-  cieX->setHardwareName("CIE X");
-  cieX->setHardwareOutputConfig(outputFunction_dimmer, channeltype_cie_x, usage_undefined, true, -1);
-  device.addBehaviour(cieX);
-  cieY = AuxiliaryChannelBehaviourPtr(new AuxiliaryChannelBehaviour(device, *this));
-  cieY->setHardwareName("CIE Y");
-  cieY->setHardwareOutputConfig(outputFunction_dimmer, channeltype_cie_y, usage_undefined, true, -1);
-  device.addBehaviour(cieY);
+  cieX = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  cieX->setChannelIdentification(channeltype_cie_x, "CIE X");
+  addChannel(cieX);
+  cieY = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  cieY->setChannelIdentification(channeltype_cie_y, "CIE Y");
+  addChannel(cieY);
 }
+
 
 
 

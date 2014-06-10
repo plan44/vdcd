@@ -31,7 +31,6 @@ static char dsscene_key;
 #pragma mark - private scene channel access class
 
 static char dsscene_channels_key;
-static char dsscene_outputs_key;
 static char scenevalue_key;
 
 // local property container for channels/outputs
@@ -78,30 +77,24 @@ protected:
 
   PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
   {
-    if (!aParentDescriptor->hasObjectKey(scenevalue_key)) {
-      // array-like container
+    if (aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
+      // array-like container of channels
       PropertyDescriptorPtr propDesc;
       bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
-      if (numericName && aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
+      if (numericName) {
         // specific channel addressed by ID, look up index for it
-        OutputBehaviourPtr o = scene.getDevice().outputByChannel(aStartIndex);
-        if (o)
-          aStartIndex = (int)o->getIndex(); // found, return index
-        else
-          aStartIndex = PROPINDEX_NONE; // not found
+        DsChannelType ct = aStartIndex;
+        aStartIndex = PROPINDEX_NONE; // default to not found
+        ChannelBehaviourPtr cb = scene.getDevice().getChannelByType(ct);
+        if (cb)
+          aStartIndex = (int)cb->getChannelIndex(); // found, return index
       }
       int n = numProps(aDomain, aParentDescriptor);
       if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
         // within range, create descriptor
         DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
-        if (aParentDescriptor->hasObjectKey(dsscene_channels_key)) {
-          // name by channel
-          descP->propertyName = string_format("%d", scene.getChannelId(aStartIndex));
-        }
-        else {
-          // name by output
-          descP->propertyName = string_format("%d", aStartIndex);
-        }
+        // name by channel
+        descP->propertyName = string_format("%d", scene.getDevice().getChannelByIndex(aStartIndex)->getChannelType());
         descP->propertyType = aParentDescriptor->type();
         descP->propertyFieldKey = aStartIndex;
         descP->propertyObjectKey = OKEY(scenevalue_key);
@@ -115,7 +108,7 @@ protected:
       }
       return propDesc;
     }
-    // actual fields of channel/output
+    // actual fields of a single channel
     return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
   }
 
@@ -163,6 +156,7 @@ protected:
   }
 };
 typedef boost::intrusive_ptr<SceneChannels> SceneChannelsPtr;
+
 
 
 #pragma mark - scene base class
@@ -337,16 +331,6 @@ void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool a
 //  }
 
 
-int DsScene::getChannelId(size_t aOutputIndex)
-{
-  OutputBehaviourPtr o = sceneDeviceSettings.device.outputByIndex(aOutputIndex);
-  if (o) {
-    return o->getChannel();
-  }
-  return -1;
-}
-
-
 
 // utility function to check scene value flag
 bool DsScene::isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask)
@@ -356,25 +340,12 @@ bool DsScene::isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask)
 }
 
 
-// utility function to find index by channelID
-size_t DsScene::getOutputIndexByChannel(int aChannelID)
-{
-  OutputBehaviourPtr o = sceneDeviceSettings.device.outputByChannel(aChannelID);
-  if (o) {
-    return o->index;
-  }
-  return -1;
-}
-
-
-
 
 #pragma mark - scene property access
 
 
 enum {
   channels_key,
-  outputs_key,
   ignoreLocalPriority_key,
   dontCare_key,
   numSceneProperties
@@ -395,7 +366,6 @@ PropertyDescriptorPtr DsScene::getDescriptorByIndex(int aPropIndex, int aDomain,
   // scene level properties
   static const PropertyDescription sceneproperties[numSceneProperties] = {
     { "channels", apivalue_object+propflag_container, channels_key, OKEY(dsscene_channels_key) },
-    { "outputs", apivalue_object+propflag_container, outputs_key, OKEY(dsscene_outputs_key) },
     { "ignoreLocalPriority", apivalue_bool, ignoreLocalPriority_key, OKEY(dsscene_key) },
     { "dontCare", apivalue_bool, dontCare_key, OKEY(dsscene_key) },
   };

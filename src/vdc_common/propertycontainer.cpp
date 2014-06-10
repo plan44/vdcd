@@ -218,65 +218,63 @@ bool PropertyContainer::getNextPropIndex(string aPropMatch, int &aStartIndex)
 PropertyDescriptorPtr PropertyContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   int n = numProps(aDomain, aParentDescriptor);
-  if (aStartIndex>=n || aStartIndex==PROPINDEX_NONE)
-    return PropertyDescriptorPtr(); // no descriptor
-  // aPropMatch syntax
-  // - simple name to match a specific property
-  // - empty name or only "*" to match all properties. At this level, there's no difference, but empty causes deep traversal, * does not
-  // - name part with a trailing asterisk: wildcard.
-  // - #n to access n-th property
-  PropertyDescriptorPtr propDesc;
-  bool wildcard;
-  if (aPropMatch.empty()) {
-    wildcard = true; // implicit wildcard, empty name counts like "*"
-  }
-  else if (aPropMatch[aPropMatch.size()-1]=='*') {
-    wildcard = true; // explicit wildcard at end of string
-    aPropMatch.erase(aPropMatch.size()-1); // remove the wildcard char
-  }
-  else if (aPropMatch[0]=='#') {
-    // special case 2 for reading: #n to access n-th subproperty
-    int newIndex = n; // set out of range by default
-    if (sscanf(aPropMatch.c_str()+1, "%d", &newIndex)==1) {
-      // name does not matter, pick item at newIndex unless below current start
-      wildcard = true;
-      aPropMatch.clear();
-      if(newIndex>=aStartIndex)
-        aStartIndex = newIndex; // not yet passed this index in iteration -> use it
-      else
-        aStartIndex = n; // already passed -> make out of range
+  if (aStartIndex<n && aStartIndex!=PROPINDEX_NONE) {
+    // aPropMatch syntax
+    // - simple name to match a specific property
+    // - empty name or only "*" to match all properties. At this level, there's no difference, but empty causes deep traversal, * does not
+    // - name part with a trailing asterisk: wildcard.
+    // - #n to access n-th property
+    PropertyDescriptorPtr propDesc;
+    bool wildcard;
+    if (aPropMatch.empty()) {
+      wildcard = true; // implicit wildcard, empty name counts like "*"
+    }
+    else if (aPropMatch[aPropMatch.size()-1]=='*') {
+      wildcard = true; // explicit wildcard at end of string
+      aPropMatch.erase(aPropMatch.size()-1); // remove the wildcard char
+    }
+    else if (aPropMatch[0]=='#') {
+      // special case 2 for reading: #n to access n-th subproperty
+      int newIndex = n; // set out of range by default
+      if (sscanf(aPropMatch.c_str()+1, "%d", &newIndex)==1) {
+        // name does not matter, pick item at newIndex unless below current start
+        wildcard = true;
+        aPropMatch.clear();
+        if(newIndex>=aStartIndex)
+          aStartIndex = newIndex; // not yet passed this index in iteration -> use it
+        else
+          aStartIndex = n; // already passed -> make out of range
+      }
+    }
+    while (aStartIndex<n) {
+      propDesc = getDescriptorByIndex(aStartIndex, aDomain, aParentDescriptor);
+      // check for match
+      if (wildcard && aPropMatch.size()==0)
+        break; // shortcut for "match all" case
+      // match beginning
+      if (
+        (!wildcard && aPropMatch==propDesc->name()) || // complete match
+        (wildcard && (strncmp(aPropMatch.c_str(),propDesc->name(),aPropMatch.size())==0)) // match of name's beginning
+      ) {
+        break; // this entry matches
+      }
+      // next
+      aStartIndex++;
+    }
+    if (aStartIndex<n) {
+      // found a descriptor
+      // - determine next index
+      aStartIndex++;
+      if (aStartIndex>=n)
+        aStartIndex=PROPINDEX_NONE;
+      // - return the descriptor
+      return propDesc;
     }
   }
-  while (aStartIndex<n) {
-    propDesc = getDescriptorByIndex(aStartIndex, aDomain, aParentDescriptor);
-    // check for match
-    if (wildcard && aPropMatch.size()==0)
-      break; // shortcut for "match all" case
-    // match beginning
-    if (
-      (!wildcard && aPropMatch==propDesc->name()) || // complete match
-      (wildcard && (strncmp(aPropMatch.c_str(),propDesc->name(),aPropMatch.size())==0)) // match of name's beginning
-    ) {
-      break; // this entry matches
-    }
-    // next
-    aStartIndex++;
-  }
-  // success or failure?
-  if (aStartIndex>=n) {
-    // no more descriptors
-    aStartIndex=PROPINDEX_NONE;
-    return PropertyDescriptorPtr(); // no descriptor
-  }
-  else {
-    // found a descriptor
-    // - determine next index
-    aStartIndex++;
-    if (aStartIndex>=n)
-      aStartIndex=PROPINDEX_NONE;
-    // - return the descriptor
-    return propDesc;
-  }
+  // failure
+  // no more descriptors
+  aStartIndex=PROPINDEX_NONE;
+  return PropertyDescriptorPtr(); // no descriptor
 }
 
 

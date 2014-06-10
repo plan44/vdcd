@@ -136,11 +136,6 @@ const FieldDefinition *DsBehaviour::getFieldDef(size_t aIndex)
 }
 
 
-enum {
-  buttonflag_setsLocalPriority = 0x0001,
-  buttonflag_callsPresent = 0x0002
-};
-
 /// load values from passed row
 void DsBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
@@ -200,7 +195,11 @@ static char dsBehaviour_Key;
 
 int DsBehaviour::numLocalProps(PropertyDescriptorPtr aParentDescriptor)
 {
-  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
+  // Note: output does not have an intermediate level as there is only one
+  PropertyDescriptorPtr pdP = aParentDescriptor; // assume output (no intermediate level)
+  if (pdP->parentDescriptor)
+    pdP = pdP->parentDescriptor; // if there is a parent on the level above, check that (buttons, binaryInputs, sensors)
+  switch (pdP->fieldKey()) {
     case descriptions_key_offset: return numDescProps()+numDsBehaviourDescProperties;
     case settings_key_offset: return numSettingsProps()+numDsBehaviourSettingsProperties;
     case states_key_offset: return numStateProps()+numDsBehaviourStateProperties;
@@ -233,7 +232,10 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
   aPropIndex -= n; // rebase to 0 for my own first property
   if (aPropIndex>=numLocalProps(aParentDescriptor))
     return NULL;
-  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
+  PropertyDescriptorPtr pdP = aParentDescriptor; // assume output (no intermediate level)
+  if (pdP->parentDescriptor)
+    pdP = pdP->parentDescriptor; // if there is a parent on the level above, check that (buttons, binaryInputs, sensors)
+  switch (pdP->fieldKey()) {
     case descriptions_key_offset:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)

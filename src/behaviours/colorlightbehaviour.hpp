@@ -25,7 +25,6 @@
 #include "device.hpp"
 #include "dsscene.hpp"
 #include "lightbehaviour.hpp"
-#include "auxchannelbehaviour.hpp"
 
 using namespace std;
 
@@ -59,8 +58,8 @@ namespace p44 {
     virtual void setDefaultSceneValues(SceneNo aSceneNo);
 
     // scene values implementation
-    virtual double sceneValue(size_t aOutputIndex);
-    virtual void setSceneValue(size_t aOutputIndex, double aValue);
+    virtual double sceneValue(size_t aChannelIndex);
+    virtual void setSceneValue(size_t aChannelIndex, double aValue);
 
   protected:
 
@@ -116,24 +115,17 @@ namespace p44 {
 
     /// @name auxiliary behaviours
     /// @{
-    AuxiliaryChannelBehaviourPtr hue;
-    AuxiliaryChannelBehaviourPtr saturation;
-    AuxiliaryChannelBehaviourPtr ct;
-    AuxiliaryChannelBehaviourPtr cieX;
-    AuxiliaryChannelBehaviourPtr cieY;
+    ChannelBehaviourPtr hue;
+    ChannelBehaviourPtr saturation;
+    ChannelBehaviourPtr ct;
+    ChannelBehaviourPtr cieX;
+    ChannelBehaviourPtr cieY;
     /// @}
 
 
 
   public:
     ColorLightBehaviour(Device &aDevice);
-
-
-    /// create and add auxiliary channels to the device
-    /// @note this is called after adding an output channel to a device
-    ///   and is intended for autocreating needed auxiliary channels like hsb/rgb/ct for color lights
-    virtual void createAuxChannels();
-
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{

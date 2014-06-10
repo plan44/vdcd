@@ -96,6 +96,16 @@ typedef enum {
   SIG_ALARM = (START_APARTMENT_SCENES + 10),      ///< alarm/fire
 } DsSceneNumber;
 
+/// Scene Effects (transition and alerting)
+typedef enum {
+  scene_effect_none = 0, ///< no effect, immediate transition
+  scene_effect_smooth = 1, ///< smooth normal transition (corresponds with former dimTimeSelector==0)
+  scene_effect_slow = 2, ///< slow transition (corresponds with former dimTimeSelector==1)
+  scene_effect_veryslow = 3, ///< very slow transition (corresponds with former dimTimeSelector==2)
+  scene_effect_alert = 4, ///< blink (for light devices) / alerting (in general: an effect that draws the user’s attention)
+} DsSceneEffect;
+
+
 /// group/color (upper 4 bits in LTNUMGRP0)
 typedef enum {
   group_variable = 0,

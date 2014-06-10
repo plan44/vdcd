@@ -177,7 +177,8 @@ void SparkLightBehaviour::recallScene(LightScenePtr aLightScene)
     SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
     if (devP) {
       devP->pendingSparkScene = sparkScene;
-      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
+      // we need an output update, even if main output value (brightness) has not changed in new scene
+      devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
     }
   }
   // let base class update logical brightness, which will in turn update the output, which will then
@@ -210,7 +211,7 @@ void SparkLightBehaviour::sceneStateReceived(SparkLightScenePtr aSparkScene, Don
       // state is brightness + extended state: 0xssssssbb, ssssss=extended state, bb=brightness
       Brightness bri = state & 0xFF;
       uint32_t extendedState = (state & 0xFFFFFF)>>8;
-      initOutputValue(bri); // update basic light behaviour brightness state
+      getChannelByType(channeltype_brightness)->initChannelValue(bri); // update basic light behaviour brightness state
       aSparkScene->extendedState = extendedState; // capture extended state in scene
       aSparkScene->markDirty();
     }
@@ -261,7 +262,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   deviceSettings = DeviceSettingsPtr(new SparkDeviceSettings(*this));
   // - create one output
   SparkLightBehaviourPtr l = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
+  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
   l->setHardwareName("spark core output");
   addBehaviour(l);
   // dsuid
@@ -330,19 +331,19 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-void SparkIoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void SparkIoDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    outputValue = aOutputBehaviour.valueForHardware();
+  if (aChannelBehaviour.isPrimary()) {
+    outputValue = aChannelBehaviour.valueForHardware();
     // set output value
-    postOutputValue(aOutputBehaviour);
+    postChannelValue(aChannelBehaviour);
   }
   else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
 }
 
 
-void SparkIoDevice::postOutputValue(OutputBehaviour &aOutputBehaviour)
+void SparkIoDevice::postChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
   if (apiVersion==1) {
     string args;
@@ -354,7 +355,7 @@ void SparkIoDevice::postOutputValue(OutputBehaviour &aOutputBehaviour)
       args = string_format("output0=%d", outputValue);
     }
     // posting might fail if done too early
-    if (!sparkApiCall(boost::bind(&SparkIoDevice::outputChanged, this, aOutputBehaviour, _1, _2), args)) {
+    if (!sparkApiCall(boost::bind(&SparkIoDevice::channelChanged, this, aChannelBehaviour, _1, _2), args)) {
       outputChangePending = true; // retry when previous request done
     }
   }
@@ -362,15 +363,15 @@ void SparkIoDevice::postOutputValue(OutputBehaviour &aOutputBehaviour)
 
 
 
-void SparkIoDevice::outputChanged(OutputBehaviour &aOutputBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelChanged(ChannelBehaviour &aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (outputChangePending) {
       outputChangePending = false;
-      postOutputValue(aOutputBehaviour); // one more change pending
+      postChannelValue(aChannelBehaviour); // one more change pending
     }
     else {
-      aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+      aChannelBehaviour.channelValueApplied(); // confirm having applied the value
       outputChangePending = false;
     }
   }

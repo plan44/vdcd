@@ -35,6 +35,11 @@
 #include "lightbehaviour.hpp"
 
 
+// TODO: move scene processing to output?
+// TODO: enocean outputs need to have a channel, too - which one? For now: always channel 0
+// TODO: review output value updating mechanisms, especially in light of MOC transactions
+
+
 using namespace p44;
 
 
@@ -496,7 +501,7 @@ void DeviceContainer::localDimHandler()
 {
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
     DevicePtr dev = pos->second;
-    if (dev->isMember(group_yellow_light)) {
+    if (dev->output && dev->output->isMember(group_yellow_light)) {
       // do not signal activity for speed reasons
       dev->callScene(localDimDown ? DEC_S : INC_S, true);
     }
@@ -559,11 +564,11 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
     }
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
-      if (dev->isMember(group_yellow_light)) {
+      if (dev->output && dev->output->isMember(group_yellow_light)) {
         // this is a light related device (but not necessarily a light output!)
         LightBehaviourPtr lightBehaviour;
-        if (dev->outputs.size()>0) {
-          lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->outputs[0]);
+        if (dev->output) {
+          lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->output);
           if (lightBehaviour) {
             // this device has a light behaviour output
             if (direction==0) {

@@ -153,11 +153,11 @@ namespace p44 {
     /// @param aPresenceResultHandler will be called to report presence status
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// set new channel value on device
+    /// @param aChannelBehaviour the channel behaviour which has a new output value to be sent to the hardware output
     /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    ///   channel behaviours to collect data for an outgoing message.
+    virtual void updateChannelValue(ChannelBehaviour &aChannelBehaviour);
 
     /// @}
 
@@ -181,8 +181,8 @@ namespace p44 {
     void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
-    void postOutputValue(OutputBehaviour &aOutputBehaviour);
-    void outputChanged(OutputBehaviour &aOutputBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void postChannelValue(ChannelBehaviour &aChannelBehaviour);
+    void channelChanged(ChannelBehaviour &aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
   };
   

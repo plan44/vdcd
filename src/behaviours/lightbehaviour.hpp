@@ -46,9 +46,7 @@ namespace p44 {
     /// @{
 
     Brightness sceneBrightness; ///< saved brightness value for this scene
-    bool specialBehaviour; ///< special behaviour active
-    bool flashing; ///< flashing active for this scene
-    uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
+    DsSceneEffect effect; ///< scene effect (transition or alert)
 
     /// @}
 
@@ -129,6 +127,9 @@ namespace p44 {
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
 
+    /// the brightness channel
+    ChannelBehaviourPtr brightness;
+
   public:
     LightBehaviour(Device &aDevice);
 
@@ -189,8 +190,10 @@ namespace p44 {
 
     /// @}
 
-    /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
-    static MLMicroSeconds transitionTimeFromDimTime(uint8_t aDimTime);
+    /// get transition time in microseconds from given scene effect
+    /// @param aEffect the scene effect
+    /// @param aDimUp true when dimming up, false when dimming down
+    MLMicroSeconds transitionTimeFromSceneEffect(DsSceneEffect aEffect, bool aDimUp);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs

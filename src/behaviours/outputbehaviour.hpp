@@ -30,13 +30,130 @@ using namespace std;
 namespace p44 {
 
 
-  /// Implements the basic behaviour of a primary output, "primary" meaning the default or channel of a device for
-  /// MOC devices (for example: brightness for a color light). It might have a number of associated AuxChannelBehaviour
-  /// objects representing auxiliary parameters for the same device (such as color for a light).
+  class OutputBehaviour;
+
+  /// represents a single channel of the output
+  /// @note this class is not meant to be derived. Device specific channel functionality should
+  ///   be implemented in derived Device classes' methods which are passed channels to process.
+  ///   The ChannelBehaviour objects only represent the dS interface to channels, not the
+  ///   device specific interface from dS channels to actual device hardware.
+  class ChannelBehaviour : public PropertyContainer
+  {
+    typedef PropertyContainer inherited;
+    friend class OutputBehaviour;
+
+    OutputBehaviour &output;
+
+  protected:
+
+    /// @name hardware derived parameters (constant during operation)
+    /// @{
+    uint8_t channelIndex; ///< the index of the channel within the device
+    DsChannelType channel; ///< the channel type (ID) of this channel
+    string hardwareName; ///< name that identifies this channel among others for the human user (terminal label text etc.)
+    /// @}
+
+    /// @name persistent settings
+    /// @{
+
+    /// @}
+
+    /// @name internal volatile state
+    /// @{
+    bool channelUpdatePending; ///< set if cachedOutputValue represents a value to be transmitted to the hardware
+    int32_t cachedChannelValue; ///< the cached channel value
+    MLMicroSeconds channelLastSent; ///< Never if the cachedChannelValue is not yet applied to the hardware, otherwise when it was sent
+    MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next channel value change
+    /// @}
+
+  public:
+
+    ChannelBehaviour(OutputBehaviour &aOutput);
+
+    /// @name interface towards actual device hardware (or simulation)
+    /// @{
+
+    /// set the fixed channel identification (defined by the device's hardware)
+    /// @param aChannelType the digitalSTROM channel type
+    /// @param aName a descriptive name for the channel, relating to function and/or device harware terminal labels
+    void setChannelIdentification(DsChannelType aChannelType, const char *aName);
+
+    /// get currently applied output value from device hardware
+    virtual int32_t getChannelValue();
+
+    /// set new output value on device
+    /// @param aValue the new output value
+    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
+    virtual void setChannelValue(int32_t aNewValue, MLMicroSeconds aTransitionTime=0);
+
+    /// @}
+
+
+    /// @name interaction with digitalSTROM system
+    /// @{
+
+    /// get the channel type
+    /// @return the channel type
+    DsChannelType getChannelType() { return channel; };
+
+    /// get the channel index
+    /// @return the channel index (0..N, 0=primary)
+    size_t getChannelIndex() { return channelIndex; };
+
+    /// check if this is the primary channel
+    /// @return true if this is the primary (default) channel of a device
+    bool isPrimary();
+
+    /// set actual current output value as read from the device on startup, to update local cache value
+    /// @param aActualChannelValue the value as read from the device
+    /// @note only used at startup to get the inital value FROM the hardware.
+    ///   NOT to be used to change the hardware output value!
+    void initChannelValue(uint32_t aActualChannelValue);
+
+    /// the value to be set in the hardware
+    /// @return value to be set in actual hardware
+    int32_t valueForHardware() { return cachedChannelValue; };
+
+    /// the transition time to use to change value in the hardware
+    /// @return transition time
+    MLMicroSeconds transitionTimeForHardware() { return nextTransitionTime; };
+
+    /// to be called when channel value has been successfully applied to hardware
+    void channelValueApplied();
+
+    /// call to make update pending
+    void setChannelUpdatePending() { channelUpdatePending = true; }
+
+    /// @}
+
+    /// description of object, mainly for debug and logging
+    /// @return textual description of object, may contain LFs
+    virtual string description();
+
+
+  protected:
+
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+  };
+
+  typedef boost::intrusive_ptr<ChannelBehaviour> ChannelBehaviourPtr;
+
+  typedef vector<ChannelBehaviourPtr> ChannelBehaviourVector;
+
+
+
+  /// Implements the basic behaviour of an output with one or multiple output channels
   class OutputBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
+    friend class ChannelBehaviour;
 
+    // channels
+    ChannelBehaviourVector channels;
 
   protected:
 
@@ -53,51 +170,57 @@ namespace p44 {
     /// @name persistent settings
     /// @{
     DsOutputMode outputMode; ///< the mode of the output
-    DsChannelType channel; ///< the channel type of the output
     bool pushChanges; ///< if set, local changes to output will be pushed upstreams
+    uint64_t outputGroups; ///< mask for group memberships (0..63)
     /// @}
 
 
     /// @name internal volatile state
     /// @{
-    bool outputUpdatePending; ///< set if cachedOutputValue represents a value to be transmitted to the hardware
-    int32_t cachedOutputValue; ///< the cached output value
-    MLMicroSeconds outputLastSent; ///< Never if the cachedOutputValue is not yet applied to the hardware, otherwise when it was sent
-    MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next output value change
+    bool localPriority; ///< if set device is in local priority mode
     /// @}
+
+    /// add a channel to the output
+    /// @param aChannel the channel to add
+    /// @note this is usually called by initialisation code of classes derived from OutputBehaviour to
+    ///   add the behaviour specific channels.
+    void addChannel(ChannelBehaviourPtr aChannel);
 
   public:
 
     OutputBehaviour(Device &aDevice);
 
-    /// create and add auxiliary channels to the device
-    /// @note this is called after adding an output channel to a device
-    ///   and is intended for autocreating needed auxiliary channels like hsb/rgb/ct for color lights
-    virtual void createAuxChannels() { /* NOP in standard outputs */ }
+    /// @name Access to channels
+    /// @{
+
+    /// get number of channels
+    /// @return number of channels
+    size_t numChannels();
+
+    /// get channel by index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex);
+
+    /// get output index by channelType
+    /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType);
+
+    /// @}
 
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
     /// Configure hardware parameters of the output
-    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsChannelType aDefaultChannel, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
+    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
-    /// set actual current output value as read from the device on startup, to update local cache value
-    /// @param aActualOutputValue the value as read from the device
-    /// @note only used at startup to get the inital value FROM the hardware.
-    ///   NOT to be used to change the hardware output value!
-    void initOutputValue(uint32_t aActualOutputValue);
+    /// @return true if device is in local priority mode
+    void setLocalPriority(bool aLocalPriority) { localPriority = aLocalPriority; };
 
-    /// the value to be set in the hardware
-    /// @return value to be set in actual hardware
-    int32_t valueForHardware() { return cachedOutputValue; };
-
-    /// the transition time to use to change value in the hardware
-    /// @return transition time
-    MLMicroSeconds transitionTimeForHardware() { return nextTransitionTime; };
-
-    /// to be called when output value has been successfully applied to hardware
-    void outputValueApplied();
+    /// @return true if device is in local priority mode
+    bool hasLocalPriority() { return localPriority; };
 
     /// @}
 
@@ -105,9 +228,15 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// get the channel type
-    /// @return the current channel type of this output
-    DsChannelType getChannel() { return channel; }
+    /// check group membership
+    /// @param aGroup color number to check
+    /// @return true if device is member of this group
+    bool isMember(DsGroup aGroup);
+
+    /// set group membership
+    /// @param aGroup group number to set or remove
+    /// @param aIsMember true to make device member of this group
+    void setGroupMembership(DsGroup aGroup, bool aIsMember);
 
     /// apply scene to output
     /// @param aScene the scene to apply to the output
@@ -127,14 +256,6 @@ namespace p44 {
     /// @param aDoneCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
     virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
-
-    /// get currently set output value from device hardware
-    virtual int32_t getOutputValue();
-
-    /// set new output value on device
-    /// @param aValue the new output value
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime=0);
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
@@ -156,6 +277,11 @@ namespace p44 {
 
     // the behaviour type
     virtual BehaviourType getType() { return behaviour_output; };
+
+    // for groups property
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();

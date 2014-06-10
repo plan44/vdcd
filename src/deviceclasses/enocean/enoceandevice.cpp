@@ -39,7 +39,8 @@ using namespace p44;
 #pragma mark - EnoceanChannelHandler
 
 EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
-  device(aDevice)
+  device(aDevice),
+  dsChannelIndex(0)
 {
 }
 
@@ -201,14 +202,14 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void EnoceanDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
   pendingDeviceUpdate = true;
   if (alwaysUpdateable) {
     // send immediately
     sendOutgoingUpdate();
   }
-  inherited::updateOutputValue(aOutputBehaviour);
+  inherited::updateChannelValue(aChannelBehaviour);
 }
 
 

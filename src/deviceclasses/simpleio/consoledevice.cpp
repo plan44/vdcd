@@ -77,7 +77,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
       // - add simple single-channel light behaviour
       LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-      l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
+      l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
       addBehaviour(l);
     }
   }
@@ -107,20 +107,19 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 }
 
 
-
-void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void ConsoleDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    outputValue = aOutputBehaviour.valueForHardware();
+  if (aChannelBehaviour.isPrimary()) {
+    outputValue = aChannelBehaviour.valueForHardware();
     printf(
       ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
       getName().c_str(), outputValue,
-      (double)aOutputBehaviour.transitionTimeForHardware()/Second
+      (double)aChannelBehaviour.transitionTimeForHardware()/Second
     );
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
   }
   else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
 }
 
 

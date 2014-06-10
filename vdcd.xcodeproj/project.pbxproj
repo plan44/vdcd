@@ -114,8 +114,6 @@
 		ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED7627281920E8F70068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
-		ED76272A1920E8F70068D9A3 /* auxchannelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */; };
-		ED76272F192109690068D9A3 /* auxchannelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */; };
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
@@ -342,8 +340,6 @@
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; };
 		ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = colorlightbehaviour.hpp; sourceTree = "<group>"; };
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorlightbehaviour.cpp; sourceTree = "<group>"; };
-		ED7627251920E8F70068D9A3 /* auxchannelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = auxchannelbehaviour.hpp; sourceTree = "<group>"; };
-		ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = auxchannelbehaviour.cpp; sourceTree = "<group>"; };
 		ED81337117C644AE003982CC /* dsscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsscene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81337217C644AE003982CC /* dsscene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsscene.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED81337417C65F7E003982CC /* devicesettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = devicesettings.cpp; sourceTree = "<group>"; };
@@ -521,8 +517,6 @@
 				ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */,
 				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
 				ED81337B17C72F45003982CC /* outputbehaviour.hpp */,
-				ED7627261920E8F70068D9A3 /* auxchannelbehaviour.cpp */,
-				ED7627251920E8F70068D9A3 /* auxchannelbehaviour.hpp */,
 				ED81338017C72F87003982CC /* sensorbehaviour.cpp */,
 				ED81338117C72F87003982CC /* sensorbehaviour.hpp */,
 				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
@@ -906,7 +900,6 @@
 				ED3126A818318CC100FAF28B /* fdcomm.cpp in Sources */,
 				ED3126A918318CC100FAF28B /* outputbehaviour.cpp in Sources */,
 				ED3126AA18318CC100FAF28B /* propertycontainer.cpp in Sources */,
-				ED76272A1920E8F70068D9A3 /* auxchannelbehaviour.cpp in Sources */,
 				ED3126AB18318CC100FAF28B /* error.cpp in Sources */,
 				ED3126AC18318CC100FAF28B /* device.cpp in Sources */,
 				ED1F830718508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
@@ -998,7 +991,6 @@
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
 				EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
-				ED76272F192109690068D9A3 /* auxchannelbehaviour.cpp in Sources */,
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,

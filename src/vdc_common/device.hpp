@@ -31,10 +31,12 @@ using namespace std;
 namespace p44 {
 
   class Device;
+  typedef boost::intrusive_ptr<Device> DevicePtr;
+
+  class ChannelBehaviour;
+  typedef boost::intrusive_ptr<ChannelBehaviour> ChannelBehaviourPtr;
 
   typedef vector<DsBehaviourPtr> BehaviourVector;
-
-  typedef boost::intrusive_ptr<Device> DevicePtr;
 
   typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
 
@@ -59,8 +61,8 @@ namespace p44 {
     /// @{
     BehaviourVector buttons; ///< buttons and switches (user interaction)
     BehaviourVector binaryInputs; ///< binary inputs (not for user interaction)
-    BehaviourVector outputs; ///< outputs (on/off as well as continuous ones like dimmer, positionals etc.)
     BehaviourVector sensors; ///< sensors (measurements)
+    OutputBehaviourPtr output; ///< the output (if any)
     /// @}
 
     /// device global parameters (for all behaviours), in particular the scene table
@@ -70,7 +72,6 @@ namespace p44 {
 
     // volatile r/w properties
     bool progMode; ///< if set, device is in programming mode
-    bool localPriority; ///< if set device is in local priority mode
     DsScenePtr previousState; ///< a pseudo scene which holds the device state before the last applyScene() call, used to do undoScene()
 
     // variables set by concrete devices (=hardware dependent)
@@ -107,17 +108,13 @@ namespace p44 {
     /// @name interfaces for actual device hardware (or simulation)
     /// @{
 
-    /// @return true if device is in local priority mode
-    bool hasLocalPriority() { return localPriority; };
-
     /// set basic device color
     /// @param aColorGroup color group number
     void setPrimaryGroup(DsGroup aColorGroup);
 
-    /// set group membership
-    /// @param aColorGroup color group number to set or remove
-    /// @param aIsMember true to make device member of this group
-    void setGroupMembership(DsGroup aColorGroup, bool aIsMember);
+    /// get basic device color group
+    /// @return color group number
+    DsGroup getPrimaryGroup() { return primaryGroup; };
 
     /// report that device has vanished (disconnected without being told so via vDC API)
     /// This will call disconnect() on the device, and remove it from all vDC container lists
@@ -131,11 +128,6 @@ namespace p44 {
 
     /// @}
 
-
-    /// check group membership
-    /// @param aColorGroup color group number to check
-    /// @return true if device is member of this group
-    bool isMember(DsGroup aColorGroup);
 
     /// set user assignable name
     /// @param new name of the addressable entity
@@ -216,11 +208,11 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
+    /// set new channel value on device
+    /// @param aChannelBehaviour the channel behaviour which has a new output value to be sent to the hardware output
     /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour) { /* NOP */ };
+    ///   channel behaviours to collect data for an outgoing message.
+    virtual void updateChannelValue(ChannelBehaviour &aChannelBehaviour) { /* NOP */ };
 
 
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
@@ -262,15 +254,15 @@ namespace p44 {
     /// @return number of output channels in this device
     int numChannels();
 
-    /// get output by channel ID
-    /// @param aChannelType type of channel, channeltype_default for primary output
-    /// @return NULL if channel does not exist in this device, output behaviour pointer otherwise
-    OutputBehaviourPtr outputByChannel(DsChannelType aChannelType);
+    /// get channel by index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex);
 
-    /// get output by output index
-    /// @param aChannelType type of channel, channeltype_default for primary output
-    /// @return NULL if channel does not exist in this device, output behaviour pointer otherwise
-    OutputBehaviourPtr outputByIndex(size_t aOutputIndex);
+    /// get output index by channelType
+    /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType);
 
     /// @}
 

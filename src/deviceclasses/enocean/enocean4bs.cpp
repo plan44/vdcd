@@ -152,7 +152,8 @@ static void stdOutputHandler(const Enocean4bsHandler &aHandler, bool aForSend, u
   if (descP && aForSend) {
     OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(aHandler.behaviour);
     if (ob) {
-      int32_t newValue = ob->valueForHardware();
+      ChannelBehaviourPtr cb = ob->getChannelByIndex(aHandler.dsChannelIndex);
+      int32_t newValue = cb->valueForHardware();
       // insert output into 32bit data
       int numBits = descP->msBit-descP->lsBit+1;
       long mask = ((1l<<numBits)-1)<<descP->lsBit;
@@ -341,7 +342,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
           ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
           ob->setGroup(subdeviceDescP->group); // same group as device
         }
-        ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, channeltype_default, subdeviceDescP->usage, false, 0);
+        ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = ob;
         break;
@@ -392,6 +393,8 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
 {
   OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
   if (ob) {
+    // get the right channel
+    ChannelBehaviourPtr cb = ob->getChannelByIndex(dsChannelIndex);
     // create packet if none created already
     uint32_t data;
     if (!aEsp3PacketPtr) {
@@ -409,7 +412,7 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
     // save data
     aEsp3PacketPtr->set4BSdata(data);
     // value from this channel is applied to the outgoing telegram
-    ob->outputValueApplied();
+    cb->channelValueApplied();
   }
 }
 

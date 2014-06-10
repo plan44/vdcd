@@ -58,7 +58,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Simulate light device
     // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, channeltype_brightness, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else {
@@ -84,14 +84,14 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 
 
 
-void DigitalIODevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void DigitalIODevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
-  if (aOutputBehaviour.getIndex()==0 && indicatorOutput) {
-    indicatorOutput->set(aOutputBehaviour.valueForHardware()>0);
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+  if (aChannelBehaviour.getChannelIndex()==0 && indicatorOutput) {
+    indicatorOutput->set(aChannelBehaviour.valueForHardware()>0);
+    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
   }
   else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
 }
 
 

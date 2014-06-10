@@ -199,6 +199,9 @@ namespace p44 {
 
     /// @}
 
+    /// only for deeper levels
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+
     // persistence implementation
     virtual size_t numFieldDefs();
     virtual const FieldDefinition *getFieldDef(size_t aIndex);
@@ -212,7 +215,6 @@ namespace p44 {
     string getDbKey();
 
     // property access basic dispatcher implementation
-    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     int numLocalProps(PropertyDescriptorPtr aParentDescriptor);
 

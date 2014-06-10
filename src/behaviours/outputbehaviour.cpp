@@ -23,28 +23,216 @@
 
 using namespace p44;
 
+#pragma mark - channel behaviour
+
+ChannelBehaviour::ChannelBehaviour(OutputBehaviour &aOutput) :
+  output(aOutput),
+  channelUpdatePending(false), // no output update pending
+  nextTransitionTime(0), // none
+  channelLastSent(Never), // we don't known nor have we sent the output state
+  cachedChannelValue(0) // channel output value cache
+{
+}
+
+
+void ChannelBehaviour::setChannelIdentification(DsChannelType aChannelType, const char *aName)
+{
+  channel = aChannelType;
+  hardwareName = aName;
+}
+
+
+bool ChannelBehaviour::isPrimary()
+{
+  // internal convention: first channel is the default channel
+  return channelIndex==0;
+}
+
+
+string ChannelBehaviour::description()
+{
+  return string_format("Channel '%s' (channelType=%d)", hardwareName.c_str(), (int)channel);
+}
+
+
+
+#pragma mark - channel value handling
+
+int32_t ChannelBehaviour::getChannelValue()
+{
+  return cachedChannelValue;
+}
+
+
+// only used at startup to get the inital value FROM the hardware
+// NOT to be used to change the hardware channel value!
+void ChannelBehaviour::initChannelValue(uint32_t aActualChannelValue)
+{
+  DBGLOG(LOG_DEBUG, ">>>> initChannelValue actualChannelValue=%d\n", aActualChannelValue);
+  cachedChannelValue = aActualChannelValue;
+  channelValueApplied(); // now we know that we are in sync
+}
+
+
+void ChannelBehaviour::setChannelValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
+{
+  LOG(LOG_INFO,
+    "Channel '%s' in device %s: is requested to apply new value %d (transition time=%lld uS), last known value is %d\n",
+    hardwareName.c_str(), output.device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedChannelValue
+  );
+  if (aNewValue!=cachedChannelValue) {
+    cachedChannelValue = aNewValue;
+    nextTransitionTime = aTransitionTime;
+    channelUpdatePending = true; // pending to be sent to the device
+    channelLastSent = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
+  }
+  // check if output update is pending (might be because of changing the value right above
+  // but also when derived class marks update pending because of changed values
+  // of secondary outputs (e.g. hue color scene recall)
+  if (channelUpdatePending) {
+    // let device know so hardware can update actual output
+    output.device.updateChannelValue(*this);
+  }
+}
+
+
+void ChannelBehaviour::channelValueApplied()
+{
+  channelUpdatePending = false; // applied
+  channelLastSent = MainLoop::now(); // now we know that we are in sync
+  LOG(LOG_INFO,
+    "Channel '%s' in device %s: has applied new value %d to hardware\n",
+    hardwareName.c_str(), output.device.shortDesc().c_str(), cachedChannelValue
+  );
+}
+
+
+
+#pragma mark - channel property access
+
+// Note: this is a simplified single class property access mechanims. ChannelBehaviour is not meant to be derived.
+
+enum {
+  name_key,
+  channelIndex_key,
+  numChannelDescProperties
+};
+
+enum {
+  numChannelSettingsProperties
+};
+
+enum {
+  value_key,
+  age_key,
+  numChannelStateProperties
+};
+
+static char channel_Key;
+
+
+int ChannelBehaviour::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
+    case descriptions_key_offset: return numChannelDescProperties;
+    case settings_key_offset: return numChannelSettingsProperties;
+    case states_key_offset: return numChannelStateProperties;
+    default: return 0;
+  }
+}
+
+
+PropertyDescriptorPtr ChannelBehaviour::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription channelDescProperties[numChannelDescProperties] = {
+    { "name", apivalue_string, name_key+descriptions_key_offset, OKEY(channel_Key) },
+    { "channelIndex", apivalue_uint64, channelIndex_key+descriptions_key_offset, OKEY(channel_Key) },
+  };
+  //static const PropertyDescription channelSettingsProperties[numChannelSettingsProperties] = {
+  //};
+  static const PropertyDescription channelStateProperties[numChannelStateProperties] = {
+    { "value", apivalue_uint64, value_key+states_key_offset, OKEY(channel_Key) }, // note: so far, pbuf API requires uint here
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(channel_Key) },
+  };
+  if (aPropIndex>=numProps(aDomain, aParentDescriptor))
+    return NULL;
+  switch (aParentDescriptor->parentDescriptor->fieldKey()) {
+    case descriptions_key_offset:
+      return PropertyDescriptorPtr(new StaticPropertyDescriptor(&channelDescProperties[aPropIndex], aParentDescriptor));
+      //case settings_key_offset:
+      //  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&channelSettingsProperties[aPropIndex], aParentDescriptor));
+    case states_key_offset:
+      return PropertyDescriptorPtr(new StaticPropertyDescriptor(&channelStateProperties[aPropIndex], aParentDescriptor));
+    default:
+      return NULL;
+  }
+}
+
+
+// access to all fields
+bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(channel_Key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        // Description properties
+        case name_key+descriptions_key_offset:
+          aPropValue->setStringValue(hardwareName);
+          return true;
+        case channelIndex_key+descriptions_key_offset:
+          aPropValue->setInt8Value(channelIndex);
+          return true;
+        // Settings properties
+        // - none for now
+        // States properties
+        case value_key+states_key_offset:
+          aPropValue->setUint32Value(getChannelValue());
+          return true;
+        case age_key+states_key_offset:
+          if (channelLastSent==Never)
+            aPropValue->setNull(); // no value known
+          else
+            aPropValue->setDoubleValue(((double)MainLoop::now()-channelLastSent)/Second);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+          // Settings properties
+          // - none for now
+          // States properties
+        case value_key+states_key_offset:
+          setChannelValue(aPropValue->int32Value());
+          return true;
+      }
+    }
+  }
+  // single class level properties only, don't call inherited
+  return false;
+}
+
+
+#pragma mark - output behaviour
+
 OutputBehaviour::OutputBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
-  outputUpdatePending(false), // no output update pending
-  cachedOutputValue(0), // output value cache
-  outputLastSent(Never), // we don't known nor have we sent the output state
-  nextTransitionTime(0), // none
+  outputGroups(1<<group_variable), // all devices are in group 0 by default
   pushChanges(false) // do not push changes
 {
   // set default hardware default configuration
-  setHardwareOutputConfig(outputFunction_switch, channeltype_undefined, usage_undefined, false, -1);
+  setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
   // default to joker
   setGroup(group_black_joker);
 }
 
 
-void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsChannelType aDefaultChannel, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
+void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
 {
   outputFunction = aOutputFunction;
-  defaultChannel = aDefaultChannel;
-  channel = defaultChannel;
   outputUsage = aUsage;
   variableRamp = aVariableRamp;
   maxPower = aMaxPower;
@@ -64,53 +252,68 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
 }
 
 
-int32_t OutputBehaviour::getOutputValue()
+void OutputBehaviour::addChannel(ChannelBehaviourPtr aChannel)
 {
-  return cachedOutputValue;
+  aChannel->channelIndex = channels.size();
+  channels.push_back(aChannel);
 }
 
 
-// only used at startup to get the inital value FROM the hardware
-// NOT to be used to change the hardware output value!
-void OutputBehaviour::initOutputValue(uint32_t aActualOutputValue)
+size_t OutputBehaviour::numChannels()
 {
-  DBGLOG(LOG_DEBUG, ">>>> initOutputValue actualOutputValue=%d\n", aActualOutputValue);
-  cachedOutputValue = aActualOutputValue;
-  outputValueApplied(); // now we know that we are in sync
+  return channels.size();
 }
 
 
-void OutputBehaviour::setOutputValue(int32_t aNewValue, MLMicroSeconds aTransitionTime)
+
+ChannelBehaviourPtr OutputBehaviour::getChannelByIndex(size_t aChannelIndex)
 {
-  LOG(LOG_INFO,
-    "Output '%s' in device %s: is requested to apply new value %d (transition time=%lld uS), last known value is %d\n",
-    hardwareName.c_str(), device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedOutputValue
-  );
-  if (aNewValue!=cachedOutputValue) {
-    cachedOutputValue = aNewValue;
-    nextTransitionTime = aTransitionTime;
-    outputUpdatePending = true; // pending to be sent to the device
-    outputLastSent = Never; // cachedOutputValue is no longer applied (does not correspond with actual hardware)
+  if (aChannelIndex<channels.size())
+    return channels[aChannelIndex];
+  return ChannelBehaviourPtr();
+}
+
+
+ChannelBehaviourPtr OutputBehaviour::getChannelByType(DsChannelType aChannelType)
+{
+  if (aChannelType==channeltype_default)
+    return getChannelByIndex(0); // first channel is primary/default channel by internal convention
+  // look for channel with matching type
+  for (ChannelBehaviourVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    if ((*pos)->channel==aChannelType)
+      return *pos; // found
   }
-  // check if output update is pending (might be because of changing the value right above
-  // but also when derived class marks update pending because of changed values
-  // of secondary outputs (e.g. hue color scene recall)
-  if (outputUpdatePending) {
-    // let device know so hardware can update actual output
-    device.updateOutputValue(*this);
+  return ChannelBehaviourPtr();
+}
+
+
+
+bool OutputBehaviour::isMember(DsGroup aGroup)
+{
+  return
+    (aGroup==device.getPrimaryGroup()) || // is always member of primary group
+    ((outputGroups & 0x1ll<<aGroup)!=0); // explicit extra membership flag set
+}
+
+
+void OutputBehaviour::setGroupMembership(DsGroup aGroup, bool aIsMember)
+{
+  DsGroupMask newGroups = outputGroups;
+  if (aIsMember) {
+    // make explicitly member of a group
+    newGroups |= (0x1ll<<aGroup);
+  }
+  else {
+    // not explicitly member
+    newGroups &= ~(0x1ll<<aGroup);
+  }
+  if (newGroups!=outputGroups) {
+    outputGroups = newGroups;
+    markDirty();
   }
 }
 
 
-void OutputBehaviour::outputValueApplied()
-{
-  outputUpdatePending = false; // applied
-  outputLastSent = MainLoop::now(); // now we know that we are in sync
-  LOG(LOG_INFO,
-    "Output '%s' in device %s: has applied new value %d to hardware\n",
-    hardwareName.c_str(), device.shortDesc().c_str(), cachedOutputValue
-  );
-}
 
 
 #pragma mark - persistence implementation
@@ -138,7 +341,7 @@ const FieldDefinition *OutputBehaviour::getFieldDef(size_t aIndex)
   static const FieldDefinition dataDefs[numFields] = {
     { "outputMode", SQLITE_INTEGER },
     { "outputFlags", SQLITE_INTEGER },
-    { "outputChannel", SQLITE_INTEGER }
+    { "outputGroups", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -160,7 +363,6 @@ void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   // get the fields
   outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
-  channel = (DsChannelType)aRow->get<int>(aIndex++);
   // decode the flags
   pushChanges = flags & outputflag_pushChanges;
 }
@@ -176,20 +378,72 @@ void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   // bind the fields
   aStatement.bind(aIndex++, outputMode);
   aStatement.bind(aIndex++, flags);
-  aStatement.bind(aIndex++, channel);
 }
 
 
 
-#pragma mark - property access
+#pragma mark - output property access
 
 static char output_key;
+static char output_groups_key;
+
+
+// next level (groups)
+
+int OutputBehaviour::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  if (aParentDescriptor->hasObjectKey(output_groups_key)) {
+    return 64; // group mask has 64 bits for now
+  }
+  return inherited::numProps(aDomain, aParentDescriptor);
+}
+
+
+PropertyContainerPtr OutputBehaviour::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+{
+  if (aPropertyDescriptor->isArrayContainer() && aPropertyDescriptor->hasObjectKey(output_groups_key)) {
+    return PropertyContainerPtr(this); // handle groups array myself
+  }
+  // unknown here
+  return inherited::getContainer(aPropertyDescriptor, aDomain);
+}
+
+
+PropertyDescriptorPtr OutputBehaviour::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(output_groups_key)) {
+    // array-like container
+    PropertyDescriptorPtr propDesc;
+    bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
+    int n = numProps(aDomain, aParentDescriptor);
+    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+      // within range, create descriptor
+      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+      descP->propertyName = string_format("%d", aStartIndex);
+      descP->propertyType = aParentDescriptor->type();
+      descP->propertyFieldKey = aStartIndex;
+      descP->propertyObjectKey = aParentDescriptor->objectKey();
+      propDesc = PropertyDescriptorPtr(descP);
+      // advance index
+      aStartIndex++;
+    }
+    if (aStartIndex>=n || numericName) {
+      // no more descriptors OR specific descriptor accessed -> no "next" descriptor
+      aStartIndex = PROPINDEX_NONE;
+    }
+    return propDesc;
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+}
+
+
+
 
 // description properties
 
 enum {
   outputFunction_key,
-  defaultChannel_key,
   outputUsage_key,
   variableRamp_key,
   maxPower_key,
@@ -202,7 +456,6 @@ const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropI
 {
   static const PropertyDescription properties[numDescProperties] = {
     { "function", apivalue_uint64, outputFunction_key+descriptions_key_offset, OKEY(output_key) },
-    { "channel", apivalue_uint64, defaultChannel_key+descriptions_key_offset, OKEY(output_key) },
     { "outputUsage", apivalue_uint64, outputUsage_key+descriptions_key_offset, OKEY(output_key) },
     { "variableRamp", apivalue_bool, variableRamp_key+descriptions_key_offset, OKEY(output_key) },
     { "maxPower", apivalue_double, maxPower_key+descriptions_key_offset, OKEY(output_key) },
@@ -215,8 +468,8 @@ const PropertyDescriptorPtr OutputBehaviour::getDescDescriptorByIndex(int aPropI
 
 enum {
   mode_key,
-  channel_key,
   pushChanges_key,
+  groups_key,
   numSettingsProperties
 };
 
@@ -226,17 +479,17 @@ const PropertyDescriptorPtr OutputBehaviour::getSettingsDescriptorByIndex(int aP
 {
   static const PropertyDescription properties[numSettingsProperties] = {
     { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(output_key) },
-    { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(output_key) },
     { "pushChanges", apivalue_bool, pushChanges_key+settings_key_offset, OKEY(output_key) },
+    { "groups", apivalue_bool+propflag_container, groups_key+settings_key_offset, OKEY(output_groups_key) }
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
+
 // state properties
 
 enum {
-  value_key,
-  age_key,
+  localPriority_key,
   numStateProperties
 };
 
@@ -245,27 +498,39 @@ int OutputBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptorPtr OutputBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
-    { "value", apivalue_uint64, value_key+states_key_offset, OKEY(output_key) }, // note: so far, pbuf API requires uint here
-    { "age", apivalue_double, age_key+states_key_offset, OKEY(output_key) },
+    { "localPriority", apivalue_bool, localPriority_key+settings_key_offset, OKEY(output_key) }
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
+
 
 
 // access to all fields
 
 bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor->hasObjectKey(output_key)) {
+  if (aPropertyDescriptor->hasObjectKey(output_groups_key)) {
+    if (aMode==access_read) {
+      // read group membership
+      if (isMember((DsGroup)aPropertyDescriptor->fieldKey())) {
+        aPropValue->setBoolValue(true);
+        return true;
+      }
+      return false;
+    }
+    else {
+      // write group
+      setGroupMembership((DsGroup)aPropertyDescriptor->fieldKey(), aPropValue->boolValue());
+      return true;
+    }
+  }
+  else if (aPropertyDescriptor->hasObjectKey(output_key)) {
     if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case outputFunction_key+descriptions_key_offset:
           aPropValue->setUint8Value(outputFunction);
-          return true;
-        case defaultChannel_key+descriptions_key_offset:
-          aPropValue->setUint8Value(defaultChannel);
           return true;
         case outputUsage_key+descriptions_key_offset:
           aPropValue->setUint16Value(outputUsage);
@@ -280,21 +545,12 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case mode_key+settings_key_offset:
           aPropValue->setUint8Value(outputMode);
           return true;
-        case channel_key+settings_key_offset:
-          aPropValue->setUint8Value(channel);
-          return true;
         case pushChanges_key+settings_key_offset:
           aPropValue->setBoolValue(pushChanges);
           return true;
-        // States properties
-        case value_key+states_key_offset:
-          aPropValue->setUint32Value(getOutputValue());
-          return true;
-        case age_key+states_key_offset:
-          if (outputLastSent==Never)
-            aPropValue->setNull(); // no value known
-          else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-outputLastSent)/Second);
+        // State properties
+        case localPriority_key+states_key_offset:
+          aPropValue->setBoolValue(localPriority);
           return true;
       }
     }
@@ -306,17 +562,14 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           outputMode = (DsOutputMode)aPropValue->int32Value();
           markDirty();
           return true;
-        case channel_key+settings_key_offset:
-          channel = (DsChannelType)aPropValue->int32Value();
-          markDirty();
-          return true;
         case pushChanges_key+settings_key_offset:
           pushChanges = aPropValue->boolValue();
           markDirty();
           return true;
-        // States properties
-        case value_key+states_key_offset:
-          setOutputValue(aPropValue->int32Value());
+        // State properties
+        case localPriority_key+states_key_offset:
+          localPriority = aPropValue->boolValue();
+          markDirty();
           return true;
       }
     }
@@ -334,7 +587,6 @@ string OutputBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s, "- hardware output function: %d (%s)\n", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
-  string_format_append(s, "- hardware-defined channel: %d, channel: %d, output mode: %d\n", defaultChannel, channel, outputMode);
   s.append(inherited::description());
   return s;
 }

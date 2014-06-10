@@ -55,7 +55,7 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
   deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
   // set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
+  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
   l->setHardwareName(string_format("DALI %d",deviceInfo.shortAddress));
   addBehaviour(l);
 }
@@ -77,7 +77,7 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     int32_t bri = arcpowerToBrightness(aResponse);
-    boost::static_pointer_cast<LightBehaviour>(outputs[0])->initOutputValue(bri);
+    output->getChannelByIndex(0)->initChannelValue(bri);
     LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, bri);
   }
   // query the minimum dimming level
@@ -98,7 +98,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
     LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
-  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);
   l->initBrightnessParams(minLevel,255);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
@@ -109,7 +109,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
 
 void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 {
-  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);
   if (transitionTime==Infinite || transitionTime!=aTransitionTime) {
     uint8_t tr = 0; // default to 0
     if (aTransitionTime>0) {
@@ -150,7 +150,7 @@ void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler, bool a
 
 void DaliDevice::identifyToUser()
 {
-  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(outputs[0]);
+  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (l) {
     l->blink(4*Second);
   }
@@ -179,18 +179,18 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 
 
 
-void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void DaliDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    setTransitionTime(aOutputBehaviour.transitionTimeForHardware());
+  if (aChannelBehaviour.getChannelType()==channeltype_brightness) {
+    setTransitionTime(aChannelBehaviour.transitionTimeForHardware());
     // update actual dimmer value
-    uint8_t power = brightnessToArcpower(aOutputBehaviour.valueForHardware());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aOutputBehaviour.valueForHardware(), aOutputBehaviour.transitionTimeForHardware()/MilliSecond, power);
+    uint8_t power = brightnessToArcpower(aChannelBehaviour.valueForHardware());
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aChannelBehaviour.valueForHardware(), aChannelBehaviour.transitionTimeForHardware()/MilliSecond, power);
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
   }
   else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
 }
 
 

@@ -112,40 +112,30 @@ namespace p44 {
     virtual int numSceneValues();
 
     /// get per-value scene flags
-    /// @param aOutputIndex the output index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @return the flag word
-    virtual uint32_t sceneValueFlags(size_t aOutputIndex);
+    virtual uint32_t sceneValueFlags(size_t aChannelIndex);
 
     /// modify per-value scene flags
-    /// @param aOutputIndex the output index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aFlagMask the flags to set or clear
     /// @param aSet if true, flags set in aFlagMask will be set, otherwise cleared
-    virtual void setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool aSet);
+    virtual void setSceneValueFlags(size_t aChannelIndex, uint32_t aFlagMask, bool aSet);
 
     /// get scene value
-    /// @param aOutputIndex the output index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @return the scene value
-    virtual double sceneValue(size_t aOutputIndex) = 0;
+    virtual double sceneValue(size_t aChannelIndex) = 0;
 
     /// modify per-value scene flags
-    /// @param aOutputIndex the output index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aValue the new scene value
-    virtual void setSceneValue(size_t aOutputIndex, double aValue) = 0;
-
-    /// get output index by channelID
-    /// @param aChannelID a channe ID
-    /// @return 0 for unknown channel, 1..n for channel
-    virtual int getChannelId(size_t aOutputIndex);
-
-    /// utility: get output index by channelID
-    /// @param aChannelID a channe ID
-    /// @return -1 if channel does not exist, output index of that channel otherwise
-    size_t getOutputIndexByChannel(int aChannelID);
+    virtual void setSceneValue(size_t aChannelIndex, double aValue) = 0;
 
     /// utility: check a scene value flag
-    /// @param aOutputIndex the output index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aFlagMask the flag to check
-    bool isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask);
+    bool isSceneValueFlagSet(size_t aChannelIndex, uint32_t aFlagMask);
 
     /// @}
 

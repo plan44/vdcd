@@ -247,7 +247,8 @@ void HueLightBehaviour::recallScene(LightScenePtr aLightScene)
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
       devP->pendingColorScene = hueScene;
-      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
+      // we need an output update, even if main output value (brightness) has not changed in new scene
+      devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
     }
   }
   // let base class update logical brightness, which will in turn update the output, which will then
@@ -261,7 +262,7 @@ void HueLightBehaviour::performSceneActions(DsScenePtr aScene)
 {
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
-  if (lightScene && lightScene->flashing) {
+  if (lightScene && lightScene->effect==scene_effect_alert) {
     // alert
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
@@ -340,7 +341,7 @@ void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB a
           bri = (Brightness)o->int32Value();
         }
       }
-      initOutputValue(bri);
+      getChannelByType(channeltype_brightness)->initChannelValue(bri);
     }
   }
   // anyway, let base class capture brightness
@@ -363,8 +364,8 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
   deviceSettings = DeviceSettingsPtr(new HueDeviceSettings(*this));
   // set the behaviour
   HueLightBehaviourPtr l = HueLightBehaviourPtr(new HueLightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
-  l->setHardwareName(string_format("brightness of hue light #%s", lightID.c_str()));
+  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+  l->setHardwareName(string_format("hue light #%s", lightID.c_str()));
   l->initBrightnessParams(1,255); // brightness range is 1..255
   addBehaviour(l);
 }
@@ -435,7 +436,7 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
           bri = o->int32Value();
         }
         // set current brightness
-        boost::static_pointer_cast<LightBehaviour>(outputs[0])->initOutputValue(bri);
+        output->getChannelByType(channeltype_brightness)->initChannelValue(bri);
       }
     }
   }
@@ -515,12 +516,12 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void HueDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
 {
-  if (aOutputBehaviour.getIndex()==0) {
+  if (aChannelBehaviour.getChannelType()==channeltype_brightness) {
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
-    Brightness b = aOutputBehaviour.valueForHardware();
+    Brightness b = aChannelBehaviour.valueForHardware();
     if (b==0) {
       // light off
       newState->add("on", JsonObject::newBool(false));
@@ -563,19 +564,19 @@ void HueDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
       }
     }
     // for on and off, set transition time (1/10 second resolution)
-    newState->add("transitiontime", JsonObject::newInt64(aOutputBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
+    newState->add("transitiontime", JsonObject::newInt64(aChannelBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aOutputBehaviour, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aChannelBehaviour, _2));
   }
   else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
 }
 
 
-void HueDevice::outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aError)
+void HueDevice::outputChangeSent(ChannelBehaviour &aChannelBehaviour, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
   }
 }
 
