@@ -181,7 +181,7 @@ bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVa
           aPropValue->setStringValue(hardwareName);
           return true;
         case channelIndex_key+descriptions_key_offset:
-          aPropValue->setInt8Value(channelIndex);
+          aPropValue->setUint8Value(channelIndex);
           return true;
         // Settings properties
         // - none for now
