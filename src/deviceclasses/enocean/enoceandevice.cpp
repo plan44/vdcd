@@ -202,16 +202,16 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void EnoceanDevice::applyChannelValues()
 {
+  // trigger updating all device outputs
   pendingDeviceUpdate = true;
   if (alwaysUpdateable) {
     // send immediately
     sendOutgoingUpdate();
   }
-  inherited::updateChannelValue(aChannelBehaviour);
+  inherited::applyChannelValues();
 }
-
 
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)

@@ -40,21 +40,23 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
   // - create one output with light behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   // - set default config to act as dimmer with variable ramps
-  l->setHardwareOutputConfig(outputFunction_dimmer, channeltype_brightness, usage_undefined, true, -1);
+  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
   addBehaviour(l);
   // - hardware is defined, now derive dSUID
 	deriveDsUid();
 }
 
 
-void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+
+void DemoDevice::applyChannelValues()
 {
-  // as this demo device has only one output
-  if (aOutputBehaviour.getIndex()==0) {
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch) {
     // This would be the place to implement sending the output value to the hardware
     // For the demo device, we show the output as a bar of 0..50 '#' chars
     // - read the output value from the behaviour
-    int hwValue = aOutputBehaviour.valueForHardware();
+    int hwValue = ch->valueForHardware();
     // - display as a bar of hash chars
     string bar;
     while (hwValue>0) {
@@ -63,10 +65,9 @@ void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
       hwValue -= 4;
     }
     printf("Demo Device Output: %s\n", bar.c_str());
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    ch->channelValueApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
 
 

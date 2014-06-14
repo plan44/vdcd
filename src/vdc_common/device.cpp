@@ -212,9 +212,11 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       if (Error::isOK(err = checkParam(aParams, "value", o))) {
         // get value
         double value = o->doubleValue();
-        // now process
+        // now process the value (updates channel values, but does not yet apply them)
         LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
+        // apply the values
+        applyChannelValues();
       }
     }
     if (!Error::isOK(err)) {
@@ -614,7 +616,6 @@ void Device::processControlValue(const string &aName, double aValue)
 
 
 
-
 #pragma mark - persistent device params
 
 
@@ -904,7 +905,7 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
 }
 
 
-ErrorPtr Device::writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
+ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
 {
   if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
     // a scene was written, update needed if dirty
@@ -915,7 +916,15 @@ ErrorPtr Device::writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int 
       return ErrorPtr();
     }
   }
-  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aContainer);
+  else if (
+    aPropertyDescriptor->hasObjectKey(device_channels_key) && // one or multiple channel's...
+    aPropertyDescriptor->fieldKey()==states_key_offset && // ...state(s)...
+    aMode==access_write // ...got a non-preload write
+  ) {
+    // apply new channel values to hardware
+    applyChannelValues();
+  }
+  return inherited::writtenProperty(aMode, aPropertyDescriptor, aDomain, aContainer);
 }
 
 

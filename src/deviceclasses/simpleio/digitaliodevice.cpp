@@ -83,17 +83,16 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-
-void DigitalIODevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void DigitalIODevice::applyChannelValues()
 {
-  if (aChannelBehaviour.getChannelIndex()==0 && indicatorOutput) {
-    indicatorOutput->set(aChannelBehaviour.valueForHardware()>0);
-    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch) {
+    indicatorOutput->set(ch->valueForHardware()>0);
+    ch->channelValueApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
-
 
 
 void DigitalIODevice::deriveDsUid()

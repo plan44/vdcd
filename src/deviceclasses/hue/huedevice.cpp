@@ -515,13 +515,14 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-
-void HueDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void HueDevice::applyChannelValues()
 {
-  if (aChannelBehaviour.getChannelType()==channeltype_brightness) {
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_brightness);
+  if (ch) {
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
-    Brightness b = aChannelBehaviour.valueForHardware();
+    Brightness b = ch->valueForHardware();
     if (b==0) {
       // light off
       newState->add("on", JsonObject::newBool(false));
@@ -564,19 +565,19 @@ void HueDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
       }
     }
     // for on and off, set transition time (1/10 second resolution)
-    newState->add("transitiontime", JsonObject::newInt64(aChannelBehaviour.transitionTimeForHardware()/(100*MilliSecond)));
+    newState->add("transitiontime", JsonObject::newInt64(ch->transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aChannelBehaviour, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, ch, _2));
   }
-  else
-    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
 
 
-void HueDevice::outputChangeSent(ChannelBehaviour &aChannelBehaviour, ErrorPtr aError)
+
+void HueDevice::outputChangeSent(ChannelBehaviourPtr aChannelBehaviour, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
+    aChannelBehaviour->channelValueApplied(); // confirm having applied the value
   }
 }
 

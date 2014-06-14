@@ -86,13 +86,6 @@ void ChannelBehaviour::setChannelValue(int32_t aNewValue, MLMicroSeconds aTransi
     channelUpdatePending = true; // pending to be sent to the device
     channelLastSent = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
   }
-  // check if output update is pending (might be because of changing the value right above
-  // but also when derived class marks update pending because of changed values
-  // of secondary outputs (e.g. hue color scene recall)
-  if (channelUpdatePending) {
-    // let device know so hardware can update actual output
-    output.device.updateChannelValue(*this);
-  }
 }
 
 

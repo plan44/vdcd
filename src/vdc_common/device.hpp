@@ -208,15 +208,16 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
-    /// set new channel value on device
-    /// @param aChannelBehaviour the channel behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   channel behaviours to collect data for an outgoing message.
-    virtual void updateChannelValue(ChannelBehaviour &aChannelBehaviour) { /* NOP */ };
-
+    /// apply all pending channel value updates to the device's hardware
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    virtual void applyChannelValues() { /* NOP in base class */ };
 
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
+    /// @note this method must not directly update the hardware, but just prepare channel values such that these can
+    ///   be applied using applyChannelValues().
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
     /// @note base class by default forwards the control value to all of its output behaviours.
@@ -278,7 +279,7 @@ namespace p44 {
     virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
-    virtual ErrorPtr writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
+    virtual ErrorPtr writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
 
     /// set local priority of the device if specified scene does not have dontCare set.
     /// @param aSceneNo the scene to check don't care for

@@ -48,11 +48,11 @@ namespace p44 {
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 
-    /// set new channel value on device
-    /// @param aChannelBehaviour the channel behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   channel behaviours to collect data for an outgoing message.
-    virtual void updateChannelValue(ChannelBehaviour &aChannelBehaviour);
+    /// apply all pending channel value updates to the device's hardware
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    virtual void applyChannelValues();
 
     /// @}
 

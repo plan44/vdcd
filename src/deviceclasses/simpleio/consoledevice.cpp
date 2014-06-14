@@ -107,21 +107,21 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 }
 
 
-void ConsoleDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void ConsoleDevice::applyChannelValues()
 {
-  if (aChannelBehaviour.isPrimary()) {
-    outputValue = aChannelBehaviour.valueForHardware();
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch) {
+    outputValue = ch->valueForHardware();
     printf(
       ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
       getName().c_str(), outputValue,
-      (double)aChannelBehaviour.transitionTimeForHardware()/Second
+      (double)ch->transitionTimeForHardware()/Second
     );
-    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
+    ch->channelValueApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
-
 
 
 void ConsoleDevice::deriveDsUid()

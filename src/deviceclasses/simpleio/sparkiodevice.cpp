@@ -330,20 +330,22 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-
-void SparkIoDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void SparkIoDevice::applyChannelValues()
 {
-  if (aChannelBehaviour.isPrimary()) {
-    outputValue = aChannelBehaviour.valueForHardware();
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch) {
+    outputValue = ch->valueForHardware();
     // set output value
-    postChannelValue(aChannelBehaviour);
+    postChannelValue(ch);
   }
-  else
-    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
 
 
-void SparkIoDevice::postChannelValue(ChannelBehaviour &aChannelBehaviour)
+
+
+void SparkIoDevice::postChannelValue(ChannelBehaviourPtr aChannelBehaviour)
 {
   if (apiVersion==1) {
     string args;
@@ -363,7 +365,7 @@ void SparkIoDevice::postChannelValue(ChannelBehaviour &aChannelBehaviour)
 
 
 
-void SparkIoDevice::channelChanged(ChannelBehaviour &aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelChanged(ChannelBehaviourPtr aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (outputChangePending) {
@@ -371,7 +373,7 @@ void SparkIoDevice::channelChanged(ChannelBehaviour &aChannelBehaviour, JsonObje
       postChannelValue(aChannelBehaviour); // one more change pending
     }
     else {
-      aChannelBehaviour.channelValueApplied(); // confirm having applied the value
+      aChannelBehaviour->channelValueApplied(); // confirm having applied the value
       outputChangePending = false;
     }
   }

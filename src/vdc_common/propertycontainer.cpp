@@ -113,7 +113,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                 }
                 if ((aMode!=access_read) && Error::isOK(err)) {
                   // give this container a chance to post-process write access
-                  err = writtenProperty(propDesc, aDomain, container);
+                  err = writtenProperty(aMode, propDesc, aDomain, container);
                 }
                 // 404 errors are collected, but dont abort the query
                 if (Error::isError(err, VdcApiError::domain(), 404)) {

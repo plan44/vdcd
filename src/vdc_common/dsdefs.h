@@ -247,7 +247,6 @@ typedef enum {
 /// output channel types
 typedef enum {
   channeltype_default = 0, ///< default channel (main output value, e.g. brightness for lights)
-  channeltype_undefined = 0, ///< undefined channel (in output descriptions)
   channeltype_brightness = 1, ///< brightness for lights
   channeltype_hue = 2, ///< hue for color lights
   channeltype_saturation = 3, ///< saturation for color lights

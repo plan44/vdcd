@@ -212,12 +212,14 @@ namespace p44 {
     /// @note this base class always returns false, as it does not have any properties implemented
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor) { return false; };
 
-    /// post-process written properties in subcontainers. This is called when a property write access was
-    /// delegated via getContainer(), and can be used to commit a container write transaction or similar
+    /// post-process written properties in subcontainers. This is called after a property write access has
+    /// compleded successfully in a subcontainer (as returned by this object's getContainer()), and can be used to commit container
+    /// wide transactions etc.
+    /// @param aMode the property access mode (write or write_preload - for the latter, container might want to prevent committing, such as for MOC channel updates)
     /// @param aPropertyDescriptor decriptor for a structured (object) property
     /// @param aDomain the domain in which the write access happened
     /// @param aInContainer the container object that was accessed
-    virtual ErrorPtr writtenProperty(PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aInContainer) { return ErrorPtr(); }
+    virtual ErrorPtr writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aInContainer) { return ErrorPtr(); }
 
     /// @}
 

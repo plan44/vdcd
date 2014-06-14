@@ -178,19 +178,19 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 }
 
 
-
-void DaliDevice::updateChannelValue(ChannelBehaviour &aChannelBehaviour)
+void DaliDevice::applyChannelValues()
 {
-  if (aChannelBehaviour.getChannelType()==channeltype_brightness) {
-    setTransitionTime(aChannelBehaviour.transitionTimeForHardware());
+  // single channel device, get primary channel
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch) {
+    setTransitionTime(ch->transitionTimeForHardware());
     // update actual dimmer value
-    uint8_t power = brightnessToArcpower(aChannelBehaviour.valueForHardware());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aChannelBehaviour.valueForHardware(), aChannelBehaviour.transitionTimeForHardware()/MilliSecond, power);
+    uint8_t power = brightnessToArcpower(ch->valueForHardware());
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", ch->valueForHardware(), ch->transitionTimeForHardware()/MilliSecond, power);
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
-    aChannelBehaviour.channelValueApplied(); // confirm having applied the value
+    ch->channelValueApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateChannelValue(aChannelBehaviour); // let superclass handle this
+  inherited::applyChannelValues();
 }
 
 

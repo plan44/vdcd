@@ -118,11 +118,14 @@ namespace p44 {
     /// @return transition time
     MLMicroSeconds transitionTimeForHardware() { return nextTransitionTime; };
 
-    /// to be called when channel value has been successfully applied to hardware
-    void channelValueApplied();
-
     /// call to make update pending
     void setChannelUpdatePending() { channelUpdatePending = true; }
+
+    /// check if channel value needs to be sent to device hardware
+    bool isChannelUpdatePending() { return channelUpdatePending; }
+
+    /// to be called when channel value has been successfully applied to hardware
+    void channelValueApplied();
 
     /// @}
 
