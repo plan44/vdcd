@@ -35,7 +35,8 @@ using namespace p44;
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
   progMode(false),
-  lastDimSceneNo(T0_S0),
+  legacyDimTimeoutTicket(0),
+  legacyDimMode(0),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
   primaryGroup(group_black_joker)
@@ -248,7 +249,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
           area = o->int32Value();
         }
         // start/stop dimming
-        dimChannel(channel,mode,area);
+        dimChannelForArea(channel,mode,area);
       }
     }
     if (!Error::isOK(err)) {
@@ -390,12 +391,32 @@ static SceneNo mainDimScene(SceneNo aSceneNo)
 }
 
 
-void Device::dimChannel(DsChannelType aChannel, int aDimMode, int aArea)
+void Device::dimChannelForArea(DsChannelType aChannel, int aDimMode, int aArea)
+{
+  if (aArea!=0) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes) {
+      // check area first
+      SceneNo areaScene = mainSceneForArea(aArea);
+      DsScenePtr scene = scenes->getScene(areaScene);
+      if (scene->isDontCare()) {
+        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
+        return; // not in this area, suppress dimming
+      }
+    }
+  }
+  // requested dimming this device, no area suppress active
+  dimChannel(aChannel, aArea);
+}
+
+
+void Device::dimChannel(DsChannelType aChannel, int aDimMode)
 {
   #warning "%%% to be implemented"
 }
 
 
+#define LEGACY_DIM_STEP_TIMEOUT (400*MilliSecond)
 
 void Device::callScene(SceneNo aSceneNo, bool aForce)
 {
@@ -406,14 +427,9 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     // check special scene numbers first
     SceneNo dimSceneNo = 0;
     if (aSceneNo==T1234_CONT) {
-      if (lastDimSceneNo) {
-        // re-use last dim scene
-        aSceneNo = lastDimSceneNo;
-      }
-      else {
-        // this device was not part of area dimming, ignore T1234_CONT
-        LOG(LOG_DEBUG, "- dimming was not started in this device, ignore T1234_CONT\n");
-        return;
+      if (legacyDimMode!=0) {
+        // device is in legacy dimming mode, keep from timing out
+        MainLoop::currentMainLoop().rescheduleExecutionTicket(legacyDimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
       }
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
@@ -421,7 +437,6 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     if (dimSceneNo==0) {
       LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
     }
-    lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
     // check for area
     int area = areaFromScene(aSceneNo);
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
@@ -442,11 +457,45 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
     // get the scene to apply to output
     if (dimSceneNo) {
-      // dimming, use normalized dim scene (INC_S/DEC_S/STOP_S) in all cases, including area dimming
-      scene = scenes->getScene(dimSceneNo);
-      // if area dimming, remember last are dimming scene for possible subsequent T1234_CONT
-      if (area)
-        lastDimSceneNo = aSceneNo;
+      // Legacy dimming via INC_S/DEC_S/STOP_S
+      // - check for localPriority override first
+      if (output->hasLocalPriority() && !area) {
+        // non-area dimming while my output is in localPriority is suppressed
+        return;
+      }
+      // - convert to dimChannel command
+      if (dimSceneNo==STOP_S) {
+        // stop possibly running legacy dimming
+        if (legacyDimMode!=0) {
+          // STOP_S
+          // - stop timeout
+          MainLoop::currentMainLoop().cancelExecutionTicket(legacyDimTimeoutTicket);
+          // - stop dimming
+          dimChannel(channeltype_default, 0);
+          // - stopped now
+          legacyDimMode = 0;
+        }
+      }
+      else {
+        // INC_S or DEC_S
+        // - start legacy dimming or retrigger timeout if already running
+        int dimMode = dimSceneNo==INC_S ? 1 : -1;
+        if (!legacyDimTimeoutTicket || dimMode!=legacyDimMode) {
+          // need to start new dimming
+          legacyDimMode = dimMode;
+          dimChannel(channeltype_default, dimMode);
+        }
+        else {
+          // dimming already in progress, just renew timeout
+          // - cancel previous timeout
+          MainLoop::currentMainLoop().cancelExecutionTicket(legacyDimTimeoutTicket);
+        }
+        // (re)start timeout to stop dimming in case STOP_S does not occur.
+        // INC_S/DEC_S are expected in 250mS intervals, so timeout after 400 should be safe
+        legacyDimTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::legacyDimTimeout, this), LEGACY_DIM_STEP_TIMEOUT);
+      }
+      // legacy dimming done
+      return;
     }
     else {
       // not dimming, use scene as passed
@@ -478,19 +527,11 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         }
         // - now apply to output
         if (output) {
-          if (dimSceneNo) {
-            // Dimming scene: apply right now
-            #error translate into dimChannel
-            output->applyScene(scene);
-            // Note: no special actions are performed on dimming scene
-          }
-          else {
-            // Non-dimming scene: have output save its current state into the previousState pseudo scene
-            // Note: the actual updating might happen later (when the hardware responds) but
-            //   implementations must make sure access to the hardware is serialized such that
-            //   the values are captured before values from applyScene() below are applied.
-            output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
-          }
+          // Non-dimming scene: have output save its current state into the previousState pseudo scene
+          // Note: the actual updating might happen later (when the hardware responds) but
+          //   implementations must make sure access to the hardware is serialized such that
+          //   the values are captured before values from applyScene() below are applied.
+          output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
         } // if output
       } // not dontCare
       else {
@@ -502,6 +543,14 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     } // scene found
   } // device with scenes
 }
+
+
+void Device::legacyDimTimeout()
+{
+  // timeout: stop dimming immediately
+  dimChannel(channeltype_default, 0); // no area filter, as non-are calls don't make it to here
+}
+
 
 
 // deferred applying of state, after current state has been captured for this output

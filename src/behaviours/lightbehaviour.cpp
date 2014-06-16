@@ -413,7 +413,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
     // any scene call cancels fade down
     MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
     SceneNo sceneNo = lightScene->sceneNo;
-    // now check new scene
+    // now check for special hard-wired scenes
 /*
     // Note: Area dimming scene calls are converted to INC_S/DEC_S/STOP_S at the Device class level
     //  so we only need to handle INC_S/DEC_S and STOP_S here.

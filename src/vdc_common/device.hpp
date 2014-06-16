@@ -78,7 +78,8 @@ namespace p44 {
     DsGroup primaryGroup; ///< basic color of the device (can be black)
 
     // volatile internal state
-    SceneNo lastDimSceneNo; ///< most recently used dimming scene (used when T1234_CONT is received)
+    long legacyDimTimeoutTicket; // for legacy INC_S/DEC_S dim command conversion to modern dimChannel()
+    int8_t legacyDimMode; // current legacy dimming
 
   public:
     Device(DeviceClassContainer *aClassContainerP);
@@ -189,12 +190,8 @@ namespace p44 {
     /// start or stop dimming channel of this device
     /// @param aChannel the channel to start or stop dimming for
     /// @param aDimMode 1=start dimming up, -1=start dimming down, 0=stop dimming
-    void dimChannel(DsChannelType aChannel, int aDimMode, int aArea);
-
-    /// identify the device to the user
-    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
-    ///   this can be anything.
-    virtual void identifyToUser();
+    /// @param aArea if not zero, dontCare of area main scene is checked, if set, dimming does not occur
+    void dimChannelForArea(DsChannelType aChannel, int aDimMode, int aArea);
 
     /// @}
 
@@ -228,6 +225,16 @@ namespace p44 {
     /// @note base class by default forwards the control value to all of its output behaviours.
     virtual void processControlValue(const string &aName, double aValue);
 
+    /// start or stop dimming channel of this device
+    /// @param aChannel the channel to start or stop dimming for
+    /// @param aDimMode 1=start dimming up, -1=start dimming down, 0=stop dimming
+    virtual void dimChannel(DsChannelType aChannel, int aDimMode);
+
+    /// identify the device to the user
+    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
+    ///   this can be anything.
+    virtual void identifyToUser();
+    
 
     typedef boost::function<void (bool aDisconnected)> DisconnectCB;
 
@@ -250,7 +257,7 @@ namespace p44 {
 
     /// add a behaviour and set its index
     /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
-    ///   array and given the correct index value. Primary output must be added first as it needs to have index 0.
+    ///   array and given the correct index value.
     void addBehaviour(DsBehaviourPtr aBehaviour);
 
 
@@ -299,6 +306,7 @@ namespace p44 {
 
     DsGroupMask behaviourGroups();
 
+    void legacyDimTimeout();
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
     void sceneValuesApplied(DsScenePtr aScene);

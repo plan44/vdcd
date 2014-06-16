@@ -244,12 +244,12 @@ namespace p44 {
     /// apply scene to output
     /// @param aScene the scene to apply to the output
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
-    ///   false if scene cannot yet be applied to hardware, and will be performed later
+    ///   false if scene cannot yet be applied to hardware, and actual transfer to hardware will happen later
     /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
     ///   a one-step scene value change.
     ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
-    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
-    ///   only dimChannel method must be used.
+    /// @note this method does not handle dimming, and MUST NOT be called with dimming specific scenes. For dimming,
+    ///   only the device's dimChannel method must be used.
     virtual bool applyScene(DsScenePtr aScene) { return true; /* just return "apply complete" in base class */ };
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
