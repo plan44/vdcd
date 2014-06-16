@@ -218,8 +218,6 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
 {
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-  // default to joker
-  setGroup(group_black_joker);
 }
 
 

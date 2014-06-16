@@ -73,16 +73,6 @@ void DsBehaviour::pushBehaviourState()
 }
 
 
-
-void DsBehaviour::setGroup(DsGroup aGroup)
-{
-  if (group!=aGroup) {
-    group = aGroup;
-  }
-}
-
-
-
 string DsBehaviour::getDbKey()
 {
   return string_format("%s_%d",device.dSUID.getString().c_str(),index);
@@ -105,54 +95,6 @@ ErrorPtr DsBehaviour::forget()
 {
   return deleteFromStore();
 }
-
-
-#pragma mark - persistence implementation
-
-
-// Note: no tablename - this is an abstract class
-
-// data field definitions
-
-static const size_t numFields = 1;
-
-size_t DsBehaviour::numFieldDefs()
-{
-  return inheritedParams::numFieldDefs()+numFields;
-}
-
-
-const FieldDefinition *DsBehaviour::getFieldDef(size_t aIndex)
-{
-  static const FieldDefinition dataDefs[numFields] = {
-    { "dsGroup", SQLITE_INTEGER } // Note: don't call a SQL field "group"!
-  };
-  if (aIndex<inheritedParams::numFieldDefs())
-    return inheritedParams::getFieldDef(aIndex);
-  aIndex -= inheritedParams::numFieldDefs();
-  if (aIndex<numFields)
-    return &dataDefs[aIndex];
-  return NULL;
-}
-
-
-/// load values from passed row
-void DsBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
-{
-  inheritedParams::loadFromRow(aRow, aIndex);
-  // get the fields
-  group  = (DsGroup)aRow->get<int>(aIndex++);
-}
-
-
-// bind values to passed statement
-void DsBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
-{
-  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // bind the fields
-  aStatement.bind(aIndex++, group);
-}
-
 
 
 #pragma mark - property access
@@ -179,12 +121,6 @@ enum {
 
 
 enum {
-  group_key,
-  numDsBehaviourSettingsProperties
-};
-
-
-enum {
   error_key,
   numDsBehaviourStateProperties
 };
@@ -201,7 +137,7 @@ int DsBehaviour::numLocalProps(PropertyDescriptorPtr aParentDescriptor)
     pdP = pdP->parentDescriptor; // if there is a parent on the level above, check that (buttons, binaryInputs, sensors)
   switch (pdP->fieldKey()) {
     case descriptions_key_offset: return numDescProps()+numDsBehaviourDescProperties;
-    case settings_key_offset: return numSettingsProps()+numDsBehaviourSettingsProperties;
+    case settings_key_offset: return numSettingsProps(); // no settings on the DsBehaviour level
     case states_key_offset: return numStateProps()+numDsBehaviourStateProperties;
     default: return 0;
   }
@@ -219,9 +155,6 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
   static const PropertyDescription descProperties[numDsBehaviourDescProperties] = {
     { "name", apivalue_string, name_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
     { "type", apivalue_string, type_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
-  };
-  static const PropertyDescription settingsProperties[numDsBehaviourSettingsProperties] = {
-    { "group", apivalue_uint64, group_key+settings_key_offset, OKEY(dsBehaviour_Key) },
   };
   static const PropertyDescription stateProperties[numDsBehaviourStateProperties] = {
     { "error", apivalue_uint64, error_key+states_key_offset, OKEY(dsBehaviour_Key) },
@@ -243,13 +176,6 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
       return getDescDescriptorByIndex(aPropIndex, aParentDescriptor);
-    case settings_key_offset:
-      // check for generic settings properties
-      if (aPropIndex<numDsBehaviourSettingsProperties)
-        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&settingsProperties[aPropIndex], aParentDescriptor));
-      aPropIndex -= numDsBehaviourSettingsProperties;
-      // check type-specific settings
-      return getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
     case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
@@ -272,22 +198,9 @@ bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
         // descriptions
         case name_key+descriptions_key_offset: aPropValue->setStringValue(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue->setStringValue(getTypeName()); return true;
-        // settings
-        case group_key+settings_key_offset: aPropValue->setUint16Value(group); return true;
         // state
         case error_key+states_key_offset: aPropValue->setUint16Value(hardwareError); return true;
       }
-    }
-    else {
-      // Write
-      switch (aPropertyDescriptor->fieldKey()) {
-        // settings
-        case group_key+settings_key_offset:
-          setGroup((DsGroup)aPropValue->int32Value());
-          markDirty();
-          return true;
-      }
-
     }
   }
   return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor); // let base class handle it
@@ -307,7 +220,7 @@ string DsBehaviour::shortDesc()
 string DsBehaviour::description()
 {
   string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());
-  string_format_append(s, "- group: %d, hardwareError: %d\n", group, hardwareError);
+  string_format_append(s, "- hardwareError: %d\n", hardwareError);
   return s;
 }
 

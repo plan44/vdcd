@@ -28,6 +28,7 @@ using namespace p44;
 ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
+  buttonGroup(group_yellow_light),
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
   buttonChannel(channeltype_default), // by default, buttons act on default channel
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
@@ -39,8 +40,6 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
 {
   // set default hrdware configuration
   setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
-  // default group
-  setGroup(group_yellow_light);
   // reset the button state machine
   resetStateMachine();
 }
@@ -360,7 +359,7 @@ const char *ButtonBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 4;
+static const size_t numFields = 5;
 
 size_t ButtonBehaviour::numFieldDefs()
 {
@@ -371,6 +370,7 @@ size_t ButtonBehaviour::numFieldDefs()
 const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
+    { "dsGroup", SQLITE_INTEGER }, // Note: don't call a SQL field "group"!
     { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
     { "buttonFlags", SQLITE_INTEGER },
@@ -395,6 +395,7 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
+  buttonGroup = (DsGroup)aRow->get<int>(aIndex++);
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
@@ -414,6 +415,7 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
   if (callsPresent) flags |= buttonflag_callsPresent;
   // bind the fields
+  aStatement.bind(aIndex++, buttonGroup);
   aStatement.bind(aIndex++, buttonMode);
   aStatement.bind(aIndex++, buttonFunc);
   aStatement.bind(aIndex++, flags);
@@ -453,6 +455,7 @@ const PropertyDescriptorPtr ButtonBehaviour::getDescDescriptorByIndex(int aPropI
 // settings properties
 
 enum {
+  group_key,
   mode_key,
   function_key,
   channel_key,
@@ -466,6 +469,7 @@ int ButtonBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
+    { "group", apivalue_uint64, group_key+settings_key_offset, OKEY(button_key) },
     { "mode", apivalue_uint64, mode_key+settings_key_offset, OKEY(button_key) },
     { "function", apivalue_uint64, function_key+settings_key_offset, OKEY(button_key) },
     { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(button_key) },
@@ -519,6 +523,9 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           aPropValue->setUint64Value(buttonElementID);
           return true;
         // Settings properties
+        case group_key+settings_key_offset:
+          aPropValue->setUint16Value(buttonGroup);
+          return true;
         case mode_key+settings_key_offset:
           aPropValue->setUint64Value(buttonMode);
           return true;
@@ -557,6 +564,10 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
+        case group_key+settings_key_offset:
+          buttonGroup = (DsGroup)aPropValue->int32Value();
+          markDirty();
+          return true;
         case mode_key+settings_key_offset:
           buttonMode = (DsButtonMode)aPropValue->int32Value();
           markDirty();

@@ -26,6 +26,7 @@ using namespace p44;
 SensorBehaviour::SensorBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
+  sensorGroup(group_black_joker), // default to joker
   minPushInterval(2*Second), // do not push more often than every 2 seconds
   changesOnlyInterval(0), // report every sensor update (even if value unchanged)
   // state
@@ -35,8 +36,6 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
 {
   // set dummy default hardware default configuration
   setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 100, 1, 15*Second);
-  // default to joker
-  setGroup(group_black_joker);
 }
 
 
@@ -90,7 +89,7 @@ const char *SensorBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 2;
+static const size_t numFields = 3;
 
 size_t SensorBehaviour::numFieldDefs()
 {
@@ -101,6 +100,7 @@ size_t SensorBehaviour::numFieldDefs()
 const FieldDefinition *SensorBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
+    { "dsGroup", SQLITE_INTEGER }, // Note: don't call a SQL field "group"!
     { "minPushInterval", SQLITE_INTEGER },
     { "changesOnlyInterval", SQLITE_INTEGER },
   };
@@ -118,6 +118,7 @@ void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
+  sensorGroup = (DsGroup)aRow->get<int>(aIndex++);
   minPushInterval = aRow->get<long long int>(aIndex++);
   changesOnlyInterval = aRow->get<long long int>(aIndex++);
 }
@@ -128,6 +129,7 @@ void SensorBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the fields
+  aStatement.bind(aIndex++, sensorGroup);
   aStatement.bind(aIndex++, (long long int)minPushInterval);
   aStatement.bind(aIndex++, (long long int)changesOnlyInterval);
 }
@@ -169,6 +171,7 @@ const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropI
 // settings properties
 
 enum {
+  group_key,
   minPushInterval_key,
   changesOnlyInterval_key,
   numSettingsProperties
@@ -179,6 +182,7 @@ int SensorBehaviour::numSettingsProps() { return numSettingsProperties; }
 const PropertyDescriptorPtr SensorBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
+    { "group", apivalue_uint64, group_key+settings_key_offset, OKEY(sensor_key) },
     { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(sensor_key) },
     { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(sensor_key) },
   };
@@ -233,6 +237,9 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           aPropValue->setDoubleValue((double)updateInterval/Second);
           return true;
         // Settings properties
+        case group_key+settings_key_offset:
+          aPropValue->setUint16Value(sensorGroup);
+          return true;
         case minPushInterval_key+settings_key_offset:
           aPropValue->setDoubleValue((double)minPushInterval/Second);
           return true;
@@ -260,6 +267,10 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
+        case group_key+settings_key_offset:
+          sensorGroup = (DsGroup)aPropValue->int32Value();
+          markDirty();
+          return true;
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
           markDirty();

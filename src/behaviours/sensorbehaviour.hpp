@@ -51,6 +51,7 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+    DsGroup sensorGroup; ///< group this sensor belongs to
     MLMicroSeconds minPushInterval; ///< minimum time between pushes (even if we have more frequent hardware sensor updates)
     MLMicroSeconds changesOnlyInterval; ///< time span during which only actual value changes are reported. After this interval, next hardware sensor update, even without value change, will cause a push)
     /// @}
@@ -73,6 +74,9 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
     void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
+
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { sensorGroup = aGroup; };
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{

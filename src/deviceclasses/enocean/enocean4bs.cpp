@@ -335,12 +335,12 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         if (subdeviceDescP->flags & dflag_climatecontrolbehaviour) {
           // climate control output, use special behaviour
           ob = OutputBehaviourPtr(new ClimateControlBehaviour(*newDev.get()));
-          ob->setGroup(group_roomtemperature_control); // put into room temperature control group by default
+          ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default
         }
         else {
           // generic output, no scenes or special behaviour
           ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-          ob->setGroup(subdeviceDescP->group); // same group as device
+          ob->setGroupMembership(subdeviceDescP->group, true); // same group as device
         }
         ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());

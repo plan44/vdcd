@@ -53,6 +53,7 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+    DsGroup buttonGroup; ///< the group this button belongs to
     DsButtonFunc buttonFunc; ///< the button function (LTNUM)
     DsButtonMode buttonMode; ///< the button mode (LTMODE)
     DsChannelType buttonChannel; ///< the channel the button is supposed to control
@@ -83,6 +84,9 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
     void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex);
+
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { buttonGroup = aGroup; };
 
 
     /// @name interface towards actual device hardware (or simulation)

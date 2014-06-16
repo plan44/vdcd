@@ -92,7 +92,6 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsGroup group; ///< the group this behaviour belongs to
     /// @}
 
     /// @name internal volatile state
@@ -111,9 +110,11 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };
 
-
     /// update of hardware status
     void setHardwareError(DsHardwareError aHardwareError);
+
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { /* NOP in base class */ };
 
     /// push state
     void pushBehaviourState();
@@ -121,16 +122,6 @@ namespace p44 {
 
     /// @name persistent settings management
     /// @{
-
-    /// set group for this behaviour
-    /// @param aGroup group to assign
-    /// @note this will also update the device's isMember() information
-    void setGroup(DsGroup aGroup);
-
-    /// get group
-    /// @result group for this behaviour
-    DsGroup getGroup() { return group; };
-
 
     /// load behaviour parameters from persistent DB
     ErrorPtr load();
@@ -201,13 +192,6 @@ namespace p44 {
 
     /// only for deeper levels
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
-
-    // persistence implementation
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
 
   private:
 
