@@ -147,20 +147,28 @@ long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime,
   h.submitterP = aSubmitterP;
   h.executionTime = aExecutionTime;
 	h.callback = aCallback;
+  return scheduleOneTimeHandler(h);
+}
+
+
+long MainLoop::scheduleOneTimeHandler(OnetimeHandler &aHandler)
+{
 	// insert in queue before first item that has a higher execution time
 	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
   while (pos!=onetimeHandlers.end()) {
-    if (pos->executionTime>aExecutionTime) {
-      onetimeHandlers.insert(pos, h);
+    if (pos->executionTime>aHandler.executionTime) {
+      onetimeHandlers.insert(pos, aHandler);
       oneTimeHandlersChanged = true;
       return ticketNo;
     }
     ++pos;
   }
   // none executes later than this one, just append
-  onetimeHandlers.push_back(h);
+  onetimeHandlers.push_back(aHandler);
   return ticketNo;
 }
+
+
 
 
 void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
@@ -192,6 +200,36 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
   // reset the ticket
   aTicketNo = 0;
 }
+
+
+bool MainLoop::rescheduleExecutionTicket(long aTicketNo, MLMicroSeconds aDelay)
+{
+	MLMicroSeconds executionTime = now()+aDelay;
+	return rescheduleExecutionTicketAt(aTicketNo, executionTime);
+}
+
+
+bool MainLoop::rescheduleExecutionTicketAt(long aTicketNo, MLMicroSeconds aExecutionTime)
+{
+  if (aTicketNo==0) return false; // no ticket, no reschedule
+  for (OnetimeHandlerList::iterator pos = onetimeHandlers.begin(); pos!=onetimeHandlers.end(); ++pos) {
+		if (pos->ticketNo==aTicketNo) {
+      OnetimeHandler h = *pos;
+      // remove from queue
+			pos = onetimeHandlers.erase(pos);
+      // reschedule
+      h.executionTime = aExecutionTime;
+      scheduleOneTimeHandler(h);
+      // reschedule was possible
+      return true;
+		}
+	}
+  // no ticket found, could not reschedule
+  return false;
+}
+
+
+
 
 
 void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)

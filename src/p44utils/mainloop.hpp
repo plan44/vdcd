@@ -174,6 +174,18 @@ namespace p44 {
     /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
     void cancelExecutionTicket(long &aTicketNo);
 
+    /// reschedule existing execution request
+    /// @param aTicketNo ticket of execution to reschedule.
+    /// @param aDelay delay from now when to reschedule execution (approximately)
+    /// @return true if the execution specified with aTicketNo was still pending and could be rescheduled
+    bool rescheduleExecutionTicket(long aTicketNo, MLMicroSeconds aDelay);
+
+    /// reschedule existing execution request
+    /// @param aTicketNo ticket of execution to reschedule.
+    /// @param aExecutionTime to when to reschedule execution (approximately), in now() timescale
+    /// @return true if the execution specified with aTicketNo was still pending and could be rescheduled
+    bool rescheduleExecutionTicketAt(long aTicketNo, MLMicroSeconds aExecutionTime);
+
     /// execute external binary or interpreter script in a separate process
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aPath the path to the binary or script
@@ -206,6 +218,7 @@ namespace p44 {
 
     // run all handlers
     void runOnetimeHandlers();
+    long scheduleOneTimeHandler(OnetimeHandler &aHandler);
     bool runIdleHandlers();
     bool checkWait();
 
