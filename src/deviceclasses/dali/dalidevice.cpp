@@ -178,7 +178,7 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 }
 
 
-void DaliDevice::applyChannelValues()
+void DaliDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
   ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
@@ -190,7 +190,7 @@ void DaliDevice::applyChannelValues()
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
     ch->channelValueApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues();
+  inherited::applyChannelValues(aCompletedCB);
 }
 
 

@@ -243,11 +243,14 @@ namespace p44 {
 
     /// apply scene to output
     /// @param aScene the scene to apply to the output
-    /// @note this method must handle dimming, but will *always* be called with basic INC_S/DEC_S/STOP_S scenes for that,
-    ///   never with area dimming scenes. Area dimming scenes are converted to INC_S/DEC_S/STOP_S (normalized)
-    ///   and filtered by actual area at the Device::callScene level. This is to keep the highly dS 1.0 specific
-    ///   area withing the Device class and simplify implementations of output behaviours.
-    virtual void applyScene(DsScenePtr aScene) { /* NOP in base class */ };
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot yet be applied to hardware, and will be performed later
+    /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
+    ///   a one-step scene value change.
+    ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
+    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
+    ///   only dimChannel method must be used.
+    virtual bool applyScene(DsScenePtr aScene) { return true; /* just return "apply complete" in base class */ };
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)

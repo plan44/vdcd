@@ -515,7 +515,7 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-void HueDevice::applyChannelValues()
+void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
   ChannelBehaviourPtr ch = getChannelByType(channeltype_brightness);
@@ -567,18 +567,19 @@ void HueDevice::applyChannelValues()
     // for on and off, set transition time (1/10 second resolution)
     newState->add("transitiontime", JsonObject::newInt64(ch->transitionTimeForHardware()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, ch, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aCompletedCB, ch, _2));
   }
-  inherited::applyChannelValues();
 }
 
 
 
-void HueDevice::outputChangeSent(ChannelBehaviourPtr aChannelBehaviour, ErrorPtr aError)
+void HueDevice::outputChangeSent(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     aChannelBehaviour->channelValueApplied(); // confirm having applied the value
   }
+  // confirm
+  aCompletedCB(aError);
 }
 
 

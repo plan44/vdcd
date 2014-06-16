@@ -405,17 +405,18 @@ void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
 #define AUTO_OFF_FADE_TIME (60*Second)
 
 // apply scene
-void LightBehaviour::applyScene(DsScenePtr aScene)
+bool LightBehaviour::applyScene(DsScenePtr aScene)
 {
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // any scene call cancels fade down
     MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
+    SceneNo sceneNo = lightScene->sceneNo;
     // now check new scene
+/*
     // Note: Area dimming scene calls are converted to INC_S/DEC_S/STOP_S at the Device class level
     //  so we only need to handle INC_S/DEC_S and STOP_S here.
-    SceneNo sceneNo = lightScene->sceneNo;
     if (sceneNo==DEC_S || sceneNo==INC_S) {
       // dimming up/down special scenes
       //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
@@ -453,7 +454,9 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
         LOG(LOG_NOTICE,"- ApplyScene(DIM): Stopped dimming, final value is %d\n", b);
       }
     }
-    else if (sceneNo==MIN_S) {
+    else
+*/
+    if (sceneNo==MIN_S) {
       Brightness b = minBrightness;
       setLogicalBrightness(b, transitionTimeFromSceneEffect(lightScene->effect, false));
       LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %d\n", b);
@@ -465,6 +468,7 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
         MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
         LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
+        return false; // fade down process will take care of output updates
       }
     }
     else {
@@ -472,18 +476,34 @@ void LightBehaviour::applyScene(DsScenePtr aScene)
       recallScene(lightScene);
       LOG(LOG_NOTICE,"- ApplyScene(%d): Applied output value(s) from scene\n", sceneNo);
     }
+    // ready for applying values to hardware
+    return true;
   } // if lightScene
+  else {
+    // other type of scene, let base class handle it
+    return inherited::applyScene(aScene);
+  }
 }
 
 
 void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
 {
   setLogicalBrightness(aBrightness, aFadeStepTime);
+  if (!hwUpdateInProgress || aBrightness==0) {
+    // prevent additional apply calls until either 0 reached or previous step done
+    hwUpdateInProgress = true;
+    device.applyChannelValues(boost::bind(&LightBehaviour::fadeDownStepDone, this));
+  }
   if (aBrightness>0) {
     fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
   }
 }
 
+
+void LightBehaviour::fadeDownStepDone()
+{
+  hwUpdateInProgress = false;
+}
 
 
 void LightBehaviour::recallScene(LightScenePtr aLightScene)

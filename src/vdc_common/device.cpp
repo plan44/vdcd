@@ -216,7 +216,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
         // apply the values
-        applyChannelValues();
+        applyChannelValues(NULL);
       }
     }
     if (!Error::isOK(err)) {
@@ -480,6 +480,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         if (output) {
           if (dimSceneNo) {
             // Dimming scene: apply right now
+            #error translate into dimChannel
             output->applyScene(scene);
             // Note: no special actions are performed on dimming scene
           }
@@ -508,9 +509,19 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 {
   OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
   if (output) {
-    output->applyScene(aScene);
-    output->performSceneActions(aScene);
+    // apply scene logically
+    if (output->applyScene(aScene)) {
+      // now apply values to hardware
+      applyChannelValues(boost::bind(&Device::sceneValuesApplied, this, aScene));
+    }
   }
+}
+
+
+void Device::sceneValuesApplied(DsScenePtr aScene)
+{
+  // now perform scene special actions such as blinking
+  output->performSceneActions(aScene);
 }
 
 
@@ -525,6 +536,8 @@ void Device::undoScene(SceneNo aSceneNo)
     if (output) {
       // now apply the pseudo state
       output->applyScene(previousState);
+      // apply the values now
+      applyChannelValues(NULL);
     }
   }
 }
@@ -555,6 +568,8 @@ void Device::callSceneMin(SceneNo aSceneNo)
     if (scene && !scene->isDontCare()) {
       if (output) {
         output->onAtMinBrightness();
+        // apply the values now
+        applyChannelValues(NULL);
       }
     }
   }
@@ -922,7 +937,7 @@ ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr
     aMode==access_write // ...got a non-preload write
   ) {
     // apply new channel values to hardware
-    applyChannelValues();
+    applyChannelValues(NULL);
   }
   return inherited::writtenProperty(aMode, aPropertyDescriptor, aDomain, aContainer);
 }

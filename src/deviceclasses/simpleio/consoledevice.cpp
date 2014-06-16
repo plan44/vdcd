@@ -107,7 +107,7 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 }
 
 
-void ConsoleDevice::applyChannelValues()
+void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
   ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
@@ -120,7 +120,7 @@ void ConsoleDevice::applyChannelValues()
     );
     ch->channelValueApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues();
+  inherited::applyChannelValues(aCompletedCB);
 }
 
 

@@ -52,7 +52,8 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    virtual void applyChannelValues();
+    /// @param aCompletedCB if not NULL, must be called when values are applied
+    virtual void applyChannelValues(CompletedCB aCompletedCB);
 
     /// @}
 

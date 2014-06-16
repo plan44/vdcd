@@ -330,22 +330,25 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-void SparkIoDevice::applyChannelValues()
+void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
   ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
   if (ch) {
     outputValue = ch->valueForHardware();
     // set output value
-    postChannelValue(ch);
+    postChannelValue(aCompletedCB, ch);
   }
-  inherited::applyChannelValues();
+  else {
+    // let inherited process it
+    inherited::applyChannelValues(aCompletedCB);
+  }
 }
 
 
 
 
-void SparkIoDevice::postChannelValue(ChannelBehaviourPtr aChannelBehaviour)
+void SparkIoDevice::postChannelValue(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour)
 {
   if (apiVersion==1) {
     string args;
@@ -357,7 +360,7 @@ void SparkIoDevice::postChannelValue(ChannelBehaviourPtr aChannelBehaviour)
       args = string_format("output0=%d", outputValue);
     }
     // posting might fail if done too early
-    if (!sparkApiCall(boost::bind(&SparkIoDevice::channelChanged, this, aChannelBehaviour, _1, _2), args)) {
+    if (!sparkApiCall(boost::bind(&SparkIoDevice::channelChanged, this, aCompletedCB, aChannelBehaviour, _1, _2), args)) {
       outputChangePending = true; // retry when previous request done
     }
   }
@@ -365,18 +368,20 @@ void SparkIoDevice::postChannelValue(ChannelBehaviourPtr aChannelBehaviour)
 
 
 
-void SparkIoDevice::channelChanged(ChannelBehaviourPtr aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelChanged(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (outputChangePending) {
       outputChangePending = false;
-      postChannelValue(aChannelBehaviour); // one more change pending
+      postChannelValue(aCompletedCB, aChannelBehaviour); // one more change pending
+      return;
     }
     else {
       aChannelBehaviour->channelValueApplied(); // confirm having applied the value
       outputChangePending = false;
     }
   }
+  aCompletedCB(aError);
 }
 
 

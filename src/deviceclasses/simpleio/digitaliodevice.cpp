@@ -83,7 +83,7 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-void DigitalIODevice::applyChannelValues()
+void DigitalIODevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
   ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
@@ -91,7 +91,7 @@ void DigitalIODevice::applyChannelValues()
     indicatorOutput->set(ch->valueForHardware()>0);
     ch->channelValueApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues();
+  inherited::applyChannelValues(aCompletedCB);
 }
 
 

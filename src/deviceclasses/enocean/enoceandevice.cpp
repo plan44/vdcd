@@ -202,7 +202,7 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::applyChannelValues()
+void EnoceanDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // trigger updating all device outputs
   pendingDeviceUpdate = true;
@@ -210,7 +210,7 @@ void EnoceanDevice::applyChannelValues()
     // send immediately
     sendOutgoingUpdate();
   }
-  inherited::applyChannelValues();
+  inherited::applyChannelValues(aCompletedCB);
 }
 
 

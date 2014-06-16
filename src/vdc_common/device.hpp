@@ -212,7 +212,12 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    virtual void applyChannelValues() { /* NOP in base class */ };
+    /// @note device's implementation MUST be such that this method can be called multiple times even before aCompletedCB
+    ///   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
+    ///   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
+    ///   most recent call's value gets applied to the hardware.
+    /// @param aCompletedCB if not NULL, must be called when values are applied
+    virtual void applyChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
 
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
@@ -296,6 +301,7 @@ namespace p44 {
 
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
+    void sceneValuesApplied(DsScenePtr aScene);
 
   };
 

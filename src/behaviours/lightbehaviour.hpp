@@ -124,6 +124,7 @@ namespace p44 {
     /// @{
     int blinkCounter; ///< for generation of blink sequence
     long fadeDownTicket; ///< for slow fading operations
+    bool hwUpdateInProgress; ///< set when hardware update is already in progress
     Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
 
@@ -167,7 +168,14 @@ namespace p44 {
 
     /// apply scene to output
     /// @param aScene the scene to apply to the output
-    virtual void applyScene(DsScenePtr aScene);
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot yet be applied to hardware, and will be performed later
+    /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
+    ///   a one-step scene value change.
+    ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
+    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
+    ///   only dimChannel method must be used.
+    virtual bool applyScene(DsScenePtr aScene);
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
@@ -232,6 +240,7 @@ namespace p44 {
   
     void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
     void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
+    void fadeDownStepDone();
 
   };
 
