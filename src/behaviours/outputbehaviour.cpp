@@ -489,7 +489,7 @@ int OutputBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptorPtr OutputBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
-    { "localPriority", apivalue_bool, localPriority_key+settings_key_offset, OKEY(output_key) }
+    { "localPriority", apivalue_bool, localPriority_key+states_key_offset, OKEY(output_key) }
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }

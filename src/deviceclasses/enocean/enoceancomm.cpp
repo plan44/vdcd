@@ -696,6 +696,10 @@ string Esp3Packet::description()
       // non-radio ESP3 packet
       string_format_append(t, "ESP3 response packet, return code = %d\n", data()[0]);
     }
+    else if (packetType()==pt_common_cmd) {
+      // non-radio ESP3 packet
+      string_format_append(t, "ESP3 common command (%d)\n", data()[0]);
+    }
     // raw data
     string_format_append(t, "- %3d data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
@@ -1019,6 +1023,9 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
   }
   if (!Error::isOK(err)) {
     LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
+  }
+  else {
+    DBGLOG(LOG_DEBUG, "Sent EnOcean packet:\n%s", aPacket->description().c_str());
   }
 }
 

@@ -19,6 +19,10 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "fdcomm.hpp"
 
 #include <sys/ioctl.h>
@@ -75,7 +79,7 @@ void FdComm::stopMonitoringAndClose()
 
 void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
-  DBGLOG(LOG_DEBUG, "FdComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
+  DBGFLOG(LOG_DEBUG, "FdComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
 }
 
 
@@ -83,35 +87,35 @@ void FdComm::dataExceptionHandler(int aFd, int aPollFlags)
 bool FdComm::dataMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
-  DBGLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
+  DBGFLOG(LOG_DEBUG, "FdComm::dataMonitorHandler(time==%lld, fd==%d, pollflags==0x%X)\n", aCycleStartTime, aFd, aPollFlags);
   // Note: test POLLIN first, because we might get a POLLHUP in parallel - so make sure we process data before hanging up
   if ((aPollFlags & POLLIN) && receiveHandler) {
     // Note: on linux a socket closed server side does not return POLLHUP, but POLLIN with no data
     size_t bytes = numBytesReady();
-    DBGLOG(LOG_DEBUG, "- POLLIN with %d bytes ready\n", bytes);
+    DBGFLOG(LOG_DEBUG, "- POLLIN with %d bytes ready\n", bytes);
     if (bytes>0) {
-      DBGLOG(LOG_DEBUG, "- calling receive handler\n");
+      DBGFLOG(LOG_DEBUG, "- calling receive handler\n");
       receiveHandler(ErrorPtr());
     }
     else {
       // alerted for read, but nothing to read any more - is also an exception
-      DBGLOG(LOG_DEBUG, "- POLLIN with no data - calling data exception handler\n");
+      DBGFLOG(LOG_DEBUG, "- POLLIN with no data - calling data exception handler\n");
       dataExceptionHandler(aFd, aPollFlags);
       aPollFlags = 0; // handle only once
     }
   }
   if (aPollFlags & POLLHUP) {
     // other end has closed connection
-    DBGLOG(LOG_DEBUG, "- POLLHUP - calling data exception handler\n");
+    DBGFLOG(LOG_DEBUG, "- POLLHUP - calling data exception handler\n");
     dataExceptionHandler(aFd, aPollFlags);
   }
   else if ((aPollFlags & POLLOUT) && transmitHandler) {
-    DBGLOG(LOG_DEBUG, "- POLLOUT - calling data transmit handler\n");
+    DBGFLOG(LOG_DEBUG, "- POLLOUT - calling data transmit handler\n");
     transmitHandler(ErrorPtr());
   }
   else if (aPollFlags & POLLERR) {
     // error
-    DBGLOG(LOG_DEBUG, "- POLLERR - calling data exception handler\n");
+    DBGFLOG(LOG_DEBUG, "- POLLERR - calling data exception handler\n");
     dataExceptionHandler(aFd, aPollFlags);
   }
   // handled
@@ -176,7 +180,7 @@ bool FdComm::transmitString(string &aString)
   ErrorPtr err;
   size_t res = transmitBytes(aString.length(), (uint8_t *)aString.c_str(), err);
   if (!Error::isOK(err)) {
-    DBGLOG(LOG_DEBUG, "FdComm: Error sending data: %s", err->description().c_str());
+    DBGFLOG(LOG_DEBUG, "FdComm: Error sending data: %s", err->description().c_str());
   }
   return Error::isOK(err) && res==aString.length(); // ok if no error and all bytes sent
 }
@@ -279,7 +283,7 @@ void FdStringCollector::gotData(ErrorPtr aError)
 void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
 {
   FdCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
-  DBGLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X), numBytesReady()=%d\n", aFd, aPollFlags, numBytesReady());
+  DBGFLOG(LOG_DEBUG, "FdStringCollector::dataExceptionHandler(fd==%d, pollflags==0x%X), numBytesReady()=%d\n", aFd, aPollFlags, numBytesReady());
   if ((aPollFlags & (POLLHUP|POLLIN|POLLERR)) != 0) {
     // - other end has closed connection (POLLHUP)
     // - linux socket was closed server side and does not return POLLHUP, but POLLIN with no data

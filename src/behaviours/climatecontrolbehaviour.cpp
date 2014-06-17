@@ -27,6 +27,11 @@ using namespace p44;
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice)
 {
+  // add the output channel
+  // TODO: do we have a proper channel type for this?
+  ChannelBehaviourPtr ch = ChannelBehaviourPtr(new ChannelBehaviour(*this));
+  ch->setChannelIdentification(channeltype_default, "heatingLevel");
+  addChannel(ch);
 }
 
 

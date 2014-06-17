@@ -1000,7 +1000,7 @@ string Device::description()
   string s = inherited::description(); // DsAdressable
   if (buttons.size()>0) string_format_append(s, "- Buttons: %d\n", buttons.size());
   if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %d\n", binaryInputs.size());
-  if (numChannels()>0) string_format_append(s, "- Output Channels: %d\n", numChannels());
   if (sensors.size()>0) string_format_append(s, "- Sensors: %d\n", sensors.size());
+  if (numChannels()>0) string_format_append(s, "- Output Channels: %d\n", numChannels());
   return s;
 }

@@ -213,13 +213,8 @@ void ColorLightBehaviour::recallScene(LightScenePtr aLightScene)
 
 void ColorLightBehaviour::performSceneActions(DsScenePtr aScene)
 {
-  // we can only handle light scenes
-  ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aScene);
-  if (colorLightScene) {
-    // flash
-    // TODO: set the color from the scene, and if dontCare is set, revert it back to previous color afterwards
-    blink(2*Second, 400*MilliSecond, 80);
-  }
+  // for now, just let base class check these
+  inherited::performSceneActions(aScene);
 }
 
 

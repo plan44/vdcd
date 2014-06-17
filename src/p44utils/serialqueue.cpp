@@ -21,6 +21,10 @@
 
 //#define ALWAYS_DEBUG 1
 
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "serialqueue.hpp"
 
 using namespace p44;
@@ -279,7 +283,7 @@ void SerialOperationQueue::receiveHandler(ErrorPtr aError)
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
     size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
-    DBGLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
+    DBGFLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }
@@ -331,24 +335,24 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t *aBytes)
 {
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d) called\n", aNumBytes);
+  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d) called\n", aNumBytes);
   ssize_t res = 0;
   ErrorPtr err = serialComm->establishConnection();
   if (Error::isOK(err)) {
     res = serialComm->transmitBytes(aNumBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGLOG(LOG_DEBUG,"Error writing serial: %s\n", err->description().c_str());
+      DBGFLOG(LOG_DEBUG,"Error writing serial: %s\n", err->description().c_str());
       res = 0; // none written
     }
-    else if (DBGLOGENABLED(LOG_DEBUG)) {
+    else if (DBGFLOGENABLED(LOG_DEBUG)) {
       std::string s;
       for (ssize_t i=0; i<res; i++) {
         string_format_append(s, "%02X ",aBytes[i]);
       }
-      DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
+      DBGFLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
     }
   }
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter() returns %d\n", res);
+  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter() returns %d\n", res);
   return res;
 }
 
@@ -356,7 +360,7 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
 
 size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
 {
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d) called\n", aMaxBytes);
+  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d) called\n", aMaxBytes);
   size_t gotBytes = 0;
   if (serialComm->connectionIsOpen()) {
 		// get number of bytes available
@@ -366,20 +370,20 @@ size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
       LOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
       return 0;
     }
-    else if (DBGLOGENABLED(LOG_DEBUG)) {
+    else if (DBGFLOGENABLED(LOG_DEBUG)) {
       if (gotBytes>0) {
         std::string s;
         for (size_t i=0; i<gotBytes; i++) {
           string_format_append(s, "%02X ",aBytes[i]);
         }
-        DBGLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
+        DBGFLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
       }
     }
   }
   else {
     LOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver error - connection is not open!\n");
   }
-  DBGLOG(LOG_DEBUG,"- got %d bytes\n", gotBytes);
+  DBGFLOG(LOG_DEBUG,"- got %d bytes\n", gotBytes);
   return gotBytes;
 }
 

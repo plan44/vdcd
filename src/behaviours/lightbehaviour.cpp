@@ -474,7 +474,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
     else {
       // apply stored scene value(s) to output(s)
       recallScene(lightScene);
-      LOG(LOG_NOTICE,"- ApplyScene(%d): Applied output value(s) from scene\n", sceneNo);
+      LOG(LOG_NOTICE,"- ApplyScene(%d): Applied channel value(s) from scene\n", sceneNo);
     }
     // ready for applying values to hardware
     return true;
