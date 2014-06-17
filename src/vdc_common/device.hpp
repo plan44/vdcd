@@ -78,8 +78,9 @@ namespace p44 {
     DsGroup primaryGroup; ///< basic color of the device (can be black)
 
     // volatile internal state
-    long legacyDimTimeoutTicket; // for legacy INC_S/DEC_S dim command conversion to modern dimChannel()
-    int8_t legacyDimMode; // current legacy dimming
+    long dimTimeoutTicket; ///< for timing out dimming operations (autostop when no INC/DEC is received)
+    DsDimMode currentDimMode; ///< current dimming in progress
+    DsChannelType currentDimChannel; ///< currently dimmed channel (if dimming in progress)
 
   public:
     Device(DeviceClassContainer *aClassContainerP);
@@ -187,12 +188,6 @@ namespace p44 {
     /// @note only updates the scene if aScene is marked dirty
     void updateScene(DsScenePtr aScene);
 
-    /// start or stop dimming channel of this device
-    /// @param aChannel the channel to start or stop dimming for
-    /// @param aDimMode 1=start dimming up, -1=start dimming down, 0=stop dimming
-    /// @param aArea if not zero, dontCare of area main scene is checked, if set, dimming does not occur
-    void dimChannelForArea(DsChannelType aChannel, int aDimMode, int aArea);
-
     /// @}
 
 
@@ -225,10 +220,17 @@ namespace p44 {
     /// @note base class by default forwards the control value to all of its output behaviours.
     virtual void processControlValue(const string &aName, double aValue);
 
-    /// start or stop dimming channel of this device
+    /// start or stop dimming channel of this device. Usually implemented in device specific manner in subclasses.
     /// @param aChannel the channel to start or stop dimming for
-    /// @param aDimMode 1=start dimming up, -1=start dimming down, 0=stop dimming
-    virtual void dimChannel(DsChannelType aChannel, int aDimMode);
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @note unlike the vDC API "dimChannel" command, which must be repeated for dimming operations >5sec, this
+    ///   method MUST NOT terminate dimming automatically except when reaching the minimum or maximum level
+    ///   available for the device. The 5 second timeout is implemented at the device level and causes calling
+    ///   dimChannel() to be called with aDimMode=0 when timeout happens.
+    /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
+    ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
+    ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
+    virtual void dimChannel(DsChannelType aChannel, DsDimMode aDimMode);
 
     /// identify the device to the user
     /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
@@ -306,7 +308,9 @@ namespace p44 {
 
     DsGroupMask behaviourGroups();
 
-    void legacyDimTimeout();
+    void dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter);
+    void legacyDim(SceneNo aDimSceneNo, int aArea);
+    void dimAutostopHandler(DsChannelType aChannel);
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
     void sceneValuesApplied(DsScenePtr aScene);

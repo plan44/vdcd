@@ -35,8 +35,9 @@ using namespace p44;
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
   progMode(false),
-  legacyDimTimeoutTicket(0),
-  legacyDimMode(0),
+  dimTimeoutTicket(0),
+  currentDimMode(dimmode_stop),
+  currentDimChannel(channeltype_default),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
   primaryGroup(group_black_joker)
@@ -149,6 +150,10 @@ ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, 
 
 
 
+#define MOC_DIM_STEP_TIMEOUT (5*Second)
+#define LEGACY_DIM_STEP_TIMEOUT (400*MilliSecond)
+
+
 void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr err;
@@ -249,7 +254,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
           area = o->int32Value();
         }
         // start/stop dimming
-        dimChannelForArea(channel,mode,area);
+        dimChannelForArea(channel,mode==0 ? dimmode_stop : (mode<0 ? dimmode_down : dimmode_up), area, MOC_DIM_STEP_TIMEOUT);
       }
     }
     if (!Error::isOK(err)) {
@@ -359,6 +364,63 @@ static SceneNo mainSceneForArea(int aArea)
 }
 
 
+
+#pragma mark - dimming
+
+
+// implementation of "dimChannel" vDC API command and legacy dimming
+// Note: ensures dimming only continues for at most aAutoStopAfter
+void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
+{
+  // TODO: maybe optimize: area check could be omitted when dimming is running already
+  if (aArea!=0) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes) {
+      // check area first
+      SceneNo areaScene = mainSceneForArea(aArea);
+      DsScenePtr scene = scenes->getScene(areaScene);
+      if (scene->isDontCare()) {
+        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
+        return; // not in this area, suppress dimming
+      }
+    }
+  }
+  // requested dimming this device, no area suppress active
+  if (aDimMode!=currentDimMode || aChannel!=currentDimChannel) {
+    // mode changes
+    if (aDimMode!=dimmode_stop) {
+      // start or change direction
+      if (currentDimMode==dimmode_stop) {
+        // start dimming from stopped state: install timeout
+        dimTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::dimAutostopHandler, this, aChannel), aAutoStopAfter);
+      }
+      else {
+        // change dimming direction or channel
+        // - stop previous dimming operation
+        dimChannel(aChannel, dimmode_stop);
+        // - start new
+        MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
+      }
+    }
+    else {
+      // stop
+      MainLoop::currentMainLoop().cancelExecutionTicket(dimTimeoutTicket);
+    }
+    // actually execute
+    dimChannel(aChannel, aDimMode);
+    currentDimMode = aDimMode;
+    currentDimChannel = aChannel;
+  }
+  else {
+    // same dim mode, just retrigger if dimming right now
+    if (aDimMode!=dimmode_stop) {
+      MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
+    }
+  }
+}
+
+
+
 // returns main dim scene INC_S/DEC_S/STOP_S for any type of dim scene
 // returns 0 for non-dim scenes
 static SceneNo mainDimScene(SceneNo aSceneNo)
@@ -391,32 +453,28 @@ static SceneNo mainDimScene(SceneNo aSceneNo)
 }
 
 
-void Device::dimChannelForArea(DsChannelType aChannel, int aDimMode, int aArea)
+
+// autostop handler (for both dimChannel and legacy dimming)
+void Device::dimAutostopHandler(DsChannelType aChannel)
 {
-  if (aArea!=0) {
-    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-    if (scenes) {
-      // check area first
-      SceneNo areaScene = mainSceneForArea(aArea);
-      DsScenePtr scene = scenes->getScene(areaScene);
-      if (scene->isDontCare()) {
-        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
-        return; // not in this area, suppress dimming
-      }
-    }
-  }
-  // requested dimming this device, no area suppress active
-  dimChannel(aChannel, aArea);
+  // timeout: stop dimming immediately
+  dimChannel(aChannel, dimmode_stop);
+  currentDimMode = dimmode_stop; // stopped now
 }
 
 
-void Device::dimChannel(DsChannelType aChannel, int aDimMode)
+
+// actual dimming implementation, usually overridden by subclasses 
+void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
 {
-  #warning "%%% to be implemented"
+  // TODO: simple base class implementation just incrementing/decrementing channel values
+  // %%% use 11 steps per 250mS standard dimming, but draw params from channel
+  DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannel, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
 }
 
 
-#define LEGACY_DIM_STEP_TIMEOUT (400*MilliSecond)
+
+#pragma mark - scene operations
 
 void Device::callScene(SceneNo aSceneNo, bool aForce)
 {
@@ -427,16 +485,23 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     // check special scene numbers first
     SceneNo dimSceneNo = 0;
     if (aSceneNo==T1234_CONT) {
-      if (legacyDimMode!=0) {
-        // device is in legacy dimming mode, keep from timing out
-        MainLoop::currentMainLoop().rescheduleExecutionTicket(legacyDimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
-      }
+      // area dimming continuation
+      // - reschedule dimmer timeout (=keep dimming)
+      MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
     dimSceneNo = mainDimScene(aSceneNo);
-    if (dimSceneNo==0) {
-      LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
+    if (dimSceneNo!=0) {
+      // Legacy dimming via INC_S/DEC_S/STOP_S
+      dimChannelForArea(
+        channeltype_default,
+        dimSceneNo==STOP_S ? dimmode_stop : (dimSceneNo==INC_S ? dimmode_up : dimmode_down),
+        areaFromScene(aSceneNo),
+        LEGACY_DIM_STEP_TIMEOUT
+      );
+      return;
     }
+    LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
     // check for area
     int area = areaFromScene(aSceneNo);
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
@@ -455,52 +520,8 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         output->setLocalPriority(false);
       }
     }
-    // get the scene to apply to output
-    if (dimSceneNo) {
-      // Legacy dimming via INC_S/DEC_S/STOP_S
-      // - check for localPriority override first
-      if (output->hasLocalPriority() && !area) {
-        // non-area dimming while my output is in localPriority is suppressed
-        return;
-      }
-      // - convert to dimChannel command
-      if (dimSceneNo==STOP_S) {
-        // stop possibly running legacy dimming
-        if (legacyDimMode!=0) {
-          // STOP_S
-          // - stop timeout
-          MainLoop::currentMainLoop().cancelExecutionTicket(legacyDimTimeoutTicket);
-          // - stop dimming
-          dimChannel(channeltype_default, 0);
-          // - stopped now
-          legacyDimMode = 0;
-        }
-      }
-      else {
-        // INC_S or DEC_S
-        // - start legacy dimming or retrigger timeout if already running
-        int dimMode = dimSceneNo==INC_S ? 1 : -1;
-        if (!legacyDimTimeoutTicket || dimMode!=legacyDimMode) {
-          // need to start new dimming
-          legacyDimMode = dimMode;
-          dimChannel(channeltype_default, dimMode);
-        }
-        else {
-          // dimming already in progress, just renew timeout
-          // - cancel previous timeout
-          MainLoop::currentMainLoop().cancelExecutionTicket(legacyDimTimeoutTicket);
-        }
-        // (re)start timeout to stop dimming in case STOP_S does not occur.
-        // INC_S/DEC_S are expected in 250mS intervals, so timeout after 400 should be safe
-        legacyDimTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::legacyDimTimeout, this), LEGACY_DIM_STEP_TIMEOUT);
-      }
-      // legacy dimming done
-      return;
-    }
-    else {
-      // not dimming, use scene as passed
-      scene = scenes->getScene(aSceneNo);
-    }
+    // not dimming, use scene as passed
+    scene = scenes->getScene(aSceneNo);
     if (scene) {
       LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->isSceneValueFlagSet(0, valueflags_dontCare));
       if (!scene->isDontCare()) {
@@ -518,13 +539,11 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
             output->setLocalPriority(false);
           }
         }
-        // - make sure we have the lastState pseudo-scene for undo (but not for dimming scenes)
-        if (dimSceneNo==0) {
-          if (!previousState)
-            previousState = scenes->newDefaultScene(aSceneNo);
-          else
-            previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
-        }
+        // - make sure we have the lastState pseudo-scene for undo
+        if (!previousState)
+          previousState = scenes->newDefaultScene(aSceneNo);
+        else
+          previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
         // - now apply to output
         if (output) {
           // Non-dimming scene: have output save its current state into the previousState pseudo scene
@@ -542,13 +561,6 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       }
     } // scene found
   } // device with scenes
-}
-
-
-void Device::legacyDimTimeout()
-{
-  // timeout: stop dimming immediately
-  dimChannel(channeltype_default, 0); // no area filter, as non-are calls don't make it to here
 }
 
 

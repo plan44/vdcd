@@ -522,6 +522,7 @@ void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehavio
 
 void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
+#warning "adapt dimming to use dimChannel() to make use of device specific optimizations"
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
   int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle

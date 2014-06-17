@@ -106,6 +106,15 @@ typedef enum {
 } DsSceneEffect;
 
 
+/// Dim mode
+typedef enum {
+  dimmode_down = -1,
+  dimmode_stop = 0,
+  dimmode_up = 1
+} DsDimMode;
+
+
+
 /// group/color (upper 4 bits in LTNUMGRP0)
 typedef enum {
   group_variable = 0,
