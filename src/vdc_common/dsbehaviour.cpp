@@ -176,6 +176,10 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
       return getDescDescriptorByIndex(aPropIndex, aParentDescriptor);
+    case settings_key_offset:
+      // no settings at the DsBehaviour level
+      // check type-specific settings
+      return getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
     case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
