@@ -296,7 +296,7 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 string SensorBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- sensor type: %d, min: %0.1f, max: %0.1f, resulution: %0.3f, interval: %d mS\n", sensorType, min, max, updateInterval/MilliSecond);
+  string_format_append(s, "- sensor type: %d, min: %0.1f, max: %0.1f, resolution: %0.3f, interval: %d mS\n", sensorType, min, max, updateInterval/MilliSecond);
   string_format_append(s, "- minimal interval between pushes: %d mS\n", minPushInterval/MilliSecond);
   s.append(inherited::description());
   return s;

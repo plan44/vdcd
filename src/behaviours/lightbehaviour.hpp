@@ -30,8 +30,24 @@ using namespace std;
 
 namespace p44 {
 
-  typedef uint8_t Brightness;
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
+  typedef double Brightness;
+
+  class BrightnessChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    BrightnessChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* light defaults to historic dS resolution */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_brightness; }; ///< the dS channel type
+    virtual const char *getName() { return "brightness"; };
+    virtual double getMin() { return 0; }; // dS brightness goes from 0 to 255 (historical unit)
+    virtual double getMax() { return 255; };
+    virtual double getDimPerMS() { return 11.0/300; }; // dimming is 11 steps per 300mS (as per ds-light.pdf specification) = 255/11*300 = 7 seconds full scale
+
+  };
+
 
 
   /// A concrete class implementing the Scene object for a simple (single channel = brightness) light device
@@ -45,7 +61,7 @@ namespace p44 {
     /// @name light scene specific values
     /// @{
 
-    Brightness sceneBrightness; ///< saved brightness value for this scene
+    double sceneBrightness; ///< saved brightness value for this scene (0..255 dS brightness scale)
     DsSceneEffect effect; ///< scene effect (transition or alert)
 
     /// @}

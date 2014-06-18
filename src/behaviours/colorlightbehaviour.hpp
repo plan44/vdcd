@@ -38,6 +38,84 @@ namespace p44 {
     ColorLightModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K)
   } ColorLightMode;
 
+
+  class HueChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    HueChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.1; /* 0.1 degree */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_hue; }; ///< the dS channel type
+    virtual const char *getName() { return "hue"; };
+    virtual double getMin() { return 0; }; // hue goes from 0 to (almost) 360 degrees
+    virtual double getMax() { return 358.6; };
+    virtual double getDimPerMS() { return 360.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
+  };
+
+
+  class SaturationChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    SaturationChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.1; /* 0.1 percent */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_saturation; }; ///< the dS channel type
+    virtual const char *getName() { return "saturation"; };
+    virtual double getMin() { return 0; }; // saturation goes from 0 to 100 percent
+    virtual double getMax() { return 100; };
+    virtual double getDimPerMS() { return 100.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
+  };
+
+
+  class ColorTempChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    ColorTempChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* 1 mired */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_colortemp; }; ///< the dS channel type
+    virtual const char *getName() { return "color temperature"; };
+    virtual double getMin() { return 100; }; // CT goes from 100 to 1000 mired (=1000 to 10000 K)
+    virtual double getMax() { return 1000; };
+    virtual double getDimPerMS() { return 900.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+  };
+
+
+  class CieXChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    CieXChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.01; /* 1% of full scale */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_cie_x; }; ///< the dS channel type
+    virtual const char *getName() { return "CIE X"; };
+    virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
+    virtual double getMax() { return 1; };
+    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+  };
+
+
+  class CieYChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    CieYChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.01; /* 1% of full scale */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_cie_y; }; ///< the dS channel type
+    virtual const char *getName() { return "CIE Y"; };
+    virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
+    virtual double getMax() { return 1; };
+    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+  };
+
+
+
+
   class ColorLightScene : public LightScene
   {
     typedef LightScene inherited;

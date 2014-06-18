@@ -73,7 +73,7 @@ size_t LightScene::numFieldDefs()
 const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numSceneFields] = {
-    { "brightness", SQLITE_INTEGER },
+    { "brightness", SQLITE_FLOAT },
     { "effect", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
@@ -90,7 +90,7 @@ void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  sceneBrightness = aRow->get<int>(aIndex++);
+  sceneBrightness = aRow->get<double>(aIndex++);
   effect = (DsSceneEffect)aRow->get<int>(aIndex++);
 }
 
@@ -163,7 +163,7 @@ bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
 #pragma mark - default scene values
 
 typedef struct {
-  Brightness brightness; ///< output value for this scene
+  uint8_t brightness; ///< output value for this scene
   DsSceneEffect effect;
   bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
   bool dontCare; ///< if set, applying this scene does not change the output value
@@ -347,8 +347,7 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   dimTimeDown[1] = 0x3F; // 800mS
   dimTimeDown[2] = 0x2F; // 400mS
   // add the brightness channel (every light has brightness)
-  brightness = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  brightness->setChannelIdentification(channeltype_brightness, "brightness");
+  brightness = ChannelBehaviourPtr(new BrightnessChannel(*this));
   addChannel(brightness);
 }
 

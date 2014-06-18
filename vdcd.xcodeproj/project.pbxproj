@@ -29,6 +29,8 @@
 		ED1F830718508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
 		ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
 		ED1F830B185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
+		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
+		ED2C9DE619518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
 		ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
@@ -277,6 +279,8 @@
 		ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonvdcapi.hpp; sourceTree = "<group>"; };
 		ED1F8308185099F300339A22 /* pbufvdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pbufvdcapi.cpp; sourceTree = "<group>"; };
 		ED1F8309185099F300339A22 /* pbufvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pbufvdcapi.hpp; sourceTree = "<group>"; };
+		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = channelbehaviour.cpp; path = src/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; };
+		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = channelbehaviour.hpp; path = src/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; };
 		ED312690183186C200FAF28B /* demodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevice.cpp; path = demo/demodevice.cpp; sourceTree = "<group>"; };
 		ED312691183186C200FAF28B /* demodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = demodevice.hpp; path = demo/demodevice.hpp; sourceTree = "<group>"; };
 		ED312692183186C200FAF28B /* demodevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = demodevicecontainer.cpp; path = demo/demodevicecontainer.cpp; sourceTree = "<group>"; };
@@ -493,6 +497,10 @@
 				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
 				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
 				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
+				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
+				ED81337B17C72F45003982CC /* outputbehaviour.hpp */,
+				ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */,
+				ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
 				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
@@ -517,8 +525,6 @@
 				ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */,
 				ED81338017C72F87003982CC /* sensorbehaviour.cpp */,
 				ED81338117C72F87003982CC /* sensorbehaviour.hpp */,
-				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
-				ED81337B17C72F45003982CC /* outputbehaviour.hpp */,
 				ED5B29391749446200334C71 /* lightbehaviour.cpp */,
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
 				ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */,
@@ -909,6 +915,7 @@
 				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
 				ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */,
+				ED2C9DE619518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
 				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
 				EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */,
@@ -1010,6 +1017,7 @@
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
 				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
+				ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,

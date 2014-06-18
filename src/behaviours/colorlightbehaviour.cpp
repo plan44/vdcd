@@ -165,23 +165,18 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
   // Create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
   // - hue
-  hue = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  hue->setChannelIdentification(channeltype_hue, "hue");
+  hue = ChannelBehaviourPtr(new HueChannel(*this));
   addChannel(hue);
   // - saturation
-  saturation = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  saturation->setChannelIdentification(channeltype_saturation, "saturation");
+  saturation = ChannelBehaviourPtr(new SaturationChannel(*this));
   addChannel(saturation);
   // - color temperature
-  ct = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  ct->setChannelIdentification(channeltype_colortemp, "color temperature");
+  ct = ChannelBehaviourPtr(new ColorTempChannel(*this));
   addChannel(ct);
   // - CIE x and y
-  cieX = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  cieX->setChannelIdentification(channeltype_cie_x, "CIE X");
+  cieX = ChannelBehaviourPtr(new CieXChannel(*this));
   addChannel(cieX);
-  cieY = ChannelBehaviourPtr(new ChannelBehaviour(*this));
-  cieY->setChannelIdentification(channeltype_cie_y, "CIE Y");
+  cieY = ChannelBehaviourPtr(new CieYChannel(*this));
   addChannel(cieY);
 }
 
