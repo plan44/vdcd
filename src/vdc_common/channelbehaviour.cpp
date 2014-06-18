@@ -21,6 +21,7 @@
 
 #include "channelbehaviour.hpp"
 #include "outputbehaviour.hpp"
+#include "math.h"
 
 using namespace p44;
 
@@ -63,11 +64,6 @@ string ChannelBehaviour::description()
 
 #pragma mark - channel value handling
 
-double ChannelBehaviour::getChannelValue()
-{
-  return cachedChannelValue;
-}
-
 
 // only used at startup to get the inital value FROM the hardware
 // NOT to be used to change the hardware channel value!
@@ -81,11 +77,18 @@ void ChannelBehaviour::initChannelValue(double aActualChannelValue)
 
 void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime)
 {
-  LOG(LOG_INFO,
-    "Channel '%s' in device %s: is requested to apply new value %0.2f (transition time=%lld uS), last known value is %0.2f\n",
-    getName(), output.device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedChannelValue
-  );
-  if (aNewValue!=cachedChannelValue) {
+  // make sure new value is within bounds
+  if (aNewValue>getMax())
+    aNewValue = getMax();
+  else if (aNewValue<getMin())
+    aNewValue = getMin();
+  // prevent propagating changes smaller than device resolution
+  if (fabs(aNewValue-cachedChannelValue)>=getResolution()) {
+    LOG(LOG_INFO,
+      "Channel '%s' in device %s: is requested to apply new value %0.2f (transition time=%lld uS), last known value is %0.2f\n",
+      getName(), output.device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedChannelValue
+    );
+    // apply
     cachedChannelValue = aNewValue;
     nextTransitionTime = aTransitionTime;
     channelUpdatePending = true; // pending to be sent to the device

@@ -72,22 +72,29 @@ size_t OutputBehaviour::numChannels()
 
 
 
-ChannelBehaviourPtr OutputBehaviour::getChannelByIndex(size_t aChannelIndex)
+ChannelBehaviourPtr OutputBehaviour::getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly)
 {
-  if (aChannelIndex<channels.size())
-    return channels[aChannelIndex];
+  if (aChannelIndex<channels.size()) {
+    ChannelBehaviourPtr ch = channels[aChannelIndex];
+    if (!aPendingApplyOnly || ch->needsApplying())
+      return ch;
+    // found but has no apply pending -> return no channel
+  }
   return ChannelBehaviourPtr();
 }
 
 
-ChannelBehaviourPtr OutputBehaviour::getChannelByType(DsChannelType aChannelType)
+ChannelBehaviourPtr OutputBehaviour::getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly)
 {
   if (aChannelType==channeltype_default)
-    return getChannelByIndex(0); // first channel is primary/default channel by internal convention
+    return getChannelByIndex(0, aPendingApplyOnly); // first channel is primary/default channel by internal convention
   // look for channel with matching type
   for (ChannelBehaviourVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    if ((*pos)->getChannelType()==aChannelType)
-      return *pos; // found
+    if ((*pos)->getChannelType()==aChannelType) {
+      if (!aPendingApplyOnly || (*pos)->needsApplying())
+        return *pos; // found
+      break; // found but has no apply pending -> return no channel
+    }
   }
   return ChannelBehaviourPtr();
 }

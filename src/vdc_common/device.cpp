@@ -35,6 +35,8 @@ using namespace p44;
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
   progMode(false),
+  isDimming(false),
+  dimHandlerTicket(0),
   dimTimeoutTicket(0),
   currentDimMode(dimmode_stop),
   currentDimChannel(channeltype_default),
@@ -117,17 +119,17 @@ int Device::numChannels()
 }
 
 
-ChannelBehaviourPtr Device::getChannelByIndex(size_t aChannelIndex)
+ChannelBehaviourPtr Device::getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly)
 {
   if (!output) return ChannelBehaviourPtr();
-  return output->getChannelByIndex(aChannelIndex);
+  return output->getChannelByIndex(aChannelIndex, aPendingApplyOnly);
 }
 
 
-ChannelBehaviourPtr Device::getChannelByType(DsChannelType aChannelType)
+ChannelBehaviourPtr Device::getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly)
 {
   if (!output) return ChannelBehaviourPtr();
-  return output->getChannelByType(aChannelType);
+  return output->getChannelByType(aChannelType, aPendingApplyOnly);
 }
 
 
@@ -464,12 +466,56 @@ void Device::dimAutostopHandler(DsChannelType aChannel)
 
 
 
-// actual dimming implementation, usually overridden by subclasses 
+#define DIM_STEP_INTERVAL_MS 300
+#define DIM_STEP_INTERVAL (DIM_STEP_INTERVAL_MS*MilliSecond)
+
+// actual dimming implementation, usually overridden by subclasses to provide more optimized/precise dimming
 void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
 {
-  // TODO: simple base class implementation just incrementing/decrementing channel values
-  // %%% use 11 steps per 250mS standard dimming, but draw params from channel
   DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannel, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+  // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
+  if (aDimMode==dimmode_stop) {
+    // stop dimming
+    isDimming = false;
+    MainLoop::currentMainLoop().cancelExecutionTicket(dimHandlerTicket);
+  }
+  else {
+    // start dimming
+    ChannelBehaviourPtr ch = getChannelByType(aChannel);
+    if (ch) {
+      // calculate increment
+      double increment = (aDimMode==dimmode_up ? DIM_STEP_INTERVAL_MS : -DIM_STEP_INTERVAL_MS) * ch->getDimPerMS();
+      // start ticking
+      isDimming = true;
+      dimHandler(ch, increment, MainLoop::now());
+    }
+  }
+}
+
+
+void Device::dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow)
+{
+  // increment channel value
+  aChannel->setChannelValue(aChannel->getChannelValue()+aIncrement, DIM_STEP_INTERVAL);
+  // apply to hardware
+  applyChannelValues(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL));
+}
+
+
+void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNextDimAt)
+{
+  // keep up with actual dim time
+  MLMicroSeconds now = MainLoop::now();
+  while (aNextDimAt<now) {
+    // missed this step - simply increment channel and target time, but do not cause re-apply
+    DBGLOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
+    aChannel->setChannelValue(aChannel->getChannelValue()+aIncrement, DIM_STEP_INTERVAL);
+    aNextDimAt += DIM_STEP_INTERVAL;
+  }
+  if (isDimming) {
+    // now schedule next inc/update step
+    dimHandlerTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&Device::dimHandler, this, aChannel, aIncrement, _1), aNextDimAt);
+  }
 }
 
 

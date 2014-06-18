@@ -517,12 +517,26 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
+  // check if any channel has changed at all
+  bool needsUpdate = false;
+  for (int i=0; i<numChannels(); i++) {
+    if (getChannelByIndex(i, true)) {
+      // channel needs update
+      needsUpdate = true;
+      break; // no more checking needed, need device level update anyway
+    }
+  }
+  if (!needsUpdate) {
+    // NOP
+    aCompletedCB(ErrorPtr());
+    return;
+  }
   // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_brightness);
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_brightness, false); // %%% for now, always update, even if brightness has not changed
   if (ch) {
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
-    Brightness b = ch->valueForHardware();
+    Brightness b = ch->getChannelValue();
     if (b==0) {
       // light off
       newState->add("on", JsonObject::newBool(false));
@@ -565,8 +579,8 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
       }
     }
     // for on and off, set transition time (1/10 second resolution)
-    newState->add("transitiontime", JsonObject::newInt64(ch->transitionTimeForHardware()/(100*MilliSecond)));
-    LOG(LOG_INFO, "hue device %s: setting new brightness = %d\n", shortDesc().c_str(), b);
+    newState->add("transitiontime", JsonObject::newInt64(ch->transitionTimeToNewValue()/(100*MilliSecond)));
+    LOG(LOG_INFO, "hue device %s: setting new brightness = %0.0f\n", shortDesc().c_str(), b);
     hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aCompletedCB, ch, _2));
   }
 }

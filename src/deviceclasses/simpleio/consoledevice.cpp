@@ -110,13 +110,23 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
   if (ch) {
-    outputValue = ch->valueForHardware();
+    outputValue = ch->getChannelValue();
+    // represent full scale as 0..50 hashes
+    string bar;
+    double v = ch->getMin();
+    double step = (ch->getMax()-ch->getMin())/50;
+    while (v<outputValue) {
+      bar += '#';
+      v += step;
+    }
+    // show
     printf(
-      ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
+      ">>> Console device %s: output set to %4.2f, transition time = %0.3f Seconds: %s\n",
       getName().c_str(), outputValue,
-      (double)ch->transitionTimeForHardware()/Second
+      (double)ch->transitionTimeToNewValue()/Second,
+      bar.c_str()
     );
     ch->channelValueApplied(); // confirm having applied the value
   }

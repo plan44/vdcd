@@ -205,8 +205,14 @@ void EnoceanDevice::sendOutgoingUpdate()
 void EnoceanDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // trigger updating all device outputs
-  pendingDeviceUpdate = true;
-  if (alwaysUpdateable) {
+  for (int i=0; i<numChannels(); i++) {
+    if (getChannelByIndex(i, true)) {
+      // channel needs update
+      pendingDeviceUpdate = true;
+      break; // no more checking needed, need device level update anyway
+    }
+  }
+  if (pendingDeviceUpdate && alwaysUpdateable) {
     // send immediately
     sendOutgoingUpdate();
   }

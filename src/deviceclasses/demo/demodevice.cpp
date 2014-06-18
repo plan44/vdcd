@@ -48,15 +48,16 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
 
 
 
-void DemoDevice::applyChannelValues()
+
+void DemoDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  // single channel device, get primary channel (only if it has a changed value)
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
   if (ch) {
     // This would be the place to implement sending the output value to the hardware
-    // For the demo device, we show the output as a bar of 0..50 '#' chars
-    // - read the output value from the behaviour
-    int hwValue = ch->valueForHardware();
+    // For the demo device, we show the output as a bar of 0..64 '#' chars
+    // - read the new channel value from the behaviour
+    int hwValue = ch->getChannelValue();
     // - display as a bar of hash chars
     string bar;
     while (hwValue>0) {
@@ -67,9 +68,8 @@ void DemoDevice::applyChannelValues()
     printf("Demo Device Output: %s\n", bar.c_str());
     ch->channelValueApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues();
+  inherited::applyChannelValues(aCompletedCB);
 }
-
 
 
 void DemoDevice::deriveDsUid()

@@ -333,9 +333,9 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
   if (ch) {
-    outputValue = ch->valueForHardware();
+    outputValue = ch->getChannelValue();
     // set output value
     postChannelValue(aCompletedCB, ch);
   }

@@ -83,12 +83,12 @@ namespace p44 {
     /// get channel by index
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @return NULL for unknown channel
-    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex);
+    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly = false);
 
     /// get output index by channelType
     /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
     /// @return NULL for unknown channel
-    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType);
+    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly = false);
 
     /// @}
 

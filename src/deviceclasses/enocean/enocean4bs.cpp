@@ -153,7 +153,7 @@ static void stdOutputHandler(const Enocean4bsHandler &aHandler, bool aForSend, u
     OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(aHandler.behaviour);
     if (ob) {
       ChannelBehaviourPtr cb = ob->getChannelByIndex(aHandler.dsChannelIndex);
-      int32_t newValue = cb->valueForHardware();
+      int32_t newValue = cb->getChannelValue();
       // insert output into 32bit data
       int numBits = descP->msBit-descP->lsBit+1;
       long mask = ((1l<<numBits)-1)<<descP->lsBit;

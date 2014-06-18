@@ -94,13 +94,32 @@ namespace p44 {
     /// @param aResolution actual resolution (smallest step) of the connected hardware
     void setResolution(double aResolution);
 
-    /// get currently applied output value from device hardware
-    virtual double getChannelValue();
+    /// set actual current output value as read from the device on startup, to update local cache value
+    /// @param aActualChannelValue the value as read from the device
+    /// @note only used at startup to get the inital value FROM the hardware.
+    ///   NOT to be used to change the hardware output value!
+    void initChannelValue(double aActualChannelValue);
 
-    /// set new output value on device
+    /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
     virtual void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0);
+
+    /// get current value as set in device hardware
+    /// @note does not trigger a device read, but returns chached value
+    //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
+    virtual double getChannelValue() { return cachedChannelValue; };
+
+    /// the transition time to use to change value in the hardware
+    /// @return time to be used to transition to new value
+    MLMicroSeconds transitionTimeToNewValue() { return nextTransitionTime; };
+
+    /// check if channel value needs to be sent to device hardware
+    /// @return true if the cached channel value was changed and should be applied to hardware via device's applyChannelValues()
+    bool needsApplying() { return channelUpdatePending; }
+
+    /// to be called when channel value has been successfully applied to hardware
+    void channelValueApplied();
 
     /// @}
 
@@ -112,7 +131,6 @@ namespace p44 {
     /// @return the channel index (0..N, 0=primary)
     size_t getChannelIndex() { return channelIndex; };
 
-
     /// get the resolution this channel has in the hardware of this particular device
     /// @return resolution of channel value (size of smallest step output can take, LSB)
     double getResolution() { return resolution; }; ///< actual resolution of the hardware
@@ -121,28 +139,8 @@ namespace p44 {
     /// @return true if this is the primary (default) channel of a device
     bool isPrimary();
 
-    /// set actual current output value as read from the device on startup, to update local cache value
-    /// @param aActualChannelValue the value as read from the device
-    /// @note only used at startup to get the inital value FROM the hardware.
-    ///   NOT to be used to change the hardware output value!
-    void initChannelValue(double aActualChannelValue);
-
-    /// the value to be set in the hardware
-    /// @return value to be set in actual hardware
-    double valueForHardware() { return cachedChannelValue; };
-
-    /// the transition time to use to change value in the hardware
-    /// @return transition time
-    MLMicroSeconds transitionTimeForHardware() { return nextTransitionTime; };
-
     /// call to make update pending
     void setChannelUpdatePending() { channelUpdatePending = true; }
-
-    /// check if channel value needs to be sent to device hardware
-    bool isChannelUpdatePending() { return channelUpdatePending; }
-
-    /// to be called when channel value has been successfully applied to hardware
-    void channelValueApplied();
 
     /// @}
 

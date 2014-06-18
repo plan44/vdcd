@@ -81,6 +81,8 @@ namespace p44 {
     long dimTimeoutTicket; ///< for timing out dimming operations (autostop when no INC/DEC is received)
     DsDimMode currentDimMode; ///< current dimming in progress
     DsChannelType currentDimChannel; ///< currently dimmed channel (if dimming in progress)
+    long dimHandlerTicket; ///< for standard dimming
+    bool isDimming; ///< if set, dimming is in progress
 
   public:
     Device(DeviceClassContainer *aClassContainerP);
@@ -271,13 +273,14 @@ namespace p44 {
 
     /// get channel by index
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aPendingApplyOnly if true, only channels with pending values to be applied are returned
     /// @return NULL for unknown channel
-    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex);
+    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly = false);
 
     /// get output index by channelType
     /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
     /// @return NULL for unknown channel
-    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType);
+    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly = false);
 
     /// @}
 
@@ -309,8 +312,9 @@ namespace p44 {
     DsGroupMask behaviourGroups();
 
     void dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter);
-    void legacyDim(SceneNo aDimSceneNo, int aArea);
     void dimAutostopHandler(DsChannelType aChannel);
+    void dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow);
+    void dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNextDimAt);
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
     void sceneValuesApplied(DsScenePtr aScene);
