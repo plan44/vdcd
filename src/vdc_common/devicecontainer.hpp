@@ -105,7 +105,6 @@ namespace p44 {
     long announcementTicket;
     long periodicTaskTicket;
 
-    long localDimTicket;
     bool localDimDown;
 
     // learning

@@ -109,14 +109,14 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 
 void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
-  if (ch) {
-    outputValue = ch->getChannelValue();
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    outputValue = lightBehaviour->brightnessForHardware();
     // represent full scale as 0..50 hashes
     string bar;
-    double v = ch->getMin();
-    double step = (ch->getMax()-ch->getMin())/50;
+    double v = lightBehaviour->brightness->getMin();
+    double step = (lightBehaviour->brightness->getMax()-lightBehaviour->brightness->getMin())/50;
     while (v<outputValue) {
       bar += '#';
       v += step;
@@ -125,10 +125,10 @@ void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB)
     printf(
       ">>> Console device %s: output set to %4.2f, transition time = %0.3f Seconds: %s\n",
       getName().c_str(), outputValue,
-      (double)ch->transitionTimeToNewValue()/Second,
+      (double)lightBehaviour->transitionTimeToNewBrightness()/Second,
       bar.c_str()
     );
-    ch->channelValueApplied(); // confirm having applied the value
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   inherited::applyChannelValues(aCompletedCB);
 }

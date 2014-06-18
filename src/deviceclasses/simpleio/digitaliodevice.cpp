@@ -53,10 +53,9 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   // basically act as black device so we can configure colors
   primaryGroup = group_black_joker;
   if (output) {
-    // Digital output as on/off switch
+    // Digital output as light on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // Simulate light device
-    // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
     addBehaviour(l);
@@ -85,11 +84,11 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 
 void DigitalIODevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
-  if (ch) {
-    indicatorOutput->set(ch->getChannelValue()>0);
-    ch->channelValueApplied(); // confirm having applied the value
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    indicatorOutput->set(lightBehaviour->brightnessForHardware());
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   inherited::applyChannelValues(aCompletedCB);
 }

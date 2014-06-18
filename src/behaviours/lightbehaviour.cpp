@@ -328,12 +328,9 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   // hardware derived parameters
   // persistent settings
   onThreshold(128),
-  minBrightness(1),
-  maxBrightness(255),
   // volatile state
   fadeDownTicket(0),
-  blinkCounter(0),
-  logicalBrightness(0)
+  blinkCounter(0)
 {
   // should always be a member of the light group
   setGroup(group_yellow_light);
@@ -347,54 +344,44 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   dimTimeDown[1] = 0x3F; // 800mS
   dimTimeDown[2] = 0x2F; // 400mS
   // add the brightness channel (every light has brightness)
-  brightness = ChannelBehaviourPtr(new BrightnessChannel(*this));
+  brightness = BrightnessChannelPtr(new BrightnessChannel(*this));
   addChannel(brightness);
 }
 
 
-Brightness LightBehaviour::getLogicalBrightness()
-{
-  return logicalBrightness;
-}
-
-
-void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
-{
-  if (aBrightness>255) aBrightness = 255;
-  MLMicroSeconds tt = aTransitionTimeDown<0 || aBrightness>logicalBrightness ? aTransitionTimeUp : aTransitionTimeDown;
-  logicalBrightness = aBrightness;
-  if (isDimmable()) {
-    // dimmable, 0=off, 1..255=brightness
-    getChannelByType(channeltype_brightness)->setChannelValue(logicalBrightness, tt);
-  }
-  else {
-    // not dimmable, on if logical brightness is above threshold
-    getChannelByType(channeltype_brightness)->setChannelValue(logicalBrightness>=onThreshold ? 255 : 0, tt);
-  }
-}
-
-
-void LightBehaviour::updateLogicalBrightnessFromOutput()
-{
-  Brightness o = getChannelByType(channeltype_brightness)->getChannelValue();
-  if (isDimmable()) {
-    logicalBrightness = o;
-  }
-  else {
-    logicalBrightness = o>onThreshold ? 255 : 0;
-  }
-}
-
-
-void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
+void LightBehaviour::initMinBrightness(Brightness aMin)
 {
   // save max and min
-  if (aMin!=minBrightness || aMax!=maxBrightness) {
-    maxBrightness = aMax;
-    minBrightness = aMin>0 ? aMin : 1; // never below 1
+  if (aMin!=brightness->getMinDim()) {
+    brightness->setDimMin(aMin);
     markDirty();
   }
 }
+
+
+Brightness LightBehaviour::brightnessForHardware()
+{
+  if (isDimmable()) {
+    // dim output
+    return brightness->getChannelValue();
+  }
+  else {
+    // switch output
+    return brightness->getChannelValue() >= onThreshold ? brightness->getMax() : brightness->getMin();
+  }
+}
+
+
+void LightBehaviour::initBrightnessFromHardware(Brightness aBrightness)
+{
+  if (
+    isDimmable() || // for dimmable lights: always update value
+    ((aBrightness>=onThreshold) != (brightness->getChannelValue()>=onThreshold)) // for switched outputs: keep value if onThreshold conditions is already met
+  ) {
+    brightness->initChannelValue(aBrightness);
+  }
+}
+
 
 
 
@@ -413,56 +400,13 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
     MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
     SceneNo sceneNo = lightScene->sceneNo;
     // now check for special hard-wired scenes
-/*
-    // Note: Area dimming scene calls are converted to INC_S/DEC_S/STOP_S at the Device class level
-    //  so we only need to handle INC_S/DEC_S and STOP_S here.
-    if (sceneNo==DEC_S || sceneNo==INC_S) {
-      // dimming up/down special scenes
-      //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
-      //  Note: local priority check is done at the device level
-      Brightness b = getLogicalBrightness();
-      if (b>0) {
-        Brightness nb = b;
-        if (sceneNo==DEC_S) {
-          // dim down
-          // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
-          // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
-          nb = nb>11 ? nb-11 : 1; // never below 1
-          // also make sure we don't go below minDim
-          if (nb<minBrightness)
-            nb = minBrightness;
-        }
-        else {
-          // dim up
-          nb = nb<255-11 ? nb+11 : 255;
-          // also make sure we don't go above maxDim
-          if (nb>maxBrightness)
-            nb = maxBrightness;
-        }
-        if (nb!=b) {
-          setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-          LOG(LOG_DEBUG,"- ApplyScene(DIM): Dimming in progress, %d -> %d\n", b, nb);
-        }
-      }
-    }
-    else if (sceneNo==STOP_S) {
-      // stop dimming
-      // TODO: when fine tuning dimming, we'll need to actually stop ongoing dimming. For now, it's just a NOP
-      if (LOGENABLED(LOG_NOTICE)) {
-        Brightness b = getLogicalBrightness();
-        LOG(LOG_NOTICE,"- ApplyScene(DIM): Stopped dimming, final value is %d\n", b);
-      }
-    }
-    else
-*/
     if (sceneNo==MIN_S) {
-      Brightness b = minBrightness;
-      setLogicalBrightness(b, transitionTimeFromSceneEffect(lightScene->effect, false));
-      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %d\n", b);
+      brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, false));
+      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %0.1f\n", brightness->getMinDim());
     }
     else if (sceneNo==AUTO_OFF) {
       // slow fade down
-      Brightness b = getLogicalBrightness();
+      Brightness b = brightness->getChannelValue();
       if (b>0) {
         MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
@@ -487,7 +431,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
 
 void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
 {
-  setLogicalBrightness(aBrightness, aFadeStepTime);
+  brightness->setChannelValue(aBrightness, aFadeStepTime);
   if (!hwUpdateInProgress || aBrightness==0) {
     // prevent additional apply calls until either 0 reached or previous step done
     hwUpdateInProgress = true;
@@ -510,7 +454,10 @@ void LightBehaviour::recallScene(LightScenePtr aLightScene)
   // now apply scene's brightness
   Brightness b = aLightScene->sceneBrightness;
   DsSceneEffect e = aLightScene->effect;
-  setLogicalBrightness(b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false));
+  if (b>brightness->getChannelValue())
+    brightness->setChannelValue(b, transitionTimeFromSceneEffect(e, true));
+  else
+    brightness->setChannelValue(b, transitionTimeFromSceneEffect(e, false));
 }
 
 
@@ -522,16 +469,23 @@ void LightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // make sure logical brightness is updated from output
-    updateLogicalBrightnessFromOutput();
-    // just capture the output value
-    if (lightScene->sceneBrightness != getLogicalBrightness()) {
-      lightScene->sceneBrightness = getLogicalBrightness();
-      lightScene->markDirty();
-    }
+    device.updateChannelValues(boost::bind(&LightBehaviour::channelValuesCaptured, this, lightScene, aDoneCB));
   }
-  inherited::captureScene(aScene, aDoneCB);
+  else {
+    inherited::captureScene(aScene, aDoneCB);
+  }
 }
 
+
+void LightBehaviour::channelValuesCaptured(LightScenePtr aLightScene, DoneCB aDoneCB)
+{
+  // just capture the output value
+  if (aLightScene->sceneBrightness != brightness->getChannelValue()) {
+    aLightScene->sceneBrightness = brightness->getChannelValue();
+    aLightScene->markDirty();
+  }
+  inherited::captureScene(aLightScene, aDoneCB);
+}
 
 
 
@@ -562,7 +516,7 @@ void LightBehaviour::blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod
   MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
   aBlinkPeriod -= blinkOnTime; // blink off time
   // start off, so first action will be on
-  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, getLogicalBrightness());
+  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, brightness->getChannelValue());
 }
 
 
@@ -570,16 +524,16 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
 {
   if (MainLoop::now()>=aEndTime) {
     // done, restore original brightness
-    setLogicalBrightness(aOrigBrightness, 0);
+    brightness->setChannelValue(aOrigBrightness, 0);
     return;
   }
   else if (!aState) {
     // turn on
-    setLogicalBrightness(255, 0);
+    brightness->setChannelValue(brightness->getMax(), 0);
   }
   else {
     // turn off
-    setLogicalBrightness(minBrightness, 0);
+    brightness->setChannelValue(brightness->getMinDim(), 0);
   }
   aState = !aState; // toggle
   // schedule next event
@@ -593,9 +547,9 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
 
 void LightBehaviour::onAtMinBrightness()
 {
-  if (getLogicalBrightness()==0) {
+  if (brightness->getChannelValue()<=0) {
     // device is off and must be set to minimal logical brightness
-    setLogicalBrightness(minBrightness, transitionTimeFromDimTime(dimTimeUp[0]));
+    brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromDimTime(dimTimeUp[0]));
   }
 }
 
@@ -622,7 +576,7 @@ const char *LightBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 5;
+static const size_t numFields = 4;
 
 size_t LightBehaviour::numFieldDefs()
 {
@@ -635,7 +589,6 @@ const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
   static const FieldDefinition dataDefs[numFields] = {
     { "onThreshold", SQLITE_INTEGER },
     { "minDim", SQLITE_INTEGER },
-    { "maxDim", SQLITE_INTEGER },
     { "dimUpTimes", SQLITE_INTEGER },
     { "dimDownTimes", SQLITE_INTEGER },
   };
@@ -654,8 +607,7 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
   onThreshold = aRow->get<int>(aIndex++);
-  minBrightness = aRow->get<int>(aIndex++);
-  maxBrightness = aRow->get<int>(aIndex++);
+  brightness->setDimMin(aRow->get<int>(aIndex++));
   uint32_t du = aRow->get<int>(aIndex++);
   uint32_t dd = aRow->get<int>(aIndex++);
   // dissect dimming times
@@ -683,8 +635,7 @@ void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
     (dimTimeDown[2]<<16);
   // bind the fields
   aStatement.bind(aIndex++, onThreshold);
-  aStatement.bind(aIndex++, minBrightness);
-  aStatement.bind(aIndex++, maxBrightness);
+  aStatement.bind(aIndex++, brightness->getMinDim());
   aStatement.bind(aIndex++, (int)du);
   aStatement.bind(aIndex++, (int)dd);
 }
@@ -718,7 +669,6 @@ const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPr
   static const PropertyDescription properties[numSettingsProperties] = {
     { "onThreshold", apivalue_uint64, onThreshold_key+settings_key_offset, OKEY(light_key) },
     { "minBrightness", apivalue_uint64, minBrightness_key+settings_key_offset, OKEY(light_key) },
-    { "maxBrightness", apivalue_uint64, maxBrightness_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUp", apivalue_uint64, dimTimeUp_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUpAlt1", apivalue_uint64, dimTimeUpAlt1_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUpAlt2", apivalue_uint64, dimTimeUpAlt2_key+settings_key_offset, OKEY(light_key) },
@@ -747,10 +697,7 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
           aPropValue->setUint8Value(onThreshold);
           return true;
         case minBrightness_key+settings_key_offset:
-          aPropValue->setUint8Value(minBrightness);
-          return true;
-        case maxBrightness_key+settings_key_offset:
-          aPropValue->setUint8Value(maxBrightness);
+          aPropValue->setDoubleValue(brightness->getMinDim());
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
@@ -773,11 +720,7 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
           markDirty();
           return true;
         case minBrightness_key+settings_key_offset:
-          minBrightness = (Brightness)aPropValue->int32Value();
-          markDirty();
-          return true;
-        case maxBrightness_key+settings_key_offset:
-          minBrightness = (Brightness)aPropValue->int32Value();
+          brightness->setDimMin(aPropValue->doubleValue());
           markDirty();
           return true;
         case dimTimeUp_key+settings_key_offset:
@@ -810,8 +753,8 @@ string LightBehaviour::shortDesc()
 string LightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- logical brightness = %d, localPriority = %d\n", logicalBrightness, hasLocalPriority());
-  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable(), minBrightness, maxBrightness, onThreshold);
+  string_format_append(s, "- brightness = %d, localPriority = %d\n", brightness->getChannelValue(), hasLocalPriority());
+  string_format_append(s, "- dimmable: %d, mindim=%d, onThreshold=%d\n", isDimmable(), brightness->getMinDim(), onThreshold);
   s.append(inherited::description());
   return s;
 }

@@ -208,29 +208,6 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
-//    /// Get the current logical brightness
-//    /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
-//    Brightness getLogicalBrightness();
-//
-//    /// @return true if device is dimmable
-//    bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
-//
-//    /// set new brightness
-//    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-//    /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher new logical brightness
-//    /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower new logical brightness
-//    ///   if not specified or <0, aTransitionTimeUp is used for both directions
-//    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown=-1);
-//
-//    /// update logical brightness from actual output state
-//    void updateLogicalBrightnessFromOutput();
-//
-//    /// initialize behaviour with actual device's brightness parameters
-//    /// @param aMin minimal brightness that can be set
-//    /// @param aMax maximal brightness that can be set
-//    /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
-//    void initBrightnessParams(Brightness aMin, Brightness aMax);
-
     /// @}
 
 

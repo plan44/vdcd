@@ -182,8 +182,8 @@ namespace p44 {
     void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
-    void postChannelValue(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour);
-    void channelChanged(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void postChannelValue(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour);
+    void channelChanged(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
   };
   

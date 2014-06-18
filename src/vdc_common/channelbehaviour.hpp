@@ -83,6 +83,7 @@ namespace p44 {
     virtual double getMin() = 0; ///< min value
     virtual double getMax() = 0; ///< max value
     virtual double getDimPerMS() = 0; ///< value to step up or down per Millisecond when dimming
+    virtual double getMinDim() { return getMin(); }; ///< dimming min value defaults to same value as min
 
     /// @}
 
@@ -102,13 +103,19 @@ namespace p44 {
 
     /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aValue the new output value
-    /// @param aTransitionTime time in microseconds to be spent on transition from current to new logical brightness (if possible in hardware)
-    virtual void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0);
+    /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
+    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0);
+
+    /// dim channel value up or down, preventing going below getMinDim().
+    /// @param aIncrement how much to increment/decrement the value
+    /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
+    void dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime);
+
 
     /// get current value as set in device hardware
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
-    virtual double getChannelValue() { return cachedChannelValue; };
+    double getChannelValue() { return cachedChannelValue; };
 
     /// the transition time to use to change value in the hardware
     /// @return time to be used to transition to new value
@@ -174,6 +181,7 @@ namespace p44 {
     double max;
     double resolution;
     double dimPerMS;
+    double minDim;
 
   public:
     CustomChannel(
@@ -183,14 +191,16 @@ namespace p44 {
       double aMin,
       double aMax,
       double aResolution,
-      double aDimPerMS
+      double aDimPerMS,
+      double aMinDim
     ) :
       inherited(aOutput),
       channelType(aChannelType),
       name(aName),
       min(aMin),
       max(aMax),
-      dimPerMS(aDimPerMS)
+      dimPerMS(aDimPerMS),
+      minDim(aMinDim)
     {};
 
     virtual DsChannelType getChannelType() { return channelType; };
@@ -198,6 +208,7 @@ namespace p44 {
     virtual double getMin() { return min; };
     virtual double getMax() { return max; };
     virtual double getDimPerMS() { return dimPerMS; };
+    virtual double getMinDim() { return minDim; };
   };
 
 

@@ -221,7 +221,7 @@ void ColorLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
   ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aScene);
   if (colorLightScene) {
     // make sure logical brightness is updated from output
-    updateLogicalBrightnessFromOutput();
+//    updateLogicalBrightnessFromOutput();
 //    // just capture the output value
 //    if (lightScene->sceneBrightness != getLogicalBrightness()) {
 //      lightScene->sceneBrightness = getLogicalBrightness();

@@ -51,13 +51,13 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
 
 void DemoDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel (only if it has a changed value)
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
-  if (ch) {
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
     // This would be the place to implement sending the output value to the hardware
     // For the demo device, we show the output as a bar of 0..64 '#' chars
-    // - read the new channel value from the behaviour
-    int hwValue = ch->getChannelValue();
+    // - read the brightness value from the behaviour
+    int hwValue = lightBehaviour->brightnessForHardware();
     // - display as a bar of hash chars
     string bar;
     while (hwValue>0) {
@@ -66,7 +66,7 @@ void DemoDevice::applyChannelValues(CompletedCB aCompletedCB)
       hwValue -= 4;
     }
     printf("Demo Device Output: %s\n", bar.c_str());
-    ch->channelValueApplied(); // confirm having applied the value
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   inherited::applyChannelValues(aCompletedCB);
 }

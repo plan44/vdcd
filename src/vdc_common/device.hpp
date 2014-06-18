@@ -203,6 +203,7 @@ namespace p44 {
     virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
     /// apply all pending channel value updates to the device's hardware
+    /// @param aCompletedCB will called when values are applied
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
@@ -210,8 +211,14 @@ namespace p44 {
     ///   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
     ///   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
     ///   most recent call's value gets applied to the hardware.
-    /// @param aCompletedCB if not NULL, must be called when values are applied
     virtual void applyChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
+
+    /// update channel values from the device's hardware
+    /// @param aCompletedCB will be called when values are updated with actual hardware values
+    /// @note this method is only called before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    virtual void updateChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* assume caches up-to-date */ };
+
 
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device

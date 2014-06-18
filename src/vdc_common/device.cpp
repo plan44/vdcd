@@ -496,7 +496,7 @@ void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
 void Device::dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow)
 {
   // increment channel value
-  aChannel->setChannelValue(aChannel->getChannelValue()+aIncrement, DIM_STEP_INTERVAL);
+  aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
   // apply to hardware
   applyChannelValues(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL));
 }
@@ -509,7 +509,7 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
   while (aNextDimAt<now) {
     // missed this step - simply increment channel and target time, but do not cause re-apply
     DBGLOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
-    aChannel->setChannelValue(aChannel->getChannelValue()+aIncrement, DIM_STEP_INTERVAL);
+    aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
     aNextDimAt += DIM_STEP_INTERVAL;
   }
   if (isDimming) {

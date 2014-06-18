@@ -332,12 +332,12 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
-  if (ch) {
-    outputValue = ch->getChannelValue();
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    outputValue = lightBehaviour->brightnessForHardware();
     // set output value
-    postChannelValue(aCompletedCB, ch);
+    postChannelValue(aCompletedCB, lightBehaviour);
   }
   else {
     // let inherited process it
@@ -348,7 +348,7 @@ void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
 
 
 
-void SparkIoDevice::postChannelValue(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour)
+void SparkIoDevice::postChannelValue(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour)
 {
   if (apiVersion==1) {
     string args;
@@ -360,7 +360,7 @@ void SparkIoDevice::postChannelValue(CompletedCB aCompletedCB, ChannelBehaviourP
       args = string_format("output0=%d", outputValue);
     }
     // posting might fail if done too early
-    if (!sparkApiCall(boost::bind(&SparkIoDevice::channelChanged, this, aCompletedCB, aChannelBehaviour, _1, _2), args)) {
+    if (!sparkApiCall(boost::bind(&SparkIoDevice::channelChanged, this, aCompletedCB, aLightBehaviour, _1, _2), args)) {
       outputChangePending = true; // retry when previous request done
     }
   }
@@ -368,16 +368,16 @@ void SparkIoDevice::postChannelValue(CompletedCB aCompletedCB, ChannelBehaviourP
 
 
 
-void SparkIoDevice::channelChanged(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelChanged(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (outputChangePending) {
       outputChangePending = false;
-      postChannelValue(aCompletedCB, aChannelBehaviour); // one more change pending
+      postChannelValue(aCompletedCB, aLightBehaviour); // one more change pending
       return;
     }
     else {
-      aChannelBehaviour->channelValueApplied(); // confirm having applied the value
+      aLightBehaviour->brightnessApplied(); // confirm having applied the value
       outputChangePending = false;
     }
   }

@@ -366,7 +366,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
   HueLightBehaviourPtr l = HueLightBehaviourPtr(new HueLightBehaviour(*this));
   l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
   l->setHardwareName(string_format("hue light #%s", lightID.c_str()));
-  l->initBrightnessParams(1,255); // brightness range is 1..255
+  l->initMinBrightness(1); // min brightness is 1
   addBehaviour(l);
 }
 
@@ -532,11 +532,12 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
     return;
   }
   // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_brightness, false); // %%% for now, always update, even if brightness has not changed
-  if (ch) {
+  // %%% for now, always update, even if brightness has not changed
+  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (l) {
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
-    Brightness b = ch->getChannelValue();
+    Brightness b = l->brightnessForHardware();
     if (b==0) {
       // light off
       newState->add("on", JsonObject::newBool(false));
@@ -579,18 +580,18 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
       }
     }
     // for on and off, set transition time (1/10 second resolution)
-    newState->add("transitiontime", JsonObject::newInt64(ch->transitionTimeToNewValue()/(100*MilliSecond)));
+    newState->add("transitiontime", JsonObject::newInt64(l->transitionTimeToNewBrightness()/(100*MilliSecond)));
     LOG(LOG_INFO, "hue device %s: setting new brightness = %0.0f\n", shortDesc().c_str(), b);
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aCompletedCB, ch, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::outputChangeSent, this, aCompletedCB, l, _2));
   }
 }
 
 
 
-void HueDevice::outputChangeSent(CompletedCB aCompletedCB, ChannelBehaviourPtr aChannelBehaviour, ErrorPtr aError)
+void HueDevice::outputChangeSent(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    aChannelBehaviour->channelValueApplied(); // confirm having applied the value
+    aLightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   // confirm
   aCompletedCB(aError);

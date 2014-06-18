@@ -36,17 +36,26 @@ namespace p44 {
   class BrightnessChannel : public ChannelBehaviour
   {
     typedef ChannelBehaviour inherited;
+    double minDim;
 
   public:
-    BrightnessChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* light defaults to historic dS resolution */ };
+    BrightnessChannel(OutputBehaviour &aOutput) : inherited(aOutput)
+    {
+      resolution = 1; // light defaults to historic dS resolution
+      minDim = getMin()+1; // min dimming level defaults to one unit above zero
+    };
+
+    void setDimMin(double aMinDim) { minDim = aMinDim; };
 
     virtual DsChannelType getChannelType() { return channeltype_brightness; }; ///< the dS channel type
     virtual const char *getName() { return "brightness"; };
     virtual double getMin() { return 0; }; // dS brightness goes from 0 to 255 (historical unit)
     virtual double getMax() { return 255; };
     virtual double getDimPerMS() { return 11.0/300; }; // dimming is 11 steps per 300mS (as per ds-light.pdf specification) = 255/11*300 = 7 seconds full scale
+    virtual double getMinDim() { return minDim; };
 
   };
+  typedef boost::intrusive_ptr<BrightnessChannel> BrightnessChannelPtr;
 
 
 
@@ -129,8 +138,6 @@ namespace p44 {
     /// @name persistent settings
     /// @{
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
-    Brightness minBrightness; ///< minimal brightness, dimming down will not go below this
-    Brightness maxBrightness; ///< maximal brightness, dimming down will not go below this
     DimmingTime dimTimeUp[3]; ///< dimming up time
     DimmingTime dimTimeDown[3]; ///< dimming down time
     /// @}
@@ -141,40 +148,48 @@ namespace p44 {
     int blinkCounter; ///< for generation of blink sequence
     long fadeDownTicket; ///< for slow fading operations
     bool hwUpdateInProgress; ///< set when hardware update is already in progress
-    Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
 
-    /// the brightness channel
-    ChannelBehaviourPtr brightness;
 
   public:
     LightBehaviour(Device &aDevice);
 
+    /// the brightness channel
+    BrightnessChannelPtr brightness;
+
     /// @name interface towards actual device hardware (or simulation)
     /// @{
-
-    /// Get the current logical brightness
-    /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
-    Brightness getLogicalBrightness();
 
     /// @return true if device is dimmable
     bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
 
-    /// set new brightness
-    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-    /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher new logical brightness
-    /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower new logical brightness
-    ///   if not specified or <0, aTransitionTimeUp is used for both directions
-    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown=-1);
-
-    /// update logical brightness from actual output state
-    void updateLogicalBrightnessFromOutput();
-
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set
-    /// @param aMax maximal brightness that can be set
     /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
-    void initBrightnessParams(Brightness aMin, Brightness aMax);
+    void initMinBrightness(Brightness aMin);
+
+    /// return the brightness to be applied to hardware
+    /// @return brightness
+    /// @note this is to allow lights to have switching behaviour - when brightness channel value is
+    ///   above onThreshold, brightnessForHardware() will return the max channel value and 0 otherwise.
+    Brightness brightnessForHardware();
+
+    /// (re)init channel brightness from actual hardware value
+    /// @param aBrightness current brightness value read back from hardware
+    /// @note this wraps the dimmable/switch functionality (does not change channel value when onThreshold
+    ///   condition is already met to allow saving virtual brightness to scenes)
+    void initBrightnessFromHardware(Brightness aBrightness);
+
+    /// wrapper to confirm having applied brightness
+    bool brightnessNeedsApplying() { return brightness->needsApplying(); };
+
+    /// wrapper to confirm having applied brightness
+    void brightnessApplied() { brightness->channelValueApplied(); };
+
+    /// wrapper to get brightness' transition time
+    MLMicroSeconds transitionTimeToNewBrightness() { return brightness->transitionTimeToNewValue(); };
+
+
 
     /// @}
 
@@ -253,7 +268,8 @@ namespace p44 {
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
   private:
-  
+
+    void channelValuesCaptured(LightScenePtr aLightScene, DoneCB aDoneCB);
     void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
     void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
     void fadeDownStepDone();

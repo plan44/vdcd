@@ -50,7 +50,6 @@ DeviceContainer::DeviceContainer() :
   learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
-  localDimTicket(0),
   localDimDown(false),
   dsUids(false)
 {
@@ -497,20 +496,6 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 #pragma mark - local operation mode
 
 
-void DeviceContainer::localDimHandler()
-{
-  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-    DevicePtr dev = pos->second;
-    if (dev->output && dev->output->isMember(group_yellow_light)) {
-      // do not signal activity for speed reasons
-      dev->callScene(localDimDown ? DEC_S : INC_S, true);
-    }
-  }
-  localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
-}
-
-
-
 void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
   if (!activeSessionConnection) {
@@ -522,7 +507,6 @@ void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehavio
 
 void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
-#warning "adapt dimming to use dimChannel() to make use of device specific optimizations"
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
   int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
@@ -543,8 +527,8 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       scene = T0_S4;
       break;
     case ct_hold_start:
-      scene = INC_S;
-      localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
+      scene = INC_S; // just as a marker to start dimming (we'll use dimChannelForArea(), not legacy dimming!)
+      // determine direction
       if (direction!=0)
         localDimDown = direction<0;
       else {
@@ -553,51 +537,47 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       }
       break;
     case ct_hold_end:
-      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket); // stop dimming
-      scene = STOP_S; // stop any still ongoing dimming
-      direction = 1; // really send STOP, not main off!
+      scene = STOP_S; // just as a marker to stop dimming (we'll use dimChannelForArea(), not legacy dimming!)
+      break;
+    default:
       break;
   }
   if (scene>=0) {
-    if (aClickType!=ct_hold_start) {
-      // safety: any scene call except hold start stops ongoing dimming
-      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket);
-    }
+    signalActivity(); // local activity
+    // some action to perform on every light device
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
-      if (dev->output && dev->output->isMember(group_yellow_light)) {
-        // this is a light related device (but not necessarily a light output!)
-        LightBehaviourPtr lightBehaviour;
-        if (dev->output) {
-          lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->output);
-          if (lightBehaviour) {
-            // this device has a light behaviour output
-            if (direction==0) {
-              // get direction from current value of first encountered light
-              direction = lightBehaviour->getLogicalBrightness()>1 ? -1 : 1;
+      if (scene==STOP_S) {
+        // stop dimming
+        dev->dimChannelForArea(channeltype_brightness, dimmode_stop, 0, 0);
+      }
+      else {
+        // call scene or start dimming
+        LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(dev->output);
+        if (l) {
+          // - figure out direction if not already known
+          if (direction==0) {
+            // get direction from current value of first encountered light
+            direction = l->brightness->getChannelValue() >= l->brightness->getMinDim() ? -1 : 1;
+          }
+          if (scene==INC_S) {
+            // Start dimming
+            // - minimum scene if not already there
+            if (direction>0 && l->brightness->getChannelValue()==0) {
+              // starting dimming up from 0, first call MIN_S
+              dev->callScene(MIN_S, true);
             }
-            // determine the scene to call
-            int effScene = scene;
-            if (scene==INC_S) {
-              // dimming
-              if (direction<0)
-                effScene = DEC_S;
-              else {
-                // increment - check if we need to do a MIN_S first
-                if (lightBehaviour && lightBehaviour->getLogicalBrightness()==0)
-                  effScene = MIN_S; // after calling this once, light should be logically on
-              }
-            }
-            else {
-              // switching
-              if (direction<0) effScene = T0_S0; // main off
-            }
-            // call the effective scene
-            signalActivity(); // local activity
-            dev->callScene(effScene, true);
-          } // if light behaviour
-        } // if any outputs
-      } // if in light group
+            // now dim (safety timeout after 10 seconds)
+            dev->dimChannelForArea(channeltype_brightness,direction>0 ? dimmode_up : dimmode_down, 0, 10*Second);
+          }
+          else {
+            // call a scene
+            if (direction<0)
+              scene = T0_S0; // switching off a scene = call off scene
+            dev->callScene(scene, true);
+          }
+        }
+      }
     }
   }
 }

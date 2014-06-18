@@ -99,7 +99,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
   }
   // initialize the light behaviour with the minimal dimming level
   LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);
-  l->initBrightnessParams(minLevel,255);
+  l->initMinBrightness(minLevel);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
@@ -180,15 +180,14 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 
 void DaliDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // single channel device, get primary channel
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default, true);
-  if (ch) {
-    setTransitionTime(ch->transitionTimeToNewValue());
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    setTransitionTime(lightBehaviour->transitionTimeToNewBrightness());
     // update actual dimmer value
-    uint8_t power = brightnessToArcpower(ch->getChannelValue());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, transition time= %d [mS], arc power = %d\n", ch->getChannelValue(), ch->transitionTimeToNewValue()/MilliSecond, power);
+    uint8_t power = brightnessToArcpower(lightBehaviour->brightnessForHardware());
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, transition time= %d [mS], arc power = %d\n", lightBehaviour->brightnessForHardware(), lightBehaviour->transitionTimeToNewBrightness()/MilliSecond, power);
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
-    ch->channelValueApplied(); // confirm having applied the value
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   inherited::applyChannelValues(aCompletedCB);
 }
