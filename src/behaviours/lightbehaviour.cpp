@@ -378,7 +378,7 @@ void LightBehaviour::initBrightnessFromHardware(Brightness aBrightness)
     isDimmable() || // for dimmable lights: always update value
     ((aBrightness>=onThreshold) != (brightness->getChannelValue()>=onThreshold)) // for switched outputs: keep value if onThreshold conditions is already met
   ) {
-    brightness->initChannelValue(aBrightness);
+    brightness->syncChannelValue(aBrightness);
   }
 }
 
@@ -393,7 +393,7 @@ void LightBehaviour::initBrightnessFromHardware(Brightness aBrightness)
 // apply scene
 bool LightBehaviour::applyScene(DsScenePtr aScene)
 {
-  // we can only handle light scenes
+  // check special cases for light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // any scene call cancels fade down
@@ -403,6 +403,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
     if (sceneNo==MIN_S) {
       brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, false));
       LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %0.1f\n", brightness->getMinDim());
+      return true;
     }
     else if (sceneNo==AUTO_OFF) {
       // slow fade down
@@ -414,18 +415,9 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
         return false; // fade down process will take care of output updates
       }
     }
-    else {
-      // apply stored scene value(s) to output(s)
-      recallScene(lightScene);
-      LOG(LOG_NOTICE,"- ApplyScene(%d): Applied channel value(s) from scene\n", sceneNo);
-    }
-    // ready for applying values to hardware
-    return true;
   } // if lightScene
-  else {
-    // other type of scene, let base class handle it
-    return inherited::applyScene(aScene);
-  }
+  // other type of scene, let base class handle it
+  return inherited::applyScene(aScene);
 }
 
 
@@ -449,44 +441,28 @@ void LightBehaviour::fadeDownStepDone()
 }
 
 
-void LightBehaviour::recallScene(LightScenePtr aLightScene)
+void LightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
-  // now apply scene's brightness
-  Brightness b = aLightScene->sceneBrightness;
-  DsSceneEffect e = aLightScene->effect;
-  if (b>brightness->getChannelValue())
-    brightness->setChannelValue(b, transitionTimeFromSceneEffect(e, true));
-  else
-    brightness->setChannelValue(b, transitionTimeFromSceneEffect(e, false));
-}
-
-
-
-// capture scene
-void LightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
-{
-  // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
-    // make sure logical brightness is updated from output
-    device.updateChannelValues(boost::bind(&LightBehaviour::channelValuesCaptured, this, lightScene, aDoneCB));
+    // load brightness channel from scene
+    Brightness b = lightScene->sceneBrightness;
+    DsSceneEffect e = lightScene->effect;
+    brightness->setChannelValueIfNotDontCare(lightScene, b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false));
   }
-  else {
-    inherited::captureScene(aScene, aDoneCB);
-  }
+  inherited::loadChannelsFromScene(aScene);
 }
 
 
-void LightBehaviour::channelValuesCaptured(LightScenePtr aLightScene, DoneCB aDoneCB)
+void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
 {
-  // just capture the output value
-  if (aLightScene->sceneBrightness != brightness->getChannelValue()) {
-    aLightScene->sceneBrightness = brightness->getChannelValue();
-    aLightScene->markDirty();
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene) {
+    // save brightness channel from scene
+    lightScene->sceneBrightness = brightness->getChannelValue();
+    lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
   }
-  inherited::captureScene(aLightScene, aDoneCB);
 }
-
 
 
 
@@ -511,21 +487,73 @@ MLMicroSeconds LightBehaviour::transitionTimeFromSceneEffect(DsSceneEffect aEffe
 }
 
 
-void LightBehaviour::blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+
+void LightBehaviour::onAtMinBrightness()
 {
-  MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
-  aBlinkPeriod -= blinkOnTime; // blink off time
-  // start off, so first action will be on
-  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, brightness->getChannelValue());
+  if (brightness->getChannelValue()<=0) {
+    // device is off and must be set to minimal logical brightness
+    brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromDimTime(dimTimeUp[0]));
+  }
 }
 
 
-void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness)
+void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
+{
+  // we can only handle light scenes
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene && lightScene->effect==scene_effect_alert) {
+    // run blink effect
+    blink(2*Second, lightScene, aDoneCB, 400*MilliSecond, 80);
+    return;
+  }
+  // none of my effects, let inherited check
+  inherited::performSceneActions(aScene, aDoneCB);
+}
+
+
+
+void LightBehaviour::identifyToUser()
+{
+  // simple, non-parametrized blink
+  blink(4*Second, LightScenePtr(), NULL, 400*MilliSecond, 80);
+}
+
+
+
+
+#pragma mark - blinking
+
+
+void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  // save current state in temp scene
+  LightScenePtr restoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
+  captureScene(restoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, restoreScene, aDuration, aParamScene, aDoneCB, aBlinkPeriod, aOnRatioPercent));
+}
+
+
+void LightBehaviour::beforeBlinkStateSavedHandler(LightScenePtr aRestoreScene, MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  // apply the parameter scene if any
+  if (aParamScene) loadChannelsFromScene(aParamScene);
+  // start flashing
+  MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
+  aBlinkPeriod -= blinkOnTime; // blink off time
+  // start off, so first action will be on
+  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, aRestoreScene, aDoneCB);
+}
+
+
+void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, LightScenePtr aRestoreScene, DoneCB aDoneCB)
 {
   if (MainLoop::now()>=aEndTime) {
-    // done, restore original brightness
-    brightness->setChannelValue(aOrigBrightness, 0);
-    device.applyChannelValues(NULL);
+    // restore previous values if any
+    if (aRestoreScene) {
+      loadChannelsFromScene(aRestoreScene);
+      device.applyChannelValues(NULL); // apply to hardware
+    }
+    // done, call end handler
+    if (aDoneCB) aDoneCB();
     return;
   }
   else if (!aState) {
@@ -541,30 +569,9 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
   aState = !aState; // toggle
   // schedule next event
   MainLoop::currentMainLoop().executeOnce(
-    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime, aOrigBrightness),
+    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime, aRestoreScene, aDoneCB),
     aState ? aOnTime : aOffTime
   );
-}
-
-
-
-void LightBehaviour::onAtMinBrightness()
-{
-  if (brightness->getChannelValue()<=0) {
-    // device is off and must be set to minimal logical brightness
-    brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromDimTime(dimTimeUp[0]));
-  }
-}
-
-
-void LightBehaviour::performSceneActions(DsScenePtr aScene)
-{
-  // we can only handle light scenes
-  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
-  if (lightScene && lightScene->effect==scene_effect_alert) {
-    // flash
-    blink(2*Second, 400*MilliSecond, 80);
-  }
 }
 
 

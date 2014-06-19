@@ -92,21 +92,20 @@ namespace p44 {
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
-    /// @param aCompletedCB will be called when capture is complete
+    /// @param aFromDevice true to request real values read back from device hardware (if possible), false to
+    ///   just capture the currently cached channel values
+    /// @param aDoneCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
+    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
 
-    /// perform special scene actions (like flashing) which are independent of dontCare flag.
-    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene);
+//    /// perform special scene actions (like flashing) which are independent of dontCare flag.
+//    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
+//    /// @param aDoneCB will be called when scene actions have completed
+//    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB);
 
 
   protected:
 
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved as captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
 
   private:
 
@@ -125,8 +124,6 @@ namespace p44 {
 
   public:
     HueDeviceSettings(Device &aDevice);
-
-  protected:
 
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.
@@ -180,11 +177,6 @@ namespace p44 {
     /// @param aPresenceResultHandler will be called to report presence status
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
-    /// identify the device to the user
-    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
-    ///   this can be anything.
-    virtual void identifyToUser();
-
     /// disconnect device. For hue, we'll check if the device is still reachable via the bridge, and only if not
     /// we allow disconnection
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
@@ -194,11 +186,20 @@ namespace p44 {
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
     /// apply all pending channel value updates to the device's hardware
+    /// @param aCompletedCB will called when values are applied
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    /// @param aCompletedCB if not NULL, must be called when values are applied
     virtual void applyChannelValues(CompletedCB aCompletedCB);
+
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aCompletedCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(CompletedCB aCompletedCB);
+
+
 
     /// @}
 
@@ -221,7 +222,6 @@ namespace p44 {
     void deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
-    void alertHandler(int aLeftCycles);
     void outputChangeSent(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, ErrorPtr aError);
 
   };

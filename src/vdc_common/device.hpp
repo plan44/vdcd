@@ -140,6 +140,9 @@ namespace p44 {
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
 
+    /// get scenes
+    /// @return NULL if device has no scenes, scene device settings otherwise 
+    SceneDeviceSettingsPtr getScenes() { return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings); };
 
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
@@ -213,12 +216,12 @@ namespace p44 {
     ///   most recent call's value gets applied to the hardware.
     virtual void applyChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
 
-    /// update channel values from the device's hardware
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
     /// @param aCompletedCB will be called when values are updated with actual hardware values
-    /// @note this method is only called before saving scenes to make sure changes done to the outputs directly (e.g. using
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
-    virtual void updateChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* assume caches up-to-date */ };
-
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* assume caches up-to-date */ };
 
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
@@ -244,6 +247,7 @@ namespace p44 {
     /// identify the device to the user
     /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
     ///   this can be anything.
+    /// @note base class delegates this to the output behaviour (if any)
     virtual void identifyToUser();
     
 
@@ -325,6 +329,7 @@ namespace p44 {
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
     void sceneValuesApplied(DsScenePtr aScene);
+    void sceneActionsComplete(DsScenePtr aScene);
 
   };
 

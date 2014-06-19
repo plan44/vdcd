@@ -113,8 +113,6 @@ namespace p44 {
   public:
     LightDeviceSettings(Device &aDevice);
 
-  protected:
-
     /// factory method to create the correct subclass type of DsScene
     /// @param aSceneNo the scene number to create a scene object for.
     /// @note setDefaultSceneValues() must be called to set default scene values
@@ -189,50 +187,52 @@ namespace p44 {
     /// wrapper to get brightness' transition time
     MLMicroSeconds transitionTimeToNewBrightness() { return brightness->transitionTimeToNewValue(); };
 
-
-
     /// @}
 
 
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// apply scene to output
-    /// @param aScene the scene to apply to the output
+    /// apply scene to output channels
+    /// @param aScene the scene to apply to output channels
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
     ///   false if scene cannot yet be applied to hardware, and will be performed later
-    /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
-    ///   a one-step scene value change.
-    ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
-    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
-    ///   only dimChannel method must be used.
+    /// @note this derived class' applyScene only implements special hard-wired behaviour specific scenes
+    ///   basic scene apply functionality is provided by base class' implementation already.
     virtual bool applyScene(DsScenePtr aScene);
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene);
-
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aDoneCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
-
-    /// blink the light (for identifying it)
-    /// @param aDuration how long the light should blink
-    /// @param aBlinkPeriod how fast the blinking should be
-    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
-    void blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
+    /// @param aDoneCB will be called when scene actions have completed
+    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB);
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness();
 
+    /// identify the device to the user in a behaviour-specific way
+    /// @note implemented as blinking for LightBehaviour
+    virtual void identifyToUser();
+
     /// @}
+
+
+    /// @name services for implementing functionality
+    /// @{
+
+    /// blink the light (for identifying it, or alerting special system states)
+    /// @param aDuration how long the light should blink
+    /// @param aParamScene if not NULL, this scene might provide parameters for blinking
+    /// @param aDoneCB will be called when scene actions have completed
+    /// @param aBlinkPeriod how fast the blinking should be
+    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
+    void blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
 
     /// get transition time in microseconds from given scene effect
     /// @param aEffect the scene effect
     /// @param aDimUp true when dimming up, false when dimming down
     MLMicroSeconds transitionTimeFromSceneEffect(DsSceneEffect aEffect, bool aDimUp);
+
+    /// @}
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
@@ -244,10 +244,18 @@ namespace p44 {
 
   protected:
 
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved as captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
+    /// called by applyScene to load channel values from a scene.
+    /// @param aScene the scene to load channel values from
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    virtual void loadChannelsFromScene(DsScenePtr aScene);
+
+    /// called by captureScene to save channel values to a scene.
+    /// @param aScene the scene to save channel values to
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void saveChannelsToScene(DsScenePtr aScene);
 
 
     // property access implementation for descriptor/settings/states
@@ -269,8 +277,8 @@ namespace p44 {
 
   private:
 
-    void channelValuesCaptured(LightScenePtr aLightScene, DoneCB aDoneCB);
-    void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
+    void beforeBlinkStateSavedHandler(LightScenePtr aRestoreScene, MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent);
+    void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, LightScenePtr aRestoreScene, DoneCB aDoneCB);
     void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
     void fadeDownStepDone();
 

@@ -127,6 +127,44 @@ void OutputBehaviour::setGroupMembership(DsGroup aGroup, bool aIsMember)
 }
 
 
+#pragma mark - scene handling
+
+
+bool OutputBehaviour::applyScene(DsScenePtr aScene)
+{
+  // apply stored scene value(s) to channels
+  loadChannelsFromScene(aScene);
+  LOG(LOG_NOTICE,"- ApplyScene(%d): Applied channel value(s) from scene\n", aScene->sceneNo);
+  return true;
+}
+
+
+
+// capture scene
+void OutputBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
+{
+  if (aFromDevice) {
+    // make sure channel values are updated
+    device.syncChannelValues(boost::bind(&OutputBehaviour::channelValuesCaptured, this, aScene, aFromDevice, aDoneCB));
+  }
+  else {
+    // just capture the cached channel values
+    channelValuesCaptured(aScene, aFromDevice, aDoneCB);
+  }
+}
+
+
+
+void OutputBehaviour::channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
+{
+  // just save the current channel values to the scene
+  saveChannelsToScene(aScene);
+  // done now
+  if (aDoneCB) aDoneCB();
+}
+
+
+
 
 
 #pragma mark - persistence implementation

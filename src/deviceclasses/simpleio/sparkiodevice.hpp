@@ -82,14 +82,14 @@ namespace p44 {
     /// @param aScene the scene object to update
     /// @param aCompletedCB will be called when capture is complete
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
+    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
 
   protected:
 
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved at captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
+//    /// called by applyScene to actually recall a scene from the scene table
+//    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
+//    /// additional values that were saved at captureScene()
+//    virtual void recallSceneValues(LightScenePtr aLightScene);
 
   private:
 
@@ -107,8 +107,6 @@ namespace p44 {
 
   public:
     SparkDeviceSettings(Device &aDevice);
-
-  protected:
 
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.

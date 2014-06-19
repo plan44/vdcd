@@ -77,7 +77,7 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     Brightness bri = arcpowerToBrightness(aResponse);
-    output->getChannelByIndex(0)->initChannelValue(bri);
+    output->getChannelByIndex(0)->syncChannelValue(bri);
     LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %0.1f\n", aResponse, bri);
   }
   // query the minimum dimming level
@@ -145,15 +145,6 @@ void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler, bool a
 {
   // present if a proper YES (without collision) received
   aPresenceResultHandler(DaliComm::isYes(aNoOrTimeout, aResponse, aError, false));
-}
-
-
-void DaliDevice::identifyToUser()
-{
-  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
-  if (l) {
-    l->blink(4*Second);
-  }
 }
 
 

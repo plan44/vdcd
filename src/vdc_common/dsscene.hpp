@@ -212,14 +212,14 @@ namespace p44 {
     /// @note database records will be deleted if the scene had non-default values before.
     void resetScene(SceneNo aSceneNo);
 
-    /// @}
-
-  protected:
-
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.
     /// @note this method must be derived in concrete subclasses to return the appropriate scene object
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo) = 0;
+
+    /// @}
+
+  protected:
 
     // persistence implementation
     virtual ErrorPtr loadChildren();

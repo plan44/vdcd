@@ -32,10 +32,10 @@ namespace p44 {
 
 
   typedef enum {
-    ColorLightModeNone, ///< no color information stored, only brightness
-    ColorLightModeHueSaturation, ///< "hs" - hue & saturation
-    ColorLightModeXY, ///< "xy" - CIE color space coordinates
-    ColorLightModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K)
+    colorLightModeNone, ///< no color information stored, only brightness
+    colorLightModeHueSaturation, ///< "hs" - hue & saturation
+    colorLightModeXY, ///< "xy" - CIE color space coordinates
+    colorLightModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K)
   } ColorLightMode;
 
 
@@ -161,8 +161,6 @@ namespace p44 {
   public:
     ColorLightDeviceSettings(Device &aDevice);
 
-  protected:
-
     /// factory method to create the correct subclass type of DsScene
     /// @param aSceneNo the scene number to create a scene object for.
     /// @note setDefaultSceneValues() must be called to set default scene values
@@ -188,10 +186,11 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    ColorLightMode colorMode;
     /// @}
 
 
-    /// @name auxiliary behaviours
+    /// @name channels
     /// @{
     ChannelBehaviourPtr hue;
     ChannelBehaviourPtr saturation;
@@ -214,17 +213,18 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// perform special scene actions (like flashing) which are independent of dontCare flag.
-    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene);
+    /// @}
 
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aDoneCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
+
+    /// @name color services for implementing color lights
+    /// @{
+
+    /// derives the color mode from channel values that need to be applied to hardware
+    /// @return true if mode could be found
+    bool deriveColorMode();
 
     /// @}
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
@@ -236,12 +236,18 @@ namespace p44 {
 
   protected:
 
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved as captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
+    /// called by applyScene to load channel values from a scene.
+    /// @param aScene the scene to load channel values from
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    virtual void loadChannelsFromScene(DsScenePtr aScene);
 
-  private:
+    /// called by captureScene to save channel values to a scene.
+    /// @param aScene the scene to save channel values to
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void saveChannelsToScene(DsScenePtr aScene);
 
   };
 

@@ -121,27 +121,30 @@ namespace p44 {
     /// @param aIsMember true to make device member of this group
     void setGroupMembership(DsGroup aGroup, bool aIsMember);
 
-    /// apply scene to output
-    /// @param aScene the scene to apply to the output
+    /// apply scene to output channels
+    /// @param aScene the scene to apply to output channels
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
-    ///   false if scene cannot yet be applied to hardware, and actual transfer to hardware will happen later
+    ///   false if scene cannot yet be applied to hardware, and will be performed later
     /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
     ///   a one-step scene value change.
     ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
-    /// @note this method does not handle dimming, and MUST NOT be called with dimming specific scenes. For dimming,
-    ///   only the device's dimChannel method must be used.
-    virtual bool applyScene(DsScenePtr aScene) { return true; /* just return "apply complete" in base class */ };
+    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
+    ///   only dimChannel method must be used.
+    /// @note base class' implementation provides applying the scene values to channels.
+    ///   Derived classes may implement handling of hard-wired behaviour specific scenes.
+    virtual bool applyScene(DsScenePtr aScene);
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene) { /* NOP in base class, only relevant for lights */ };
-
+    /// @param aDoneCB will be called when scene actions have completed
+    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
+    /// @param aFromDevice true to request real values read back from device hardware (if possible), false to
+    ///   just capture the currently cached channel values
     /// @param aDoneCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
+    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
@@ -152,6 +155,10 @@ namespace p44 {
     /// @param aValue the control value to process
     virtual void processControlValue(const string &aName, double aValue) { /* NOP in base class */ };
 
+    /// identify the device to the user in a behaviour-specific way
+    /// @note this is usually called by device's identifyToUser(), unless device has hardware (rather than behaviour)
+    ///   specific implementation
+    virtual void identifyToUser() { /* NOP in base class */ };
 
     /// @}
 
@@ -160,6 +167,19 @@ namespace p44 {
     virtual string description();
 
   protected:
+
+    /// called by applyScene to load channel values from a scene.
+    /// @param aScene the scene to load channel values from
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    virtual void loadChannelsFromScene(DsScenePtr aScene) { /* NOP in base class */ };
+
+    /// called by captureScene to save channel values to a scene.
+    /// @param aScene the scene to save channel values to
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void saveChannelsToScene(DsScenePtr aScene) { /* NOP in base class */ };
 
     // the behaviour type
     virtual BehaviourType getType() { return behaviour_output; };
@@ -185,7 +205,11 @@ namespace p44 {
     virtual const FieldDefinition *getFieldDef(size_t aIndex);
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-    
+
+  private:
+
+    void channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
+
   };
   
   typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;

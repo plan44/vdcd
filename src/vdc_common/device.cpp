@@ -525,7 +525,7 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
 void Device::callScene(SceneNo aSceneNo, bool aForce)
 {
   // see if we have a scene table at all
-  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  SceneDeviceSettingsPtr scenes = getScenes();
   if (scenes) {
     DsScenePtr scene;
     // check special scene numbers first
@@ -596,13 +596,13 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
           // Note: the actual updating might happen later (when the hardware responds) but
           //   implementations must make sure access to the hardware is serialized such that
           //   the values are captured before values from applyScene() below are applied.
-          output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
+          output->captureScene(previousState, true, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
         } // if output
       } // not dontCare
       else {
         // do other scene actions now, as dontCare prevented applying scene above
         if (output) {
-          output->performSceneActions(scene);
+          output->performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
         } // if output
       }
     } // scene found
@@ -628,7 +628,14 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 void Device::sceneValuesApplied(DsScenePtr aScene)
 {
   // now perform scene special actions such as blinking
-  output->performSceneActions(aScene);
+  output->performSceneActions(aScene, boost::bind(&Device::sceneActionsComplete, this, aScene));
+}
+
+
+void Device::sceneActionsComplete(DsScenePtr aScene)
+{
+  // now perform scene special actions such as blinking
+  LOG(LOG_DEBUG, "- scene actions for scene %d complete\n", aScene->sceneNo);
 }
 
 
@@ -687,7 +694,12 @@ void Device::callSceneMin(SceneNo aSceneNo)
 
 void Device::identifyToUser()
 {
-  LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
+  if (output) {
+    output->identifyToUser(); // pass on to behaviour by default
+  }
+  else {
+    LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
+  }
 }
 
 
@@ -703,8 +715,8 @@ void Device::saveScene(SceneNo aSceneNo)
     if (scene) {
       // scene found, now capture to all of our outputs
       if (output) {
-        // capture value from this output
-        output->captureScene(scene, boost::bind(&Device::outputSceneValueSaved, this, scene));
+        // capture value from this output, reading from device (if possible) to catch e.g. color changes applied via external means (hue remote app etc.)
+        output->captureScene(scene, true, boost::bind(&Device::outputSceneValueSaved, this, scene));
       }
     }
   }

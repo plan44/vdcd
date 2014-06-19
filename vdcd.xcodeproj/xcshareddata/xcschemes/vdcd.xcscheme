@@ -68,7 +68,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -92,10 +92,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.173"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.162"
+            argument = "--dali 192.168.59.221"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -136,7 +136,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testcolor:color"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

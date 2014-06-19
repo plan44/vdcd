@@ -239,48 +239,46 @@ HueLightBehaviour::HueLightBehaviour(Device &aDevice) :
 }
 
 
-void HueLightBehaviour::recallScene(LightScenePtr aLightScene)
-{
-  HueLightScenePtr hueScene = boost::dynamic_pointer_cast<HueLightScene>(aLightScene);
-  if (hueScene) {
-    // prepare next color values in device
-    HueDevice *devP = dynamic_cast<HueDevice *>(&device);
-    if (devP) {
-      devP->pendingColorScene = hueScene;
-      // we need an output update, even if main output value (brightness) has not changed in new scene
-      devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
-    }
-  }
-  // let base class update logical brightness, which will in turn update the output, which will then
-  // catch the colors from pendingColorScene
-  inherited::recallScene(aLightScene);
-}
+//  void HueLightBehaviour::recallSceneValues(LightScenePtr aLightScene)
+//  {
+//    HueLightScenePtr hueScene = boost::dynamic_pointer_cast<HueLightScene>(aLightScene);
+//    if (hueScene) {
+//      // prepare next color values in device
+//      HueDevice *devP = dynamic_cast<HueDevice *>(&device);
+//      if (devP) {
+//        devP->pendingColorScene = hueScene;
+//        // we need an output update, even if main output value (brightness) has not changed in new scene
+//        devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
+//      }
+//    }
+//    // let base class update logical brightness, which will in turn update the output, which will then
+//    // catch the colors from pendingColorScene
+//    inherited::recallSceneValues(aLightScene);
+//  }
 
 
 
-void HueLightBehaviour::performSceneActions(DsScenePtr aScene)
-{
-  // we can only handle light scenes
-  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
-  if (lightScene && lightScene->effect==scene_effect_alert) {
-    // alert
-    HueDevice *devP = dynamic_cast<HueDevice *>(&device);
-    if (devP) {
-      // Three breathe cycles
-      devP->alertHandler(3);
-    }
-  }
-}
-
-
-
+//  void HueLightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
+//  {
+//    // we can only handle light scenes
+//    LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+//    if (lightScene && lightScene->effect==scene_effect_alert) {
+//      // alert
+//      HueDevice *devP = dynamic_cast<HueDevice *>(&device);
+//      if (devP) {
+//        // Three breathe cycles
+//        devP->alertHandler(3);
+//      }
+//    }
+//  }
 
 
 // capture scene
-void HueLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
+void HueLightBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
 {
   HueLightScenePtr hueScene = boost::dynamic_pointer_cast<HueLightScene>(aScene);
   if (hueScene) {
+    #warning // TODO: check aFromDevice
     // query light attributes and state
     HueDevice *devP = dynamic_cast<HueDevice *>(&device);
     if (devP) {
@@ -341,11 +339,12 @@ void HueLightBehaviour::sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB a
           bri = (Brightness)o->int32Value();
         }
       }
-      getChannelByType(channeltype_brightness)->initChannelValue(bri);
+      getChannelByType(channeltype_brightness)->syncChannelValue(bri);
     }
   }
   // anyway, let base class capture brightness
-  inherited::captureScene(aHueScene, aDoneCB);
+  // %%% ugly - aFromDevice set to true
+  inherited::captureScene(aHueScene, true, aDoneCB);
 }
 
 
@@ -436,7 +435,7 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
           bri = o->int32Value();
         }
         // set current brightness
-        output->getChannelByType(channeltype_brightness)->initChannelValue(bri);
+        output->getChannelByType(channeltype_brightness)->syncChannelValue(bri);
       }
     }
   }
@@ -471,26 +470,26 @@ void HueDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObj
 
 
 
-void HueDevice::identifyToUser()
-{
-  // Four breathe cycles
-  alertHandler(4);
-}
-
-
-void HueDevice::alertHandler(int aLeftCycles)
-{
-  // do one alert
-  string url = string_format("/lights/%s/state", lightID.c_str());
-  JsonObjectPtr newState = JsonObject::newObj();
-  newState->add("alert", JsonObject::newString("select"));
-  hueComm().apiAction(httpMethodPUT, url.c_str(), newState, NULL);
-  // schedule next if any left
-  if (--aLeftCycles>0) {
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&HueDevice::alertHandler, this, aLeftCycles), 1*Second);
-  }
-}
-
+//  void HueDevice::identifyToUser()
+//  {
+//    // Four breathe cycles
+//    alertHandler(4);
+//  }
+//
+//
+//  void HueDevice::alertHandler(int aLeftCycles)
+//  {
+//    // do one alert
+//    string url = string_format("/lights/%s/state", lightID.c_str());
+//    JsonObjectPtr newState = JsonObject::newObj();
+//    newState->add("alert", JsonObject::newString("select"));
+//    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, NULL);
+//    // schedule next if any left
+//    if (--aLeftCycles>0) {
+//      MainLoop::currentMainLoop().executeOnce(boost::bind(&HueDevice::alertHandler, this, aLeftCycles), 1*Second);
+//    }
+//  }
+//
 
 
 void HueDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
@@ -515,6 +514,11 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
+// NOTE: device's implementation MUST be such that this method can be called multiple times even before aCompletedCB
+//   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
+//   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
+//   most recent call's value gets applied to the hardware.
+// TODO: clean up and follow comment above
 void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
   // check if any channel has changed at all
@@ -596,6 +600,15 @@ void HueDevice::outputChangeSent(CompletedCB aCompletedCB, LightBehaviourPtr aLi
   // confirm
   aCompletedCB(aError);
 }
+
+
+
+void HueDevice::syncChannelValues(CompletedCB aCompletedCB)
+{
+  // TODO: actually implement
+  inherited::syncChannelValues(aCompletedCB);
+}
+
 
 
 

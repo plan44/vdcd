@@ -65,14 +65,34 @@ string ChannelBehaviour::description()
 #pragma mark - channel value handling
 
 
-// only used at startup to get the inital value FROM the hardware
+// used at startup and before saving scenes to get the current value FROM the hardware
 // NOT to be used to change the hardware channel value!
-void ChannelBehaviour::initChannelValue(double aActualChannelValue)
+void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
 {
-  DBGLOG(LOG_DEBUG, ">>>> initChannelValue actualChannelValue=%d\n", aActualChannelValue);
+  LOG(LOG_INFO,
+    "Channel '%s' in device %s: cached value synchronized to %0.2f\n",
+    getName(), output.device.shortDesc().c_str(), aActualChannelValue
+  );
   cachedChannelValue = aActualChannelValue;
   channelValueApplied(); // now we know that we are in sync
 }
+
+
+
+void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
+{
+  setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown);
+}
+
+
+void ChannelBehaviour::setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
+{
+  if (!(aScene->isSceneValueFlagSet(getChannelIndex(), valueflags_dontCare))) {
+    setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown);
+  }
+}
+
+
 
 
 void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime)

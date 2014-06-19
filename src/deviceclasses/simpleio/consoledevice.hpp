@@ -40,7 +40,6 @@ namespace p44 {
     bool hasOutput;
     bool hasColor;
     ConsoleKeyPtr consoleKey;
-    double outputValue;
 
   public:
     ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);

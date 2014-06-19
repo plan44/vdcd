@@ -41,11 +41,11 @@ double ColorLightScene::sceneValue(size_t aChannelIndex)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_hue: return colorMode==ColorLightModeHueSaturation ? XOrHueOrCt : 0;
-    case channeltype_saturation: return colorMode==ColorLightModeHueSaturation ? YOrSat : 0;
-    case channeltype_colortemp: return colorMode==ColorLightModeCt ? XOrHueOrCt : 0;
-    case channeltype_cie_x: return colorMode==ColorLightModeXY ? XOrHueOrCt : 0;
-    case channeltype_cie_y: return colorMode==ColorLightModeXY ? YOrSat : 0;
+    case channeltype_hue: return colorMode==colorLightModeHueSaturation ? XOrHueOrCt : 0;
+    case channeltype_saturation: return colorMode==colorLightModeHueSaturation ? YOrSat : 0;
+    case channeltype_colortemp: return colorMode==colorLightModeCt ? XOrHueOrCt : 0;
+    case channeltype_cie_x: return colorMode==colorLightModeXY ? XOrHueOrCt : 0;
+    case channeltype_cie_y: return colorMode==colorLightModeXY ? YOrSat : 0;
     default: return inherited::sceneValue(aChannelIndex);
   }
   return 0;
@@ -56,11 +56,11 @@ void ColorLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_hue: XOrHueOrCt = aValue; colorMode=ColorLightModeHueSaturation; break;
-    case channeltype_saturation: YOrSat = aValue; colorMode=ColorLightModeHueSaturation; break;
-    case channeltype_colortemp: XOrHueOrCt = aValue; colorMode=ColorLightModeCt; break;
-    case channeltype_cie_x: XOrHueOrCt = aValue; colorMode=ColorLightModeXY; break;
-    case channeltype_cie_y: YOrSat = aValue; colorMode=ColorLightModeXY; break;
+    case channeltype_hue: XOrHueOrCt = aValue; colorMode = colorLightModeHueSaturation; break;
+    case channeltype_saturation: YOrSat = aValue; colorMode = colorLightModeHueSaturation; break;
+    case channeltype_colortemp: XOrHueOrCt = aValue; colorMode = colorLightModeCt; break;
+    case channeltype_cie_x: XOrHueOrCt = aValue; colorMode = colorLightModeXY; break;
+    case channeltype_cie_y: YOrSat = aValue; colorMode = colorLightModeXY; break;
     default: inherited::setSceneValue(aChannelIndex, aValue);
   }
 }
@@ -130,7 +130,7 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
   inherited::setDefaultSceneValues(aSceneNo);
   // TODO: implement according to dS Specs for color lights
   // %%% for now, just set to light bulb white color temperature
-  colorMode = ColorLightModeCt;
+  colorMode = colorLightModeCt;
   XOrHueOrCt = 270; // 270mired = 2700K = warm white
   YOrSat = 0;
 }
@@ -159,7 +159,8 @@ DsScenePtr ColorLightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 
 ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
-  inherited(aDevice)
+  inherited(aDevice),
+  colorMode(colorLightModeNone)
 {
   // primary channel of a color light is always a dimmer controlling the brightness
   setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
@@ -181,55 +182,105 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
 }
 
 
-
-
-
-#pragma mark - behaviour interaction with digitalSTROM system
-
-
-#define AUTO_OFF_FADE_TIME (60*Second)
-
-void ColorLightBehaviour::recallScene(LightScenePtr aLightScene)
+void ColorLightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
-  ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aLightScene);
-  if (colorLightScene) {
-    // prepare next color values in device
-//    HueDevice *devP = dynamic_cast<HueDevice *>(&device);
-//    if (devP) {
-//      devP->pendingColorScene = colorLightScene;
-//      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
-//    }
-  }
-  // let base class update logical brightness, which will in turn update the primary output, which will then
-  // catch the colors from pendingColorScene
-  inherited::recallScene(aLightScene);
-}
-
-
-void ColorLightBehaviour::performSceneActions(DsScenePtr aScene)
-{
-  // for now, just let base class check these
-  inherited::performSceneActions(aScene);
-}
-
-
-
-// capture scene
-void ColorLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
-{
-  // we can only handle light scenes
+  // load basic light scene info
+  inherited::loadChannelsFromScene(aScene);
+  // now load color specific scene information
   ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aScene);
   if (colorLightScene) {
-    // make sure logical brightness is updated from output
-//    updateLogicalBrightnessFromOutput();
-//    // just capture the output value
-//    if (lightScene->sceneBrightness != getLogicalBrightness()) {
-//      lightScene->sceneBrightness = getLogicalBrightness();
-//      lightScene->markDirty();
-//    }
+    MLMicroSeconds ttUp = transitionTimeFromSceneEffect(colorLightScene->effect, true);
+    MLMicroSeconds ttDown = transitionTimeFromSceneEffect(colorLightScene->effect, false);
+    // prepare next color values in channels
+    colorMode = colorLightScene->colorMode;
+    switch (colorMode) {
+      case colorLightModeHueSaturation: {
+        hue->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
+        saturation->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown);
+        break;
+      }
+      case colorLightModeXY: {
+        cieX->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
+        cieY->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown);
+        break;
+      }
+      case colorLightModeCt: {
+        ct->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
+        break;
+      }
+      default:
+        colorMode = colorLightModeNone;
+    }
   }
-  inherited::captureScene(aScene, aDoneCB);
 }
+
+
+void ColorLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
+{
+  // save basic light scene info
+  inherited::saveChannelsToScene(aScene);
+  // now save color specific scene information
+  ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aScene);
+  if (colorLightScene) {
+    colorLightScene->colorMode = colorMode;
+    // first set all color related to dontCare
+    colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+    colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+    colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+    colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+    colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+    // now save the values and clear don't cares according to color mode
+    switch (colorMode) {
+      case colorLightModeHueSaturation: {
+        colorLightScene->XOrHueOrCt = hue->getChannelValue();
+        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, false);
+        colorLightScene->YOrSat = saturation->getChannelValue();
+        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, false);
+        break;
+      }
+      case colorLightModeXY: {
+        colorLightScene->XOrHueOrCt = cieX->getChannelValue();
+        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, false);
+        colorLightScene->YOrSat = cieY->getChannelValue();
+        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, false);
+        break;
+      }
+      case colorLightModeCt: {
+        colorLightScene->XOrHueOrCt = ct->getChannelValue();
+        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, false);
+        break;
+      }
+      default: {
+        // all color related information is dontCare
+        break;
+      }
+    }
+  }
+}
+
+
+#pragma mark - color services for implementing color lights
+
+
+bool ColorLightBehaviour::deriveColorMode()
+{
+  // check changed channels
+  if (hue->needsApplying() || saturation->needsApplying()) {
+    colorMode = colorLightModeHueSaturation;
+    return true;
+  }
+  else if (cieX->needsApplying() || cieY->needsApplying()) {
+    colorMode = colorLightModeXY;
+    return true;
+  }
+  else if (ct->needsApplying()) {
+    colorMode = colorLightModeCt;
+    return true;
+  }
+  // could not determine new color mode (assuming old is still ok)
+  return false;
+}
+
 
 
 #pragma mark - description/shortDesc
@@ -244,6 +295,7 @@ string ColorLightBehaviour::shortDesc()
 string ColorLightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
+  string_format_append(s, "- color mode = %s", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
   // TODO: add color specific info here
   s.append(inherited::description());
   return s;

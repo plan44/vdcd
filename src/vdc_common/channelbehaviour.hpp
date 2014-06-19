@@ -95,16 +95,27 @@ namespace p44 {
     /// @param aResolution actual resolution (smallest step) of the connected hardware
     void setResolution(double aResolution);
 
-    /// set actual current output value as read from the device on startup, to update local cache value
+    /// set actual current output value as read from the device on startup, or before saving scenes
+    /// to sync local cache value
     /// @param aActualChannelValue the value as read from the device
     /// @note only used at startup to get the inital value FROM the hardware.
     ///   NOT to be used to change the hardware output value!
-    void initChannelValue(double aActualChannelValue);
+    void syncChannelValue(double aActualChannelValue);
 
     /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
     void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0);
+
+    /// set new channel value and separate transition times for increasing/decreasing value applyChannelValues()
+    /// @param aValue the new output value
+    /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher channel value
+    /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower channel value
+    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown);
+
+    /// convenience variant of setChannelValue, which also checks the associated dontCare flag from the scene passed
+    /// and only assigns the new value if the dontCare flags is NOT set.
+    void setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown);
 
     /// dim channel value up or down, preventing going below getMinDim().
     /// @param aIncrement how much to increment/decrement the value

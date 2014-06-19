@@ -169,27 +169,27 @@ SparkLightBehaviour::SparkLightBehaviour(Device &aDevice) :
 }
 
 
-void SparkLightBehaviour::recallScene(LightScenePtr aLightScene)
-{
-  SparkLightScenePtr sparkScene = boost::dynamic_pointer_cast<SparkLightScene>(aLightScene);
-  if (sparkScene) {
-    // prepare next color values in device
-    SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
-    if (devP) {
-      devP->pendingSparkScene = sparkScene;
-      // we need an output update, even if main output value (brightness) has not changed in new scene
-      devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
-    }
-  }
-  // let base class update logical brightness, which will in turn update the output, which will then
-  // catch the colors from pendingColorScene
-  inherited::recallScene(aLightScene);
-}
+//  void SparkLightBehaviour::recallSceneValues(LightScenePtr aLightScene)
+//  {
+//    SparkLightScenePtr sparkScene = boost::dynamic_pointer_cast<SparkLightScene>(aLightScene);
+//    if (sparkScene) {
+//      // prepare next color values in device
+//      SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
+//      if (devP) {
+//        devP->pendingSparkScene = sparkScene;
+//        // we need an output update, even if main output value (brightness) has not changed in new scene
+//        devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
+//      }
+//    }
+//    // let base class update logical brightness, which will in turn update the output, which will then
+//    // catch the colors from pendingColorScene
+//    inherited::recallSceneValues(aLightScene);
+//  }
 
 
 
 // capture scene
-void SparkLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
+void SparkLightBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
 {
   SparkLightScenePtr sparkScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
   if (sparkScene) {
@@ -211,13 +211,14 @@ void SparkLightBehaviour::sceneStateReceived(SparkLightScenePtr aSparkScene, Don
       // state is brightness + extended state: 0xssssssbb, ssssss=extended state, bb=brightness
       Brightness bri = state & 0xFF;
       uint32_t extendedState = (state & 0xFFFFFF)>>8;
-      getChannelByType(channeltype_brightness)->initChannelValue(bri); // update basic light behaviour brightness state
+      getChannelByType(channeltype_brightness)->syncChannelValue(bri); // update basic light behaviour brightness state
       aSparkScene->extendedState = extendedState; // capture extended state in scene
       aSparkScene->markDirty();
     }
   }
   // anyway, let base class capture brightness
-  inherited::captureScene(aSparkScene, aDoneCB);
+  //%%% ugly, aFromDevice missing
+  inherited::captureScene(aSparkScene, false, aDoneCB);
 }
 
 

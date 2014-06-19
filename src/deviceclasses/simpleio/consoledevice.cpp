@@ -34,8 +34,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   Device((DeviceClassContainer *)aClassContainerP),
   hasButton(false),
   hasOutput(false),
-  hasColor(false),
-  outputValue(0)
+  hasColor(false)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string name = aDeviceConfig;
@@ -109,26 +108,28 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 
 void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB)
 {
-  // light device
-  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
-  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
-    outputValue = lightBehaviour->brightnessForHardware();
-    // represent full scale as 0..50 hashes
-    string bar;
-    double v = lightBehaviour->brightness->getMin();
-    double step = (lightBehaviour->brightness->getMax()-lightBehaviour->brightness->getMin())/50;
-    while (v<outputValue) {
-      bar += '#';
-      v += step;
+  // generic device, show changed channels
+  for (int i = 0; i<numChannels(); i++) {
+    ChannelBehaviourPtr ch = getChannelByIndex(i);
+    if (ch && ch->needsApplying()) {
+      double chVal = ch->getChannelValue();
+      // represent full scale as 0..50 hashes
+      string bar;
+      double v = ch->getMin();
+      double step = (ch->getMax()-ch->getMin())/50;
+      while (v<chVal) {
+        bar += '#';
+        v += step;
+      }
+      // show
+      printf(
+         ">>> Console device %s: channel %s set to %4.2f, transition time = %2.3f Seconds: %s\n",
+         getName().c_str(), ch->getName(),
+         chVal, (double)ch->transitionTimeToNewValue()/Second,
+         bar.c_str()
+      );
+      ch->channelValueApplied(); // confirm having applied the value
     }
-    // show
-    printf(
-      ">>> Console device %s: output set to %4.2f, transition time = %0.3f Seconds: %s\n",
-      getName().c_str(), outputValue,
-      (double)lightBehaviour->transitionTimeToNewBrightness()/Second,
-      bar.c_str()
-    );
-    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
   inherited::applyChannelValues(aCompletedCB);
 }
