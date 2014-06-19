@@ -105,7 +105,7 @@ namespace p44 {
     long announcementTicket;
     long periodicTaskTicket;
 
-    bool localDimDown;
+    int8_t localDimDirection;
 
     // learning
     bool learningMode;

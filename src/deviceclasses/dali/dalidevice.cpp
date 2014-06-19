@@ -76,9 +76,9 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
 {
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
-    int32_t bri = arcpowerToBrightness(aResponse);
+    Brightness bri = arcpowerToBrightness(aResponse);
     output->getChannelByIndex(0)->initChannelValue(bri);
-    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, bri);
+    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %0.1f\n", aResponse, bri);
   }
   // query the minimum dimming level
   daliDeviceContainer().daliComm->daliSendQuery(
@@ -95,7 +95,7 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     minLevel = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
+    LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %0.1f\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
   LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);

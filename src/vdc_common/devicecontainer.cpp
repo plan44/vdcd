@@ -50,7 +50,7 @@ DeviceContainer::DeviceContainer() :
   learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
-  localDimDown(false),
+  localDimDirection(0), // undefined
   dsUids(false)
 {
   // obtain MAC address
@@ -509,6 +509,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 {
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
+  // if button has up/down, direction is derived from button
   int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
   switch (aClickType) {
     case ct_tip_1x:
@@ -529,11 +530,16 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
     case ct_hold_start:
       scene = INC_S; // just as a marker to start dimming (we'll use dimChannelForArea(), not legacy dimming!)
       // determine direction
-      if (direction!=0)
-        localDimDown = direction<0;
+      if (direction!=0) {
+        // there is a direction derived from the click, use it
+        localDimDirection = direction;
+      }
       else {
-        localDimDown = !localDimDown; // just toggle direction
-        direction = localDimDown ? -1 : 1; // adjust direction as well
+        // click has no direction
+        if (localDimDirection!=0) {
+          localDimDirection *= -1; // reverse
+        }
+        direction = localDimDirection;
       }
       break;
     case ct_hold_end:
