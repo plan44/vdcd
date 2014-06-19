@@ -535,6 +535,8 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     // turn off
     brightness->setChannelValue(brightness->getMinDim(), 0);
   }
+  // apply to hardware
+  device.applyChannelValues(NULL);
   aState = !aState; // toggle
   // schedule next event
   MainLoop::currentMainLoop().executeOnce(
