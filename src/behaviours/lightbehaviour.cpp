@@ -525,6 +525,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
   if (MainLoop::now()>=aEndTime) {
     // done, restore original brightness
     brightness->setChannelValue(aOrigBrightness, 0);
+    device.applyChannelValues(NULL);
     return;
   }
   else if (!aState) {
