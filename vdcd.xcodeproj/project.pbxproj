@@ -19,6 +19,8 @@
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
+		ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
+		ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F82F6184E40FD00339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
 		ED1F82F7184E410000339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
 		ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE309184E385A001ADB5E /* vdcapi.proto */; };
@@ -272,6 +274,8 @@
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorutils.cpp; sourceTree = "<group>"; };
+		ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = colorutils.hpp; sourceTree = "<group>"; };
 		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
 		ED1F82FF184F2D2100339A22 /* vdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = vdcapi.cpp; sourceTree = "<group>"; };
 		ED1F8300184F2D2100339A22 /* vdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = vdcapi.hpp; sourceTree = "<group>"; };
@@ -627,6 +631,8 @@
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */,
+				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED81337717C6C765003982CC /* p44obj.cpp */,
@@ -931,6 +937,7 @@
 				ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */,
 				ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */,
 				ED1F82F7184E410000339A22 /* messages.proto in Sources */,
+				ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */,
 				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,
 				ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */,
 				ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */,
@@ -978,6 +985,7 @@
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
+				ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,

@@ -94,6 +94,8 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/colorutils.cpp \
+  src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
   src/p44utils/httpcomm.cpp\
@@ -239,6 +241,8 @@ demovdc_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/colorutils.cpp \
+  src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
   src/p44utils/p44_common.hpp \

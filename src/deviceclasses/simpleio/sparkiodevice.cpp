@@ -382,7 +382,7 @@ void SparkIoDevice::channelChanged(CompletedCB aCompletedCB, LightBehaviourPtr a
       outputChangePending = false;
     }
   }
-  aCompletedCB(aError);
+  if (aCompletedCB) aCompletedCB(aError);
 }
 
 
