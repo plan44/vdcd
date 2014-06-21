@@ -111,9 +111,6 @@ namespace p44 {
   /// @return hex string
   string binaryToHexString(const string &aBinaryString);
 
-
-
-
 } // namespace p44
 
 #endif /* defined(__p44utils__utils__) */

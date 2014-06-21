@@ -134,7 +134,7 @@ bool OutputBehaviour::applyScene(DsScenePtr aScene)
 {
   // apply stored scene value(s) to channels
   loadChannelsFromScene(aScene);
-  LOG(LOG_NOTICE,"- ApplyScene(%d): Applied channel value(s) from scene\n", aScene->sceneNo);
+  LOG(LOG_NOTICE,"- Scene(%d): new channel value(s) loaded from scene, ready to apply\n", aScene->sceneNo);
   return true;
 }
 

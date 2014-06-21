@@ -24,7 +24,7 @@
 
 #include "device.hpp"
 
-#include "lightbehaviour.hpp"
+#include "colorlightbehaviour.hpp"
 
 #include "jsonobject.hpp"
 
@@ -35,85 +35,6 @@ namespace p44 {
   class HueDeviceContainer;
   class HueDevice;
   class HueComm;
-
-  typedef enum {
-    hueColorModeNone, ///< no color information stored, only brightness
-    hueColorModeHueSaturation, ///< "hs" - hue & saturation
-    hueColorModeXY, ///< "xy" - CIE color space coordinates
-    hueColorModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K) for hue Lights
-  } HueColorMode;
-
-
-
-  class HueLightScene : public LightScene
-  {
-    typedef LightScene inherited;
-  public:
-    HueLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
-
-    /// @name hue light scene specific values
-    /// @{
-
-    HueColorMode colorMode; ///< color mode (hue+Saturation or CIE xy or color temperature)
-    double XOrHueOrCt; ///< X or hue or ct, depending on colorMode
-    double YOrSat; ///< Y or saturation, depending on colorMode
-
-    /// @}
-
-    /// Set default scene values for a specified scene number
-    /// @param aSceneNo the scene number to set default values
-    virtual void setDefaultSceneValues(SceneNo aSceneNo);
-
-  protected:
-
-    // persistence implementation
-    virtual const char *tableName();
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
-    // property access implementation
-    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
-
-  };
-  typedef boost::intrusive_ptr<HueLightScene> HueLightScenePtr;
-
-
-  class HueLightBehaviour : public LightBehaviour
-  {
-    typedef LightBehaviour inherited;
-
-  public:
-
-    HueLightBehaviour(Device &aDevice);
-
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aFromDevice true to request real values read back from device hardware (if possible), false to
-    ///   just capture the currently cached channel values
-    /// @param aDoneCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
-
-//    /// perform special scene actions (like flashing) which are independent of dontCare flag.
-//    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-//    /// @param aDoneCB will be called when scene actions have completed
-//    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB);
-
-
-  protected:
-
-
-  private:
-
-    void sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
-
-
-  };
-  typedef boost::intrusive_ptr<HueLightBehaviour> HueLightBehaviourPtr;
 
 
 
@@ -138,15 +59,16 @@ namespace p44 {
   class HueDevice : public Device
   {
     typedef Device inherited;
-    friend class HueLightBehaviour;
 
     string lightID; ///< the ID as used in the hue bridge
 
     // information from the device itself
     string hueModel;
 
-    // scene to update colors from when updating output
-    HueLightScenePtr pendingColorScene;
+    // applyChannel repetition management
+    CompletedCB pendingApplyCB;
+    bool applyInProgress;
+    bool repeatApplyAtEnd;
 
   public:
     HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID);
@@ -199,8 +121,6 @@ namespace p44 {
     /// @note implementation must use channel's syncChannelValue() method
     virtual void syncChannelValues(CompletedCB aCompletedCB);
 
-
-
     /// @}
 
 
@@ -222,7 +142,8 @@ namespace p44 {
     void deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
-    void outputChangeSent(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, ErrorPtr aError);
+    void channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, ErrorPtr aError);
+    void channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
   };
   

@@ -172,11 +172,11 @@ namespace p44 {
     ///   above onThreshold, brightnessForHardware() will return the max channel value and 0 otherwise.
     Brightness brightnessForHardware();
 
-    /// (re)init channel brightness from actual hardware value
+    /// sync channel brightness from actual hardware value
     /// @param aBrightness current brightness value read back from hardware
     /// @note this wraps the dimmable/switch functionality (does not change channel value when onThreshold
     ///   condition is already met to allow saving virtual brightness to scenes)
-    void initBrightnessFromHardware(Brightness aBrightness);
+    void syncBrightnessFromHardware(Brightness aBrightness);
 
     /// wrapper to confirm having applied brightness
     bool brightnessNeedsApplying() { return brightness->needsApplying(); };

@@ -70,11 +70,12 @@ string ChannelBehaviour::description()
 void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
 {
   LOG(LOG_INFO,
-    "Channel '%s' in device %s: cached value synchronized to %0.2f\n",
-    getName(), output.device.shortDesc().c_str(), aActualChannelValue
+    "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
+    getName(), output.device.shortDesc().c_str(), cachedChannelValue, aActualChannelValue
   );
   cachedChannelValue = aActualChannelValue;
-  channelValueApplied(); // now we know that we are in sync
+  channelUpdatePending = false; // we are in sync
+  channelLastSent = MainLoop::now(); // value is current
 }
 
 
@@ -105,8 +106,8 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
   // prevent propagating changes smaller than device resolution
   if (fabs(aNewValue-cachedChannelValue)>=getResolution()) {
     LOG(LOG_INFO,
-      "Channel '%s' in device %s: is requested to apply new value %0.2f (transition time=%lld uS), last known value is %0.2f\n",
-      getName(), output.device.shortDesc().c_str(), aNewValue, aTransitionTime, cachedChannelValue
+      "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%lld uS)\n",
+      getName(), output.device.shortDesc().c_str(), cachedChannelValue, aNewValue, aTransitionTime
     );
     // apply
     cachedChannelValue = aNewValue;
@@ -137,12 +138,14 @@ void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransi
 
 void ChannelBehaviour::channelValueApplied()
 {
-  channelUpdatePending = false; // applied
-  channelLastSent = MainLoop::now(); // now we know that we are in sync
-  LOG(LOG_INFO,
-    "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
-    getName(), output.device.shortDesc().c_str(), cachedChannelValue
-  );
+  if (channelUpdatePending) {
+    channelUpdatePending = false; // applied
+    channelLastSent = MainLoop::now(); // now we know that we are in sync
+    LOG(LOG_INFO,
+      "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
+      getName(), output.device.shortDesc().c_str(), cachedChannelValue
+    );
+  }
 }
 
 
@@ -241,7 +244,8 @@ bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVa
         // - none for now
         // States properties
         case value_key+states_key_offset:
-          aPropValue->setDoubleValue(getChannelValue());
+          // get value of channel, possibly calculating it if needed (color conversions)
+          aPropValue->setDoubleValue(getChannelValueCalculated());
           return true;
         case age_key+states_key_offset:
           if (channelLastSent==Never)

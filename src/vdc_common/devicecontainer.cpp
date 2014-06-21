@@ -565,6 +565,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
           if (direction==0) {
             // get direction from current value of first encountered light
             direction = l->brightness->getChannelValue() >= l->brightness->getMinDim() ? -1 : 1;
+            localDimDirection = direction;
           }
           if (scene==INC_S) {
             // Start dimming

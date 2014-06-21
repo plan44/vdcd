@@ -39,14 +39,32 @@ namespace p44 {
   } ColorLightMode;
 
 
-  class HueChannel : public ChannelBehaviour
+
+  class ColorChannel : public ChannelBehaviour
   {
     typedef ChannelBehaviour inherited;
+
+  public:
+
+    ColorChannel(OutputBehaviour &aOutput) : inherited(aOutput) {};
+
+    virtual ColorLightMode colorMode() = 0;
+
+    /// get current value of this channel - and calculate it if it is not set in the device, but must be calculated from other channels
+    virtual double getChannelValueCalculated();
+
+  };
+
+
+  class HueChannel : public ColorChannel
+  {
+    typedef ColorChannel inherited;
 
   public:
     HueChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.1; /* 0.1 degree */ };
 
     virtual DsChannelType getChannelType() { return channeltype_hue; }; ///< the dS channel type
+    virtual ColorLightMode colorMode() { return colorLightModeHueSaturation; };
     virtual const char *getName() { return "hue"; };
     virtual double getMin() { return 0; }; // hue goes from 0 to (almost) 360 degrees
     virtual double getMax() { return 358.6; };
@@ -54,14 +72,15 @@ namespace p44 {
   };
 
 
-  class SaturationChannel : public ChannelBehaviour
+  class SaturationChannel : public ColorChannel
   {
-    typedef ChannelBehaviour inherited;
+    typedef ColorChannel inherited;
 
   public:
     SaturationChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.1; /* 0.1 percent */ };
 
     virtual DsChannelType getChannelType() { return channeltype_saturation; }; ///< the dS channel type
+    virtual ColorLightMode colorMode() { return colorLightModeHueSaturation; };
     virtual const char *getName() { return "saturation"; };
     virtual double getMin() { return 0; }; // saturation goes from 0 to 100 percent
     virtual double getMax() { return 100; };
@@ -69,29 +88,31 @@ namespace p44 {
   };
 
 
-  class ColorTempChannel : public ChannelBehaviour
+  class ColorTempChannel : public ColorChannel
   {
-    typedef ChannelBehaviour inherited;
+    typedef ColorChannel inherited;
 
   public:
     ColorTempChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* 1 mired */ };
 
     virtual DsChannelType getChannelType() { return channeltype_colortemp; }; ///< the dS channel type
+    virtual ColorLightMode colorMode() { return colorLightModeCt; };
     virtual const char *getName() { return "color temperature"; };
-    virtual double getMin() { return 100; }; // CT goes from 100 to 1000 mired (=1000 to 10000 K)
+    virtual double getMin() { return 100; }; // CT goes from 100 to 1000 mired (10000K to 1000K)
     virtual double getMax() { return 1000; };
     virtual double getDimPerMS() { return 900.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
   };
 
 
-  class CieXChannel : public ChannelBehaviour
+  class CieXChannel : public ColorChannel
   {
-    typedef ChannelBehaviour inherited;
+    typedef ColorChannel inherited;
 
   public:
     CieXChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.01; /* 1% of full scale */ };
 
     virtual DsChannelType getChannelType() { return channeltype_cie_x; }; ///< the dS channel type
+    virtual ColorLightMode colorMode() { return colorLightModeXY; };
     virtual const char *getName() { return "CIE X"; };
     virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
     virtual double getMax() { return 1; };
@@ -99,14 +120,15 @@ namespace p44 {
   };
 
 
-  class CieYChannel : public ChannelBehaviour
+  class CieYChannel : public ColorChannel
   {
-    typedef ChannelBehaviour inherited;
+    typedef ColorChannel inherited;
 
   public:
     CieYChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 0.01; /* 1% of full scale */ };
 
     virtual DsChannelType getChannelType() { return channeltype_cie_y; }; ///< the dS channel type
+    virtual ColorLightMode colorMode() { return colorLightModeXY; };
     virtual const char *getName() { return "CIE Y"; };
     virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
     virtual double getMax() { return 1; };
@@ -184,9 +206,12 @@ namespace p44 {
     /// @}
 
 
+  public:
+
     /// @name internal volatile state
     /// @{
     ColorLightMode colorMode;
+    bool derivedValuesComplete;
     /// @}
 
 
@@ -201,7 +226,6 @@ namespace p44 {
 
 
 
-  public:
     ColorLightBehaviour(Device &aDevice);
 
     /// @name interface towards actual device hardware (or simulation)
@@ -222,6 +246,10 @@ namespace p44 {
     /// derives the color mode from channel values that need to be applied to hardware
     /// @return true if mode could be found
     bool deriveColorMode();
+
+    /// derives the values for the not-current color representations' channels
+    /// by converting between representations
+    void deriveMissingColorChannels();
 
     /// @}
 

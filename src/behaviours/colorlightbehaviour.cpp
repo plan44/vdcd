@@ -21,8 +21,26 @@
 
 #include "colorlightbehaviour.hpp"
 
+#include "colorutils.hpp"
+
 using namespace p44;
 
+
+#pragma mark - ColorChannel
+
+double ColorChannel::getChannelValueCalculated()
+{
+  // check with behaviour first
+  ColorLightBehaviour *cl = dynamic_cast<ColorLightBehaviour *>(&output);
+  if (cl) {
+    if (cl->colorMode!=colorMode()) {
+      // asking for a color channel that is not native -> have it calculated
+      cl->deriveMissingColorChannels();
+    }
+  }
+  // now return it
+  return getChannelValue();
+}
 
 
 #pragma mark - ColorLightScene
@@ -131,7 +149,7 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
   // TODO: implement according to dS Specs for color lights
   // %%% for now, just set to light bulb white color temperature
   colorMode = colorLightModeCt;
-  XOrHueOrCt = 270; // 270mired = 2700K = warm white
+  XOrHueOrCt = 370; // Mired = 1E6/colorTempKelvin : 370mired = 2700K = warm white
   YOrSat = 0;
 }
 
@@ -160,7 +178,8 @@ DsScenePtr ColorLightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   inherited(aDevice),
-  colorMode(colorLightModeNone)
+  colorMode(colorLightModeNone),
+  derivedValuesComplete(false)
 {
   // primary channel of a color light is always a dimmer controlling the brightness
   setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
@@ -212,6 +231,8 @@ void ColorLightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
         colorMode = colorLightModeNone;
     }
   }
+  // need recalculation of values
+  derivedValuesComplete = false;
 }
 
 
@@ -264,6 +285,9 @@ void ColorLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
 
 bool ColorLightBehaviour::deriveColorMode()
 {
+  // the need to derive the color modes only arises when
+  // colors have changed, so this invalidates the derived channel values
+  derivedValuesComplete = false;
   // check changed channels
   if (hue->needsApplying() || saturation->needsApplying()) {
     colorMode = colorLightModeHueSaturation;
@@ -279,6 +303,53 @@ bool ColorLightBehaviour::deriveColorMode()
   }
   // could not determine new color mode (assuming old is still ok)
   return false;
+}
+
+
+
+void ColorLightBehaviour::deriveMissingColorChannels()
+{
+  if (!derivedValuesComplete) {
+    Row3 HSV;
+    Row3 xyV;
+    double mired;
+    switch (colorMode) {
+      case colorLightModeHueSaturation:
+        // missing CIE and ct
+        HSV[0] = hue->getChannelValue(); // 0..360
+        HSV[1] = saturation->getChannelValue()/100; // 0..1
+        HSV[2] = brightness->getChannelValue()/255; // 0..1
+        HSVtoxyV(HSV, xyV);
+        cieX->syncChannelValue(xyV[0]);
+        cieY->syncChannelValue(xyV[1]);
+        xyVtoCT(xyV, mired);
+        ct->syncChannelValue(mired);
+        break;
+      case colorLightModeXY:
+        // missing HSV and ct
+        xyV[0] = cieX->getChannelValue();
+        xyV[1] = cieY->getChannelValue();
+        xyV[2] = brightness->getChannelValue()/255; // 0..1
+        xyVtoCT(xyV, mired);
+        ct->syncChannelValue(mired);
+      xyVtoHSV:
+        xyVtoHSV(xyV, HSV);
+        hue->syncChannelValue(HSV[0]);
+        saturation->syncChannelValue(HSV[1]*100); // 0..100%
+        break;
+      case colorLightModeCt:
+        // missing HSV and xy
+        // - xy
+        CTtoxyV(ct->getChannelValue(), xyV);
+        cieX->syncChannelValue(xyV[0]);
+        cieY->syncChannelValue(xyV[1]);
+        // - also create HSV
+        goto xyVtoHSV;
+      default:
+        break;
+    }
+    derivedValuesComplete = true;
+  }
 }
 
 

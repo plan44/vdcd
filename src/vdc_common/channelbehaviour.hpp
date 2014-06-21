@@ -47,9 +47,9 @@ namespace p44 {
     typedef PropertyContainer inherited;
     friend class OutputBehaviour;
 
-    OutputBehaviour &output;
-
   protected:
+
+    OutputBehaviour &output;
 
     /// @name hardware derived parameters (constant during operation)
     /// @{
@@ -127,6 +127,9 @@ namespace p44 {
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
     double getChannelValue() { return cachedChannelValue; };
+
+    /// get current value of this channel - and calculate it if it is not set in the device, but must be calculated from other channels
+    virtual double getChannelValueCalculated() { return getChannelValue(); /* no calculated channels in base class */ };
 
     /// the transition time to use to change value in the hardware
     /// @return time to be used to transition to new value

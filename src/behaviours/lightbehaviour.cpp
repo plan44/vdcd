@@ -372,7 +372,7 @@ Brightness LightBehaviour::brightnessForHardware()
 }
 
 
-void LightBehaviour::initBrightnessFromHardware(Brightness aBrightness)
+void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness)
 {
   if (
     isDimmable() || // for dimmable lights: always update value

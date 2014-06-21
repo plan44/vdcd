@@ -68,7 +68,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -112,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"
@@ -132,7 +132,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testout:out"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testcolor:color"

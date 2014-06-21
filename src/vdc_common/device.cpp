@@ -483,6 +483,8 @@ void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
     // start dimming
     ChannelBehaviourPtr ch = getChannelByType(aChannel);
     if (ch) {
+      // make sure the start point is calculated if needed
+      ch->getChannelValueCalculated();
       // calculate increment
       double increment = (aDimMode==dimmode_up ? DIM_STEP_INTERVAL_MS : -DIM_STEP_INTERVAL_MS) * ch->getDimPerMS();
       // start ticking
