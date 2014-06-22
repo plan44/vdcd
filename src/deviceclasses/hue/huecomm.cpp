@@ -83,8 +83,8 @@ void HueApiOperation::processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError
         string statusToken;
         if (responseItem->nextKeyValue(statusToken, responseParams)) {
           if (statusToken=="success" && responseParams) {
-            // apparently successful, return success object
-            data = responseParams;
+            // apparently successful, return entire response
+            data = aJsonResponse;
             errCode = HueCommErrorOK; // ok
             break;
           }

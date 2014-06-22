@@ -549,13 +549,17 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       break;
   }
   if (scene>=0) {
+    DsChannelType channeltype = channeltype_brightness; // default to brightness
+    if (aButtonBehaviour.buttonChannel!=channeltype_default) {
+      channeltype = aButtonBehaviour.buttonChannel;
+    }
     signalActivity(); // local activity
     // some action to perform on every light device
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
       if (scene==STOP_S) {
         // stop dimming
-        dev->dimChannelForArea(channeltype_brightness, dimmode_stop, 0, 0);
+        dev->dimChannelForArea(channeltype, dimmode_stop, 0, 0);
       }
       else {
         // call scene or start dimming
@@ -575,7 +579,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
               dev->callScene(MIN_S, true);
             }
             // now dim (safety timeout after 10 seconds)
-            dev->dimChannelForArea(channeltype_brightness,direction>0 ? dimmode_up : dimmode_down, 0, 10*Second);
+            dev->dimChannelForArea(channeltype, direction>0 ? dimmode_up : dimmode_down, 0, 10*Second);
           }
           else {
             // call a scene

@@ -42,7 +42,7 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
       // apply positive values to (default) valve output, clip to 100 max
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
-        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue));
+        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue), 0, true); // always apply
       }
     }
   }

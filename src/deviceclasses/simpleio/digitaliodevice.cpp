@@ -82,7 +82,7 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-void DigitalIODevice::applyChannelValues(CompletedCB aCompletedCB)
+void DigitalIODevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
 {
   // light device
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
@@ -90,7 +90,7 @@ void DigitalIODevice::applyChannelValues(CompletedCB aCompletedCB)
     indicatorOutput->set(lightBehaviour->brightnessForHardware());
     lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues(aCompletedCB);
+  inherited::applyChannelValues(aCompletedCB, aForDimming);
 }
 
 

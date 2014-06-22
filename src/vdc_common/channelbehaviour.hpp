@@ -84,6 +84,7 @@ namespace p44 {
     virtual double getMax() = 0; ///< max value
     virtual double getDimPerMS() = 0; ///< value to step up or down per Millisecond when dimming
     virtual double getMinDim() { return getMin(); }; ///< dimming min value defaults to same value as min
+    virtual bool wrapsAround() { return false; }; ///< if true, dimming is wrap around i.e. dimming below getMin()->getMax() and vice versa. Off by default
 
     /// @}
 
@@ -105,17 +106,20 @@ namespace p44 {
     /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
-    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0);
+    /// @param aAlwaysApply if set, new value will be applied to hardware even if not different from currently known value
+    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0, bool aAlwaysApply=false);
 
     /// set new channel value and separate transition times for increasing/decreasing value applyChannelValues()
     /// @param aValue the new output value
     /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher channel value
     /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower channel value
-    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown);
+    /// @param aAlwaysApply if set, new value will be applied to hardware even if not different from currently known value
+    void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply);
 
     /// convenience variant of setChannelValue, which also checks the associated dontCare flag from the scene passed
     /// and only assigns the new value if the dontCare flags is NOT set.
-    void setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown);
+    /// @param aAlwaysApply if set, new value will be applied to hardware even if not different from currently known value
+    void setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply);
 
     /// dim channel value up or down, preventing going below getMinDim().
     /// @param aIncrement how much to increment/decrement the value
@@ -140,7 +144,8 @@ namespace p44 {
     bool needsApplying() { return channelUpdatePending; }
 
     /// to be called when channel value has been successfully applied to hardware
-    void channelValueApplied();
+    /// @param aAnyWay if true, lastSent state will be set even if channel was not in needsApplying() state
+    void channelValueApplied(bool aAnyWay = false);
 
     /// @}
 
@@ -161,7 +166,8 @@ namespace p44 {
     bool isPrimary();
 
     /// call to make update pending
-    void setChannelUpdatePending() { channelUpdatePending = true; }
+    /// @param aTransitionTime if >=0, sets new transition time (useful when re-applying values)
+    void setNeedsApplying(MLMicroSeconds aTransitionTime = -1) { channelUpdatePending = true; if (aTransitionTime>=0) nextTransitionTime = aTransitionTime; }
 
     /// @}
 

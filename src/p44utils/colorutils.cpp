@@ -25,23 +25,12 @@
 
 using namespace p44;
 
-const static double Xr = 0.4123955889674142161; // red calib X
-const static double Yr = 0.2125862307855955516; // red calib Y
-const static double Zr = 0.01929721549174694484; // red calib Z
-
-const static double Xg = 0.3575834307637148171; // green calib X
-const static double Yg = 0.7151703037034108499; // green calib Y
-const static double Zg = 0.1191838645808485318; // green calib Z
-
-const static double Xb = 0.1804926473817015735; // blue calib X
-const static double Yb = 0.07220049864333622685; // blue calib Y
-const static double Zb = 0.9504971251315797660; // blue calib Z
-
-
-const static Matrix3x3 glob_calib_matrix = {
-  { Xr, Xg, Xb },
-  { Yr, Yg, Yb },
-  { Zr, Zg, Zb }
+// sRGB with D65 reference white calibration matrix
+// [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
+const Matrix3x3 p44::sRGB_d65_calibration = {
+  { 0.4123955889674142161, 0.3575834307637148171, 0.1804926473817015735 },
+  { 0.2125862307855955516, 0.7151703037034108499, 0.0722004986433362269 },
+  { 0.0192972154917469448, 0.1191838645808485318, 0.9504971251315797660 }
 };
 
 
@@ -250,7 +239,7 @@ bool p44::HSVtoxyV(const Row3 &HSV, Row3 &xyV)
   Row3 RGB;
   HSVtoRGB(HSV, RGB);
   Row3 XYZ;
-  RGBtoXYZ(glob_calib_matrix, RGB, XYZ);
+  RGBtoXYZ(sRGB_d65_calibration, RGB, XYZ);
   XYZtoxyV(XYZ, xyV);
   return true;
 }
@@ -261,7 +250,7 @@ bool p44::xyVtoHSV(const Row3 &xyV, Row3 &HSV)
   Row3 XYZ;
   xyVtoXYZ(xyV, XYZ);
   Row3 RGB;
-  XYZtoRGB(glob_calib_matrix, XYZ, RGB);
+  XYZtoRGB(sRGB_d65_calibration, XYZ, RGB);
   RGBtoHSV(RGB, HSV);
   return true;
 }

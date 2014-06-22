@@ -68,6 +68,7 @@ namespace p44 {
     virtual const char *getName() { return "hue"; };
     virtual double getMin() { return 0; }; // hue goes from 0 to (almost) 360 degrees
     virtual double getMax() { return 358.6; };
+    virtual bool wrapsAround() { return true; }; ///< hue wraps around
     virtual double getDimPerMS() { return 360.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
   };
 

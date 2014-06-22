@@ -207,6 +207,8 @@ namespace p44 {
 
     /// apply all pending channel value updates to the device's hardware
     /// @param aCompletedCB will called when values are applied
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
@@ -214,7 +216,7 @@ namespace p44 {
     ///   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
     ///   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
     ///   most recent call's value gets applied to the hardware.
-    virtual void applyChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
+    virtual void applyChannelValues(CompletedCB aCompletedCB, bool aForDimming) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
     /// @param aCompletedCB will be called when values are updated with actual hardware values
@@ -233,7 +235,7 @@ namespace p44 {
     virtual void processControlValue(const string &aName, double aValue);
 
     /// start or stop dimming channel of this device. Usually implemented in device specific manner in subclasses.
-    /// @param aChannel the channel to start or stop dimming for
+    /// @param aChannel the channelType to start or stop dimming for
     /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
     /// @note unlike the vDC API "dimChannel" command, which must be repeated for dimming operations >5sec, this
     ///   method MUST NOT terminate dimming automatically except when reaching the minimum or maximum level
@@ -242,7 +244,7 @@ namespace p44 {
     /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
     ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
     ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
-    virtual void dimChannel(DsChannelType aChannel, DsDimMode aDimMode);
+    virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
 
     /// identify the device to the user
     /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,

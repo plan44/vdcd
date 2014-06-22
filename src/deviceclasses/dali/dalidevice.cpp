@@ -169,18 +169,18 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 }
 
 
-void DaliDevice::applyChannelValues(CompletedCB aCompletedCB)
+void DaliDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
     setTransitionTime(lightBehaviour->transitionTimeToNewBrightness());
     // update actual dimmer value
     uint8_t power = brightnessToArcpower(lightBehaviour->brightnessForHardware());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, transition time= %d [mS], arc power = %d\n", lightBehaviour->brightnessForHardware(), lightBehaviour->transitionTimeToNewBrightness()/MilliSecond, power);
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, arc power = %d\n", lightBehaviour->brightnessForHardware(), power);
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
     lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues(aCompletedCB);
+  inherited::applyChannelValues(aCompletedCB, aForDimming);
 }
 
 

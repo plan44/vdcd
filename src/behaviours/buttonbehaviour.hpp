@@ -38,6 +38,7 @@ namespace p44 {
     typedef DsBehaviour inherited;
 
     friend class Device;
+    friend class DeviceContainer; // for local mode
 
   protected:
 

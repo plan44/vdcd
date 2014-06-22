@@ -57,7 +57,9 @@ namespace p44 {
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
     /// @param aCompletedCB if not NULL, must be called when values are applied
-    virtual void applyChannelValues(CompletedCB aCompletedCB);
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    virtual void applyChannelValues(CompletedCB aCompletedCB, bool aForDimming);
 
     /// @}
 

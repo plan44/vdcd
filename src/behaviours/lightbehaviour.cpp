@@ -427,7 +427,7 @@ void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aB
   if (!hwUpdateInProgress || aBrightness==0) {
     // prevent additional apply calls until either 0 reached or previous step done
     hwUpdateInProgress = true;
-    device.applyChannelValues(boost::bind(&LightBehaviour::fadeDownStepDone, this));
+    device.applyChannelValues(boost::bind(&LightBehaviour::fadeDownStepDone, this), true); // dimming mode
   }
   if (aBrightness>0) {
     fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
@@ -448,7 +448,7 @@ void LightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
     // load brightness channel from scene
     Brightness b = lightScene->sceneBrightness;
     DsSceneEffect e = lightScene->effect;
-    brightness->setChannelValueIfNotDontCare(lightScene, b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false));
+    brightness->setChannelValueIfNotDontCare(lightScene, b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false), true);
   }
   inherited::loadChannelsFromScene(aScene);
 }
@@ -503,7 +503,7 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene && lightScene->effect==scene_effect_alert) {
     // run blink effect
-    blink(2*Second, lightScene, aDoneCB, 400*MilliSecond, 80);
+    blink(2*Second, lightScene, aDoneCB, 400*MilliSecond, 60);
     return;
   }
   // none of my effects, let inherited check
@@ -515,7 +515,7 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
 void LightBehaviour::identifyToUser()
 {
   // simple, non-parametrized blink
-  blink(4*Second, LightScenePtr(), NULL, 400*MilliSecond, 80);
+  blink(4*Second, LightScenePtr(), NULL, 400*MilliSecond, 60);
 }
 
 
@@ -550,7 +550,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     // restore previous values if any
     if (aRestoreScene) {
       loadChannelsFromScene(aRestoreScene);
-      device.applyChannelValues(NULL); // apply to hardware
+      device.applyChannelValues(NULL, false); // apply to hardware, not dimming
     }
     // done, call end handler
     if (aDoneCB) aDoneCB();
@@ -565,7 +565,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     brightness->setChannelValue(brightness->getMinDim(), 0);
   }
   // apply to hardware
-  device.applyChannelValues(NULL);
+  device.applyChannelValues(NULL, false); // not dimming
   aState = !aState; // toggle
   // schedule next event
   MainLoop::currentMainLoop().executeOnce(

@@ -412,7 +412,7 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
     // save data
     aEsp3PacketPtr->set4BSdata(data);
     // value from this channel is applied to the outgoing telegram
-    cb->channelValueApplied();
+    cb->channelValueApplied(true); // applied even if channel did not have needsApplying() status before
   }
 }
 

@@ -224,7 +224,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
         // apply the values
-        applyChannelValues(NULL);
+        applyChannelValues(NULL, false);
       }
     }
     if (!Error::isOK(err)) {
@@ -466,13 +466,13 @@ void Device::dimAutostopHandler(DsChannelType aChannel)
 
 
 
-#define DIM_STEP_INTERVAL_MS 300
+#define DIM_STEP_INTERVAL_MS 300.0
 #define DIM_STEP_INTERVAL (DIM_STEP_INTERVAL_MS*MilliSecond)
 
 // actual dimming implementation, usually overridden by subclasses to provide more optimized/precise dimming
-void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
+void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 {
-  DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannel, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+  DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
   // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
   if (aDimMode==dimmode_stop) {
     // stop dimming
@@ -481,15 +481,17 @@ void Device::dimChannel(DsChannelType aChannel, DsDimMode aDimMode)
   }
   else {
     // start dimming
-    ChannelBehaviourPtr ch = getChannelByType(aChannel);
+    ChannelBehaviourPtr ch = getChannelByType(aChannelType);
     if (ch) {
       // make sure the start point is calculated if needed
       ch->getChannelValueCalculated();
+      ch->setNeedsApplying(0); // force re-applying start point, no transition time
       // calculate increment
       double increment = (aDimMode==dimmode_up ? DIM_STEP_INTERVAL_MS : -DIM_STEP_INTERVAL_MS) * ch->getDimPerMS();
       // start ticking
       isDimming = true;
-      dimHandler(ch, increment, MainLoop::now());
+      // apply start point (non-dimming), then call dim handler
+      applyChannelValues(boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()), false);
     }
   }
 }
@@ -500,7 +502,7 @@ void Device::dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicro
   // increment channel value
   aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
   // apply to hardware
-  applyChannelValues(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL));
+  applyChannelValues(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL), true); // apply in dimming mode
 }
 
 
@@ -621,7 +623,7 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
     // apply scene logically
     if (output->applyScene(aScene)) {
       // now apply values to hardware
-      applyChannelValues(boost::bind(&Device::sceneValuesApplied, this, aScene));
+      applyChannelValues(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
     }
   }
 }
@@ -652,8 +654,8 @@ void Device::undoScene(SceneNo aSceneNo)
     if (output) {
       // now apply the pseudo state
       output->applyScene(previousState);
-      // apply the values now
-      applyChannelValues(NULL);
+      // apply the values now, not dimming
+      applyChannelValues(NULL, false);
     }
   }
 }
@@ -684,8 +686,8 @@ void Device::callSceneMin(SceneNo aSceneNo)
     if (scene && !scene->isDontCare()) {
       if (output) {
         output->onAtMinBrightness();
-        // apply the values now
-        applyChannelValues(NULL);
+        // apply the values now, not dimming
+        applyChannelValues(NULL, false);
       }
     }
   }
@@ -1057,8 +1059,8 @@ ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr
     aPropertyDescriptor->fieldKey()==states_key_offset && // ...state(s)...
     aMode==access_write // ...got a non-preload write
   ) {
-    // apply new channel values to hardware
-    applyChannelValues(NULL);
+    // apply new channel values to hardware, not dimming
+    applyChannelValues(NULL, false);
   }
   return inherited::writtenProperty(aMode, aPropertyDescriptor, aDomain, aContainer);
 }

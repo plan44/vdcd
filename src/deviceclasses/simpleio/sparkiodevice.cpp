@@ -178,7 +178,7 @@ SparkLightBehaviour::SparkLightBehaviour(Device &aDevice) :
 //      if (devP) {
 //        devP->pendingSparkScene = sparkScene;
 //        // we need an output update, even if main output value (brightness) has not changed in new scene
-//        devP->getChannelByType(channeltype_brightness)->setChannelUpdatePending();
+//        devP->getChannelByType(channeltype_brightness)->setNeedsApplying();
 //      }
 //    }
 //    // let base class update logical brightness, which will in turn update the output, which will then
@@ -331,7 +331,7 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
+void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
 {
   // light device
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
@@ -342,7 +342,7 @@ void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB)
   }
   else {
     // let inherited process it
-    inherited::applyChannelValues(aCompletedCB);
+    inherited::applyChannelValues(aCompletedCB, aForDimming);
   }
 }
 

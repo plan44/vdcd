@@ -223,7 +223,7 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 //   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
 //   most recent call's value gets applied to the hardware.
 // TODO: clean up and follow comment above
-void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
+void HueDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
 {
   // serialize calls
   if (applyInProgress) {
@@ -253,17 +253,19 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
   if (cl) {
     if (!needsUpdate) {
       // NOP for this call
-      channelValuesSent(cl, ErrorPtr());
+      channelValuesSent(cl, JsonObjectPtr(), ErrorPtr());
       return;
     }
     // derive (possibly new) color mode from changed channels
     cl->deriveColorMode();
+    MLMicroSeconds transitionTime = 0; // undefined so far
     // build hue API light state
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
-    // brightness
-    if (cl->brightness->needsApplying()) {
+    // brightness is always re-applied unless it's dimming
+    if (!aForDimming || cl->brightness->needsApplying()) {
       Brightness b = cl->brightnessForHardware();
+      transitionTime = cl->transitionTimeToNewBrightness();
       if (b==0) {
         // light off, no other parameters
         newState->add("on", JsonObject::newBool(false));
@@ -271,36 +273,45 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
       else {
         // light on
         newState->add("on", JsonObject::newBool(true));
-        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS)); // 1..255 -> 0..255
+        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS+0.5)); // 1..255 -> 0..255
       }
-      cl->brightness->channelValueApplied(); // confirm early, as subsequent request might set new value again
+      cl->brightness->channelValueApplied(true); // confirm early, as subsequent request might set new value again
     }
     // add color in case it was set (by scene call)
     switch (cl->colorMode) {
       case colorLightModeHueSaturation: {
-        if (cl->hue->needsApplying() || cl->saturation->needsApplying()) {
-          newState->add("hue", JsonObject::newInt32(cl->hue->getChannelValue()*HUEAPI_FACTOR_HUE));
-          newState->add("sat", JsonObject::newInt32(cl->saturation->getChannelValue()*HUEAPI_FACTOR_SATURATION));
-          cl->hue->channelValueApplied(); // confirm early, as subsequent request might set new value again
-          cl->saturation->channelValueApplied(); // confirm early, as subsequent request might set new value again
+        // for dimming, only actually changed component (hue or saturation)
+        if (!aForDimming || cl->hue->needsApplying()) {
+          if (transitionTime==0) transitionTime = cl->hue->transitionTimeToNewValue();
+          newState->add("hue", JsonObject::newInt32(cl->hue->getChannelValue()*HUEAPI_FACTOR_HUE+0.5));
+          cl->hue->channelValueApplied(true); // confirm early, as subsequent request might set new value again
+        }
+        if (!aForDimming || cl->saturation->needsApplying()) {
+          if (transitionTime==0) transitionTime = cl->saturation->transitionTimeToNewValue();
+          newState->add("sat", JsonObject::newInt32(cl->saturation->getChannelValue()*HUEAPI_FACTOR_SATURATION+0.5));
+          cl->saturation->channelValueApplied(true); // confirm early, as subsequent request might set new value again
         }
         break;
       }
       case colorLightModeXY: {
+        // x,y are always applied together
         if (cl->cieX->needsApplying() || cl->cieY->needsApplying()) {
+          if (transitionTime==0) transitionTime = cl->cieX->transitionTimeToNewValue();
+          if (transitionTime==0) transitionTime = cl->cieY->transitionTimeToNewValue();
           JsonObjectPtr xyArr = JsonObject::newArray();
           xyArr->arrayAppend(JsonObject::newDouble(cl->cieX->getChannelValue()));
           xyArr->arrayAppend(JsonObject::newDouble(cl->cieY->getChannelValue()));
           newState->add("xy", xyArr);
-          cl->cieX->channelValueApplied(); // confirm early, as subsequent request might set new value again
-          cl->cieY->channelValueApplied(); // confirm early, as subsequent request might set new value again
+          cl->cieX->channelValueApplied(true); // confirm early, as subsequent request might set new value again
+          cl->cieY->channelValueApplied(true); // confirm early, as subsequent request might set new value again
         }
         break;
       }
       case colorLightModeCt: {
         if (cl->ct->needsApplying()) {
+          if (transitionTime==0) transitionTime = cl->ct->transitionTimeToNewValue();
           newState->add("ct", JsonObject::newInt32(cl->ct->getChannelValue()));
-          cl->ct->channelValueApplied(); // confirm early, as subsequent request might set new value again
+          cl->ct->channelValueApplied(true); // confirm early, as subsequent request might set new value again
         }
         break;
       }
@@ -308,25 +319,69 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB)
         break;
     }
     // use transition time from (1/10 = 100mS second resolution)
-    newState->add("transitiontime", JsonObject::newInt64(cl->transitionTimeToNewBrightness()/(100*MilliSecond)));
-    LOG(LOG_INFO, "hue device %s: sending new light state: brightness = %0.0f, colorMode=%d\n", shortDesc().c_str(), cl->brightness->getChannelValue(), cl->colorMode);
+    newState->add("transitiontime", JsonObject::newInt64(transitionTime/(100*MilliSecond)));
+    if (!aForDimming) {
+      LOG(LOG_INFO, "hue device %s: sending new light state: brightness = %0.0f, colorMode=%d\n", shortDesc().c_str(), cl->brightness->getChannelValue(), cl->colorMode);
+    }
     // TODO: use result to sync channel value
-    #warning // TODO: use result to sync channel value
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::channelValuesSent, this, cl, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::channelValuesSent, this, cl, _1, _2));
   }
 }
 
 
 
-void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, ErrorPtr aError)
+void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, JsonObjectPtr aResult, ErrorPtr aError)
 {
+  // synchronize actual channel values as hue delivers them back
+  if (aResult) {
+    // [{"success":{"\/lights\/1\/state\/transitiontime":1}},{"success":{"\/lights\/1\/state\/on":true}},{"success":{"\/lights\/1\/state\/hue":0}},{"success":{"\/lights\/1\/state\/sat":255}},{"success":{"\/lights\/1\/state\/bri":255}}]
+    for (int i=0; i<aResult->arrayLength(); i++) {
+      JsonObjectPtr responseItem = aResult->arrayGet(i);
+      JsonObjectPtr staObj;
+      if (responseItem->get("success", staObj)) {
+        // dispatch results
+        staObj->resetKeyIteration();
+        string key;
+        JsonObjectPtr val;
+        bool blockBrightness = false;
+        if (staObj->nextKeyValue(key, val)) {
+          // match path
+          string param = key.substr(key.find_last_of('/')+1);
+          if (param=="hue") {
+            aColorLightBehaviour->hue->syncChannelValue(val->int32Value()/HUEAPI_FACTOR_HUE);
+          }
+          else if (param=="sat") {
+            aColorLightBehaviour->saturation->syncChannelValue(val->int32Value()/HUEAPI_FACTOR_SATURATION);
+          }
+          else if (param=="xy") {
+            JsonObjectPtr e = val->arrayGet(0);
+            if (e) aColorLightBehaviour->cieX->syncChannelValue(e->doubleValue());
+            e = val->arrayGet(1);
+            if (e) aColorLightBehaviour->cieY->syncChannelValue(e->doubleValue());
+          }
+          else if (param=="ct") {
+            aColorLightBehaviour->ct->syncChannelValue(val->int32Value());
+          }
+          else if (param=="on") {
+            if (!val->boolValue()) {
+              aColorLightBehaviour->syncBrightnessFromHardware(0);
+              blockBrightness = true; // prevent syncing brightness
+            }
+          }
+          else if (param=="bri" && !blockBrightness) {
+            aColorLightBehaviour->syncBrightnessFromHardware(val->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS);
+          }
+        }
+      }
+    }
+  }
   // applied now
   applyInProgress = false;
   // now check if we need to re-apply to actually have the latest values applied
   if (repeatApplyAtEnd) {
     // not complete yet
     repeatApplyAtEnd = false;
-    applyChannelValues(pendingApplyCB);
+    applyChannelValues(pendingApplyCB, false); // not dimming when we have missed calls in between!
     return;
   }
   // really complete now

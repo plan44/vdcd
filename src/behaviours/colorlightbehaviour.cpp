@@ -147,10 +147,10 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
   // set the common light scene defaults
   inherited::setDefaultSceneValues(aSceneNo);
   // TODO: implement according to dS Specs for color lights
-  // %%% for now, just set to light bulb white color temperature
-  colorMode = colorLightModeCt;
-  XOrHueOrCt = 370; // Mired = 1E6/colorTempKelvin : 370mired = 2700K = warm white
-  YOrSat = 0;
+  // for now, just initialize without color
+  colorMode = colorLightModeNone;
+//  XOrHueOrCt = 370; // Mired = 1E6/colorTempKelvin : 370mired = 2700K = warm white
+//  YOrSat = 0;
 }
 
 
@@ -214,17 +214,17 @@ void ColorLightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
     colorMode = colorLightScene->colorMode;
     switch (colorMode) {
       case colorLightModeHueSaturation: {
-        hue->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
-        saturation->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown);
+        hue->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown, true);
+        saturation->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown, true);
         break;
       }
       case colorLightModeXY: {
-        cieX->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
-        cieY->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown);
+        cieX->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown, true);
+        cieY->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->YOrSat, ttUp, ttDown, true);
         break;
       }
       case colorLightModeCt: {
-        ct->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown);
+        ct->setChannelValueIfNotDontCare(colorLightScene, colorLightScene->XOrHueOrCt, ttUp, ttDown, true);
         break;
       }
       default:
@@ -349,6 +349,35 @@ void ColorLightBehaviour::deriveMissingColorChannels()
         break;
     }
     derivedValuesComplete = true;
+    if (DBGLOGENABLED(LOG_DEBUG)) {
+      // show all values, plus RGB
+      DBGLOG(LOG_DEBUG, "Color mode = %s\n", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
+      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%, %, 0..255]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, 0..255]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
+      Row3 RGB;
+      if (colorMode==colorLightModeHueSaturation) {
+        // take from HSV
+        HSV[0] = hue->getChannelValue(); // 0..360
+        HSV[1] = saturation->getChannelValue()/100; // 0..1
+        HSV[2] = brightness->getChannelValue()/255; // 0..1
+        HSVtoRGB(HSV, RGB);
+      }
+      else {
+        Row3 XYZ;
+        xyV[0] = cieX->getChannelValue();
+        xyV[1] = cieY->getChannelValue();
+        xyV[2] = brightness->getChannelValue()/255; // 0..1
+        xyVtoXYZ(xyV, XYZ);
+        XYZtoRGB(sRGB_d65_calibration, XYZ, RGB);
+      }
+      DBGLOG(LOG_DEBUG, "- RGB : %6.4f, %6.4f, %6.4f [0..1, 0..1, 0..1]\n", RGB[0], RGB[1], RGB[2]);
+      double mired;
+      if (colorMode==colorLightModeHueSaturation) {
+        HSVtoxyV(HSV, xyV);
+      }
+      xyVtoCT(xyV, mired);
+      DBGLOG(LOG_DEBUG, "- CT  : %6.0f, %6.0f [mired, K]\n", mired, 1E6/mired);
+    }
   }
 }
 

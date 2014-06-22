@@ -80,23 +80,23 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
 
 
 
-void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
+void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply)
 {
-  setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown);
+  setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
 }
 
 
-void ChannelBehaviour::setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
+void ChannelBehaviour::setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply)
 {
   if (!(aScene->isSceneValueFlagSet(getChannelIndex(), valueflags_dontCare))) {
-    setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown);
+    setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
   }
 }
 
 
 
 
-void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime)
+void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime, bool aAlwaysApply)
 {
   // make sure new value is within bounds
   if (aNewValue>getMax())
@@ -104,10 +104,10 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
   else if (aNewValue<getMin())
     aNewValue = getMin();
   // prevent propagating changes smaller than device resolution
-  if (fabs(aNewValue-cachedChannelValue)>=getResolution()) {
+  if (aAlwaysApply || fabs(aNewValue-cachedChannelValue)>=getResolution()) {
     LOG(LOG_INFO,
-      "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%lld uS)\n",
-      getName(), output.device.shortDesc().c_str(), cachedChannelValue, aNewValue, aTransitionTime
+      "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.0f (transition time=%d mS)\n",
+      getName(), output.device.shortDesc().c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
     );
     // apply
     cachedChannelValue = aNewValue;
@@ -121,11 +121,19 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
 void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime)
 {
   double newValue = cachedChannelValue+aIncrement;
-  if (newValue<getMinDim())
-    newValue = getMinDim();
-  else if (newValue>getMax())
-    newValue = getMax();
-  // apply (silently)
+  if (newValue<getMinDim()) {
+    if (wrapsAround())
+      newValue += getMax()-getMin(); // wrap backwards
+    else
+      newValue = getMinDim(); // just stay at min
+  }
+  else if (newValue>getMax()) {
+    if (wrapsAround())
+      newValue -= getMax()-getMin(); // wrap backwards
+    else
+      newValue = getMax(); // just stay at max
+  }
+  // apply (silently), only if value has actually changed (but even if change is below resolution)
   if (newValue!=cachedChannelValue) {
     cachedChannelValue = newValue;
     nextTransitionTime = aTransitionTime;
@@ -136,15 +144,18 @@ void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransi
 
 
 
-void ChannelBehaviour::channelValueApplied()
+void ChannelBehaviour::channelValueApplied(bool aAnyWay)
 {
-  if (channelUpdatePending) {
+  if (channelUpdatePending || aAnyWay) {
     channelUpdatePending = false; // applied
     channelLastSent = MainLoop::now(); // now we know that we are in sync
-    LOG(LOG_INFO,
-      "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
-      getName(), output.device.shortDesc().c_str(), cachedChannelValue
-    );
+    if (!aAnyWay) {
+      // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
+      LOG(LOG_INFO,
+        "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
+        getName(), output.device.shortDesc().c_str(), cachedChannelValue
+      );
+    }
   }
 }
 
@@ -262,7 +273,7 @@ bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVa
         // - none for now
         // States properties
         case value_key+states_key_offset:
-          setChannelValue(aPropValue->doubleValue());
+          setChannelValue(aPropValue->doubleValue(), 0, true); // always apply, no transition time
           return true;
       }
     }
