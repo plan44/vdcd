@@ -23,6 +23,7 @@
 #define __p44utils__dcerror__
 
 #include <string>
+#include <stdint.h>
 #include "p44obj.hpp"
 
 using namespace std;
