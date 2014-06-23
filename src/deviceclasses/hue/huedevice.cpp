@@ -222,7 +222,6 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 //   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
 //   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
 //   most recent call's value gets applied to the hardware.
-// TODO: clean up and follow comment above
 void HueDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
 {
   // serialize calls

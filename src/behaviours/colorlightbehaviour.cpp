@@ -244,35 +244,50 @@ void ColorLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   ColorLightScenePtr colorLightScene = boost::dynamic_pointer_cast<ColorLightScene>(aScene);
   if (colorLightScene) {
     colorLightScene->colorMode = colorMode;
-    // first set all color related to dontCare
-    colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
-    colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
-    colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
-    colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
-    colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
-    // now save the values and clear don't cares according to color mode
+    // save the values and adjust don't cares according to color mode
     switch (colorMode) {
       case colorLightModeHueSaturation: {
-        colorLightScene->XOrHueOrCt = hue->getChannelValue();
+        // don't care unused ones
+        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+        // assign the used values
+        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, hue->getChannelValue());
         colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, false);
-        colorLightScene->YOrSat = saturation->getChannelValue();
+        colorLightScene->setRepVar(colorLightScene->YOrSat, saturation->getChannelValue());
         colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       case colorLightModeXY: {
-        colorLightScene->XOrHueOrCt = cieX->getChannelValue();
+        // don't care unused ones
+        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+        // assign the used values
+        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, cieX->getChannelValue());
         colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, false);
-        colorLightScene->YOrSat = cieY->getChannelValue();
+        colorLightScene->setRepVar(colorLightScene->YOrSat, cieY->getChannelValue());
         colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       case colorLightModeCt: {
-        colorLightScene->XOrHueOrCt = ct->getChannelValue();
+        // don't care unused ones
+        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+        // assign the used values
+        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, ct->getChannelValue());
         colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       default: {
         // all color related information is dontCare
+        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
         break;
       }
     }
@@ -401,6 +416,256 @@ string ColorLightBehaviour::description()
   return s;
 }
 
+
+
+#pragma mark - RGBColorLightBehaviour
+
+
+RGBColorLightBehaviour::RGBColorLightBehaviour(Device &aDevice) :
+  inherited(aDevice)
+{
+  // default to sRGB with D65 white point
+  matrix3x3_copy(sRGB_d65_calibration, calibration);
+}
+
+
+static double colorCompScaled(double aColorComp, double aMax)
+{
+  if (aColorComp<0) aColorComp = 0; // limit to >=0
+  aColorComp *= aMax;
+  if (aColorComp>aMax) aColorComp = aMax;
+  return aColorComp;
+}
+
+void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue, double aMax)
+{
+  Row3 RGB;
+  Row3 xyV;
+  Row3 XYZ;
+  Row3 HSV;
+  switch (colorMode) {
+    case colorLightModeHueSaturation:
+      HSV[0] = hue->getChannelValue(); // 0..360
+      HSV[1] = saturation->getChannelValue()/100; // 0..1
+      HSV[2] = brightness->getChannelValue()/255; // 0..1
+      HSVtoRGB(HSV, RGB);
+      break;
+    case colorLightModeCt:
+      CTtoxyV(ct->getChannelValue(), xyV);
+      goto xyVToRGB;
+    case colorLightModeXY:
+      xyV[0] = cieX->getChannelValue();
+      xyV[1] = cieY->getChannelValue();
+      xyV[2] = brightness->getChannelValue()/255; // 0..1
+    xyVToRGB:
+      xyVtoXYZ(xyV, XYZ);
+      // convert using calibration for this lamp
+      XYZtoRGB(calibration, XYZ, RGB);
+      break;
+    default:
+      // no color, just set R=G=B=brightness
+      RGB[0] = brightness->getChannelValue()/255;
+      RGB[1] = RGB[0];
+      RGB[2] = RGB[0];
+      break;
+  }
+  aRed = colorCompScaled(RGB[0], aMax);
+  aGreen = colorCompScaled(RGB[1], aMax);
+  aBlue = colorCompScaled(RGB[2], aMax);
+}
+
+
+void RGBColorLightBehaviour::setRGB(double aRed, double aGreen, double aBlue, double aMax)
+{
+  Row3 RGB;
+  RGB[0] = aRed/aMax;
+  RGB[1] = aGreen/aMax;
+  RGB[2] = aBlue/aMax;
+  // always convert to HSV, as this can actually represent the values seen on the light
+  Row3 HSV;
+  RGBtoHSV(RGB, HSV);
+  // set the channels
+  hue->syncChannelValue(HSV[0]);
+  saturation->syncChannelValue(HSV[1]*100);
+  brightness->syncChannelValue(HSV[2]*255);
+  // change the mode if needed
+  if (colorMode!=colorLightModeHueSaturation) {
+    colorMode = colorLightModeHueSaturation;
+    // force recalculation of derived color value
+    derivedValuesComplete = false;
+  }
+}
+
+
+void RGBColorLightBehaviour::appliedRGB()
+{
+  brightness->channelValueApplied(true);
+  switch (colorMode) {
+    case colorLightModeHueSaturation:
+      hue->channelValueApplied(true);
+      saturation->channelValueApplied(true);
+      break;
+    case colorLightModeCt:
+      ct->channelValueApplied(true);
+      break;
+    case colorLightModeXY:
+      cieX->channelValueApplied(true);
+      cieY->channelValueApplied(true);
+      break;
+    default:
+      // no color
+      break;
+  }
+}
+
+
+
+#pragma mark - persistence implementation
+
+
+const char *RGBColorLightBehaviour::tableName()
+{
+  return "RGBLightSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 9;
+
+size_t RGBColorLightBehaviour::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *RGBColorLightBehaviour::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "Xr", SQLITE_FLOAT },
+    { "Yr", SQLITE_FLOAT },
+    { "Zr", SQLITE_FLOAT },
+    { "Xg", SQLITE_FLOAT },
+    { "Yg", SQLITE_FLOAT },
+    { "Zg", SQLITE_FLOAT },
+    { "Xb", SQLITE_FLOAT },
+    { "Yb", SQLITE_FLOAT },
+    { "Zb", SQLITE_FLOAT },
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void RGBColorLightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inherited::loadFromRow(aRow, aIndex);
+  // get the fields
+  //  [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+      calibration[j][i] = aRow->get<double>(aIndex++);
+    }
+  }
+}
+
+
+// bind values to passed statement
+void RGBColorLightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  //  [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
+  for (int i=0; i<3; i++) {
+    for (int j=0; j<3; j++) {
+      aStatement.bind(aIndex++, calibration[j][i]);
+    }
+  }
+}
+
+
+
+#pragma mark - property access
+
+
+static char rgblight_key;
+
+// settings properties
+
+enum {
+  Xr_key,
+  Yr_key,
+  Zr_key,
+  Xg_key,
+  Yg_key,
+  Zg_key,
+  Xb_key,
+  Yb_key,
+  Zb_key,
+  numSettingsProperties
+};
+
+
+int RGBColorLightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
+const PropertyDescriptorPtr RGBColorLightBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "Xr", apivalue_double, Xr_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Yr", apivalue_double, Yr_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Zr", apivalue_double, Zr_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Xg", apivalue_double, Xg_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Yg", apivalue_double, Yg_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Zg", apivalue_double, Zg_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Xb", apivalue_double, Xb_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Yb", apivalue_double, Yb_key+settings_key_offset, OKEY(rgblight_key) },
+    { "Zb", apivalue_double, Zb_key+settings_key_offset, OKEY(rgblight_key) },
+  };
+  int n = inherited::numSettingsProps();
+  if (aPropIndex<n)
+    return inherited::getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
+  aPropIndex -= n;
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+}
+
+
+// access to all fields
+
+bool RGBColorLightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(rgblight_key)) {
+    int ix = (int)aPropertyDescriptor->fieldKey()-settings_key_offset;
+    if (ix>=Xr_key && ix<=Zb_key) {
+      if (aMode==access_read) {
+        // read properties
+        aPropValue->setDoubleValue(calibration[ix/3][ix%3]);
+      }
+      else {
+        // write properties
+        calibration[ix/3][ix%3] = aPropValue->doubleValue();
+      }
+      return true;
+    }
+    else {
+      // check other props
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
+
+#pragma mark - description/shortDesc
+
+
+string RGBColorLightBehaviour::shortDesc()
+{
+  return string("RGBLight");
+}
 
 
 

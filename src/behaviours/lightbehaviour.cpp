@@ -459,7 +459,7 @@ void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // save brightness channel from scene
-    lightScene->sceneBrightness = brightness->getChannelValue();
+    lightScene->setRepVar(lightScene->sceneBrightness, brightness->getChannelValue());
     lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
   }
 }

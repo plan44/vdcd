@@ -27,6 +27,7 @@ namespace p44 {
   typedef double Row3[3];
   typedef double Matrix3x3[3][3];
 
+  extern void matrix3x3_copy(const Matrix3x3 &aFrom, Matrix3x3 &aTo);
   extern const Matrix3x3 sRGB_d65_calibration;
 
   bool matrix3x3_inverse(const Matrix3x3 &matrix, Matrix3x3 &em);

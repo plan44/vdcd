@@ -114,6 +114,17 @@ namespace p44 {
   };
 
 
+  /// Web/HTTP error code based error
+  class WebError : public Error
+  {
+  public:
+    static const char *domain() { return "WebError"; }
+    virtual const char *getErrorDomain() const { return WebError::domain(); };
+    WebError(uint16_t aHTTPError) : Error(ErrorCode(aHTTPError)) {};
+    WebError(uint16_t aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+  };
+
+
 } // namespace p44
 
 

@@ -313,23 +313,18 @@ void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool a
   // up to 8 channel's dontCare flags are mapped into globalSceneFlags
   if (aOutputIndex<numSceneValues()) {
     uint32_t flagmask = globalflags_valueDontCare0<<aOutputIndex;
+    uint32_t newFlags;
     if (aSet)
-      globalSceneFlags |= (aFlagMask & valueflags_dontCare) ? flagmask : 0;
+      newFlags = globalSceneFlags | (aFlagMask & valueflags_dontCare) ? flagmask : 0;
     else
-      globalSceneFlags &= ~((aFlagMask & valueflags_dontCare) ? flagmask : 0);
+      newFlags = globalSceneFlags & ~((aFlagMask & valueflags_dontCare) ? flagmask : 0);
+    if (newFlags!=globalSceneFlags) {
+      // actually changed
+      globalSceneFlags = newFlags;
+      markDirty();
+    }
   }
 }
-
-
-//  double DsScene::sceneValue(int aOutputIndex)
-//  {
-//  }
-//
-//
-//  void DsScene::setSceneValue(int aOutputIndex, double aValue)
-//  {
-//  }
-
 
 
 // utility function to check scene value flag

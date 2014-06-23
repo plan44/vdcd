@@ -45,13 +45,20 @@ static void swapRows(int r1, int r2, Matrix3x3 matrix)
 }
 
 
+void p44::matrix3x3_copy(const Matrix3x3 &aFrom, Matrix3x3 &aTo)
+{
+  for (int r=0; r<3; r++) { for (int c=0; c<3; c++) { aTo[r][c] = aFrom[r][c]; }};
+}
+
+
+
 // Matrix Inverse
 // Guass-Jordan Elimination Method
 // Reduced Row Eshelon Form (RREF)
 bool p44::matrix3x3_inverse(const Matrix3x3 &inmatrix, Matrix3x3 &em)
 {
   Matrix3x3 matrix;
-  for (int r=0; r<3; r++) { for (int c=0; c<3; c++) { matrix[r][c] = inmatrix[r][c]; }};
+  matrix3x3_copy(inmatrix, matrix);
   // init result with unity matrix
   em[0][0] = 1; em[0][1] = 0; em[0][2] = 0;
   em[1][0] = 0; em[1][1] = 1; em[1][2] = 0;

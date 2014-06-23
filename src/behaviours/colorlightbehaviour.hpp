@@ -25,6 +25,7 @@
 #include "device.hpp"
 #include "dsscene.hpp"
 #include "lightbehaviour.hpp"
+#include "colorutils.hpp"
 
 using namespace std;
 
@@ -196,17 +197,6 @@ namespace p44 {
   {
     typedef LightBehaviour inherited;
 
-
-    /// @name hardware derived parameters (constant during operation)
-    /// @{
-    /// @}
-
-
-    /// @name persistent settings
-    /// @{
-    /// @}
-
-
   public:
 
     /// @name internal volatile state
@@ -226,20 +216,7 @@ namespace p44 {
     /// @}
 
 
-
     ColorLightBehaviour(Device &aDevice);
-
-    /// @name interface towards actual device hardware (or simulation)
-    /// @{
-
-    /// @}
-
-
-    /// @name interaction with digitalSTROM system
-    /// @{
-
-    /// @}
-
 
     /// @name color services for implementing color lights
     /// @{
@@ -281,6 +258,58 @@ namespace p44 {
   };
 
   typedef boost::intrusive_ptr<ColorLightBehaviour> ColorLightBehaviourPtr;
+
+
+
+  class RGBColorLightBehaviour : public ColorLightBehaviour
+  {
+    typedef ColorLightBehaviour inherited;
+
+  public:
+
+    /// @name settings (color calibration)
+    /// @{
+    Matrix3x3 calibration; ///< calibration matrix: [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
+    /// @}
+
+    RGBColorLightBehaviour(Device &aDevice);
+
+    /// @name color services for implementing color lights
+    /// @{
+
+    /// get RGB colors for applying to lamp
+    void getRGB(double &aRed, double &aGreen, double &aBlue, double aMax);
+
+    /// get RGB colors for applying to lamp
+    void setRGB(double aRed, double aGreen, double aBlue, double aMax);
+
+    /// mark RGB values applied (flags channels applied depending on colormode)
+    void appliedRGB();
+
+    /// @}
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+  protected:
+
+    // property access implementation for descriptor/settings/states
+    virtual int numSettingsProps();
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
+    // combined field access for all types of properties
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+
+  };
+
+  typedef boost::intrusive_ptr<RGBColorLightBehaviour> RGBColorLightBehaviourPtr;
 
 } // namespace p44
 

@@ -26,25 +26,42 @@
 #include "device.hpp"
 
 #include "jsonwebclient.hpp"
-#include "lightbehaviour.hpp"
+#include "colorlightbehaviour.hpp"
 
 using namespace std;
 
 namespace p44 {
 
+  class SparkModeChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    SparkModeChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* modes are integers */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_custom_first; }; ///< custom device-specific channel
+    virtual ColorLightMode colorMode() { return colorLightModeHueSaturation; };
+    virtual const char *getName() { return "x-p44-sparkmode"; };
+    virtual double getMin() { return 0; }; // mode goes from 0..3
+    virtual double getMax() { return 3; };
+    virtual bool wrapsAround() { return true; }; ///< mode wraps around
+    virtual double getDimPerMS() { return 4/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
+  };
+
+
   class StaticDeviceContainer;
   class SparkIoDevice;
 
-  class SparkLightScene : public LightScene
+  class SparkLightScene : public ColorLightScene
   {
-    typedef LightScene inherited;
+    typedef ColorLightScene inherited;
   public:
     SparkLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
 
     /// @name spark core based light scene specific values
     /// @{
 
-    uint32_t extendedState; // extended state (beyond brightness) of the spark core light
+    uint32_t extendedState; // extended state (beyond brightness+rgb) of the spark core light
 
     /// @}
 
@@ -61,39 +78,42 @@ namespace p44 {
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
-    // property access implementation
-    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
-
   };
   typedef boost::intrusive_ptr<SparkLightScene> SparkLightScenePtr;
 
 
-  class SparkLightBehaviour : public LightBehaviour
+  class SparkLightBehaviour : public RGBColorLightBehaviour
   {
-    typedef LightBehaviour inherited;
+    typedef RGBColorLightBehaviour inherited;
 
   public:
 
+    /// @name channels
+    /// @{
+    ChannelBehaviourPtr sparkmode;
+    /// @}
+
     SparkLightBehaviour(Device &aDevice);
 
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aCompletedCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
 
   protected:
 
-//    /// called by applyScene to actually recall a scene from the scene table
-//    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-//    /// additional values that were saved at captureScene()
-//    virtual void recallSceneValues(LightScenePtr aLightScene);
+    /// called by applyScene to load channel values from a scene.
+    /// @param aScene the scene to load channel values from
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    virtual void loadChannelsFromScene(DsScenePtr aScene);
 
-  private:
-
-    void sceneStateReceived(SparkLightScenePtr aSparkScene, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    /// called by captureScene to save channel values to a scene.
+    /// @param aScene the scene to save channel values to
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void saveChannelsToScene(DsScenePtr aScene);
 
   };
   typedef boost::intrusive_ptr<SparkLightBehaviour> SparkLightBehaviourPtr;
@@ -101,9 +121,9 @@ namespace p44 {
 
 
   /// the persistent parameters of a light scene device (including scene table)
-  class SparkDeviceSettings : public LightDeviceSettings
+  class SparkDeviceSettings : public ColorLightDeviceSettings
   {
-    typedef LightDeviceSettings inherited;
+    typedef ColorLightDeviceSettings inherited;
 
   public:
     SparkDeviceSettings(Device &aDevice);
@@ -160,6 +180,13 @@ namespace p44 {
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(CompletedCB aCompletedCB, bool aForDimming);
 
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aCompletedCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(CompletedCB aCompletedCB);
+
     /// @}
 
 
@@ -182,8 +209,8 @@ namespace p44 {
     void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
-    void postChannelValue(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour);
-    void channelChanged(CompletedCB aCompletedCB, LightBehaviourPtr aLightBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
   };
   

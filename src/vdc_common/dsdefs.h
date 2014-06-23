@@ -266,6 +266,8 @@ typedef enum {
   channeltype_position_h = 8, ///< horizontal position
   channeltype_position_angle = 9, ///< opening angle position
   channeltype_permeability = 10, ///< permeability
+  channeltype_custom_first = 192, ///< first device-specific channel
+  channeltype_custom_last = 239, ///< first device-specific channel
   numChannelTypes = 240 // 0..239 are channel types
 } DsChannelTypeEnum;
 typedef uint8_t DsChannelType;

@@ -158,3 +158,7 @@ ErrorPtr SysError::err(int aErrNo, const char *aContextMessage)
   return ErrorPtr(new SysError(aErrNo, aContextMessage));
 }
 
+
+#pragma mark - web error
+
+
