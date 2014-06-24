@@ -683,12 +683,34 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
   }
   else {
     // Notifications
+    // Note: out of session, notifications are simply ignored
     if (activeSessionConnection) {
-      // out of session, notifications are simply ignored
-      DsUid dsuid;
-      if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", dsuid))) {
-        handleNotificationForDsUid(aMethod, dsuid, aParams);
+      // Notifications can be adressed to one or multiple dSUIDs
+      // Notes
+      // - for protobuf API, dSUID is always an array (as it is a repeated field in protobuf)
+      // - for JSON API, caller may provide an array or a single dSUID.
+      ApiValuePtr o;
+      respErr = checkParam(aParams, "dSUID", o);
+      if (Error::isOK(respErr)) {
+        DsUid dsuid;
+        // can be single dSUID or array of dSUIDs
+        if (o->isType(apivalue_array)) {
+          // array of dSUIDs
+          for (int i=0; i<o->arrayLength(); i++) {
+            ApiValuePtr e = o->arrayGet(i);
+            dsuid.setAsBinary(e->binaryValue());
+            handleNotificationForDsUid(aMethod, dsuid, aParams);
+          }
+        }
+        else {
+          // single dSUID
+          dsuid.setAsBinary(o->binaryValue());
+          handleNotificationForDsUid(aMethod, dsuid, aParams);
+        }
       }
+    }
+    else {
+      LOG(LOG_DEBUG,"Received notification '%s' out of session -> ignored\n", aMethod.c_str());
     }
   }
   // check error
