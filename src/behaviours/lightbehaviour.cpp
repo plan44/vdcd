@@ -125,7 +125,7 @@ int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numLightSceneProperties] = {
-    { "effect", apivalue_int64, effect_key, OKEY(lightscene_key) },
+    { "effect", apivalue_uint64, effect_key, OKEY(lightscene_key) },
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
