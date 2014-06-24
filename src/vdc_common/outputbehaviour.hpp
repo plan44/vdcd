@@ -44,7 +44,6 @@ namespace p44 {
     /// @{
     DsOutputFunction outputFunction; ///< the function of the output
     DsUsageHint outputUsage; ///< the input type when device has hardwired functions
-    DsChannelType defaultChannel; ///< the default (hardware-predefined) channel type of the output
     bool variableRamp; ///< output has variable ramp times
     double maxPower; ///< max power in Watts the output can control
     /// @}

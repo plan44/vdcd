@@ -26,10 +26,17 @@ using namespace p44;
 
 OutputBehaviour::OutputBehaviour(Device &aDevice) :
   inherited(aDevice),
+  // hardware derived params
+  outputFunction(outputFunction_dimmer),
+  outputUsage(usage_undefined),
+  variableRamp(true),
+  maxPower(-1),
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
+  pushChanges(false), // do not push changes
   outputGroups(1<<group_variable), // all devices are in group 0 by default
-  pushChanges(false) // do not push changes
+  // volatile state
+  localPriority(false) // no local priority
 {
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
