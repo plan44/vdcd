@@ -335,9 +335,8 @@ void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, J
   if (aResult) {
     // [{"success":{"\/lights\/1\/state\/transitiontime":1}},{"success":{"\/lights\/1\/state\/on":true}},{"success":{"\/lights\/1\/state\/hue":0}},{"success":{"\/lights\/1\/state\/sat":255}},{"success":{"\/lights\/1\/state\/bri":255}}]
     for (int i=0; i<aResult->arrayLength(); i++) {
-      JsonObjectPtr responseItem = aResult->arrayGet(i);
-      JsonObjectPtr staObj;
-      if (responseItem->get("success", staObj)) {
+      JsonObjectPtr staObj = HueComm::getSuccessItem(aResult, i);
+      if (staObj) {
         // dispatch results
         staObj->resetKeyIteration();
         string key;

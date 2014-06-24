@@ -74,7 +74,7 @@ namespace p44 {
 
   /// will be called to deliver api result
   /// @param aResult the result in case of success.
-  /// - In case of PUT, POST and DELETE requests, it is the contents of the "success" response object
+  /// - In case of PUT, POST and DELETE requests, it is the entire response object, but only if it is a success. Otherwise, aError will return an error.
   /// - In case of GET requests, it is the entire answer object
   /// @param aError error in case of failure, error code is either a HueCommErrors enum or the error code as
   ///   delivered by the hue brigde itself.
@@ -153,6 +153,12 @@ namespace p44 {
     /// @param aResultHandler will be called with the result
     /// @param aNoAutoURL if set, aUrlSuffix must be the complete URL (baseURL and userName will not be used automatically)
     void apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectPtr aData, HueApiResultCB aResultHandler, bool aNoAutoURL = false);
+
+    /// helper to get success from apiAction results
+    /// @param aResult a result as delivered by apiAction
+    /// @param aIndex the index of the success item, defaults to 0
+    /// @return contents of "success" item, if any.
+    static JsonObjectPtr getSuccessItem(JsonObjectPtr aResult, int aIndex = 0);
 
     /// @}
 

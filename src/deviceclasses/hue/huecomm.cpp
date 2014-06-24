@@ -84,6 +84,7 @@ void HueApiOperation::processAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError
         if (responseItem->nextKeyValue(statusToken, responseParams)) {
           if (statusToken=="success" && responseParams) {
             // apparently successful, return entire response
+            // Note: use getSuccessItem() to get success details
             data = aJsonResponse;
             errCode = HueCommErrorOK; // ok
             break;
@@ -380,19 +381,22 @@ public:
   {
     if (Error::isOK(aError)) {
       DBGLOG(LOG_DEBUG, "Received success answer:\n%s\n", aJsonResponse->json_c_str());
+      JsonObjectPtr s = HueComm::getSuccessItem(aJsonResponse);
       // apparently successful, extract user name
-      JsonObjectPtr u = aJsonResponse->get("username");
-      if (u) {
-        hueComm.userName = u->stringValue();
-        hueComm.uuid = currentAuthCandidate->first;
-        hueComm.baseURL = currentAuthCandidate->second;
-        hueComm.apiReady = true; // can use API now
-        DBGLOG(LOG_DEBUG, "hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
-        // successfully registered with hue bridge, let caller know
-        callback(ErrorPtr());
-        // done!
-        keepAlive.reset(); // will delete object if nobody else keeps it
-        return;
+      if (s) {
+        JsonObjectPtr u = s->get("username");
+        if (u) {
+          hueComm.userName = u->stringValue();
+          hueComm.uuid = currentAuthCandidate->first;
+          hueComm.baseURL = currentAuthCandidate->second;
+          hueComm.apiReady = true; // can use API now
+          DBGLOG(LOG_DEBUG, "hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
+          // successfully registered with hue bridge, let caller know
+          callback(ErrorPtr());
+          // done!
+          keepAlive.reset(); // will delete object if nobody else keeps it
+          return;
+        }
       }
     }
     else {
@@ -451,6 +455,18 @@ void HueComm::apiAction(HttpMethods aMethod, const char* aUrlSuffix, JsonObjectP
   processOperations();
 }
 
+
+JsonObjectPtr HueComm::getSuccessItem(JsonObjectPtr aResult, int aIndex)
+{
+  if (aResult && aIndex<aResult->arrayLength()) {
+    JsonObjectPtr responseItem = aResult->arrayGet(aIndex);
+    JsonObjectPtr successItem;
+    if (responseItem && responseItem->get("success", successItem)) {
+      return successItem;
+    }
+  }
+  return JsonObjectPtr();
+}
 
 
 
