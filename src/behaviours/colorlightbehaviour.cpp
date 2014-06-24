@@ -182,7 +182,7 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   derivedValuesComplete(false)
 {
   // primary channel of a color light is always a dimmer controlling the brightness
-  setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+  setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, -1);
   // Create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
   // - hue
   hue = ChannelBehaviourPtr(new HueChannel(*this));

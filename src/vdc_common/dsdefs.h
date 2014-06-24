@@ -244,6 +244,8 @@ typedef enum {
   outputFunction_switch, ///< switch output
   outputFunction_dimmer, ///< effective value dimmer
   outputFunction_positional, ///< positional (servo, valve, blinds)
+  outputFunction_ctdimmer, ///< dimmer with color temperature (channels 1 and 4)
+  outputFunction_colordimmer, ///< full color dimmer (channels 1..6)
 } DsOutputFunction;
 
 /// output modes
