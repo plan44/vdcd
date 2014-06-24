@@ -159,7 +159,7 @@ namespace p44 {
     /// @{
 
     /// @return true if device is dimmable
-    bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
+    bool isDimmable() { return outputFunction!=outputFunction_switch && outputMode==outputmode_gradual; };
 
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set

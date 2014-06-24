@@ -662,7 +662,6 @@ static char light_key;
 enum {
   onThreshold_key,
   minBrightness_key,
-  maxBrightness_key,
   dimTimeUp_key,
   dimTimeDown_key,
   dimTimeUpAlt1_key,

@@ -112,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sparkcore 53ff6e065067544825320587:f23c0ff8f755270f356fb3513448f025af31561d"
@@ -121,6 +121,10 @@
          <CommandLineArgument
             argument = "--sparkcore 53ff6a065067544840510687:f23c0ff8f755270f356fb3513448f025af31561d"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--sparkcore 50ff71065067545652170487:f23c0ff8f755270f356fb3513448f025af31561d"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"

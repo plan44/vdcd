@@ -108,7 +108,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                 }
                 else {
                   // for write, just pass the query value
-                  err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, propDesc);
+                  err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, containerPropDesc);
                   DBGFLOG(LOG_DEBUG,"    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
                 }
                 if ((aMode!=access_read) && Error::isOK(err)) {
