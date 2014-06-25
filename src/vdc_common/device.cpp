@@ -932,9 +932,16 @@ PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStart
       // within range, create descriptor
       DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
       if (aParentDescriptor->hasObjectKey(device_channels_key)) {
-        ChannelBehaviourPtr cb = getChannelByIndex(aStartIndex);
-        if (cb) {
-          descP->propertyName = string_format("%d", cb->getChannelType());
+        if (numericName) {
+          // query specified a channel number -> return same number in result (to return "0" when default channel "0" was explicitly queried)
+          descP->propertyName = aPropMatch; // query = name of object
+        }
+        else {
+          // wildcard, result object is named after channelType
+          ChannelBehaviourPtr cb = getChannelByIndex(aStartIndex);
+          if (cb) {
+            descP->propertyName = string_format("%d", cb->getChannelType());
+          }
         }
       }
       else {
