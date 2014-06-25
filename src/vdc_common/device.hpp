@@ -48,6 +48,7 @@ namespace p44 {
     typedef DsAddressable inherited;
 
     friend class DeviceContainer;
+    friend class DeviceClassCollector;
     friend class DsBehaviour;
     friend class DsScene;
     friend class SceneChannels;
@@ -84,6 +85,14 @@ namespace p44 {
     long dimHandlerTicket; ///< for standard dimming
     bool isDimming; ///< if set, dimming is in progress
 
+    // hardware access serializer/pacer
+    DoneCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending
+    bool applyInProgress; ///< set when applying values is in progress
+    int missedApplyAttempts; ///< number of apply attempts that could not be executed. If>0, completing next apply will trigger a re-apply to finalize values
+    DoneCB updatedOrCachedCB; ///< will be called when current values are either read from hardware, or new values have been requested for applying
+    bool updateInProgress; ///< set when updating channel values from hardware is in progress
+    long serializerWatchdogTicket; ///< watchdog terminating non-responding hardware requests
+
   public:
     Device(DeviceClassContainer *aClassContainerP);
     virtual ~Device();
@@ -109,7 +118,7 @@ namespace p44 {
 
 
 
-    /// @name interfaces for actual device hardware (or simulation)
+    /// @name general device level methods
     /// @{
 
     /// set basic device color
@@ -130,15 +139,17 @@ namespace p44 {
     ///   still hold a DevicePtr to it
     void hasVanished(bool aForgetParams);
 
-    /// @}
-
-
     /// set user assignable name
     /// @param new name of the addressable entity
     virtual void setName(const string &aName);
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
+
+    /// add a behaviour and set its index
+    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
+    ///   array and given the correct index value.
+    void addBehaviour(DsBehaviourPtr aBehaviour);
 
     /// get scenes
     /// @return NULL if device has no scenes, scene device settings otherwise 
@@ -155,10 +166,10 @@ namespace p44 {
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget();
 
+    /// @}
 
 
     /// @name API implementation
-
     /// @{
 
     /// called to let device handle device-level methods
@@ -193,46 +204,43 @@ namespace p44 {
     /// @note only updates the scene if aScene is marked dirty
     void updateScene(DsScenePtr aScene);
 
-    /// @}
-
-
-    /// @name interaction with subclasses, actually representing physical I/O
-    /// @{
-
-    /// initializes the physical device for being used
-    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
-    /// @note this is called before interaction with dS system starts
-    /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
-
-    /// apply all pending channel value updates to the device's hardware
-    /// @param aCompletedCB will called when values are applied
-    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
-    ///   in a single channel (and not switching between color modes etc.)
-    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
-    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
-    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    /// @note device's implementation MUST be such that this method can be called multiple times even before aCompletedCB
-    ///   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
-    ///   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
-    ///   most recent call's value gets applied to the hardware.
-    virtual void applyChannelValues(CompletedCB aCompletedCB, bool aForDimming) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* just call completed in base class */ };
-
-    /// synchronize channel values by reading them back from the device's hardware (if possible)
-    /// @param aCompletedCB will be called when values are updated with actual hardware values
-    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
-    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
-    /// @note implementation must use channel's syncChannelValue() method
-    virtual void syncChannelValues(CompletedCB aCompletedCB) { if (aCompletedCB) aCompletedCB(ErrorPtr()); /* assume caches up-to-date */ };
-
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
     /// @note this method must not directly update the hardware, but just prepare channel values such that these can
-    ///   be applied using applyChannelValues().
+    ///   be applied using requestApplyingChannels().
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
     /// @note base class by default forwards the control value to all of its output behaviours.
     virtual void processControlValue(const string &aName, double aValue);
+
+    /// @}
+
+
+    /// @name high level hardware access
+    /// @note these methods provide a level of abstraction for accessing hardware (especially output functionality)
+    ///   by providing a generic base implementation for functionality. Only in very specialized cases, subclasses may
+    ///   still want to derive these methods to provide device hardware specific optimization.
+    ///   However, for normal devices it is recommended NOT to derive these methods, but only the low level access
+    ///   methods.
+    /// @{
+
+    /// request applying channels changes now, but actual execution might get postponed if hardware is laggy
+    /// @param aAppliedOrSupersededCB will called when values are either applied, or applying has been superseded by
+    ///   even newer values set requested to be applied.
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    /// @note this internally calls applyChannelValues() to perform actual work, but serializes the behaviour towards the caller
+    ///   such that aAppliedOrSupersededCB of the previous request is always called BEFORE initiating subsequent
+    ///   channel updates in the hardware. It also may discard requests (but still calling aAppliedOrSupersededCB) to
+    ///   avoid stacking up delayed requests.
+    void requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming);
+
+    /// request that channel values are updated by reading them back from the device's hardware
+    /// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
+    ///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    void requestUpdatingChannels(DoneCB aUpdatedOrCachedCB);
 
     /// start or stop dimming channel of this device. Usually implemented in device specific manner in subclasses.
     /// @param aChannel the channelType to start or stop dimming for
@@ -272,12 +280,6 @@ namespace p44 {
     /// @}
 
 
-    /// add a behaviour and set its index
-    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
-    ///   array and given the correct index value.
-    void addBehaviour(DsBehaviourPtr aBehaviour);
-
-
     /// @name channels
     /// @{
 
@@ -302,6 +304,41 @@ namespace p44 {
     virtual string description();
 
   protected:
+
+
+    /// @name low level hardware access
+    /// @note actual hardware specific implementation is in derived methods in subclasses.
+    ///   Base class uses these methods to access the hardware in a generic way.
+    ///   These methods should never be called directly!
+    /// @note base class implementations are NOP
+    /// @{
+
+    /// initializes the physical device for being used
+    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
+    /// @note this is called before interaction with dS system starts
+    /// @note implementation should call inherited when complete, so superclasses could chain further activity
+    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
+
+    /// apply all pending channel value updates to the device's hardware
+    /// @param aDoneCB will called when values are actually applied, or hardware reports an error/timeout
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @note this method will NOT be called again until aCompletedCB is called, even if that takes a long time.
+    ///   Device::requestApplyingChannels() provides an implementation that prevent calling applyChannelValues too early,
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming) { if (aDoneCB) aDoneCB(); /* just call completed in base class */ };
+
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aDoneCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* assume caches up-to-date */ };
+    
+    /// @}
+
 
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
@@ -332,6 +369,11 @@ namespace p44 {
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
     void sceneValuesApplied(DsScenePtr aScene);
     void sceneActionsComplete(DsScenePtr aScene);
+
+    void applyingChannelsComplete();
+    void updatingChannelsComplete();
+    void serializerWatchdog();
+    bool checkForReapply();
 
   };
 

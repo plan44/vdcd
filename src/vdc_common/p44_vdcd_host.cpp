@@ -43,7 +43,9 @@ ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 {
   LOG(LOG_INFO,"cfg <- vdcd (JSON) result sent: result=%s\n", aResult ? aResult->description().c_str() : "<none>");
   JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
-  P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
+  if (result) {
+    P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
+  }
   return ErrorPtr();
 }
 

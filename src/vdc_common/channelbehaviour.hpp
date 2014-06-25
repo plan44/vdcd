@@ -109,7 +109,7 @@ namespace p44 {
     /// @param aAlwaysApply if set, new value will be applied to hardware even if not different from currently known value
     void setChannelValue(double aNewValue, MLMicroSeconds aTransitionTime=0, bool aAlwaysApply=false);
 
-    /// set new channel value and separate transition times for increasing/decreasing value applyChannelValues()
+    /// set new channel value and separate transition times for increasing/decreasing value at applyChannelValues()
     /// @param aValue the new output value
     /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher channel value
     /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower channel value

@@ -149,7 +149,7 @@ void OutputBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB a
 {
   if (aFromDevice) {
     // make sure channel values are updated
-    device.syncChannelValues(boost::bind(&OutputBehaviour::channelValuesCaptured, this, aScene, aFromDevice, aDoneCB));
+    device.requestUpdatingChannels(boost::bind(&OutputBehaviour::channelValuesCaptured, this, aScene, aFromDevice, aDoneCB));
   }
   else {
     // just capture the cached channel values

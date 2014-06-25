@@ -427,7 +427,7 @@ void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aB
   if (!hwUpdateInProgress || aBrightness==0) {
     // prevent additional apply calls until either 0 reached or previous step done
     hwUpdateInProgress = true;
-    device.applyChannelValues(boost::bind(&LightBehaviour::fadeDownStepDone, this), true); // dimming mode
+    device.requestApplyingChannels(boost::bind(&LightBehaviour::fadeDownStepDone, this), true); // dimming mode
   }
   if (aBrightness>0) {
     fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
@@ -573,7 +573,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     if (blinkRestoreScene) {
       loadChannelsFromScene(blinkRestoreScene);
       blinkRestoreScene.reset();
-      device.applyChannelValues(NULL, false); // apply to hardware, not dimming
+      device.requestApplyingChannels(NULL, false); // apply to hardware, not dimming
     }
     // done, call end handler if any
     if (blinkDoneHandler) {
@@ -592,7 +592,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     brightness->setChannelValue(brightness->getMinDim(), 0);
   }
   // apply to hardware
-  device.applyChannelValues(NULL, false); // not dimming
+  device.requestApplyingChannels(NULL, false); // not dimming
   aState = !aState; // toggle
   // schedule next event
   blinkTicket = MainLoop::currentMainLoop().executeOnce(

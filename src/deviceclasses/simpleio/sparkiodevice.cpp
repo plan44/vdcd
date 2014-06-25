@@ -171,9 +171,7 @@ DsScenePtr SparkDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   Device((DeviceClassContainer *)aClassContainerP),
   sparkCloudComm(SyncIOMainLoop::currentMainLoop()),
-  apiVersion(0),
-  outputValue(0),
-  outputChangePending(false)
+  apiVersion(0)
 {
   // config must be: sparkCoreId:accessToken
   size_t i = aDeviceConfig.find_first_of(':');
@@ -238,6 +236,11 @@ void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryRe
 
 void SparkIoDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
+  if (applyInProgress) {
+    // cannot query now, update in progress, assume still present
+    aPresenceResultHandler(true);
+    return;
+  }
   // query the device
   sparkApiCall(boost::bind(&SparkIoDevice::presenceStateReceived, this, aPresenceResultHandler, _1, _2), "version");
 }
@@ -257,7 +260,7 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   // check if any channel has changed at all
   bool needsUpdate = false;
@@ -272,7 +275,7 @@ void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimmin
   if (sl) {
     if (!needsUpdate) {
       // NOP for this call
-      channelValuesSent(sl, aCompletedCB, JsonObjectPtr(), ErrorPtr());
+      channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr());
       return;
     }
     // derive (possibly new) color mode from changed channels
@@ -303,41 +306,39 @@ void SparkIoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimmin
     if (apiVersion==2) {
       string args = string_format("state=%lu", stateWord);
       // posting might fail if done too early
-      if (!sparkApiCall(boost::bind(&SparkIoDevice::channelValuesSent, this, sl, aCompletedCB, _1, _2), args)) {
-        outputChangePending = true; // retry when previous request done
+      if (!sparkApiCall(boost::bind(&SparkIoDevice::channelValuesSent, this, sl, aDoneCB, _1, _2), args)) {
+        // retry after a while
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&SparkIoDevice::applyChannelValues, this, aDoneCB, aForDimming), 1*Second);
       }
     }
     else {
       // error, wrong API
-      channelValuesSent(sl, aCompletedCB, JsonObjectPtr(), ErrorPtr(new WebError(415)));
+      channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr(new WebError(415)));
     }
-  }
-  else {
-    // let inherited process it
-    inherited::applyChannelValues(aCompletedCB, aForDimming);
   }
 }
 
 
-void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     aSparkLightBehaviour->appliedRGB();
   }
-  if (aCompletedCB) aCompletedCB(aError);
+  // confirm done
+  if (aDoneCB) aDoneCB();
 }
 
 
 
-void SparkIoDevice::syncChannelValues(CompletedCB aCompletedCB)
+void SparkIoDevice::syncChannelValues(DoneCB aDoneCB)
 {
   // query light attributes and state
-  sparkApiCall(boost::bind(&SparkIoDevice::channelValuesReceived, this, aCompletedCB, _1, _2), "state");
+  sparkApiCall(boost::bind(&SparkIoDevice::channelValuesReceived, this, aDoneCB, _1, _2), "state");
 }
 
 
 
-void SparkIoDevice::channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aJsonResponse) {
     JsonObjectPtr o = aJsonResponse->get("return_value");
@@ -360,7 +361,7 @@ void SparkIoDevice::channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPt
     }
   }
   // done
-  inherited::syncChannelValues(aCompletedCB);
+  inherited::syncChannelValues(aDoneCB);
 }
 
 

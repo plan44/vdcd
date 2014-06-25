@@ -202,7 +202,7 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   // trigger updating all device outputs
   for (int i=0; i<numChannels(); i++) {
@@ -216,7 +216,7 @@ void EnoceanDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimmin
     // send immediately
     sendOutgoingUpdate();
   }
-  inherited::applyChannelValues(aCompletedCB, aForDimming);
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 

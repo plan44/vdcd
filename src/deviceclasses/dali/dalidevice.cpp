@@ -169,7 +169,7 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 }
 
 
-void DaliDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void DaliDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
@@ -180,7 +180,7 @@ void DaliDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
     daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
     lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues(aCompletedCB, aForDimming);
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 

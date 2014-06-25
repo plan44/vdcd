@@ -142,13 +142,10 @@ namespace p44 {
     typedef Device inherited;
     friend class SparkLightBehaviour;
 
-    int32_t outputValue;
     string sparkCoreID;
     string sparkCoreToken;
     JsonWebClient sparkCloudComm;
     int apiVersion;
-    bool outputChangePending;
-    SparkLightScenePtr pendingSparkScene;
 
   public:
     SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -175,17 +172,17 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    /// @param aCompletedCB if not NULL, must be called when values are applied
+    /// @param aDoneCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
-    virtual void applyChannelValues(CompletedCB aCompletedCB, bool aForDimming);
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
-    /// @param aCompletedCB will be called when values are updated with actual hardware values
+    /// @param aDoneCB will be called when values are updated with actual hardware values
     /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
     /// @note implementation must use channel's syncChannelValue() method
-    virtual void syncChannelValues(CompletedCB aCompletedCB);
+    virtual void syncChannelValues(DoneCB aDoneCB);
 
     /// @}
 
@@ -209,8 +206,8 @@ namespace p44 {
     void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
-    void channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
-    void channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
   };
   

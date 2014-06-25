@@ -222,22 +222,8 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 //   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
 //   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
 //   most recent call's value gets applied to the hardware.
-void HueDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // serialize calls
-  if (applyInProgress) {
-    // a call is already running
-    // - confirm previous apply although not yet completed in hardware
-    if (pendingApplyCB) pendingApplyCB(ErrorPtr());
-    // - make this call's callback active
-    pendingApplyCB = aCompletedCB;
-    // - flag for re-applying when current hardware call has completed to make sure final values will be present in device
-    repeatApplyAtEnd = true;
-    return;
-  }
-  // - make this call's callback active
-  pendingApplyCB = aCompletedCB;
-  applyInProgress = true;
   // check if any channel has changed at all
   bool needsUpdate = false;
   for (int i=0; i<numChannels(); i++) {
@@ -252,7 +238,7 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
   if (cl) {
     if (!needsUpdate) {
       // NOP for this call
-      channelValuesSent(cl, JsonObjectPtr(), ErrorPtr());
+      channelValuesSent(cl, aDoneCB, JsonObjectPtr(), ErrorPtr());
       return;
     }
     // derive (possibly new) color mode from changed channels
@@ -323,13 +309,13 @@ void HueDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
       LOG(LOG_INFO, "hue device %s: sending new light state: brightness = %0.0f, colorMode=%d\n", shortDesc().c_str(), cl->brightness->getChannelValue(), cl->colorMode);
     }
     // TODO: use result to sync channel value
-    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::channelValuesSent, this, cl, _1, _2));
+    hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::channelValuesSent, this, cl, aDoneCB, _1, _2));
   }
 }
 
 
 
-void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, JsonObjectPtr aResult, ErrorPtr aError)
+void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError)
 {
   // synchronize actual channel values as hue delivers them back
   if (aResult) {
@@ -373,32 +359,22 @@ void HueDevice::channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, J
       }
     }
   }
-  // applied now
-  applyInProgress = false;
-  // now check if we need to re-apply to actually have the latest values applied
-  if (repeatApplyAtEnd) {
-    // not complete yet
-    repeatApplyAtEnd = false;
-    applyChannelValues(pendingApplyCB, false); // not dimming when we have missed calls in between!
-    return;
-  }
-  // really complete now
-  if (pendingApplyCB) pendingApplyCB(aError);
-  pendingApplyCB = NULL; // done
+  // confirm done
+  if (aDoneCB) aDoneCB();
 }
 
 
 
-void HueDevice::syncChannelValues(CompletedCB aCompletedCB)
+void HueDevice::syncChannelValues(DoneCB aDoneCB)
 {
   // query light attributes and state
   string url = string_format("/lights/%s", lightID.c_str());
-  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::channelValuesReceived, this, aCompletedCB, _1, _2));
+  hueComm().apiQuery(url.c_str(), boost::bind(&HueDevice::channelValuesReceived, this, aDoneCB, _1, _2));
 }
 
 
 
-void HueDevice::channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
+void HueDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // assign the channel values
@@ -452,7 +428,7 @@ void HueDevice::channelValuesReceived(CompletedCB aCompletedCB, JsonObjectPtr aD
     }
   }
   // done
-  inherited::syncChannelValues(aCompletedCB);
+  if (aDoneCB) aDoneCB();
 }
 
 

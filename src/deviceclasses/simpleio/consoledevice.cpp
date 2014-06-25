@@ -106,7 +106,7 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 }
 
 
-void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void ConsoleDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   // generic device, show changed channels
   for (int i = 0; i<numChannels(); i++) {
@@ -132,7 +132,7 @@ void ConsoleDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimmin
       ch->channelValueApplied(); // confirm having applied the value
     }
   }
-  inherited::applyChannelValues(aCompletedCB, aForDimming);
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 

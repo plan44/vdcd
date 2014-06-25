@@ -19,12 +19,17 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "device.hpp"
 
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 #include "outputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
+
 
 
 using namespace p44;
@@ -42,7 +47,11 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   currentDimChannel(channeltype_default),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
-  primaryGroup(group_black_joker)
+  primaryGroup(group_black_joker),
+  applyInProgress(false),
+  missedApplyAttempts(0),
+  updateInProgress(false),
+  serializerWatchdogTicket(0)
 {
 }
 
@@ -224,7 +233,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
         // apply the values
-        applyChannelValues(NULL, false);
+        requestApplyingChannels(NULL, false);
       }
     }
     if (!Error::isOK(err)) {
@@ -491,7 +500,7 @@ void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
       // start ticking
       isDimming = true;
       // apply start point (non-dimming), then call dim handler
-      applyChannelValues(boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()), false);
+      requestApplyingChannels(boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()), false);
     }
   }
 }
@@ -502,7 +511,7 @@ void Device::dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicro
   // increment channel value
   aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
   // apply to hardware
-  applyChannelValues(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL), true); // apply in dimming mode
+  requestApplyingChannels(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL), true); // apply in dimming mode
 }
 
 
@@ -520,6 +529,205 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
     // now schedule next inc/update step
     dimHandlerTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&Device::dimHandler, this, aChannel, aIncrement, _1), aNextDimAt);
   }
+}
+
+
+#pragma mark - high level serialized hardware access
+
+#define SERIALIZER_WATCHDOG 1
+#define SERIALIZER_WATCHDOG_TIMEOUT (20*Second)
+
+void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming)
+{
+  DBGFLOG(LOG_NOTICE, "requestApplyingChannels entered in device %s\n", shortDesc().c_str());
+  // Caller wants current channel values applied to hardware
+  // Three possible cases:
+  // a) hardware is busy applying new values already -> confirm previous request to apply as superseded
+  // b) hardware is busy updating values -> wait until this is done
+  // c) hardware is not busy -> start apply right now
+  if (applyInProgress) {
+    DBGFLOG(LOG_NOTICE, "- requestApplyingChannels called while apply already running\n");
+    // case a) confirm previous request because superseded
+    if (appliedOrSupersededCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming previous (superseded) apply request\n");
+      DoneCB cb = appliedOrSupersededCB;
+      appliedOrSupersededCB = aAppliedOrSupersededCB; // in case current callback should request another change, callback is already installed
+      cb(); // call back now, values have been superseded
+      DBGFLOG(LOG_NOTICE, "- previous (superseded) apply request confirmed\n");
+    }
+    else {
+      appliedOrSupersededCB = aAppliedOrSupersededCB;
+    }
+    // - when previous request actually terminates, we need another update to make sure finally settled values are correct
+    missedApplyAttempts++;
+    DBGFLOG(LOG_NOTICE, "- missed requestApplyingChannels requests now %d\n", missedApplyAttempts);
+  }
+  else if (updateInProgress) {
+    DBGFLOG(LOG_NOTICE, "- requestApplyingChannels called while update running -> postpone apply\n");
+    // case b) cannot execute until update finishes
+    missedApplyAttempts++;
+    appliedOrSupersededCB = aAppliedOrSupersededCB;
+    applyInProgress = true;
+  }
+  else {
+    // case c) applying is not currently in progress, start updating hardware now
+    DBGFLOG(LOG_NOTICE, "- ready, calling applyChannelValues() in device %s\n", shortDesc().c_str());
+    #if SERIALIZER_WATCHDOG
+    // - start watchdog
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
+    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), 10*Second); // new
+    DBGFLOG(LOG_WARNING, "+++++ Serializer watchdog started for apply with ticket #%ld\n", serializerWatchdogTicket);
+    #endif
+    // - start applying
+    appliedOrSupersededCB = aAppliedOrSupersededCB;
+    applyInProgress = true;
+    applyChannelValues(boost::bind(&Device::applyingChannelsComplete, this), aForDimming);
+  }
+}
+
+
+void Device::serializerWatchdog()
+{
+  #if SERIALIZER_WATCHDOG
+  DBGFLOG(LOG_WARNING, "##### Serializer watchdog ticket #%ld expired\n", serializerWatchdogTicket);
+  if (applyInProgress) {
+    LOG(LOG_WARNING, "##### Serializer watchdog force-ends apply with %d missed attempts in device %s\n", missedApplyAttempts, shortDesc().c_str());
+    missedApplyAttempts = 0;
+    applyingChannelsComplete();
+    DBGFLOG(LOG_WARNING, "##### Force-ending apply complete\n");
+  }
+  if (updateInProgress) {
+    LOG(LOG_WARNING, "##### Serializer watchdog force-ends update in device %s\n", shortDesc().c_str());
+    updatingChannelsComplete();
+    DBGFLOG(LOG_WARNING, "##### Force-ending complete\n");
+
+  }
+  #endif
+}
+
+
+bool Device::checkForReapply()
+{
+  LOG(LOG_DEBUG, "checkForReapply in device %s - missed %d apply attempts in between\n", shortDesc().c_str(), missedApplyAttempts);
+  if (missedApplyAttempts>0) {
+    // request applying again to make sure final values are applied
+    // - re-use callback of most recent requestApplyingChannels(), will be called once this attempt has completed (or superseded again)
+    DBGFLOG(LOG_NOTICE, "- checkForReapply now requesting final channel apply\n");
+    missedApplyAttempts = 0; // clear missed
+    applyInProgress = false; // must be cleared for requestApplyingChannels() to actually do something
+    requestApplyingChannels(appliedOrSupersededCB, false); // final apply after missing other apply commands may not optimize for dimming
+    // - done for now
+    return true; // reapply needed and started
+  }
+  return false; // no repply pending
+}
+
+
+
+// hardware has completed applying values
+void Device::applyingChannelsComplete()
+{
+  DBGFLOG(LOG_NOTICE, "applyingChannelsComplete entered in device %s\n", shortDesc().c_str());
+  #if SERIALIZER_WATCHDOG
+  if (serializerWatchdogTicket) {
+    DBGFLOG(LOG_WARNING, "----- Serializer watchdog ticket #%ld cancelled - apply complete\n", serializerWatchdogTicket);
+  }
+  #endif
+  MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
+  applyInProgress = false;
+  // if more apply request have happened in the meantime, we need to reapply now
+  if (!checkForReapply()) {
+    // apply complete and no final re-apply pending
+    // - confirm because finally applied
+    DBGFLOG(LOG_NOTICE, "- applyingChannelsComplete - really completed\n");
+    if (appliedOrSupersededCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming apply (really) finalized\n");
+      DoneCB cb = appliedOrSupersededCB;
+      appliedOrSupersededCB = NULL; // ready for possibly taking new callback in case current callback should request another change
+      cb(); // call back now, values have been superseded
+      DBGFLOG(LOG_NOTICE, "- confirmed apply (really) finalized\n");
+    }
+  }
+}
+
+
+
+/// request that channel values are updated by reading them back from the device's hardware
+/// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
+///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
+/// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+void Device::requestUpdatingChannels(DoneCB aUpdatedOrCachedCB)
+{
+  DBGFLOG(LOG_NOTICE, "requestUpdatingChannels entered in device %s\n", shortDesc().c_str());
+  // Caller wants current values from hardware
+  // Three possible cases:
+  // a) hardware is busy updating values already -> serve previous callback (with stale values) and install new callback
+  // b) hardware is busy applying new values -> consider cache most recent
+  // c) hardware is not busy -> start reading values
+  if (updateInProgress) {
+    // case a) serialize updates: terminate previous callback with stale values and install new one
+    if (updatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels updated for PREVIOUS request with stale values (as asked again)\n");
+      DoneCB cb = updatedOrCachedCB;
+      updatedOrCachedCB = aUpdatedOrCachedCB; // install new
+      cb(); // execute old
+      DBGFLOG(LOG_NOTICE, "- confirmed channels updated for PREVIOUS request with stale values (as asked again)\n");
+    }
+    else {
+      updatedOrCachedCB = aUpdatedOrCachedCB; // install new
+    }
+    // done, actual results will serve most recent request for values
+  }
+  else if (applyInProgress) {
+    // case b) no update pending, but applying values right now: return current values as hardware values are in
+    //   process of being overwritten by those
+    if (aUpdatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels already up-to-date (as HW update is in progress)\n");
+      aUpdatedOrCachedCB(); // execute old
+      DBGFLOG(LOG_NOTICE, "- confirmed channels already up-to-date (as HW update is in progress)\n");
+    }
+  }
+  else {
+    // case c) hardware is not busy, start reading back current values
+    DBGFLOG(LOG_NOTICE, "requestUpdatingChannels: hardware ready, calling syncChannelValues() in device %s\n", shortDesc().c_str());
+    updatedOrCachedCB = aUpdatedOrCachedCB; // install new callback
+    updateInProgress = true;
+    #if SERIALIZER_WATCHDOG
+    // - start watchdog
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
+    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), SERIALIZER_WATCHDOG_TIMEOUT);
+    DBGFLOG(LOG_WARNING, "+++++ Serializer watchdog started for update with ticket #%ld\n", serializerWatchdogTicket);
+    #endif
+    // - trigger querying hardware
+    syncChannelValues(boost::bind(&Device::updatingChannelsComplete, this));
+  }
+}
+
+
+void Device::updatingChannelsComplete()
+{
+  #if SERIALIZER_WATCHDOG
+  if (serializerWatchdogTicket) {
+    DBGFLOG(LOG_WARNING, "----- Serializer watchdog ticket #%ld cancelled - update complete\n", serializerWatchdogTicket);
+  }
+  #endif
+  if (updateInProgress) {
+    DBGFLOG(LOG_NOTICE, "endUpdatingChannels in device %s, actually waiting for these result\n", shortDesc().c_str());
+    updateInProgress = false;
+    if (updatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels updated from hardware\n");
+      DoneCB cb = updatedOrCachedCB;
+      updatedOrCachedCB = NULL; // ready for possibly taking new callback in case current callback should request another change
+      cb(); // call back now, cached values are either updated from hardware or superseded by pending updates TO hardware
+      DBGFLOG(LOG_NOTICE, "- confirmed channels updated from hardware\n");
+    }
+  }
+  else {
+    DBGFLOG(LOG_ERR, "UNEXPECTED endUpdatingChannels in device %s -> discarded\n", shortDesc().c_str());
+  }
+  // if we have got apply requests in the meantime, we need to do a reapply now
+  checkForReapply();
 }
 
 
@@ -623,7 +831,7 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
     // apply scene logically
     if (output->applyScene(aScene)) {
       // now apply values to hardware
-      applyChannelValues(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+      requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
     }
   }
 }
@@ -655,7 +863,7 @@ void Device::undoScene(SceneNo aSceneNo)
       // now apply the pseudo state
       output->applyScene(previousState);
       // apply the values now, not dimming
-      applyChannelValues(NULL, false);
+      requestApplyingChannels(NULL, false);
     }
   }
 }
@@ -687,7 +895,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
       if (output) {
         output->onAtMinBrightness();
         // apply the values now, not dimming
-        applyChannelValues(NULL, false);
+        requestApplyingChannels(NULL, false);
       }
     }
   }
@@ -1067,7 +1275,7 @@ ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr
     aMode==access_write // ...got a non-preload write
   ) {
     // apply new channel values to hardware, not dimming
-    applyChannelValues(NULL, false);
+    requestApplyingChannels(NULL, false);
   }
   return inherited::writtenProperty(aMode, aPropertyDescriptor, aDomain, aContainer);
 }
