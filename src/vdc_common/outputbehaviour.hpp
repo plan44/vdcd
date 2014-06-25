@@ -135,8 +135,13 @@ namespace p44 {
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    /// @param aDoneCB will be called when scene actions have completed
+    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
     virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
+
+    /// will be called to stop all ongoing actions before next callScene etc. is issued.
+    /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
+    ///   cannot mess up things.
+    virtual void stopActions() { /* NOP */ };
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update

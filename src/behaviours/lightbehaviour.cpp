@@ -330,7 +330,7 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   onThreshold(128),
   // volatile state
   fadeDownTicket(0),
-  blinkCounter(0)
+  blinkTicket(0)
 {
   // should always be a member of the light group
   setGroup(group_yellow_light);
@@ -396,8 +396,8 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
   // check special cases for light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
-    // any scene call cancels fade down
-    MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
+    // any scene call cancels actions (and fade down)
+    stopActions();
     SceneNo sceneNo = lightScene->sceneNo;
     // now check for special hard-wired scenes
     if (sceneNo==MIN_S) {
@@ -420,7 +420,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
   return inherited::applyScene(aScene);
 }
 
-
+// TODO: for later: consider if fadeDown is not an action like blink...
 void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
 {
   brightness->setChannelValue(aBrightness, aFadeStepTime);
@@ -511,6 +511,17 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
 }
 
 
+void LightBehaviour::stopActions()
+{
+  // stop fade down
+  MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
+  // stop blink
+  if (blinkTicket) stopBlink();
+  // let inherited stop as well
+  inherited::stopActions();
+}
+
+
 
 void LightBehaviour::identifyToUser()
 {
@@ -527,12 +538,21 @@ void LightBehaviour::identifyToUser()
 void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
 {
   // save current state in temp scene
-  LightScenePtr restoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
-  captureScene(restoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, restoreScene, aDuration, aParamScene, aDoneCB, aBlinkPeriod, aOnRatioPercent));
+  blinkDoneHandler = aDoneCB;
+  blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
+  captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
 }
 
 
-void LightBehaviour::beforeBlinkStateSavedHandler(LightScenePtr aRestoreScene, MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+void LightBehaviour::stopBlink()
+{
+  // immediately terminate (also kills ticket)
+  blinkHandler(0 /* done */, false, 0, 0); // dummy params, only to immediately stop it
+}
+
+
+
+void LightBehaviour::beforeBlinkStateSavedHandler(MLMicroSeconds aDuration, LightScenePtr aParamScene, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
 {
   // apply the parameter scene if any
   if (aParamScene) loadChannelsFromScene(aParamScene);
@@ -540,20 +560,27 @@ void LightBehaviour::beforeBlinkStateSavedHandler(LightScenePtr aRestoreScene, M
   MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
   aBlinkPeriod -= blinkOnTime; // blink off time
   // start off, so first action will be on
-  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, aRestoreScene, aDoneCB);
+  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod);
 }
 
 
-void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, LightScenePtr aRestoreScene, DoneCB aDoneCB)
+void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime)
 {
   if (MainLoop::now()>=aEndTime) {
+    // kill scheduled execution, if any
+    MainLoop::currentMainLoop().cancelExecutionTicket(blinkTicket);
     // restore previous values if any
-    if (aRestoreScene) {
-      loadChannelsFromScene(aRestoreScene);
+    if (blinkRestoreScene) {
+      loadChannelsFromScene(blinkRestoreScene);
+      blinkRestoreScene.reset();
       device.applyChannelValues(NULL, false); // apply to hardware, not dimming
     }
-    // done, call end handler
-    if (aDoneCB) aDoneCB();
+    // done, call end handler if any
+    if (blinkDoneHandler) {
+      DoneCB h = blinkDoneHandler;
+      blinkDoneHandler = NULL;
+      h();
+    }
     return;
   }
   else if (!aState) {
@@ -568,8 +595,8 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
   device.applyChannelValues(NULL, false); // not dimming
   aState = !aState; // toggle
   // schedule next event
-  MainLoop::currentMainLoop().executeOnce(
-    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime, aRestoreScene, aDoneCB),
+  blinkTicket = MainLoop::currentMainLoop().executeOnce(
+    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime),
     aState ? aOnTime : aOffTime
   );
 }
