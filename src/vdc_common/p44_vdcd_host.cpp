@@ -318,11 +318,13 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
     // get params
     // Note: the "method" or "notification" param will also be in the params, but should not cause any problem
     ApiValuePtr params = JsonApiValue::newValueFromJson(aRequest);
-    string dsuidstring;
-    if (Error::isOK(err = checkStringParam(params, "dSUID", dsuidstring))) {
+    ApiValuePtr o;
+    err = checkParam(params, "dSUID", o);
+    if (Error::isOK(err)) {
       // operation method
-      DsUid dsuid = DsUid(dsuidstring);
+      DsUid dsuid;
       if (isMethod) {
+        dsuid.setAsBinary(o->binaryValue());
         // create request
         P44JsonApiRequestPtr request = P44JsonApiRequestPtr(new P44JsonApiRequest(aJsonComm));
         // check for old-style name/index and generate basic query (1 or 2 levels)
@@ -349,7 +351,20 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       }
       else {
         // handle notification
-        handleNotificationForDsUid(cmd, dsuid, params);
+        // dSUID param can be single dSUID or array of dSUIDs
+        if (o->isType(apivalue_array)) {
+          // array of dSUIDs
+          for (int i=0; i<o->arrayLength(); i++) {
+            ApiValuePtr e = o->arrayGet(i);
+            dsuid.setAsBinary(e->binaryValue());
+            handleNotificationForDsUid(cmd, dsuid, params);
+          }
+        }
+        else {
+          // single dSUID
+          dsuid.setAsBinary(o->binaryValue());
+          handleNotificationForDsUid(cmd, dsuid, params);
+        }
         // notifications are always successful
         err = ErrorPtr(new Error(ErrorOK));
       }
