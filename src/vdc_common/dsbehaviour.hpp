@@ -117,7 +117,8 @@ namespace p44 {
     virtual void setGroup(DsGroup aGroup) { /* NOP in base class */ };
 
     /// push state
-    void pushBehaviourState();
+    /// @return true if API was connected and push could be sent
+    bool pushBehaviourState();
 
 
     /// @name persistent settings management

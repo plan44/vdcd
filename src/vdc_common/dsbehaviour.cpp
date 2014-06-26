@@ -59,7 +59,7 @@ void DsBehaviour::setHardwareError(DsHardwareError aHardwareError)
 }
 
 
-void DsBehaviour::pushBehaviourState()
+bool DsBehaviour::pushBehaviourState()
 {
   VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
   if (api) {
@@ -69,7 +69,10 @@ void DsBehaviour::pushBehaviourState()
     subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
     query->add(string(getTypeName()).append("States"), subQuery);
     device.pushProperty(query, VDC_API_DOMAIN);
+    return true;
   }
+  // could not push
+  return false;
 }
 
 

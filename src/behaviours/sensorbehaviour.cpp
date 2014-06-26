@@ -65,13 +65,7 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
     currentValue = newCurrentValue;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
-      VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
-      if (api) {
-        ApiValuePtr query = api->newApiValue();
-        ApiValuePtr subQuery = query->newValue(apivalue_object);
-        subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
-        query->add("sensorStates", subQuery);
-        device.pushProperty(query, VDC_API_DOMAIN);
+      if (pushBehaviourState()) {
         lastPush = now;
       }
     }

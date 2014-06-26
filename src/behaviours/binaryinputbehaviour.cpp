@@ -65,13 +65,9 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
     currentState = aNewState;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
-      VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
-      ApiValuePtr query = api->newApiValue();
-      ApiValuePtr subQuery = query->newValue(apivalue_object);
-      subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
-      query->add("binaryInputStates", subQuery);
-      device.pushProperty(query, VDC_API_DOMAIN);
-      lastPush = now;
+      if (pushBehaviourState()) {
+        lastPush = now;
+      }
     }
   }
 }
