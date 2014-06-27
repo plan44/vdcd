@@ -125,7 +125,7 @@ bool p44::getIfInfo(uint64_t *aMacAddressP, uint32_t *aIPv4AddressP)
         temp_addr = temp_addr->ifa_next;
       }
     }
-    
+
     // Free memory
     freeifaddrs(interfaces);
 
@@ -186,10 +186,10 @@ bool p44::getIfInfo(uint64_t *aMacAddressP, uint32_t *aIPv4AddressP)
           // - also get IPv4
           if (aIPv4AddressP && ioctl(sock, SIOCGIFADDR, &ifr)>=0) {
             for (int i=0; i<4; ++i) {
-              if (ifr.tfr_addr.sa_family==AF_INET) {
+              if (ifr.ifr_addr.sa_family==AF_INET) {
                 // is IPv4
                 struct sockaddr_in *ipv4 = (struct sockaddr_in *)&(ifr.ifr_addr);
-                ip = (ip<<8) + ((uint8_t *)(ipv4->sa_data))[i];
+                ip = (ip<<8) + ((uint8_t *)&(ipv4->sin_addr.s_addr))[i];
               }
             }
             *aIPv4AddressP = ip;
