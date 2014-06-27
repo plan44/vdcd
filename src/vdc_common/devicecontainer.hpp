@@ -104,6 +104,7 @@ namespace p44 {
     bool collecting;
     long announcementTicket;
     long periodicTaskTicket;
+    MLMicroSeconds announcePause;
 
     int8_t localDimDirection;
 
@@ -143,6 +144,9 @@ namespace p44 {
     ///   any class containers are added to the device container
     void setIdMode(bool aDsUid, DsUidPtr aExternalDsUid = DsUidPtr());
 
+
+    /// @param aAnnouncePause how long to wait between device announcements
+    void setAnnouncePause(MLMicroSeconds aAnnouncePause) { announcePause = aAnnouncePause; };
 
     /// @return true if modern GS1/UUID based dSUIDs should be used
     bool usingDsUids() { return dsUids; };

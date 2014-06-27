@@ -240,6 +240,7 @@ public:
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
+      { 0  , "announcepause", true,  "milliseconds;pause between device announcements at startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
@@ -346,6 +347,12 @@ public:
         externalDsUid->setSerial(serial);
       }
       p44VdcHost->setIdMode(modernids!=0, externalDsUid);
+
+      // - set announce pause
+      int announcePause;
+      if (getIntOption("announcepause", announcePause)){
+        p44VdcHost->setAnnouncePause(announcePause*MilliSecond);
+      }
 
       // - set API
       int protobufapi = DEFAULT_USE_PROTOBUF_API;

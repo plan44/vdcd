@@ -43,6 +43,17 @@
 using namespace p44;
 
 
+// how long vDC waits after receiving ok from one announce until it fires the next
+//#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
+#define DEFAULT_ANNOUNCE_PAUSE (1*Second)
+
+// how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
+#define ANNOUNCE_TIMEOUT (30*Second)
+
+// how long until a not acknowledged announcement for a device is retried again for the same device
+#define ANNOUNCE_RETRY_TIMEOUT (300*Second)
+
+
 DeviceContainer::DeviceContainer() :
   mac(0),
   DsAddressable(this),
@@ -51,6 +62,7 @@ DeviceContainer::DeviceContainer() :
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimDirection(0), // undefined
+  announcePause(DEFAULT_ANNOUNCE_PAUSE),
   dsUids(false)
 {
   // obtain MAC address
@@ -909,14 +921,6 @@ void DeviceContainer::resetAnnouncing()
 }
 
 
-// how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
-#define ANNOUNCE_TIMEOUT (30*Second)
-
-// how long until a not acknowledged announcement for a device is retried again for the same device
-#define ANNOUNCE_RETRY_TIMEOUT (300*Second)
-
-// how long vDC waits after receiving ok from one announce until it fires the next
-#define ANNOUNCE_PAUSE (100*MilliSecond)
 
 /// start announcing all not-yet announced entities to the vdSM
 void DeviceContainer::startAnnouncing()
@@ -1006,7 +1010,7 @@ void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcAp
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), announcePause);
 }
 
 
