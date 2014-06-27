@@ -49,7 +49,7 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
 
 
 
-void DemoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
+void DemoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   // light device
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
@@ -68,7 +68,7 @@ void DemoDevice::applyChannelValues(CompletedCB aCompletedCB, bool aForDimming)
     printf("Demo Device Output: %s\n", bar.c_str());
     lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  inherited::applyChannelValues(aCompletedCB, aForDimming);
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 
