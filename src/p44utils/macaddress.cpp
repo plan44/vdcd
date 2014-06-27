@@ -186,7 +186,11 @@ bool p44::getIfInfo(uint64_t *aMacAddressP, uint32_t *aIPv4AddressP)
           // - also get IPv4
           if (aIPv4AddressP && ioctl(sock, SIOCGIFADDR, &ifr)>=0) {
             for (int i=0; i<4; ++i) {
-              ip = (ip<<8) + ((uint8_t *)(ifr.ifr_addr.sa_data))[i];
+              if (ifr.tfr_addr.sa_family==AF_INET) {
+                // is IPv4
+                struct sockaddr_in *ipv4 = (struct sockaddr_in *)&(ifr.ifr_addr);
+                ip = (ip<<8) + ((uint8_t *)(ipv4->sa_data))[i];
+              }
             }
             *aIPv4AddressP = ip;
             found = true;
