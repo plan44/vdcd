@@ -179,7 +179,7 @@ namespace p44 {
 
     /// send a vDC API result (answer for successful method call)
     /// @param aResult the result as a ApiValue. Can be NULL for procedure calls without return value
-    /// @result empty or Error object in case of error sending result response
+    /// @result empty or object in case of error sending result response
     virtual ErrorPtr sendResult(ApiValuePtr aResult) = 0;
 
     /// send a vDC API error (answer for unsuccesful method call)

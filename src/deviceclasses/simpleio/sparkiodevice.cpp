@@ -169,7 +169,7 @@ DsScenePtr SparkDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 #pragma mark - SparkIoDevice
 
 SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP),
+  StaticDevice((DeviceClassContainer *)aClassContainerP),
   sparkCloudComm(SyncIOMainLoop::currentMainLoop()),
   apiVersion(0)
 {

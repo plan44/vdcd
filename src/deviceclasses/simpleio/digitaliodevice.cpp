@@ -30,7 +30,7 @@ using namespace p44;
 
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP)
+  StaticDevice((DeviceClassContainer *)aClassContainerP)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string ioname = aDeviceConfig;

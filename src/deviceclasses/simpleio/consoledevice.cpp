@@ -31,7 +31,7 @@ using namespace p44;
 
 
 ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP),
+  StaticDevice((DeviceClassContainer *)aClassContainerP),
   hasButton(false),
   hasOutput(false),
   hasColor(false)

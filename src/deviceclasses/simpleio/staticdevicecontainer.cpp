@@ -28,10 +28,89 @@
 using namespace p44;
 
 
+
+#pragma mark - StaticDevice
+
+
+ErrorPtr StaticDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-removeDevice") {
+    if (staticDeviceRowID) {
+      // Remove this device from the installation, forget the settings
+      hasVanished(true);
+      // confirm
+      aRequest->sendResult(ApiValuePtr());
+    }
+    else {
+      respErr = ErrorPtr(new WebError(403, "cannot remove static devices specified on the command-line"));
+    }
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
+StaticDeviceContainer &StaticDevice::getStaticDeviceContainer()
+{
+  return *(static_cast<StaticDeviceContainer *>(classContainerP));
+}
+
+
+void StaticDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
+{
+  // clear learn-in data from DB
+  if (staticDeviceRowID) {
+    getStaticDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", staticDeviceRowID);
+  }
+  // disconnection is immediate, so we can call inherited right now
+  inherited::disconnect(aForgetParams, aDisconnectResultHandler);
+}
+
+
+
+#pragma mark - DB and initialisation
+
+
+#define STATICDEVICES_SCHEMA_VERSION 1
+
+string StaticDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
+{
+  string sql;
+  if (aFromVersion==0) {
+    // create DB from scratch
+    // - use standard globs table for schema version
+    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
+    // - create my tables
+    sql.append(
+      "CREATE TABLE devConfigs ("
+      " devicetype TEXT,"
+      " deviceconfig TEXT"
+      ");"
+    );
+    // reached final version in one step
+    aToVersion = STATICDEVICES_SCHEMA_VERSION;
+  }
+  return sql;
+}
+
+
+
 StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP, int aTag) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
 	deviceConfigs(aDeviceConfigs)
 {
+}
+
+
+void StaticDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+{
+  string databaseName = getPersistentDataDir();
+  string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), STATICDEVICES_SCHEMA_VERSION, aFactoryReset);
+  aCompletedCB(error); // return status of DB init
 }
 
 
@@ -43,6 +122,30 @@ const char *StaticDeviceContainer::deviceClassIdentifier() const
 }
 
 
+StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, string aDeviceConfig)
+{
+  DevicePtr newDev;
+  if (aDeviceType=="digitalio") {
+    // Digital IO based device
+    newDev = DevicePtr(new DigitalIODevice(this, aDeviceConfig));
+  }
+  else if (aDeviceType=="console") {
+    // console based simulated device
+    newDev = DevicePtr(new ConsoleDevice(this, aDeviceConfig));
+  }
+  else if (aDeviceType=="spark") {
+    // spark core based device
+    newDev = DevicePtr(new SparkIoDevice(this, aDeviceConfig));
+  }
+  if (newDev) {
+    // add to container
+    addDevice(newDev);
+    return boost::dynamic_pointer_cast<StaticDevice>(newDev);
+  }
+  // none added
+  return StaticDevicePtr();
+}
+
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
@@ -52,29 +155,62 @@ void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncre
   if (!aIncremental) {
     // non-incremental, re-collect all devices
     removeDevices(false);
-    // create devices from configs
+    // create devices from command line config
     for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
       // create device of appropriate class
-      DevicePtr newDev;
-      if (pos->first=="digitalio") {
-        // Digital IO based device
-        newDev = DevicePtr(new DigitalIODevice(this, pos->second));
-      }
-      else if (pos->first=="console") {
-        // console based simulated device
-        newDev = DevicePtr(new ConsoleDevice(this, pos->second));
-      }
-      else if (pos->first=="spark") {
-        // spark core based device
-        newDev = DevicePtr(new SparkIoDevice(this, pos->second));
-      }
-      if (newDev) {
-        // add to container
-        addDevice(newDev);
+      addStaticDevice(pos->first, pos->second);
+    }
+    // then add those from the DB
+    sqlite3pp::query qry(db);
+    if (qry.prepare("SELECT devicetype, deviceconfig, rowid FROM devConfigs")==SQLITE_OK) {
+      for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
+        StaticDevicePtr dev =addStaticDevice(i->get<string>(0), i->get<string>(1));
+        dev->staticDeviceRowID = i->get<int>(2);
       }
     }
   }
   // assume ok
   aCompletedCB(ErrorPtr());
 }
+
+
+ErrorPtr StaticDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-addDevice") {
+    // add a new static device
+    string deviceType;
+    string deviceConfig;
+    respErr = checkStringParam(aParams, "deviceType", deviceType);
+    if (Error::isOK(respErr)) {
+      respErr = checkStringParam(aParams, "deviceConfig", deviceConfig);
+      // try to create device
+      StaticDevicePtr dev = addStaticDevice(deviceType, deviceConfig);
+      if (!dev) {
+        respErr = ErrorPtr(new WebError(500, "invalid configuration for static device -> none created"));
+      }
+      else {
+        // insert into database
+        db.executef(
+          "INSERT OR REPLACE INTO devConfigs (devicetype, deviceconfig) VALUES ('%s','%s')",
+          deviceType.c_str(), deviceConfig.c_str()
+        );
+        dev->staticDeviceRowID = db.last_insert_rowid();
+        // confirm
+        ApiValuePtr r = aRequest->newApiValue();
+        r->setType(apivalue_object);
+        r->add("dSUID", r->newBinary(dev->dSUID.getBinary()));
+        r->add("rowid", r->newUint64(dev->staticDeviceRowID));
+        r->add("name", r->newString(dev->getName()));
+        respErr = aRequest->sendResult(r);
+      }
+    }
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
 

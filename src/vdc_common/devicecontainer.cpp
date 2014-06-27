@@ -1040,6 +1040,7 @@ static char vdc_key;
 
 enum {
   vdcs_key,
+  staticvdc_key,
   webui_url_key,
   numDeviceContainerProperties
 };
@@ -1060,6 +1061,7 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 {
   static const PropertyDescription properties[numDeviceContainerProperties] = {
     { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
+    { "x-p44-staticvdc", apivalue_object, staticvdc_key, OKEY(vdc_container_key) },
     { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
@@ -1100,6 +1102,14 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
         return pos->second;
       }
       i++;
+    }
+  }
+  else if (aPropertyDescriptor->fieldKey()==staticvdc_key) {
+    // pick the static device container (by class identifier)
+    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+      if (strcmp(pos->second->deviceClassIdentifier(), "Static_Device_Container")==0) {
+        return pos->second;
+      }
     }
   }
   // unknown here

@@ -27,6 +27,8 @@
 
 #include "jsonwebclient.hpp"
 #include "colorlightbehaviour.hpp"
+#include "staticdevicecontainer.hpp"
+
 
 using namespace std;
 
@@ -137,9 +139,10 @@ namespace p44 {
   
 
   typedef boost::intrusive_ptr<SparkIoDevice> SparkIoDevicePtr;
-  class SparkIoDevice : public Device
+  class SparkIoDevice : public StaticDevice
   {
-    typedef Device inherited;
+    typedef StaticDevice inherited;
+
     friend class SparkLightBehaviour;
 
     string sparkCoreID;

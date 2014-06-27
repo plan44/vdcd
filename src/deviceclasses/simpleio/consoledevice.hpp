@@ -25,6 +25,7 @@
 #include "device.hpp"
 
 #include "consolekey.hpp"
+#include "staticdevicecontainer.hpp"
 
 using namespace std;
 
@@ -33,9 +34,10 @@ namespace p44 {
   class StaticDeviceContainer;
   class ConsoleDevice;
   typedef boost::intrusive_ptr<ConsoleDevice> ConsoleDevicePtr;
-  class ConsoleDevice : public Device
+  class ConsoleDevice : public StaticDevice
   {
-    typedef Device inherited;
+    typedef StaticDevice inherited;
+    
     bool hasButton;
     bool hasOutput;
     bool hasColor;

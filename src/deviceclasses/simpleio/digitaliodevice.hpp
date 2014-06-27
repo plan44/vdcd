@@ -25,6 +25,7 @@
 #include "device.hpp"
 
 #include "digitalio.hpp"
+#include "staticdevicecontainer.hpp"
 
 using namespace std;
 
@@ -33,9 +34,10 @@ namespace p44 {
   class StaticDeviceContainer;
   class DigitalIODevice;
   typedef boost::intrusive_ptr<DigitalIODevice> DigitalIODevicePtr;
-  class DigitalIODevice : public Device
+  class DigitalIODevice : public StaticDevice
   {
-    typedef Device inherited;
+    typedef StaticDevice inherited;
+    
 		ButtonInputPtr buttonInput;
     IndicatorOutputPtr indicatorOutput;
 
