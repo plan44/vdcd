@@ -104,6 +104,8 @@ namespace p44 {
     bool collecting;
     long announcementTicket;
     long periodicTaskTicket;
+    MLMicroSeconds lastActivity;
+    MLMicroSeconds lastPeriodicRun;
     MLMicroSeconds announcePause;
 
     int8_t localDimDirection;

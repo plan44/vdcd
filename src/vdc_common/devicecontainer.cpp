@@ -58,6 +58,8 @@ DeviceContainer::DeviceContainer() :
   mac(0),
   DsAddressable(this),
   collecting(false),
+  lastActivity(0),
+  lastPeriodicRun(0),
   learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
@@ -448,6 +450,7 @@ void DeviceContainer::setActivityMonitor(DoneCB aActivityCB)
 
 void DeviceContainer::signalActivity()
 {
+  lastActivity = MainLoop::now();
   if (activityHandler) {
     activityHandler();
   }
@@ -487,17 +490,27 @@ bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 
 
 #define PERIODIC_TASK_INTERVAL (5*Second)
+#define PERIODIC_TASK_FORCE_INTERVAL (1*Minute)
+
+#define ACTIVITY_PAUSE_INTERVAL (1*Second)
 
 void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 {
   // cancel any pending executions
   MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
-  if (!collecting) {
-    // check again for devices that need to be announced
-    startAnnouncing();
-    // do a save run as well
-    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-      pos->second->save();
+  // prevent during activity as saving DB might affect performance
+  if (
+    (aCycleStartTime>lastActivity+ACTIVITY_PAUSE_INTERVAL) || // some time passed after last activity or...
+    (aCycleStartTime>lastPeriodicRun+PERIODIC_TASK_FORCE_INTERVAL) // ...too much time passed since last run
+  ) {
+    lastPeriodicRun = aCycleStartTime;
+    if (!collecting) {
+      // check again for devices that need to be announced
+      startAnnouncing();
+      // do a save run as well
+      for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+        pos->second->save();
+      }
     }
   }
   // schedule next run
