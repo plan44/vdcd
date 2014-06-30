@@ -170,9 +170,9 @@ public:
     printf("\nJSON-RPC request id='%s', method='%s', params=%s\n\n", aJsonRpcId ? aJsonRpcId : "<none>", aMethod, aParams ? aParams->c_strValue() : "<none>");
     if (aJsonRpcId) {
       // this is a method call, expects answer
-      if ((strcmp(aMethod,"announce")==0 || strcmp(aMethod,"announcevdc")==0) && autoaccept) {
+      if ((strcmp(aMethod,"announcedevice")==0 || strcmp(aMethod,"announcevdc")==0) && autoaccept) {
         // just send NULL result
-        printf("Auto-responding with success to 'announce(vdc)' method\n\n");
+        printf("Auto-responding with success to 'announcevdc and announcedevice' methods\n\n");
         jsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
       }
       else {

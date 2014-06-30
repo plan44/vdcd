@@ -217,13 +217,13 @@ static const ProtobufCFieldDescriptor vdcapi__message__field_descriptors[25] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "vdc_send_announce",
+    "vdc_send_announce_device",
     107,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_MESSAGE,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_announce),
-    &vdcapi__vdc__send_announce__descriptor,
+    PROTOBUF_C_OFFSETOF(Vdcapi__Message, vdc_send_announce_device),
+    &vdcapi__vdc__send_announce_device__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -403,7 +403,7 @@ static const unsigned vdcapi__message__field_indices_by_name[] = {
   0,   /* field[0] = type */
   6,   /* field[6] = vdc_response_get_property */
   4,   /* field[4] = vdc_response_hello */
-  10,   /* field[10] = vdc_send_announce */
+  10,   /* field[10] = vdc_send_announce_device */
   23,   /* field[23] = vdc_send_announce_vdc */
   22,   /* field[22] = vdc_send_identify */
   9,   /* field[9] = vdc_send_pong */
@@ -508,7 +508,7 @@ const ProtobufCEnumValue vdcapi__type__enum_values_by_number[24] =
   { "VDC_RESPONSE_SET_PROPERTY", "VDCAPI__TYPE__VDC_RESPONSE_SET_PROPERTY", 7 },
   { "VDSM_SEND_PING", "VDCAPI__TYPE__VDSM_SEND_PING", 8 },
   { "VDC_SEND_PONG", "VDCAPI__TYPE__VDC_SEND_PONG", 9 },
-  { "VDC_SEND_ANNOUNCE", "VDCAPI__TYPE__VDC_SEND_ANNOUNCE", 10 },
+  { "VDC_SEND_ANNOUNCE_DEVICE", "VDCAPI__TYPE__VDC_SEND_ANNOUNCE_DEVICE", 10 },
   { "VDC_SEND_VANISH", "VDCAPI__TYPE__VDC_SEND_VANISH", 11 },
   { "VDC_SEND_PUSH_PROPERTY", "VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY", 12 },
   { "VDSM_SEND_REMOVE", "VDCAPI__TYPE__VDSM_SEND_REMOVE", 13 },
@@ -521,7 +521,7 @@ const ProtobufCEnumValue vdcapi__type__enum_values_by_number[24] =
   { "VDSM_NOTIFICATION_IDENTIFY", "VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY", 20 },
   { "VDSM_NOTIFICATION_SET_CONTROL_VALUE", "VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE", 21 },
   { "VDC_SEND_IDENTIFY", "VDCAPI__TYPE__VDC_SEND_IDENTIFY", 22 },
-  { "VDC_SEND_ANNOUNCEVDC", "VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC", 23 },
+  { "VDC_SEND_ANNOUNCE_VDC", "VDCAPI__TYPE__VDC_SEND_ANNOUNCE_VDC", 23 },
   { "VDSM_NOTIFICATION_DIM_CHANNEL", "VDCAPI__TYPE__VDSM_NOTIFICATION_DIM_CHANNEL", 24 },
 };
 static const ProtobufCIntRange vdcapi__type__value_ranges[] = {
@@ -533,8 +533,8 @@ const ProtobufCEnumValueIndex vdcapi__type__enum_values_by_name[24] =
   { "VDC_RESPONSE_GET_PROPERTY", 4 },
   { "VDC_RESPONSE_HELLO", 2 },
   { "VDC_RESPONSE_SET_PROPERTY", 6 },
-  { "VDC_SEND_ANNOUNCE", 9 },
-  { "VDC_SEND_ANNOUNCEVDC", 22 },
+  { "VDC_SEND_ANNOUNCE_DEVICE", 9 },
+  { "VDC_SEND_ANNOUNCE_VDC", 22 },
   { "VDC_SEND_IDENTIFY", 21 },
   { "VDC_SEND_PONG", 8 },
   { "VDC_SEND_PUSH_PROPERTY", 11 },

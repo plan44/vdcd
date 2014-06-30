@@ -25,12 +25,12 @@ typedef enum _Vdcapi__Type {
   VDCAPI__TYPE__VDC_RESPONSE_SET_PROPERTY = 7,
   VDCAPI__TYPE__VDSM_SEND_PING = 8,
   VDCAPI__TYPE__VDC_SEND_PONG = 9,
-  VDCAPI__TYPE__VDC_SEND_ANNOUNCE = 10,
+  VDCAPI__TYPE__VDC_SEND_ANNOUNCE_DEVICE = 10,
   VDCAPI__TYPE__VDC_SEND_VANISH = 11,
   VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY = 12,
   VDCAPI__TYPE__VDSM_SEND_REMOVE = 13,
   VDCAPI__TYPE__VDSM_SEND_BYE = 14,
-  VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC = 23,
+  VDCAPI__TYPE__VDC_SEND_ANNOUNCE_VDC = 23,
   VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_SCENE = 15,
   VDCAPI__TYPE__VDSM_NOTIFICATION_SAVE_SCENE = 16,
   VDCAPI__TYPE__VDSM_NOTIFICATION_UNDO_SCENE = 17,
@@ -73,7 +73,7 @@ struct  _Vdcapi__Message
   Vdcapi__VdsmRequestSetProperty *vdsm_request_set_property;
   Vdcapi__VdsmSendPing *vdsm_send_ping;
   Vdcapi__VdcSendPong *vdc_send_pong;
-  Vdcapi__VdcSendAnnounce *vdc_send_announce;
+  Vdcapi__VdcSendAnnounceDevice *vdc_send_announce_device;
   Vdcapi__VdcSendVanish *vdc_send_vanish;
   Vdcapi__VdcSendPushProperty *vdc_send_push_property;
   Vdcapi__VdsmSendRemove *vdsm_send_remove;

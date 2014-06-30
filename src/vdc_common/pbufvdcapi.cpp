@@ -1457,14 +1457,14 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     vdcapi__vdc__send_pong__init(msg.vdc_send_pong);
     subMessageP = &(msg.vdc_send_pong->base);
   }
-  else if (aMethod=="announce") {
-    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCE;
-    msg.vdc_send_announce = new Vdcapi__VdcSendAnnounce;
-    vdcapi__vdc__send_announce__init(msg.vdc_send_announce);
-    subMessageP = &(msg.vdc_send_announce->base);
+  else if (aMethod=="announcedevice") {
+    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCE_DEVICE;
+    msg.vdc_send_announce_device = new Vdcapi__VdcSendAnnounceDevice;
+    vdcapi__vdc__send_announce_device__init(msg.vdc_send_announce_device);
+    subMessageP = &(msg.vdc_send_announce_device->base);
   }
   else if (aMethod=="announcevdc") {
-    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCEVDC;
+    msg.type = VDCAPI__TYPE__VDC_SEND_ANNOUNCE_VDC;
     msg.vdc_send_announce_vdc = new Vdcapi__VdcSendAnnounceVdc;
     vdcapi__vdc__send_announce_vdc__init(msg.vdc_send_announce_vdc);
     subMessageP = &(msg.vdc_send_announce_vdc->base);
