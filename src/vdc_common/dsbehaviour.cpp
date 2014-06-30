@@ -84,13 +84,17 @@ string DsBehaviour::getDbKey()
 
 ErrorPtr DsBehaviour::load()
 {
-  return loadFromStore(getDbKey().c_str());
+  ErrorPtr err = loadFromStore(getDbKey().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  return err;
 }
 
 
 ErrorPtr DsBehaviour::save()
 {
-  return saveToStore(getDbKey().c_str());
+  ErrorPtr err = saveToStore(getDbKey().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  return err;
 }
 
 

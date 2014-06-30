@@ -968,13 +968,16 @@ void Device::processControlValue(const string &aName, double aValue)
 // load device settings - beaviours + scenes
 ErrorPtr Device::load()
 {
+  ErrorPtr err;
   // if we don't have device settings at this point (created by subclass)
   // create standard base class settings.
   if (!deviceSettings)
     deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
   // load the device settings
-  if (deviceSettings)
-    deviceSettings->loadFromStore(dSUID.getString().c_str());
+  if (deviceSettings) {
+    err = deviceSettings->loadFromStore(dSUID.getString().c_str());
+    if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for device %s: %s", shortDesc().c_str(), err->description().c_str());
+  }
   // load the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
@@ -986,8 +989,10 @@ ErrorPtr Device::load()
 
 ErrorPtr Device::save()
 {
+  ErrorPtr err;
   // save the device settings
-  if (deviceSettings) deviceSettings->saveToStore(dSUID.getString().c_str());
+  if (deviceSettings) err = deviceSettings->saveToStore(dSUID.getString().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving settings for device %s: %s", shortDesc().c_str(), err->description().c_str());
   // save the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->save();

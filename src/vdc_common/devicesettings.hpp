@@ -44,9 +44,9 @@ namespace p44 {
     friend class Device;
     friend class DsScene;
 
-    Device &device;
-
   protected:
+
+    Device &device;
 
     /// generic device flag word, can be used by subclasses to map flags onto at loadFromRow() and bindToStatement()
     int deviceFlags;
