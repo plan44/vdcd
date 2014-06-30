@@ -763,7 +763,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
   ApiValuePtr v;
   string s;
   // check API version
-  if (Error::isOK(respErr = checkParam(aParams, "APIVersion", v))) {
+  if (Error::isOK(respErr = checkParam(aParams, "api_version", v))) {
     if (v->int32Value()!=VDC_API_VERSION)
       respErr = ErrorPtr(new VdcApiError(505, string_format("Incompatible vDC API version - found %d, expected %d", v->int32Value(), VDC_API_VERSION)));
     else {
@@ -963,13 +963,13 @@ void DeviceContainer::announceNext()
         // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
         ApiValuePtr params = getSessionConnection()->newApiValue();
         params->setType(apivalue_object);
-        params->add("vdcdSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
+        params->add("dSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
         if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
-          LOG(LOG_ERR, "Could not send announcevdc message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+          LOG(LOG_ERR, "Could not send vdc announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
           vdc->announcing = Never; // not registering
         }
         else {
-          LOG(LOG_NOTICE, "Sent announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+          LOG(LOG_NOTICE, "Sent vdc announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
         }
         // schedule a retry
         announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
@@ -994,14 +994,14 @@ void DeviceContainer::announceNext()
       params->setType(apivalue_object);
       if (dsUids) {
         // vcds were announced, include link to vdc for device announcements
-        params->add("vdcdSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
+        params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
       }
-      if (!dev->sendRequest("announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
-        LOG(LOG_ERR, "Could not send announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+      if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
+        LOG(LOG_ERR, "Could not send device announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
       else {
-        LOG(LOG_NOTICE, "Sent announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+        LOG(LOG_NOTICE, "Sent device announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
       }
       // schedule a retry
       announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);

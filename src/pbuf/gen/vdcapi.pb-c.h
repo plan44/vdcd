@@ -10,7 +10,7 @@ PROTOBUF_C_BEGIN_DECLS
 
 typedef struct _Vdcapi__VdsmRequestHello Vdcapi__VdsmRequestHello;
 typedef struct _Vdcapi__VdcResponseHello Vdcapi__VdcResponseHello;
-typedef struct _Vdcapi__VdcSendAnnounce Vdcapi__VdcSendAnnounce;
+typedef struct _Vdcapi__VdcSendAnnounceDevice Vdcapi__VdcSendAnnounceDevice;
 typedef struct _Vdcapi__VdcSendAnnounceVdc Vdcapi__VdcSendAnnounceVdc;
 typedef struct _Vdcapi__VdcSendVanish Vdcapi__VdcSendVanish;
 typedef struct _Vdcapi__VdcSendIdentify Vdcapi__VdcSendIdentify;
@@ -43,8 +43,8 @@ struct  _Vdcapi__VdsmRequestHello
 {
   ProtobufCMessage base;
   char *dsuid;
-  protobuf_c_boolean has_apiversion;
-  uint32_t apiversion;
+  protobuf_c_boolean has_api_version;
+  uint32_t api_version;
 };
 #define VDCAPI__VDSM__REQUEST_HELLO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__request_hello__descriptor) \
@@ -61,21 +61,21 @@ struct  _Vdcapi__VdcResponseHello
     , NULL }
 
 
-struct  _Vdcapi__VdcSendAnnounce
+struct  _Vdcapi__VdcSendAnnounceDevice
 {
   ProtobufCMessage base;
   char *dsuid;
-  char *vdcdsuid;
+  char *vdc_dsuid;
 };
-#define VDCAPI__VDC__SEND_ANNOUNCE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce__descriptor) \
+#define VDCAPI__VDC__SEND_ANNOUNCE_DEVICE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce_device__descriptor) \
     , NULL, NULL }
 
 
 struct  _Vdcapi__VdcSendAnnounceVdc
 {
   ProtobufCMessage base;
-  char *vdcdsuid;
+  char *dsuid;
 };
 #define VDCAPI__VDC__SEND_ANNOUNCE_VDC__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_announce_vdc__descriptor) \
@@ -223,8 +223,8 @@ struct  _Vdcapi__VdsmNotificationCallScene
   protobuf_c_boolean force;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_scene__descriptor) \
@@ -240,8 +240,8 @@ struct  _Vdcapi__VdsmNotificationSaveScene
   int32_t scene;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_SAVE_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_save_scene__descriptor) \
@@ -257,8 +257,8 @@ struct  _Vdcapi__VdsmNotificationUndoScene
   int32_t scene;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_UNDO_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_undo_scene__descriptor) \
@@ -274,8 +274,8 @@ struct  _Vdcapi__VdsmNotificationSetLocalPrio
   int32_t scene;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_LOCAL_PRIO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_local_prio__descriptor) \
@@ -291,8 +291,8 @@ struct  _Vdcapi__VdsmNotificationCallMinScene
   int32_t scene;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_MIN_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_min_scene__descriptor) \
@@ -306,8 +306,8 @@ struct  _Vdcapi__VdsmNotificationIdentify
   char **dsuid;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_IDENTIFY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_identify__descriptor) \
@@ -324,8 +324,8 @@ struct  _Vdcapi__VdsmNotificationSetControlValue
   double value;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_CONTROL_VALUE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_control_value__descriptor) \
@@ -345,8 +345,8 @@ struct  _Vdcapi__VdsmNotificationDimChannel
   int32_t area;
   protobuf_c_boolean has_group;
   int32_t group;
-  protobuf_c_boolean has_zoneid;
-  int32_t zoneid;
+  protobuf_c_boolean has_zone_id;
+  int32_t zone_id;
 };
 #define VDCAPI__VDSM__NOTIFICATION_DIM_CHANNEL__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_dim_channel__descriptor) \
@@ -403,24 +403,24 @@ Vdcapi__VdcResponseHello *
 void   vdcapi__vdc__response_hello__free_unpacked
                      (Vdcapi__VdcResponseHello *message,
                       ProtobufCAllocator *allocator);
-/* Vdcapi__VdcSendAnnounce methods */
-void   vdcapi__vdc__send_announce__init
-                     (Vdcapi__VdcSendAnnounce         *message);
-size_t vdcapi__vdc__send_announce__get_packed_size
-                     (const Vdcapi__VdcSendAnnounce   *message);
-size_t vdcapi__vdc__send_announce__pack
-                     (const Vdcapi__VdcSendAnnounce   *message,
+/* Vdcapi__VdcSendAnnounceDevice methods */
+void   vdcapi__vdc__send_announce_device__init
+                     (Vdcapi__VdcSendAnnounceDevice         *message);
+size_t vdcapi__vdc__send_announce_device__get_packed_size
+                     (const Vdcapi__VdcSendAnnounceDevice   *message);
+size_t vdcapi__vdc__send_announce_device__pack
+                     (const Vdcapi__VdcSendAnnounceDevice   *message,
                       uint8_t             *out);
-size_t vdcapi__vdc__send_announce__pack_to_buffer
-                     (const Vdcapi__VdcSendAnnounce   *message,
+size_t vdcapi__vdc__send_announce_device__pack_to_buffer
+                     (const Vdcapi__VdcSendAnnounceDevice   *message,
                       ProtobufCBuffer     *buffer);
-Vdcapi__VdcSendAnnounce *
-       vdcapi__vdc__send_announce__unpack
+Vdcapi__VdcSendAnnounceDevice *
+       vdcapi__vdc__send_announce_device__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   vdcapi__vdc__send_announce__free_unpacked
-                     (Vdcapi__VdcSendAnnounce *message,
+void   vdcapi__vdc__send_announce_device__free_unpacked
+                     (Vdcapi__VdcSendAnnounceDevice *message,
                       ProtobufCAllocator *allocator);
 /* Vdcapi__VdcSendAnnounceVdc methods */
 void   vdcapi__vdc__send_announce_vdc__init
@@ -829,8 +829,8 @@ typedef void (*Vdcapi__VdsmRequestHello_Closure)
 typedef void (*Vdcapi__VdcResponseHello_Closure)
                  (const Vdcapi__VdcResponseHello *message,
                   void *closure_data);
-typedef void (*Vdcapi__VdcSendAnnounce_Closure)
-                 (const Vdcapi__VdcSendAnnounce *message,
+typedef void (*Vdcapi__VdcSendAnnounceDevice_Closure)
+                 (const Vdcapi__VdcSendAnnounceDevice *message,
                   void *closure_data);
 typedef void (*Vdcapi__VdcSendAnnounceVdc_Closure)
                  (const Vdcapi__VdcSendAnnounceVdc *message,
@@ -903,7 +903,7 @@ typedef void (*Vdcapi__VdcSendPushProperty_Closure)
 
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_hello__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor;
-extern const ProtobufCMessageDescriptor vdcapi__vdc__send_announce__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_device__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_vdc__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_vanish__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_identify__descriptor;
