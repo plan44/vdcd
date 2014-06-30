@@ -215,8 +215,7 @@ struct  _Vdcapi__VdcSendPong
 struct  _Vdcapi__VdsmNotificationCallScene
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_force;
@@ -228,14 +227,13 @@ struct  _Vdcapi__VdsmNotificationCallScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_scene__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSaveScene
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -245,14 +243,13 @@ struct  _Vdcapi__VdsmNotificationSaveScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_SAVE_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_save_scene__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationUndoScene
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -262,14 +259,13 @@ struct  _Vdcapi__VdsmNotificationUndoScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_UNDO_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_undo_scene__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSetLocalPrio
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -279,14 +275,13 @@ struct  _Vdcapi__VdsmNotificationSetLocalPrio
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_LOCAL_PRIO__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_local_prio__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationCallMinScene
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_scene;
   int32_t scene;
   protobuf_c_boolean has_group;
@@ -296,14 +291,13 @@ struct  _Vdcapi__VdsmNotificationCallMinScene
 };
 #define VDCAPI__VDSM__NOTIFICATION_CALL_MIN_SCENE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_call_min_scene__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationIdentify
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_group;
   int32_t group;
   protobuf_c_boolean has_zone_id;
@@ -311,14 +305,13 @@ struct  _Vdcapi__VdsmNotificationIdentify
 };
 #define VDCAPI__VDSM__NOTIFICATION_IDENTIFY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_identify__descriptor) \
-    , 0,NULL, 0,0, 0,0 }
+    , NULL, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationSetControlValue
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   char *name;
   protobuf_c_boolean has_value;
   double value;
@@ -329,14 +322,13 @@ struct  _Vdcapi__VdsmNotificationSetControlValue
 };
 #define VDCAPI__VDSM__NOTIFICATION_SET_CONTROL_VALUE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_control_value__descriptor) \
-    , 0,NULL, NULL, 0,0, 0,0, 0,0 }
+    , NULL, NULL, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdsmNotificationDimChannel
 {
   ProtobufCMessage base;
-  size_t n_dsuid;
-  char **dsuid;
+  char *dsuid;
   protobuf_c_boolean has_channel;
   int32_t channel;
   protobuf_c_boolean has_mode;
@@ -350,7 +342,7 @@ struct  _Vdcapi__VdsmNotificationDimChannel
 };
 #define VDCAPI__VDSM__NOTIFICATION_DIM_CHANNEL__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_dim_channel__descriptor) \
-    , 0,NULL, 0,0, 0,0, 0,0, 0,0, 0,0 }
+    , NULL, 0,0, 0,0, 0,0, 0,0, 0,0 }
 
 
 struct  _Vdcapi__VdcSendPushProperty

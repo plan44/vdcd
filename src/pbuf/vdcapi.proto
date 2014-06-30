@@ -75,7 +75,7 @@ message vdc_SendPong {
 }
 
 message vdsm_NotificationCallScene {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional bool force = 3;
     optional int32 group = 4;
@@ -83,41 +83,41 @@ message vdsm_NotificationCallScene {
 }
 
 message vdsm_NotificationSaveScene {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationUndoScene {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationSetLocalPrio {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationCallMinScene {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationIdentify {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 group = 2;
     optional int32 zone_id = 3;
 }
 
 message vdsm_NotificationSetControlValue {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional string name = 2;
     optional double value = 3;
     optional int32 group = 4;
@@ -125,7 +125,7 @@ message vdsm_NotificationSetControlValue {
 }
 
 message vdsm_NotificationDimChannel {
-    repeated string dSUID = 1;
+    optional string dSUID = 1;
     optional int32 channel = 2;
     optional int32 mode = 3;
     optional int32 area = 4;

@@ -1770,9 +1770,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, dsuid),
     NULL,
     NULL,
@@ -1860,9 +1860,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_save_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, dsuid),
     NULL,
     NULL,
@@ -1937,9 +1937,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_undo_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, dsuid),
     NULL,
     NULL,
@@ -2014,9 +2014,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_local_prio_
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, dsuid),
     NULL,
     NULL,
@@ -2091,9 +2091,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_min_scene_
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, dsuid),
     NULL,
     NULL,
@@ -2168,9 +2168,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_identify__field
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, dsuid),
     NULL,
     NULL,
@@ -2232,9 +2232,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_control_val
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, dsuid),
     NULL,
     NULL,
@@ -2322,9 +2322,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_dim_channel__fi
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, n_dsuid),
+    0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, dsuid),
     NULL,
     NULL,
