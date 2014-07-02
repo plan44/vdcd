@@ -410,7 +410,12 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
       // slow fade down
       Brightness b = brightness->getChannelValue();
       if (b>0) {
-        MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b * AUTO_OFF_FADE_STEPSIZE;
+        b -= brightness->getMin();
+        MLMicroSeconds fadeStepTime;
+        if (b>AUTO_OFF_FADE_STEPSIZE)
+          fadeStepTime = AUTO_OFF_FADE_TIME / b * AUTO_OFF_FADE_STEPSIZE; // more than one step
+        else
+          fadeStepTime = AUTO_OFF_FADE_TIME; // single step, to be executed after fade time
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime), fadeStepTime);
         LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
         return false; // fade down process will take care of output updates
@@ -426,6 +431,9 @@ void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
 {
   Brightness b = brightness->dimChannelValue(-AUTO_OFF_FADE_STEPSIZE, aFadeStepTime);
   bool isAtMin = b<=brightness->getMin();
+  if (isAtMin) {
+    brightness->setChannelValue(0); // off
+  }
   // Note: device.requestApplyingChannels paces requests to hardware, so we can just call it here without special precautions
   device.requestApplyingChannels(NULL, true); // dimming mode
   if (!isAtMin) {
