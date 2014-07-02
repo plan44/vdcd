@@ -124,8 +124,8 @@ namespace p44 {
     /// dim channel value up or down, preventing going below getMinDim().
     /// @param aIncrement how much to increment/decrement the value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
-    void dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime);
-
+    /// @return new channel value after increment/decrement
+    double dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime);
 
     /// get current value as set in device hardware
     /// @note does not trigger a device read, but returns chached value

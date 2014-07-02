@@ -389,6 +389,7 @@ void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness)
 
 
 #define AUTO_OFF_FADE_TIME (60*Second)
+#define AUTO_OFF_FADE_STEPSIZE 5
 
 // apply scene
 bool LightBehaviour::applyScene(DsScenePtr aScene)
@@ -409,8 +410,8 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
       // slow fade down
       Brightness b = brightness->getChannelValue();
       if (b>0) {
-        MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
-        fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
+        MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b * AUTO_OFF_FADE_STEPSIZE;
+        fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime), fadeStepTime);
         LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
         return false; // fade down process will take care of output updates
       }
@@ -421,23 +422,16 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
 }
 
 // TODO: for later: consider if fadeDown is not an action like blink...
-void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
+void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
 {
-  brightness->setChannelValue(aBrightness, aFadeStepTime);
-  if (!hwUpdateInProgress || aBrightness==0) {
-    // prevent additional apply calls until either 0 reached or previous step done
-    hwUpdateInProgress = true;
-    device.requestApplyingChannels(boost::bind(&LightBehaviour::fadeDownStepDone, this), true); // dimming mode
+  Brightness b = brightness->dimChannelValue(-AUTO_OFF_FADE_STEPSIZE, aFadeStepTime);
+  bool isAtMin = b<=brightness->getMin();
+  // Note: device.requestApplyingChannels paces requests to hardware, so we can just call it here without special precautions
+  device.requestApplyingChannels(NULL, true); // dimming mode
+  if (!isAtMin) {
+    // continue
+    fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime), aFadeStepTime);
   }
-  if (aBrightness>0) {
-    fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
-  }
-}
-
-
-void LightBehaviour::fadeDownStepDone()
-{
-  hwUpdateInProgress = false;
 }
 
 
@@ -513,7 +507,7 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
 
 void LightBehaviour::stopActions()
 {
-  // stop fade down
+  // stop fading down
   MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
   // stop blink
   if (blinkTicket) stopBlink();

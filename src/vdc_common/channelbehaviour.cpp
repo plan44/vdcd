@@ -118,7 +118,7 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
 }
 
 
-void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime)
+double ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime)
 {
   double newValue = cachedChannelValue+aIncrement;
   if (newValue<getMinDim()) {
@@ -140,6 +140,7 @@ void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransi
     channelUpdatePending = true; // pending to be sent to the device
     channelLastSync = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
   }
+  return newValue;
 }
 
 

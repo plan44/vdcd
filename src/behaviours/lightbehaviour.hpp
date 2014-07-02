@@ -147,7 +147,6 @@ namespace p44 {
     DoneCB blinkDoneHandler; ///< called when blinking done
     LightScenePtr blinkRestoreScene; ///< scene to restore
     long fadeDownTicket; ///< for slow fading operations
-    bool hwUpdateInProgress; ///< set when hardware update is already in progress
     /// @}
 
 
@@ -289,8 +288,7 @@ namespace p44 {
 
     void beforeBlinkStateSavedHandler(MLMicroSeconds aDuration, LightScenePtr aParamScene, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent);
     void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime);
-    void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
-    void fadeDownStepDone();
+    void fadeDownHandler(MLMicroSeconds aFadeStepTime);
 
   };
 
