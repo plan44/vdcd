@@ -202,6 +202,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
   string data;
   HttpComm::appendFormValue(data, "access_token", sparkCoreToken);
   HttpComm::appendFormValue(data, "args", aArgs);
+  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
   return sparkCloudComm.jsonReturningRequest(url.c_str(), aResponseCB, "POST", data);
 }
 
@@ -292,7 +293,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         ((int)r << 16) |
         ((int)g << 8) |
         (int)b;
-      DBGLOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d\n", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d\n", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
     }
     else {
       // brightness only
@@ -300,7 +301,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       stateWord =
         (mode << 24) |
         ((int)br & 0xFF);
-      DBGLOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d\n", mode, (int)br, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d\n", mode, (int)br, stateWord, stateWord);
     }
     // set output value
     if (apiVersion==2) {
@@ -323,6 +324,9 @@ void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviou
 {
   if (Error::isOK(aError)) {
     aSparkLightBehaviour->appliedRGB();
+  }
+  else {
+    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
   }
   // confirm done
   if (aDoneCB) aDoneCB();
