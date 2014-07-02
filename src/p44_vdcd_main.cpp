@@ -237,6 +237,7 @@ public:
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
@@ -403,8 +404,8 @@ public:
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
         hueDeviceContainer->addClassToDeviceContainer();
       }
-      // - Add static devices if we have collected any config from the command line
-      if (staticDeviceConfigs.size()>0) {
+      // - Add static devices if we explictly want it or have collected any config from the command line
+      if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
