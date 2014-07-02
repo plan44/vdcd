@@ -282,6 +282,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
   }
   // Create device and channels
   bool needsTeachInResponse = false;
+  bool firstDescriptorForDevice = true;
   while (numDescriptors>0) {
     // more channels for this subdevice number
     if (!newDev) {
@@ -321,6 +322,9 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         sb->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = sb;
         break;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " sensor");
+        }
       }
       case behaviour_binaryinput: {
         BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
@@ -328,6 +332,9 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         bb->setGroup(subdeviceDescP->group);
         bb->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = bb;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " input");
+        }
         break;
       }
       case behaviour_output: {
@@ -345,6 +352,9 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = ob;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " output");
+        }
         break;
       }
       default: {
@@ -354,6 +364,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
     // add channel to device
     newDev->addChannelHandler(newHandler);
     // next descriptor
+    firstDescriptorForDevice = false;
     subdeviceDescP++;
     numDescriptors--;
   }

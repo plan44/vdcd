@@ -100,6 +100,8 @@ namespace p44 {
     EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical EnOcean device is represented as multiple vdSDs)
 		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
 
+    string eeFunctionDesc; ///< short functional description (like: button, windowhandle, sensor...)
+
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
     bool alwaysUpdateable; ///< if set, device updates are sent immediately, otherwise, updates are only sent as response to a device message
@@ -182,6 +184,12 @@ namespace p44 {
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer);
+
+
+    /// set short functional description for this device (explaining the EEP in short, like "button", "sensor", "window handle")
+    /// @param aString the description string
+    void setFunctionDesc(string aString) { eeFunctionDesc = aString; };
+
 
     /// @return RORG/FUNC/TYPE EEP profile number 
     EnoceanProfile getEEProfile();

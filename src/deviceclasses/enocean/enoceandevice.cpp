@@ -56,6 +56,7 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSu
   pendingDeviceUpdate(false),
   subDevice(0)
 {
+  eeFunctionDesc = "device"; // generic description is "device"
 }
 
 
@@ -133,7 +134,7 @@ string EnoceanDevice::hardwareGUID()
 
 string EnoceanDevice::modelName()
 {
-  return string_format("%s EnOcean device (%02X-%02X-%02X)", manufacturerName().c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
+  return string_format("%s EnOcean %s (%02X-%02X-%02X)", manufacturerName().c_str(), eeFunctionDesc.c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
 }
 
 
@@ -240,7 +241,8 @@ string EnoceanDevice::description()
   string s = inherited::description();
   string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
   string_format_append(s,
-    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    eeFunctionDesc.c_str(),
     (eeProfile>>16) & 0xFF,
     (eeProfile>>8) & 0xFF,
     eeProfile & 0xFF,
