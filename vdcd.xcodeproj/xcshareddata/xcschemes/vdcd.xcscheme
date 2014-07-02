@@ -139,7 +139,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k testin:in"
+            argument = "-k testin:in -k dimmer:in"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

@@ -535,11 +535,16 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
   // if button has up/down, direction is derived from button
-  int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  int newDirection = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  if (newDirection!=0)
+    localDimDirection = newDirection;
   switch (aClickType) {
     case ct_tip_1x:
     case ct_click_1x:
       scene = T0_S1;
+      // toggle direction if click has none
+      if (newDirection==0)
+        localDimDirection *= -1; // reverse if already determined
       break;
     case ct_tip_2x:
     case ct_click_2x:
@@ -554,18 +559,9 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       break;
     case ct_hold_start:
       scene = INC_S; // just as a marker to start dimming (we'll use dimChannelForArea(), not legacy dimming!)
-      // determine direction
-      if (direction!=0) {
-        // there is a direction derived from the click, use it
-        localDimDirection = direction;
-      }
-      else {
-        // click has no direction
-        if (localDimDirection!=0) {
-          localDimDirection *= -1; // reverse
-        }
-        direction = localDimDirection;
-      }
+      // toggle direction if click has none
+      if (newDirection==0)
+        localDimDirection *= -1; // reverse if already determined
       break;
     case ct_hold_end:
       scene = STOP_S; // just as a marker to stop dimming (we'll use dimChannelForArea(), not legacy dimming!)
@@ -591,24 +587,23 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
         LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(dev->output);
         if (l) {
           // - figure out direction if not already known
-          if (direction==0) {
-            // get direction from current value of first encountered light
-            direction = l->brightness->getChannelValue() >= l->brightness->getMinDim() ? -1 : 1;
-            localDimDirection = direction;
+          if (localDimDirection==0 && l->brightness->getLastSync()!=Never) {
+            // get initial direction from current value of first encountered light with synchronized brightness value
+            localDimDirection = l->brightness->getChannelValue() >= l->brightness->getMinDim() ? -1 : 1;
           }
           if (scene==INC_S) {
             // Start dimming
             // - minimum scene if not already there
-            if (direction>0 && l->brightness->getChannelValue()==0) {
+            if (localDimDirection>0 && l->brightness->getChannelValue()==0) {
               // starting dimming up from 0, first call MIN_S
               dev->callScene(MIN_S, true);
             }
             // now dim (safety timeout after 10 seconds)
-            dev->dimChannelForArea(channeltype, direction>0 ? dimmode_up : dimmode_down, 0, 10*Second);
+            dev->dimChannelForArea(channeltype, localDimDirection>0 ? dimmode_up : dimmode_down, 0, 10*Second);
           }
           else {
             // call a scene
-            if (direction<0)
+            if (localDimDirection<0)
               scene = T0_S0; // switching off a scene = call off scene
             dev->callScene(scene, true);
           }
