@@ -51,7 +51,7 @@ namespace p44 {
   typedef struct Enocean4BSDescriptor {
     uint8_t func; ///< the function code from the EPP signature
     uint8_t type; ///< the type code from the EPP signature
-    uint8_t subDevice; ///< subdevice index, in case enOcean device needs to be split into multiple logical vdSDs
+    uint8_t subDevice; ///< subdevice index, in case EnOcean device needs to be split into multiple logical vdSDs
     DsGroup group; ///< the dS group for this channel
     BehaviourType behaviourType; ///< the behaviour type
     uint8_t behaviourParam; ///< DsSensorType, DsBinaryInputType or DsOutputFunction resp., depending on behaviourType

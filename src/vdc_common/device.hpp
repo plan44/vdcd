@@ -41,7 +41,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
 
   /// base class representing a virtual digitalSTROM device.
-  /// For each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
+  /// For each type of subsystem (EnOcean, DALI, ...) this class is subclassed to implement
   /// the device class' specifics, in particular the interface with the hardware.
   class Device : public DsAddressable
   {
@@ -265,7 +265,7 @@ namespace p44 {
 
     /// disconnect device. If presence is represented by data stored in the vDC rather than
     /// detection of real physical presence on a bus, this call must clear the data that marks
-    /// the device as connected to this vDC (such as a learned-in enOcean button).
+    /// the device as connected to this vDC (such as a learned-in EnOcean button).
     /// For devices where the vDC can be *absolutely certain* that they are still connected
     /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
     /// return false.

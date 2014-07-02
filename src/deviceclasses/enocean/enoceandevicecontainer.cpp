@@ -118,13 +118,13 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncr
 {
   // install standard packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
-  // start enOcean module operation watchdog
+  // start EnOcean module operation watchdog
   enoceanComm.startWatchDog();
-  // incrementally collecting enOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
+  // incrementally collecting EnOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
     removeDevices(false);
-    // - read learned-in enOcean button IDs from DB
+    // - read learned-in EnOcean button IDs from DB
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
       for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
@@ -207,7 +207,7 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 
 void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams)
 {
-  // remove all logical devices with same physical enOcean address
+  // remove all logical devices with same physical EnOcean address
   typedef list<EnoceanDevicePtr> TbdList;
   TbdList toBeDeleted;
   // collect those we need to remove
@@ -253,7 +253,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // detect implicit (RPS) learn in only with sufficient radio strength (or explicit override of that check),
     // explicit ones are always recognized
     if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
-      LOG(LOG_NOTICE, "Received enOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
+      LOG(LOG_NOTICE, "Received EnOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
       ErrorPtr learnStatus;
       if (learnIn) {

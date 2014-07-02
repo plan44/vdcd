@@ -114,7 +114,7 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 void EnoceanDevice::deriveDsUid()
 {
-  // UUID in enOcean name space
+  // UUID in EnOcean name space
   //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
   string s = string_format("%08lX", getAddress()); // base address comes from
@@ -133,7 +133,7 @@ string EnoceanDevice::hardwareGUID()
 
 string EnoceanDevice::modelName()
 {
-  return string_format("%s enOcean device (%02X-%02X-%02X)", manufacturerName().c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
+  return string_format("%s EnOcean device (%02X-%02X-%02X)", manufacturerName().c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
 }
 
 
@@ -193,7 +193,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       // set destination
       outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
       outgoingEsp3Packet->finalize();
-      LOG(LOG_INFO, "enOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
+      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
     }
@@ -222,7 +222,7 @@ void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  LOG(LOG_INFO, "enOcean device %s: received packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
+  LOG(LOG_INFO, "EnOcean device %s: received packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);

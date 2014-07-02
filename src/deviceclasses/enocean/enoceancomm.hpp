@@ -263,7 +263,7 @@ namespace p44 {
     EnoceanAddress radioSender();
 
     /// @param radio sender's address to set
-    /// @note enOcean modules will normally insert their native address here,
+    /// @note EnOcean modules will normally insert their native address here,
     ///   so usually there's no point in setting this
     void setRadioSender(EnoceanAddress aEnoceanAddress);
 
@@ -349,13 +349,13 @@ namespace p44 {
 		EnoceanComm(SyncIOMainLoop &aMainLoop);
 		virtual ~EnoceanComm();
 		
-    /// set the connection parameters to connect to the enOcean TCM310 modem
+    /// set the connection parameters to connect to the EnOcean TCM310 modem
     /// @param aConnectionSpec serial device path (/dev/...) or host name/address[:port] (1.2.3.4 or xxx.yy)
     /// @param aDefaultPort default port number for TCP connection (irrelevant for direct serial device connection)
-    /// @param aEnoceanResetPinName name of a DigitalIO pin connected to an enOcean module's reset pin (active HI), or NULL if none
+    /// @param aEnoceanResetPinName name of a DigitalIO pin connected to an EnOcean module's reset pin (active HI), or NULL if none
     void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName);
 
-    /// start the enOcean modem watchdog (regular version commands, hard reset if no answer in time)
+    /// start the EnOcean modem watchdog (regular version commands, hard reset if no answer in time)
     void startWatchDog();
 
     /// get modem application version

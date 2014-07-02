@@ -32,7 +32,7 @@ using namespace std;
 namespace p44 {
 
 
-  /// single enOcean device channel
+  /// single EnOcean device channel
   class Enocean1bsHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;

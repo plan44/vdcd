@@ -79,7 +79,7 @@ namespace p44 {
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck);
 

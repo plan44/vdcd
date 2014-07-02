@@ -26,7 +26,7 @@
 
 
 // Name spaces for UUID based dSUIDs
-// - enOcean device namespace
+// - EnOcean device namespace
 #define DSUID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
 // - GS1-128 identified device namespace
 #define DSUID_GS128_NAMESPACE_UUID "8ca838d5-4c40-47cc-bafa-37ac89658962"
@@ -151,7 +151,7 @@ namespace p44 {
 
     /// set the function/subdevice index of the dSUID
     /// @param aSubDeviceIndex a subdevice index. Devices containing multiple, logically independent subdevices
-    ///   or functionality (like 2 or 4 buttons in one enOcean device) must use this index to differentiate
+    ///   or functionality (like 2 or 4 buttons in one EnOcean device) must use this index to differentiate
     ///   the subdevices.
     void setSubdeviceIndex(uint8_t aSubDeviceIndex);
 

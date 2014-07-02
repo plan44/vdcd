@@ -115,7 +115,7 @@ namespace p44 {
     virtual void removeDevices(bool aForget);
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "enOcean vDC"; }
+    virtual string modelName() { return "EnOcean vDC"; }
 
   protected:
 
@@ -123,7 +123,7 @@ namespace p44 {
     /// @return false if aEnoceanDevice dSUID is already known and thus was *not* added
     virtual bool addKnownDevice(EnoceanDevicePtr aEnoceanDevice);
 
-    /// add newly learned device to enOcean container (and remember it in DB)
+    /// add newly learned device to EnOcean container (and remember it in DB)
     /// @return false if aEnoceanDevice dSUID is already known and thus was *not* added
     virtual bool addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
 
@@ -135,7 +135,7 @@ namespace p44 {
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     virtual void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck);
 

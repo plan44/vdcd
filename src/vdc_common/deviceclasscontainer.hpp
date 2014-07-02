@@ -153,7 +153,7 @@ namespace p44 {
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     virtual void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck) { /* NOP in base class */ }
 
@@ -173,7 +173,7 @@ namespace p44 {
     ///   by other means than a scan/collect operation
     virtual bool addDevice(DevicePtr aDevice);
 
-    /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
+    /// Remove device known no longer connected to the system (for example: explicitly unlearned EnOcean switch)
     /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, all parameters stored for the device will be deleted. Note however that
     ///   the device is not disconnected (=unlearned) by this.

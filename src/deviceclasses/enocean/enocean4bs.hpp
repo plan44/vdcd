@@ -34,7 +34,7 @@ namespace p44 {
 
   struct Enocean4BSDescriptor;
 
-  /// single enOcean device channel
+  /// single EnOcean device channel
   class Enocean4bsHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;

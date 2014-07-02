@@ -169,7 +169,7 @@ void DsUid::setSerial(uint64_t aSerial)
 
 // UUID format (see RFC 4122 for details):
 //
-// 0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3  // example, enOcean namespace UUID (v4, random)
+// 0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3  // example, EnOcean namespace UUID (v4, random)
 //
 // tltltltl-tmtm-thth-chcl-nononononono
 // xxxxxxxx-xxxx-Vxxx-Txxx-xxxxxxxxxxxx

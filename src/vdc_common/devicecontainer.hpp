@@ -192,7 +192,7 @@ namespace p44 {
 
     /// Put device class controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     void startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck = false);
 
     /// stop learning mode

@@ -44,7 +44,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<EnoceanChannelHandler> EnoceanChannelHandlerPtr;
 
-  /// single enOcean device channel, abstract class
+  /// single EnOcean device channel, abstract class
   class EnoceanChannelHandler : public P44Obj
   {
     typedef P44Obj inherited;
@@ -87,7 +87,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<EnoceanDevice> EnoceanDevicePtr;
 
-  /// digitalstrom device representing one or multiple enOcean device channels
+  /// digitalstrom device representing one or multiple EnOcean device channels
   class EnoceanDevice : public Device
   {
     typedef Device inherited;
@@ -97,7 +97,7 @@ namespace p44 {
     EnoceanAddress enoceanAddress; ///< the enocean device address
     EnoceanProfile eeProfile; ///< the EEP (RORG/FUNC/TYPE)
     EnoceanManufacturer eeManufacturer; ///< the manufacturer ID
-    EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical enOcean device is represented as multiple vdSDs)
+    EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical EnOcean device is represented as multiple vdSDs)
 		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
 
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
@@ -132,7 +132,7 @@ namespace p44 {
     /// @param aChannelHandler a handler for a channel (including a suitable behaviour)
     void addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler);
 
-    /// disconnect device. For enOcean, this means breaking the pairing (learn-in) with the device
+    /// disconnect device. For EnOcean, this means breaking the pairing (learn-in) with the device
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
     ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
     /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
@@ -165,12 +165,12 @@ namespace p44 {
     void setAlwaysUpdateable() { alwaysUpdateable = true; };
 
     /// get the enocean address identifying the hardware that contains this logical device
-    /// @return enOcean device ID/address
+    /// @return EnOcean device ID/address
     EnoceanAddress getAddress();
 
     /// get the enocean subdevice number that identifies this logical device among other logical devices in the same
-    ///   physical enOcean device (having the same enOcean deviceID/address)
-    /// @return enOcean device ID/address
+    ///   physical EnOcean device (having the same EnOcean deviceID/address)
+    /// @return EnOcean device ID/address
     EnoceanSubDevice getSubDevice();
 
 		/// get number of subdevices in the physical device (of which this logical device represents one subdevice)

@@ -878,7 +878,7 @@ void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16
 {
   LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
   serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
-  // create the enOcean reset IO pin
+  // create the EnOcean reset IO pin
   if (aEnoceanResetPinName) {
     // init, initially LO = not reset
     enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false, false));
@@ -918,8 +918,8 @@ void EnoceanComm::aliveCheck()
 
 void EnoceanComm::aliveCheckTimeout()
 {
-  // alive check failed, try to recover enOcean interface
-  LOG(LOG_ERR, "EnoceanComm: alive check of enOcean module failed -> restarting module\n");
+  // alive check failed, try to recover EnOcean interface
+  LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module\n");
   // - cancel alive checks for now
   MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
   // - close the connection
