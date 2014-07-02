@@ -321,10 +321,10 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
           sb->setGroup(subdeviceDescP->group);
         sb->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = sb;
-        break;
         if (firstDescriptorForDevice) {
           newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " sensor");
         }
+        break;
       }
       case behaviour_binaryinput: {
         BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
