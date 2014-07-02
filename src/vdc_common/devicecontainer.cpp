@@ -370,8 +370,12 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
-  // register new device right away (unless collecting or already announcing)
-  startAnnouncing();
+  // if not collecting, initialize device right away.
+  // Otherwise, initialisation will be done when collecting is complete
+  if (!collecting) {
+    // trigger announcing when done (no problem when called while already announcing)
+    aDevice->initializeDevice(boost::bind(&DeviceContainer::startAnnouncing, this), false);
+  }
   return true;
 }
 

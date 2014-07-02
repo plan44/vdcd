@@ -137,6 +137,7 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
     // spark core based device
     newDev = DevicePtr(new SparkIoDevice(this, aDeviceConfig));
   }
+  // add to container if device was created
   if (newDev) {
     // add to container
     addDevice(newDev);
