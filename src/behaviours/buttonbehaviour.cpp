@@ -19,7 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "buttonbehaviour.hpp"
+
 
 using namespace p44;
 
@@ -36,6 +43,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   clickType(ct_none),
   buttonPressed(false),
   lastClick(Never),
+  buttonStateMachineTicket(0),
   callsPresent(false)
 {
   // set default hrdware configuration
@@ -86,27 +94,39 @@ void ButtonBehaviour::resetStateMachine()
   localButtonEnabled = false;
   dimmingUp = false;
   timerRef = Never;
-  timerPending = false;
+  MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
 }
 
 
 
-void ButtonBehaviour::checkTimer(MLMicroSeconds aCycleStartTime)
-{
-  checkStateMachine(false, aCycleStartTime);
-  timerPending = false;
-}
+#if DEBUGFOCUSLOGGING
+static const char *stateNames[] = {
+  "S0_idle",
+  "S1_initialpress",
+  "S2_holdOrTip",
+  "S3_hold",
+  "S4_nextTipWait",
+  "S5_nextPauseWait",
+  "S6_2ClickWait",
+  "S7_progModeWait",
+  "S8_awaitrelease",
+  "S9_2pauseWait",
+  // S10 missing
+  "S11_localdim",
+  "S12_3clickWait",
+  "S13_3pauseWait",
+  "S14_awaitrelease"
+};
+#endif
 
 
 
 void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 {
-  if (timerPending) {
-    MainLoop::currentMainLoop().cancelExecutionsFrom(this);
-    timerPending = false;
-  }
+  MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
   MLMicroSeconds timeSinceRef = aNow-timerRef;
 
+  DBGFLOG(LOG_NOTICE, "button state machine entered in state %s at reference time %d and clickCounter=%d\n", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
   switch (state) {
 
     case S0_idle :
@@ -279,10 +299,10 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       break;
   }
+  DBGFLOG(LOG_NOTICE, " -->                       exit state %s with %sfurther timing needed\n", stateNames[state], timerRef!=Never ? "" : "NO ");
   if (timerRef!=Never) {
     // need timing, schedule calling again
-    timerPending = true;
-    MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkTimer, this, _1), aNow+10*MilliSecond, this);
+    buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkStateMachine, this, false, _1), aNow+10*MilliSecond);
   }
 }
 

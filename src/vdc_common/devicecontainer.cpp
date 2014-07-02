@@ -238,7 +238,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 void DeviceContainer::startRunning()
 {
   // start periodic tasks needed during normal running like announcement checking and saving parameters
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _1), 1*Second, deviceContainerP);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _1), 1*Second);
 }
 
 
@@ -514,7 +514,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
     }
   }
   // schedule next run
-  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL, this);
+  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
 }
 
 

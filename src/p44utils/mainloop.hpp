@@ -100,7 +100,6 @@ namespace p44 {
     bool idleHandlersChanged;
 
     typedef struct {
-      void *submitterP;
       long ticketNo;
       MLMicroSeconds executionTime;
       OneTimeCB callback;
@@ -159,16 +158,13 @@ namespace p44 {
     /// @param aExecutionTime when to execute (approximately), in now() timescale
     /// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
     /// @return ticket number which can be used to cancel this specific execution request
-    long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
+    long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime);
 
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aDelay delay from now when to execute (approximately)
     /// @return ticket number which can be used to cancel this specific execution request
-    long executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
-
-    /// cancel pending execution requests from submitter (NULL = cancel all)
-    void cancelExecutionsFrom(void *aSubmitterP);
+    long executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0);
 
     /// cancel pending execution by ticket number
     /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
@@ -217,7 +213,7 @@ namespace p44 {
   protected:
 
     // run all handlers
-    void runOnetimeHandlers();
+    bool runOnetimeHandlers();
     long scheduleOneTimeHandler(OnetimeHandler &aHandler);
     bool runIdleHandlers();
     bool checkWait();

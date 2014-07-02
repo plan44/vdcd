@@ -161,7 +161,7 @@ namespace p44 {
     bool localButtonEnabled;
     bool dimmingUp;
     MLMicroSeconds timerRef;
-    bool timerPending;
+    long buttonStateMachineTicket;
 
     // state machine params
     static const int t_long_function_delay = 500*MilliSecond;
@@ -175,7 +175,6 @@ namespace p44 {
     // methods
     void resetStateMachine();
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
-    void checkTimer(MLMicroSeconds aCycleStartTime);
     void localSwitchOutput();
     void localDim();
     void sendClick(DsClickType aClickType);

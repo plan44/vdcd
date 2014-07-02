@@ -133,18 +133,17 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 }
 
 
-long MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
+long MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay)
 {
 	MLMicroSeconds executionTime = now()+aDelay;
-	return executeOnceAt(aCallback, executionTime, aSubmitterP);
+	return executeOnceAt(aCallback, executionTime);
 }
 
 
-long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
+long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime)
 {
 	OnetimeHandler h;
   h.ticketNo = ++ticketNo;
-  h.submitterP = aSubmitterP;
   h.executionTime = aExecutionTime;
 	h.callback = aCallback;
   return scheduleOneTimeHandler(h);
@@ -166,24 +165,6 @@ long MainLoop::scheduleOneTimeHandler(OnetimeHandler &aHandler)
   // none executes later than this one, just append
   onetimeHandlers.push_back(aHandler);
   return ticketNo;
-}
-
-
-
-
-void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
-{
-	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
-	while(aSubmitterP==NULL || pos!=onetimeHandlers.end()) {
-		if (pos->submitterP==aSubmitterP) {
-			pos = onetimeHandlers.erase(pos);
-      oneTimeHandlersChanged = true;
-		}
-		else {
-			// skip
-		  ++pos;
-		}
-	}
 }
 
 
@@ -376,11 +357,11 @@ int MainLoop::run()
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      runOnetimeHandlers();
+      bool allCompleted = runOnetimeHandlers();
       if (terminated) break;
-			bool allCompleted = runIdleHandlers();
+			if (!runIdleHandlers()) allCompleted = false;
       if (terminated) break;
-      allCompleted = allCompleted && checkWait();
+      if (!checkWait()) allCompleted = false;
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       if (timeLeft>0) {
@@ -401,14 +382,14 @@ int MainLoop::run()
 }
 
 
-void MainLoop::runOnetimeHandlers()
+bool MainLoop::runOnetimeHandlers()
 {
   int rep = 5; // max 5 re-evaluations of list due to changes
   do {
     OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
     oneTimeHandlersChanged = false; // detect changes happening from callbacks
     while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
-      if (terminated) return; // terminated means everything is considered complete
+      if (terminated) return true; // terminated means everything is considered complete
       OneTimeCB cb = pos->callback; // get handler
       pos = onetimeHandlers.erase(pos); // remove from queue
       cb(cycleStartTime); // call handler
@@ -419,6 +400,7 @@ void MainLoop::runOnetimeHandlers()
       ++pos;
     }
   } while(oneTimeHandlersChanged && rep-->0); // limit repetitions due to changed one time handlers to prevent endless loop
+  return rep>0; // not completed when we've ran out of repetitions due to changed handlers
 }
 
 
@@ -624,11 +606,11 @@ int SyncIOMainLoop::run()
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      runOnetimeHandlers();
+      bool allCompleted = runOnetimeHandlers();
       if (terminated) break;
-			bool allCompleted = runIdleHandlers();
+			if (!runIdleHandlers()) allCompleted = false;
       if (terminated) break;
-      allCompleted = allCompleted && checkWait();
+      if (!checkWait()) allCompleted = false;
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       // if other handlers have not completed yet, don't wait for I/O, just quickly check

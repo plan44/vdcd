@@ -48,6 +48,7 @@ namespace p44 {
     bool initialState;
     bool canToggle;
     ConsoleKeyHandlerCB keyHandler;
+    long keyHandlerTicket;
 
     ConsoleKey(char aKeyCode, const char *aDescription, bool aInitialState=false);
 
