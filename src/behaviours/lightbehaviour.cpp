@@ -410,14 +410,14 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
       // slow fade down
       Brightness b = brightness->getChannelValue();
       if (b>0) {
-        b -= brightness->getMin();
+        Brightness mb = b - brightness->getMinDim();
         MLMicroSeconds fadeStepTime;
-        if (b>AUTO_OFF_FADE_STEPSIZE)
-          fadeStepTime = AUTO_OFF_FADE_TIME / b * AUTO_OFF_FADE_STEPSIZE; // more than one step
+        if (mb>AUTO_OFF_FADE_STEPSIZE)
+          fadeStepTime = AUTO_OFF_FADE_TIME / mb * AUTO_OFF_FADE_STEPSIZE; // more than one step
         else
           fadeStepTime = AUTO_OFF_FADE_TIME; // single step, to be executed after fade time
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime), fadeStepTime);
-        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
+        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down from %d to zero in steps of %d, stepTime = %dmS\n", (int)b, AUTO_OFF_FADE_STEPSIZE, (int)(fadeStepTime/MilliSecond));
         return false; // fade down process will take care of output updates
       }
     }
@@ -430,8 +430,9 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
 void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
 {
   Brightness b = brightness->dimChannelValue(-AUTO_OFF_FADE_STEPSIZE, aFadeStepTime);
-  bool isAtMin = b<=brightness->getMin();
+  bool isAtMin = b<=brightness->getMinDim();
   if (isAtMin) {
+    LOG(LOG_INFO,"- ApplyScene(AUTO_OFF): reached minDim, now turning off lamp");
     brightness->setChannelValue(0); // off
   }
   // Note: device.requestApplyingChannels paces requests to hardware, so we can just call it here without special precautions
