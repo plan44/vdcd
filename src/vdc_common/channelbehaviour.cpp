@@ -31,7 +31,7 @@ ChannelBehaviour::ChannelBehaviour(OutputBehaviour &aOutput) :
   output(aOutput),
   channelUpdatePending(false), // no output update pending
   nextTransitionTime(0), // none
-  channelLastSent(Never), // we don't known nor have we sent the output state
+  channelLastSync(Never), // we don't known nor have we sent the output state
   cachedChannelValue(0), // channel output value cache
   resolution(1) // dummy default resolution (derived classes must provide sensible defaults)
 {
@@ -75,7 +75,7 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
   );
   cachedChannelValue = aActualChannelValue;
   channelUpdatePending = false; // we are in sync
-  channelLastSent = MainLoop::now(); // value is current
+  channelLastSync = MainLoop::now(); // value is current
 }
 
 
@@ -113,7 +113,7 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     cachedChannelValue = aNewValue;
     nextTransitionTime = aTransitionTime;
     channelUpdatePending = true; // pending to be sent to the device
-    channelLastSent = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
+    channelLastSync = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
   }
 }
 
@@ -138,7 +138,7 @@ void ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTransi
     cachedChannelValue = newValue;
     nextTransitionTime = aTransitionTime;
     channelUpdatePending = true; // pending to be sent to the device
-    channelLastSent = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
+    channelLastSync = Never; // cachedChannelValue is no longer applied (does not correspond with actual hardware)
   }
 }
 
@@ -148,7 +148,7 @@ void ChannelBehaviour::channelValueApplied(bool aAnyWay)
 {
   if (channelUpdatePending || aAnyWay) {
     channelUpdatePending = false; // applied
-    channelLastSent = MainLoop::now(); // now we know that we are in sync
+    channelLastSync = MainLoop::now(); // now we know that we are in sync
     if (!aAnyWay) {
       // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
       LOG(LOG_INFO,
@@ -259,10 +259,10 @@ bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVa
           aPropValue->setDoubleValue(getChannelValueCalculated());
           return true;
         case age_key+states_key_offset:
-          if (channelLastSent==Never)
+          if (channelLastSync==Never)
             aPropValue->setNull(); // no value known
           else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-channelLastSent)/Second);
+            aPropValue->setDoubleValue(((double)MainLoop::now()-channelLastSync)/Second);
           return true;
       }
     }

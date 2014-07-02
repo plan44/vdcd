@@ -66,7 +66,7 @@ namespace p44 {
     /// @{
     bool channelUpdatePending; ///< set if cachedOutputValue represents a value to be transmitted to the hardware
     double cachedChannelValue; ///< the cached channel value
-    MLMicroSeconds channelLastSent; ///< Never if the cachedChannelValue is not yet applied to the hardware, otherwise when it was sent
+    MLMicroSeconds channelLastSync; ///< Never if the cachedChannelValue is not yet applied to the hardware or retrieved from hardware, otherwise when it was last synchronized
     MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next channel value change
     /// @}
 
@@ -131,6 +131,10 @@ namespace p44 {
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
     double getChannelValue() { return cachedChannelValue; };
+
+    /// get time of last sync with hardware (applied or synchronized back)
+    /// @return time of last sync, p44::Never if value never synchronized
+    MLMicroSeconds getLastSync() { return channelLastSync; };
 
     /// get current value of this channel - and calculate it if it is not set in the device, but must be calculated from other channels
     virtual double getChannelValueCalculated() { return getChannelValue(); /* no calculated channels in base class */ };
