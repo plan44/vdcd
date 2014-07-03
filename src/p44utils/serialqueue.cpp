@@ -19,11 +19,11 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#define ALWAYS_DEBUG 1
+//#define ALWAYS_DEBUG 1
 
 // set to 1 to get focus (extensive logging) for this file
 // Note: must be before including "logger.hpp"
-#define DEBUGFOCUS 1
+#define DEBUGFOCUS 0
 
 #include "serialqueue.hpp"
 
