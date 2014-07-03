@@ -238,8 +238,8 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
 
   // A5-20-01: HVAC heating valve actuator
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
-  { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
   { 0x20, 0x01, 0, group_blue_heating, behaviour_output,      outputFunction_positional, usage_room,       0,  100, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
+  { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
 
   // terminator
   { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
