@@ -79,7 +79,7 @@ void ColorLightScene::setSceneValue(size_t aChannelIndex, double aValue)
     case channeltype_colortemp: XOrHueOrCt = aValue; colorMode = colorLightModeCt; break;
     case channeltype_cie_x: XOrHueOrCt = aValue; colorMode = colorLightModeXY; break;
     case channeltype_cie_y: YOrSat = aValue; colorMode = colorLightModeXY; break;
-    default: inherited::setSceneValue(aChannelIndex, aValue);
+    default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
 

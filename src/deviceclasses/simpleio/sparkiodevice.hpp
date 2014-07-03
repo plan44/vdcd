@@ -34,6 +34,11 @@ using namespace std;
 
 namespace p44 {
 
+  enum {
+    channeltype_sparkmode = channeltype_custom_first
+  };
+
+
   class SparkModeChannel : public ChannelBehaviour
   {
     typedef ChannelBehaviour inherited;
@@ -41,8 +46,7 @@ namespace p44 {
   public:
     SparkModeChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* modes are integers */ };
 
-    virtual DsChannelType getChannelType() { return channeltype_custom_first; }; ///< custom device-specific channel
-    virtual ColorLightMode colorMode() { return colorLightModeHueSaturation; };
+    virtual DsChannelType getChannelType() { return channeltype_sparkmode; }; ///< custom device-specific channel
     virtual const char *getName() { return "x-p44-sparkmode"; };
     virtual double getMin() { return 0; }; // mode goes from 0..3
     virtual double getMax() { return 3; };
@@ -66,6 +70,17 @@ namespace p44 {
     uint32_t extendedState; // extended state (beyond brightness+rgb) of the spark core light
 
     /// @}
+
+    /// get scene value
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @return the scene value
+    virtual double sceneValue(size_t aChannelIndex);
+
+    /// modify per-value scene flags
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aValue the new scene value
+    virtual void setSceneValue(size_t aChannelIndex, double aValue);
+
 
     /// Set default scene values for a specified scene number
     /// @param aSceneNo the scene number to set default values
