@@ -211,6 +211,10 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "spark core based device"; }
 
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    virtual string modelGUID() { return string_format("sparkcoreid:%s", sparkCoreID.c_str()); }
+
+
     /// @}
 
   protected:

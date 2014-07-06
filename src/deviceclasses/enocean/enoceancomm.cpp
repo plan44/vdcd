@@ -19,6 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "enoceancomm.hpp"
 
 
@@ -898,7 +904,7 @@ void EnoceanComm::startWatchDog()
 
 void EnoceanComm::aliveCheck()
 {
-  LOG(LOG_DEBUG, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
+  DBGFLOG(LOG_INFO, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
   checkPacket->setPacketType(pt_common_cmd);
@@ -963,7 +969,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 		// pass bytes to current telegram
 		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
 		if (currentIncomingPacket->isComplete()) {
-      LOG(LOG_DEBUG, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
+      DBGFLOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
 			currentIncomingPacket = Esp3PacketPtr(); // forget
@@ -999,7 +1005,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
       appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
       apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
       myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
-      LOG(LOG_DEBUG, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+      DBGFLOG(LOG_INFO, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
     }
   }
   else {
@@ -1025,7 +1031,7 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
     LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
   }
   else {
-    DBGLOG(LOG_DEBUG, "Sent EnOcean packet:\n%s", aPacket->description().c_str());
+    DBGFLOG(LOG_INFO, "Sent EnOcean packet:\n%s", aPacket->description().c_str());
   }
 }
 

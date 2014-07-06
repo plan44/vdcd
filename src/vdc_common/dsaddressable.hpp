@@ -169,7 +169,24 @@ namespace p44 {
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
     ///   hardwareGUID() must return the same unique ID for the containing hardware device for all contained dSDs
+    /// Already defined schemas for hardwareGUID are
+    /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
+    /// - gs1:(01)ggggg = GS1 formatted GTIN
+    /// - uuid:UUUUUUU = UUID
+    /// - macaddress:MMMMM = MAC Address
     virtual string hardwareGUID() { return ""; }
+
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    /// @note model GUID must be equal between all devices of the same model/class/kind, where "same" should be
+    ///   focused to the context of functionality relevant for the dS system, if possible. On the other hand,
+    ///   identifiers allowing global lookup (such as GTIN) are preferred if available over less generic
+    ///   model identification.
+    /// Already defined schemas for modelGUID are
+    /// - enoceaneep:RRFFTT = 6 hex digits enOcean EEP
+    /// - gs1:(01)ggggg = GS1 formatted GTIN
+    /// - uuid:UUUUUUU = UUID
+    /// - macaddress:MMMMM = MAC Address
+    virtual string modelGUID() { return ""; }
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; }

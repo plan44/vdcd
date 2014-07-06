@@ -229,6 +229,9 @@ namespace p44 {
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
 
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    virtual string modelGUID();
+
     /// @}
 
 

@@ -235,12 +235,15 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 enum {
   type_key,
   dSUID_key,
+  #if LEGACY_DSID_SUPPORT
   classicid_key,
+  #endif
   model_key,
   hardwareVersion_key,
   hardwareGUID_key,
   numDevicesInHW_key,
   deviceIndexInHW_key,
+  modelGUID_key,
   oemGUID_key,
   name_key,
   numDsAddressableProperties
@@ -260,12 +263,15 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
   static const PropertyDescription properties[numDsAddressableProperties] = {
     { "type", apivalue_string, type_key, OKEY(dsAddressable_key) },
     { "dSUID", apivalue_binary, dSUID_key, OKEY(dsAddressable_key) },
+    #if LEGACY_DSID_SUPPORT
     { "x-p44-classicid", apivalue_binary, classicid_key, OKEY(dsAddressable_key) },
+    #endif
     { "model", apivalue_string, model_key, OKEY(dsAddressable_key) },
     { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
     { "numDevicesInHW", apivalue_uint64, numDevicesInHW_key, OKEY(dsAddressable_key) },
     { "deviceIndexInHW", apivalue_uint64, deviceIndexInHW_key, OKEY(dsAddressable_key) },
+    { "modelGuid", apivalue_string, modelGUID_key, OKEY(dsAddressable_key) },
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
     { "name", apivalue_string, name_key, OKEY(dsAddressable_key) }
   };
@@ -289,10 +295,13 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
       switch (aPropertyDescriptor->fieldKey()) {
         case type_key: aPropValue->setStringValue(entityType()); return true; // the entity type
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
+        #if LEGACY_DSID_SUPPORT
         case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true; // always the classic dSUID
+        #endif
         case model_key: aPropValue->setStringValue(modelName()); return true;
         case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
+        case modelGUID_key: if (modelGUID().size()>0) { aPropValue->setStringValue(modelGUID()); return true; } else return false;
         case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
         case name_key: aPropValue->setStringValue(getName()); return true;
         // conditionally available

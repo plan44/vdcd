@@ -241,6 +241,15 @@ string DaliDevice::hardwareGUID()
 }
 
 
+string DaliDevice::modelGUID()
+{
+  if (deviceInfo.oem_gtin==0)
+    return ""; // none
+  // return as GS1 element strings with Application Identifier 01=GTIN
+  return string_format("gs1:(01)%llu", deviceInfo.gtin);
+}
+
+
 string DaliDevice::oemGUID()
 {
   if (deviceInfo.oem_gtin==0)
