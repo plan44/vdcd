@@ -1,10 +1,23 @@
-/*
- * dalicomm.hpp
- *
- *  Created on: Apr 10, 2013
- *      Author: Lukas Zeller / luz@plan44.ch
- *   Copyright: 2012-2013 by plan44.ch/luz
- */
+//
+//  Copyright (c) 2013-2014 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//
+//  Author: Lukas Zeller <luz@plan44.ch>
+//
+//  This file is part of vdcd.
+//
+//  vdcd is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  vdcd is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
+//
 
 
 #ifndef DALICOMM_H_
@@ -95,6 +108,9 @@ namespace p44 {
 
     MLMicroSeconds closeAfterIdleTime;
     long connectionTimeoutTicket;
+
+    int expectedBridgeResponses; ///< not yet received bridge responses
+    bool responsesInSequence; ///< set when repsonses need to be in sequence with requests
 
   public:
 

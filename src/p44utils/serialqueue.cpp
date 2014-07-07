@@ -30,7 +30,7 @@
 using namespace p44;
 
 
-#define DEFAULT_RECEIVE_TIMEOUT 3000000 // [uS] = 3 seconds
+#define DEFAULT_RECEIVE_TIMEOUT (3*Second) // [uS] = 3 seconds
 
 
 #pragma mark - SerialOperation
@@ -134,6 +134,7 @@ void SerialOperationSend::appendData(size_t aNumBytes, uint8_t *aBytes)
 bool SerialOperationSend::initiate()
 {
   if (!canInitiate()) return false;
+  DBGFLOG(LOG_INFO,"SerialOperationSend::initiate: sending %d bytes now\n", dataSize);
   size_t res;
   if (dataP && transmitter) {
     // transmit
@@ -219,7 +220,9 @@ void SerialOperationReceive::abortOperation(ErrorPtr aError)
 
 SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback) :
   inherited(aNumBytes, aBytes, aCallback),
-  expectedBytes(aExpectedBytes)
+  expectedBytes(aExpectedBytes),
+  answersInSequence(true), // by default, answer must arrive until next send can be initiated
+  receiveTimeoout(DEFAULT_RECEIVE_TIMEOUT)
 {
 };
 
@@ -230,6 +233,8 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
     // insert receive operation
     SerialOperationPtr op(new SerialOperationReceive(expectedBytes, callback)); // inherit completion callback
     callback = NULL; // prevent it to be called from this object!
+    op->inSequence = answersInSequence; // if false, further sends might be started before answer received
+    op->setTimeout(receiveTimeoout); // set receive timeout
     return op;
   }
   return inherited::finalize(aQueueP); // default

@@ -19,6 +19,9 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+
+//#define ALWAYS_DEBUG 1
+
 // set to 1 to get focus (extensive logging) for this file
 // Note: must be before including "logger.hpp"
 #define DEBUGFOCUS 0
@@ -408,7 +411,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
       else {
         // change dimming direction or channel
         // - stop previous dimming operation
-        dimChannel(aChannel, dimmode_stop);
+        dimChannel(currentDimChannel, dimmode_stop);
         // - start new
         MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
       }

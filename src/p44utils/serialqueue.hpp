@@ -91,6 +91,7 @@ namespace p44 {
   };
 
 
+
   /// Send operation
   class SerialOperationSend : public SerialOperation
   {
@@ -112,6 +113,7 @@ namespace p44 {
     virtual bool initiate();
   };
   typedef boost::intrusive_ptr<SerialOperationSend> SerialOperationSendPtr;
+
 
 
   /// receive operation
@@ -138,6 +140,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<SerialOperationReceive> SerialOperationReceivePtr;
 
 
+
   /// send operation which automatically inserts a receive operation after completion
   class SerialOperationSendAndReceive : public SerialOperationSend
   {
@@ -146,6 +149,9 @@ namespace p44 {
     size_t expectedBytes;
 
   public:
+
+    bool answersInSequence;
+    MLMicroSeconds receiveTimeoout;
 
     SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback);
 

@@ -156,7 +156,6 @@ namespace p44 {
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aExecutionTime when to execute (approximately), in now() timescale
-    /// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
     /// @return ticket number which can be used to cancel this specific execution request
     long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime);
 
@@ -186,7 +185,7 @@ namespace p44 {
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aPath the path to the binary or script
     /// @param aArgv a NULL terminated array of arguments, first should be program name
-    /// @param aEnvp a NULL terminated array of environment variables, or NULL to use let child inherit parent's environment
+    /// @param aEnvp a NULL terminated array of environment variables, or NULL to let child inherit parent's environment
     /// @param aPipeBackStdOut if true, stdout of the child is collected via a pipe by the parent and passed back in aCallBack
     void fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[] = NULL, bool aPipeBackStdOut = false);
 

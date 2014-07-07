@@ -385,10 +385,19 @@ int MainLoop::run()
 bool MainLoop::runOnetimeHandlers()
 {
   int rep = 5; // max 5 re-evaluations of list due to changes
+  bool moreExecutionsInThisCycle = false;
   do {
     OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
     oneTimeHandlersChanged = false; // detect changes happening from callbacks
-    while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
+    moreExecutionsInThisCycle = false; // no executions found pending for this cycle yet
+    while (pos!=onetimeHandlers.end()) {
+      if (pos->executionTime>=MainLoop::now()) {
+        // execution is in the future, so don't call yet
+        // - however, if run time is before end of this cycle, make sure we return false, so handlers will be called again in this cycle
+        if (pos->executionTime<cycleStartTime+loopCycleTime)
+          moreExecutionsInThisCycle = true; // next execution is pending before end of this cycle
+        break;
+      }
       if (terminated) return true; // terminated means everything is considered complete
       OneTimeCB cb = pos->callback; // get handler
       pos = onetimeHandlers.erase(pos); // remove from queue
@@ -400,7 +409,7 @@ bool MainLoop::runOnetimeHandlers()
       ++pos;
     }
   } while(oneTimeHandlersChanged && rep-->0); // limit repetitions due to changed one time handlers to prevent endless loop
-  return rep>0; // not completed when we've ran out of repetitions due to changed handlers
+  return moreExecutionsInThisCycle || rep>0; // not completed when we've ran out of repetitions due to changed handlers or next future event is within this cycle
 }
 
 

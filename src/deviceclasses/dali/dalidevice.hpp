@@ -38,15 +38,18 @@ namespace p44 {
   {
     typedef Device inherited;
 
-    /// the device info
-    DaliDeviceInfo deviceInfo;
+    DaliDeviceInfo deviceInfo; ///< the device info
 
-    /// currently set transition time
-    MLMicroSeconds transitionTime;
-    /// currently set DALI fade rate
-    uint8_t fadeTime;
+    MLMicroSeconds transitionTime; ///< currently set transition time
+    uint8_t fadeTime; ///< currently set DALI fade time
+
+    double dimPerMS; ///< current dim steps per second
+    uint8_t fadeRate; ///< currently set DALI fade rate
+
+    long dimRepeaterTicket; ///< DALI dimming repeater ticket
 
   public:
+
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
     /// get typed container reference
@@ -88,6 +91,14 @@ namespace p44 {
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+
+    /// start or stop dimming DALI channel
+    /// @param aChannel the channelType to start or stop dimming for
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
+    ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
+    ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
+    virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
 
     /// @}
 
@@ -137,6 +148,8 @@ namespace p44 {
     void queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
+
+    void dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicroSeconds aCycleStartTime);
 
   };
 
