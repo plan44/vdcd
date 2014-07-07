@@ -246,13 +246,16 @@ void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryRese
 void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aJsonResponse) {
-    JsonObjectPtr o = aJsonResponse->get("return_value");
-    if (o) {
-      apiVersion = o->int32Value();
-    }
-    o = aJsonResponse->get("name");
-    if (o) {
-      initializeName(o->stringValue());
+    if (apiVersion==0) {
+      // only set if unknown so far to avoid other out-of-sequence responses from cloud to change the API version
+      JsonObjectPtr o = aJsonResponse->get("return_value");
+      if (o) {
+        apiVersion = o->int32Value();
+      }
+      o = aJsonResponse->get("name");
+      if (o) {
+        initializeName(o->stringValue());
+      }
     }
   }
   // anyway, consider initialized

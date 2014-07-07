@@ -111,10 +111,10 @@ void DigitalIODevice::deriveDsUid()
 
 string DigitalIODevice::modelName()
 {
-  if (buttonInput)
-    return string_format("Digital Input @ %s", buttonInput->getName());
-  else if (indicatorOutput)
+  if (indicatorOutput)
     return string_format("Digital Output @ %s", indicatorOutput->getName());
+  else if (buttonInput)
+    return string_format("Digital Input @ %s", buttonInput->getName());
   return "Digital I/O";
 }
 
