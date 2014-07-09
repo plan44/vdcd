@@ -409,7 +409,7 @@ bool MainLoop::runOnetimeHandlers()
       ++pos;
     }
   } while(oneTimeHandlersChanged && rep-->0); // limit repetitions due to changed one time handlers to prevent endless loop
-  return moreExecutionsInThisCycle || rep>0; // not completed when we've ran out of repetitions due to changed handlers or next future event is within this cycle
+  return !moreExecutionsInThisCycle && rep>0; // fully completed only if no more executions in this cycle and we've not ran out of repetitions due to changed handlers
 }
 
 
