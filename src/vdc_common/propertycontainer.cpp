@@ -40,6 +40,11 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
     DBGFLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
   #endif
+  // for reading, NULL query is like query { "":NULL }
+  if (aQueryObject->isNull() && aMode==access_read) {
+    aQueryObject->setType(apivalue_object);
+    aQueryObject->add("", aQueryObject->newValue(apivalue_null));
+  }
   // aApiObject must be of type apivalue_object
   if (!aQueryObject->isType(apivalue_object))
     return ErrorPtr(new VdcApiError(415, "Query or Value written must be object"));
