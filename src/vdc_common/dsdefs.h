@@ -287,7 +287,7 @@ typedef enum {
 } DsHardwareError;
 
 
-/// sensor types
+/// sensor types (vdc API) - see "ds-basics" for dS sensor types
 typedef enum {
   sensorType_none,
   sensorType_temperature, ///< temperature in degrees celsius
@@ -303,6 +303,10 @@ typedef enum {
   sensorType_set_point, ///< room operating panel set point, 0..1
   sensorType_fan_speed, ///< fan speed, 0..1 (0=off, <0=auto)
   sensorType_wind_speed, ///< wind speed in m/s
+  sensorType_power, ///< Power in W
+  sensorType_current, ///< Electric current in A
+  sensorType_energy, ///< Energy in kWh
+  sensorType_consumption, ///< Electric Consumption in VA
 } DsSensorType;
 
 

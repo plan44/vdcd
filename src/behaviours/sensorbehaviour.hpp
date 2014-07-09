@@ -81,9 +81,20 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+
+    /// get sensor type
+    /// @return the sensor type
+    DsSensorType getSensorType() { return sensorType; };
+
+    /// update sensor value (when new value received from hardware)
+    /// @param aValue the new value from the sensor, in physical units according to sensorType (DsSensorType)
+    void updateSensorValue(double aValue);
+
     /// sensor value change occurred
     /// @param aEngineeringValue the engineering value from the sensor.
-    ///   The state value will be adjusted and scaled according to min/max/resolution
+    ///   The state value will be adjusted and scaled according to min/resolution
+    /// @note this call only works correctly if resolution relates to 1 LSB of aEngineeringValue
+    ///   Use updateSensorValue if relation between engineering value and physical unit value is more complicated
     void updateEngineeringValue(long aEngineeringValue);
 
     /// @}

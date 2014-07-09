@@ -50,19 +50,27 @@ void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aU
 }
 
 
+
+
 void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 {
   double newCurrentValue = min+(aEngineeringValue*resolution);
+  updateSensorValue(newCurrentValue);
+}
+
+
+void SensorBehaviour::updateSensorValue(double aValue)
+{
   LOG(LOG_NOTICE,
-    "Sensor %s in device %s received engineering value %d = physical units value %0.3f\n",
-    hardwareName.c_str(),  device.shortDesc().c_str(), aEngineeringValue, newCurrentValue
+    "Sensor %s in device %s reported new value %0.3f\n",
+    hardwareName.c_str(),  device.shortDesc().c_str(), aValue
   );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
   lastUpdate = now;
-  if (newCurrentValue!=currentValue || now>lastPush+changesOnlyInterval) {
+  if (aValue!=currentValue || now>lastPush+changesOnlyInterval) {
     // changed value or last push with same value long enough ago
-    currentValue = newCurrentValue;
+    currentValue = aValue;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
       if (pushBehaviourState()) {

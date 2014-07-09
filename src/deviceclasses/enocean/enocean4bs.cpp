@@ -123,6 +123,42 @@ static void illumHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint3
 }
 
 
+static void powerMeterHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+{
+  const Enocean4BSDescriptor *descP = aHandler.channelDescriptorP;
+  if (descP && !aForSend) {
+    // raw value is in DB3.7..DB1.0 (upper 24 bits)
+    uint32_t value = a4BSdata>>8;
+    // scaling is in bits DB0.1 and DB0.0 : 00=scale1, 01=scale10, 10=scale100, 11=scale1000
+    int divisor = 1;
+    switch (a4BSdata & 0x03) {
+      case 1: divisor = 10; break; // value scale is 0.1kWh or 0.1W per LSB
+      case 2: divisor = 100; break; // value scale is 0.01kWh or 0.01W per LSB
+      case 3: divisor = 1000; break; // value scale is 0.001kWh (1Wh) or 0.001W (1mW) per LSB
+    }
+    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aHandler.behaviour);
+    if (sb) {
+      // DB0.2 signals which value it is: 0=cumulative (energy), 1=current value (power)
+      if (a4BSdata & 0x04) {
+        // power
+        if (sb->getSensorType()==sensorType_power) {
+          // we're being called for power, and data is power -> update
+          sb->updateSensorValue((double)value/divisor);
+        }
+      }
+      else {
+        // energy
+        if (sb->getSensorType()==sensorType_energy) {
+          // we're being called for energy, and data is energy -> update
+          sb->updateSensorValue((double)value/divisor);
+        }
+      }
+    }
+  }
+}
+
+
+
 /// standard binary input handler
 static void stdInputHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
 {
@@ -235,6 +271,11 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x10, 0x06, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, &invSensorHandler, tempText, tempUnit },
   { 0x10, 0x06, 0, group_blue_heating, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, &stdSensorHandler, "Set Point", unityUnit, dflag_climatecontrolbehaviour },
   { 0x10, 0x06, 0, group_blue_heating, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0),  100, &stdInputHandler,  "Day/Night", unityUnit, dflag_climatecontrolbehaviour },
+
+  // A5-12-01: Energy meter
+  // - e.g. Eltako FWZ12-16A
+  { 0x12, 0x01, 0, group_black_joker,  behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0),  600, &powerMeterHandler, "Power", "W" },
+  { 0x12, 0x01, 0, group_black_joker,  behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0),  600, &powerMeterHandler, "Energy", "kWh" },
 
   // A5-20-01: HVAC heating valve actuator
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL

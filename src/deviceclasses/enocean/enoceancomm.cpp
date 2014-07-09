@@ -23,7 +23,7 @@
 
 // set to 1 to get focus (extensive logging) for this file
 // Note: must be before including "logger.hpp"
-#define DEBUGFOCUS 0
+#define DEBUGFOCUS 1
 
 #include "enoceancomm.hpp"
 
