@@ -55,9 +55,11 @@ message vdsm_RequestGetProperty {
     repeated PropertyElement query = 2;
 }
 
+
 message vdc_ResponseGetProperty {
     repeated PropertyElement properties = 1;
 }
+
 
 // expects generic response
 message vdsm_RequestSetProperty {
@@ -75,7 +77,7 @@ message vdc_SendPong {
 }
 
 message vdsm_NotificationCallScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional bool force = 3;
     optional int32 group = 4;
@@ -83,41 +85,41 @@ message vdsm_NotificationCallScene {
 }
 
 message vdsm_NotificationSaveScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationUndoScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationSetLocalPrio {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationCallMinScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
     optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationIdentify {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 group = 2;
     optional int32 zone_id = 3;
 }
 
 message vdsm_NotificationSetControlValue {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional string name = 2;
     optional double value = 3;
     optional int32 group = 4;
@@ -125,7 +127,7 @@ message vdsm_NotificationSetControlValue {
 }
 
 message vdsm_NotificationDimChannel {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 channel = 2;
     optional int32 mode = 3;
     optional int32 area = 4;
