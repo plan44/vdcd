@@ -443,6 +443,29 @@ DsUid DsUid::getDerivedClassicId(ObjectClass aObjectClass) const
 }
 
 
+DsUid DsUid::getDerivedPseudoClassicId(ObjectClass aObjectClass) const
+{
+  // all other ID types: generate a hashed derivate
+  DsUid pseudoclassicId = getDerivedClassicId(aObjectClass);
+  // convert into ssssssss ssss 0000 0000 ssssssssssss 00 format
+  // - move up tail
+  for (int i=16; i-->10;) {
+    pseudoclassicId.raw[i] = pseudoclassicId.raw[i-4];
+  }
+  // - zero out middle 4 bytes
+  for (int i=6; i<10; i++) {
+    pseudoclassicId.raw[i] = 0x00;
+  }
+  // - zero out index byte
+  pseudoclassicId.raw[16] = 0x00;
+  // set type
+  pseudoclassicId.idType = idtype_gid;
+  pseudoclassicId.idBytes = dsuidBytes;
+  return pseudoclassicId;
+}
+
+
+
 
 #pragma mark - getting dSUID string representation
 

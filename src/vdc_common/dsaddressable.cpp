@@ -46,9 +46,13 @@ const DsUid &DsAddressable::getApiDsUid()
   if (deviceContainerP->usingDsUids())
     return dSUID;
   else {
-    // needs classic ID
+    // needs pseudo classic ID
     if (classidDsid.empty()) {
+      #if PSEUDO_CLASSIC_DSID
+      classidDsid = dSUID.getDerivedPseudoClassicId(DSID_OBJECTCLASS_DSDEVICE);
+      #else
       classidDsid = dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE);
+      #endif
     }
     return classidDsid;
   }

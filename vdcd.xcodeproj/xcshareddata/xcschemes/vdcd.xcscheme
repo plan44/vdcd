@@ -64,11 +64,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--modernids 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--announcepause 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -91,7 +95,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.173"
+            argument = "--dali 192.168.59.233"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -99,7 +103,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.1.73"
+            argument = "--enocean 192.168.1.62"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -112,11 +116,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"
@@ -140,7 +144,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testcolor:color"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

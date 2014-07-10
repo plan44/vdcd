@@ -949,8 +949,13 @@ void DeviceContainer::announceNext()
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // first check for unnannounced device classes
-  if (dsUids) {
-    // only announce vdcs when using modern dSUIDs
+  #if PSEUDO_CLASSIC_DSID
+  bool announceVdcs = true;
+  #else
+  bool announceVdcs = dsUids;
+  #endif
+  if (announceVdcs) {
+    // announce vdcs first
     for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
       DeviceClassContainerPtr vdc = pos->second;
       if (
@@ -982,7 +987,7 @@ void DeviceContainer::announceNext()
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
-      (!dsUids || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
+      (!announceVdcs || dev->classContainerP->announced!=Never) && // when announcing vdcs, class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
@@ -991,7 +996,7 @@ void DeviceContainer::announceNext()
       // call announce method
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      if (dsUids) {
+      if (announceVdcs) {
         // vcds were announced, include link to vdc for device announcements
         params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
       }

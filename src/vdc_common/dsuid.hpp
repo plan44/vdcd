@@ -207,6 +207,14 @@ namespace p44 {
     DsUid getDerivedClassicId(ObjectClass aObjectClass) const;
 
 
+    /// @deprecated get dSUID, but containing classic dsid derived via standard hashing procedure from dSUID
+    /// @param aObjectClass to set in derived ID
+    /// @return a 17-byte dSUID with 8 zeroes in the center, in the terminal block domain (32 bit serial) with same
+    ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
+    ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
+    DsUid getDerivedPseudoClassicId(ObjectClass aObjectClass) const;
+
+
     /// @}
 
   };
