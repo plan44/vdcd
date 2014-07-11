@@ -34,7 +34,7 @@ namespace p44 {
 
   struct Enocean4BSDescriptor;
 
-  /// single enOcean device channel
+  /// single EnOcean device channel
   class Enocean4bsHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;
@@ -53,6 +53,7 @@ namespace p44 {
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aNumSubdevicesP if not NULL, total number of subdevices is returned here
+    /// @param aSendTeachInResponse enable sending teach-in response for this device
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,

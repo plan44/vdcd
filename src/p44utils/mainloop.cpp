@@ -133,49 +133,38 @@ void MainLoop::unregisterIdleHandlers(void *aSubscriberP)
 }
 
 
-long MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay, void *aSubmitterP)
+long MainLoop::executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay)
 {
 	MLMicroSeconds executionTime = now()+aDelay;
-	return executeOnceAt(aCallback, executionTime, aSubmitterP);
+	return executeOnceAt(aCallback, executionTime);
 }
 
 
-long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP)
+long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime)
 {
 	OnetimeHandler h;
   h.ticketNo = ++ticketNo;
-  h.submitterP = aSubmitterP;
   h.executionTime = aExecutionTime;
 	h.callback = aCallback;
+  return scheduleOneTimeHandler(h);
+}
+
+
+long MainLoop::scheduleOneTimeHandler(OnetimeHandler &aHandler)
+{
 	// insert in queue before first item that has a higher execution time
 	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
   while (pos!=onetimeHandlers.end()) {
-    if (pos->executionTime>aExecutionTime) {
-      onetimeHandlers.insert(pos, h);
+    if (pos->executionTime>aHandler.executionTime) {
+      onetimeHandlers.insert(pos, aHandler);
       oneTimeHandlersChanged = true;
       return ticketNo;
     }
     ++pos;
   }
   // none executes later than this one, just append
-  onetimeHandlers.push_back(h);
+  onetimeHandlers.push_back(aHandler);
   return ticketNo;
-}
-
-
-void MainLoop::cancelExecutionsFrom(void *aSubmitterP)
-{
-	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
-	while(aSubmitterP==NULL || pos!=onetimeHandlers.end()) {
-		if (pos->submitterP==aSubmitterP) {
-			pos = onetimeHandlers.erase(pos);
-      oneTimeHandlersChanged = true;
-		}
-		else {
-			// skip
-		  ++pos;
-		}
-	}
 }
 
 
@@ -192,6 +181,36 @@ void MainLoop::cancelExecutionTicket(long &aTicketNo)
   // reset the ticket
   aTicketNo = 0;
 }
+
+
+bool MainLoop::rescheduleExecutionTicket(long aTicketNo, MLMicroSeconds aDelay)
+{
+	MLMicroSeconds executionTime = now()+aDelay;
+	return rescheduleExecutionTicketAt(aTicketNo, executionTime);
+}
+
+
+bool MainLoop::rescheduleExecutionTicketAt(long aTicketNo, MLMicroSeconds aExecutionTime)
+{
+  if (aTicketNo==0) return false; // no ticket, no reschedule
+  for (OnetimeHandlerList::iterator pos = onetimeHandlers.begin(); pos!=onetimeHandlers.end(); ++pos) {
+		if (pos->ticketNo==aTicketNo) {
+      OnetimeHandler h = *pos;
+      // remove from queue
+			pos = onetimeHandlers.erase(pos);
+      // reschedule
+      h.executionTime = aExecutionTime;
+      scheduleOneTimeHandler(h);
+      // reschedule was possible
+      return true;
+		}
+	}
+  // no ticket found, could not reschedule
+  return false;
+}
+
+
+
 
 
 void MainLoop::waitForPid(WaitCB aCallback, pid_t aPid)
@@ -231,7 +250,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
   if (aPipeBackStdOut) {
     if(pipe(answerPipe)<0) {
       // pipe could not be created
-      aCallback(*this, cycleStartTime, SysError::errNo(),"");
+      aCallback(cycleStartTime, SysError::errNo(),"");
       return;
     }
   }
@@ -267,13 +286,13 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
         ans->setFd(answerPipe[0]);
       }
       LOG(LOG_DEBUG,"fork_and_execve: now calling waitForPid(%d)\n", child_pid);
-      waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _3, _4), child_pid);
+      waitForPid(boost::bind(&MainLoop::execChildTerminated, this, aCallback, ans, _2, _3), child_pid);
     }
   }
   else {
     if (aCallback) {
       // fork failed, call back with error
-      aCallback(*this, cycleStartTime, SysError::errNo(),"");
+      aCallback(cycleStartTime, SysError::errNo(),"");
     }
   }
   return;
@@ -304,7 +323,7 @@ void MainLoop::execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswe
     else {
       // call back directly
       LOG(LOG_DEBUG,"- no aAnswerCollector: callback immediately\n");
-      aCallback(*this, cycleStartTime, err, "");
+      aCallback(cycleStartTime, err, "");
     }
   }
 }
@@ -319,7 +338,7 @@ void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnsw
   string answer = aAnswerCollector->collectedData;
   LOG(LOG_DEBUG,"- Answer = %s\n", answer.c_str());
   // call back directly
-  aCallback(*this, cycleStartTime, aError, answer);
+  aCallback(cycleStartTime, aError, answer);
 }
 
 
@@ -338,11 +357,11 @@ int MainLoop::run()
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      runOnetimeHandlers();
+      bool allCompleted = runOnetimeHandlers();
       if (terminated) break;
-			bool allCompleted = runIdleHandlers();
+			if (!runIdleHandlers()) allCompleted = false;
       if (terminated) break;
-      allCompleted = allCompleted && checkWait();
+      if (!checkWait()) allCompleted = false;
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       if (timeLeft>0) {
@@ -363,17 +382,26 @@ int MainLoop::run()
 }
 
 
-void MainLoop::runOnetimeHandlers()
+bool MainLoop::runOnetimeHandlers()
 {
   int rep = 5; // max 5 re-evaluations of list due to changes
+  bool moreExecutionsInThisCycle = false;
   do {
     OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
     oneTimeHandlersChanged = false; // detect changes happening from callbacks
-    while (pos!=onetimeHandlers.end() && pos->executionTime<=cycleStartTime) {
-      if (terminated) return; // terminated means everything is considered complete
+    moreExecutionsInThisCycle = false; // no executions found pending for this cycle yet
+    while (pos!=onetimeHandlers.end()) {
+      if (pos->executionTime>=MainLoop::now()) {
+        // execution is in the future, so don't call yet
+        // - however, if run time is before end of this cycle, make sure we return false, so handlers will be called again in this cycle
+        if (pos->executionTime<cycleStartTime+loopCycleTime)
+          moreExecutionsInThisCycle = true; // next execution is pending before end of this cycle
+        break;
+      }
+      if (terminated) return true; // terminated means everything is considered complete
       OneTimeCB cb = pos->callback; // get handler
       pos = onetimeHandlers.erase(pos); // remove from queue
-      cb(*this, cycleStartTime); // call handler
+      cb(cycleStartTime); // call handler
       if (oneTimeHandlersChanged) {
         // callback has caused change of onetime handlers list, pos gets invalid
         break; // but done for now
@@ -381,6 +409,7 @@ void MainLoop::runOnetimeHandlers()
       ++pos;
     }
   } while(oneTimeHandlersChanged && rep-->0); // limit repetitions due to changed one time handlers to prevent endless loop
+  return !moreExecutionsInThisCycle && rep>0; // fully completed only if no more executions in this cycle and we've not ran out of repetitions due to changed handlers
 }
 
 
@@ -392,7 +421,7 @@ bool MainLoop::runIdleHandlers()
   while (pos!=idleHandlers.end()) {
     if (terminated) return true; // terminated means everything is considered complete
     IdleCB cb = pos->callback; // get handler
-    allCompleted = allCompleted && cb(*this, cycleStartTime); // call handler
+    allCompleted = allCompleted && cb(cycleStartTime); // call handler
     if (idleHandlersChanged) {
       // callback has caused change of idlehandlers list, pos gets invalid
       return false; // not really completed, cause calling again soon
@@ -420,7 +449,7 @@ bool MainLoop::checkWait()
         waitHandlers.erase(pos);
         // call back
         LOG(LOG_DEBUG,"- calling wait handler for pid=%d now\n", pid);
-        cb(*this, cycleStartTime, pid, status);
+        cb(cycleStartTime, pid, status);
         return false; // more process status could be ready, call soon again
       }
     }
@@ -435,7 +464,7 @@ bool MainLoop::checkWait()
         waitHandlers.clear(); // remove all handlers from real list, as new handlers might be added in handlers we'll call now
         for (WaitHandlerMap::iterator pos = oldHandlers.begin(); pos!=oldHandlers.end(); pos++) {
           WaitCB cb = pos->second.callback; // get callback
-          cb(*this, cycleStartTime, pos->second.pid, 0); // fake status
+          cb(cycleStartTime, pos->second.pid, 0); // fake status
         }
       }
       else {
@@ -566,7 +595,7 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
         SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
         if (pos!=syncIOHandlers.end()) {
           // - there is a handler
-          if (pos->second.pollHandler(*this, cycleStartTime, pollfdP->fd, pollfdP->revents))
+          if (pos->second.pollHandler(cycleStartTime, pollfdP->fd, pollfdP->revents))
             didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
         }
       }
@@ -586,11 +615,11 @@ int SyncIOMainLoop::run()
     cycleStartTime = now();
     // start of a new cycle
     while (!terminated) {
-      runOnetimeHandlers();
+      bool allCompleted = runOnetimeHandlers();
       if (terminated) break;
-			bool allCompleted = runIdleHandlers();
+			if (!runIdleHandlers()) allCompleted = false;
       if (terminated) break;
-      allCompleted = allCompleted && checkWait();
+      if (!checkWait()) allCompleted = false;
       if (terminated) break;
       MLMicroSeconds timeLeft = remainingCycleTime();
       // if other handlers have not completed yet, don't wait for I/O, just quickly check
@@ -661,14 +690,14 @@ ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, Th
     parentSignalFd = pipeFdPair[0]; // 0 is the reading end
     childSignalFd = pipeFdPair[1]; // 1 is the writing end
     // - install poll handler in the parent mainloop
-    parentThreadMainLoop.registerPollHandler(parentSignalFd, POLLIN, boost::bind(&ChildThreadWrapper::signalPipeHandler, this, _4));
+    parentThreadMainLoop.registerPollHandler(parentSignalFd, POLLIN, boost::bind(&ChildThreadWrapper::signalPipeHandler, this, _3));
     // create a pthread (with default attrs for now
     threadRunning = true; // before creating it, to make sure it is set when child starts to run
     if (pthread_create(&pthread, NULL, thread_start_function, this)!=0) {
       // error, could not create thread, fake a signal callback immediately
       threadRunning = false;
       if (parentSignalHandler)
-        parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+        parentSignalHandler(*this, threadSignalFailedToStart);
     }
     else {
       // thread created ok, keep wrapper object alive
@@ -678,7 +707,7 @@ ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, Th
   else {
     // pipe could not be created
     if (parentSignalHandler)
-      parentSignalHandler(aParentThreadMainLoop, *this, threadSignalFailedToStart);
+      parentSignalHandler(*this, threadSignalFailedToStart);
   }
 }
 
@@ -733,7 +762,7 @@ void ChildThreadWrapper::cancel()
     finalizeThreadExecution();
     // cancelled
     if (parentSignalHandler)
-      parentSignalHandler(parentThreadMainLoop, *this, threadSignalCancelled);
+      parentSignalHandler(*this, threadSignalCancelled);
   }
 }
 
@@ -764,7 +793,7 @@ bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
     }
     // got signal byte, call handler
     if (parentSignalHandler) {
-      parentSignalHandler(parentThreadMainLoop, *this, sig);
+      parentSignalHandler(*this, sig);
     }
     // in case nobody keeps this object any more, it might be deleted now
     selfRef.reset();

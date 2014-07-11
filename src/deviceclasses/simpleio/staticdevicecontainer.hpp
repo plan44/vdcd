@@ -25,28 +25,83 @@
 #include "vdcd_common.hpp"
 
 #include "deviceclasscontainer.hpp"
+#include "device.hpp"
 
 using namespace std;
 
 namespace p44 {
 
+  class StaticDeviceContainer;
+
+  /// persistence for enocean device container
+  class StaticDevicePersistence : public SQLite3Persistence
+  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
+  class StaticDevice : public Device
+  {
+    typedef Device inherited;
+    friend class StaticDeviceContainer;
+
+    long long staticDeviceRowID; ///< the ROWID this device was created from (0=none)
+
+  public:
+
+    StaticDevice(DeviceClassContainer *aClassContainerP) : Device(aClassContainerP), staticDeviceRowID(0) {};
+
+    StaticDeviceContainer &getStaticDeviceContainer();
+
+    /// device level API methods (p44 specific, JSON only, for configuring static devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
+    /// disconnect device. For static device, this means removing the config from the container's DB. Note that command line
+    /// static devices cannot be disconnected.
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
+
+  };
+  typedef boost::intrusive_ptr<StaticDevice> StaticDevicePtr;
+
+
 	typedef std::multimap<string, string> DeviceConfigMap;
 	
-  class StaticDeviceContainer;
   typedef boost::intrusive_ptr<StaticDeviceContainer> StaticDeviceContainerPtr;
   class StaticDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;
+    friend class StaticDevice;
+
 		DeviceConfigMap deviceConfigs;
+
+    StaticDevicePersistence db;
+
   public:
     StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP, int aTag);
+
+    void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
     virtual const char *deviceClassIdentifier() const;
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
+
+    /// vdc level methods (p44 specific, JSON only, for configuring static devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
     /// @return human readable model name/short description
     virtual string modelName() { return "GPIO,I2C,console vDC"; }
+
+  private:
+
+    StaticDevicePtr addStaticDevice(string aDeviceType, string aDeviceConfig);
 
   };
 

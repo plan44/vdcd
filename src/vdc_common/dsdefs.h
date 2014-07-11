@@ -96,6 +96,25 @@ typedef enum {
   SIG_ALARM = (START_APARTMENT_SCENES + 10),      ///< alarm/fire
 } DsSceneNumber;
 
+/// Scene Effects (transition and alerting)
+typedef enum {
+  scene_effect_none = 0, ///< no effect, immediate transition
+  scene_effect_smooth = 1, ///< smooth normal transition (corresponds with former dimTimeSelector==0)
+  scene_effect_slow = 2, ///< slow transition (corresponds with former dimTimeSelector==1)
+  scene_effect_veryslow = 3, ///< very slow transition (corresponds with former dimTimeSelector==2)
+  scene_effect_alert = 4, ///< blink (for light devices) / alerting (in general: an effect that draws the user’s attention)
+} DsSceneEffect;
+
+
+/// Dim mode
+typedef enum {
+  dimmode_down = -1,
+  dimmode_stop = 0,
+  dimmode_up = 1
+} DsDimMode;
+
+
+
 /// group/color (upper 4 bits in LTNUMGRP0)
 typedef enum {
   group_variable = 0,
@@ -225,6 +244,8 @@ typedef enum {
   outputFunction_switch, ///< switch output
   outputFunction_dimmer, ///< effective value dimmer
   outputFunction_positional, ///< positional (servo, valve, blinds)
+  outputFunction_ctdimmer, ///< dimmer with color temperature (channels 1 and 4)
+  outputFunction_colordimmer, ///< full color dimmer (channels 1..6)
 } DsOutputFunction;
 
 /// output modes
@@ -233,6 +254,26 @@ typedef enum {
   outputmode_binary, ///< binary ON/OFF mode
   outputmode_gradual, ///< gradual output value (dimmer, positional etc.)
 } DsOutputMode;
+
+/// output channel types
+typedef enum {
+  channeltype_default = 0, ///< default channel (main output value, e.g. brightness for lights)
+  channeltype_brightness = 1, ///< brightness for lights
+  channeltype_hue = 2, ///< hue for color lights
+  channeltype_saturation = 3, ///< saturation for color lights
+  channeltype_colortemp = 4, ///< color temperature for lights with variable white point
+  channeltype_cie_x = 5, ///< X in CIE Color Model for color lights
+  channeltype_cie_y = 6, ///< Y in CIE Color Model for color lights
+  channeltype_position_v = 7, ///< vertical position
+  channeltype_position_h = 8, ///< horizontal position
+  channeltype_position_angle = 9, ///< opening angle position
+  channeltype_permeability = 10, ///< permeability
+  channeltype_custom_first = 192, ///< first device-specific channel
+  channeltype_custom_last = 239, ///< first device-specific channel
+  numChannelTypes = 240 // 0..239 are channel types
+} DsChannelTypeEnum;
+typedef uint8_t DsChannelType;
+
 
 /// hardware error status
 typedef enum {
@@ -246,7 +287,7 @@ typedef enum {
 } DsHardwareError;
 
 
-/// sensor types
+/// sensor types (vdc API) - see "ds-basics" for dS sensor types
 typedef enum {
   sensorType_none,
   sensorType_temperature, ///< temperature in degrees celsius
@@ -262,6 +303,10 @@ typedef enum {
   sensorType_set_point, ///< room operating panel set point, 0..1
   sensorType_fan_speed, ///< fan speed, 0..1 (0=off, <0=auto)
   sensorType_wind_speed, ///< wind speed in m/s
+  sensorType_power, ///< Power in W
+  sensorType_current, ///< Electric current in A
+  sensorType_energy, ///< Energy in kWh
+  sensorType_consumption, ///< Electric Consumption in VA
 } DsSensorType;
 
 

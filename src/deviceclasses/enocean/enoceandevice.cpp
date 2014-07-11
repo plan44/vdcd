@@ -39,7 +39,8 @@ using namespace p44;
 #pragma mark - EnoceanChannelHandler
 
 EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
-  device(aDevice)
+  device(aDevice),
+  dsChannelIndex(0)
 {
 }
 
@@ -55,6 +56,7 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSu
   pendingDeviceUpdate(false),
   subDevice(0)
 {
+  eeFunctionDesc = "device"; // generic description is "device"
 }
 
 
@@ -113,7 +115,7 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 
 void EnoceanDevice::deriveDsUid()
 {
-  // UUID in enOcean name space
+  // UUID in EnOcean name space
   //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
   string s = string_format("%08lX", getAddress()); // base address comes from
@@ -124,15 +126,19 @@ void EnoceanDevice::deriveDsUid()
 
 string EnoceanDevice::hardwareGUID()
 {
-  // GTIN is 24bit company prefix + 20bit item reference, SGTIN adds a 48bit serial number as third element: urn:epc:id:sgtin:COMPANYPREFIX.ITEMREF.SERIALNO
-  // TODO: create a GTIN if there is an official scheme for it
   return string_format("enoceanaddress:%08lX", getAddress());
+}
+
+
+string EnoceanDevice::modelGUID()
+{
+  return string_format("enoceaneep:%06lX", getEEProfile());
 }
 
 
 string EnoceanDevice::modelName()
 {
-  return string_format("%s enOcean device (%02X-%02X-%02X)", manufacturerName().c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
+  return string_format("%s EnOcean %s (%02X-%02X-%02X)", manufacturerName().c_str(), eeFunctionDesc.c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
 }
 
 
@@ -192,7 +198,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       // set destination
       outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
       outgoingEsp3Packet->finalize();
-      LOG(LOG_INFO, "enOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
+      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
     }
@@ -201,21 +207,27 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  pendingDeviceUpdate = true;
-  if (alwaysUpdateable) {
+  // trigger updating all device outputs
+  for (int i=0; i<numChannels(); i++) {
+    if (getChannelByIndex(i, true)) {
+      // channel needs update
+      pendingDeviceUpdate = true;
+      break; // no more checking needed, need device level update anyway
+    }
+  }
+  if (pendingDeviceUpdate && alwaysUpdateable) {
     // send immediately
     sendOutgoingUpdate();
   }
-  inherited::updateOutputValue(aOutputBehaviour);
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
-
 
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  LOG(LOG_INFO, "enOcean device %s: received packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
+  LOG(LOG_INFO, "EnOcean device %s: received packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
@@ -233,7 +245,8 @@ string EnoceanDevice::description()
   string s = inherited::description();
   string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
   string_format_append(s,
-    "- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    eeFunctionDesc.c_str(),
     (eeProfile>>16) & 0xFF,
     (eeProfile>>8) & 0xFF,
     eeProfile & 0xFF,
@@ -242,7 +255,7 @@ string EnoceanDevice::description()
   );
   // show channels
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    string_format_append(s, "- channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
+    string_format_append(s, "- EnOcean device channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
   }
   return s;
 }

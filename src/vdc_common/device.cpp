@@ -19,12 +19,20 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "device.hpp"
 
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 #include "outputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
+
 
 
 using namespace p44;
@@ -34,12 +42,19 @@ using namespace p44;
 
 
 Device::Device(DeviceClassContainer *aClassContainerP) :
-  localPriority(false),
   progMode(false),
-  lastDimSceneNo(T0_S0),
+  isDimming(false),
+  dimHandlerTicket(0),
+  dimTimeoutTicket(0),
+  currentDimMode(dimmode_stop),
+  currentDimChannel(channeltype_default),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
-  primaryGroup(group_black_joker)
+  primaryGroup(group_black_joker),
+  applyInProgress(false),
+  missedApplyAttempts(0),
+  updateInProgress(false),
+  serializerWatchdogTicket(0)
 {
 }
 
@@ -48,8 +63,8 @@ Device::~Device()
 {
   buttons.clear();
   binaryInputs.clear();
-  outputs.clear();
   sensors.clear();
+  output.reset();
 }
 
 
@@ -73,48 +88,6 @@ void Device::setPrimaryGroup(DsGroup aColorGroup)
 
 
 
-DsGroupMask Device::behaviourGroups()
-{
-  // or together all group memberships of all behaviours
-  DsGroupMask groups = 0;
-  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
-  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
-  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) groups |= 1ll<<(*pos)->getGroup();
-  return groups;
-}
-
-
-
-bool Device::isMember(DsGroup aColorGroup)
-{
-  return
-    aColorGroup==primaryGroup || // is always member of primary group
-    (behaviourGroups() & 0x1ll<<aColorGroup)!=0 || // plus of all groups of all behaviours
-    (deviceSettings && (deviceSettings->extraGroups & 0x1ll<<aColorGroup)!=0); // explicit extra membership flag set
-}
-
-
-void Device::setGroupMembership(DsGroup aColorGroup, bool aIsMember)
-{
-  if (deviceSettings) {
-    DsGroupMask newExtraGroups = deviceSettings->extraGroups;
-    if (aIsMember) {
-      // make explicitly member of a group
-      newExtraGroups |= (0x1ll<<aColorGroup);
-    }
-    else {
-      // not explicitly member
-      newExtraGroups &= ~(0x1ll<<aColorGroup);
-    }
-    if (newExtraGroups!=deviceSettings->extraGroups) {
-      deviceSettings->extraGroups = newExtraGroups;
-      deviceSettings->markDirty();
-    }
-  }
-}
-
-
 void Device::addBehaviour(DsBehaviourPtr aBehaviour)
 {
   if (aBehaviour) {
@@ -131,10 +104,11 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
         aBehaviour->index = sensors.size();
         sensors.push_back(aBehaviour);
         break;
-      case behaviour_output:
-        aBehaviour->index = outputs.size();
-        outputs.push_back(aBehaviour);
+      case behaviour_output: {
+        aBehaviour->index = 0;
+        output = boost::dynamic_pointer_cast<OutputBehaviour>(aBehaviour);
         break;
+      }
       default:
         LOG(LOG_ERR,"Device::addBehaviour: unknown behaviour type\n");
     }
@@ -144,6 +118,31 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
   }
 }
 
+
+#pragma mark - Channels
+
+
+int Device::numChannels()
+{
+  if (output)
+    return (int)output->numChannels();
+  else
+    return 0;
+}
+
+
+ChannelBehaviourPtr Device::getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly)
+{
+  if (!output) return ChannelBehaviourPtr();
+  return output->getChannelByIndex(aChannelIndex, aPendingApplyOnly);
+}
+
+
+ChannelBehaviourPtr Device::getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly)
+{
+  if (!output) return ChannelBehaviourPtr();
+  return output->getChannelByType(aChannelType, aPendingApplyOnly);
+}
 
 
 
@@ -163,6 +162,10 @@ ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, 
   return respErr;
 }
 
+
+
+#define MOC_DIM_STEP_TIMEOUT (5*Second)
+#define LEGACY_DIM_STEP_TIMEOUT (400*MilliSecond)
 
 
 void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
@@ -229,9 +232,11 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       if (Error::isOK(err = checkParam(aParams, "value", o))) {
         // get value
         double value = o->doubleValue();
-        // now process
+        // now process the value (updates channel values, but does not yet apply them)
         LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
+        // apply the values
+        requestApplyingChannels(NULL, false);
       }
     }
     if (!Error::isOK(err)) {
@@ -245,6 +250,26 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       SceneNo sceneNo = (SceneNo)o->int32Value();
       // now call
       callSceneMin(sceneNo);
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
+    }
+  }
+  else if (aMethod=="dimChannel") {
+    // start or stop dimming a channel
+    ApiValuePtr o;
+    if (Error::isOK(err = checkParam(aParams, "channel", o))) {
+      DsChannelType channel = (DsChannelType)o->int32Value();
+      if (Error::isOK(err = checkParam(aParams, "mode", o))) {
+        int mode = o->int32Value();
+        int area = 0;
+        o = aParams->get("area");
+        if (o) {
+          area = o->int32Value();
+        }
+        // start/stop dimming
+        dimChannelForArea(channel,mode==0 ? dimmode_stop : (mode<0 ? dimmode_down : dimmode_up), area, MOC_DIM_STEP_TIMEOUT);
+      }
     }
     if (!Error::isOK(err)) {
       LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
@@ -268,7 +293,7 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
   classContainerP->removeDevice(dev, aForgetParams);
   // that's all for the base class
   if (aDisconnectResultHandler)
-    aDisconnectResultHandler(dev, true);
+    aDisconnectResultHandler(true);
 }
 
 
@@ -280,6 +305,7 @@ void Device::hasVanished(bool aForgetParams)
   // Note that disconnect() might delete the Device object (so 'this' gets invalid)
   disconnect(aForgetParams, NULL);
 }
+
 
 
 // returns 0 for non-area scenes, area number for area scenes
@@ -352,6 +378,63 @@ static SceneNo mainSceneForArea(int aArea)
 }
 
 
+
+#pragma mark - dimming
+
+
+// implementation of "dimChannel" vDC API command and legacy dimming
+// Note: ensures dimming only continues for at most aAutoStopAfter
+void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
+{
+  // TODO: maybe optimize: area check could be omitted when dimming is running already
+  if (aArea!=0) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes) {
+      // check area first
+      SceneNo areaScene = mainSceneForArea(aArea);
+      DsScenePtr scene = scenes->getScene(areaScene);
+      if (scene->isDontCare()) {
+        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
+        return; // not in this area, suppress dimming
+      }
+    }
+  }
+  // requested dimming this device, no area suppress active
+  if (aDimMode!=currentDimMode || aChannel!=currentDimChannel) {
+    // mode changes
+    if (aDimMode!=dimmode_stop) {
+      // start or change direction
+      if (currentDimMode==dimmode_stop) {
+        // start dimming from stopped state: install timeout
+        dimTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::dimAutostopHandler, this, aChannel), aAutoStopAfter);
+      }
+      else {
+        // change dimming direction or channel
+        // - stop previous dimming operation
+        dimChannel(currentDimChannel, dimmode_stop);
+        // - start new
+        MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
+      }
+    }
+    else {
+      // stop
+      MainLoop::currentMainLoop().cancelExecutionTicket(dimTimeoutTicket);
+    }
+    // actually execute
+    dimChannel(aChannel, aDimMode);
+    currentDimMode = aDimMode;
+    currentDimChannel = aChannel;
+  }
+  else {
+    // same dim mode, just retrigger if dimming right now
+    if (aDimMode!=dimmode_stop) {
+      MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
+    }
+  }
+}
+
+
+
 // returns main dim scene INC_S/DEC_S/STOP_S for any type of dim scene
 // returns 0 for non-dim scenes
 static SceneNo mainDimScene(SceneNo aSceneNo)
@@ -384,31 +467,302 @@ static SceneNo mainDimScene(SceneNo aSceneNo)
 }
 
 
+
+// autostop handler (for both dimChannel and legacy dimming)
+void Device::dimAutostopHandler(DsChannelType aChannel)
+{
+  // timeout: stop dimming immediately
+  dimChannel(aChannel, dimmode_stop);
+  currentDimMode = dimmode_stop; // stopped now
+}
+
+
+
+#define DIM_STEP_INTERVAL_MS 300.0
+#define DIM_STEP_INTERVAL (DIM_STEP_INTERVAL_MS*MilliSecond)
+
+// actual dimming implementation, usually overridden by subclasses to provide more optimized/precise dimming
+void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
+{
+  DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+  // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
+  if (aDimMode==dimmode_stop) {
+    // stop dimming
+    isDimming = false;
+    MainLoop::currentMainLoop().cancelExecutionTicket(dimHandlerTicket);
+  }
+  else {
+    // start dimming
+    ChannelBehaviourPtr ch = getChannelByType(aChannelType);
+    if (ch) {
+      // make sure the start point is calculated if needed
+      ch->getChannelValueCalculated();
+      ch->setNeedsApplying(0); // force re-applying start point, no transition time
+      // calculate increment
+      double increment = (aDimMode==dimmode_up ? DIM_STEP_INTERVAL_MS : -DIM_STEP_INTERVAL_MS) * ch->getDimPerMS();
+      // start ticking
+      isDimming = true;
+      // apply start point (non-dimming), then call dim handler
+      requestApplyingChannels(boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()), false);
+    }
+  }
+}
+
+
+void Device::dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow)
+{
+  // increment channel value
+  aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
+  // apply to hardware
+  requestApplyingChannels(boost::bind(&Device::dimDoneHandler, this, aChannel, aIncrement, aNow+DIM_STEP_INTERVAL), true); // apply in dimming mode
+}
+
+
+void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNextDimAt)
+{
+  // keep up with actual dim time
+  MLMicroSeconds now = MainLoop::now();
+  while (aNextDimAt<now) {
+    // missed this step - simply increment channel and target time, but do not cause re-apply
+    DBGLOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
+    aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
+    aNextDimAt += DIM_STEP_INTERVAL;
+  }
+  if (isDimming) {
+    // now schedule next inc/update step
+    dimHandlerTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&Device::dimHandler, this, aChannel, aIncrement, _1), aNextDimAt);
+  }
+}
+
+
+#pragma mark - high level serialized hardware access
+
+#define SERIALIZER_WATCHDOG 1
+#define SERIALIZER_WATCHDOG_TIMEOUT (20*Second)
+
+void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming)
+{
+  DBGFLOG(LOG_NOTICE, "requestApplyingChannels entered in device %s\n", shortDesc().c_str());
+  // Caller wants current channel values applied to hardware
+  // Three possible cases:
+  // a) hardware is busy applying new values already -> confirm previous request to apply as superseded
+  // b) hardware is busy updating values -> wait until this is done
+  // c) hardware is not busy -> start apply right now
+  if (applyInProgress) {
+    DBGFLOG(LOG_NOTICE, "- requestApplyingChannels called while apply already running\n");
+    // case a) confirm previous request because superseded
+    if (appliedOrSupersededCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming previous (superseded) apply request\n");
+      DoneCB cb = appliedOrSupersededCB;
+      appliedOrSupersededCB = aAppliedOrSupersededCB; // in case current callback should request another change, callback is already installed
+      cb(); // call back now, values have been superseded
+      DBGFLOG(LOG_NOTICE, "- previous (superseded) apply request confirmed\n");
+    }
+    else {
+      appliedOrSupersededCB = aAppliedOrSupersededCB;
+    }
+    // - when previous request actually terminates, we need another update to make sure finally settled values are correct
+    missedApplyAttempts++;
+    DBGFLOG(LOG_NOTICE, "- missed requestApplyingChannels requests now %d\n", missedApplyAttempts);
+  }
+  else if (updateInProgress) {
+    DBGFLOG(LOG_NOTICE, "- requestApplyingChannels called while update running -> postpone apply\n");
+    // case b) cannot execute until update finishes
+    missedApplyAttempts++;
+    appliedOrSupersededCB = aAppliedOrSupersededCB;
+    applyInProgress = true;
+  }
+  else {
+    // case c) applying is not currently in progress, start updating hardware now
+    DBGFLOG(LOG_NOTICE, "- ready, calling applyChannelValues() in device %s\n", shortDesc().c_str());
+    #if SERIALIZER_WATCHDOG
+    // - start watchdog
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
+    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), 10*Second); // new
+    DBGFLOG(LOG_WARNING, "+++++ Serializer watchdog started for apply with ticket #%ld\n", serializerWatchdogTicket);
+    #endif
+    // - start applying
+    appliedOrSupersededCB = aAppliedOrSupersededCB;
+    applyInProgress = true;
+    applyChannelValues(boost::bind(&Device::applyingChannelsComplete, this), aForDimming);
+  }
+}
+
+
+void Device::serializerWatchdog()
+{
+  #if SERIALIZER_WATCHDOG
+  DBGFLOG(LOG_WARNING, "##### Serializer watchdog ticket #%ld expired\n", serializerWatchdogTicket);
+  if (applyInProgress) {
+    LOG(LOG_WARNING, "##### Serializer watchdog force-ends apply with %d missed attempts in device %s\n", missedApplyAttempts, shortDesc().c_str());
+    missedApplyAttempts = 0;
+    applyingChannelsComplete();
+    DBGFLOG(LOG_WARNING, "##### Force-ending apply complete\n");
+  }
+  if (updateInProgress) {
+    LOG(LOG_WARNING, "##### Serializer watchdog force-ends update in device %s\n", shortDesc().c_str());
+    updatingChannelsComplete();
+    DBGFLOG(LOG_WARNING, "##### Force-ending complete\n");
+
+  }
+  #endif
+}
+
+
+bool Device::checkForReapply()
+{
+  LOG(LOG_DEBUG, "checkForReapply in device %s - missed %d apply attempts in between\n", shortDesc().c_str(), missedApplyAttempts);
+  if (missedApplyAttempts>0) {
+    // request applying again to make sure final values are applied
+    // - re-use callback of most recent requestApplyingChannels(), will be called once this attempt has completed (or superseded again)
+    DBGFLOG(LOG_NOTICE, "- checkForReapply now requesting final channel apply\n");
+    missedApplyAttempts = 0; // clear missed
+    applyInProgress = false; // must be cleared for requestApplyingChannels() to actually do something
+    requestApplyingChannels(appliedOrSupersededCB, false); // final apply after missing other apply commands may not optimize for dimming
+    // - done for now
+    return true; // reapply needed and started
+  }
+  return false; // no repply pending
+}
+
+
+
+// hardware has completed applying values
+void Device::applyingChannelsComplete()
+{
+  DBGFLOG(LOG_NOTICE, "applyingChannelsComplete entered in device %s\n", shortDesc().c_str());
+  #if SERIALIZER_WATCHDOG
+  if (serializerWatchdogTicket) {
+    DBGFLOG(LOG_WARNING, "----- Serializer watchdog ticket #%ld cancelled - apply complete\n", serializerWatchdogTicket);
+  }
+  #endif
+  MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
+  applyInProgress = false;
+  // if more apply request have happened in the meantime, we need to reapply now
+  if (!checkForReapply()) {
+    // apply complete and no final re-apply pending
+    // - confirm because finally applied
+    DBGFLOG(LOG_NOTICE, "- applyingChannelsComplete - really completed\n");
+    if (appliedOrSupersededCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming apply (really) finalized\n");
+      DoneCB cb = appliedOrSupersededCB;
+      appliedOrSupersededCB = NULL; // ready for possibly taking new callback in case current callback should request another change
+      cb(); // call back now, values have been superseded
+      DBGFLOG(LOG_NOTICE, "- confirmed apply (really) finalized\n");
+    }
+  }
+}
+
+
+
+/// request that channel values are updated by reading them back from the device's hardware
+/// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
+///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
+/// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+void Device::requestUpdatingChannels(DoneCB aUpdatedOrCachedCB)
+{
+  DBGFLOG(LOG_NOTICE, "requestUpdatingChannels entered in device %s\n", shortDesc().c_str());
+  // Caller wants current values from hardware
+  // Three possible cases:
+  // a) hardware is busy updating values already -> serve previous callback (with stale values) and install new callback
+  // b) hardware is busy applying new values -> consider cache most recent
+  // c) hardware is not busy -> start reading values
+  if (updateInProgress) {
+    // case a) serialize updates: terminate previous callback with stale values and install new one
+    if (updatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels updated for PREVIOUS request with stale values (as asked again)\n");
+      DoneCB cb = updatedOrCachedCB;
+      updatedOrCachedCB = aUpdatedOrCachedCB; // install new
+      cb(); // execute old
+      DBGFLOG(LOG_NOTICE, "- confirmed channels updated for PREVIOUS request with stale values (as asked again)\n");
+    }
+    else {
+      updatedOrCachedCB = aUpdatedOrCachedCB; // install new
+    }
+    // done, actual results will serve most recent request for values
+  }
+  else if (applyInProgress) {
+    // case b) no update pending, but applying values right now: return current values as hardware values are in
+    //   process of being overwritten by those
+    if (aUpdatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels already up-to-date (as HW update is in progress)\n");
+      aUpdatedOrCachedCB(); // execute old
+      DBGFLOG(LOG_NOTICE, "- confirmed channels already up-to-date (as HW update is in progress)\n");
+    }
+  }
+  else {
+    // case c) hardware is not busy, start reading back current values
+    DBGFLOG(LOG_NOTICE, "requestUpdatingChannels: hardware ready, calling syncChannelValues() in device %s\n", shortDesc().c_str());
+    updatedOrCachedCB = aUpdatedOrCachedCB; // install new callback
+    updateInProgress = true;
+    #if SERIALIZER_WATCHDOG
+    // - start watchdog
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
+    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), SERIALIZER_WATCHDOG_TIMEOUT);
+    DBGFLOG(LOG_WARNING, "+++++ Serializer watchdog started for update with ticket #%ld\n", serializerWatchdogTicket);
+    #endif
+    // - trigger querying hardware
+    syncChannelValues(boost::bind(&Device::updatingChannelsComplete, this));
+  }
+}
+
+
+void Device::updatingChannelsComplete()
+{
+  #if SERIALIZER_WATCHDOG
+  if (serializerWatchdogTicket) {
+    DBGFLOG(LOG_WARNING, "----- Serializer watchdog ticket #%ld cancelled - update complete\n", serializerWatchdogTicket);
+  }
+  #endif
+  if (updateInProgress) {
+    DBGFLOG(LOG_NOTICE, "endUpdatingChannels in device %s, actually waiting for these result\n", shortDesc().c_str());
+    updateInProgress = false;
+    if (updatedOrCachedCB) {
+      DBGFLOG(LOG_NOTICE, "- confirming channels updated from hardware\n");
+      DoneCB cb = updatedOrCachedCB;
+      updatedOrCachedCB = NULL; // ready for possibly taking new callback in case current callback should request another change
+      cb(); // call back now, cached values are either updated from hardware or superseded by pending updates TO hardware
+      DBGFLOG(LOG_NOTICE, "- confirmed channels updated from hardware\n");
+    }
+  }
+  else {
+    DBGFLOG(LOG_ERR, "UNEXPECTED endUpdatingChannels in device %s -> discarded\n", shortDesc().c_str());
+  }
+  // if we have got apply requests in the meantime, we need to do a reapply now
+  checkForReapply();
+}
+
+
+
+#pragma mark - scene operations
+
 void Device::callScene(SceneNo aSceneNo, bool aForce)
 {
   // see if we have a scene table at all
-  SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+  SceneDeviceSettingsPtr scenes = getScenes();
   if (scenes) {
     DsScenePtr scene;
     // check special scene numbers first
     SceneNo dimSceneNo = 0;
     if (aSceneNo==T1234_CONT) {
-      if (lastDimSceneNo) {
-        // re-use last dim scene
-        aSceneNo = lastDimSceneNo;
-      }
-      else {
-        // this device was not part of area dimming, ignore T1234_CONT
-        LOG(LOG_DEBUG, "- dimming was not started in this device, ignore T1234_CONT\n");
-        return;
-      }
+      // area dimming continuation
+      // - reschedule dimmer timeout (=keep dimming)
+      MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
     dimSceneNo = mainDimScene(aSceneNo);
-    if (dimSceneNo==0) {
-      LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
+    if (dimSceneNo!=0) {
+      // Legacy dimming via INC_S/DEC_S/STOP_S
+      dimChannelForArea(
+        channeltype_default,
+        dimSceneNo==STOP_S ? dimmode_stop : (dimSceneNo==INC_S ? dimmode_up : dimmode_down),
+        areaFromScene(aSceneNo),
+        LEGACY_DIM_STEP_TIMEOUT
+      );
+      return;
     }
-    lastDimSceneNo = 0; // reset for now (set again if it turns out to be area dimming)
+    LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
     // check for area
     int area = areaFromScene(aSceneNo);
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
@@ -416,7 +770,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       LOG(LOG_DEBUG, "callScene(%d): is area #%d scene\n", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
       scene = scenes->getScene(mainSceneForArea(area));
-      if (scene->dontCare) {
+      if (scene->isDontCare()) {
         LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress\n", mainSceneForArea(area));
         return; // not in this area, suppress callScene entirely
       }
@@ -424,76 +778,52 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       if (aSceneNo>=T1_S0 && aSceneNo<=T4_S0) {
         // area is switched off -> end local priority
         LOG(LOG_DEBUG, "- is area off scene -> ends localPriority now\n");
-        localPriority = false;
+        output->setLocalPriority(false);
       }
     }
-    // get the scene to apply to output
-    if (dimSceneNo) {
-      // dimming, use normalized dim scene (INC_S/DEC_S/STOP_S) in all cases, including area dimming
-      scene = scenes->getScene(dimSceneNo);
-      // if area dimming, remember last are dimming scene for possible subsequent T1234_CONT
-      if (area)
-        lastDimSceneNo = aSceneNo;
-    }
-    else {
-      // not dimming, use scene as passed
-      scene = scenes->getScene(aSceneNo);
-    }
+    // not dimming, use scene as passed
+    scene = scenes->getScene(aSceneNo);
     if (scene) {
-      LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->dontCare);
-      if (!scene->dontCare) {
+      LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->isSceneValueFlagSet(0, valueflags_dontCare));
+      if (!scene->isDontCare()) {
         // Scene found and dontCare not set, check details
         // - check local priority
-        if (!area && localPriority) {
+        if (!area && output->hasLocalPriority()) {
           // non-area scene call, but device is in local priority and scene does not ignore local priority
-          if (!aForce && !scene->ignoreLocalPriority) {
+          if (!aForce && !scene->ignoresLocalPriority()) {
             // not forced nor localpriority ignored, localpriority prevents applying non-area scene
             LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
             return; // suppress scene call entirely
           }
           else {
             // forced or scene ignores local priority, scene is applied anyway, and also clears localPriority
-            localPriority = false;
+            output->setLocalPriority(false);
           }
         }
-        // - make sure we have the lastState pseudo-scene for undo (but not for dimming scenes)
-        if (dimSceneNo==0) {
-          if (!previousState)
-            previousState = scenes->newDefaultScene(aSceneNo);
-          else
-            previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
-        }
-        // - now apply to all of our outputs
-        for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-          OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-          if (output) {
-            if (dimSceneNo) {
-              // Dimming scene: apply right now
-              output->applyScene(scene);
-              // Note: no special actions are performed on dimming scene
-            }
-            else {
-              // Non-dimming scene: have output save its current state into the previousState pseudo scene
-              // Note: the actual updating might happen later (when the hardware responds) but
-              //   implementations must make sure access to the hardware is serialized such that
-              //   the values are captured before values from applyScene() below are applied.
-              output->captureScene(previousState, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
-            }
-          } // if output
-        } // for
+        // - make sure we have the lastState pseudo-scene for undo
+        if (!previousState)
+          previousState = scenes->newDefaultScene(aSceneNo);
+        else
+          previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
+        // - now apply to output
+        if (output) {
+          // Non-dimming scene: have output save its current state into the previousState pseudo scene
+          // Note: the actual updating might happen later (when the hardware responds) but
+          //   implementations must make sure access to the hardware is serialized such that
+          //   the values are captured before values from applyScene() below are applied.
+          output->captureScene(previousState, true, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
+        } // if output
       } // not dontCare
       else {
         // do other scene actions now, as dontCare prevented applying scene above
-        for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-          OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-          if (output) {
-            output->performSceneActions(scene);
-          } // if output
-        } // for
+        if (output) {
+          output->performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
+        } // if output
       }
     } // scene found
   } // device with scenes
 }
+
 
 
 // deferred applying of state, after current state has been captured for this output
@@ -501,9 +831,26 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 {
   OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
   if (output) {
-    output->applyScene(aScene);
-    output->performSceneActions(aScene);
+    // apply scene logically
+    if (output->applyScene(aScene)) {
+      // now apply values to hardware
+      requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+    }
   }
+}
+
+
+void Device::sceneValuesApplied(DsScenePtr aScene)
+{
+  // now perform scene special actions such as blinking
+  output->performSceneActions(aScene, boost::bind(&Device::sceneActionsComplete, this, aScene));
+}
+
+
+void Device::sceneActionsComplete(DsScenePtr aScene)
+{
+  // now perform scene special actions such as blinking
+  LOG(LOG_DEBUG, "- scene actions for scene %d complete\n", aScene->sceneNo);
 }
 
 
@@ -514,13 +861,12 @@ void Device::undoScene(SceneNo aSceneNo)
   LOG(LOG_NOTICE, "%s: undoScene(%d):\n", shortDesc().c_str(), aSceneNo);
   if (previousState && previousState->sceneNo==aSceneNo) {
     // there is an undo pseudo scene we can apply
-    // scene found, now apply to all of our outputs
-    for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-      OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-      if (output) {
-        // now apply the pseudo state
-        output->applyScene(previousState);
-      }
+    // scene found, now apply it to the output (if any)
+    if (output) {
+      // now apply the pseudo state
+      output->applyScene(previousState);
+      // apply the values now, not dimming
+      requestApplyingChannels(NULL, false);
     }
   }
 }
@@ -533,9 +879,9 @@ void Device::setLocalPriority(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: setLocalPriority(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->dontCare) {
+    if (scene && !scene->isDontCare()) {
       LOG(LOG_DEBUG, "setLocalPriority(%d): localPriority set\n", aSceneNo);
-      localPriority = true;
+      output->setLocalPriority(true);
     }
   }
 }
@@ -548,12 +894,11 @@ void Device::callSceneMin(SceneNo aSceneNo)
     LOG(LOG_NOTICE, "%s: callSceneMin(%d):\n", shortDesc().c_str(), aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
-    if (scene && !scene->dontCare) {
-      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-        OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-        if (output) {
-          output->onAtMinBrightness();
-        }
+    if (scene && !scene->isDontCare()) {
+      if (output) {
+        output->onAtMinBrightness();
+        // apply the values now, not dimming
+        requestApplyingChannels(NULL, false);
       }
     }
   }
@@ -564,7 +909,12 @@ void Device::callSceneMin(SceneNo aSceneNo)
 
 void Device::identifyToUser()
 {
-  LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
+  if (output) {
+    output->identifyToUser(); // pass on to behaviour by default
+  }
+  else {
+    LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
+  }
 }
 
 
@@ -579,12 +929,9 @@ void Device::saveScene(SceneNo aSceneNo)
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene) {
       // scene found, now capture to all of our outputs
-      for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-        OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-        if (output) {
-          // capture value from this output
-          output->captureScene(scene, boost::bind(&Device::outputSceneValueSaved, this, scene));
-        }
+      if (output) {
+        // capture value from this output, reading from device (if possible) to catch e.g. color changes applied via external means (hue remote app etc.)
+        output->captureScene(scene, true, boost::bind(&Device::outputSceneValueSaved, this, scene));
       }
     }
   }
@@ -611,14 +958,10 @@ void Device::updateScene(DsScenePtr aScene)
 void Device::processControlValue(const string &aName, double aValue)
 {
   // default base class behaviour is letting know all output behaviours
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) {
-    OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(*pos);
-    if (ob) {
-      ob->processControlValue(aName, aValue);
-    }
+  if (output) {
+    output->processControlValue(aName, aValue);
   }
 }
-
 
 
 
@@ -628,31 +971,36 @@ void Device::processControlValue(const string &aName, double aValue)
 // load device settings - beaviours + scenes
 ErrorPtr Device::load()
 {
+  ErrorPtr err;
   // if we don't have device settings at this point (created by subclass)
   // create standard base class settings.
   if (!deviceSettings)
     deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
   // load the device settings
-  if (deviceSettings)
-    deviceSettings->loadFromStore(dSUID.getString().c_str());
+  if (deviceSettings) {
+    err = deviceSettings->loadFromStore(dSUID.getString().c_str());
+    if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for device %s: %s", shortDesc().c_str(), err->description().c_str());
+  }
   // load the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->load();
+  if (output) output->load();
   return ErrorPtr();
 }
 
 
 ErrorPtr Device::save()
 {
+  ErrorPtr err;
   // save the device settings
-  if (deviceSettings) deviceSettings->saveToStore(dSUID.getString().c_str());
+  if (deviceSettings) err = deviceSettings->saveToStore(dSUID.getString().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving settings for device %s: %s", shortDesc().c_str(), err->description().c_str());
   // save the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->save();
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->save();
   for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->save();
+  if (output) output->save();
   return ErrorPtr();
 }
 
@@ -664,8 +1012,8 @@ ErrorPtr Device::forget()
   // delete the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->forget();
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->forget();
-  for (BehaviourVector::iterator pos = outputs.begin(); pos!=outputs.end(); ++pos) (*pos)->forget();
   for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->forget();
+  if (output) output->forget();
   return ErrorPtr();
 }
 
@@ -674,142 +1022,201 @@ ErrorPtr Device::forget()
 enum {
   // device level simple parameters
   primaryGroup_key,
-  isMember_key,
   zoneID_key,
-  localPriority_key,
   progMode_key,
   idBlockSize_key,
-  // the behaviour arrays
-  buttonInputDescriptions_key,
-  buttonInputSettings_key,
-  buttonInputStates_key,
-  binaryInputDescriptions_key,
-  binaryInputSettings_key,
-  binaryInputStates_key,
-  outputDescriptions_key,
-  outputSettings_key,
-  outputStates_key,
-  sensorDescriptions_key,
-  sensorSettings_key,
-  sensorStates_key,
+  // output
+  output_description_key, // output is not array!
+  output_settings_key, // output is not array!
+  output_state_key, // output is not array!
+  // the scenes + undo
   scenes_key,
   undoState_key,
-  numDeviceProperties
+  numDeviceFieldKeys
 };
 
 
-static char device_key;
+const int numBehaviourArrays = 4; // buttons, binaryInputs, Sensors, Channels
+const int numDeviceProperties = numDeviceFieldKeys+3*numBehaviourArrays;
 
-int Device::numProps(int aDomain)
+
+
+static char device_key;
+static char device_output_key;
+
+static char device_buttons_key;
+static char device_inputs_key;
+static char device_sensors_key;
+static char device_channels_key;
+
+static char device_scenes_key;
+
+
+int Device::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numDeviceProperties;
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level
+    return inherited::numProps(aDomain, aParentDescriptor)+numDeviceProperties;
+  }
+  else if (aParentDescriptor->hasObjectKey(device_buttons_key)) {
+    return (int)buttons.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_inputs_key)) {
+    return (int)binaryInputs.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_sensors_key)) {
+    return (int)sensors.size();
+  }
+  else if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+    return numChannels(); // if no output, this returns 0
+  }
+  else if (aParentDescriptor->hasObjectKey(device_scenes_key)) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes)
+      return MAX_SCENE_NO;
+    else
+      return 0; // device with no scenes
+  }
+  return 0; // none
 }
 
 
-const PropertyDescriptor *Device::getPropertyDescriptor(int aPropIndex, int aDomain)
+
+PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numDeviceProperties] = {
+  static const PropertyDescription properties[numDeviceProperties] = {
     // common device properties
-    { "primaryGroup", apivalue_uint64, false, primaryGroup_key, &device_key },
-    { "isMember", apivalue_bool, true, isMember_key, &device_key },
-    { "zoneID", apivalue_uint64, false, zoneID_key, &device_key },
-    { "localPriority", apivalue_bool, false, progMode_key, &device_key },
-    { "progMode", apivalue_bool, false, progMode_key, &device_key },
-    { "idBlockSize", apivalue_uint64, false, idBlockSize_key, &device_key },
+    { "primaryGroup", apivalue_uint64, primaryGroup_key, OKEY(device_key) },
+    { "zoneID", apivalue_uint64, zoneID_key, OKEY(device_key) },
+    { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
+    { "idBlockSize", apivalue_uint64, idBlockSize_key, OKEY(device_key) },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
-    { "buttonInputDescriptions", apivalue_object, true, buttonInputDescriptions_key, &device_key },
-    { "buttonInputSettings", apivalue_object, true, buttonInputSettings_key, &device_key },
-    { "buttonInputStates", apivalue_object, true, buttonInputStates_key, &device_key },
-    { "binaryInputDescriptions", apivalue_object, true, binaryInputDescriptions_key, &device_key },
-    { "binaryInputSettings", apivalue_object, true, binaryInputSettings_key, &device_key },
-    { "binaryInputStates", apivalue_object, true, binaryInputStates_key, &device_key },
-    { "outputDescriptions", apivalue_object, true, outputDescriptions_key, &device_key },
-    { "outputSettings", apivalue_object, true, outputSettings_key, &device_key },
-    { "outputStates", apivalue_object, true, outputStates_key, &device_key },
-    { "sensorDescriptions", apivalue_object, true, sensorDescriptions_key, &device_key },
-    { "sensorSettings", apivalue_object, true, sensorSettings_key, &device_key },
-    { "sensorStates", apivalue_object, true, sensorStates_key, &device_key },
+    { "buttonInputDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_buttons_key) },
+    { "buttonInputSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_buttons_key) },
+    { "buttonInputStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_buttons_key) },
+    { "binaryInputDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_inputs_key) },
+    { "binaryInputSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_inputs_key) },
+    { "binaryInputStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_inputs_key) },
+    { "sensorDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_sensors_key) },
+    { "sensorSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_sensors_key) },
+    { "sensorStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_sensors_key) },
+    { "channelDescriptions", apivalue_object+propflag_container, descriptions_key_offset, OKEY(device_channels_key) },
+    { "channelSettings", apivalue_object+propflag_container, settings_key_offset, OKEY(device_channels_key) },
+    { "channelStates", apivalue_object+propflag_container, states_key_offset, OKEY(device_channels_key) },
+    // the single output
+    { "outputDescription", apivalue_object, descriptions_key_offset, OKEY(device_output_key) },
+    { "outputSettings", apivalue_object, settings_key_offset, OKEY(device_output_key) },
+    { "outputState", apivalue_object, states_key_offset, OKEY(device_output_key) },
     // the scenes array
-    { "scenes", apivalue_object, true, scenes_key, &device_key },
-    { "undoState", apivalue_object, false, undoState_key, &device_key },
+    { "scenes", apivalue_object+propflag_container, scenes_key, OKEY(device_scenes_key) },
+    { "undoState", apivalue_object, undoState_key, OKEY(device_key) },
   };
-  int n = inherited::numProps(aDomain);
-  if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
-  aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  // C++ object manages different levels, check aParentObjectKey
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
+  return PropertyDescriptorPtr();
 }
 
 
 
-PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex)
+PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    switch (aPropertyDescriptor.accessKey) {
-      // Note: domain is adjusted to differentiate between descriptions, settings and states of the same object
-      // buttons
-      case buttonInputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto buttons;
-      case buttonInputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto buttons;
-      case buttonInputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      buttons:
-        if (aIndex<buttons.size()) return buttons[aIndex];
-        break;
-      // binaryInputs
-      case binaryInputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto binaryInputs;
-      case binaryInputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto binaryInputs;
-      case binaryInputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      binaryInputs:
-        if (aIndex<binaryInputs.size()) return binaryInputs[aIndex];
-        break;
-      // outputs
-      case outputDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto outputs;
-      case outputSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto outputs;
-      case outputStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      outputs:
-        if (aIndex<outputs.size()) return outputs[aIndex];
-        break;
-      // sensors
-      case sensorDescriptions_key:
-        aDomain = VDC_API_BHVR_DESC;
-        goto sensors;
-      case sensorSettings_key:
-        aDomain = VDC_API_BHVR_SETTINGS;
-        goto sensors;
-      case sensorStates_key:
-        aDomain = VDC_API_BHVR_STATES;
-      sensors:
-        if (aIndex<sensors.size()) return sensors[aIndex];
-        break;
-      // scenes
-      case scenes_key: {
-        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-        if (scenes) {
-          return scenes->getScene(aIndex);
+  if (aParentDescriptor && aParentDescriptor->isArrayContainer()) {
+    // array-like container
+    PropertyDescriptorPtr propDesc;
+    bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
+    if (numericName && aParentDescriptor->hasObjectKey(device_channels_key)) {
+      // specific channel addressed by ID, look up index for it
+      DsChannelType ct = (DsChannelType)aStartIndex;
+      aStartIndex = PROPINDEX_NONE; // default: not found
+      // there is an output
+      ChannelBehaviourPtr cb = getChannelByType(ct);
+      if (cb) {
+        aStartIndex = (int)cb->getChannelIndex();
+      }
+    }
+    int n = numProps(aDomain, aParentDescriptor);
+    if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
+      // within range, create descriptor
+      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+      if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+        if (numericName) {
+          // query specified a channel number -> return same number in result (to return "0" when default channel "0" was explicitly queried)
+          descP->propertyName = aPropMatch; // query = name of object
+        }
+        else {
+          // wildcard, result object is named after channelType
+          ChannelBehaviourPtr cb = getChannelByIndex(aStartIndex);
+          if (cb) {
+            descP->propertyName = string_format("%d", cb->getChannelType());
+          }
         }
       }
-      // pseudo scene which saves the values before last scene call, used for undoScene
-      case undoState_key: {
-        if (previousState) {
-          return previousState;
-        }
+      else {
+        // by index
+        descP->propertyName = string_format("%d", aStartIndex);
       }
+      descP->propertyType = aParentDescriptor->type();
+      descP->propertyFieldKey = aStartIndex;
+      descP->propertyObjectKey = aParentDescriptor->objectKey();
+      propDesc = PropertyDescriptorPtr(descP);
+      // advance index
+      aStartIndex++;
+    }
+    if (aStartIndex>=n || numericName) {
+      // no more descriptors OR specific descriptor accessed -> no "next" descriptor
+      aStartIndex = PROPINDEX_NONE;
+    }
+    return propDesc;
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+}
+
+
+
+PropertyContainerPtr Device::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+{
+  // might be virtual container
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // one of the local containers
+    return PropertyContainerPtr(this); // handle myself
+  }
+  // containers are elements from the behaviour arrays
+  else if (aPropertyDescriptor->hasObjectKey(device_buttons_key)) {
+    return buttons[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_inputs_key)) {
+    return binaryInputs[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_sensors_key)) {
+    return sensors[aPropertyDescriptor->fieldKey()];
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_channels_key)) {
+    if (!output) return PropertyContainerPtr(); // none
+    return output->getChannelByIndex(aPropertyDescriptor->fieldKey());
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes) {
+      return scenes->getScene(aPropertyDescriptor->fieldKey());
+    }
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_output_key)) {
+    return output; // only single output or none
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    // device level object properties
+    if (aPropertyDescriptor->fieldKey()==undoState_key) {
+      return previousState;
     }
   }
   // unknown here
@@ -817,87 +1224,19 @@ PropertyContainerPtr Device::getContainer(const PropertyDescriptor &aPropertyDes
 }
 
 
-ErrorPtr Device::writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer)
+
+bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    switch (aPropertyDescriptor.accessKey) {
-      case scenes_key: {
-        // scene was written, update needed if dirty
-        DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
-        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
-        if (scenes && scene && scene->isDirty()) {
-          scenes->updateScene(scene);
-          return ErrorPtr();
-        }
-      }
-    }
-  }
-  return inherited::writtenProperty(aPropertyDescriptor, aDomain, aIndex, aContainer);
-}
-
-
-
-
-bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
-{
-  if (aPropertyDescriptor.objectKey==&device_key) {
-    if (aIndex==PROP_ARRAY_SIZE) {
-      if (aForWrite) {
-        return false;
-      }
-      else {
-        // array size query
-        switch (aPropertyDescriptor.accessKey) {
-          // the isMember pseudo-array
-          case isMember_key:
-            aPropValue->setUint16Value(64); // max 64 groups
-            return true;
-          // the behaviour arrays
-          case buttonInputDescriptions_key:
-          case buttonInputSettings_key:
-          case buttonInputStates_key:
-            aPropValue->setUint16Value((int)buttons.size());
-            return true;
-          case binaryInputDescriptions_key:
-          case binaryInputSettings_key:
-          case binaryInputStates_key:
-            aPropValue->setUint16Value((int)binaryInputs.size());
-            return true;
-          case outputDescriptions_key:
-          case outputSettings_key:
-          case outputStates_key:
-            aPropValue->setUint16Value((int)outputs.size());
-            return true;
-          case sensorDescriptions_key:
-          case sensorSettings_key:
-          case sensorStates_key:
-            aPropValue->setUint16Value((int)sensors.size());
-            return true;
-          case scenes_key:
-            if (boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings))
-              aPropValue->setUint16Value(MAX_SCENE_NO);
-            else
-              aPropValue->setUint16Value(0); // no scene table
-            return true;
-        }
-      }
-    }
-    else if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         case primaryGroup_key:
           aPropValue->setUint16Value(primaryGroup);
-          return true;
-        case isMember_key:
-          // test group bit
-          aPropValue->setBoolValue(isMember((DsGroup)aIndex));
           return true;
         case zoneID_key:
           if (deviceSettings)
             aPropValue->setUint16Value(deviceSettings->zoneID);
-          return true;
-        case localPriority_key:
-          aPropValue->setBoolValue(localPriority);
           return true;
         case progMode_key:
           aPropValue->setBoolValue(progMode);
@@ -909,18 +1248,12 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
-        case isMember_key:
-          setGroupMembership((DsGroup)aIndex, aPropValue->boolValue());
-          return true;
+      switch (aPropertyDescriptor->fieldKey()) {
         case zoneID_key:
           if (deviceSettings) {
             deviceSettings->zoneID = aPropValue->int32Value();
             deviceSettings->markDirty();
           }
-          return true;
-        case localPriority_key:
-          localPriority = aPropValue->boolValue();
           return true;
         case progMode_key:
           progMode = aPropValue->boolValue();
@@ -929,8 +1262,32 @@ bool Device::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyD
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
+
+
+ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer)
+{
+  if (aPropertyDescriptor->hasObjectKey(device_scenes_key)) {
+    // a scene was written, update needed if dirty
+    DsScenePtr scene = boost::dynamic_pointer_cast<DsScene>(aContainer);
+    SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+    if (scenes && scene && scene->isDirty()) {
+      scenes->updateScene(scene);
+      return ErrorPtr();
+    }
+  }
+  else if (
+    aPropertyDescriptor->hasObjectKey(device_channels_key) && // one or multiple channel's...
+    aPropertyDescriptor->fieldKey()==states_key_offset && // ...state(s)...
+    aMode==access_write // ...got a non-preload write
+  ) {
+    // apply new channel values to hardware, not dimming
+    requestApplyingChannels(NULL, false);
+  }
+  return inherited::writtenProperty(aMode, aPropertyDescriptor, aDomain, aContainer);
+}
+
 
 #pragma mark - Device description/shortDesc
 
@@ -940,7 +1297,7 @@ string Device::description()
   string s = inherited::description(); // DsAdressable
   if (buttons.size()>0) string_format_append(s, "- Buttons: %d\n", buttons.size());
   if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %d\n", binaryInputs.size());
-  if (outputs.size()>0) string_format_append(s, "- Outputs: %d\n", outputs.size());
   if (sensors.size()>0) string_format_append(s, "- Sensors: %d\n", sensors.size());
+  if (numChannels()>0) string_format_append(s, "- Output Channels: %d\n", numChannels());
   return s;
 }

@@ -44,7 +44,7 @@ void VdcApiServer::setConnectionStatusHandler(VdcApiConnectionCB aConnectionCB)
 }
 
 
-SocketCommPtr VdcApiServer::serverConnectionHandler(SocketComm *aServerSocketCommP)
+SocketCommPtr VdcApiServer::serverConnectionHandler(SocketCommPtr aServerSocketComm)
 {
   // create new connection
   VdcApiConnectionPtr apiConnection = newConnection();
@@ -56,7 +56,7 @@ SocketCommPtr VdcApiServer::serverConnectionHandler(SocketComm *aServerSocketCom
 }
 
 
-void VdcApiServer::connectionStatusHandler(SocketComm *aSocketComm, ErrorPtr aError)
+void VdcApiServer::connectionStatusHandler(SocketCommPtr aSocketComm, ErrorPtr aError)
 {
   if (apiConnectionStatusHandler) {
     // get connection object

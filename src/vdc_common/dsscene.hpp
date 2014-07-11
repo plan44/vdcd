@@ -36,10 +36,25 @@ namespace p44 {
 
   typedef uint8_t SceneNo;
 
+  // per scene value flags as represented in sceneValueFlags
+  enum {
+    valueflags_dontCare = 0x0001, ///< if set, value of this channel/output will not be recalled with scene
+  };
+
+
   class SceneDeviceSettings;
   class Device;
   class DeviceSettings;
 
+  /// Abstract base class for a single entry of a device's scene table. Implements the basic persistence
+  /// and property access mechanisms which can be extended in concrete subclasses.
+  /// @note concrete subclasses for standard dS behaviours exist as part of the behaviour implementation
+  ///   (such as light, colorlight) - so usually device makers don't need to implement subclasses of DsScene.
+  /// @note DsScene objects are managed by the SceneDeviceSettings container class in a way that tries
+  ///   to minimize the number of actual DsScene objects in memory for efficiency reasons. So
+  ///   most DsScene objects are created on the fly via the newDefaultScene() factory method when
+  ///   used. Also, only scenes explicitly configured to differ from the standard scene values for
+  ///   the behaviour are actually persisted into the database.
   class DsScene : public PropertyContainer, public PersistentParams
   {
     typedef PersistentParams inheritedParams;
@@ -53,7 +68,7 @@ namespace p44 {
 
     /// generic DB persisted scene flag word, can be used by subclasses to map flags onto in loadFromRow() and bindToStatement()
     /// @note base class already maps some flags, see commonflags_xxx enum in implementation.
-    int sceneFlags;
+    uint32_t globalSceneFlags;
 
   public:
     DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, creates empty scene
@@ -64,18 +79,90 @@ namespace p44 {
 
     SceneNo sceneNo; ///< scene number
 
-    // flags mapped into sceneFlags for storage
-    bool dontCare; ///< if set, applying this scene does not change the output value(s). This is used for configuration of areas
-    bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
+    /// @}
+
+
+    /// @name access to scene level flags
+    /// @{
+
+    /// check if scene is dontCare (on the scene level, regardless of individual value's dontCare)
+    /// @return dontCare status
+    bool isDontCare();
+
+    /// set if scene should have dontCare status on scene level
+    /// @param aDontCare new flag state
+    void setDontCare(bool aDontCare);
+
+    /// check if scene ignores local priority
+    /// @return dontCare status
+    bool ignoresLocalPriority();
+
+    /// set if scene should ignore local priority
+    /// @param aIgnoreLocalPriority new flag state
+    void setIgnoreLocalPriority(bool aIgnoreLocalPriority);
 
     /// @}
+
+
+    /// @name access to scene values (1 or more for MOC)
+    /// @{
+
+    /// number of scene values (=usually number of outputs/channels of device )
+    /// @return number of scene values
+    virtual int numSceneValues();
+
+    /// get per-value scene flags
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @return the flag word
+    virtual uint32_t sceneValueFlags(size_t aChannelIndex);
+
+    /// modify per-value scene flags
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aFlagMask the flags to set or clear
+    /// @param aSet if true, flags set in aFlagMask will be set, otherwise cleared
+    /// @note marks scene dirty if flags are actually changed
+    virtual void setSceneValueFlags(size_t aChannelIndex, uint32_t aFlagMask, bool aSet);
+
+    /// set a variable representing a scene value and mark scene dirty if value changes
+    /// @param aTargetValue the variable to update
+    /// @param aNewValue the new value
+    /// @note marks scene dirty if variable is actually changed
+    template<typename T> void setRepVar(T &aTargetValue, T aNewValue)
+    {
+      if (aTargetValue!=aNewValue) {
+        aTargetValue = aNewValue;
+        markDirty();
+      }
+    };
+
+    /// get scene value
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @return the scene value
+    virtual double sceneValue(size_t aChannelIndex) = 0;
+
+    /// modify per-value scene flags
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aValue the new scene value
+    virtual void setSceneValue(size_t aChannelIndex, double aValue) = 0;
+
+    /// utility: check a scene value flag
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aFlagMask the flag to check
+    bool isSceneValueFlagSet(size_t aChannelIndex, uint32_t aFlagMask);
+
+    /// @}
+
+    /// get device
+    /// @return the device this scene belongs to
+    Device &getDevice();
 
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName() = 0;
@@ -86,20 +173,31 @@ namespace p44 {
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
-    /// @}
+  private:
+
+    PropertyContainerPtr sceneChannels; // private container for implementing scene channels/outputs
+
   };
   typedef boost::intrusive_ptr<DsScene> DsScenePtr;
   typedef map<SceneNo, DsScenePtr> DsSceneMap;
 
 
 
-  /// the persistent parameters of a device with a scene table
+  /// Abstract base class for the persistent parameters of a device with a scene table
+  /// @note concrete subclasses for standard dS behaviours exist as part of the behaviour implementation
+  ///   (such as light, colorlight) - so usually device makers don't need to implement subclasses of SceneDeviceSettings.
+  /// @note The SceneDeviceSettings object manages the scene table in a way that tries
+  ///   to minimize the number of actual DsScene objects in memory for efficiency reasons. So
+  ///   most DsScene objects are created on the fly via the newDefaultScene() factory method only when
+  ///   needed e.g. for calling a scene. Only scenes that were explicitly configured to differ from the
+  ///   standard scene values for the behaviour are actually persisted into the database.
   class SceneDeviceSettings : public DeviceSettings
   {
     typedef DeviceSettings inherited;
 
     friend class DsScene;
     friend class Device;
+    friend class SceneChannels;
 
     DsSceneMap scenes; ///< the user defined scenes (default scenes will be created on the fly)
 
@@ -127,14 +225,14 @@ namespace p44 {
     /// @note database records will be deleted if the scene had non-default values before.
     void resetScene(SceneNo aSceneNo);
 
-    /// @}
-
-  protected:
-
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.
     /// @note this method must be derived in concrete subclasses to return the appropriate scene object
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo) = 0;
+
+    /// @}
+
+  protected:
 
     // persistence implementation
     virtual ErrorPtr loadChildren();

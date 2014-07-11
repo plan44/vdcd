@@ -28,6 +28,10 @@ using namespace std;
 
 namespace p44 {
 
+
+  /// Implements the behaviour of a digitalSTROM Sensor. In particular it manages and throttles
+  /// pushing updates to the dS upstream, to avoid jitter in hardware reported values to flood
+  /// the system with unneded update messages
   class SensorBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
@@ -47,6 +51,7 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+    DsGroup sensorGroup; ///< group this sensor belongs to
     MLMicroSeconds minPushInterval; ///< minimum time between pushes (even if we have more frequent hardware sensor updates)
     MLMicroSeconds changesOnlyInterval; ///< time span during which only actual value changes are reported. After this interval, next hardware sensor update, even without value change, will cause a push)
     /// @}
@@ -70,12 +75,26 @@ namespace p44 {
     ///   also derive default values for settings from this information.
     void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
 
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { sensorGroup = aGroup; };
+
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+
+    /// get sensor type
+    /// @return the sensor type
+    DsSensorType getSensorType() { return sensorType; };
+
+    /// update sensor value (when new value received from hardware)
+    /// @param aValue the new value from the sensor, in physical units according to sensorType (DsSensorType)
+    void updateSensorValue(double aValue);
+
     /// sensor value change occurred
     /// @param aEngineeringValue the engineering value from the sensor.
-    ///   The state value will be adjusted and scaled according to min/max/resolution
+    ///   The state value will be adjusted and scaled according to min/resolution
+    /// @note this call only works correctly if resolution relates to 1 LSB of aEngineeringValue
+    ///   Use updateSensorValue if relation between engineering value and physical unit value is more complicated
     void updateEngineeringValue(long aEngineeringValue);
 
     /// @}
@@ -91,13 +110,13 @@ namespace p44 {
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();
-    virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numStateProps();
-    virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName();

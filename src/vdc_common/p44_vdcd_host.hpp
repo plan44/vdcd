@@ -41,6 +41,7 @@ namespace p44 {
 
 
 
+  /// plan44 specific config API JSON request
   class P44JsonApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -80,7 +81,7 @@ namespace p44 {
 
 
 
-
+  /// plan44 specific implementation of a vdc host, with a separate API used by WebUI components.
   class P44VdcHost : public DeviceContainer
   {
     typedef DeviceContainer inherited;
@@ -93,7 +94,7 @@ namespace p44 {
     P44VdcHost();
 
     /// JSON API for web interface
-    SocketComm configApiServer;
+    SocketCommPtr configApiServer;
 
     void startConfigApi();
 
@@ -104,10 +105,13 @@ namespace p44 {
     /// @param aRedLED green LED output
     void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
 
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString();
+
   private:
 
-    SocketCommPtr configApiConnectionHandler(SocketComm *aServerSocketCommP);
-    void configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject);
+    SocketCommPtr configApiConnectionHandler(SocketCommPtr aServerSocketComm);
+    void configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError, JsonObjectPtr aJsonObject);
     void learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError);
     void identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice);
     void endIdentify();
@@ -117,8 +121,8 @@ namespace p44 {
 
     static void sendCfgApiResponse(JsonCommPtr aJsonComm, JsonObjectPtr aResult, ErrorPtr aError);
 
-
   };
+  typedef boost::intrusive_ptr<P44VdcHost> P44VdcHostPtr;
 
 
 

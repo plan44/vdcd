@@ -48,11 +48,14 @@ namespace p44 {
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    /// apply all pending channel value updates to the device's hardware
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @param aCompletedCB if not NULL, must be called when values are applied
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
 
     /// @}
 

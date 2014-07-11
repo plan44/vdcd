@@ -1,10 +1,23 @@
-/*
- * dalicomm.hpp
- *
- *  Created on: Apr 10, 2013
- *      Author: Lukas Zeller / luz@plan44.ch
- *   Copyright: 2012-2013 by plan44.ch/luz
- */
+//
+//  Copyright (c) 2013-2014 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//
+//  Author: Lukas Zeller <luz@plan44.ch>
+//
+//  This file is part of vdcd.
+//
+//  vdcd is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  vdcd is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
+//
 
 
 #ifndef DALICOMM_H_
@@ -30,6 +43,7 @@ namespace p44 {
     DaliCommErrorDALIFrame,
     DaliCommErrorMissingData,
     DaliCommErrorBadChecksum,
+    DaliCommErrorBadDeviceInfo,
     DaliCommErrorInvalidAnswer,
     DaliCommErrorNeedFullScan,
     DaliCommErrorDeviceSearch,
@@ -95,6 +109,9 @@ namespace p44 {
     MLMicroSeconds closeAfterIdleTime;
     long connectionTimeoutTicket;
 
+    int expectedBridgeResponses; ///< not yet received bridge responses
+    bool responsesInSequence; ///< set when repsonses need to be in sequence with requests
+
   public:
 
     DaliComm(SyncIOMainLoop &aMainLoop);
@@ -113,7 +130,7 @@ namespace p44 {
     void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime);
 
     /// callback function for sendBridgeCommand
-    typedef boost::function<void (DaliComm &aDaliComm, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
+    typedef boost::function<void (uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
 
     /// Send DALI command to bridge
     /// @param aCmd bridge command byte
@@ -124,7 +141,7 @@ namespace p44 {
 
 
     /// callback function for daliSendXXX methods
-    typedef boost::function<void (DaliComm &aDaliComm, ErrorPtr aError)> DaliCommandStatusCB;
+    typedef boost::function<void (ErrorPtr aError)> DaliCommandStatusCB;
 
     /// reset the communication with the bridge
     void reset(DaliCommandStatusCB aStatusCB);
@@ -171,7 +188,7 @@ namespace p44 {
     void daliSendDtrAndConfigCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// callback function for daliSendXXX methods returning data
-    typedef boost::function<void (DaliComm &aDaliComm, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)> DaliQueryResultCB;
+    typedef boost::function<void (bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)> DaliQueryResultCB;
 
     /// Send DALI command and expect answer byte
     /// @param aDali1 first DALI byte
@@ -205,7 +222,7 @@ namespace p44 {
     typedef std::list<DaliAddress> ShortAddressList;
     typedef boost::shared_ptr<ShortAddressList> ShortAddressListPtr;
     /// callback function for daliScanBus
-    typedef boost::function<void (DaliComm &aDaliComm, ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
+    typedef boost::function<void (ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
 
     /// Scan the bus for active devices (short address)
     /// @param aResultCB callback receiving a list<int> of available short addresses on the bus
@@ -222,7 +239,7 @@ namespace p44 {
 
     /// callback function for daliReadMemory
 
-    typedef boost::function<void (DaliComm &aDaliComm, MemoryVectorPtr aMemoryVectorPtr, ErrorPtr aError)> DaliReadMemoryCB;
+    typedef boost::function<void (MemoryVectorPtr aMemoryVectorPtr, ErrorPtr aError)> DaliReadMemoryCB;
     /// Read DALI memory
     /// @param aResultCB callback receiving the data read as a vector<uint8_t>
     /// @param aAddress short address of device to read
@@ -237,7 +254,7 @@ namespace p44 {
     typedef boost::intrusive_ptr<DaliDeviceInfo> DaliDeviceInfoPtr;
 
     /// callback function for daliReadDeviceInfo
-    typedef boost::function<void (DaliComm &aDaliComm, DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;
+    typedef boost::function<void (DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)> DaliDeviceInfoCB;
 
     /// Read DALI device info
     /// @param aResultCB callback receiving the device info record
@@ -248,6 +265,9 @@ namespace p44 {
 
   private:
 
+    void bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, SerialOperationPtr aOperation, OperationQueuePtr aQueueP, ErrorPtr aError);
+    void daliCommandStatusHandler(DaliCommandStatusCB aResultCB, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError);
+    void daliQueryResponseHandler(DaliQueryResultCB aResultCB, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError);
     void connectionTimeout();
 
   public:

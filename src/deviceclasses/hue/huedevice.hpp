@@ -24,7 +24,7 @@
 
 #include "device.hpp"
 
-#include "lightbehaviour.hpp"
+#include "colorlightbehaviour.hpp"
 
 #include "jsonobject.hpp"
 
@@ -36,86 +36,6 @@ namespace p44 {
   class HueDevice;
   class HueComm;
 
-  typedef enum {
-    hueColorModeNone, ///< no color information stored, only brightness
-    hueColorModeHueSaturation, ///< "hs" - hue & saturation
-    hueColorModeXY, ///< "xy" - CIE color space coordinates
-    hueColorModeCt, ///< "ct" - Mired color temperature: 153 (6500K) to 500 (2000K) for hue Lights
-  } HueColorMode;
-
-
-
-  class HueLightScene : public LightScene
-  {
-    typedef LightScene inherited;
-  public:
-    HueLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
-
-    /// @name hue light scene specific values
-    /// @{
-
-    HueColorMode colorMode; ///< color mode (hue+Saturation or CIE xy or color temperature)
-    double XOrHueOrCt; ///< X or hue or ct, depending on colorMode
-    double YOrSat; ///< Y or saturation, depending on colorMode
-
-    /// @}
-
-    /// Set default scene values for a specified scene number
-    /// @param aSceneNo the scene number to set default values
-    virtual void setDefaultSceneValues(SceneNo aSceneNo);
-
-  protected:
-
-    // persistence implementation
-    virtual const char *tableName();
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
-    // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
-
-  };
-  typedef boost::intrusive_ptr<HueLightScene> HueLightScenePtr;
-
-
-  class HueLightBehaviour : public LightBehaviour
-  {
-    typedef LightBehaviour inherited;
-
-  public:
-
-    HueLightBehaviour(Device &aDevice);
-
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aCompletedCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
-
-    /// perform special scene actions (like flashing) which are independent of dontCare flag.
-    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene);
-
-
-  protected:
-
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved as captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
-
-  private:
-
-    void sceneColorsReceived(HueLightScenePtr aHueScene, DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
-
-
-  };
-  typedef boost::intrusive_ptr<HueLightBehaviour> HueLightBehaviourPtr;
-
 
 
   /// the persistent parameters of a light scene device (including scene table)
@@ -125,8 +45,6 @@ namespace p44 {
 
   public:
     HueDeviceSettings(Device &aDevice);
-
-  protected:
 
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.
@@ -141,15 +59,16 @@ namespace p44 {
   class HueDevice : public Device
   {
     typedef Device inherited;
-    friend class HueLightBehaviour;
 
     string lightID; ///< the ID as used in the hue bridge
 
     // information from the device itself
     string hueModel;
 
-    // scene to update colors from when updating output
-    HueLightScenePtr pendingColorScene;
+    // applyChannel repetition management
+    CompletedCB pendingApplyCB;
+    bool applyInProgress;
+    bool repeatApplyAtEnd;
 
   public:
     HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID);
@@ -180,11 +99,6 @@ namespace p44 {
     /// @param aPresenceResultHandler will be called to report presence status
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
-    /// identify the device to the user
-    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
-    ///   this can be anything.
-    virtual void identifyToUser();
-
     /// disconnect device. For hue, we'll check if the device is still reachable via the bridge, and only if not
     /// we allow disconnection
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
@@ -193,11 +107,21 @@ namespace p44 {
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    /// apply all pending channel value updates to the device's hardware
+    /// @param aDoneCB will called when values are applied
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aDoneCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(DoneCB aDoneCB);
 
     /// @}
 
@@ -220,8 +144,8 @@ namespace p44 {
     void deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
-    void alertHandler(int aLeftCycles);
-    void outputChangeSent(OutputBehaviour &aOutputBehaviour, ErrorPtr aError);
+    void channelValuesSent(ColorLightBehaviourPtr aColorLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
   };
   

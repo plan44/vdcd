@@ -36,7 +36,7 @@ JsonWebClient::~JsonWebClient()
 }
 
 
-void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
+void JsonWebClient::requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
 {
   if (jsonResponseCallback) {
     // only if we have a json callback, we need to parse the response at all
@@ -68,7 +68,7 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
         // use this callback, but as callback routine might post another request immediately, we need to free the member first
         JsonWebClientCB cb = jsonResponseCallback;
         jsonResponseCallback.clear();
-        cb(*this, message, requestError);
+        cb(message, requestError);
       }
       // release child thread object now
       childThread.reset();
@@ -76,7 +76,7 @@ void JsonWebClient::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWr
   }
   else {
     // no JSON callback, let inherited handle this
-    inherited::requestThreadSignal(aMainLoop, aChildThread, aSignalCode);
+    inherited::requestThreadSignal(aChildThread, aSignalCode);
   }
 }
 

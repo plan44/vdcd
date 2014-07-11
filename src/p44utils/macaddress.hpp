@@ -27,12 +27,23 @@
 namespace p44 {
 
   /// get MAC address of this machine
-  /// @return MAC address as 64bit int (upper 16bits zero)
+  /// @return MAC address as 64bit int (upper 16bits zero) or 0 if none could be determined
+  /// @note see getIfInfo() for details how MAC address is obtained
+  uint64_t macAddress();
+
+  /// get MAC address of this machine
+  /// @return IPv4 address as 32bit int or 0 if none could be determined
+  /// @note see getIfInfo() for details how interface is determined
+  uint32_t ipv4Address();
+
+  /// get network interface information
+  /// @param aMacAddress if not NULL: is set to the MAC address of this machine
+  /// @param aIPv4Address if not NULL: is set to current IPv4 address of this machine
   /// Notes:
   /// - On Linux, the first non-loopback interface's MAC will be used (as enumerated by ifr_ifindex 1..n)
   /// - On OS X, the MAC address of the "en0" device will be used (every Mac has a en0, which is the
   ///   built-in network port of the machine; ethernet port for Macs that have one, WiFi port otherwise)
-  uint64_t macAddress();
+  bool getIfInfo(uint64_t *aMacAddressP, uint32_t *aIPv4AddressP);
 
 } // namespace p44
 

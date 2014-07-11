@@ -40,7 +40,31 @@ SparkLightScene::SparkLightScene(SceneDeviceSettings &aSceneDeviceSettings, Scen
 }
 
 
-#pragma mark - HueLight Scene persistence
+#pragma mark - spark scene values/channels
+
+
+double SparkLightScene::sceneValue(size_t aChannelIndex)
+{
+  ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
+  switch (cb->getChannelType()) {
+    case channeltype_sparkmode: return extendedState;
+    default: return inherited::sceneValue(aChannelIndex);
+  }
+  return 0;
+}
+
+
+void SparkLightScene::setSceneValue(size_t aChannelIndex, double aValue)
+{
+  ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
+  switch (cb->getChannelType()) {
+    case channeltype_sparkmode: extendedState = aValue; break;
+    default: inherited::setSceneValue(aChannelIndex, aValue); break;
+  }
+}
+
+
+#pragma mark - scene persistence
 
 const char *SparkLightScene::tableName()
 {
@@ -90,60 +114,6 @@ void SparkLightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 }
 
 
-#pragma mark - Light scene property access
-
-
-static char sparklightscene_key;
-
-enum {
-  extendedState_key,
-  numSparkLightSceneProperties
-};
-
-
-int SparkLightScene::numProps(int aDomain)
-{
-  return inherited::numProps(aDomain)+numSparkLightSceneProperties;
-}
-
-
-const PropertyDescriptor *SparkLightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
-{
-  static const PropertyDescriptor properties[numSparkLightSceneProperties] = {
-    { "x-p44-extendedState", apivalue_uint64, false, extendedState_key, &sparklightscene_key }
-  };
-  int n = inherited::numProps(aDomain);
-  if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
-  aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
-}
-
-
-bool SparkLightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
-{
-  if (aPropertyDescriptor.objectKey==&sparklightscene_key) {
-    if (!aForWrite) {
-      // read properties
-      switch (aPropertyDescriptor.accessKey) {
-        case extendedState_key:
-          aPropValue->setUint32Value(extendedState);
-          return true;
-      }
-    }
-    else {
-      // write properties
-      switch (aPropertyDescriptor.accessKey) {
-        case extendedState_key:
-          extendedState = aPropValue->uint32Value();
-          markDirty();
-          return true;
-      }
-    }
-  }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
-}
-
 
 #pragma mark - default scene values
 
@@ -152,8 +122,8 @@ void SparkLightScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
   // init default brightness
   inherited::setDefaultSceneValues(aSceneNo);
-  // default to no extended state
-  extendedState = 0;
+  // default to mode 3 = RGB lamp
+  extendedState = 3; // mode 3 = lamp
 }
 
 
@@ -164,61 +134,43 @@ void SparkLightScene::setDefaultSceneValues(SceneNo aSceneNo)
 
 
 SparkLightBehaviour::SparkLightBehaviour(Device &aDevice) :
-  LightBehaviour(aDevice)
+  inherited(aDevice)
 {
+  // add special spark mode channel
+  sparkmode = ChannelBehaviourPtr(new SparkModeChannel(*this));
+  addChannel(sparkmode);
 }
 
 
-void SparkLightBehaviour::recallScene(LightScenePtr aLightScene)
+void SparkLightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
-  SparkLightScenePtr sparkScene = boost::dynamic_pointer_cast<SparkLightScene>(aLightScene);
-  if (sparkScene) {
-    // prepare next color values in device
-    SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
-    if (devP) {
-      devP->pendingSparkScene = sparkScene;
-      outputUpdatePending = true; // we need an output update, even if main output value (brightness) has not changed in new scene
-    }
+  // now load spark specific scene information
+  SparkLightScenePtr sparkLightScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
+  if (sparkLightScene) {
+    sparkmode->setChannelValueIfNotDontCare(sparkLightScene, sparkLightScene->extendedState, 0, 0, true);
   }
-  // let base class update logical brightness, which will in turn update the output, which will then
-  // catch the colors from pendingColorScene
-  inherited::recallScene(aLightScene);
+  // load basic light scene info
+  inherited::loadChannelsFromScene(aScene);
 }
 
 
-
-// capture scene
-void SparkLightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
+void SparkLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
 {
-  SparkLightScenePtr sparkScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
-  if (sparkScene) {
-    // query light attributes and state
-    SparkIoDevice *devP = dynamic_cast<SparkIoDevice *>(&device);
-    if (devP) {
-      devP->sparkApiCall(boost::bind(&SparkLightBehaviour::sceneStateReceived, this, sparkScene, aDoneCB, _2, _3), "state0");
-    }
+  // save basic light scene info
+  inherited::saveChannelsToScene(aScene);
+  // now save color specific scene information
+  SparkLightScenePtr sparkLightScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
+  if (sparkLightScene) {
+    sparkLightScene->setRepVar(sparkLightScene->extendedState, (uint32_t)sparkmode->getChannelValue());
+    sparkLightScene->setSceneValueFlags(sparkmode->getChannelIndex(), valueflags_dontCare, false);
   }
 }
 
 
-void SparkLightBehaviour::sceneStateReceived(SparkLightScenePtr aSparkScene, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+string SparkLightBehaviour::shortDesc()
 {
-  if (Error::isOK(aError) && aJsonResponse) {
-    JsonObjectPtr o = aJsonResponse->get("return_value");
-    if (o) {
-      uint32_t state = o->int32Value();
-      // state is brightness + extended state: 0xssssssbb, ssssss=extended state, bb=brightness
-      Brightness bri = state & 0xFF;
-      uint32_t extendedState = (state & 0xFFFFFF)>>8;
-      initOutputValue(bri); // update basic light behaviour brightness state
-      aSparkScene->extendedState = extendedState; // capture extended state in scene
-      aSparkScene->markDirty();
-    }
-  }
-  // anyway, let base class capture brightness
-  inherited::captureScene(aSparkScene, aDoneCB);
+  return string("SparkRGBLight");
 }
-
 
 
 #pragma mark - SparkDeviceSettings
@@ -242,11 +194,9 @@ DsScenePtr SparkDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 #pragma mark - SparkIoDevice
 
 SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP),
+  StaticDevice((DeviceClassContainer *)aClassContainerP),
   sparkCloudComm(SyncIOMainLoop::currentMainLoop()),
-  apiVersion(0),
-  outputValue(0),
-  outputChangePending(false)
+  apiVersion(0)
 {
   // config must be: sparkCoreId:accessToken
   size_t i = aDeviceConfig.find_first_of(':');
@@ -257,13 +207,14 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   // Simulate light device
   // - defaults to yellow (light)
   primaryGroup = group_yellow_light;
-  // - use light settings, which include a scene table
+  // - use Spark settings, which include a scene table with extendedState for mode
   deviceSettings = DeviceSettingsPtr(new SparkDeviceSettings(*this));
-  // - create one output
-  SparkLightBehaviourPtr l = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
-  l->setHardwareName("spark core output");
-  addBehaviour(l);
+  // set the behaviour
+  SparkLightBehaviourPtr sl = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
+  sl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
+  sl->setHardwareName("SparkCore base RGB light");
+  sl->initMinBrightness(1); // min brightness is 1
+  addBehaviour(sl);
   // dsuid
 	deriveDsUid();
 }
@@ -276,6 +227,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
   string data;
   HttpComm::appendFormValue(data, "access_token", sparkCoreToken);
   HttpComm::appendFormValue(data, "args", aArgs);
+  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
   return sparkCloudComm.jsonReturningRequest(url.c_str(), aResponseCB, "POST", data);
 }
 
@@ -284,7 +236,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
 void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // get vdsd API version
-  if (!sparkApiCall(boost::bind(&SparkIoDevice::apiVersionReceived, this, aCompletedCB, aFactoryReset, _2, _3), "version")) {
+  if (!sparkApiCall(boost::bind(&SparkIoDevice::apiVersionReceived, this, aCompletedCB, aFactoryReset, _1, _2), "version")) {
     // could not even issue request, init complete
     inherited::initializeDevice(aCompletedCB, aFactoryReset);
   }
@@ -294,13 +246,16 @@ void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryRese
 void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aJsonResponse) {
-    JsonObjectPtr o = aJsonResponse->get("return_value");
-    if (o) {
-      apiVersion = o->int32Value();
-    }
-    o = aJsonResponse->get("name");
-    if (o) {
-      initializeName(o->stringValue());
+    if (apiVersion==0) {
+      // only set if unknown so far to avoid other out-of-sequence responses from cloud to change the API version
+      JsonObjectPtr o = aJsonResponse->get("return_value");
+      if (o) {
+        apiVersion = o->int32Value();
+      }
+      o = aJsonResponse->get("name");
+      if (o) {
+        initializeName(o->stringValue());
+      }
     }
   }
   // anyway, consider initialized
@@ -310,8 +265,13 @@ void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryRe
 
 void SparkIoDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
+  if (applyInProgress) {
+    // cannot query now, update in progress, assume still present
+    aPresenceResultHandler(true);
+    return;
+  }
   // query the device
-  sparkApiCall(boost::bind(&SparkIoDevice::presenceStateReceived, this, aPresenceResultHandler, _2, _3), "version");
+  sparkApiCall(boost::bind(&SparkIoDevice::presenceStateReceived, this, aPresenceResultHandler, _1, _2), "version");
 }
 
 
@@ -329,51 +289,111 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-
-void SparkIoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    outputValue = aOutputBehaviour.valueForHardware();
-    // set output value
-    postOutputValue(aOutputBehaviour);
+  // check if any channel has changed at all
+  bool needsUpdate = false;
+  for (int i=0; i<numChannels(); i++) {
+    if (getChannelByIndex(i, true)) {
+      // channel needs update
+      needsUpdate = true;
+      break; // no more checking needed, need device level update anyway
+    }
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
-}
-
-
-void SparkIoDevice::postOutputValue(OutputBehaviour &aOutputBehaviour)
-{
-  if (apiVersion==1) {
-    string args;
-    if (pendingSparkScene && pendingSparkScene->extendedState!=0) {
-      args = string_format("state0=%d", (outputValue & 0xFF) | (pendingSparkScene->extendedState<<8));
+  SparkLightBehaviourPtr sl = boost::dynamic_pointer_cast<SparkLightBehaviour>(output);
+  if (sl) {
+    if (!needsUpdate) {
+      // NOP for this call
+      channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr());
+      return;
+    }
+    // derive (possibly new) color mode from changed channels
+    sl->deriveColorMode();
+    // needs update
+    uint32_t stateWord;
+    uint8_t mode = sl->sparkmode->getChannelValue();
+    if (mode==3) {
+      // RGB lamp
+      double r,g,b;
+      sl->getRGB(r, g, b, 255);
+      stateWord =
+        (mode << 24) |
+        ((int)r << 16) |
+        ((int)g << 8) |
+        (int)b;
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d\n", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
     }
     else {
       // brightness only
-      args = string_format("output0=%d", outputValue);
+      double br = sl->brightness->getChannelValue();
+      stateWord =
+        (mode << 24) |
+        ((int)br & 0xFF);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d\n", mode, (int)br, stateWord, stateWord);
     }
-    // posting might fail if done too early
-    if (!sparkApiCall(boost::bind(&SparkIoDevice::outputChanged, this, aOutputBehaviour, _2, _3), args)) {
-      outputChangePending = true; // retry when previous request done
+    // set output value
+    if (apiVersion==2) {
+      string args = string_format("state=%lu", stateWord);
+      // posting might fail if done too early
+      if (!sparkApiCall(boost::bind(&SparkIoDevice::channelValuesSent, this, sl, aDoneCB, _1, _2), args)) {
+        // retry after a while
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&SparkIoDevice::applyChannelValues, this, aDoneCB, aForDimming), 1*Second);
+      }
+    }
+    else {
+      // error, wrong API
+      channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr(new WebError(415)));
     }
   }
 }
 
 
-
-void SparkIoDevice::outputChanged(OutputBehaviour &aOutputBehaviour, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    if (outputChangePending) {
-      outputChangePending = false;
-      postOutputValue(aOutputBehaviour); // one more change pending
-    }
-    else {
-      aOutputBehaviour.outputValueApplied(); // confirm having applied the value
-      outputChangePending = false;
+    aSparkLightBehaviour->appliedRGB();
+  }
+  else {
+    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
+  }
+  // confirm done
+  if (aDoneCB) aDoneCB();
+}
+
+
+
+void SparkIoDevice::syncChannelValues(DoneCB aDoneCB)
+{
+  // query light attributes and state
+  sparkApiCall(boost::bind(&SparkIoDevice::channelValuesReceived, this, aDoneCB, _1, _2), "state");
+}
+
+
+
+void SparkIoDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+{
+  if (Error::isOK(aError) && aJsonResponse) {
+    JsonObjectPtr o = aJsonResponse->get("return_value");
+    SparkLightBehaviourPtr sl = boost::dynamic_pointer_cast<SparkLightBehaviour>(output);
+    if (o && sl) {
+      uint32_t state = o->int32Value();
+      uint8_t mode = (state>>24) & 0xFF;
+      sl->sparkmode->syncChannelValue(mode);
+      if (mode==3) {
+        // RGB lamp
+        double r = (state>>16) & 0xFF;
+        double g = (state>>8) & 0xFF;
+        double b = state & 0xFF;
+        sl->setRGB(r, g, b, 255);
+      }
+      else {
+        // brightness only
+        sl->brightness->syncChannelValue(state & 0xFF);
+      }
     }
   }
+  // done
+  inherited::syncChannelValues(aDoneCB);
 }
 
 
@@ -393,6 +413,6 @@ void SparkIoDevice::deriveDsUid()
 string SparkIoDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- has output controlling brightness via spark cloud API\n");
+  string_format_append(s, "- MessageTorch RGB light controlled via spark cloud API\n");
   return s;
 }

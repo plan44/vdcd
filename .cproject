@@ -98,7 +98,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="src/demo_main.cpp|src/thirdparty/mongoose/mongoose.c|src/thirdparty/sqlite3pp/testselect.cpp|src/thirdparty/sqlite3pp/testinsertall.cpp|src/thirdparty/sqlite3pp/testinsert.cpp|src/thirdparty/sqlite3pp/testfunction.cpp|src/thirdparty/sqlite3pp/testdisconnect.cpp|src/thirdparty/sqlite3pp/testcallback.cpp|src/thirdparty/sqlite3pp/testattach.cpp|src/thirdparty/sqlite3pp/testaggregate.cpp|src/jsonrpctool.cpp|src/enoceantool.cpp|src/mongoose/mongoose.h|src/mongoose/mongoose.c|src/sqlite3pp/testselect.cpp|src/sqlite3pp/testinsertall.cpp|src/sqlite3pp/testinsert.cpp|src/sqlite3pp/testfunction.cpp|src/sqlite3pp/testdisconnect.cpp|src/sqlite3pp/testcallback.cpp|src/sqlite3pp/testattach.cpp|src/sqlite3pp/testaggregate.cpp|boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+<entry excluding="src/deviceclasses/demo|src/demo_main.cpp|src/thirdparty/mongoose/mongoose.c|src/thirdparty/sqlite3pp/testselect.cpp|src/thirdparty/sqlite3pp/testinsertall.cpp|src/thirdparty/sqlite3pp/testinsert.cpp|src/thirdparty/sqlite3pp/testfunction.cpp|src/thirdparty/sqlite3pp/testdisconnect.cpp|src/thirdparty/sqlite3pp/testcallback.cpp|src/thirdparty/sqlite3pp/testattach.cpp|src/thirdparty/sqlite3pp/testaggregate.cpp|src/jsonrpctool.cpp|src/enoceantool.cpp|src/mongoose/mongoose.h|src/mongoose/mongoose.c|src/sqlite3pp/testselect.cpp|src/sqlite3pp/testinsertall.cpp|src/sqlite3pp/testinsert.cpp|src/sqlite3pp/testfunction.cpp|src/sqlite3pp/testdisconnect.cpp|src/sqlite3pp/testcallback.cpp|src/sqlite3pp/testattach.cpp|src/sqlite3pp/testaggregate.cpp|boost_1_53_0" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 </sourceEntries>
 </configuration>
 </storageModule>
@@ -1129,7 +1129,7 @@
 </toolChain>
 </folderInfo>
 <sourceEntries>
-<entry excluding="demo_main.cpp|thirdparty/mongoose/mongoose.c|thirdparty/sqlite3pp/testselect.cpp|thirdparty/sqlite3pp/testinsertall.cpp|thirdparty/sqlite3pp/testinsert.cpp|thirdparty/sqlite3pp/testfunction.cpp|thirdparty/sqlite3pp/testdisconnect.cpp|thirdparty/sqlite3pp/testcallback.cpp|thirdparty/sqlite3pp/testattach.cpp|thirdparty/sqlite3pp/testaggregate.cpp|jsonrpctool.cpp|enoceantool.cpp|mongoose/mongoose.h|mongoose/mongoose.c|sqlite3pp/testselect.cpp|sqlite3pp/testinsertall.cpp|sqlite3pp/testinsert.cpp|sqlite3pp/testfunction.cpp|sqlite3pp/testdisconnect.cpp|sqlite3pp/testcallback.cpp|sqlite3pp/testattach.cpp|sqlite3pp/testaggregate.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+<entry excluding="deviceclasses/demo|demo_main.cpp|thirdparty/mongoose/mongoose.c|thirdparty/sqlite3pp/testselect.cpp|thirdparty/sqlite3pp/testinsertall.cpp|thirdparty/sqlite3pp/testinsert.cpp|thirdparty/sqlite3pp/testfunction.cpp|thirdparty/sqlite3pp/testdisconnect.cpp|thirdparty/sqlite3pp/testcallback.cpp|thirdparty/sqlite3pp/testattach.cpp|thirdparty/sqlite3pp/testaggregate.cpp|jsonrpctool.cpp|enoceantool.cpp|mongoose/mongoose.h|mongoose/mongoose.c|sqlite3pp/testselect.cpp|sqlite3pp/testinsertall.cpp|sqlite3pp/testinsert.cpp|sqlite3pp/testfunction.cpp|sqlite3pp/testdisconnect.cpp|sqlite3pp/testcallback.cpp|sqlite3pp/testattach.cpp|sqlite3pp/testaggregate.cpp" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 </sourceEntries>
 </configuration>
 </storageModule>

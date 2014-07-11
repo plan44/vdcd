@@ -117,6 +117,8 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/colorutils.cpp \
+  src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
   src/p44utils/httpcomm.cpp\
@@ -130,6 +132,10 @@ vdcd_SOURCES = \
   src/thirdparty/sqlite3pp/sqlite3ppext.h \
   src/vdc_common/dsbehaviour.cpp \
   src/vdc_common/dsbehaviour.hpp \
+  src/vdc_common/outputbehaviour.cpp \
+  src/vdc_common/outputbehaviour.hpp \
+  src/vdc_common/channelbehaviour.cpp \
+  src/vdc_common/channelbehaviour.hpp \
   src/vdc_common/dsscene.cpp \
   src/vdc_common/dsscene.hpp \
   src/vdc_common/device.cpp \
@@ -158,8 +164,6 @@ vdcd_SOURCES = \
   src/vdc_common/dsuid.cpp \
   src/vdc_common/dsuid.hpp \
   src/vdc_common/vdcd_common.hpp \
-  src/behaviours/outputbehaviour.cpp \
-  src/behaviours/outputbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.hpp \
@@ -170,6 +174,8 @@ vdcd_SOURCES = \
   src/behaviours/binaryinputbehaviour.cpp \
   src/behaviours/lightbehaviour.cpp \
   src/behaviours/lightbehaviour.hpp \
+  src/behaviours/colorlightbehaviour.cpp \
+  src/behaviours/colorlightbehaviour.hpp \
   src/deviceclasses/simpleio/consoledevice.cpp \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
@@ -263,6 +269,8 @@ demovdc_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/colorutils.cpp \
+  src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
   src/p44utils/p44_common.hpp \
@@ -272,6 +280,10 @@ demovdc_SOURCES = \
   src/thirdparty/sqlite3pp/sqlite3ppext.h \
   src/vdc_common/dsbehaviour.cpp \
   src/vdc_common/dsbehaviour.hpp \
+  src/vdc_common/outputbehaviour.cpp \
+  src/vdc_common/outputbehaviour.hpp \
+  src/vdc_common/channelbehaviour.cpp \
+  src/vdc_common/channelbehaviour.hpp \
   src/vdc_common/dsscene.cpp \
   src/vdc_common/dsscene.hpp \
   src/vdc_common/device.cpp \
@@ -298,8 +310,6 @@ demovdc_SOURCES = \
   src/vdc_common/dsuid.cpp \
   src/vdc_common/dsuid.hpp \
   src/vdc_common/vdcd_common.hpp \
-  src/behaviours/outputbehaviour.cpp \
-  src/behaviours/outputbehaviour.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
@@ -310,6 +320,8 @@ demovdc_SOURCES = \
   src/behaviours/buttonbehaviour.hpp \
   src/behaviours/lightbehaviour.cpp \
   src/behaviours/lightbehaviour.hpp \
+  src/behaviours/colorlightbehaviour.cpp \
+  src/behaviours/colorlightbehaviour.hpp \
   src/deviceclasses/demo/demodevice.cpp \
   src/deviceclasses/demo/demodevice.hpp \
   src/deviceclasses/demo/demodevicecontainer.cpp \

@@ -29,6 +29,8 @@ using namespace std;
 namespace p44 {
 
 
+  /// Implements the behaviour of a digitalSTROM binary input
+  /// This class should be used as-is in virtual devices representing binary inputs
   class BinaryInputBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
@@ -46,6 +48,7 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+    DsGroup binInputGroup; ///< group this binary input belongs to
     DsBinaryInputType configuredInputType; ///< the configurable input type (aka Sensor Function)
     MLMicroSeconds minPushInterval; ///< minimum time between two state pushes
     MLMicroSeconds changesOnlyInterval; ///< time span during which only actual value changes are reported. After this interval, next hardware sensor update, even without value change, will cause a push)
@@ -70,6 +73,8 @@ namespace p44 {
     ///   also derive default values for settings from this information.
     void setHardwareInputConfig(DsBinaryInputType aInputType, DsUsageHint aUsage, bool aReportsChanges, MLMicroSeconds aUpdateInterval);
 
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { binInputGroup = aGroup; };
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{
@@ -91,13 +96,13 @@ namespace p44 {
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();
-    virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numStateProps();
-    virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName();

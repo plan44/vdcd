@@ -33,7 +33,7 @@ using namespace std;
 
 namespace p44 {
 
-  // offset to differentiate property keys for descriptions, settings and states
+  // offset to differentiate containers and property keys for descriptions, settings and states
   enum {
     descriptions_key_offset = 1000,
     settings_key_offset = 2000,
@@ -54,6 +54,8 @@ namespace p44 {
 
   class DsBehaviour;
 
+  class DsScene;
+
   class ButtonBehaviour;
   class OutputBehaviour;
   class BinaryInputBehaviour;
@@ -70,6 +72,7 @@ namespace p44 {
     typedef PersistentParams inheritedParams;
 
     friend class Device;
+    friend class DsScene;
 
   protected:
 
@@ -89,7 +92,6 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsGroup group; ///< the group this behaviour belongs to
     /// @}
 
     /// @name internal volatile state
@@ -108,22 +110,19 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };
 
-
     /// update of hardware status
     void setHardwareError(DsHardwareError aHardwareError);
 
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { /* NOP in base class */ };
+
+    /// push state
+    /// @return true if API was connected and push could be sent
+    bool pushBehaviourState();
+
+
     /// @name persistent settings management
     /// @{
-
-    /// set group for this behaviour
-    /// @param aGroup group to assign
-    /// @note this will also update the device's isMember() information
-    void setGroup(DsGroup aGroup);
-
-    /// get group
-    /// @result group for this behaviour
-    DsGroup getGroup() { return group; };
-
 
     /// load behaviour parameters from persistent DB
     ErrorPtr load();
@@ -150,7 +149,7 @@ namespace p44 {
 
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
-    virtual string shortDesc() { return getTypeName(); }
+    virtual string shortDesc();
 
   protected:
 
@@ -165,39 +164,35 @@ namespace p44 {
 
     /// @param aPropIndex the description property index
     /// @return description (readonly) property descriptor
-    virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
     /// @return number of settings (read/write) properties
     virtual int numSettingsProps() { return 0; };
 
     /// @param aPropIndex the settings property index
     /// @return settings (read/write) property descriptor
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
     /// @return number of states (read/write) properties
     virtual int numStateProps() { return 0; };
 
     /// @param aPropIndex the states property index
     /// @return states (read/write) property descriptor
-    virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex) { return NULL; };
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor) { return NULL; };
 
 
     /// access single field in this behaviour
-    /// @param aForWrite false for reading, true for writing
+    /// @param aMode access mode (see PropertyAccessMode: read, write or write preload)
     /// @param aPropertyDescriptor decriptor for a single value field/array in this behaviour.
     /// @param aPropValue JsonObject with a single value
     /// @param aIndex in case of array, the index of the element to access
     /// @return false if value could not be accessed
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     /// @}
 
-    // persistence implementation
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
+    /// only for deeper levels
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
 
   private:
 
@@ -205,9 +200,8 @@ namespace p44 {
     string getDbKey();
 
     // property access basic dispatcher implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    int numLocalProps(int aDomain);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    int numLocalProps(PropertyDescriptorPtr aParentDescriptor);
 
   };
   typedef boost::intrusive_ptr<DsBehaviour> DsBehaviourPtr;

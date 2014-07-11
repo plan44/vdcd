@@ -30,10 +30,37 @@ using namespace std;
 
 namespace p44 {
 
-  typedef uint8_t Brightness;
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
+  typedef double Brightness;
+
+  class BrightnessChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+    double minDim;
+
+  public:
+    BrightnessChannel(OutputBehaviour &aOutput) : inherited(aOutput)
+    {
+      resolution = 1; // light defaults to historic dS resolution
+      minDim = getMin()+1; // min dimming level defaults to one unit above zero
+    };
+
+    void setDimMin(double aMinDim) { minDim = aMinDim; };
+
+    virtual DsChannelType getChannelType() { return channeltype_brightness; }; ///< the dS channel type
+    virtual const char *getName() { return "brightness"; };
+    virtual double getMin() { return 0; }; // dS brightness goes from 0 to 255 (historical unit)
+    virtual double getMax() { return 255; };
+    virtual double getDimPerMS() { return 11.0/300; }; // dimming is 11 steps per 300mS (as per ds-light.pdf specification) = 255/11*300 = 7 seconds full scale
+    virtual double getMinDim() { return minDim; };
+
+  };
+  typedef boost::intrusive_ptr<BrightnessChannel> BrightnessChannelPtr;
 
 
+
+  /// A concrete class implementing the Scene object for a simple (single channel = brightness) light device
+  /// @note subclasses can implement more parameters, like for exampe ColorLightScene for color lights.
   class LightScene : public DsScene
   {
     typedef DsScene inherited;
@@ -43,10 +70,8 @@ namespace p44 {
     /// @name light scene specific values
     /// @{
 
-    Brightness sceneBrightness; ///< saved brightness value for this scene
-    bool specialBehaviour; ///< special behaviour active
-    bool flashing; ///< flashing active for this scene
-    uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
+    double sceneBrightness; ///< saved brightness value for this scene (0..255 dS brightness scale)
+    DsSceneEffect effect; ///< scene effect (transition or alert)
 
     /// @}
 
@@ -54,8 +79,11 @@ namespace p44 {
     /// @param aSceneNo the scene number to set default values
     virtual void setDefaultSceneValues(SceneNo aSceneNo);
 
-  protected:
+    // scene values implementation
+    virtual double sceneValue(size_t aOutputIndex);
+    virtual void setSceneValue(size_t aOutputIndex, double aValue);
 
+  protected:
 
     // persistence implementation
     virtual const char *tableName();
@@ -65,9 +93,9 @@ namespace p44 {
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
   };
   typedef boost::intrusive_ptr<LightScene> LightScenePtr;
@@ -77,14 +105,13 @@ namespace p44 {
 
 
   /// the persistent parameters of a light scene device (including scene table)
+  /// @note subclasses can implement more parameters, like for exampe ColorLightDeviceSettings for color lights.
   class LightDeviceSettings : public SceneDeviceSettings
   {
     typedef SceneDeviceSettings inherited;
 
   public:
     LightDeviceSettings(Device &aDevice);
-
-  protected:
 
     /// factory method to create the correct subclass type of DsScene
     /// @param aSceneNo the scene number to create a scene object for.
@@ -94,7 +121,8 @@ namespace p44 {
   };
 
 
-
+  /// Implements the behaviour of a digitalSTROM Light device, such as maintaining the logical brightness,
+  /// dimming and alert (blinking) functions.
   class LightBehaviour : public OutputBehaviour
   {
     typedef OutputBehaviour inherited;
@@ -108,8 +136,6 @@ namespace p44 {
     /// @name persistent settings
     /// @{
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
-    Brightness minBrightness; ///< minimal brightness, dimming down will not go below this
-    Brightness maxBrightness; ///< maximal brightness, dimming down will not go below this
     DimmingTime dimTimeUp[3]; ///< dimming up time
     DimmingTime dimTimeDown[3]; ///< dimming down time
     /// @}
@@ -117,39 +143,50 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
-    int blinkCounter; ///< for generation of blink sequence
+    long blinkTicket; ///< when blinking
+    DoneCB blinkDoneHandler; ///< called when blinking done
+    LightScenePtr blinkRestoreScene; ///< scene to restore
     long fadeDownTicket; ///< for slow fading operations
-    Brightness logicalBrightness; ///< current internal brightness value. For non-dimmables, output is on only if outputValue>onThreshold
     /// @}
+
 
   public:
     LightBehaviour(Device &aDevice);
 
+    /// the brightness channel
+    BrightnessChannelPtr brightness;
+
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
-    /// Get the current logical brightness
-    /// @return 0..255, linear brightness as perceived by humans (half value = half brightness)
-    Brightness getLogicalBrightness();
-
     /// @return true if device is dimmable
-    bool isDimmable() { return outputFunction==outputFunction_dimmer && outputMode==outputmode_gradual; };
-
-    /// set new brightness
-    /// @param aBrightness 0..255, linear brightness as perceived by humans (half value = half brightness)
-    /// @param aTransitionTimeUp time in microseconds to be spent on transition from current to higher new logical brightness
-    /// @param aTransitionTimeDown time in microseconds to be spent on transition from current to lower new logical brightness
-    ///   if not specified or <0, aTransitionTimeUp is used for both directions
-    void setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown=-1);
-
-    /// update logical brightness from actual output state
-    void updateLogicalBrightnessFromOutput();
+    bool isDimmable() { return outputFunction!=outputFunction_switch && outputMode==outputmode_gradual; };
 
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set
-    /// @param aMax maximal brightness that can be set
     /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
-    void initBrightnessParams(Brightness aMin, Brightness aMax);
+    void initMinBrightness(Brightness aMin);
+
+    /// return the brightness to be applied to hardware
+    /// @return brightness
+    /// @note this is to allow lights to have switching behaviour - when brightness channel value is
+    ///   above onThreshold, brightnessForHardware() will return the max channel value and 0 otherwise.
+    Brightness brightnessForHardware();
+
+    /// sync channel brightness from actual hardware value
+    /// @param aBrightness current brightness value read back from hardware
+    /// @note this wraps the dimmable/switch functionality (does not change channel value when onThreshold
+    ///   condition is already met to allow saving virtual brightness to scenes)
+    void syncBrightnessFromHardware(Brightness aBrightness);
+
+    /// wrapper to confirm having applied brightness
+    bool brightnessNeedsApplying() { return brightness->needsApplying(); };
+
+    /// wrapper to confirm having applied brightness
+    void brightnessApplied() { brightness->channelValueApplied(); };
+
+    /// wrapper to get brightness' transition time
+    MLMicroSeconds transitionTimeToNewBrightness() { return brightness->transitionTimeToNewValue(); };
 
     /// @}
 
@@ -157,33 +194,54 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
-    /// apply scene to output
-    /// @param aScene the scene to apply to the output
-    virtual void applyScene(DsScenePtr aScene);
+    /// apply scene to output channels
+    /// @param aScene the scene to apply to output channels
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot yet be applied to hardware, and will be performed later
+    /// @note this derived class' applyScene only implements special hard-wired behaviour specific scenes
+    ///   basic scene apply functionality is provided by base class' implementation already.
+    virtual bool applyScene(DsScenePtr aScene);
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    virtual void performSceneActions(DsScenePtr aScene);
+    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
+    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB);
 
-    /// capture current state into passed scene object
-    /// @param aScene the scene object to update
-    /// @param aDoneCB will be called when capture is complete
-    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void captureScene(DsScenePtr aScene, DoneCB aDoneCB);
-
-    /// blink the light (for identifying it)
-    /// @param aDuration how long the light should blink
-    /// @param aBlinkPeriod how fast the blinking should be
-    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
-    void blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
+    /// will be called to stop all ongoing actions before next callScene etc. is issued.
+    /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
+    ///   cannot mess up things.
+    virtual void stopActions();
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     virtual void onAtMinBrightness();
 
+    /// identify the device to the user in a behaviour-specific way
+    /// @note implemented as blinking for LightBehaviour
+    virtual void identifyToUser();
+
     /// @}
 
-    /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
-    static MLMicroSeconds transitionTimeFromDimTime(uint8_t aDimTime);
+
+    /// @name services for implementing functionality
+    /// @{
+
+    /// blink the light (for identifying it, or alerting special system states)
+    /// @param aDuration how long the light should blink
+    /// @param aParamScene if not NULL, this scene might provide parameters for blinking
+    /// @param aDoneCB will be called when scene actions have completed
+    /// @param aBlinkPeriod how fast the blinking should be
+    /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
+    void blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
+
+    /// stop blinking immediately
+    virtual void stopBlink();
+
+    /// get transition time in microseconds from given scene effect
+    /// @param aEffect the scene effect
+    /// @param aDimUp true when dimming up, false when dimming down
+    MLMicroSeconds transitionTimeFromSceneEffect(DsSceneEffect aEffect, bool aDimUp);
+
+    /// @}
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
@@ -195,21 +253,29 @@ namespace p44 {
 
   protected:
 
-    /// called by applyScene to actually recall a scene from the scene table
-    /// This allows lights with more parameters than just brightness (e.g. color lights) to recall
-    /// additional values that were saved as captureScene()
-    virtual void recallScene(LightScenePtr aLightScene);
+    /// called by applyScene to load channel values from a scene.
+    /// @param aScene the scene to load channel values from
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    virtual void loadChannelsFromScene(DsScenePtr aScene);
+
+    /// called by captureScene to save channel values to a scene.
+    /// @param aScene the scene to save channel values to
+    /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
+    ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
+    /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
+    virtual void saveChannelsToScene(DsScenePtr aScene);
 
 
     // property access implementation for descriptor/settings/states
     //virtual int numDescProps();
-    //virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);
+    //virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     //virtual int numStateProps();
-    //virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
+    //virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName();
@@ -219,9 +285,10 @@ namespace p44 {
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
   private:
-  
-    void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness);
-    void fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness);
+
+    void beforeBlinkStateSavedHandler(MLMicroSeconds aDuration, LightScenePtr aParamScene, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent);
+    void blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime);
+    void fadeDownHandler(MLMicroSeconds aFadeStepTime);
 
   };
 

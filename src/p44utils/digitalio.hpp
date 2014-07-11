@@ -75,11 +75,10 @@ namespace p44 {
 
   public:
     /// button event handler
-    /// @param aButtonP the button
     /// @param aState the current state of the button (relevant when handler was installed with aPressAndRelease set)
     /// @param aHasChanged set when reporting a state change, cleared when reporting the same state again (when repeatActiveReport set)
     /// @param aTimeSincePreviousChange time passed since previous button state change (to easily detect long press actions etc.)
-    typedef boost::function<void (ButtonInput *aButtonP, bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)> ButtonHandlerCB;
+    typedef boost::function<void (bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)> ButtonHandlerCB;
 
   private:
     bool lastState;

@@ -23,6 +23,7 @@
 #define __p44utils__dcerror__
 
 #include <string>
+#include <stdint.h>
 #include "p44obj.hpp"
 
 using namespace std;
@@ -111,6 +112,17 @@ namespace p44 {
     /// factory function to create a ErrorPtr either containing NULL (if aErrNo indicates OK)
     /// or a SysError (if aErrNo indicates error)
     static ErrorPtr err(int aErrNo, const char *aContextMessage = NULL);
+  };
+
+
+  /// Web/HTTP error code based error
+  class WebError : public Error
+  {
+  public:
+    static const char *domain() { return "WebError"; }
+    virtual const char *getErrorDomain() const { return WebError::domain(); };
+    WebError(uint16_t aHTTPError) : Error(ErrorCode(aHTTPError)) {};
+    WebError(uint16_t aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
   };
 
 

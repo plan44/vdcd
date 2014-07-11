@@ -28,12 +28,17 @@ using namespace std;
 
 namespace p44 {
 
-
+  /// Implements the behaviour of a digitalSTROM button, in particular the
+  /// state machine which generates the different click types for the dS upstream
+  /// from button press + button release events.
+  /// This class should be used as-is for any virtual device which represents
+  /// a user button or rocker switch.
   class ButtonBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
 
     friend class Device;
+    friend class DeviceContainer; // for local mode
 
   protected:
 
@@ -49,8 +54,10 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+    DsGroup buttonGroup; ///< the group this button belongs to
     DsButtonFunc buttonFunc; ///< the button function (LTNUM)
     DsButtonMode buttonMode; ///< the button mode (LTMODE)
+    DsChannelType buttonChannel; ///< the channel the button is supposed to control
     bool setsLocalPriority; ///< button should set local priority
     bool callsPresent; ///< button should call "present" scene
     /// @}
@@ -79,6 +86,9 @@ namespace p44 {
     ///   also derive default values for settings from this information.
     void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex);
 
+    /// set group
+    virtual void setGroup(DsGroup aGroup) { buttonGroup = aGroup; };
+
 
     /// @name interface towards actual device hardware (or simulation)
     /// @{
@@ -104,13 +114,13 @@ namespace p44 {
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();
-    virtual const PropertyDescriptor *getDescDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numSettingsProps();
-    virtual const PropertyDescriptor *getSettingsDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     virtual int numStateProps();
-    virtual const PropertyDescriptor *getStateDescriptor(int aPropIndex);
+    virtual const PropertyDescriptorPtr getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
     // combined field access for all types of properties
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName();
@@ -151,7 +161,7 @@ namespace p44 {
     bool localButtonEnabled;
     bool dimmingUp;
     MLMicroSeconds timerRef;
-    bool timerPending;
+    long buttonStateMachineTicket;
 
     // state machine params
     static const int t_long_function_delay = 500*MilliSecond;
@@ -165,7 +175,6 @@ namespace p44 {
     // methods
     void resetStateMachine();
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
-    void checkTimer(MLMicroSeconds aCycleStartTime);
     void localSwitchOutput();
     void localDim();
     void sendClick(DsClickType aClickType);

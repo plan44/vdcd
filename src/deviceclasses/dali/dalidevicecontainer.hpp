@@ -41,7 +41,7 @@ namespace p44 {
     DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
     // the DALI communication object
-    DaliComm daliComm;
+    DaliCommPtr daliComm;
 
     virtual const char *deviceClassIdentifier() const;
 

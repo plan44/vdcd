@@ -30,7 +30,7 @@ JsonComm::JsonComm(SyncIOMainLoop &aMainLoop) :
   ignoreUntilNextEOM(false),
   closeWhenSent(false)
 {
-  setReceiveHandler(boost::bind(&JsonComm::gotData, this, _2));
+  setReceiveHandler(boost::bind(&JsonComm::gotData, this, _1));
 }
 
 
@@ -51,6 +51,7 @@ void JsonComm::setMessageHandler(JSonMessageCB aJsonMessageHandler)
 
 void JsonComm::gotData(ErrorPtr aError)
 {
+  JsonCommPtr keepMeAlive(this); // make sure this object lives until routine terminates
   if (Error::isOK(aError)) {
     // no error, read data we've got so far
     size_t dataSz = numBytesReady();
@@ -93,7 +94,7 @@ void JsonComm::gotData(ErrorPtr aError)
               if (err!=json_tokener_continue) {
                 // real error
                 if (jsonMessageHandler) {
-                  jsonMessageHandler(this, ErrorPtr(new JsonError(err)), JsonObjectPtr());
+                  jsonMessageHandler(ErrorPtr(new JsonError(err)), JsonObjectPtr());
                 }
                 // reset the parser
                 ignoreUntilNextEOM = true;
@@ -105,7 +106,7 @@ void JsonComm::gotData(ErrorPtr aError)
               JsonObjectPtr message = JsonObject::newObj(o);
               if (jsonMessageHandler) {
                 // pass json_object into handler, will consume it
-                jsonMessageHandler(this, ErrorPtr(), message);
+                jsonMessageHandler(ErrorPtr(), message);
               }
               ignoreUntilNextEOM = true;
               json_tokener_reset(tokener);
@@ -128,7 +129,7 @@ void JsonComm::gotData(ErrorPtr aError)
   if (!Error::isOK(aError)) {
     // error occurred, report
     if (jsonMessageHandler) {
-      jsonMessageHandler(this, aError, JsonObjectPtr());
+      jsonMessageHandler(aError, JsonObjectPtr());
     }
     ignoreUntilNextEOM = false;
     if (tokener) json_tokener_reset(tokener);
@@ -154,7 +155,7 @@ ErrorPtr JsonComm::sendMessage(JsonObjectPtr aJsonObject)
       if (sentBytes<jsonSize) {
         // Not everything (or maybe nothing, transmitBytes() can return 0) was sent
         // - enable callback for ready-for-send
-        setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _2));
+        setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _1));
         // buffer the rest, canSendData handler will take care of writing it out
         transmitBuffer.assign(json_string.c_str()+sentBytes, jsonSize-sentBytes);
       }

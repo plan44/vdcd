@@ -138,54 +138,87 @@ void DeviceClassContainer::removeDevices(bool aForget)
 #pragma mark - property access
 
 static char deviceclass_key;
+static char device_container_key;
+static char device_key;
 
 enum {
+  webui_url_key,
   devices_key,
   numClassContainerProperties
 };
 
 
 
-int DeviceClassContainer::numProps(int aDomain)
+int DeviceClassContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numClassContainerProperties;
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
+    return (int)devices.size();
+  }
+  return inherited::numProps(aDomain, aParentDescriptor)+numClassContainerProperties;
 }
 
 
-const PropertyDescriptor *DeviceClassContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numClassContainerProperties] = {
-    { "x-p44-devices", apivalue_string, true, devices_key, &deviceclass_key }
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
+    // accessing one of the devices by numeric index
+    return getDescriptorByNumericName(
+      aPropMatch, aStartIndex, aDomain, aParentDescriptor,
+      OKEY(device_key)
+    );
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+}
+
+
+PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+{
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // local container
+    return PropertyContainerPtr(this); // handle myself
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    // - get device
+    PropertyContainerPtr container = devices[aPropertyDescriptor->fieldKey()];
+    aPropertyDescriptor.reset(); // next level is "root" again (is a DsAddressable)
+    return container;
+  }
+  // unknown here
+  return NULL;
+}
+
+
+
+// note: is only called when getDescriptorByName does not resolve the name
+PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numClassContainerProperties] = {
+    { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
+    { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
 
-bool DeviceClassContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&deviceclass_key) {
-    if (!aForWrite) {
-      // read only
-      if (aPropertyDescriptor.accessKey==devices_key) {
-        if (aIndex==PROP_ARRAY_SIZE) {
-          // return size of array
-          aPropValue->setUint32Value((uint32_t)devices.size());
+  if (aPropertyDescriptor->hasObjectKey(deviceclass_key)) {
+    if (aMode==access_read) {
+      switch (aPropertyDescriptor->fieldKey()) {
+        case webui_url_key:
+          aPropValue->setStringValue(webuiURLString());
           return true;
-        }
-        else if (aIndex<devices.size()) {
-          // return dSUID of contained devices
-          aPropValue->setStringValue(devices[aIndex]->getApiDsUid().getString());
-          return true;
-        }
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

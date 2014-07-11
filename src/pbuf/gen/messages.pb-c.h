@@ -25,11 +25,12 @@ typedef enum _Vdcapi__Type {
   VDCAPI__TYPE__VDC_RESPONSE_SET_PROPERTY = 7,
   VDCAPI__TYPE__VDSM_SEND_PING = 8,
   VDCAPI__TYPE__VDC_SEND_PONG = 9,
-  VDCAPI__TYPE__VDC_SEND_ANNOUNCE = 10,
+  VDCAPI__TYPE__VDC_SEND_ANNOUNCE_DEVICE = 10,
   VDCAPI__TYPE__VDC_SEND_VANISH = 11,
   VDCAPI__TYPE__VDC_SEND_PUSH_PROPERTY = 12,
   VDCAPI__TYPE__VDSM_SEND_REMOVE = 13,
   VDCAPI__TYPE__VDSM_SEND_BYE = 14,
+  VDCAPI__TYPE__VDC_SEND_ANNOUNCE_VDC = 23,
   VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_SCENE = 15,
   VDCAPI__TYPE__VDSM_NOTIFICATION_SAVE_SCENE = 16,
   VDCAPI__TYPE__VDSM_NOTIFICATION_UNDO_SCENE = 17,
@@ -37,6 +38,7 @@ typedef enum _Vdcapi__Type {
   VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE = 19,
   VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY = 20,
   VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE = 21,
+  VDCAPI__TYPE__VDSM_NOTIFICATION_DIM_CHANNEL = 24,
   VDCAPI__TYPE__VDC_SEND_IDENTIFY = 22
 } Vdcapi__Type;
 typedef enum _Vdcapi__ResultCode {
@@ -71,11 +73,12 @@ struct  _Vdcapi__Message
   Vdcapi__VdsmRequestSetProperty *vdsm_request_set_property;
   Vdcapi__VdsmSendPing *vdsm_send_ping;
   Vdcapi__VdcSendPong *vdc_send_pong;
-  Vdcapi__VdcSendAnnounce *vdc_send_announce;
+  Vdcapi__VdcSendAnnounceDevice *vdc_send_announce_device;
   Vdcapi__VdcSendVanish *vdc_send_vanish;
   Vdcapi__VdcSendPushProperty *vdc_send_push_property;
   Vdcapi__VdsmSendRemove *vdsm_send_remove;
   Vdcapi__VdsmSendBye *vdsm_send_bye;
+  Vdcapi__VdcSendAnnounceVdc *vdc_send_announce_vdc;
   Vdcapi__VdsmNotificationCallScene *vdsm_send_call_scene;
   Vdcapi__VdsmNotificationSaveScene *vdsm_send_save_scene;
   Vdcapi__VdsmNotificationUndoScene *vdsm_send_undo_scene;
@@ -83,11 +86,12 @@ struct  _Vdcapi__Message
   Vdcapi__VdsmNotificationCallMinScene *vdsm_send_call_min_scene;
   Vdcapi__VdsmNotificationIdentify *vdsm_send_identify;
   Vdcapi__VdsmNotificationSetControlValue *vdsm_send_set_control_value;
+  Vdcapi__VdsmNotificationDimChannel *vdsm_send_dim_channel;
   Vdcapi__VdcSendIdentify *vdc_send_identify;
 };
 #define VDCAPI__MESSAGE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__message__descriptor) \
-    , VDCAPI__TYPE__GENERIC_RESPONSE, 0,0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+    , VDCAPI__TYPE__GENERIC_RESPONSE, 0,0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 
 
 struct  _Vdcapi__GenericResponse

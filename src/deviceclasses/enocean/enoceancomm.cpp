@@ -19,6 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 1
+
 #include "enoceancomm.hpp"
 
 
@@ -696,6 +702,10 @@ string Esp3Packet::description()
       // non-radio ESP3 packet
       string_format_append(t, "ESP3 response packet, return code = %d\n", data()[0]);
     }
+    else if (packetType()==pt_common_cmd) {
+      // non-radio ESP3 packet
+      string_format_append(t, "ESP3 common command (%d)\n", data()[0]);
+    }
     // raw data
     string_format_append(t, "- %3d data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
@@ -873,14 +883,14 @@ EnoceanComm::~EnoceanComm()
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName)
 {
   LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
-  serialComm.setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
-  // create the enOcean reset IO pin
+  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
+  // create the EnOcean reset IO pin
   if (aEnoceanResetPinName) {
     // init, initially LO = not reset
     enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false, false));
   }
 	// open connection so we can receive
-	serialComm.requestConnection();
+	serialComm->requestConnection();
 }
 
 
@@ -894,7 +904,7 @@ void EnoceanComm::startWatchDog()
 
 void EnoceanComm::aliveCheck()
 {
-  LOG(LOG_DEBUG, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
+  DBGFLOG(LOG_INFO, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
   checkPacket->setPacketType(pt_common_cmd);
@@ -914,12 +924,12 @@ void EnoceanComm::aliveCheck()
 
 void EnoceanComm::aliveCheckTimeout()
 {
-  // alive check failed, try to recover enOcean interface
-  LOG(LOG_ERR, "EnoceanComm: alive check of enOcean module failed -> restarting module\n");
+  // alive check failed, try to recover EnOcean interface
+  LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module\n");
   // - cancel alive checks for now
   MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
   // - close the connection
-  serialComm.closeConnection();
+  serialComm->closeConnection();
   // - do a hardware reset of the module if possible
   if (enoceanResetPin) enoceanResetPin->set(true); // reset
   MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 1*Second);
@@ -937,7 +947,7 @@ void EnoceanComm::resetDone()
 {
   LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset and re-opening connection\n");
   if (enoceanResetPin) enoceanResetPin->set(false); // release reset
-	serialComm.requestConnection(); // re-open connection
+	serialComm->requestConnection(); // re-open connection
   // restart alive checks
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 5*Second);
 }
@@ -959,7 +969,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 		// pass bytes to current telegram
 		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
 		if (currentIncomingPacket->isComplete()) {
-      LOG(LOG_DEBUG, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
+      DBGFLOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
 			currentIncomingPacket = Esp3PacketPtr(); // forget
@@ -982,7 +992,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
     // incoming radio packet
     if (radioPacketHandler) {
       // call the handler
-      radioPacketHandler(*this, aPacket, ErrorPtr());
+      radioPacketHandler(aPacket, ErrorPtr());
     }
   }
   else if (pt==pt_response) {
@@ -995,7 +1005,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
       appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
       apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
       myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
-      LOG(LOG_DEBUG, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+      DBGFLOG(LOG_INFO, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
     }
   }
   else {
@@ -1012,13 +1022,16 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
   // transmit
   // - fixed header
   ErrorPtr err;
-  serialComm.transmitBytes(ESP3_HEADERBYTES, aPacket->header, err);
+  serialComm->transmitBytes(ESP3_HEADERBYTES, aPacket->header, err);
   if (Error::isOK(err)) {
     // - payload
-    serialComm.transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
+    serialComm->transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
   }
   if (!Error::isOK(err)) {
     LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
+  }
+  else {
+    DBGFLOG(LOG_INFO, "Sent EnOcean packet:\n%s", aPacket->description().c_str());
   }
 }
 

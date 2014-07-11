@@ -171,7 +171,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
 
 
 
-void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
+void HttpComm::requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)
 {
   DBGLOG(LOG_DEBUG,"HttpComm: Received signal from child thread: %d\n", aSignalCode);
   if (aSignalCode==threadSignalCompleted) {
@@ -187,7 +187,7 @@ void HttpComm::requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper
     childThread.reset();
     // now execute callback
     if (cb) {
-      cb(*this, resp, reqErr);
+      cb(resp, reqErr);
     }
   }
 }
@@ -222,7 +222,7 @@ bool HttpComm::httpRequest(
   requestInProgress = true;
   childThread = SyncIOMainLoop::currentMainLoop().executeInThread(
     boost::bind(&HttpComm::requestThread, this, _1),
-    boost::bind(&HttpComm::requestThreadSignal, this, _1, _2, _3)
+    boost::bind(&HttpComm::requestThreadSignal, this, _1, _2)
   );
   return true; // could be initiated (even if immediately ended due to error, but callback was called)
 }

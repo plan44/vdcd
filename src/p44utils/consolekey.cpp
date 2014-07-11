@@ -31,7 +31,8 @@ using namespace p44;
 
 #pragma mark - console key
 
-ConsoleKey::ConsoleKey(char aKeyCode, const char *aDescription, bool aInitialState)
+ConsoleKey::ConsoleKey(char aKeyCode, const char *aDescription, bool aInitialState) :
+  keyHandlerTicket(0)
 {
   // check type of key
   initialState = aInitialState;
@@ -59,7 +60,7 @@ ConsoleKey::ConsoleKey(char aKeyCode, const char *aDescription, bool aInitialSta
 
 ConsoleKey::~ConsoleKey()
 {
-  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionTicket(keyHandlerTicket);
 }
 
 
@@ -77,7 +78,7 @@ void ConsoleKey::setConsoleKeyHandler(ConsoleKeyHandlerCB aHandler)
 
 void ConsoleKey::setState(bool aState)
 {
-  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionTicket(keyHandlerTicket);
   state = aState;
   printf("- Console input '%s' - changed to %d\n", description.c_str(), state);
   reportState();
@@ -86,7 +87,7 @@ void ConsoleKey::setState(bool aState)
 
 void ConsoleKey::toggle()
 {
-  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
+  MainLoop::currentMainLoop().cancelExecutionTicket(keyHandlerTicket);
   state = !state;
   printf("- Console input '%s' - toggled to %d\n", description.c_str(), state);
   reportState();
@@ -95,8 +96,8 @@ void ConsoleKey::toggle()
 
 void ConsoleKey::pulse()
 {
-  MainLoop::currentMainLoop().cancelExecutionsFrom(this);
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&ConsoleKey::pulseEnd, this), 200*MilliSecond);
+  MainLoop::currentMainLoop().cancelExecutionTicket(keyHandlerTicket);
+  keyHandlerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ConsoleKey::pulseEnd, this), 200*MilliSecond);
   if (state==initialState) {
     state = !initialState;
     reportState();
@@ -117,7 +118,7 @@ void ConsoleKey::pulseEnd()
 void ConsoleKey::reportState()
 {
   if (keyHandler) {
-    keyHandler(this, state, MainLoop::now());
+    keyHandler(state, MainLoop::now());
   }
 }
 
@@ -200,7 +201,7 @@ bool ConsoleKeyManager::consoleKeyPoll()
     bool handled = false;
     if (keyPressHandler) {
       // call custom keypress handler
-      handled = keyPressHandler(this, c);
+      handled = keyPressHandler(c);
     }
     if (!handled) {
       bool toggle = false;

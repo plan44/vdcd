@@ -25,15 +25,16 @@
 
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
+#include "colorlightbehaviour.hpp"
 
 using namespace p44;
 
 
 ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP),
+  StaticDevice((DeviceClassContainer *)aClassContainerP),
   hasButton(false),
   hasOutput(false),
-  outputValue(0)
+  hasColor(false)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string name = aDeviceConfig;
@@ -48,6 +49,10 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       hasButton = true;
       hasOutput = true;
     }
+    else if (mode=="color") {
+      hasOutput = true;
+      hasColor = true;
+    }
   }
   // assign name
   initializeName(name);
@@ -56,13 +61,24 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // Simulate light device
     // - defaults to yellow (light)
     primaryGroup = group_yellow_light;
-    // - use light settings, which include a scene table
-    deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
-    // - create one output
-    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
-    l->setHardwareName("console output");
-    addBehaviour(l);
+    // - create output(s)
+    if (hasColor) {
+      // Color light
+      // - use color light settings, which include a color scene table
+      deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
+      // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
+      ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
+      addBehaviour(l);
+    }
+    else {
+      // Simple single-channel light
+      // - use light settings, which include a scene table
+      deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+      // - add simple single-channel light behaviour
+      LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+      l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+      addBehaviour(l);
+    }
   }
   else if (hasButton) {
     // Simulate Button device
@@ -70,7 +86,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     primaryGroup = group_black_joker;
     // - console key input as button
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _2, _3));
+    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
@@ -90,22 +106,34 @@ void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
 }
 
 
-
-void ConsoleDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void ConsoleDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    outputValue = aOutputBehaviour.valueForHardware();
-    printf(
-      ">>> Console device %s: output set to %d, transition time = %0.3f Seconds\n",
-      getName().c_str(), outputValue,
-      (double)aOutputBehaviour.transitionTimeForHardware()/Second
-    );
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+  // generic device, show changed channels
+  for (int i = 0; i<numChannels(); i++) {
+    ChannelBehaviourPtr ch = getChannelByIndex(i);
+    if (ch && ch->needsApplying()) {
+      double chVal = ch->getChannelValue();
+      // represent full scale as 0..50 hashes
+      string bar;
+      double v = ch->getMin();
+      double step = (ch->getMax()-ch->getMin())/50;
+      while (v<chVal) {
+        bar += '#';
+        v += step;
+      }
+      // show
+      printf(
+         ">>> Console device %s: channel %s %s to %4.2f, transition time = %2.3f Seconds: %s\n",
+         getName().c_str(), ch->getName(),
+         aForDimming ? "dimmed" : "set",
+         chVal, (double)ch->transitionTimeToNewValue()/Second,
+         bar.c_str()
+      );
+      ch->channelValueApplied(); // confirm having applied the value
+    }
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
-
 
 
 void ConsoleDevice::deriveDsUid()

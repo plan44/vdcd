@@ -72,16 +72,17 @@ namespace p44 {
 
 
 
-  /// container for all devices hosted by this application
-  /// - is the connection point to a vDSM
-  /// - contains one or multiple device class containers
-  ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer;
   typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
   typedef map<DsUid, DeviceClassContainerPtr> ContainerMap;
   typedef map<DsUid, DevicePtr> DsDeviceMap;
 
 
+  /// container for all devices hosted by this application
+  /// In dS terminology, this object represents the vDC host (a program/daemon hosting one or multiple virtual device connectors).
+  /// - is the connection point to a vDSM
+  /// - contains one or multiple device class containers
+  ///   (each representing a specific class of devices, e.g. different bus types etc.)
   class DeviceContainer : public DsAddressable
   {
     typedef DsAddressable inherited;
@@ -103,9 +104,11 @@ namespace p44 {
     bool collecting;
     long announcementTicket;
     long periodicTaskTicket;
+    MLMicroSeconds lastActivity;
+    MLMicroSeconds lastPeriodicRun;
+    MLMicroSeconds announcePause;
 
-    long localDimTicket;
-    bool localDimDown;
+    int8_t localDimDirection;
 
     // learning
     bool learningMode;
@@ -144,11 +147,20 @@ namespace p44 {
     void setIdMode(bool aDsUid, DsUidPtr aExternalDsUid = DsUidPtr());
 
 
+    /// @param aAnnouncePause how long to wait between device announcements
+    void setAnnouncePause(MLMicroSeconds aAnnouncePause) { announcePause = aAnnouncePause; };
+
     /// @return true if modern GS1/UUID based dSUIDs should be used
     bool usingDsUids() { return dsUids; };
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
+
+    /// @return IPv4 address as string
+    string ipv4AddressString();
+
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString() { return ""; /* none by default */ }
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
@@ -180,7 +192,7 @@ namespace p44 {
 
     /// Put device class controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     void startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck = false);
 
     /// stop learning mode
@@ -301,9 +313,11 @@ namespace p44 {
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // method and notification dispatching
     ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
@@ -331,7 +345,7 @@ namespace p44 {
     ErrorPtr helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
     ErrorPtr byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
     ErrorPtr removeHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice);
-    void removeResultHandler(VdcApiRequestPtr aForRequest, DevicePtr aDevice, bool aDisconnected);
+    void removeResultHandler(VdcApiRequestPtr aForRequest, bool aDisconnected);
 
     // announcing dSUID addressable entities within the device container (vdc host)
     void resetAnnouncing();

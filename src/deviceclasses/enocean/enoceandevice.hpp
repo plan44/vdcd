@@ -44,7 +44,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<EnoceanChannelHandler> EnoceanChannelHandlerPtr;
 
-  /// single enOcean device channel, abstract class
+  /// single EnOcean device channel, abstract class
   class EnoceanChannelHandler : public P44Obj
   {
     typedef P44Obj inherited;
@@ -62,6 +62,7 @@ namespace p44 {
   public:
 
     DsBehaviourPtr behaviour; ///< the associated behaviour
+    int8_t dsChannelIndex; ///< for outputs, the dS channel index
     EnoceanChannel channel; ///< channel number
 
     /// handle radio packet related to this channel
@@ -86,7 +87,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<EnoceanDevice> EnoceanDevicePtr;
 
-  /// digitalstrom device representing one or multiple enOcean device channels
+  /// digitalstrom device representing one or multiple EnOcean device channels
   class EnoceanDevice : public Device
   {
     typedef Device inherited;
@@ -96,8 +97,10 @@ namespace p44 {
     EnoceanAddress enoceanAddress; ///< the enocean device address
     EnoceanProfile eeProfile; ///< the EEP (RORG/FUNC/TYPE)
     EnoceanManufacturer eeManufacturer; ///< the manufacturer ID
-    EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical enOcean device is represented as multiple vdSDs)
+    EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical EnOcean device is represented as multiple vdSDs)
 		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
+
+    string eeFunctionDesc; ///< short functional description (like: button, windowhandle, sensor...)
 
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
@@ -131,18 +134,21 @@ namespace p44 {
     /// @param aChannelHandler a handler for a channel (including a suitable behaviour)
     void addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler);
 
-    /// disconnect device. For enOcean, this means breaking the pairing (learn-in) with the device
+    /// disconnect device. For EnOcean, this means breaking the pairing (learn-in) with the device
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
     ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
     /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    /// apply all pending channel value updates to the device's hardware
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @param aDoneCB if not NULL, must be called when values are applied
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
 
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
@@ -161,12 +167,12 @@ namespace p44 {
     void setAlwaysUpdateable() { alwaysUpdateable = true; };
 
     /// get the enocean address identifying the hardware that contains this logical device
-    /// @return enOcean device ID/address
+    /// @return EnOcean device ID/address
     EnoceanAddress getAddress();
 
     /// get the enocean subdevice number that identifies this logical device among other logical devices in the same
-    ///   physical enOcean device (having the same enOcean deviceID/address)
-    /// @return enOcean device ID/address
+    ///   physical EnOcean device (having the same EnOcean deviceID/address)
+    /// @return EnOcean device ID/address
     EnoceanSubDevice getSubDevice();
 
 		/// get number of subdevices in the physical device (of which this logical device represents one subdevice)
@@ -178,6 +184,12 @@ namespace p44 {
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer);
+
+
+    /// set short functional description for this device (explaining the EEP in short, like "button", "sensor", "window handle")
+    /// @param aString the description string
+    void setFunctionDesc(string aString) { eeFunctionDesc = aString; };
+
 
     /// @return RORG/FUNC/TYPE EEP profile number 
     EnoceanProfile getEEProfile();
@@ -216,6 +228,9 @@ namespace p44 {
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
+
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    virtual string modelGUID();
 
     /// @}
 

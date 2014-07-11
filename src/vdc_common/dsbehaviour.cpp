@@ -54,18 +54,26 @@ void DsBehaviour::setHardwareError(DsHardwareError aHardwareError)
     hardwareError = aHardwareError;
     hardwareErrorUpdated = MainLoop::now();
     // push the error status change
-    device.pushProperty(string(getTypeName()).append("States"), VDC_API_DOMAIN, (int)index);
+    pushBehaviourState();
   }
 }
 
 
-void DsBehaviour::setGroup(DsGroup aGroup)
+bool DsBehaviour::pushBehaviourState()
 {
-  if (group!=aGroup) {
-    group = aGroup;
+  VdcApiConnectionPtr api = device.getDeviceContainer().getSessionConnection();
+  if (api) {
+    ApiValuePtr query = api->newApiValue();
+    query->setType(apivalue_object);
+    ApiValuePtr subQuery = query->newValue(apivalue_object);
+    subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+    query->add(string(getTypeName()).append("States"), subQuery);
+    device.pushProperty(query, VDC_API_DOMAIN);
+    return true;
   }
+  // could not push
+  return false;
 }
-
 
 
 string DsBehaviour::getDbKey()
@@ -76,13 +84,17 @@ string DsBehaviour::getDbKey()
 
 ErrorPtr DsBehaviour::load()
 {
-  return loadFromStore(getDbKey().c_str());
+  ErrorPtr err = loadFromStore(getDbKey().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  return err;
 }
 
 
 ErrorPtr DsBehaviour::save()
 {
-  return saveToStore(getDbKey().c_str());
+  ErrorPtr err = saveToStore(getDbKey().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  return err;
 }
 
 
@@ -90,59 +102,6 @@ ErrorPtr DsBehaviour::forget()
 {
   return deleteFromStore();
 }
-
-
-#pragma mark - persistence implementation
-
-
-// Note: no tablename - this is an abstract class
-
-// data field definitions
-
-static const size_t numFields = 1;
-
-size_t DsBehaviour::numFieldDefs()
-{
-  return inheritedParams::numFieldDefs()+numFields;
-}
-
-
-const FieldDefinition *DsBehaviour::getFieldDef(size_t aIndex)
-{
-  static const FieldDefinition dataDefs[numFields] = {
-    { "dsGroup", SQLITE_INTEGER } // Note: don't call a SQL field "group"!
-  };
-  if (aIndex<inheritedParams::numFieldDefs())
-    return inheritedParams::getFieldDef(aIndex);
-  aIndex -= inheritedParams::numFieldDefs();
-  if (aIndex<numFields)
-    return &dataDefs[aIndex];
-  return NULL;
-}
-
-
-enum {
-  buttonflag_setsLocalPriority = 0x0001,
-  buttonflag_callsPresent = 0x0002
-};
-
-/// load values from passed row
-void DsBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
-{
-  inheritedParams::loadFromRow(aRow, aIndex);
-  // get the fields
-  group  = (DsGroup)aRow->get<int>(aIndex++);
-}
-
-
-// bind values to passed statement
-void DsBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
-{
-  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // bind the fields
-  aStatement.bind(aIndex++, group);
-}
-
 
 
 #pragma mark - property access
@@ -169,12 +128,6 @@ enum {
 
 
 enum {
-  group_key,
-  numDsBehaviourSettingsProperties
-};
-
-
-enum {
   error_key,
   numDsBehaviourStateProperties
 };
@@ -183,97 +136,85 @@ enum {
 
 static char dsBehaviour_Key;
 
-int DsBehaviour::numLocalProps(int aDomain)
+int DsBehaviour::numLocalProps(PropertyDescriptorPtr aParentDescriptor)
 {
-  switch (aDomain) {
-    case VDC_API_BHVR_DESC: return numDescProps()+numDsBehaviourDescProperties;
-    case VDC_API_BHVR_SETTINGS: return numSettingsProps()+numDsBehaviourSettingsProperties;
-    case VDC_API_BHVR_STATES: return numStateProps()+numDsBehaviourStateProperties;
+  // Note: output does not have an intermediate level as there is only one
+  PropertyDescriptorPtr pdP = aParentDescriptor; // assume output (no intermediate level)
+  if (pdP->parentDescriptor)
+    pdP = pdP->parentDescriptor; // if there is a parent on the level above, check that (buttons, binaryInputs, sensors)
+  switch (pdP->fieldKey()) {
+    case descriptions_key_offset: return numDescProps()+numDsBehaviourDescProperties;
+    case settings_key_offset: return numSettingsProps(); // no settings on the DsBehaviour level
+    case states_key_offset: return numStateProps()+numDsBehaviourStateProperties;
     default: return 0;
   }
 }
 
 
-int DsBehaviour::numProps(int aDomain)
+int DsBehaviour::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inheritedProps::numProps(aDomain)+numLocalProps(aDomain);
+  return inheritedProps::numProps(aDomain, aParentDescriptor)+numLocalProps(aParentDescriptor);
 }
 
 
-const PropertyDescriptor *DsBehaviour::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor descProperties[numDsBehaviourDescProperties] = {
-    { "name", apivalue_string, false, name_key+descriptions_key_offset, &dsBehaviour_Key },
-    { "type", apivalue_string, false, type_key+descriptions_key_offset, &dsBehaviour_Key },
+  static const PropertyDescription descProperties[numDsBehaviourDescProperties] = {
+    { "name", apivalue_string, name_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
+    { "type", apivalue_string, type_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
   };
-  static const PropertyDescriptor settingsProperties[numDsBehaviourSettingsProperties] = {
-    { "group", apivalue_uint64, false, group_key+settings_key_offset, &dsBehaviour_Key },
+  static const PropertyDescription stateProperties[numDsBehaviourStateProperties] = {
+    { "error", apivalue_uint64, error_key+states_key_offset, OKEY(dsBehaviour_Key) },
   };
-  static const PropertyDescriptor stateProperties[numDsBehaviourStateProperties] = {
-    { "error", apivalue_uint64, false, error_key+states_key_offset, &dsBehaviour_Key },
-  };
-  int n = inheritedProps::numProps(aDomain);
+  int n = inheritedProps::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inheritedProps::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inheritedProps::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  if (aPropIndex>=numLocalProps(aDomain))
+  if (aPropIndex>=numLocalProps(aParentDescriptor))
     return NULL;
-  switch (aDomain) {
-    case VDC_API_BHVR_DESC:
+  PropertyDescriptorPtr pdP = aParentDescriptor; // assume output (no intermediate level)
+  if (pdP->parentDescriptor)
+    pdP = pdP->parentDescriptor; // if there is a parent on the level above, check that (buttons, binaryInputs, sensors)
+  switch (pdP->fieldKey()) {
+    case descriptions_key_offset:
       // check for generic description properties
       if (aPropIndex<numDsBehaviourDescProperties)
-        return &descProperties[aPropIndex];
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&descProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourDescProperties;
       // check type-specific descriptions
-      return getDescDescriptor(aPropIndex);
-    case VDC_API_BHVR_SETTINGS:
-      // check for generic settings properties
-      if (aPropIndex<numDsBehaviourSettingsProperties)
-        return &settingsProperties[aPropIndex];
-      aPropIndex -= numDsBehaviourSettingsProperties;
+      return getDescDescriptorByIndex(aPropIndex, aParentDescriptor);
+    case settings_key_offset:
+      // no settings at the DsBehaviour level
       // check type-specific settings
-      return getSettingsDescriptor(aPropIndex);
-    case VDC_API_BHVR_STATES:
+      return getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
+    case states_key_offset:
       // check for generic state properties
       if (aPropIndex<numDsBehaviourStateProperties)
-        return &stateProperties[aPropIndex];
+        return PropertyDescriptorPtr(new StaticPropertyDescriptor(&stateProperties[aPropIndex], aParentDescriptor));
       aPropIndex -= numDsBehaviourStateProperties;
       // check type-specific states
-      return getStateDescriptor(aPropIndex);
+      return getStateDescriptorByIndex(aPropIndex, aParentDescriptor);
     default:
       return NULL;
   }
 }
 
 
-bool DsBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&dsBehaviour_Key) {
-    if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(dsBehaviour_Key)) {
+    if (aMode==access_read) {
       // Read
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // descriptions
         case name_key+descriptions_key_offset: aPropValue->setStringValue(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue->setStringValue(getTypeName()); return true;
-        // settings
-        case group_key+settings_key_offset: aPropValue->setUint16Value(group); return true;
         // state
         case error_key+states_key_offset: aPropValue->setUint16Value(hardwareError); return true;
       }
     }
-    else {
-      // Write
-      switch (aPropertyDescriptor.accessKey) {
-        // settings
-        case group_key+settings_key_offset:
-          setGroup((DsGroup)aPropValue->int32Value());
-          markDirty();
-          return true;
-      }
-
-    }
   }
-  return inheritedProps::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex); // let base class handle it
+  return inheritedProps::accessField(aMode, aPropValue, aPropertyDescriptor); // let base class handle it
 }
 
 
@@ -281,10 +222,16 @@ bool DsBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prop
 #pragma mark - description/shortDesc
 
 
+string DsBehaviour::shortDesc()
+{
+  return getTypeName();
+}
+
+
 string DsBehaviour::description()
 {
   string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());
-  string_format_append(s, "- group: %d, hardwareError: %d\n", group, hardwareError);
+  string_format_append(s, "- hardwareError: %d\n", hardwareError);
   return s;
 }
 

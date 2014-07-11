@@ -21,12 +21,16 @@
 
 //#define ALWAYS_DEBUG 1
 
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "serialqueue.hpp"
 
 using namespace p44;
 
 
-#define DEFAULT_RECEIVE_TIMEOUT 3000000 // [uS] = 3 seconds
+#define DEFAULT_RECEIVE_TIMEOUT (3*Second) // [uS] = 3 seconds
 
 
 #pragma mark - SerialOperation
@@ -54,7 +58,7 @@ size_t SerialOperation::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 OperationPtr SerialOperation::finalize(OperationQueue *aQueueP)
 {
   if (callback) {
-    callback(*this,aQueueP,ErrorPtr());
+    callback(SerialOperationPtr(this), aQueueP, ErrorPtr());
     callback = NULL; // call once only
   }
   return OperationPtr(); // no operation to insert
@@ -65,7 +69,7 @@ void SerialOperation::abortOperation(ErrorPtr aError)
 {
   if (callback && !aborted) {
     aborted = true;
-    callback(*this,NULL,aError);
+    callback(SerialOperationPtr(this), NULL, aError);
     callback = NULL; // call once only
   }
 }
@@ -130,6 +134,7 @@ void SerialOperationSend::appendData(size_t aNumBytes, uint8_t *aBytes)
 bool SerialOperationSend::initiate()
 {
   if (!canInitiate()) return false;
+  DBGFLOG(LOG_INFO,"SerialOperationSend::initiate: sending %d bytes now\n", dataSize);
   size_t res;
   if (dataP && transmitter) {
     // transmit
@@ -215,7 +220,9 @@ void SerialOperationReceive::abortOperation(ErrorPtr aError)
 
 SerialOperationSendAndReceive::SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback) :
   inherited(aNumBytes, aBytes, aCallback),
-  expectedBytes(aExpectedBytes)
+  expectedBytes(aExpectedBytes),
+  answersInSequence(true), // by default, answer must arrive until next send can be initiated
+  receiveTimeoout(DEFAULT_RECEIVE_TIMEOUT)
 {
 };
 
@@ -226,6 +233,8 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
     // insert receive operation
     SerialOperationPtr op(new SerialOperationReceive(expectedBytes, callback)); // inherit completion callback
     callback = NULL; // prevent it to be called from this object!
+    op->inSequence = answersInSequence; // if false, further sends might be started before answer received
+    op->setTimeout(receiveTimeoout); // set receive timeout
     return op;
   }
   return inherited::finalize(aQueueP); // default
@@ -237,13 +246,13 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 
 // Link into mainloop
 SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
-  inherited(aMainLoop),
-  serialComm(aMainLoop)
+  inherited(aMainLoop)
 {
   // Set handlers for FdComm
-  serialComm.setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1, _2));
+  serialComm = SerialCommPtr(new SerialComm(aMainLoop));
+  serialComm->setReceiveHandler(boost::bind(&SerialOperationQueue::receiveHandler, this, _1));
   // TODO: once we implement buffered write, install the ready-for-transmission handler here
-  //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1, _2));
+  //serialComm.setTransmitHandler(boost::bind(&SerialOperationQueue::transmitHandler, this, _1));
   // Set standard transmitter and receiver for operations
   setTransmitter(boost::bind(&SerialOperationQueue::standardTransmitter, this, _1, _2));
 	setReceiver(boost::bind(&SerialOperationQueue::standardReceiver, this, _1, _2));
@@ -252,7 +261,7 @@ SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
 
 SerialOperationQueue::~SerialOperationQueue()
 {
-  serialComm.closeConnection();
+  serialComm->closeConnection();
 }
 
 
@@ -274,12 +283,12 @@ void SerialOperationQueue::setReceiver(SerialOperationReceiver aReceiver)
 
 
 // handles incoming data from serial interface
-void SerialOperationQueue::receiveHandler(FdComm *aFdCommP, ErrorPtr aError)
+void SerialOperationQueue::receiveHandler(ErrorPtr aError)
 {
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
     size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
-    DBGLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
+    DBGFLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }
@@ -331,24 +340,31 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t *aBytes)
 {
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d) called\n", aNumBytes);
+  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d bytes) called\n", aNumBytes);
   ssize_t res = 0;
-  ErrorPtr err = serialComm.establishConnection();
+  ErrorPtr err = serialComm->establishConnection();
   if (Error::isOK(err)) {
-    res = serialComm.transmitBytes(aNumBytes, aBytes, err);
+    res = serialComm->transmitBytes(aNumBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGLOG(LOG_DEBUG,"Error writing serial: %s\n", err->description().c_str());
+      DBGFLOG(LOG_ERR,"Error writing serial: %s\n", err->description().c_str());
       res = 0; // none written
     }
-    else if (DBGLOGENABLED(LOG_DEBUG)) {
-      std::string s;
-      for (ssize_t i=0; i<res; i++) {
-        string_format_append(s, "%02X ",aBytes[i]);
+    else {
+      if (DBGFLOGENABLED(LOG_DEBUG)) {
+        std::string s;
+        for (ssize_t i=0; i<res; i++) {
+          string_format_append(s, "%02X ",aBytes[i]);
+        }
+        DBGFLOG(LOG_DEBUG,"Transmitted %d bytes: %s\n", res, s.c_str());
       }
-      DBGLOG(LOG_DEBUG,"Transmitted bytes: %s\n", s.c_str());
+      else {
+        DBGFLOG(LOG_INFO,"Transmitted %d bytes\n", res);
+      }
     }
   }
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter() returns %d\n", res);
+  else {
+    LOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter error - connection could not be established!\n");
+  }
   return res;
 }
 
@@ -356,30 +372,34 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
 
 size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
 {
-  DBGLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d) called\n", aMaxBytes);
+  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d bytes) called\n", aMaxBytes);
   size_t gotBytes = 0;
-  if (serialComm.connectionIsOpen()) {
+  if (serialComm->connectionIsOpen()) {
 		// get number of bytes available
     ErrorPtr err;
-    gotBytes = serialComm.receiveBytes(aMaxBytes, aBytes, err);
+    gotBytes = serialComm->receiveBytes(aMaxBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      LOG(LOG_DEBUG,"- Error reading serial: %s\n", err->description().c_str());
+      DBGFLOG(LOG_ERR,"- Error reading serial: %s\n", err->description().c_str());
       return 0;
     }
-    else if (DBGLOGENABLED(LOG_DEBUG)) {
-      if (gotBytes>0) {
-        std::string s;
-        for (size_t i=0; i<gotBytes; i++) {
-          string_format_append(s, "%02X ",aBytes[i]);
+    else {
+      if (DBGFLOGENABLED(LOG_DEBUG)) {
+        if (gotBytes>0) {
+          std::string s;
+          for (size_t i=0; i<gotBytes; i++) {
+            string_format_append(s, "%02X ",aBytes[i]);
+          }
+          DBGFLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
         }
-        DBGLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
+      }
+      else {
+        DBGFLOG(LOG_INFO,"Received %d bytes\n", gotBytes);
       }
     }
   }
   else {
     LOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver error - connection is not open!\n");
   }
-  DBGLOG(LOG_DEBUG,"- got %d bytes\n", gotBytes);
   return gotBytes;
 }
 

@@ -47,14 +47,17 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
 }
 
 
-void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+
+
+void DemoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // as this demo device has only one output
-  if (aOutputBehaviour.getIndex()==0) {
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
     // This would be the place to implement sending the output value to the hardware
-    // For the demo device, we show the output as a bar of 0..50 '#' chars
-    // - read the output value from the behaviour
-    int hwValue = aOutputBehaviour.valueForHardware();
+    // For the demo device, we show the output as a bar of 0..64 '#' chars
+    // - read the brightness value from the behaviour
+    int hwValue = lightBehaviour->brightnessForHardware();
     // - display as a bar of hash chars
     string bar;
     while (hwValue>0) {
@@ -63,12 +66,10 @@ void DemoDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
       hwValue -= 4;
     }
     printf("Demo Device Output: %s\n", bar.c_str());
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
-
 
 
 void DemoDevice::deriveDsUid()

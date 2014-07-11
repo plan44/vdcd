@@ -138,7 +138,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
       mainLoop.registerPollHandler(
         connectionFd,
         POLLIN,
-        boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3, _4)
+        boost::bind(&SocketComm::connectionAcceptHandler, this, _1, _2, _3)
       );
     }
   }
@@ -147,7 +147,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 }
 
 
-bool SocketComm::connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionAcceptHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if (aPollFlags & POLLIN) {
@@ -199,12 +199,12 @@ bool SocketComm::connectionAcceptHandler(SyncIOMainLoop &aMainLoop, MLMicroSecon
 }
 
 
-void SocketComm::passClientConnection(int aFd, SocketComm *aServerConnectionP)
+void SocketComm::passClientConnection(int aFd, SocketCommPtr aServerConnection)
 {
   // make non-blocking
   makeNonBlocking(aFd);
   // save and mark open
-  serverConnection = aServerConnectionP;
+  serverConnection = aServerConnection;
   // set Fd and let FdComm base class install receive & transmit handlers
   setFd(aFd);
   // save fd for my own use
@@ -220,12 +220,12 @@ void SocketComm::passClientConnection(int aFd, SocketComm *aServerConnectionP)
 
 
 
-SocketCommPtr SocketComm::returnClientConnection(SocketComm *aClientConnectionP)
+SocketCommPtr SocketComm::returnClientConnection(SocketCommPtr aClientConnection)
 {
   SocketCommPtr endingConnection;
   // remove the client connection from the list
   for (SocketCommList::iterator pos = clientConnections.begin(); pos!=clientConnections.end(); ++pos) {
-    if (pos->get()==aClientConnectionP) {
+    if (pos->get()==aClientConnection.get()) {
       // found, keep around until really done with everything
       endingConnection = *pos;
       // remove from list
@@ -366,7 +366,7 @@ ErrorPtr SocketComm::connectNextAddress()
       mainLoop.registerPollHandler(
         connectionFd,
         POLLOUT,
-        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3, _4)
+        boost::bind(&SocketComm::connectionMonitorHandler, this, _1, _2, _3)
       );
     }
     else {
@@ -411,7 +411,7 @@ ErrorPtr SocketComm::socketError(int aSocketFd)
 
 
 
-bool SocketComm::connectionMonitorHandler(SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
+bool SocketComm::connectionMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPollFlags)
 {
   ErrorPtr err;
   if ((aPollFlags & POLLOUT) && isConnecting) {
@@ -566,6 +566,7 @@ size_t SocketComm::transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorP
 
 void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
 {
+  SocketCommPtr keepMyselfAlive(this);
   DBGLOG(LOG_DEBUG, "SocketComm::dataExceptionHandler(fd==%d, pollflags==0x%X)\n", aFd, aPollFlags);
   if (!isClosing) {
     if (aPollFlags & POLLHUP) {

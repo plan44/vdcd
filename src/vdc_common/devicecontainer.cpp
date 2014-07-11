@@ -35,18 +35,36 @@
 #include "lightbehaviour.hpp"
 
 
+// TODO: move scene processing to output?
+// TODO: enocean outputs need to have a channel, too - which one? For now: always channel 0
+// TODO: review output value updating mechanisms, especially in light of MOC transactions
+
+
 using namespace p44;
+
+
+// how long vDC waits after receiving ok from one announce until it fires the next
+//#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
+#define DEFAULT_ANNOUNCE_PAUSE (1*Second)
+
+// how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
+#define ANNOUNCE_TIMEOUT (30*Second)
+
+// how long until a not acknowledged announcement for a device is retried again for the same device
+#define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
 
 DeviceContainer::DeviceContainer() :
   mac(0),
   DsAddressable(this),
   collecting(false),
+  lastActivity(0),
+  lastPeriodicRun(0),
   learningMode(false),
   announcementTicket(0),
   periodicTaskTicket(0),
-  localDimTicket(0),
-  localDimDown(false),
+  localDimDirection(0), // undefined
+  announcePause(DEFAULT_ANNOUNCE_PAUSE),
   dsUids(false)
 {
   // obtain MAC address
@@ -67,6 +85,14 @@ string DeviceContainer::macAddressString()
     macStr = "UnknownMACAddress";
   }
   return macStr;
+}
+
+
+string DeviceContainer::ipv4AddressString()
+{
+  uint32_t ip = ipv4Address();
+  string ipStr = string_format("%d.%d.%d.%d", (ip>>24) & 0xFF, (ip>>16) & 0xFF, (ip>>8) & 0xFF, ip & 0xFF);
+  return ipStr;
 }
 
 
@@ -193,7 +219,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -212,7 +238,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 void DeviceContainer::startRunning()
 {
   // start periodic tasks needed during normal running like announcement checking and saving parameters
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _2), 1*Second, deviceContainerP);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _1), 1*Second);
 }
 
 
@@ -344,8 +370,12 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
   // load the device's persistent params
   aDevice->load();
-  // register new device right away (unless collecting or already announcing)
-  startAnnouncing();
+  // if not collecting, initialize device right away.
+  // Otherwise, initialisation will be done when collecting is complete
+  if (!collecting) {
+    // trigger announcing when done (no problem when called while already announcing)
+    aDevice->initializeDevice(boost::bind(&DeviceContainer::startAnnouncing, this), false);
+  }
   return true;
 }
 
@@ -424,6 +454,7 @@ void DeviceContainer::setActivityMonitor(DoneCB aActivityCB)
 
 void DeviceContainer::signalActivity()
 {
+  lastActivity = MainLoop::now();
   if (activityHandler) {
     activityHandler();
   }
@@ -463,39 +494,35 @@ bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 
 
 #define PERIODIC_TASK_INTERVAL (5*Second)
+#define PERIODIC_TASK_FORCE_INTERVAL (1*Minute)
+
+#define ACTIVITY_PAUSE_INTERVAL (1*Second)
 
 void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
 {
   // cancel any pending executions
   MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
-  if (!collecting) {
-    // check again for devices that need to be announced
-    startAnnouncing();
-    // do a save run as well
-    for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-      pos->second->save();
+  // prevent during activity as saving DB might affect performance
+  if (
+    (aCycleStartTime>lastActivity+ACTIVITY_PAUSE_INTERVAL) || // some time passed after last activity or...
+    (aCycleStartTime>lastPeriodicRun+PERIODIC_TASK_FORCE_INTERVAL) // ...too much time passed since last run
+  ) {
+    lastPeriodicRun = aCycleStartTime;
+    if (!collecting) {
+      // check again for devices that need to be announced
+      startAnnouncing();
+      // do a save run as well
+      for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+        pos->second->save();
+      }
     }
   }
   // schedule next run
-  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _2), PERIODIC_TASK_INTERVAL, this);
+  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
 }
 
 
 #pragma mark - local operation mode
-
-
-void DeviceContainer::localDimHandler()
-{
-  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
-    DevicePtr dev = pos->second;
-    if (dev->isMember(group_yellow_light)) {
-      // do not signal activity for speed reasons
-      dev->callScene(localDimDown ? DEC_S : INC_S, true);
-    }
-  }
-  localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
-}
-
 
 
 void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
@@ -511,11 +538,17 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 {
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
-  int direction = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  // if button has up/down, direction is derived from button
+  int newDirection = aButtonBehaviour.localFunctionElement()==buttonElement_up ? 1 : (aButtonBehaviour.localFunctionElement()==buttonElement_down ? -1 : 0); // -1=down/off, 1=up/on, 0=toggle
+  if (newDirection!=0)
+    localDimDirection = newDirection;
   switch (aClickType) {
     case ct_tip_1x:
     case ct_click_1x:
       scene = T0_S1;
+      // toggle direction if click has none
+      if (newDirection==0)
+        localDimDirection *= -1; // reverse if already determined
       break;
     case ct_tip_2x:
     case ct_click_2x:
@@ -529,61 +562,57 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
       scene = T0_S4;
       break;
     case ct_hold_start:
-      scene = INC_S;
-      localDimTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::localDimHandler, this), 250*MilliSecond, this);
-      if (direction!=0)
-        localDimDown = direction<0;
-      else {
-        localDimDown = !localDimDown; // just toggle direction
-        direction = localDimDown ? -1 : 1; // adjust direction as well
-      }
+      scene = INC_S; // just as a marker to start dimming (we'll use dimChannelForArea(), not legacy dimming!)
+      // toggle direction if click has none
+      if (newDirection==0)
+        localDimDirection *= -1; // reverse if already determined
       break;
     case ct_hold_end:
-      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket); // stop dimming
-      scene = STOP_S; // stop any still ongoing dimming
-      direction = 1; // really send STOP, not main off!
+      scene = STOP_S; // just as a marker to stop dimming (we'll use dimChannelForArea(), not legacy dimming!)
+      break;
+    default:
       break;
   }
   if (scene>=0) {
-    if (aClickType!=ct_hold_start) {
-      // safety: any scene call except hold start stops ongoing dimming
-      MainLoop::currentMainLoop().cancelExecutionTicket(localDimTicket);
+    DsChannelType channeltype = channeltype_brightness; // default to brightness
+    if (aButtonBehaviour.buttonChannel!=channeltype_default) {
+      channeltype = aButtonBehaviour.buttonChannel;
     }
+    signalActivity(); // local activity
+    // some action to perform on every light device
     for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
       DevicePtr dev = pos->second;
-      if (dev->isMember(group_yellow_light)) {
-        // this is a light related device (but not necessarily a light output!)
-        LightBehaviourPtr lightBehaviour;
-        if (dev->outputs.size()>0) {
-          lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(dev->outputs[0]);
-          if (lightBehaviour) {
-            // this device has a light behaviour output
-            if (direction==0) {
-              // get direction from current value of first encountered light
-              direction = lightBehaviour->getLogicalBrightness()>1 ? -1 : 1;
+      if (scene==STOP_S) {
+        // stop dimming
+        dev->dimChannelForArea(channeltype, dimmode_stop, 0, 0);
+      }
+      else {
+        // call scene or start dimming
+        LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(dev->output);
+        if (l) {
+          // - figure out direction if not already known
+          if (localDimDirection==0 && l->brightness->getLastSync()!=Never) {
+            // get initial direction from current value of first encountered light with synchronized brightness value
+            localDimDirection = l->brightness->getChannelValue() >= l->brightness->getMinDim() ? -1 : 1;
+          }
+          if (scene==INC_S) {
+            // Start dimming
+            // - minimum scene if not already there
+            if (localDimDirection>0 && l->brightness->getChannelValue()==0) {
+              // starting dimming up from 0, first call MIN_S
+              dev->callScene(MIN_S, true);
             }
-            // determine the scene to call
-            int effScene = scene;
-            if (scene==INC_S) {
-              // dimming
-              if (direction<0)
-                effScene = DEC_S;
-              else {
-                // increment - check if we need to do a MIN_S first
-                if (lightBehaviour && lightBehaviour->getLogicalBrightness()==0)
-                  effScene = MIN_S; // after calling this once, light should be logically on
-              }
-            }
-            else {
-              // switching
-              if (direction<0) effScene = T0_S0; // main off
-            }
-            // call the effective scene
-            signalActivity(); // local activity
-            dev->callScene(effScene, true);
-          } // if light behaviour
-        } // if any outputs
-      } // if in light group
+            // now dim (safety timeout after 10 seconds)
+            dev->dimChannelForArea(channeltype, localDimDirection>0 ? dimmode_up : dimmode_down, 0, 10*Second);
+          }
+          else {
+            // call a scene
+            if (localDimDirection<0)
+              scene = T0_S0; // switching off a scene = call off scene
+            dev->callScene(scene, true);
+          }
+        }
+      }
     }
   }
 }
@@ -599,7 +628,6 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 
 bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
-  // TODO: once allowDisconnect is implemented, check here for creating a connection back to the vdSM
   if (activeSessionConnection) {
     signalActivity();
     return Error::isOK(activeSessionConnection->sendRequest(aMethod, aParams, aResponseHandler));
@@ -669,22 +697,44 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
       }
       else {
         // session active - all commands need dSUID parameter
-        string dsuidstring;
-        if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
+        DsUid dsuid;
+        if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", dsuid))) {
           // operation method
-          respErr = handleMethodForDsUid(aMethod, aRequest, DsUid(dsuidstring), aParams);
+          respErr = handleMethodForDsUid(aMethod, aRequest, dsuid, aParams);
         }
       }
     }
   }
   else {
     // Notifications
+    // Note: out of session, notifications are simply ignored
     if (activeSessionConnection) {
-      // out of session, notifications are simply ignored
-      string dsuidstring;
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", dsuidstring))) {
-        handleNotificationForDsUid(aMethod, DsUid(dsuidstring), aParams);
+      // Notifications can be adressed to one or multiple dSUIDs
+      // Notes
+      // - for protobuf API, dSUID is always an array (as it is a repeated field in protobuf)
+      // - for JSON API, caller may provide an array or a single dSUID.
+      ApiValuePtr o;
+      respErr = checkParam(aParams, "dSUID", o);
+      if (Error::isOK(respErr)) {
+        DsUid dsuid;
+        // can be single dSUID or array of dSUIDs
+        if (o->isType(apivalue_array)) {
+          // array of dSUIDs
+          for (int i=0; i<o->arrayLength(); i++) {
+            ApiValuePtr e = o->arrayGet(i);
+            dsuid.setAsBinary(e->binaryValue());
+            handleNotificationForDsUid(aMethod, dsuid, aParams);
+          }
+        }
+        else {
+          // single dSUID
+          dsuid.setAsBinary(o->binaryValue());
+          handleNotificationForDsUid(aMethod, dsuid, aParams);
+        }
       }
+    }
+    else {
+      LOG(LOG_DEBUG,"Received notification '%s' out of session -> ignored\n", aMethod.c_str());
     }
   }
   // check error
@@ -701,19 +751,24 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
 }
 
 
+/// vDC API version
+/// 1 (aka 1.0 in JSON) : first version, used in P44-DSB-DEH versions up to 0.5.0.x
+/// 2 : cleanup, no official JSON support any more, added MOC extensions
+#define VDC_API_VERSION 2
 
 ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
+  ApiValuePtr v;
   string s;
   // check API version
-  if (Error::isOK(respErr = checkStringParam(aParams, "APIVersion", s))) {
-    if (s!="1.0" && s!="1")
-      respErr = ErrorPtr(new VdcApiError(505, "Incompatible vDC API version - expected '1.0'"));
+  if (Error::isOK(respErr = checkParam(aParams, "api_version", v))) {
+    if (v->int32Value()!=VDC_API_VERSION)
+      respErr = ErrorPtr(new VdcApiError(505, string_format("Incompatible vDC API version - found %d, expected %d", v->int32Value(), VDC_API_VERSION)));
     else {
       // API version ok, check dSUID
-      if (Error::isOK(respErr = checkStringParam(aParams, "dSUID", s))) {
-        DsUid vdsmDsUid = DsUid(s);
+      DsUid vdsmDsUid;
+      if (Error::isOK(respErr = checkDsuidParam(aParams, "dSUID", vdsmDsUid))) {
         // same vdSM can restart session any time. Others will be rejected
         if (!activeSessionConnection || vdsmDsUid==connectedVdsm) {
           // ok to start new session
@@ -728,8 +783,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           // - create answer
           ApiValuePtr result = activeSessionConnection->newApiValue();
           result->setType(apivalue_object);
-          result->add("dSUID", aParams->newString(getApiDsUid().getString()));
-          result->add("allowDisconnect", aParams->newBool(false));
+          result->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
           aRequest->sendResult(result);
           // - trigger announcing devices
           startAnnouncing();
@@ -837,12 +891,12 @@ ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDe
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
   // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete
-  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1, _2));
+  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1));
   return ErrorPtr();
 }
 
 
-void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice, bool aDisconnected)
+void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, bool aDisconnected)
 {
   if (aDisconnected)
     aRequest->sendResult(ApiValuePtr()); // disconnected successfully
@@ -879,14 +933,6 @@ void DeviceContainer::resetAnnouncing()
 }
 
 
-// how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
-#define ANNOUNCE_TIMEOUT (30*Second)
-
-// how long until a not acknowledged announcement for a device is retried again for the same device
-#define ANNOUNCE_RETRY_TIMEOUT (300*Second)
-
-// how long vDC waits after receiving ok from one announce until it fires the next
-#define ANNOUNCE_PAUSE (100*MilliSecond)
 
 /// start announcing all not-yet announced entities to the vdSM
 void DeviceContainer::startAnnouncing()
@@ -897,17 +943,19 @@ void DeviceContainer::startAnnouncing()
 }
 
 
-#warning "no VDC announce for now"
-#define HAS_VDCANNOUNCE false
-
 void DeviceContainer::announceNext()
 {
   if (collecting) return; // prevent announcements during collect.
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // first check for unnannounced device classes
-  if (dsUids && HAS_VDCANNOUNCE) {
-    // only announce vdcs when using modern dSUIDs
+  #if PSEUDO_CLASSIC_DSID
+  bool announceVdcs = true;
+  #else
+  bool announceVdcs = dsUids;
+  #endif
+  if (announceVdcs) {
+    // announce vdcs first
     for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
       DeviceClassContainerPtr vdc = pos->second;
       if (
@@ -916,13 +964,16 @@ void DeviceContainer::announceNext()
       ) {
         // mark device as being in process of getting announced
         vdc->announcing = MainLoop::now();
-        // call announce method
-        if (!vdc->sendRequest("announcevdc", ApiValuePtr(), boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
-          LOG(LOG_ERR, "Could not send announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+        // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
+        ApiValuePtr params = getSessionConnection()->newApiValue();
+        params->setType(apivalue_object);
+        params->add("dSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
+        if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
+          LOG(LOG_ERR, "Could not send vdc announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
           vdc->announcing = Never; // not registering
         }
         else {
-          LOG(LOG_NOTICE, "Sent announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+          LOG(LOG_NOTICE, "Sent vdc announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
         }
         // schedule a retry
         announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
@@ -936,7 +987,7 @@ void DeviceContainer::announceNext()
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
-      (!(dsUids && HAS_VDCANNOUNCE) || dev->classContainerP->announced!=Never) && // old dsids don't announce vdcs, with new dSUIDs, class container must have already completed an announcement
+      (!announceVdcs || dev->classContainerP->announced!=Never) && // when announcing vdcs, class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
@@ -945,16 +996,16 @@ void DeviceContainer::announceNext()
       // call announce method
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      if (dsUids && HAS_VDCANNOUNCE) {
+      if (announceVdcs) {
         // vcds were announced, include link to vdc for device announcements
-        params->add("vdcdSUID", params->newString(dev->classContainerP->getApiDsUid().getString()));
+        params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
       }
-      if (!dev->sendRequest("announce", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
-        LOG(LOG_ERR, "Could not send announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+      if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
+        LOG(LOG_ERR, "Could not send device announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
       else {
-        LOG(LOG_NOTICE, "Sent announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+        LOG(LOG_NOTICE, "Sent device announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
       }
       // schedule a retry
       announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
@@ -976,7 +1027,7 @@ void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcAp
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), announcePause);
 }
 
 
@@ -1001,59 +1052,101 @@ void DeviceContainer::handleNotification(const string &aMethod, ApiValuePtr aPar
 #pragma mark - property access
 
 static char devicecontainer_key;
+static char vdc_container_key;
+static char vdc_key;
 
 enum {
   vdcs_key,
+  staticvdc_key,
+  webui_url_key,
   numDeviceContainerProperties
 };
 
 
 
-int DeviceContainer::numProps(int aDomain)
+int DeviceContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numDeviceContainerProperties;
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
+    return (int)deviceClassContainers.size();
+  }
+  return inherited::numProps(aDomain, aParentDescriptor)+numDeviceContainerProperties;
 }
 
 
-const PropertyDescriptor *DeviceContainer::getPropertyDescriptor(int aPropIndex, int aDomain)
+// note: is only called when getDescriptorByName does not resolve the name
+PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numDeviceContainerProperties] = {
-    { "x-p44-vdcs", apivalue_string, true, vdcs_key, &devicecontainer_key }
+  static const PropertyDescription properties[numDeviceContainerProperties] = {
+    { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
+    { "x-p44-staticvdc", apivalue_object, staticvdc_key, OKEY(vdc_container_key) },
+    { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
-bool DeviceContainer::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&devicecontainer_key) {
-    if (aPropertyDescriptor.accessKey==vdcs_key) {
-      if (aIndex==PROP_ARRAY_SIZE) {
-        // return size of array
-        aPropValue->setUint32Value((uint32_t)deviceClassContainers.size());
-        return true;
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
+    // accessing one of the vdcs by numeric index
+    return getDescriptorByNumericName(
+      aPropMatch, aStartIndex, aDomain, aParentDescriptor,
+      OKEY(vdc_key)
+    );
+  }
+  // None of the containers within Device - let base class handle Device-Level properties
+  return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
+}
+
+
+PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+{
+  if (aPropertyDescriptor->isArrayContainer()) {
+    // local container
+    return PropertyContainerPtr(this); // handle myself
+  }
+  else if (aPropertyDescriptor->hasObjectKey(vdc_key)) {
+    // - just iterate into map, we'll never have more than a few logical vdcs!
+    int i = 0;
+    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+      if (i==aPropertyDescriptor->fieldKey()) {
+        // found
+        aPropertyDescriptor.reset(); // next level is "root" again (is a DsAddressable)
+        return pos->second;
       }
-      else if (aIndex<deviceClassContainers.size()) {
-        // return dSUID of contained vdc
-        // - just iterate into map, we'll never have more than a few logical vdcs!
-        int i = 0;
-        for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-          if (i==aIndex) {
-            // found
-            aPropValue->setStringValue(pos->first.getString());
-            return true;
-          }
-          i++;
-        }
-      }
-      return false;
+      i++;
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  else if (aPropertyDescriptor->fieldKey()==staticvdc_key) {
+    // pick the static device container (by class identifier)
+    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+      if (strcmp(pos->second->deviceClassIdentifier(), "Static_Device_Container")==0) {
+        return pos->second;
+      }
+    }
+  }
+  // unknown here
+  return NULL;
+}
+
+
+bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(devicecontainer_key)) {
+    if (aMode==access_read) {
+      switch (aPropertyDescriptor->fieldKey()) {
+        case webui_url_key:
+          aPropValue->setStringValue(webuiURLString());
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

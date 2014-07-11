@@ -36,10 +36,9 @@ namespace p44 {
   typedef boost::intrusive_ptr<JsonWebClient> JsonWebClientPtr;
 
   /// callback for returning response data or reporting error
-  /// @param aJsonWebClientP the JsonWebClient object this callback comes from
   /// @param aResponse the response string
   /// @param aError an error object if an error occurred, empty pointer otherwise
-  typedef boost::function<void (JsonWebClient &aJsonWebClient, JsonObjectPtr aJsonResponse, ErrorPtr aError)> JsonWebClientCB;
+  typedef boost::function<void (JsonObjectPtr aJsonResponse, ErrorPtr aError)> JsonWebClientCB;
 
 
   /// wrapper for non-blocking http client communication
@@ -79,7 +78,7 @@ namespace p44 {
 
     virtual const char *defaultContentType() { return "application/json"; };
 
-    virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+    virtual void requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   };
 

@@ -32,9 +32,24 @@ LightScene::LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aScene
   inherited(aSceneDeviceSettings, aSceneNo)
 {
   sceneBrightness = 0;
-  specialBehaviour = false;
-  flashing = false;
-  dimTimeSelector = 0;
+  effect = scene_effect_smooth;
+}
+
+
+#pragma mark - scene values/channels
+
+
+double LightScene::sceneValue(size_t aOutputIndex)
+{
+  return sceneBrightness;
+}
+
+
+void LightScene::setSceneValue(size_t aOutputIndex, double aValue)
+{
+  if (aOutputIndex==0) {
+    sceneBrightness = aValue;
+  }
 }
 
 
@@ -47,7 +62,7 @@ const char *LightScene::tableName()
 
 // data field definitions
 
-static const size_t numSceneFields = 3;
+static const size_t numSceneFields = 2;
 
 size_t LightScene::numFieldDefs()
 {
@@ -58,9 +73,8 @@ size_t LightScene::numFieldDefs()
 const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numSceneFields] = {
-    { "brightness", SQLITE_INTEGER },
-    { "lightFlags", SQLITE_INTEGER },
-    { "dimTimeSelector", SQLITE_INTEGER }
+    { "brightness", SQLITE_FLOAT },
+    { "effect", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -71,23 +85,13 @@ const FieldDefinition *LightScene::getFieldDef(size_t aIndex)
 }
 
 
-enum {
-  lightflag_specialBehaviour = 0x0001,
-  lightflag_flashing = 0x0002
-};
-
-
 /// load values from passed row
 void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  sceneBrightness = aRow->get<int>(aIndex++);
-  int lightflags = aRow->get<int>(aIndex++);
-  dimTimeSelector = aRow->get<int>(aIndex++);
-  // decode the flags
-  specialBehaviour = lightflags & lightflag_specialBehaviour;
-  flashing = lightflags & lightflag_flashing;
+  sceneBrightness = aRow->get<double>(aIndex++);
+  effect = (DsSceneEffect)aRow->get<int>(aIndex++);
 }
 
 
@@ -95,14 +99,9 @@ void LightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
-  // encode the flags
-  int lightflags = 0;
-  if (specialBehaviour) lightflags |= lightflag_specialBehaviour;
-  if (flashing) lightflags |= lightflag_flashing;
   // bind the fields
   aStatement.bind(aIndex++, sceneBrightness);
-  aStatement.bind(aIndex++, lightflags);
-  aStatement.bind(aIndex++, dimTimeSelector);
+  aStatement.bind(aIndex++, effect);
 }
 
 
@@ -112,82 +111,62 @@ void LightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, 
 static char lightscene_key;
 
 enum {
-  value_key,
-  flashing_key,
-  dimTimeSelector_key,
+  effect_key,
   numLightSceneProperties
 };
 
 
-int LightScene::numProps(int aDomain)
+int LightScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numLightSceneProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numLightSceneProperties;
 }
 
 
-const PropertyDescriptor *LightScene::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr LightScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numLightSceneProperties] = {
-    { "value", apivalue_uint64, false, value_key, &lightscene_key },
-    { "flashing", apivalue_bool, false, flashing_key, &lightscene_key },
-    { "dimTimeSelector", apivalue_uint64, false, dimTimeSelector_key, &lightscene_key },
+  static const PropertyDescription properties[numLightSceneProperties] = {
+    { "effect", apivalue_uint64, effect_key, OKEY(lightscene_key) },
   };
-  int n = inherited::numProps(aDomain);
+  int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
-    return inherited::getPropertyDescriptor(aPropIndex, aDomain); // base class' property
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
   aPropIndex -= n; // rebase to 0 for my own first property
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
-bool LightScene::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&lightscene_key) {
-    if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(lightscene_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
-        case value_key:
-          aPropValue->setUint8Value(sceneBrightness);
-          return true;
-        case flashing_key:
-          aPropValue->setBoolValue(flashing);
-          return true;
-        case dimTimeSelector_key:
-          aPropValue->setUint8Value(dimTimeSelector);
+      switch (aPropertyDescriptor->fieldKey()) {
+        case effect_key:
+          aPropValue->setUint8Value(effect);
           return true;
       }
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
-        case value_key:
-          sceneBrightness = (Brightness)aPropValue->int32Value();
-          markDirty();
-          return true;
-        case flashing_key:
-          flashing = aPropValue->boolValue();
-          markDirty();
-          return true;
-        case dimTimeSelector_key:
-          dimTimeSelector = aPropValue->int32Value();
+      switch (aPropertyDescriptor->fieldKey()) {
+        case effect_key:
+          effect = (DsSceneEffect)aPropValue->uint8Value();
           markDirty();
           return true;
       }
     }
   }
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 
 #pragma mark - default scene values
 
 typedef struct {
-  Brightness brightness; ///< output value for this scene
-  uint8_t dimTimeSelector; ///< 0: use current DIM time, 1-3 use DIMTIME0..2
-  bool flashing; ///< flashing active for this scene
+  uint8_t brightness; ///< output value for this scene
+  DsSceneEffect effect;
   bool ignoreLocalPriority; ///< if set, local priority is ignored when calling this scene
   bool dontCare; ///< if set, applying this scene does not change the output value
-  bool specialBehaviour; ///< special behaviour active
 } DefaultSceneParams;
 
 #define NUMDEFAULTSCENES 80 ///< Number of default scenes
@@ -219,90 +198,90 @@ typedef struct {
 
 static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
-  // { brightness, dimTimeSelector, flashing, ignoreLocalPriority, dontCare, specialBehaviour }
-  { 0, 1, false, false, false, false }, // 0 : Preset 0 - T0_S0
-  { 0, 1, false, true, false, false }, // 1 : Area 1 Off - T1_S0
-  { 0, 1, false, true, false, false }, // 2 : Area 2 Off - T2_S0
-  { 0, 1, false, true, false, false }, // 3 : Area 3 Off - T3_S0
-  { 0, 1, false, true, false, false }, // 4 : Area 4 Off - T4_S0
-  { 255, 1, false, false, false, false }, // 5 : Preset 1 - T0_S1
-  { 255, 1, false, true, false, false }, // 6 : Area 1 On - T1_S1
-  { 255, 1, false, true, false, false }, // 7 : Area 2 On - T1_S1
-  { 255, 1, false, true, false, false }, // 8 : Area 3 On - T1_S1
-  { 255, 1, false, true, false, false }, // 9 : Area 4 On - T1_S1
-  { 0, 1, false, true, false, false }, // 10 : Area Stepping continue - T1234_CONT
-  { 0, 1, false, false, false, false }, // 11 : Decrement - DEC_S
-  { 0, 1, false, false, false, false }, // 12 : Increment - INC_S
-  { 0, 1, false, true, false, false }, // 13 : Minimum - MIN_S
-  { 255, 1, false, true, false, false }, // 14 : Maximum - MAX_S
-  { 0, 1, false, true, false, false }, // 15 : Stop - STOP_S
-  { 0, 1, false, false, true, false }, // 16 : Reserved
-  { 192, 1, false, false, false, false }, // 17 : Preset 2 - T0_S2
-  { 128, 1, false, false, false, false }, // 18 : Preset 3 - T0_S3
-  { 64, 1, false, false, false, false }, // 19 : Preset 4 - T0_S4
-  { 192, 1, false, false, false, false }, // 20 : Preset 12 - T1_S2
-  { 128, 1, false, false, false, false }, // 21 : Preset 13 - T1_S3
-  { 64, 1, false, false, false, false }, // 22 : Preset 14 - T1_S4
-  { 192, 1, false, false, false, false }, // 23 : Preset 22 - T2_S2
-  { 168, 1, false, false, false, false }, // 24 : Preset 23 - T2_S3
-  { 64, 1, false, false, false, false }, // 25 : Preset 24 - T2_S4
-  { 192, 1, false, false, false, false }, // 26 : Preset 32 - T3_S2
-  { 168, 1, false, false, false, false }, // 27 : Preset 33 - T3_S3
-  { 64, 1, false, false, false, false }, // 28 : Preset 34 - T3_S4
-  { 192, 1, false, false, false, false }, // 29 : Preset 42 - T4_S2
-  { 168, 1, false, false, false, false }, // 30 : Preset 43 - T4_S3
-  { 64, 1, false, false, false, false }, // 31 : Preset 44 - T4_S4
-  { 0, 1, false, false, false, false }, // 32 : Preset 10 - T1E_S0
-  { 255, 1, false, false, false, false }, // 33 : Preset 11 - T1E_S1
-  { 0, 1, false, false, false, false }, // 34 : Preset 20 - T2E_S0
-  { 255, 1, false, false, false, false }, // 35 : Preset 21 - T2E_S1
-  { 0, 1, false, false, false, false }, // 36 : Preset 30 - T3E_S0
-  { 255, 1, false, false, false, false }, // 37 : Preset 31 - T3E_S1
-  { 0, 1, false, false, false, false }, // 38 : Preset 40 - T4E_S0
-  { 255, 1, false, false, false, false }, // 39 : Preset 41 - T4E_S1
-  { 0, 1, false, false, false, false }, // 40 : Fade down to 0 in 1min - AUTO_OFF
-  { 0, 1, false, false, true, false }, // 41 : Reserved
-  { 0, 1, false, true, false, false }, // 42 : Area 1 Decrement - T1_DEC
-  { 0, 1, false, true, false, false }, // 43 : Area 1 Increment - T1_INC
-  { 0, 1, false, true, false, false }, // 44 : Area 2 Decrement - T2_DEC
-  { 0, 1, false, true, false, false }, // 45 : Area 2 Increment - T2_INC
-  { 0, 1, false, true, false, false }, // 46 : Area 3 Decrement - T3_DEC
-  { 0, 1, false, true, false, false }, // 47 : Area 3 Increment - T3_INC
-  { 0, 1, false, true, false, false }, // 48 : Area 4 Decrement - T4_DEC
-  { 0, 1, false, true, false, false }, // 49 : Area 4 Increment - T4_INC
-  { 0, 1, false, true, false, false }, // 50 : Device (Local Button) on : LOCAL_OFF
-  { 255, 1, false, true, false, false }, // 51 : Device (Local Button) on : LOCAL_ON
-  { 0, 1, false, true, false, false }, // 52 : Area 1 Stop - T1_STOP_S
-  { 0, 1, false, true, false, false }, // 53 : Area 2 Stop - T2_STOP_S
-  { 0, 1, false, true, false, false }, // 54 : Area 3 Stop - T3_STOP_S
-  { 0, 1, false, true, false, false }, // 55 : Area 4 Stop - T4_STOP_S
-  { 0, 1, false, false, true, false }, // 56 : Reserved
-  { 0, 1, false, false, true, false }, // 57 : Reserved
-  { 0, 1, false, false, true, false }, // 58 : Reserved
-  { 0, 1, false, false, true, false }, // 59 : Reserved
-  { 0, 1, false, false, true, false }, // 60 : Reserved
-  { 0, 1, false, false, true, false }, // 61 : Reserved
-  { 0, 1, false, false, true, false }, // 62 : Reserved
-  { 0, 1, false, false, true, false }, // 63 : Reserved
+  // { brightness, effect, ignoreLocalPriority, dontCare }
+  {   0, scene_effect_smooth, false, false }, // 0 : Preset 0 - T0_S0
+  {   0, scene_effect_smooth, true , false }, // 1 : Area 1 Off - T1_S0
+  {   0, scene_effect_smooth, true , false }, // 2 : Area 2 Off - T2_S0
+  {   0, scene_effect_smooth, true , false }, // 3 : Area 3 Off - T3_S0
+  {   0, scene_effect_smooth, true , false }, // 4 : Area 4 Off - T4_S0
+  { 255, scene_effect_smooth, false, false }, // 5 : Preset 1 - T0_S1
+  { 255, scene_effect_smooth, true , false }, // 6 : Area 1 On - T1_S1
+  { 255, scene_effect_smooth, true , false }, // 7 : Area 2 On - T1_S1
+  { 255, scene_effect_smooth, true , false }, // 8 : Area 3 On - T1_S1
+  { 255, scene_effect_smooth, true , false }, // 9 : Area 4 On - T1_S1
+  {   0, scene_effect_smooth, true , false }, // 10 : Area Stepping continue - T1234_CONT
+  {   0, scene_effect_smooth, false, false }, // 11 : Decrement - DEC_S
+  {   0, scene_effect_smooth, false, false }, // 12 : Increment - INC_S
+  {   0, scene_effect_smooth, true , false }, // 13 : Minimum - MIN_S
+  { 255, scene_effect_smooth, true , false }, // 14 : Maximum - MAX_S
+  {   0, scene_effect_smooth, true , false }, // 15 : Stop - STOP_S
+  {   0, scene_effect_smooth, false, true  }, // 16 : Reserved
+  { 192, scene_effect_smooth, false, false }, // 17 : Preset 2 - T0_S2
+  { 128, scene_effect_smooth, false, false }, // 18 : Preset 3 - T0_S3
+  {  64, scene_effect_smooth, false, false }, // 19 : Preset 4 - T0_S4
+  { 192, scene_effect_smooth, false, false }, // 20 : Preset 12 - T1_S2
+  { 128, scene_effect_smooth, false, false }, // 21 : Preset 13 - T1_S3
+  {  64, scene_effect_smooth, false, false }, // 22 : Preset 14 - T1_S4
+  { 192, scene_effect_smooth, false, false }, // 23 : Preset 22 - T2_S2
+  { 168, scene_effect_smooth, false, false }, // 24 : Preset 23 - T2_S3
+  {  64, scene_effect_smooth, false, false }, // 25 : Preset 24 - T2_S4
+  { 192, scene_effect_smooth, false, false }, // 26 : Preset 32 - T3_S2
+  { 168, scene_effect_smooth, false, false }, // 27 : Preset 33 - T3_S3
+  {  64, scene_effect_smooth, false, false }, // 28 : Preset 34 - T3_S4
+  { 192, scene_effect_smooth, false, false }, // 29 : Preset 42 - T4_S2
+  { 168, scene_effect_smooth, false, false }, // 30 : Preset 43 - T4_S3
+  {  64, scene_effect_smooth, false, false }, // 31 : Preset 44 - T4_S4
+  {   0, scene_effect_smooth, false, false }, // 32 : Preset 10 - T1E_S0
+  { 255, scene_effect_smooth, false, false }, // 33 : Preset 11 - T1E_S1
+  {   0, scene_effect_smooth, false, false }, // 34 : Preset 20 - T2E_S0
+  { 255, scene_effect_smooth, false, false }, // 35 : Preset 21 - T2E_S1
+  {   0, scene_effect_smooth, false, false }, // 36 : Preset 30 - T3E_S0
+  { 255, scene_effect_smooth, false, false }, // 37 : Preset 31 - T3E_S1
+  {   0, scene_effect_smooth, false, false }, // 38 : Preset 40 - T4E_S0
+  { 255, scene_effect_smooth, false, false }, // 39 : Preset 41 - T4E_S1
+  {   0, scene_effect_smooth, false, false }, // 40 : Fade down to 0 in 1min - AUTO_OFF
+  {   0, scene_effect_smooth, false, true  }, // 41 : Reserved
+  {   0, scene_effect_smooth, true , false }, // 42 : Area 1 Decrement - T1_DEC
+  {   0, scene_effect_smooth, true , false }, // 43 : Area 1 Increment - T1_INC
+  {   0, scene_effect_smooth, true , false }, // 44 : Area 2 Decrement - T2_DEC
+  {   0, scene_effect_smooth, true , false }, // 45 : Area 2 Increment - T2_INC
+  {   0, scene_effect_smooth, true , false }, // 46 : Area 3 Decrement - T3_DEC
+  {   0, scene_effect_smooth, true , false }, // 47 : Area 3 Increment - T3_INC
+  {   0, scene_effect_smooth, true , false }, // 48 : Area 4 Decrement - T4_DEC
+  {   0, scene_effect_smooth, true , false }, // 49 : Area 4 Increment - T4_INC
+  {   0, scene_effect_smooth, true , false }, // 50 : Device (Local Button) on : LOCAL_OFF
+  { 255, scene_effect_smooth, true , false }, // 51 : Device (Local Button) on : LOCAL_ON
+  {   0, scene_effect_smooth, true , false }, // 52 : Area 1 Stop - T1_STOP_S
+  {   0, scene_effect_smooth, true , false }, // 53 : Area 2 Stop - T2_STOP_S
+  {   0, scene_effect_smooth, true , false }, // 54 : Area 3 Stop - T3_STOP_S
+  {   0, scene_effect_smooth, true , false }, // 55 : Area 4 Stop - T4_STOP_S
+  {   0, scene_effect_smooth, false, true  }, // 56 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 57 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 58 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 59 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 60 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 61 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 62 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 63 : Reserved
   // global, appartment-wide, group independent scenes
-  { 0, 2, false, true, false, false }, // 64 : Auto Standby - AUTO_STANDBY
-  { 255, 1, false, true, false, false }, // 65 : Panic - SIG_PANIC
-  { 0, 1, false, false, true, false }, // 66 : Reserved (ENERGY_OL)
-  { 0, 1, false, true, false, false }, // 67 : Standby - STANDBY
-  { 0, 1, false, true, false, false }, // 68 : Deep Off - DEEP_OFF
-  { 0, 1, false, true, false, false }, // 69 : Sleeping - SLEEPING
-  { 255, 1, false, true, true, false }, // 70 : Wakeup - WAKE_UP
-  { 255, 1, false, true, true, false }, // 71 : Present - PRESENT
-  { 0, 1, false, true, false, false }, // 72 : Absent - ABSENT
-  { 0, 1, false, true, true, false }, // 73 : Door Bell - SIG_BELL
-  { 0, 1, false, false, true, false }, // 74 : Reserved (SIG_ALARM)
-  { 255, 1, false, false, true, false }, // 75 : Zone Active
-  { 255, 1, false, false, true, false }, // 76 : Reserved
-  { 255, 1, false, false, true, false }, // 77 : Reserved
-  { 0, 1, false, false, true, false }, // 78 : Reserved
-  { 0, 1, false, false, true, false }, // 79 : Reserved
+  {   0, scene_effect_slow  , true , false }, // 64 : Auto Standby - AUTO_STANDBY
+  { 255, scene_effect_smooth, true , false }, // 65 : Panic - SIG_PANIC
+  {   0, scene_effect_smooth, false, true  }, // 66 : Reserved (ENERGY_OL)
+  {   0, scene_effect_smooth, true , false }, // 67 : Standby - STANDBY
+  {   0, scene_effect_smooth, true , false }, // 68 : Deep Off - DEEP_OFF
+  {   0, scene_effect_smooth, true , false }, // 69 : Sleeping - SLEEPING
+  { 255, scene_effect_smooth, true , true  }, // 70 : Wakeup - WAKE_UP
+  { 255, scene_effect_smooth, true , true  }, // 71 : Present - PRESENT
+  {   0, scene_effect_smooth, true , false }, // 72 : Absent - ABSENT
+  {   0, scene_effect_smooth, true , true  }, // 73 : Door Bell - SIG_BELL
+  {   0, scene_effect_smooth, false, true  }, // 74 : Reserved (SIG_ALARM)
+  { 255, scene_effect_smooth, false, true  }, // 75 : Zone Active
+  { 255, scene_effect_smooth, false, true  }, // 76 : Reserved
+  { 255, scene_effect_smooth, false, true  }, // 77 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 78 : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 79 : Reserved
   // all other scenes equal or higher
-  { 0, 1, false, false, true, false }, // 80..n : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 80..n : Reserved
 };
 
 
@@ -314,13 +293,11 @@ void LightScene::setDefaultSceneValues(SceneNo aSceneNo)
   const DefaultSceneParams &p = defaultScenes[aSceneNo];
   // now set default values
   // - common scene flags
-  dontCare = p.dontCare;
-  ignoreLocalPriority = p.ignoreLocalPriority;
+  setIgnoreLocalPriority(p.ignoreLocalPriority);
+  setDontCare(p.dontCare);
   // - light scene specifics
   sceneBrightness = p.brightness;
-  dimTimeSelector = p.dimTimeSelector;
-  flashing = p.flashing;
-  specialBehaviour = p.specialBehaviour;
+  effect = p.effect;
 }
 
 
@@ -351,15 +328,14 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   // hardware derived parameters
   // persistent settings
   onThreshold(128),
-  minBrightness(1),
-  maxBrightness(255),
   // volatile state
   fadeDownTicket(0),
-  blinkCounter(0),
-  logicalBrightness(0)
+  blinkTicket(0)
 {
   // should always be a member of the light group
   setGroup(group_yellow_light);
+  // primary output controls brightness
+  setHardwareName("brightness");
   // persistent settings
   dimTimeUp[0] = 0x0F; // 100mS
   dimTimeUp[1] = 0x3F; // 800mS
@@ -367,52 +343,45 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   dimTimeDown[0] = 0x0F; // 100mS
   dimTimeDown[1] = 0x3F; // 800mS
   dimTimeDown[2] = 0x2F; // 400mS
+  // add the brightness channel (every light has brightness)
+  brightness = BrightnessChannelPtr(new BrightnessChannel(*this));
+  addChannel(brightness);
 }
 
 
-Brightness LightBehaviour::getLogicalBrightness()
-{
-  return logicalBrightness;
-}
-
-
-void LightBehaviour::setLogicalBrightness(Brightness aBrightness, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown)
-{
-  if (aBrightness>255) aBrightness = 255;
-  MLMicroSeconds tt = aTransitionTimeDown<0 || aBrightness>logicalBrightness ? aTransitionTimeUp : aTransitionTimeDown;
-  logicalBrightness = aBrightness;
-  if (isDimmable()) {
-    // dimmable, 0=off, 1..255=brightness
-    setOutputValue(logicalBrightness, tt);
-  }
-  else {
-    // not dimmable, on if logical brightness is above threshold
-    setOutputValue(logicalBrightness>=onThreshold ? 255 : 0, tt);
-  }
-}
-
-
-void LightBehaviour::updateLogicalBrightnessFromOutput()
-{
-  Brightness o = getOutputValue();
-  if (isDimmable()) {
-    logicalBrightness = o;
-  }
-  else {
-    logicalBrightness = o>onThreshold ? 255 : 0;
-  }
-}
-
-
-void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
+void LightBehaviour::initMinBrightness(Brightness aMin)
 {
   // save max and min
-  if (aMin!=minBrightness || aMax!=maxBrightness) {
-    maxBrightness = aMax;
-    minBrightness = aMin>0 ? aMin : 1; // never below 1
+  if (aMin!=brightness->getMinDim()) {
+    brightness->setDimMin(aMin);
     markDirty();
   }
 }
+
+
+Brightness LightBehaviour::brightnessForHardware()
+{
+  if (isDimmable()) {
+    // dim output
+    return brightness->getChannelValue();
+  }
+  else {
+    // switch output
+    return brightness->getChannelValue() >= onThreshold ? brightness->getMax() : brightness->getMin();
+  }
+}
+
+
+void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness)
+{
+  if (
+    isDimmable() || // for dimmable lights: always update value
+    ((aBrightness>=onThreshold) != (brightness->getChannelValue()>=onThreshold)) // for switched outputs: keep value if onThreshold conditions is already met
+  ) {
+    brightness->syncChannelValue(aBrightness);
+  }
+}
+
 
 
 
@@ -420,180 +389,219 @@ void LightBehaviour::initBrightnessParams(Brightness aMin, Brightness aMax)
 
 
 #define AUTO_OFF_FADE_TIME (60*Second)
+#define AUTO_OFF_FADE_STEPSIZE 5
 
 // apply scene
-void LightBehaviour::applyScene(DsScenePtr aScene)
+bool LightBehaviour::applyScene(DsScenePtr aScene)
 {
-  // we can only handle light scenes
+  // check special cases for light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
-    // any scene call cancels fade down
-    MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
-    // now check new scene
-    // Note: Area dimming scene calls are converted to INC_S/DEC_S/STOP_S at the Device class level
-    //  so we only need to handle INC_S/DEC_S and STOP_S here.
+    // any scene call cancels actions (and fade down)
+    stopActions();
     SceneNo sceneNo = lightScene->sceneNo;
-    if (sceneNo==DEC_S || sceneNo==INC_S) {
-      // dimming up/down special scenes
-      //  Rule 4: All devices which are turned on and not in local priority state take part in the dimming process.
-      //  Note: local priority check is done at the device level
-      Brightness b = getLogicalBrightness();
-      if (b>0) {
-        Brightness nb = b;
-        if (sceneNo==DEC_S) {
-          // dim down
-          // Rule 5: Decrement commands only reduce the output value down to a minimum value, but not to zero.
-          // If a digitalSTROM Device reaches one of its limits, it stops its ongoing dimming process.
-          nb = nb>11 ? nb-11 : 1; // never below 1
-          // also make sure we don't go below minDim
-          if (nb<minBrightness)
-            nb = minBrightness;
-        }
-        else {
-          // dim up
-          nb = nb<255-11 ? nb+11 : 255;
-          // also make sure we don't go above maxDim
-          if (nb>maxBrightness)
-            nb = maxBrightness;
-        }
-        if (nb!=b) {
-          setLogicalBrightness(nb, 300*MilliSecond); // up commands arrive approx every 250mS, give it some extra to avoid stutter
-          LOG(LOG_DEBUG,"- ApplyScene(DIM): Dimming in progress, %d -> %d\n", b, nb);
-        }
-      }
-    }
-    else if (sceneNo==STOP_S) {
-      // stop dimming
-      // TODO: when fine tuning dimming, we'll need to actually stop ongoing dimming. For now, it's just a NOP
-      if (LOGENABLED(LOG_NOTICE)) {
-        Brightness b = getLogicalBrightness();
-        LOG(LOG_NOTICE,"- ApplyScene(DIM): Stopped dimming, final value is %d\n", b);
-      }
-    }
-    else if (sceneNo==MIN_S) {
-      Brightness b = minBrightness;
-      setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeDown[lightScene->dimTimeSelector]));
-      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %d\n", b);
+    // now check for special hard-wired scenes
+    if (sceneNo==MIN_S) {
+      brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, false));
+      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %0.1f\n", brightness->getMinDim());
+      return true;
     }
     else if (sceneNo==AUTO_OFF) {
       // slow fade down
-      Brightness b = getLogicalBrightness();
+      Brightness b = brightness->getChannelValue();
       if (b>0) {
-        MLMicroSeconds fadeStepTime = AUTO_OFF_FADE_TIME / b;
-        fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime, b-1), fadeStepTime);
-        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down to zero\n", b);
+        Brightness mb = b - brightness->getMinDim();
+        MLMicroSeconds fadeStepTime;
+        if (mb>AUTO_OFF_FADE_STEPSIZE)
+          fadeStepTime = AUTO_OFF_FADE_TIME / mb * AUTO_OFF_FADE_STEPSIZE; // more than one step
+        else
+          fadeStepTime = AUTO_OFF_FADE_TIME; // single step, to be executed after fade time
+        fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime), fadeStepTime);
+        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down from %d to %d (and then OFF) in steps of %d, stepTime = %dmS\n", (int)b, brightness->getMinDim(), AUTO_OFF_FADE_STEPSIZE, (int)(fadeStepTime/MilliSecond));
+        return false; // fade down process will take care of output updates
       }
     }
-    else {
-      // apply stored scene value(s) to output(s)
-      recallScene(lightScene);
-      LOG(LOG_NOTICE,"- ApplyScene(%d): Applied output value(s) from scene\n", sceneNo);
-    }
   } // if lightScene
+  // other type of scene, let base class handle it
+  return inherited::applyScene(aScene);
 }
 
-
-void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime, Brightness aBrightness)
+// TODO: for later: consider if fadeDown is not an action like blink...
+void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
 {
-  setLogicalBrightness(aBrightness, aFadeStepTime);
-  if (aBrightness>0) {
-    fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime, aBrightness-1), aFadeStepTime);
+  Brightness b = brightness->dimChannelValue(-AUTO_OFF_FADE_STEPSIZE, aFadeStepTime);
+  bool isAtMin = b<=brightness->getMinDim();
+  if (isAtMin) {
+    LOG(LOG_INFO,"- ApplyScene(AUTO_OFF): reached minDim, now turning off lamp\n");
+    brightness->setChannelValue(0); // off
+  }
+  // Note: device.requestApplyingChannels paces requests to hardware, so we can just call it here without special precautions
+  device.requestApplyingChannels(NULL, true); // dimming mode
+  if (!isAtMin) {
+    // continue
+    fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, aFadeStepTime), aFadeStepTime);
   }
 }
 
 
-
-void LightBehaviour::recallScene(LightScenePtr aLightScene)
+void LightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
-  // now apply scene's brightness
-  Brightness b = aLightScene->sceneBrightness;
-  uint8_t s = aLightScene->dimTimeSelector;
-  setLogicalBrightness(b, transitionTimeFromDimTime(dimTimeUp[s]), transitionTimeFromDimTime(dimTimeDown[s]));
-}
-
-
-
-// capture scene
-void LightBehaviour::captureScene(DsScenePtr aScene, DoneCB aDoneCB)
-{
-  // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
-    // make sure logical brightness is updated from output
-    updateLogicalBrightnessFromOutput();
-    // just capture the output value
-    if (lightScene->sceneBrightness != getLogicalBrightness()) {
-      lightScene->sceneBrightness = getLogicalBrightness();
-      lightScene->markDirty();
-    }
+    // load brightness channel from scene
+    Brightness b = lightScene->sceneBrightness;
+    DsSceneEffect e = lightScene->effect;
+    brightness->setChannelValueIfNotDontCare(lightScene, b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false), true);
   }
-  inherited::captureScene(aScene, aDoneCB);
+  inherited::loadChannelsFromScene(aScene);
 }
 
 
-
+void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
+{
+  LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
+  if (lightScene) {
+    // save brightness channel from scene
+    lightScene->setRepVar(lightScene->sceneBrightness, brightness->getChannelValue());
+    lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
+  }
+}
 
 
 
 /// @param aDimTime : dimming time specification in dS format (Bit 7..4 = exponent, Bit 3..0 = 1/150 seconds, i.e. 0x0F = 100mS)
-MLMicroSeconds LightBehaviour::transitionTimeFromDimTime(uint8_t aDimTime)
+static MLMicroSeconds transitionTimeFromDimTime(uint8_t aDimTime)
 {
   return ((MLMicroSeconds)(aDimTime & 0xF)*100*MilliSecond/15)<<((aDimTime>>4) & 0xF);
 }
 
 
-
-void LightBehaviour::blink(MLMicroSeconds aDuration, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+MLMicroSeconds LightBehaviour::transitionTimeFromSceneEffect(DsSceneEffect aEffect, bool aDimUp)
 {
-  MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
-  aBlinkPeriod -= blinkOnTime; // blink off time
-  // start off, so first action will be on
-  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod, getLogicalBrightness());
-}
-
-
-void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime, Brightness aOrigBrightness)
-{
-  if (MainLoop::now()>=aEndTime) {
-    // done, restore original brightness
-    setLogicalBrightness(aOrigBrightness, 0);
-    return;
+  uint8_t dimTimeIndex;
+  switch (aEffect) {
+    case scene_effect_smooth : dimTimeIndex = 0; break;
+    case scene_effect_slow : dimTimeIndex = 1; break;
+    case scene_effect_veryslow : dimTimeIndex = 2; break;
+    default: return 0; // no known effect -> just return 0 for transition time
   }
-  else if (!aState) {
-    // turn on
-    setLogicalBrightness(255, 0);
-  }
-  else {
-    // turn off
-    setLogicalBrightness(minBrightness, 0);
-  }
-  aState = !aState; // toggle
-  // schedule next event
-  MainLoop::currentMainLoop().executeOnce(
-    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime, aOrigBrightness),
-    aState ? aOnTime : aOffTime
-  );
+  // dimTimeIndex found, look up actual time
+  return transitionTimeFromDimTime(aDimUp ? dimTimeUp[dimTimeIndex] : dimTimeDown[dimTimeIndex]);
 }
 
 
 
 void LightBehaviour::onAtMinBrightness()
 {
-  if (getLogicalBrightness()==0) {
+  if (brightness->getChannelValue()<=0) {
     // device is off and must be set to minimal logical brightness
-    setLogicalBrightness(minBrightness, transitionTimeFromDimTime(dimTimeUp[0]));
+    brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromDimTime(dimTimeUp[0]));
   }
 }
 
 
-void LightBehaviour::performSceneActions(DsScenePtr aScene)
+void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
 {
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
-  if (lightScene && lightScene->flashing) {
-    // flash
-    blink(2*Second, 400*MilliSecond, 80);
+  if (lightScene && lightScene->effect==scene_effect_alert) {
+    // run blink effect
+    blink(2*Second, lightScene, aDoneCB, 400*MilliSecond, 60);
+    return;
   }
+  // none of my effects, let inherited check
+  inherited::performSceneActions(aScene, aDoneCB);
+}
+
+
+void LightBehaviour::stopActions()
+{
+  // stop fading down
+  MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
+  // stop blink
+  if (blinkTicket) stopBlink();
+  // let inherited stop as well
+  inherited::stopActions();
+}
+
+
+
+void LightBehaviour::identifyToUser()
+{
+  // simple, non-parametrized blink
+  blink(4*Second, LightScenePtr(), NULL, 400*MilliSecond, 60);
+}
+
+
+
+
+#pragma mark - blinking
+
+
+void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  // save current state in temp scene
+  blinkDoneHandler = aDoneCB;
+  blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
+  captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
+}
+
+
+void LightBehaviour::stopBlink()
+{
+  // immediately terminate (also kills ticket)
+  blinkHandler(0 /* done */, false, 0, 0); // dummy params, only to immediately stop it
+}
+
+
+
+void LightBehaviour::beforeBlinkStateSavedHandler(MLMicroSeconds aDuration, LightScenePtr aParamScene, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+{
+  // apply the parameter scene if any
+  if (aParamScene) loadChannelsFromScene(aParamScene);
+  // start flashing
+  MLMicroSeconds blinkOnTime = (aBlinkPeriod*aOnRatioPercent*10)/1000;
+  aBlinkPeriod -= blinkOnTime; // blink off time
+  // start off, so first action will be on
+  blinkHandler(MainLoop::now()+aDuration, false, blinkOnTime, aBlinkPeriod);
+}
+
+
+void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroSeconds aOnTime, MLMicroSeconds aOffTime)
+{
+  if (MainLoop::now()>=aEndTime) {
+    // kill scheduled execution, if any
+    MainLoop::currentMainLoop().cancelExecutionTicket(blinkTicket);
+    // restore previous values if any
+    if (blinkRestoreScene) {
+      loadChannelsFromScene(blinkRestoreScene);
+      blinkRestoreScene.reset();
+      device.requestApplyingChannels(NULL, false); // apply to hardware, not dimming
+    }
+    // done, call end handler if any
+    if (blinkDoneHandler) {
+      DoneCB h = blinkDoneHandler;
+      blinkDoneHandler = NULL;
+      h();
+    }
+    return;
+  }
+  else if (!aState) {
+    // turn on
+    brightness->setChannelValue(brightness->getMax(), 0);
+  }
+  else {
+    // turn off
+    brightness->setChannelValue(brightness->getMinDim(), 0);
+  }
+  // apply to hardware
+  device.requestApplyingChannels(NULL, false); // not dimming
+  aState = !aState; // toggle
+  // schedule next event
+  blinkTicket = MainLoop::currentMainLoop().executeOnce(
+    boost::bind(&LightBehaviour::blinkHandler, this, aEndTime, aState, aOnTime, aOffTime),
+    aState ? aOnTime : aOffTime
+  );
 }
 
 
@@ -608,7 +616,7 @@ const char *LightBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 5;
+static const size_t numFields = 4;
 
 size_t LightBehaviour::numFieldDefs()
 {
@@ -621,7 +629,6 @@ const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
   static const FieldDefinition dataDefs[numFields] = {
     { "onThreshold", SQLITE_INTEGER },
     { "minDim", SQLITE_INTEGER },
-    { "maxDim", SQLITE_INTEGER },
     { "dimUpTimes", SQLITE_INTEGER },
     { "dimDownTimes", SQLITE_INTEGER },
   };
@@ -640,8 +647,7 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
   onThreshold = aRow->get<int>(aIndex++);
-  minBrightness = aRow->get<int>(aIndex++);
-  maxBrightness = aRow->get<int>(aIndex++);
+  brightness->setDimMin(aRow->get<int>(aIndex++));
   uint32_t du = aRow->get<int>(aIndex++);
   uint32_t dd = aRow->get<int>(aIndex++);
   // dissect dimming times
@@ -669,8 +675,7 @@ void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
     (dimTimeDown[2]<<16);
   // bind the fields
   aStatement.bind(aIndex++, onThreshold);
-  aStatement.bind(aIndex++, minBrightness);
-  aStatement.bind(aIndex++, maxBrightness);
+  aStatement.bind(aIndex++, brightness->getMinDim());
   aStatement.bind(aIndex++, (int)du);
   aStatement.bind(aIndex++, (int)dd);
 }
@@ -687,7 +692,6 @@ static char light_key;
 enum {
   onThreshold_key,
   minBrightness_key,
-  maxBrightness_key,
   dimTimeUp_key,
   dimTimeDown_key,
   dimTimeUpAlt1_key,
@@ -699,88 +703,80 @@ enum {
 
 
 int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
-const PropertyDescriptor *LightBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "onThreshold", apivalue_uint64, false, onThreshold_key+settings_key_offset, &light_key },
-    { "minBrightness", apivalue_uint64, false, minBrightness_key+settings_key_offset, &light_key },
-    { "maxBrightness", apivalue_uint64, false, maxBrightness_key+settings_key_offset, &light_key },
-    { "dimTimeUp", apivalue_uint64, false, dimTimeUp_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt1", apivalue_uint64, false, dimTimeUpAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeUpAlt2", apivalue_uint64, false, dimTimeUpAlt2_key+settings_key_offset, &light_key },
-    { "dimTimeDown", apivalue_uint64, false, dimTimeDown_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt1", apivalue_uint64, false, dimTimeDownAlt1_key+settings_key_offset, &light_key },
-    { "dimTimeDownAlt2", apivalue_uint64, false, dimTimeDownAlt2_key+settings_key_offset, &light_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "onThreshold", apivalue_uint64, onThreshold_key+settings_key_offset, OKEY(light_key) },
+    { "minBrightness", apivalue_uint64, minBrightness_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUp", apivalue_uint64, dimTimeUp_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUpAlt1", apivalue_uint64, dimTimeUpAlt1_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeUpAlt2", apivalue_uint64, dimTimeUpAlt2_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDown", apivalue_uint64, dimTimeDown_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDownAlt1", apivalue_uint64, dimTimeDownAlt1_key+settings_key_offset, OKEY(light_key) },
+    { "dimTimeDownAlt2", apivalue_uint64, dimTimeDownAlt2_key+settings_key_offset, OKEY(light_key) },
   };
   int n = inherited::numSettingsProps();
   if (aPropIndex<n)
-    return inherited::getSettingsDescriptor(aPropIndex);
+    return inherited::getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
   aPropIndex -= n;
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
 // access to all fields
 
-bool LightBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&light_key) {
-    if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(light_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
           aPropValue->setUint8Value(onThreshold);
           return true;
         case minBrightness_key+settings_key_offset:
-          aPropValue->setUint8Value(minBrightness);
-          return true;
-        case maxBrightness_key+settings_key_offset:
-          aPropValue->setUint8Value(maxBrightness);
+          aPropValue->setDoubleValue(brightness->getMinDim());
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          aPropValue->setUint8Value(dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)]);
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)]);
+          aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)]);
           return true;
       }
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
           onThreshold = (Brightness)aPropValue->int32Value();
           markDirty();
           return true;
         case minBrightness_key+settings_key_offset:
-          minBrightness = (Brightness)aPropValue->int32Value();
-          markDirty();
-          return true;
-        case maxBrightness_key+settings_key_offset:
-          minBrightness = (Brightness)aPropValue->int32Value();
+          brightness->setDimMin(aPropValue->doubleValue());
           markDirty();
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          dimTimeUp[aPropertyDescriptor.accessKey-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          dimTimeDown[aPropertyDescriptor.accessKey-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
           return true;
       }
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 
@@ -796,8 +792,8 @@ string LightBehaviour::shortDesc()
 string LightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- logical brightness = %d, localPriority = %d\n", logicalBrightness, device.hasLocalPriority());
-  string_format_append(s, "- dimmable: %d, mindim=%d, maxdim=%d, onThreshold=%d\n", isDimmable(), minBrightness, maxBrightness, onThreshold);
+  string_format_append(s, "- brightness = %d, localPriority = %d\n", brightness->getChannelValue(), hasLocalPriority());
+  string_format_append(s, "- dimmable: %d, mindim=%d, onThreshold=%d\n", isDimmable(), brightness->getMinDim(), onThreshold);
   s.append(inherited::description());
   return s;
 }

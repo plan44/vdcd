@@ -27,6 +27,10 @@ using namespace p44;
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice)
 {
+  // add the output channel
+  // TODO: do we have a proper channel type for this?
+  ChannelBehaviourPtr ch = ChannelBehaviourPtr(new HeatingLevelChannel(*this));
+  addChannel(ch);
 }
 
 
@@ -34,9 +38,12 @@ ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
 void ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
 {
   if (aName=="heatingLevel") {
-    if (group==group_roomtemperature_control && outputMode!=outputmode_disabled) {
-      // apply positive values to valve output, clip to 100 max
-      setOutputValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue));
+    if (isMember(group_roomtemperature_control) && outputMode!=outputmode_disabled) {
+      // apply positive values to (default) valve output, clip to 100 max
+      ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
+      if (cb) {
+        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue), 0, true); // always apply
+      }
     }
   }
 }

@@ -29,7 +29,25 @@ using namespace std;
 
 namespace p44 {
 
+  class HeatingLevelChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
 
+  public:
+    HeatingLevelChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /* light defaults to historic dS resolution */ };
+
+    virtual DsChannelType getChannelType() { return channeltype_default; }; ///< TODO: needs proper channel type
+    virtual const char *getName() { return "heatingLevel"; };
+    virtual double getMin() { return 0; }; // heating is 0..100 (cooling would be -100..0)
+    virtual double getMax() { return 100; };
+    virtual double getDimPerMS() { return 100/FULL_SCALE_DIM_TIME_MS; }; // 7 seconds full scale
+    
+  };
+
+
+
+  /// Implements the behaviour of climate control outputs, in particular evaluating
+  /// control values with processControlValue()
   class ClimateControlBehaviour : public OutputBehaviour
   {
     typedef OutputBehaviour inherited;

@@ -51,7 +51,7 @@ namespace p44 {
   typedef struct Enocean4BSDescriptor {
     uint8_t func; ///< the function code from the EPP signature
     uint8_t type; ///< the type code from the EPP signature
-    uint8_t subDevice; ///< subdevice index, in case enOcean device needs to be split into multiple logical vdSDs
+    uint8_t subDevice; ///< subdevice index, in case EnOcean device needs to be split into multiple logical vdSDs
     DsGroup group; ///< the dS group for this channel
     BehaviourType behaviourType; ///< the behaviour type
     uint8_t behaviourParam; ///< DsSensorType, DsBinaryInputType or DsOutputFunction resp., depending on behaviourType
@@ -123,6 +123,42 @@ static void illumHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint3
 }
 
 
+static void powerMeterHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+{
+  const Enocean4BSDescriptor *descP = aHandler.channelDescriptorP;
+  if (descP && !aForSend) {
+    // raw value is in DB3.7..DB1.0 (upper 24 bits)
+    uint32_t value = a4BSdata>>8;
+    // scaling is in bits DB0.1 and DB0.0 : 00=scale1, 01=scale10, 10=scale100, 11=scale1000
+    int divisor = 1;
+    switch (a4BSdata & 0x03) {
+      case 1: divisor = 10; break; // value scale is 0.1kWh or 0.1W per LSB
+      case 2: divisor = 100; break; // value scale is 0.01kWh or 0.01W per LSB
+      case 3: divisor = 1000; break; // value scale is 0.001kWh (1Wh) or 0.001W (1mW) per LSB
+    }
+    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aHandler.behaviour);
+    if (sb) {
+      // DB0.2 signals which value it is: 0=cumulative (energy), 1=current value (power)
+      if (a4BSdata & 0x04) {
+        // power
+        if (sb->getSensorType()==sensorType_power) {
+          // we're being called for power, and data is power -> update
+          sb->updateSensorValue((double)value/divisor);
+        }
+      }
+      else {
+        // energy
+        if (sb->getSensorType()==sensorType_energy) {
+          // we're being called for energy, and data is energy -> update
+          sb->updateSensorValue((double)value/divisor);
+        }
+      }
+    }
+  }
+}
+
+
+
 /// standard binary input handler
 static void stdInputHandler(const Enocean4bsHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
 {
@@ -152,7 +188,8 @@ static void stdOutputHandler(const Enocean4bsHandler &aHandler, bool aForSend, u
   if (descP && aForSend) {
     OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(aHandler.behaviour);
     if (ob) {
-      int32_t newValue = ob->valueForHardware();
+      ChannelBehaviourPtr cb = ob->getChannelByIndex(aHandler.dsChannelIndex);
+      int32_t newValue = cb->getChannelValue();
       // insert output into 32bit data
       int numBits = descP->msBit-descP->lsBit+1;
       long mask = ((1l<<numBits)-1)<<descP->lsBit;
@@ -235,10 +272,15 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x10, 0x06, 0, group_blue_heating, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, &stdSensorHandler, "Set Point", unityUnit, dflag_climatecontrolbehaviour },
   { 0x10, 0x06, 0, group_blue_heating, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0),  100, &stdInputHandler,  "Day/Night", unityUnit, dflag_climatecontrolbehaviour },
 
+  // A5-12-01: Energy meter
+  // - e.g. Eltako FWZ12-16A
+  { 0x12, 0x01, 0, group_black_joker,  behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0),  600, &powerMeterHandler, "Power", "W" },
+  { 0x12, 0x01, 0, group_black_joker,  behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0),  600, &powerMeterHandler, "Energy", "kWh" },
+
   // A5-20-01: HVAC heating valve actuator
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
-  { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
   { 0x20, 0x01, 0, group_blue_heating, behaviour_output,      outputFunction_positional, usage_room,       0,  100, DB(3,7), DB(3,0),  100, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
+  { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
 
   // terminator
   { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
@@ -281,6 +323,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
   }
   // Create device and channels
   bool needsTeachInResponse = false;
+  bool firstDescriptorForDevice = true;
   while (numDescriptors>0) {
     // more channels for this subdevice number
     if (!newDev) {
@@ -319,6 +362,9 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
           sb->setGroup(subdeviceDescP->group);
         sb->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = sb;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " sensor");
+        }
         break;
       }
       case behaviour_binaryinput: {
@@ -327,6 +373,9 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         bb->setGroup(subdeviceDescP->group);
         bb->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = bb;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " input");
+        }
         break;
       }
       case behaviour_output: {
@@ -334,16 +383,19 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         if (subdeviceDescP->flags & dflag_climatecontrolbehaviour) {
           // climate control output, use special behaviour
           ob = OutputBehaviourPtr(new ClimateControlBehaviour(*newDev.get()));
-          ob->setGroup(group_roomtemperature_control); // put into room temperature control group by default
+          ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default
         }
         else {
           // generic output, no scenes or special behaviour
           ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-          ob->setGroup(subdeviceDescP->group); // same group as device
+          ob->setGroupMembership(subdeviceDescP->group, true); // same group as device
         }
         ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());
         newHandler->behaviour = ob;
+        if (firstDescriptorForDevice) {
+          newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " output");
+        }
         break;
       }
       default: {
@@ -353,6 +405,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
     // add channel to device
     newDev->addChannelHandler(newHandler);
     // next descriptor
+    firstDescriptorForDevice = false;
     subdeviceDescP++;
     numDescriptors--;
   }
@@ -392,6 +445,8 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
 {
   OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
   if (ob) {
+    // get the right channel
+    ChannelBehaviourPtr cb = ob->getChannelByIndex(dsChannelIndex);
     // create packet if none created already
     uint32_t data;
     if (!aEsp3PacketPtr) {
@@ -409,7 +464,7 @@ void Enocean4bsHandler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr
     // save data
     aEsp3PacketPtr->set4BSdata(data);
     // value from this channel is applied to the outgoing telegram
-    ob->outputValueApplied();
+    cb->channelValueApplied(true); // applied even if channel did not have needsApplying() status before
   }
 }
 
@@ -447,6 +502,7 @@ void Enocean4BSDevice::sendTeachInResponse()
     // set destination
     responsePacket->setRadioDestination(getAddress());
     // now send
+    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", getEEProfile());
     getEnoceanDeviceContainer().enoceanComm.sendPacket(responsePacket);
   }
 

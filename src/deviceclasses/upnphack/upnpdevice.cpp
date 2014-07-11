@@ -38,18 +38,18 @@ void UpnpDevice::checkPresence(PresenceCB aPresenceResultHandler)
 
 
 
-void UpnpDevice::presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError)
+void UpnpDevice::presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch, ErrorPtr aError)
 {
-  printf("Ping response notify\n%s\n", aSsdpSearchP->response.c_str());
+  printf("Ping response notify\n%s\n", aSsdpSearch->response.c_str());
   aPresenceResultHandler(true);
-  aSsdpSearchP->stopSearch();
+  aSsdpSearch->stopSearch();
   MainLoop::currentMainLoop().cancelExecutionTicket(presenceTicket);
 }
 
 
-void UpnpDevice::timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch)
+void UpnpDevice::timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch)
 {
-  aSrch->stopSearch();
+  aSsdpSearch->stopSearch();
   aPresenceResultHandler(false);
   presenceTicket = 0;
 }
@@ -68,19 +68,6 @@ void UpnpDevice::deriveDsUid()
 
 #pragma mark - property access
 
-ErrorPtr UpnpDevice::getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex)
-{
-  if (aUserPropertyIndex==0) {
-    // for UPnP devices, this maps to "descriptionURL"
-    aName = "descriptionURL";
-    aIndex = 0; // not an array
-  }
-  // unknown, let superclass handle it
-  return inherited::getUserPropertyMapping(aUserPropertyIndex, aName, aIndex);
-}
-
-
-
 
 enum {
   descriptionURL_key,
@@ -90,28 +77,28 @@ enum {
 static char upnpDevice_key;
 
 
-int UpnpDevice::numProps(int aDomain)
+int UpnpDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain)+numProperties;
+  return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
 }
 
 
-const PropertyDescriptor *UpnpDevice::getPropertyDescriptor(int aPropIndex, int aDomain)
+PropertyDescriptorPtr UpnpDevice::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numProperties] = {
-    { "descriptionURL", apivalue_string, false, descriptionURL_key, &upnpDevice_key }, // custom UPnP property revealing the description URL
+  static const PropertyDescription properties[numProperties] = {
+    { "descriptionURL", apivalue_string, descriptionURL_key, OKEY(upnpDevice_key) }, // custom UPnP property revealing the description URL
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
 // access to all fields
-bool UpnpDevice::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool UpnpDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&upnpDevice_key) {
-    if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(upnpDevice_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
           // Description properties
         case descriptionURL_key:
           aPropValue->setStringValue(descriptionURL); return true;
@@ -123,7 +110,7 @@ bool UpnpDevice::accessField(bool aForWrite, ApiValuePtr aPropValue, const Prope
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

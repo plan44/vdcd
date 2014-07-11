@@ -31,7 +31,7 @@ using namespace std;
 
 namespace p44 {
 
-  /// single enOcean device channel
+  /// single EnOcean device channel
   class EnoceanRpsHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;
@@ -65,7 +65,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;
 
 
-  /// single enOcean button channel
+  /// single EnOcean button channel
   class EnoceanRpsButtonHandler : public EnoceanRpsHandler
   {
     typedef EnoceanRpsHandler inherited;
@@ -94,7 +94,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<EnoceanRpsButtonHandler> EnoceanRpsButtonHandlerPtr;
 
 
-  /// single enOcean window handle channel
+  /// single EnOcean window handle channel
   class EnoceanRpsWindowHandleHandler : public EnoceanRpsHandler
   {
     typedef EnoceanRpsHandler inherited;

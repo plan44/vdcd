@@ -34,12 +34,14 @@
 using namespace p44;
 
 
+/// A command line app for a Demo vdc host
 class DemoVdc : public CmdLineApp
 {
   typedef CmdLineApp inherited;
 
   // the device container
-  DeviceContainer deviceContainer;
+  // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
+  DeviceContainerPtr deviceContainer;
 
 public:
 
@@ -80,34 +82,34 @@ public:
     // - set DB dir
     const char *dbdir = DEFAULT_DBDIR;
     getStringOption("sqlitedir", dbdir);
-    deviceContainer.setPersistentDataDir(dbdir);
+    deviceContainer->setPersistentDataDir(dbdir);
     // - set dSUID mode
     int modernids = DEFAULT_USE_MODERN_DSIDS;
     getIntOption("modernids", modernids);
-    deviceContainer.setIdMode(modernids!=0);
+    deviceContainer->setIdMode(modernids!=0);
     // - set up vDC API
     int protobufapi = DEFAULT_USE_PROTOBUF_API;
     getIntOption("protobufapi", protobufapi);
     const char *vdsmport;
     if (protobufapi) {
-      deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+      deviceContainer->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
       vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
     }
     else {
-      deviceContainer.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+      deviceContainer->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
       vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
     }
     // set up server for vdSM to connect to
     getStringOption("vdsmport", vdsmport);
-    deviceContainer.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-    deviceContainer.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+    deviceContainer->vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+    deviceContainer->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
     // Now add device class(es)
     // - the demo device (dimmer value output to console as bar of hashes ######) class
-    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1, &deviceContainer, 1));
+    DemoDeviceContainerPtr demoDeviceContainer = DemoDeviceContainerPtr(new DemoDeviceContainer(1, deviceContainer.get(), 1));
     demoDeviceContainer->addClassToDeviceContainer();
     // - the UPnP skeleton device from the developer days 2013 hackaton
-    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1, &deviceContainer, 2));
+    UpnpDeviceContainerPtr upnpDeviceContainer = UpnpDeviceContainerPtr(new UpnpDeviceContainer(1, deviceContainer.get(), 2));
     upnpDeviceContainer->addClassToDeviceContainer();
     // now start running the mainloop
     return run();
@@ -116,7 +118,7 @@ public:
   virtual void initialize()
   {
     // - initialize the device container
-    deviceContainer.initialize(boost::bind(&DemoVdc::initialized, this, _1), false); // no factory reset
+    deviceContainer->initialize(boost::bind(&DemoVdc::initialized, this, _1), false); // no factory reset
   }
 
 
@@ -129,14 +131,14 @@ public:
     }
     else {
       // init ok, collect devices
-      deviceContainer.collectDevices(boost::bind(&DemoVdc::devicesCollected, this, _1), false, false); // no forced full scan (only if needed)
+      deviceContainer->collectDevices(boost::bind(&DemoVdc::devicesCollected, this, _1), false, false); // no forced full scan (only if needed)
     }
   }
 
   virtual void devicesCollected(ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
-      LOG(LOG_INFO, deviceContainer.description().c_str());
+      LOG(LOG_INFO, deviceContainer->description().c_str());
     }
     else {
       LOG(LOG_ERR, "Cannot collect devices - fatal error\n");

@@ -57,6 +57,10 @@ namespace p44 {
   class DeviceClassContainer;
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef std::vector<DevicePtr> DeviceVector;
+
+
+  /// This is the base class for a "class" (usually: type of hardware) of virtual devices.
+  /// In dS terminology, this object represents a vDC (virtual device connector).
   class DeviceClassContainer : public DsAddressable
   {
     typedef DsAddressable inherited;
@@ -107,7 +111,9 @@ namespace p44 {
     /// Instance number (to differentiate multiple device class containers of the same class)
 		/// @return instance index number
 		int getInstanceNumber() const;
-		
+
+    /// @return URL for Web-UI (for access from local LAN)
+    virtual string webuiURLString() { return deviceContainerP->webuiURLString(); /* by default, return vDC host's config URL */ };
 
     /// get a sufficiently unique identifier for this class container
     /// @return ID that identifies this container running on a specific hardware
@@ -147,7 +153,7 @@ namespace p44 {
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
-    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some enOcean devices)
+    /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     virtual void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck) { /* NOP in base class */ }
 
@@ -167,7 +173,7 @@ namespace p44 {
     ///   by other means than a scan/collect operation
     virtual bool addDevice(DevicePtr aDevice);
 
-    /// Remove device known no longer connected to the system (for example: explicitly unlearned enOcean switch)
+    /// Remove device known no longer connected to the system (for example: explicitly unlearned EnOcean switch)
     /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, all parameters stored for the device will be deleted. Note however that
     ///   the device is not disconnected (=unlearned) by this.
@@ -204,9 +210,11 @@ namespace p44 {
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // derive dSUID
     void deriveDsUid();

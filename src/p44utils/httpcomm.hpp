@@ -62,10 +62,9 @@ namespace p44 {
 
 
   /// callback for returning response data or reporting error
-  /// @param aHttpCommP the HttpComm object this callback comes from
   /// @param aResponse the response string
   /// @param aError an error object if an error occurred, empty pointer otherwise
-  typedef boost::function<void (HttpComm &aHttpComm, const string &aResponse, ErrorPtr aError)> HttpCommCB;
+  typedef boost::function<void (const string &aResponse, ErrorPtr aError)> HttpCommCB;
 
 
   /// wrapper for non-blocking http client communication
@@ -136,7 +135,7 @@ namespace p44 {
   protected:
     virtual const char *defaultContentType() { return "text/html"; };
 
-    virtual void requestThreadSignal(SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
+    virtual void requestThreadSignal(ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode);
 
   private:
     void requestThread(ChildThreadWrapper &aThread);

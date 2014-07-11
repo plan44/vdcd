@@ -55,6 +55,7 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    newDev->setFunctionDesc("single contact");
     // joker by default, we don't know what kind of contact this is
     newDev->setPrimaryGroup(group_black_joker);
     // create channel handler

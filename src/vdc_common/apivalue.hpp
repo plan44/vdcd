@@ -36,9 +36,9 @@ namespace p44 {
     apivalue_uint64,
     apivalue_double,
     apivalue_string, // std::string
+    apivalue_binary, // also std::string
     apivalue_object, // object containing multiple named ApiValues
     apivalue_array, // array of multiple ApiValues
-    apivalue_proxy, // not used in actual ApiValues, but reserved to describe properties
   } ApiValueType;
 
 
@@ -47,7 +47,11 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<ApiValue> ApiValuePtr;
 
-  /// wrapper around json-c / libjson0 object
+  /// Abstract base class for API value object. ApiValues shield the rest of the framework from API technology
+  /// (protobuf, JSON) specific representation of a structured value tree. Internal processing of
+  /// API requests are all based on ApiValue.
+  /// @note concrete subclasses like JsonApiValue and PbufApiValue contain the actual implementation of
+  ///   Api values in a way suitable for the API technology used.
   class ApiValue : public P44Obj
   {
   protected:
@@ -75,6 +79,10 @@ namespace p44 {
     /// @param type to convert object into
     /// @note existing data will be discarded (not converted)!
     virtual void setType(ApiValueType aType);
+
+    /// set API value to value of another API value
+    /// @param aApiValue to get value of
+    virtual void operator=(ApiValue &aApiValue) = 0;
 
     /// clear object to "empty" or "zero" value of its type
     /// @note does not change the type (unlike setNull)
@@ -132,11 +140,13 @@ namespace p44 {
     virtual int64_t int64Value() = 0;
     virtual double doubleValue() = 0;
     virtual bool boolValue() = 0;
+    virtual string binaryValue() = 0;
 
     virtual void setUint64Value(uint64_t aUint64) = 0;
     virtual void setInt64Value(int64_t aInt64) = 0;
     virtual void setDoubleValue(double aDouble) = 0;
     virtual void setBoolValue(bool aBool) = 0;
+    virtual void setBinaryValue(const string &aBinary) = 0;
 
     /// @}
 
@@ -150,8 +160,10 @@ namespace p44 {
     ApiValuePtr newBool(bool aBool);
     ApiValuePtr newString(const char *aString);
     ApiValuePtr newString(const string &aString);
+    ApiValuePtr newBinary(const string &aBinary);
     ApiValuePtr newObject();
     ApiValuePtr newArray();
+    ApiValuePtr newNull();
 
     /// @}
 
@@ -181,7 +193,6 @@ namespace p44 {
     void setInt8Value(int8_t aInt8);
     void setInt16Value(int16_t aInt16);
     void setInt32Value(int32_t aInt32);
-
 
 
     /// utilities

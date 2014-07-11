@@ -40,7 +40,8 @@
 using namespace p44;
 
 
-class P44bridged : public CmdLineApp
+/// Main program for plan44.ch P44-DSB-DEH in form of the "vdcd" daemon)
+class P44Vdcd : public CmdLineApp
 {
   typedef CmdLineApp inherited;
 
@@ -74,7 +75,8 @@ class P44bridged : public CmdLineApp
   bool selfTesting;
 
   // the device container
-  P44VdcHost p44VdcHost;
+  // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
+  P44VdcHostPtr p44VdcHost;
 
   // indicators and button
   IndicatorOutputPtr redLED;
@@ -86,7 +88,7 @@ class P44bridged : public CmdLineApp
 
 public:
 
-  P44bridged() :
+  P44Vdcd() :
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
@@ -153,7 +155,7 @@ public:
           break;
       }
       if (timer!=Never) {
-        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::endTempStatus, this), timer);
+        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
       }
     }
   }
@@ -232,12 +234,14 @@ public:
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
-      { 'b', "enocean",       true,  "bridge;enOcean modem serial port device or proxy host[:port]" },
-      { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to enOcean module reset" },
+      { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
+      { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
+      { 0  , "announcepause", true,  "milliseconds;pause between device announcements at startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
@@ -270,6 +274,9 @@ public:
       showUsage();
       terminateApp(EXIT_SUCCESS);
     }
+
+    // create the root object
+    p44VdcHost = P44VdcHostPtr(new P44VdcHost);
 
     // test or operation
     selfTesting = getOption("selftest");
@@ -320,7 +327,7 @@ public:
       // - set DB dir
       const char *dbdir = DEFAULT_DBDIR;
       getStringOption("sqlitedir", dbdir);
-      p44VdcHost.setPersistentDataDir(dbdir);
+      p44VdcHost->setPersistentDataDir(dbdir);
 
       // - set dSUID mode
       int modernids = DEFAULT_USE_MODERN_DSUIDS;
@@ -340,32 +347,38 @@ public:
         externalDsUid->setGTIN(gcp, itemref, part);
         externalDsUid->setSerial(serial);
       }
-      p44VdcHost.setIdMode(modernids!=0, externalDsUid);
+      p44VdcHost->setIdMode(modernids!=0, externalDsUid);
+
+      // - set announce pause
+      int announcePause;
+      if (getIntOption("announcepause", announcePause)){
+        p44VdcHost->setAnnouncePause(announcePause*MilliSecond);
+      }
 
       // - set API
       int protobufapi = DEFAULT_USE_PROTOBUF_API;
       getIntOption("protobufapi", protobufapi);
       const char *vdsmport;
       if (protobufapi) {
-        p44VdcHost.vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+        p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
         vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
       }
       else {
-        p44VdcHost.vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+        p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
         vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
       }
       // set up server for vdSM to connect to
       getStringOption("vdsmport", vdsmport);
-      p44VdcHost.vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
-      p44VdcHost.vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+      p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+      p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
 
       // Create Web configuration JSON API server
       const char *configApiPort = getOption("cfgapiport");
       if (configApiPort) {
-        p44VdcHost.configApiServer.setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-        p44VdcHost.configApiServer.setAllowNonlocalConnections(getOption("cfgapinonlocal"));
-        p44VdcHost.startConfigApi();
+        p44VdcHost->configApiServer->setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
+        p44VdcHost->configApiServer->setAllowNonlocalConnections(getOption("cfgapinonlocal"));
+        p44VdcHost->startConfigApi();
       }
 
       // Create static container structure
@@ -374,32 +387,32 @@ public:
       if (daliname) {
         int sec = 0;
         getIntOption("daliportidle", sec);
-        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, &p44VdcHost, 1)); // Tag 1 = DALI
-        daliDeviceContainer->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+        DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
+        daliDeviceContainer->daliComm->setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
         daliDeviceContainer->addClassToDeviceContainer();
       }
-      // - Add enOcean devices class if enOcean modem serialport/host is specified
+      // - Add EnOcean devices class if EnOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       const char *enoceanresetpin = getOption("enoceanreset");
       if (enoceanname) {
-        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, &p44VdcHost, 2)); // Tag 2 = enOcean
+        EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, p44VdcHost.get(), 2)); // Tag 2 = EnOcean
         enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
       if (getOption("huelights")) {
-        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, &p44VdcHost, 3)); // Tag 3 = hue
+        HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
         hueDeviceContainer->addClassToDeviceContainer();
       }
-      // - Add static devices if we have collected any config from the command line
-      if (staticDeviceConfigs.size()>0) {
-        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, &p44VdcHost, 4)); // Tag 4 = static
+      // - Add static devices if we explictly want it or have collected any config from the command line
+      if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
+        StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
 
       // install activity monitor
-      p44VdcHost.setActivityMonitor(boost::bind(&P44bridged::activitySignal, this));
+      p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
     }
     // app now ready to run
     return run();
@@ -414,7 +427,7 @@ public:
     // back to normal...
     stopLearning(false);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::showAppStatus, this), 2*Second);
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isOK(aError)) {
       if (aLearnIn) {
@@ -434,7 +447,7 @@ public:
 
   void stopLearning(bool aFromTimeout)
   {
-    p44VdcHost.stopLearning();
+    p44VdcHost->stopLearning();
     MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
     setAppStatus(status_ok);
     if (aFromTimeout) {
@@ -466,12 +479,12 @@ public:
         setAppStatus(status_error);
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(2) in 2 seconds\n");
         button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 2), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 2), 2*Second);
         return true;
       }
     }
@@ -482,17 +495,17 @@ public:
         setAppStatus(status_busy);
         LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(3) in 500 mS\n");
         button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost.setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 3), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 3), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
         if (!learningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::stopLearning, this, true), LEARN_TIMEOUT);
-          p44VdcHost.startLearning(boost::bind(&P44bridged::deviceLearnHandler, this, _1, _2));
+          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
+          p44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
         }
         else {
           // stop
@@ -516,7 +529,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 42), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 42), 2*Second);
         return true;
       }
       else {
@@ -526,7 +539,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOn();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44bridged::terminateApp, this, 0), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 0), 500*MilliSecond);
         return true;
       }
     }
@@ -557,19 +570,19 @@ public:
     if (selfTesting) {
       // self testing
       // - initialize the device container
-      p44VdcHost.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
     else if (factoryResetWait) {
       // button held during startup, check for factory reset
       // - connect special button hander
-      button->setButtonHandler(boost::bind(&P44bridged::fromStartButtonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44Vdcd::fromStartButtonHandler, this, _1, _2, _3), true, 1*Second);
     }
     else {
       // normal init
       // - connect button
-      button->setButtonHandler(boost::bind(&P44bridged::buttonHandler, this, _2, _3, _4), true, 1*Second);
+      button->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
       // - initialize the device container
-      p44VdcHost.initialize(boost::bind(&P44bridged::initialized, this, _1), false); // no factory reset
+      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
   }
 
@@ -581,7 +594,7 @@ public:
       // self test mode
       if (Error::isOK(aError)) {
         // start self testing (which might do some collecting if needed for testing)
-        p44VdcHost.selfTest(boost::bind(&P44bridged::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
+        p44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
       }
       else {
         // - init already unsuccessful, consider test failed, call test end routine directly
@@ -596,7 +609,7 @@ public:
     else {
       // Initialized ok and not testing
       // - start running normally
-      p44VdcHost.startRunning();
+      p44VdcHost->startRunning();
       // - collect devices
       collectDevices(false);
     }
@@ -614,7 +627,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    p44VdcHost.collectDevices(boost::bind(&P44bridged::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
+    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
   }
 
 
@@ -622,7 +635,7 @@ public:
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
-      DBGLOG(LOG_INFO, p44VdcHost.description().c_str());
+      DBGLOG(LOG_INFO, p44VdcHost->description().c_str());
     }
     else
       setAppStatus(status_error);
@@ -639,7 +652,7 @@ int main(int argc, char **argv)
   // create the mainloop
   SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
-  static P44bridged application;
+  static P44Vdcd application;
   // pass control
   return application.main(argc, argv);
 }

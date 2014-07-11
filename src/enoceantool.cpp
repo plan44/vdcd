@@ -33,7 +33,7 @@ using namespace p44;
 class EnoceanTool : public Application
 {
 
-  EnoceanComm enoceanComm; // enOcean communication
+  EnoceanComm enoceanComm; // EnOcean communication
 
   uint32_t destinationAddr = 0xFFFFFFFF;
 
@@ -52,9 +52,9 @@ public:
   {
     fprintf(stderr, "usage:\n");
     fprintf(stderr, "  %s [options]\n", name);
-    fprintf(stderr, "    -b enoceanpath : enOcean serial port device or enocean proxy ipaddr[:port]\n");
-    fprintf(stderr, "    -d destination  : enOcean destination hex address (default: 0xFFFFFFFF = broadcast)\n");
-    fprintf(stderr, "    -4 D3D2D1D0     : send enOcean 4BS packet\n");
+    fprintf(stderr, "    -b enoceanpath : EnOcean serial port device or enocean proxy ipaddr[:port]\n");
+    fprintf(stderr, "    -d destination  : EnOcean destination hex address (default: 0xFFFFFFFF = broadcast)\n");
+    fprintf(stderr, "    -4 D3D2D1D0     : send EnOcean 4BS packet\n");
     fprintf(stderr, "    -l loglevel     : set loglevel (default = %d)\n", DEFAULT_LOGLEVEL);
   };
 

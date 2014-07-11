@@ -31,20 +31,28 @@ using namespace std;
 namespace p44 {
 
   class Device;
+  typedef boost::intrusive_ptr<Device> DevicePtr;
+
+  class ChannelBehaviour;
+  typedef boost::intrusive_ptr<ChannelBehaviour> ChannelBehaviourPtr;
 
   typedef vector<DsBehaviourPtr> BehaviourVector;
 
-  typedef boost::intrusive_ptr<Device> DevicePtr;
-  /// base class representing a virtual digitalSTROM device
-  /// for each type of subsystem (enOcean, DALI, ...) this class is subclassed to implement
-  /// the device class' specifics.
+  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
+
+  /// base class representing a virtual digitalSTROM device.
+  /// For each type of subsystem (EnOcean, DALI, ...) this class is subclassed to implement
+  /// the device class' specifics, in particular the interface with the hardware.
   class Device : public DsAddressable
   {
     typedef DsAddressable inherited;
 
     friend class DeviceContainer;
+    friend class DeviceClassCollector;
     friend class DsBehaviour;
-    
+    friend class DsScene;
+    friend class SceneChannels;
+
   protected:
 
     /// the class container
@@ -54,8 +62,8 @@ namespace p44 {
     /// @{
     BehaviourVector buttons; ///< buttons and switches (user interaction)
     BehaviourVector binaryInputs; ///< binary inputs (not for user interaction)
-    BehaviourVector outputs; ///< outputs (on/off as well as continuous ones like dimmer, positionals etc.)
     BehaviourVector sensors; ///< sensors (measurements)
+    OutputBehaviourPtr output; ///< the output (if any)
     /// @}
 
     /// device global parameters (for all behaviours), in particular the scene table
@@ -65,14 +73,25 @@ namespace p44 {
 
     // volatile r/w properties
     bool progMode; ///< if set, device is in programming mode
-    bool localPriority; ///< if set device is in local priority mode
     DsScenePtr previousState; ///< a pseudo scene which holds the device state before the last applyScene() call, used to do undoScene()
 
     // variables set by concrete devices (=hardware dependent)
     DsGroup primaryGroup; ///< basic color of the device (can be black)
 
     // volatile internal state
-    SceneNo lastDimSceneNo; ///< most recently used dimming scene (used when T1234_CONT is received)
+    long dimTimeoutTicket; ///< for timing out dimming operations (autostop when no INC/DEC is received)
+    DsDimMode currentDimMode; ///< current dimming in progress
+    DsChannelType currentDimChannel; ///< currently dimmed channel (if dimming in progress)
+    long dimHandlerTicket; ///< for standard dimming
+    bool isDimming; ///< if set, dimming is in progress
+
+    // hardware access serializer/pacer
+    DoneCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending
+    bool applyInProgress; ///< set when applying values is in progress
+    int missedApplyAttempts; ///< number of apply attempts that could not be executed. If>0, completing next apply will trigger a re-apply to finalize values
+    DoneCB updatedOrCachedCB; ///< will be called when current values are either read from hardware, or new values have been requested for applying
+    bool updateInProgress; ///< set when updating channel values from hardware is in progress
+    long serializerWatchdogTicket; ///< watchdog terminating non-responding hardware requests
 
   public:
     Device(DeviceClassContainer *aClassContainerP);
@@ -99,20 +118,16 @@ namespace p44 {
 
 
 
-    /// @name interfaces for actual device hardware (or simulation)
+    /// @name general device level methods
     /// @{
-
-    /// @return true if device is in local priority mode
-    bool hasLocalPriority() { return localPriority; };
 
     /// set basic device color
     /// @param aColorGroup color group number
     void setPrimaryGroup(DsGroup aColorGroup);
 
-    /// set group membership
-    /// @param aColorGroup color group number to set or remove
-    /// @param aIsMember true to make device member of this group
-    void setGroupMembership(DsGroup aColorGroup, bool aIsMember);
+    /// get basic device color group
+    /// @return color group number
+    DsGroup getPrimaryGroup() { return primaryGroup; };
 
     /// report that device has vanished (disconnected without being told so via vDC API)
     /// This will call disconnect() on the device, and remove it from all vDC container lists
@@ -124,14 +139,6 @@ namespace p44 {
     ///   still hold a DevicePtr to it
     void hasVanished(bool aForgetParams);
 
-    /// @}
-
-
-    /// check group membership
-    /// @param aColorGroup color group number to check
-    /// @return true if device is member of this group
-    bool isMember(DsGroup aColorGroup);
-
     /// set user assignable name
     /// @param new name of the addressable entity
     virtual void setName(const string &aName);
@@ -139,6 +146,14 @@ namespace p44 {
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
 
+    /// add a behaviour and set its index
+    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
+    ///   array and given the correct index value.
+    void addBehaviour(DsBehaviourPtr aBehaviour);
+
+    /// get scenes
+    /// @return NULL if device has no scenes, scene device settings otherwise 
+    SceneDeviceSettingsPtr getScenes() { return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings); };
 
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
@@ -151,10 +166,10 @@ namespace p44 {
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget();
 
+    /// @}
 
 
     /// @name API implementation
-
     /// @{
 
     /// called to let device handle device-level methods
@@ -189,43 +204,68 @@ namespace p44 {
     /// @note only updates the scene if aScene is marked dirty
     void updateScene(DsScenePtr aScene);
 
-    /// identify the device to the user
-    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
-    ///   this can be anything.
-    virtual void identifyToUser();
-
-    /// @}
-
-
-    /// @name interaction with subclasses, actually representing physical I/O
-    /// @{
-
-    /// initializes the physical device for being used
-    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
-    /// @note this is called before interaction with dS system starts
-    /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
-
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour) { /* NOP */ };
-
-
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
+    /// @note this method must not directly update the hardware, but just prepare channel values such that these can
+    ///   be applied using requestApplyingChannels().
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
     /// @note base class by default forwards the control value to all of its output behaviours.
     virtual void processControlValue(const string &aName, double aValue);
 
+    /// @}
 
-    typedef boost::function<void (DevicePtr aDevice, bool aDisconnected)> DisconnectCB;
+
+    /// @name high level hardware access
+    /// @note these methods provide a level of abstraction for accessing hardware (especially output functionality)
+    ///   by providing a generic base implementation for functionality. Only in very specialized cases, subclasses may
+    ///   still want to derive these methods to provide device hardware specific optimization.
+    ///   However, for normal devices it is recommended NOT to derive these methods, but only the low level access
+    ///   methods.
+    /// @{
+
+    /// request applying channels changes now, but actual execution might get postponed if hardware is laggy
+    /// @param aAppliedOrSupersededCB will called when values are either applied, or applying has been superseded by
+    ///   even newer values set requested to be applied.
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    /// @note this internally calls applyChannelValues() to perform actual work, but serializes the behaviour towards the caller
+    ///   such that aAppliedOrSupersededCB of the previous request is always called BEFORE initiating subsequent
+    ///   channel updates in the hardware. It also may discard requests (but still calling aAppliedOrSupersededCB) to
+    ///   avoid stacking up delayed requests.
+    void requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming);
+
+    /// request that channel values are updated by reading them back from the device's hardware
+    /// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
+    ///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    void requestUpdatingChannels(DoneCB aUpdatedOrCachedCB);
+
+    /// start or stop dimming channel of this device. Usually implemented in device specific manner in subclasses.
+    /// @param aChannel the channelType to start or stop dimming for
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @note unlike the vDC API "dimChannel" command, which must be repeated for dimming operations >5sec, this
+    ///   method MUST NOT terminate dimming automatically except when reaching the minimum or maximum level
+    ///   available for the device. The 5 second timeout is implemented at the device level and causes calling
+    ///   dimChannel() to be called with aDimMode=0 when timeout happens.
+    /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
+    ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
+    ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
+    virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
+
+    /// identify the device to the user
+    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
+    ///   this can be anything.
+    /// @note base class delegates this to the output behaviour (if any)
+    virtual void identifyToUser();
+    
+
+    typedef boost::function<void (bool aDisconnected)> DisconnectCB;
 
     /// disconnect device. If presence is represented by data stored in the vDC rather than
     /// detection of real physical presence on a bus, this call must clear the data that marks
-    /// the device as connected to this vDC (such as a learned-in enOcean button).
+    /// the device as connected to this vDC (such as a learned-in EnOcean button).
     /// For devices where the vDC can be *absolutely certain* that they are still connected
     /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
     /// return false.
@@ -240,23 +280,73 @@ namespace p44 {
     /// @}
 
 
+    /// @name channels
+    /// @{
+
+    /// @return number of output channels in this device
+    int numChannels();
+
+    /// get channel by index
+    /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
+    /// @param aPendingApplyOnly if true, only channels with pending values to be applied are returned
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly = false);
+
+    /// get output index by channelType
+    /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
+    /// @return NULL for unknown channel
+    ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly = false);
+
+    /// @}
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description();
 
   protected:
 
-    // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual PropertyContainerPtr getContainer(const PropertyDescriptor &aPropertyDescriptor, int &aDomain, int aIndex = 0);
-    virtual ErrorPtr writtenProperty(const PropertyDescriptor &aPropertyDescriptor, int aDomain, int aIndex, PropertyContainerPtr aContainer);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
 
-    /// add a behaviour and set its index
-    /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
-    ///   array and given the correct index value
-    void addBehaviour(DsBehaviourPtr aBehaviour);
+    /// @name low level hardware access
+    /// @note actual hardware specific implementation is in derived methods in subclasses.
+    ///   Base class uses these methods to access the hardware in a generic way.
+    ///   These methods should never be called directly!
+    /// @note base class implementations are NOP
+    /// @{
+
+    /// initializes the physical device for being used
+    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
+    /// @note this is called before interaction with dS system starts
+    /// @note implementation should call inherited when complete, so superclasses could chain further activity
+    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
+
+    /// apply all pending channel value updates to the device's hardware
+    /// @param aDoneCB will called when values are actually applied, or hardware reports an error/timeout
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @note this method will NOT be called again until aCompletedCB is called, even if that takes a long time.
+    ///   Device::requestApplyingChannels() provides an implementation that prevent calling applyChannelValues too early,
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming) { if (aDoneCB) aDoneCB(); /* just call completed in base class */ };
+
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aDoneCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* assume caches up-to-date */ };
+    
+    /// @}
+
+
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+    virtual ErrorPtr writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr aPropertyDescriptor, int aDomain, PropertyContainerPtr aContainer);
 
     /// set local priority of the device if specified scene does not have dontCare set.
     /// @param aSceneNo the scene to check don't care for
@@ -271,8 +361,19 @@ namespace p44 {
 
     DsGroupMask behaviourGroups();
 
+    void dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter);
+    void dimAutostopHandler(DsChannelType aChannel);
+    void dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow);
+    void dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNextDimAt);
     void outputSceneValueSaved(DsScenePtr aScene);
     void outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene);
+    void sceneValuesApplied(DsScenePtr aScene);
+    void sceneActionsComplete(DsScenePtr aScene);
+
+    void applyingChannelsComplete();
+    void updatingChannelsComplete();
+    void serializerWatchdog();
+    bool checkForReapply();
 
   };
 

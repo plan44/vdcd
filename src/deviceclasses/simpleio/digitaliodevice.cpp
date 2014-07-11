@@ -30,7 +30,7 @@ using namespace p44;
 
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  Device((DeviceClassContainer *)aClassContainerP)
+  StaticDevice((DeviceClassContainer *)aClassContainerP)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string ioname = aDeviceConfig;
@@ -53,10 +53,9 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   // basically act as black device so we can configure colors
   primaryGroup = group_black_joker;
   if (output) {
-    // Digital output as on/off switch
+    // Digital output as light on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // Simulate light device
-    // - create one output
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
     addBehaviour(l);
@@ -64,7 +63,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   else {
     // Digital input as button
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
-    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _2, _3), true);
+    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _1, _2), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
@@ -83,17 +82,16 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-
-void DigitalIODevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  if (aOutputBehaviour.getIndex()==0 && indicatorOutput) {
-    indicatorOutput->set(aOutputBehaviour.valueForHardware()>0);
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+  // light device
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    indicatorOutput->set(lightBehaviour->brightnessForHardware());
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
-
 
 
 void DigitalIODevice::deriveDsUid()
@@ -113,10 +111,10 @@ void DigitalIODevice::deriveDsUid()
 
 string DigitalIODevice::modelName()
 {
-  if (buttonInput)
-    return string_format("Digital Input @ %s", buttonInput->getName());
-  else if (indicatorOutput)
+  if (indicatorOutput)
     return string_format("Digital Output @ %s", indicatorOutput->getName());
+  else if (buttonInput)
+    return string_format("Digital Input @ %s", buttonInput->getName());
   return "Digital I/O";
 }
 

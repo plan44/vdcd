@@ -26,6 +26,7 @@ using namespace p44;
 BinaryInputBehaviour::BinaryInputBehaviour(Device &aDevice) :
   inherited(aDevice),
   // persistent settings
+  binInputGroup(group_black_joker),
   configuredInputType(binInpType_none),
   minPushInterval(200*MilliSecond),
   changesOnlyInterval(15*Minute), // report unchanged state updates max once every 15 minutes
@@ -36,8 +37,6 @@ BinaryInputBehaviour::BinaryInputBehaviour(Device &aDevice) :
 {
   // set dummy default hardware default configuration
   setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Second);
-  // default to joker
-  setGroup(group_black_joker);
 }
 
 
@@ -66,8 +65,9 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
     currentState = aNewState;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value
-      device.pushProperty("binaryInputStates", VDC_API_DOMAIN, (int)index);
-      lastPush = now;
+      if (pushBehaviourState()) {
+        lastPush = now;
+      }
     }
   }
 }
@@ -85,7 +85,7 @@ const char *BinaryInputBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numFields = 4;
 
 size_t BinaryInputBehaviour::numFieldDefs()
 {
@@ -96,6 +96,7 @@ size_t BinaryInputBehaviour::numFieldDefs()
 const FieldDefinition *BinaryInputBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
+    { "dsGroup", SQLITE_INTEGER }, // Note: don't call a SQL field "group"!
     { "minPushInterval", SQLITE_INTEGER },
     { "changesOnlyInterval", SQLITE_INTEGER },
     { "configuredInputType", SQLITE_INTEGER },
@@ -114,6 +115,7 @@ void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
+  binInputGroup = (DsGroup)aRow->get<int>(aIndex++);
   minPushInterval = aRow->get<long long int>(aIndex++);
   changesOnlyInterval = aRow->get<long long int>(aIndex++);
   configuredInputType = (DsBinaryInputType)aRow->get<int>(aIndex++);
@@ -125,6 +127,7 @@ void BinaryInputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
   // bind the fields
+  aStatement.bind(aIndex++, binInputGroup);
   aStatement.bind(aIndex++, (long long int)minPushInterval);
   aStatement.bind(aIndex++, (long long int)changesOnlyInterval);
   aStatement.bind(aIndex++, (long long int)configuredInputType);
@@ -148,21 +151,22 @@ enum {
 
 
 int BinaryInputBehaviour::numDescProps() { return numDescProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getDescDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getDescDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numDescProperties] = {
-    { "hardwareSensorFunction", apivalue_uint64, false, hardwareInputType_key+descriptions_key_offset, &binaryInput_key },
-    { "inputUsage", apivalue_uint64, false, inputUsage_key+descriptions_key_offset, &binaryInput_key },
-    { "inputType", apivalue_bool, false, reportsChanges_key+descriptions_key_offset, &binaryInput_key },
-    { "updateInterval", apivalue_double, false, updateInterval_key+descriptions_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numDescProperties] = {
+    { "sensorFunction", apivalue_uint64, hardwareInputType_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "inputUsage", apivalue_uint64, inputUsage_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "inputType", apivalue_bool, reportsChanges_key+descriptions_key_offset, OKEY(binaryInput_key) },
+    { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
 // settings properties
 
 enum {
+  group_key,
   minPushInterval_key,
   changesOnlyInterval_key,
   configuredInputType_key,
@@ -171,14 +175,15 @@ enum {
 
 
 int BinaryInputBehaviour::numSettingsProps() { return numSettingsProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getSettingsDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numSettingsProperties] = {
-    { "minPushInterval", apivalue_double, false, minPushInterval_key+settings_key_offset, &binaryInput_key },
-    { "changesOnlyInterval", apivalue_double, false, changesOnlyInterval_key+settings_key_offset, &binaryInput_key },
-    { "sensorFunction", apivalue_uint64, false, configuredInputType_key+settings_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "group", apivalue_uint64, group_key+settings_key_offset, OKEY(binaryInput_key) },
+    { "minPushInterval", apivalue_double, minPushInterval_key+settings_key_offset, OKEY(binaryInput_key) },
+    { "changesOnlyInterval", apivalue_double, changesOnlyInterval_key+settings_key_offset, OKEY(binaryInput_key) },
+    { "sensorFunction", apivalue_uint64, configuredInputType_key+settings_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 // state properties
@@ -191,23 +196,23 @@ enum {
 
 
 int BinaryInputBehaviour::numStateProps() { return numStateProperties; }
-const PropertyDescriptor *BinaryInputBehaviour::getStateDescriptor(int aPropIndex)
+const PropertyDescriptorPtr BinaryInputBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescriptor properties[numStateProperties] = {
-    { "value", apivalue_bool, false, value_key+states_key_offset, &binaryInput_key },
-    { "age", apivalue_double, false, age_key+states_key_offset, &binaryInput_key },
+  static const PropertyDescription properties[numStateProperties] = {
+    { "value", apivalue_bool, value_key+states_key_offset, OKEY(binaryInput_key) },
+    { "age", apivalue_double, age_key+states_key_offset, OKEY(binaryInput_key) },
   };
-  return &properties[aPropIndex];
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
 
 
 // access to all fields
-bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex)
+bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
-  if (aPropertyDescriptor.objectKey==&binaryInput_key) {
-    if (!aForWrite) {
+  if (aPropertyDescriptor->hasObjectKey(binaryInput_key)) {
+    if (aMode==access_read) {
       // read properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Description properties
         case hardwareInputType_key+descriptions_key_offset: // aka "hardwareSensorFunction"
           aPropValue->setUint8Value(hardwareInputType);
@@ -222,6 +227,9 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
           aPropValue->setDoubleValue((double)updateInterval/Second);
           return true;
         // Settings properties
+        case group_key+settings_key_offset:
+          aPropValue->setUint16Value(binInputGroup);
+          return true;
         case minPushInterval_key+settings_key_offset:
           aPropValue->setDoubleValue((double)minPushInterval/Second);
           return true;
@@ -250,8 +258,12 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
     }
     else {
       // write properties
-      switch (aPropertyDescriptor.accessKey) {
+      switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
+        case group_key+settings_key_offset:
+          binInputGroup = (DsGroup)aPropValue->int32Value();
+          markDirty();
+          return true;
         case minPushInterval_key+settings_key_offset:
           minPushInterval = aPropValue->doubleValue()*Second;
           markDirty();
@@ -268,7 +280,7 @@ bool BinaryInputBehaviour::accessField(bool aForWrite, ApiValuePtr aPropValue, c
     }
   }
   // not my field, let base class handle it
-  return inherited::accessField(aForWrite, aPropValue, aPropertyDescriptor, aIndex);
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 

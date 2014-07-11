@@ -52,19 +52,21 @@ namespace p44 {
   };
 
 
+
   class SerialOperation;
   class SerialOperationQueue;
   class SerialOperationSendAndReceive;
 
+  typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
+
   /// SerialOperation completion callback
-  typedef boost::function<void (SerialOperation &aSerialOperation, OperationQueue *aQueueP, ErrorPtr aError)> SerialOperationFinalizeCB;
+  typedef boost::function<void (SerialOperationPtr aSerialOperation, OperationQueuePtr aQueue, ErrorPtr aError)> SerialOperationFinalizeCB;
 
   /// SerialOperation transmitter
   typedef boost::function<size_t (size_t aNumBytes, const uint8_t *aBytes)> SerialOperationTransmitter;
 
 
   /// Serial operation
-  typedef boost::intrusive_ptr<SerialOperation> SerialOperationPtr;
   class SerialOperation : public Operation
   {
     friend class SerialOperationSendAndReceive;
@@ -89,6 +91,7 @@ namespace p44 {
   };
 
 
+
   /// Send operation
   class SerialOperationSend : public SerialOperation
   {
@@ -110,6 +113,7 @@ namespace p44 {
     virtual bool initiate();
   };
   typedef boost::intrusive_ptr<SerialOperationSend> SerialOperationSendPtr;
+
 
 
   /// receive operation
@@ -136,6 +140,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<SerialOperationReceive> SerialOperationReceivePtr;
 
 
+
   /// send operation which automatically inserts a receive operation after completion
   class SerialOperationSendAndReceive : public SerialOperationSend
   {
@@ -144,6 +149,9 @@ namespace p44 {
     size_t expectedBytes;
 
   public:
+
+    bool answersInSequence;
+    MLMicroSeconds receiveTimeoout;
 
     SerialOperationSendAndReceive(size_t aNumBytes, uint8_t *aBytes, size_t aExpectedBytes, SerialOperationFinalizeCB aCallback);
 
@@ -165,7 +173,7 @@ namespace p44 {
 	public:
 
     /// the serial communication channel
-    SerialComm serialComm;
+    SerialCommPtr serialComm;
 
     /// create operation queue linked into specified Synchronous IO mainloop
     SerialOperationQueue(SyncIOMainLoop &aMainLoop);
@@ -188,7 +196,7 @@ namespace p44 {
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
     /// FdComm handler
-    void receiveHandler(FdComm *aFdCommP, ErrorPtr aError);
+    void receiveHandler(ErrorPtr aError);
 
     /// standard transmitter
     size_t standardTransmitter(size_t aNumBytes, const uint8_t *aBytes);

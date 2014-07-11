@@ -101,7 +101,15 @@ namespace p44 {
   ///   (such that variable passed can be initialized with the default port to use beforehand)
   void splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNumber);
 
+  /// hex string to binary string conversion
+  /// @param aHexString string in hex notation
+  /// @return binary string
+  string hexToBinaryString(const char *aHexString);
 
+  /// hex string to binary string conversion
+  /// @param aBinaryString binary string
+  /// @return hex string
+  string binaryToHexString(const string &aBinaryString);
 
 } // namespace p44
 

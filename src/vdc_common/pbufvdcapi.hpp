@@ -50,6 +50,7 @@ namespace p44 {
   typedef map<string, PbufApiValuePtr> ApiValueFieldMap;
   typedef vector<PbufApiValuePtr> ApiValueArray;
 
+  /// Protocol buffer specific implementation of ApiValue
   class PbufApiValue : public ApiValue
   {
     typedef ApiValue inherited;
@@ -62,7 +63,7 @@ namespace p44 {
       uint64_t uint64Val;
       int64_t int64Val;
       double doubleVal;
-      string *stringP;
+      string *stringP; // for strings and binary values
       ApiValueFieldMap *objectMapP;
       ApiValueArray *arrayVectorP;
     } objectValue;
@@ -77,6 +78,7 @@ namespace p44 {
     virtual ApiValuePtr newValue(ApiValueType aObjectType);
 
     virtual void clear();
+    virtual void operator=(ApiValue &aApiValue);
 
     virtual void add(const string &aKey, ApiValuePtr aObj);
     virtual ApiValuePtr get(const string &aKey);
@@ -92,12 +94,14 @@ namespace p44 {
     virtual int64_t int64Value();
     virtual double doubleValue();
     virtual bool boolValue();
+    virtual string binaryValue();
     virtual string stringValue();
 
     virtual void setUint64Value(uint64_t aUint64);
     virtual void setInt64Value(int64_t aInt64);
     virtual void setDoubleValue(double aDouble);
     virtual void setBoolValue(bool aBool);
+    virtual void setBinaryValue(const string &aString);
     virtual bool setStringValue(const string &aString);
     virtual void setNull();
 
@@ -111,18 +115,16 @@ namespace p44 {
     /// add specified field of the protobuf message as a field into this ApiValue (which will be made type object if not already so)
     /// @param aMessage the protobuf-c message to extract the field from
     /// @param aMessageFieldName the name of the protobuf-c message field
-    /// @param aObjectFieldName The name of the field in the ApiValue object. if NULL, aMessageFieldName will be used.
-    void addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName = NULL);
+    void addObjectFieldFromMessage(const ProtobufCMessage &aMessage, const char* aFieldName);
 
     /// put all values in this ApiValue into name-matching fields of the passed protobuf message
-    /// @param aMessage the protobuf-c message to put the fields into
+    /// @param aFieldName the protobuf-c message to put the fields into
     void putObjectIntoMessageFields(ProtobufCMessage &aMessage);
 
     /// put specified field of this ApiValue (must be of type object) into the protobuf message as a field
     /// @param aMessage the protobuf-c message to put the the field into
-    /// @param aMessageFieldName the name of the protobuf-c message field
-    /// @param aObjectFieldName The name of the field in the ApiValue object. if NULL, aMessageFieldName will be used.
-    void putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aMessageFieldName, const char* aObjectFieldName = NULL);
+    /// @param aFieldName the name of the protobuf-c message field
+    void putObjectFieldIntoMessage(ProtobufCMessage &aMessage, const char* aFieldName);
 
 
     /// extract a single field from a protobuf message into this value
@@ -133,7 +135,7 @@ namespace p44 {
     /// extract a single field from a protobuf message into this value
     /// @param aFieldDescriptor the protobuf-c field descriptor for this field
     /// @param aMessage the protobuf-c message to put the field value into
-    void putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage, const char *aBaseName);
+    void putValueIntoMessageField(const ProtobufCFieldDescriptor &aFieldDescriptor, const ProtobufCMessage &aMessage);
 
     /// @}
 
@@ -143,15 +145,14 @@ namespace p44 {
     bool allocateIf(ApiValueType aIsType);
 
     void setValueFromField(const ProtobufCFieldDescriptor &aFieldDescriptor, const void *aData, size_t aIndex, ssize_t aArraySize);
-    void putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize, const char *aBaseName);
+    void putValueIntoField(const ProtobufCFieldDescriptor &aFieldDescriptor, void *aData, size_t aIndex, ssize_t aArraySize);
+
+    void addKeyValFromPropertyElementField(const Vdcapi__PropertyElement *aPropertyElementP);
+    void storeKeyValIntoPropertyElementField(string aKey, Vdcapi__PropertyElement *&aPropertyElementP);
+
 
     void getValueFromPropVal(Vdcapi__PropertyValue &aPropVal);
     void putValueIntoPropVal(Vdcapi__PropertyValue &aPropVal);
-
-    void getValueFromProp(Vdcapi__Property &aProp, const char *&aBaseName);
-    Vdcapi__PropertyElement *propElementFromValue(const char *aName);
-    void putValueIntoProp(Vdcapi__Property &aProp, const char *aBaseName);
-
 
     size_t numObjectFields();
 
@@ -172,7 +173,7 @@ namespace p44 {
   };
 
 
-
+  /// Protocol buffer specific implementation of VdcApiRequest
   class VdcPbufApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -182,7 +183,6 @@ namespace p44 {
     uint32_t reqId;
     VdcPbufApiConnectionPtr pbufConnection;
     Vdcapi__Type responseType; ///< which response message to send back
-    string requestedPropertyName; ///< which name the property we requested had, because this needs to be in the reply (ugh)
 
   public:
 
@@ -213,6 +213,7 @@ namespace p44 {
 
 
 
+  /// Protocol buffer specific implementation of VdcApiConnection
   class VdcPbufApiConnection : public VdcApiConnection
   {
     typedef VdcApiConnection inherited;

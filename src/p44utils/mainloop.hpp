@@ -54,19 +54,21 @@ namespace p44 {
 
   /// Handler for idle time processing (called when other mainloop tasks are done)
   /// @return true if idle handler has completed for this mainloop cycle and does not need more execution time in this cycle.
-  typedef boost::function<bool (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> IdleCB;
+  typedef boost::function<bool (MLMicroSeconds aCycleStartTime)> IdleCB;
 
   /// Handler for one time processing (scheduled by executeOnce()/executeOnceAt())
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime)> OneTimeCB;
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime)> OneTimeCB;
 
   /// Handler for getting signalled when child process terminates
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
+  /// @param aPid the PID of the process that has terminated
+  /// @param aStatus the exit status of the process that has terminated
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime, pid_t aPid, int aStatus)> WaitCB;
 
   /// Handler called when fork_and_execve() or fork_and_system() terminate
-  typedef boost::function<void (MainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
+  /// @param aOutputString the stdout output of the executed command
+  typedef boost::function<void (MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
   /// @}
-
 
   class ExecError : public Error
   {
@@ -98,7 +100,6 @@ namespace p44 {
     bool idleHandlersChanged;
 
     typedef struct {
-      void *submitterP;
       long ticketNo;
       MLMicroSeconds executionTime;
       OneTimeCB callback;
@@ -155,28 +156,36 @@ namespace p44 {
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aExecutionTime when to execute (approximately), in now() timescale
-    /// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
     /// @return ticket number which can be used to cancel this specific execution request
-    long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime, void *aSubmitterP = NULL);
+    long executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime);
 
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
     /// @param aDelay delay from now when to execute (approximately)
     /// @return ticket number which can be used to cancel this specific execution request
-    long executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0, void *aSubmitterP = NULL);
-
-    /// cancel pending execution requests from submitter (NULL = cancel all)
-    void cancelExecutionsFrom(void *aSubmitterP);
+    long executeOnce(OneTimeCB aCallback, MLMicroSeconds aDelay = 0);
 
     /// cancel pending execution by ticket number
     /// @param aTicketNo ticket of execution to cancel. Will be set to 0 on return
     void cancelExecutionTicket(long &aTicketNo);
 
+    /// reschedule existing execution request
+    /// @param aTicketNo ticket of execution to reschedule.
+    /// @param aDelay delay from now when to reschedule execution (approximately)
+    /// @return true if the execution specified with aTicketNo was still pending and could be rescheduled
+    bool rescheduleExecutionTicket(long aTicketNo, MLMicroSeconds aDelay);
+
+    /// reschedule existing execution request
+    /// @param aTicketNo ticket of execution to reschedule.
+    /// @param aExecutionTime to when to reschedule execution (approximately), in now() timescale
+    /// @return true if the execution specified with aTicketNo was still pending and could be rescheduled
+    bool rescheduleExecutionTicketAt(long aTicketNo, MLMicroSeconds aExecutionTime);
+
     /// execute external binary or interpreter script in a separate process
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aPath the path to the binary or script
     /// @param aArgv a NULL terminated array of arguments, first should be program name
-    /// @param aEnvp a NULL terminated array of environment variables, or NULL to use let child inherit parent's environment
+    /// @param aEnvp a NULL terminated array of environment variables, or NULL to let child inherit parent's environment
     /// @param aPipeBackStdOut if true, stdout of the child is collected via a pipe by the parent and passed back in aCallBack
     void fork_and_execve(ExecCB aCallback, const char *aPath, char *const aArgv[], char *const aEnvp[] = NULL, bool aPipeBackStdOut = false);
 
@@ -203,7 +212,8 @@ namespace p44 {
   protected:
 
     // run all handlers
-    void runOnetimeHandlers();
+    bool runOnetimeHandlers();
+    long scheduleOneTimeHandler(OnetimeHandler &aHandler);
     bool runIdleHandlers();
     bool checkWait();
 
@@ -237,7 +247,7 @@ namespace p44 {
   /// @param aFD the file descriptor that was signalled and has caused this call
   /// @param aPollFlags the poll flags describing the reason for the callback
   /// @return should true if callback really handled some I/O, false if it only checked flags and found nothing to do
-  typedef boost::function<bool (SyncIOMainLoop &aMainLoop, MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
+  typedef boost::function<bool (MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
 
   /// thread routine, will be called on a separate thread
   /// @param aThreadWrapper the object that wraps the thread and allows sending signals to the parent thread
@@ -249,7 +259,7 @@ namespace p44 {
   /// @param aMainLoop the mainloop of the parent thread which has started the child thread
   /// @param aChildThread the ChildThreadWrapper object which sent the signal
   /// @param aSignalCode the signal received from the child thread
-  typedef boost::function<void (SyncIOMainLoop &aMainLoop, ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
+  typedef boost::function<void (ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
 
   /// @}
 

@@ -26,7 +26,7 @@ using namespace p44;
 SsdpSearch::SsdpSearch(SyncIOMainLoop &aMainLoop) :
   inherited(aMainLoop)
 {
-  setReceiveHandler(boost::bind(&SsdpSearch::gotData, this, _2));
+  setReceiveHandler(boost::bind(&SsdpSearch::gotData, this, _1));
 }
 
 

@@ -33,11 +33,6 @@ EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
 }
 
 
-// TODO: probably remove this setting. Separate devices per rocker direction result in inconsistent buttonInputDescriptions[]
-//   so most probably we'll completely avoid them.
-static bool separateDevicesPerRockerDirection = false;
-
-
 EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
@@ -49,63 +44,38 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   aNumSubdevices = 1; // default to one
   EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
   if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    if (separateDevicesPerRockerDirection) {
-      // 2 or 4 rocker switch = 4 or 8 dsDevices
-      aNumSubdevices = functionProfile==0xF60300 ? 8 : 4;
-      // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
-      // assign channel and address
-      newDev->setAddressingInfo(aAddress, aSubDevice);
-      // assign EPP information
-      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-      // RPS switches can be used for anything
-      newDev->setPrimaryGroup(group_black_joker);
-      // Create single handler, up button for even aSubDevice, down button for odd aSubDevice
-      // - create button input for down key
-      bool isDown = (aSubDevice & 0x01)==0;
-      EnoceanRpsButtonHandlerPtr buttonHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-      buttonHandler->switchIndex = aSubDevice>>1; // each switch HALF has its own subdevice
-      buttonHandler->isBSide = isDown;
-      ButtonBehaviourPtr buttonBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isDown ? buttonElement_down : buttonElement_up, false, isDown ? 1 : 0);
-      buttonBhvr->setGroup(group_yellow_light); // pre-configure for light
-      buttonBhvr->setHardwareName(isDown ? "Down key" : "Up key");
-      buttonHandler->behaviour = buttonBhvr;
-      newDev->addChannelHandler(buttonHandler);
-    }
-    else {
-      // 2 or 4 rocker switch = 2 or 4 dsDevices
-      aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
-      // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
-      // assign channel and address
-      newDev->setAddressingInfo(aAddress, aSubDevice);
-      // assign EPP information
-      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-      // RPS switches can be used for anything
-      newDev->setPrimaryGroup(group_black_joker);
-      // Create two handlers, one for the up button, one for the down button
-      // - create button input for down key
-      EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-      downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-      downHandler->isBSide = false;
-      ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
-      downBhvr->setGroup(group_yellow_light); // pre-configure for light
-      downBhvr->setHardwareName("Down key");
-      downHandler->behaviour = downBhvr;
-      newDev->addChannelHandler(downHandler);
-      // - create button input for up key
-      EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-      upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-      upHandler->isBSide = true;
-      ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      upBhvr->setGroup(group_yellow_light); // pre-configure for light
-      upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
-      upBhvr->setHardwareName("Up key");
-      upHandler->behaviour = upBhvr;
-      newDev->addChannelHandler(upHandler);
-    }
+    // 2 or 4 rocker switch = 2 or 4 dsDevices
+    aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
+    // create EnoceanRPSDevice device
+    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
+    // assign channel and address
+    newDev->setAddressingInfo(aAddress, aSubDevice);
+    // assign EPP information
+    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    newDev->setFunctionDesc("rocker switch");
+    // RPS switches can be used for anything
+    newDev->setPrimaryGroup(group_black_joker);
+    // Create two handlers, one for the up button, one for the down button
+    // - create button input for down key
+    EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+    downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
+    downHandler->isBSide = false;
+    ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+    downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
+    downBhvr->setGroup(group_yellow_light); // pre-configure for light
+    downBhvr->setHardwareName("Down key");
+    downHandler->behaviour = downBhvr;
+    newDev->addChannelHandler(downHandler);
+    // - create button input for up key
+    EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+    upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
+    upHandler->isBSide = true;
+    ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+    upBhvr->setGroup(group_yellow_light); // pre-configure for light
+    upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
+    upBhvr->setHardwareName("Up key");
+    upHandler->behaviour = upBhvr;
+    newDev->addChannelHandler(upHandler);
   }
   else if (functionProfile==0xF61000) {
     // F6-10-00 : Window handle
@@ -115,6 +85,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    newDev->setFunctionDesc("window handle");
     // Window handle switches can be used for anything
     newDev->setPrimaryGroup(group_black_joker);
     // Current simple dS mapping: two binary inputs

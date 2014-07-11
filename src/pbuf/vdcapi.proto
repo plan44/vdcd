@@ -3,15 +3,18 @@ package vdcapi;
 message vdsm_RequestHello {
     optional string dSUID = 1;
     optional uint32 api_version = 2;
-    optional string push_uri = 3;
 }
 
 message vdc_ResponseHello {
     optional string dSUID = 1;
-    optional bool allow_disconnect = 2 [ default = false ];
 }
 
-message vdc_SendAnnounce {
+message vdc_SendAnnounceDevice {
+    optional string dSUID = 1;
+    optional string vdc_dSUID = 2;
+}
+
+message vdc_SendAnnounceVdc {
     optional string dSUID = 1;
 }
 
@@ -37,35 +40,32 @@ message PropertyValue {
     optional int64 v_int64 = 3;
     optional double v_double = 4;
     optional string v_string = 5;
+    optional bytes v_bytes = 6;
 }
 
 message PropertyElement {
     optional string name  = 1;
     optional PropertyValue value = 2;
+    repeated PropertyElement elements = 3; // <- NEW: allow nesting
 }
 
-message Property {
-    repeated PropertyElement elements = 1;
-}
 
 message vdsm_RequestGetProperty {
     optional string dSUID = 1;
-    optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
-    optional uint32 count = 4 [ default = 0 ]; // 0 means "all"
+    repeated PropertyElement query = 2;
 }
 
+
 message vdc_ResponseGetProperty {
-    repeated Property properties = 1;
+    repeated PropertyElement properties = 1;
 }
+
 
 // expects generic response
 message vdsm_RequestSetProperty {
     optional string dSUID = 1;
-    optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
-    optional uint32 count = 4 [ default = 1 ];
-    repeated Property properties = 5;
+    optional bool preload = 2 [ default = false ];
+    repeated PropertyElement properties = 3;
 }
 
 message vdsm_SendPing {
@@ -77,59 +77,66 @@ message vdc_SendPong {
 }
 
 message vdsm_NotificationCallScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional bool force = 3;
     optional int32 group = 4;
-    optional int32 zoneID = 5;
+    optional int32 zone_id = 5;
 }
 
 message vdsm_NotificationSaveScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
-    optional int32 zoneID = 4;
+    optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationUndoScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
-    optional int32 zoneID = 4;
+    optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationSetLocalPrio {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
-    optional int32 zoneID = 4;
+    optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationCallMinScene {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 scene = 2;
     optional int32 group = 3;
-    optional int32 zoneID = 4;
+    optional int32 zone_id = 4;
 }
 
 message vdsm_NotificationIdentify {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional int32 group = 2;
-    optional int32 zoneID = 3;
+    optional int32 zone_id = 3;
 }
 
 message vdsm_NotificationSetControlValue {
-    optional string dSUID = 1;
+    repeated string dSUID = 1;
     optional string name = 2;
     optional double value = 3;
     optional int32 group = 4;
-    optional int32 zoneID = 5;
+    optional int32 zone_id = 5;
+}
+
+message vdsm_NotificationDimChannel {
+    repeated string dSUID = 1;
+    optional int32 channel = 2;
+    optional int32 mode = 3;
+    optional int32 area = 4;
+    optional int32 group = 5;
+    optional int32 zone_id = 6;
 }
 
 message vdc_SendPushProperty {
     optional string dSUID = 1;
-    optional string name = 2;
-    optional uint32 offset = 3 [ default = 0 ];
-    repeated Property properties = 4;
+    repeated PropertyElement properties = 2;
 }
 

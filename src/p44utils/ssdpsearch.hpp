@@ -47,10 +47,11 @@ namespace p44 {
 
   class SsdpSearch;
 
-  /// callback for delivering a Ssdp result
-  typedef boost::function<void (SsdpSearch *aSsdpSearchP, ErrorPtr aError)> SsdpSearchCB;
-
   typedef boost::intrusive_ptr<SsdpSearch> SsdpSearchPtr;
+
+  /// callback for delivering a Ssdp result
+  typedef boost::function<void (SsdpSearchPtr aSsdpSearch, ErrorPtr aError)> SsdpSearchCB;
+
   /// A class providing basic Ssdp service discovery
   class SsdpSearch : public SocketComm
   {

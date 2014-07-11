@@ -46,6 +46,7 @@ namespace p44 {
 
   typedef boost::intrusive_ptr<JsonApiValue> JsonApiValuePtr;
 
+  /// JSON specific implementation of ApiValue
   class JsonApiValue : public ApiValue
   {
     typedef ApiValue inherited;
@@ -53,7 +54,8 @@ namespace p44 {
     // using an embedded Json Object
     JsonObjectPtr jsonObj;
 
-    JsonApiValue(JsonObjectPtr aWithObject);
+    // set value from a JsonObject
+    void setJsonObject(JsonObjectPtr aJsonObject);
 
   public:
 
@@ -64,6 +66,7 @@ namespace p44 {
     static ApiValuePtr newValueFromJson(JsonObjectPtr aJsonObject);
 
     virtual void clear();
+    virtual void operator=(ApiValue &aApiValue);
 
     virtual void add(const string &aKey, ApiValuePtr aObj) { JsonApiValuePtr o = boost::dynamic_pointer_cast<JsonApiValue>(aObj); if (jsonObj && o) jsonObj->add(aKey.c_str(), o->jsonObject()); };
     virtual ApiValuePtr get(const string &aKey)  { JsonObjectPtr o; if (jsonObj && jsonObj->get(aKey.c_str(), o)) return newValueFromJson(o); else return ApiValuePtr(); };
@@ -79,12 +82,14 @@ namespace p44 {
     virtual int64_t int64Value() { return jsonObj ? jsonObj->int64Value() : 0; };
     virtual double doubleValue() { return jsonObj ? jsonObj->doubleValue() : 0; };
     virtual bool boolValue() { return jsonObj ? jsonObj->boolValue() : false; };
+    virtual string binaryValue();
     virtual string stringValue() { if (getType()==apivalue_string) { return jsonObj ? jsonObj->stringValue() : ""; } else return inherited::stringValue(); };
 
     virtual void setUint64Value(uint64_t aUint64) { jsonObj = JsonObject::newInt64(aUint64); }
     virtual void setInt64Value(int64_t aInt64) { jsonObj = JsonObject::newInt64(aInt64); };
     virtual void setDoubleValue(double aDouble) { jsonObj = JsonObject::newDouble(aDouble); };
     virtual void setBoolValue(bool aBool) { jsonObj = JsonObject::newBool(aBool); };
+    virtual void setBinaryValue(const string &aBinary);
     virtual bool setStringValue(const string &aString);
     virtual void setNull() { jsonObj.reset(); }
 
@@ -111,6 +116,7 @@ namespace p44 {
 
 
 
+  /// a JSON API request
   class VdcJsonApiRequest : public VdcApiRequest
   {
     typedef VdcApiRequest inherited;
@@ -147,6 +153,7 @@ namespace p44 {
 
 
 
+  /// a JSON API connection
   class VdcJsonApiConnection : public VdcApiConnection
   {
     typedef VdcApiConnection inherited;
@@ -181,7 +188,7 @@ namespace p44 {
 
   private:
 
-    void jsonRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
+    void jsonRequestHandler(const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams);
     void jsonResponseHandler(VdcApiResponseCB aResponseHandler, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData);
 
   };

@@ -92,47 +92,90 @@ void   vdcapi__vdc__response_hello__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__response_hello__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   vdcapi__vdc__send_announce__init
-                     (Vdcapi__VdcSendAnnounce         *message)
+void   vdcapi__vdc__send_announce_device__init
+                     (Vdcapi__VdcSendAnnounceDevice         *message)
 {
-  static Vdcapi__VdcSendAnnounce init_value = VDCAPI__VDC__SEND_ANNOUNCE__INIT;
+  static Vdcapi__VdcSendAnnounceDevice init_value = VDCAPI__VDC__SEND_ANNOUNCE_DEVICE__INIT;
   *message = init_value;
 }
-size_t vdcapi__vdc__send_announce__get_packed_size
-                     (const Vdcapi__VdcSendAnnounce *message)
+size_t vdcapi__vdc__send_announce_device__get_packed_size
+                     (const Vdcapi__VdcSendAnnounceDevice *message)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_device__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t vdcapi__vdc__send_announce__pack
-                     (const Vdcapi__VdcSendAnnounce *message,
+size_t vdcapi__vdc__send_announce_device__pack
+                     (const Vdcapi__VdcSendAnnounceDevice *message,
                       uint8_t       *out)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_device__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t vdcapi__vdc__send_announce__pack_to_buffer
-                     (const Vdcapi__VdcSendAnnounce *message,
+size_t vdcapi__vdc__send_announce_device__pack_to_buffer
+                     (const Vdcapi__VdcSendAnnounceDevice *message,
                       ProtobufCBuffer *buffer)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_device__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-Vdcapi__VdcSendAnnounce *
-       vdcapi__vdc__send_announce__unpack
+Vdcapi__VdcSendAnnounceDevice *
+       vdcapi__vdc__send_announce_device__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (Vdcapi__VdcSendAnnounce *)
-     protobuf_c_message_unpack (&vdcapi__vdc__send_announce__descriptor,
+  return (Vdcapi__VdcSendAnnounceDevice *)
+     protobuf_c_message_unpack (&vdcapi__vdc__send_announce_device__descriptor,
                                 allocator, len, data);
 }
-void   vdcapi__vdc__send_announce__free_unpacked
-                     (Vdcapi__VdcSendAnnounce *message,
+void   vdcapi__vdc__send_announce_device__free_unpacked
+                     (Vdcapi__VdcSendAnnounceDevice *message,
                       ProtobufCAllocator *allocator)
 {
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce__descriptor);
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_device__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   vdcapi__vdc__send_announce_vdc__init
+                     (Vdcapi__VdcSendAnnounceVdc         *message)
+{
+  static Vdcapi__VdcSendAnnounceVdc init_value = VDCAPI__VDC__SEND_ANNOUNCE_VDC__INIT;
+  *message = init_value;
+}
+size_t vdcapi__vdc__send_announce_vdc__get_packed_size
+                     (const Vdcapi__VdcSendAnnounceVdc *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t vdcapi__vdc__send_announce_vdc__pack
+                     (const Vdcapi__VdcSendAnnounceVdc *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t vdcapi__vdc__send_announce_vdc__pack_to_buffer
+                     (const Vdcapi__VdcSendAnnounceVdc *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Vdcapi__VdcSendAnnounceVdc *
+       vdcapi__vdc__send_announce_vdc__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Vdcapi__VdcSendAnnounceVdc *)
+     protobuf_c_message_unpack (&vdcapi__vdc__send_announce_vdc__descriptor,
+                                allocator, len, data);
+}
+void   vdcapi__vdc__send_announce_vdc__free_unpacked
+                     (Vdcapi__VdcSendAnnounceVdc *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_announce_vdc__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   vdcapi__vdc__send_vanish__init
@@ -391,49 +434,6 @@ void   vdcapi__property_element__free_unpacked
                       ProtobufCAllocator *allocator)
 {
   PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__property_element__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   vdcapi__property__init
-                     (Vdcapi__Property         *message)
-{
-  static Vdcapi__Property init_value = VDCAPI__PROPERTY__INIT;
-  *message = init_value;
-}
-size_t vdcapi__property__get_packed_size
-                     (const Vdcapi__Property *message)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__property__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t vdcapi__property__pack
-                     (const Vdcapi__Property *message,
-                      uint8_t       *out)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__property__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t vdcapi__property__pack_to_buffer
-                     (const Vdcapi__Property *message,
-                      ProtobufCBuffer *buffer)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__property__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-Vdcapi__Property *
-       vdcapi__property__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (Vdcapi__Property *)
-     protobuf_c_message_unpack (&vdcapi__property__descriptor,
-                                allocator, len, data);
-}
-void   vdcapi__property__free_unpacked
-                     (Vdcapi__Property *message,
-                      ProtobufCAllocator *allocator)
-{
-  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__property__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   vdcapi__vdsm__request_get_property__init
@@ -952,6 +952,49 @@ void   vdcapi__vdsm__notification_set_control_value__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdsm__notification_set_control_value__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   vdcapi__vdsm__notification_dim_channel__init
+                     (Vdcapi__VdsmNotificationDimChannel         *message)
+{
+  static Vdcapi__VdsmNotificationDimChannel init_value = VDCAPI__VDSM__NOTIFICATION_DIM_CHANNEL__INIT;
+  *message = init_value;
+}
+size_t vdcapi__vdsm__notification_dim_channel__get_packed_size
+                     (const Vdcapi__VdsmNotificationDimChannel *message)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdsm__notification_dim_channel__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t vdcapi__vdsm__notification_dim_channel__pack
+                     (const Vdcapi__VdsmNotificationDimChannel *message,
+                      uint8_t       *out)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdsm__notification_dim_channel__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t vdcapi__vdsm__notification_dim_channel__pack_to_buffer
+                     (const Vdcapi__VdsmNotificationDimChannel *message,
+                      ProtobufCBuffer *buffer)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdsm__notification_dim_channel__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+Vdcapi__VdsmNotificationDimChannel *
+       vdcapi__vdsm__notification_dim_channel__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (Vdcapi__VdsmNotificationDimChannel *)
+     protobuf_c_message_unpack (&vdcapi__vdsm__notification_dim_channel__descriptor,
+                                allocator, len, data);
+}
+void   vdcapi__vdsm__notification_dim_channel__free_unpacked
+                     (Vdcapi__VdsmNotificationDimChannel *message,
+                      ProtobufCAllocator *allocator)
+{
+  PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdsm__notification_dim_channel__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   vdcapi__vdc__send_push_property__init
                      (Vdcapi__VdcSendPushProperty         *message)
 {
@@ -995,7 +1038,7 @@ void   vdcapi__vdc__send_push_property__free_unpacked
   PROTOBUF_C_ASSERT (message->base.descriptor == &vdcapi__vdc__send_push_property__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descriptors[3] =
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -1021,28 +1064,15 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_hello__field_descrip
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "push_uri",
-    3,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestHello, push_uri),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned vdcapi__vdsm__request_hello__field_indices_by_name[] = {
   1,   /* field[1] = api_version */
   0,   /* field[0] = dSUID */
-  2,   /* field[2] = push_uri */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_hello__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_hello__descriptor =
 {
@@ -1052,15 +1082,14 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_hello__descriptor =
   "Vdcapi__VdsmRequestHello",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestHello),
-  3,
+  2,
   vdcapi__vdsm__request_hello__field_descriptors,
   vdcapi__vdsm__request_hello__field_indices_by_name,
   1,  vdcapi__vdsm__request_hello__number_ranges,
   (ProtobufCMessageInit) vdcapi__vdsm__request_hello__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const protobuf_c_boolean vdcapi__vdc__response_hello__allow_disconnect__default_value = 0;
-static const ProtobufCFieldDescriptor vdcapi__vdc__response_hello__field_descriptors[2] =
+static const ProtobufCFieldDescriptor vdcapi__vdc__response_hello__field_descriptors[1] =
 {
   {
     "dSUID",
@@ -1074,27 +1103,14 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__response_hello__field_descrip
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "allow_disconnect",
-    2,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BOOL,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseHello, has_allow_disconnect),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseHello, allow_disconnect),
-    NULL,
-    &vdcapi__vdc__response_hello__allow_disconnect__default_value,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned vdcapi__vdc__response_hello__field_indices_by_name[] = {
-  1,   /* field[1] = allow_disconnect */
   0,   /* field[0] = dSUID */
 };
 static const ProtobufCIntRange vdcapi__vdc__response_hello__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 1 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor =
 {
@@ -1104,14 +1120,14 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_hello__descriptor =
   "Vdcapi__VdcResponseHello",
   "vdcapi",
   sizeof(Vdcapi__VdcResponseHello),
-  2,
+  1,
   vdcapi__vdc__response_hello__field_descriptors,
   vdcapi__vdc__response_hello__field_indices_by_name,
   1,  vdcapi__vdc__response_hello__number_ranges,
   (ProtobufCMessageInit) vdcapi__vdc__response_hello__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descriptors[1] =
+static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce_device__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -1119,34 +1135,85 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce__field_descript
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounce, dsuid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounceDevice, dsuid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "vdc_dSUID",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounceDevice, vdc_dsuid),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned vdcapi__vdc__send_announce__field_indices_by_name[] = {
+static const unsigned vdcapi__vdc__send_announce_device__field_indices_by_name[] = {
+  0,   /* field[0] = dSUID */
+  1,   /* field[1] = vdc_dSUID */
+};
+static const ProtobufCIntRange vdcapi__vdc__send_announce_device__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_device__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "vdcapi.vdc_SendAnnounceDevice",
+  "VdcSendAnnounceDevice",
+  "Vdcapi__VdcSendAnnounceDevice",
+  "vdcapi",
+  sizeof(Vdcapi__VdcSendAnnounceDevice),
+  2,
+  vdcapi__vdc__send_announce_device__field_descriptors,
+  vdcapi__vdc__send_announce_device__field_indices_by_name,
+  1,  vdcapi__vdc__send_announce_device__number_ranges,
+  (ProtobufCMessageInit) vdcapi__vdc__send_announce_device__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor vdcapi__vdc__send_announce_vdc__field_descriptors[1] =
+{
+  {
+    "dSUID",
+    1,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_STRING,
+    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendAnnounceVdc, dsuid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned vdcapi__vdc__send_announce_vdc__field_indices_by_name[] = {
   0,   /* field[0] = dSUID */
 };
-static const ProtobufCIntRange vdcapi__vdc__send_announce__number_ranges[1 + 1] =
+static const ProtobufCIntRange vdcapi__vdc__send_announce_vdc__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 1 }
 };
-const ProtobufCMessageDescriptor vdcapi__vdc__send_announce__descriptor =
+const ProtobufCMessageDescriptor vdcapi__vdc__send_announce_vdc__descriptor =
 {
   PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "vdcapi.vdc_SendAnnounce",
-  "VdcSendAnnounce",
-  "Vdcapi__VdcSendAnnounce",
+  "vdcapi.vdc_SendAnnounceVdc",
+  "VdcSendAnnounceVdc",
+  "Vdcapi__VdcSendAnnounceVdc",
   "vdcapi",
-  sizeof(Vdcapi__VdcSendAnnounce),
+  sizeof(Vdcapi__VdcSendAnnounceVdc),
   1,
-  vdcapi__vdc__send_announce__field_descriptors,
-  vdcapi__vdc__send_announce__field_indices_by_name,
-  1,  vdcapi__vdc__send_announce__number_ranges,
-  (ProtobufCMessageInit) vdcapi__vdc__send_announce__init,
+  vdcapi__vdc__send_announce_vdc__field_descriptors,
+  vdcapi__vdc__send_announce_vdc__field_indices_by_name,
+  1,  vdcapi__vdc__send_announce_vdc__number_ranges,
+  (ProtobufCMessageInit) vdcapi__vdc__send_announce_vdc__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor vdcapi__vdc__send_vanish__field_descriptors[1] =
@@ -1301,7 +1368,7 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__send_remove__descriptor =
   (ProtobufCMessageInit) vdcapi__vdsm__send_remove__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__property_value__field_descriptors[5] =
+static const ProtobufCFieldDescriptor vdcapi__property_value__field_descriptors[6] =
 {
   {
     "v_bool",
@@ -1363,9 +1430,22 @@ static const ProtobufCFieldDescriptor vdcapi__property_value__field_descriptors[
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "v_bytes",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BYTES,
+    PROTOBUF_C_OFFSETOF(Vdcapi__PropertyValue, has_v_bytes),
+    PROTOBUF_C_OFFSETOF(Vdcapi__PropertyValue, v_bytes),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__property_value__field_indices_by_name[] = {
   0,   /* field[0] = v_bool */
+  5,   /* field[5] = v_bytes */
   3,   /* field[3] = v_double */
   2,   /* field[2] = v_int64 */
   4,   /* field[4] = v_string */
@@ -1374,7 +1454,7 @@ static const unsigned vdcapi__property_value__field_indices_by_name[] = {
 static const ProtobufCIntRange vdcapi__property_value__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor vdcapi__property_value__descriptor =
 {
@@ -1384,14 +1464,14 @@ const ProtobufCMessageDescriptor vdcapi__property_value__descriptor =
   "Vdcapi__PropertyValue",
   "vdcapi",
   sizeof(Vdcapi__PropertyValue),
-  5,
+  6,
   vdcapi__property_value__field_descriptors,
   vdcapi__property_value__field_indices_by_name,
   1,  vdcapi__property_value__number_ranges,
   (ProtobufCMessageInit) vdcapi__property_value__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__property_element__field_descriptors[2] =
+static const ProtobufCFieldDescriptor vdcapi__property_element__field_descriptors[3] =
 {
   {
     "name",
@@ -1417,15 +1497,28 @@ static const ProtobufCFieldDescriptor vdcapi__property_element__field_descriptor
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "elements",
+    3,
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    PROTOBUF_C_OFFSETOF(Vdcapi__PropertyElement, n_elements),
+    PROTOBUF_C_OFFSETOF(Vdcapi__PropertyElement, elements),
+    &vdcapi__property_element__descriptor,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned vdcapi__property_element__field_indices_by_name[] = {
+  2,   /* field[2] = elements */
   0,   /* field[0] = name */
   1,   /* field[1] = value */
 };
 static const ProtobufCIntRange vdcapi__property_element__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor vdcapi__property_element__descriptor =
 {
@@ -1435,54 +1528,14 @@ const ProtobufCMessageDescriptor vdcapi__property_element__descriptor =
   "Vdcapi__PropertyElement",
   "vdcapi",
   sizeof(Vdcapi__PropertyElement),
-  2,
+  3,
   vdcapi__property_element__field_descriptors,
   vdcapi__property_element__field_indices_by_name,
   1,  vdcapi__property_element__number_ranges,
   (ProtobufCMessageInit) vdcapi__property_element__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor vdcapi__property__field_descriptors[1] =
-{
-  {
-    "elements",
-    1,
-    PROTOBUF_C_LABEL_REPEATED,
-    PROTOBUF_C_TYPE_MESSAGE,
-    PROTOBUF_C_OFFSETOF(Vdcapi__Property, n_elements),
-    PROTOBUF_C_OFFSETOF(Vdcapi__Property, elements),
-    &vdcapi__property_element__descriptor,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned vdcapi__property__field_indices_by_name[] = {
-  0,   /* field[0] = elements */
-};
-static const ProtobufCIntRange vdcapi__property__number_ranges[1 + 1] =
-{
-  { 1, 0 },
-  { 0, 1 }
-};
-const ProtobufCMessageDescriptor vdcapi__property__descriptor =
-{
-  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
-  "vdcapi.Property",
-  "Property",
-  "Vdcapi__Property",
-  "vdcapi",
-  sizeof(Vdcapi__Property),
-  1,
-  vdcapi__property__field_descriptors,
-  vdcapi__property__field_indices_by_name,
-  1,  vdcapi__property__number_ranges,
-  (ProtobufCMessageInit) vdcapi__property__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const uint32_t vdcapi__vdsm__request_get_property__offset__default_value = 0;
-static const uint32_t vdcapi__vdsm__request_get_property__count__default_value = 0;
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_descriptors[4] =
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -1497,52 +1550,26 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_get_property__field_
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "name",
+    "query",
     2,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, name),
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_MESSAGE,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, n_query),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, query),
+    &vdcapi__property_element__descriptor,
     NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "offset",
-    3,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, has_offset),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, offset),
-    NULL,
-    &vdcapi__vdsm__request_get_property__offset__default_value,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "count",
-    4,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, has_count),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestGetProperty, count),
-    NULL,
-    &vdcapi__vdsm__request_get_property__count__default_value,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned vdcapi__vdsm__request_get_property__field_indices_by_name[] = {
-  3,   /* field[3] = count */
   0,   /* field[0] = dSUID */
-  1,   /* field[1] = name */
-  2,   /* field[2] = offset */
+  1,   /* field[1] = query */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_get_property__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor =
 {
@@ -1552,7 +1579,7 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_get_property__descriptor 
   "Vdcapi__VdsmRequestGetProperty",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestGetProperty),
-  4,
+  2,
   vdcapi__vdsm__request_get_property__field_descriptors,
   vdcapi__vdsm__request_get_property__field_indices_by_name,
   1,  vdcapi__vdsm__request_get_property__number_ranges,
@@ -1568,7 +1595,7 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__response_get_property__field_
     PROTOBUF_C_TYPE_MESSAGE,
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseGetProperty, n_properties),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcResponseGetProperty, properties),
-    &vdcapi__property__descriptor,
+    &vdcapi__property_element__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -1597,9 +1624,8 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor 
   (ProtobufCMessageInit) vdcapi__vdc__response_get_property__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const uint32_t vdcapi__vdsm__request_set_property__offset__default_value = 0;
-static const uint32_t vdcapi__vdsm__request_set_property__count__default_value = 1;
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[5] =
+static const protobuf_c_boolean vdcapi__vdsm__request_set_property__preload__default_value = 0;
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[3] =
 {
   {
     "dSUID",
@@ -1614,65 +1640,39 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "name",
+    "preload",
     2,
     PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, name),
+    PROTOBUF_C_TYPE_BOOL,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_preload),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, preload),
     NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "offset",
-    3,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_offset),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, offset),
-    NULL,
-    &vdcapi__vdsm__request_set_property__offset__default_value,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "count",
-    4,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_count),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, count),
-    NULL,
-    &vdcapi__vdsm__request_set_property__count__default_value,
+    &vdcapi__vdsm__request_set_property__preload__default_value,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
     "properties",
-    5,
+    3,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, n_properties),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, properties),
-    &vdcapi__property__descriptor,
+    &vdcapi__property_element__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
 static const unsigned vdcapi__vdsm__request_set_property__field_indices_by_name[] = {
-  3,   /* field[3] = count */
   0,   /* field[0] = dSUID */
-  1,   /* field[1] = name */
-  2,   /* field[2] = offset */
-  4,   /* field[4] = properties */
+  1,   /* field[1] = preload */
+  2,   /* field[2] = properties */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_set_property__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor =
 {
@@ -1682,7 +1682,7 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor 
   "Vdcapi__VdsmRequestSetProperty",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestSetProperty),
-  5,
+  3,
   vdcapi__vdsm__request_set_property__field_descriptors,
   vdcapi__vdsm__request_set_property__field_indices_by_name,
   1,  vdcapi__vdsm__request_set_property__number_ranges,
@@ -1770,9 +1770,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, dsuid),
     NULL,
     NULL,
@@ -1816,12 +1816,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_scene__fie
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallScene, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -1833,7 +1833,7 @@ static const unsigned vdcapi__vdsm__notification_call_scene__field_indices_by_na
   2,   /* field[2] = force */
   3,   /* field[3] = group */
   1,   /* field[1] = scene */
-  4,   /* field[4] = zoneID */
+  4,   /* field[4] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_call_scene__number_ranges[1 + 1] =
 {
@@ -1860,9 +1860,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_save_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, dsuid),
     NULL,
     NULL,
@@ -1894,12 +1894,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_save_scene__fie
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSaveScene, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -1910,7 +1910,7 @@ static const unsigned vdcapi__vdsm__notification_save_scene__field_indices_by_na
   0,   /* field[0] = dSUID */
   2,   /* field[2] = group */
   1,   /* field[1] = scene */
-  3,   /* field[3] = zoneID */
+  3,   /* field[3] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_save_scene__number_ranges[1 + 1] =
 {
@@ -1937,9 +1937,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_undo_scene__fie
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, dsuid),
     NULL,
     NULL,
@@ -1971,12 +1971,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_undo_scene__fie
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationUndoScene, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -1987,7 +1987,7 @@ static const unsigned vdcapi__vdsm__notification_undo_scene__field_indices_by_na
   0,   /* field[0] = dSUID */
   2,   /* field[2] = group */
   1,   /* field[1] = scene */
-  3,   /* field[3] = zoneID */
+  3,   /* field[3] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_undo_scene__number_ranges[1 + 1] =
 {
@@ -2014,9 +2014,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_local_prio_
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, dsuid),
     NULL,
     NULL,
@@ -2048,12 +2048,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_local_prio_
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetLocalPrio, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -2064,7 +2064,7 @@ static const unsigned vdcapi__vdsm__notification_set_local_prio__field_indices_b
   0,   /* field[0] = dSUID */
   2,   /* field[2] = group */
   1,   /* field[1] = scene */
-  3,   /* field[3] = zoneID */
+  3,   /* field[3] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_set_local_prio__number_ranges[1 + 1] =
 {
@@ -2091,9 +2091,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_min_scene_
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, dsuid),
     NULL,
     NULL,
@@ -2125,12 +2125,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_call_min_scene_
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     4,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationCallMinScene, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -2141,7 +2141,7 @@ static const unsigned vdcapi__vdsm__notification_call_min_scene__field_indices_b
   0,   /* field[0] = dSUID */
   2,   /* field[2] = group */
   1,   /* field[1] = scene */
-  3,   /* field[3] = zoneID */
+  3,   /* field[3] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_call_min_scene__number_ranges[1 + 1] =
 {
@@ -2168,9 +2168,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_identify__field
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, dsuid),
     NULL,
     NULL,
@@ -2190,12 +2190,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_identify__field
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     3,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationIdentify, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -2205,7 +2205,7 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_identify__field
 static const unsigned vdcapi__vdsm__notification_identify__field_indices_by_name[] = {
   0,   /* field[0] = dSUID */
   1,   /* field[1] = group */
-  2,   /* field[2] = zoneID */
+  2,   /* field[2] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_identify__number_ranges[1 + 1] =
 {
@@ -2232,9 +2232,9 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_control_val
   {
     "dSUID",
     1,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, n_dsuid),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, dsuid),
     NULL,
     NULL,
@@ -2278,12 +2278,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_set_control_val
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "zoneID",
+    "zone_id",
     5,
     PROTOBUF_C_LABEL_OPTIONAL,
     PROTOBUF_C_TYPE_INT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, has_zoneid),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, zoneid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationSetControlValue, zone_id),
     NULL,
     NULL,
     0,            /* packed */
@@ -2295,7 +2295,7 @@ static const unsigned vdcapi__vdsm__notification_set_control_value__field_indice
   3,   /* field[3] = group */
   1,   /* field[1] = name */
   2,   /* field[2] = value */
-  4,   /* field[4] = zoneID */
+  4,   /* field[4] = zone_id */
 };
 static const ProtobufCIntRange vdcapi__vdsm__notification_set_control_value__number_ranges[1 + 1] =
 {
@@ -2317,8 +2317,110 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__notification_set_control_value__d
   (ProtobufCMessageInit) vdcapi__vdsm__notification_set_control_value__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const uint32_t vdcapi__vdc__send_push_property__offset__default_value = 0;
-static const ProtobufCFieldDescriptor vdcapi__vdc__send_push_property__field_descriptors[4] =
+static const ProtobufCFieldDescriptor vdcapi__vdsm__notification_dim_channel__field_descriptors[6] =
+{
+  {
+    "dSUID",
+    1,
+    PROTOBUF_C_LABEL_REPEATED,
+    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, n_dsuid),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, dsuid),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "channel",
+    2,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_channel),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, channel),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "mode",
+    3,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_mode),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, mode),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "area",
+    4,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_area),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, area),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "group",
+    5,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_group),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, group),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "zone_id",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, has_zone_id),
+    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmNotificationDimChannel, zone_id),
+    NULL,
+    NULL,
+    0,            /* packed */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned vdcapi__vdsm__notification_dim_channel__field_indices_by_name[] = {
+  3,   /* field[3] = area */
+  1,   /* field[1] = channel */
+  0,   /* field[0] = dSUID */
+  4,   /* field[4] = group */
+  2,   /* field[2] = mode */
+  5,   /* field[5] = zone_id */
+};
+static const ProtobufCIntRange vdcapi__vdsm__notification_dim_channel__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 6 }
+};
+const ProtobufCMessageDescriptor vdcapi__vdsm__notification_dim_channel__descriptor =
+{
+  PROTOBUF_C_MESSAGE_DESCRIPTOR_MAGIC,
+  "vdcapi.vdsm_NotificationDimChannel",
+  "VdsmNotificationDimChannel",
+  "Vdcapi__VdsmNotificationDimChannel",
+  "vdcapi",
+  sizeof(Vdcapi__VdsmNotificationDimChannel),
+  6,
+  vdcapi__vdsm__notification_dim_channel__field_descriptors,
+  vdcapi__vdsm__notification_dim_channel__field_indices_by_name,
+  1,  vdcapi__vdsm__notification_dim_channel__number_ranges,
+  (ProtobufCMessageInit) vdcapi__vdsm__notification_dim_channel__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor vdcapi__vdc__send_push_property__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -2333,37 +2435,13 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_push_property__field_des
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "name",
-    2,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_STRING,
-    0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPushProperty, name),
-    NULL,
-    NULL,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "offset",
-    3,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_UINT32,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPushProperty, has_offset),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPushProperty, offset),
-    NULL,
-    &vdcapi__vdc__send_push_property__offset__default_value,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "properties",
-    4,
+    2,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPushProperty, n_properties),
     PROTOBUF_C_OFFSETOF(Vdcapi__VdcSendPushProperty, properties),
-    &vdcapi__property__descriptor,
+    &vdcapi__property_element__descriptor,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
@@ -2371,14 +2449,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdc__send_push_property__field_des
 };
 static const unsigned vdcapi__vdc__send_push_property__field_indices_by_name[] = {
   0,   /* field[0] = dSUID */
-  1,   /* field[1] = name */
-  2,   /* field[2] = offset */
-  3,   /* field[3] = properties */
+  1,   /* field[1] = properties */
 };
 static const ProtobufCIntRange vdcapi__vdc__send_push_property__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 4 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdc__send_push_property__descriptor =
 {
@@ -2388,7 +2464,7 @@ const ProtobufCMessageDescriptor vdcapi__vdc__send_push_property__descriptor =
   "Vdcapi__VdcSendPushProperty",
   "vdcapi",
   sizeof(Vdcapi__VdcSendPushProperty),
-  4,
+  2,
   vdcapi__vdc__send_push_property__field_descriptors,
   vdcapi__vdc__send_push_property__field_indices_by_name,
   1,  vdcapi__vdc__send_push_property__number_ranges,

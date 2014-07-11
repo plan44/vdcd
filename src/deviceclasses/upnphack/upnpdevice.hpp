@@ -59,17 +59,15 @@ namespace p44 {
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
-    // User property mapping
-    ErrorPtr getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
   private:
 
     void deriveDsUid();
-    void presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearch *aSsdpSearchP, ErrorPtr aError);
-    void timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSrch);
+    void presenceHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
+    void timeoutHandler(PresenceCB aPresenceResultHandler, SsdpSearchPtr aSsdpSearch);
 
   };
 

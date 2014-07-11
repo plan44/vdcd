@@ -59,28 +59,32 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-w 3"
+            argument = "--help"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--modernids 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--selftest"
+            argument = "--announcepause 1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 7"
+            argument = "--selftest"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 6"
+            argument = "-l 7"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-l 6"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
@@ -91,15 +95,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.170"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali 192.168.59.194"
+            argument = "--dali 192.168.59.233"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.1.73"
+            argument = "--dali 192.168.59.221"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--enocean 192.168.1.62"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -115,19 +119,45 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--staticdevices"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--digitalio testbutton:in --digitalio testlamp:out --digitalio i2c1.TCA9555@25.7:out"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k testin:in -k testout:out"
+            argument = "--button simpin.a"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k testin:in -k dimmer:in"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k testout:out"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k testcolor:color"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
+         <AdditionalOption
+            key = "MallocStackLogging"
+            value = ""
+            isEnabled = "YES">
+         </AdditionalOption>
+         <AdditionalOption
+            key = "DYLD_INSERT_LIBRARIES"
+            value = "/usr/lib/libgmalloc.dylib"
+            isEnabled = "YES">
+         </AdditionalOption>
       </AdditionalOptions>
    </LaunchAction>
    <ProfileAction

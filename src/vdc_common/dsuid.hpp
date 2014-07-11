@@ -26,7 +26,7 @@
 
 
 // Name spaces for UUID based dSUIDs
-// - enOcean device namespace
+// - EnOcean device namespace
 #define DSUID_ENOCEAN_NAMESPACE_UUID "0ba94a7b-7c92-4dab-b8e3-5fe09e83d0f3"
 // - GS1-128 identified device namespace
 #define DSUID_GS128_NAMESPACE_UUID "8ca838d5-4c40-47cc-bafa-37ac89658962"
@@ -50,6 +50,9 @@ using namespace std;
 
 namespace p44 {
 
+  /// Implements the dSUID, methods to generate it from SGTIN, UUID or hex string and to
+  /// represent it as as hex string
+  /// Currently, it also contains support for the old dsid, but this will be removed later
   class DsUid : public P44Obj
   {
   public:
@@ -87,6 +90,8 @@ namespace p44 {
 
     void setIdType(DsUidType aIdType);
 
+    void detectSubType();
+
   public:
 
     /// @name generic dSUID operations
@@ -110,12 +115,28 @@ namespace p44 {
     /// @return true if valid dSUID could be read
     bool setAsString(const string &aString);
 
+    /// set as binary
+    /// @param aBinary binary string representing a dSUID. Must be in one of the following formats
+    /// - a 12 byte binary string for classic dsids
+    /// - a 17 byte binary string for dsUIDs
+    /// @return true if valid dSUID could be read
+    bool setAsBinary(const string &aBinary);
+
+
     /// get dSUID in official string representation
     /// @return string representation of dSUID, depending on the type
     /// - empty string for idtype_undefined
     /// - a 24 digit hex string for classic dsids
     /// - a 34 digit hex string for dsUIDs
     string getString() const;
+
+    /// get dSUID in binary representation
+    /// @return binary string representation of dSUID, depending on the type
+    /// - empty string for idtype_undefined
+    /// - a 12 byte binary string for classic dsids
+    /// - a 17 byte binary string for dsUIDs
+    string getBinary() const;
+
 
     // comparison
     bool operator== (const DsUid &aDsUid) const;
@@ -130,7 +151,7 @@ namespace p44 {
 
     /// set the function/subdevice index of the dSUID
     /// @param aSubDeviceIndex a subdevice index. Devices containing multiple, logically independent subdevices
-    ///   or functionality (like 2 or 4 buttons in one enOcean device) must use this index to differentiate
+    ///   or functionality (like 2 or 4 buttons in one EnOcean device) must use this index to differentiate
     ///   the subdevices.
     void setSubdeviceIndex(uint8_t aSubDeviceIndex);
 
@@ -167,23 +188,31 @@ namespace p44 {
     /// @name classic dsids
     /// @{
 
-    /// set object class
+    /// @deprecated set object class
     /// @param aObjectClass 24 bit object class. If 0xFF0000, aSerialNo can be up to 52 bits
     void setObjectClass(ObjectClass aObjectClass);
 
-    /// set serial number
+    /// @deprecated set serial number
     /// @param aSerialNo 36 bit serial number except if object class is already set 0xFFxxxx, in this case
     ///   aSerialNo can be up to 52 bits.
     ///   dS defines only 48 bits for MAC address (bits 48..51 in aSerialNo zero)
     ///   This method maps bits 48..51 of aSerial into bits 32..35 of the serial number field
     void setDsSerialNo(DsSerialNo aSerialNo);
 
-    /// get classic dsid derived via standard hashing procedure from dSUID
+    /// @deprecated get classic dsid derived via standard hashing procedure from dSUID
     /// @param aObjectClass to set in derived ID
     /// @return a classic 12-byte dsid in the terminal block domain (32 bit serial) with same
     ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
     ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
     DsUid getDerivedClassicId(ObjectClass aObjectClass) const;
+
+
+    /// @deprecated get dSUID, but containing classic dsid derived via standard hashing procedure from dSUID
+    /// @param aObjectClass to set in derived ID
+    /// @return a 17-byte dSUID with 8 zeroes in the center, in the terminal block domain (32 bit serial) with same
+    ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
+    ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
+    DsUid getDerivedPseudoClassicId(ObjectClass aObjectClass) const;
 
 
     /// @}

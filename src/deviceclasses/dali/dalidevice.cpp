@@ -19,6 +19,13 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "dalidevice.hpp"
 #include "dalidevicecontainer.hpp"
 
@@ -33,7 +40,10 @@ using namespace p44;
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   Device((DeviceClassContainer *)aClassContainerP),
-  transitionTime(Infinite) // invalid
+  transitionTime(Infinite), // invalid
+  dimPerMS(0), // none
+  dimRepeaterTicket(0),
+  fadeRate(0xFF), fadeTime(0xFF) // unlikely values
 {
   // DALI devices are always light (in this implementation, at least)
   setPrimaryGroup(group_yellow_light);
@@ -64,10 +74,10 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query actual arc power level
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_ACTUAL_LEVEL,
-    boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+    boost::bind(&DaliDevice::queryActualLevelResponse,this, aCompletedCB, aFactoryReset, _1, _2, _3)
   );
 }
 
@@ -76,15 +86,15 @@ void DaliDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aFactor
 {
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
-    int32_t bri = arcpowerToBrightness(aResponse);
-    boost::static_pointer_cast<LightBehaviour>(outputs[0])->initOutputValue(bri);
-    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %d\n", aResponse, bri);
+    Brightness bri = arcpowerToBrightness(aResponse);
+    output->getChannelByIndex(0)->syncChannelValue(bri);
+    LOG(LOG_DEBUG, "DaliDevice: updated brightness cache from actual device value: arc power = %d, brightness = %0.1f\n", aResponse, bri);
   }
   // query the minimum dimming level
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress,
     DALICMD_QUERY_MIN_LEVEL,
-    boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _2, _3, _4)
+    boost::bind(&DaliDevice::queryMinLevelResponse,this, aCompletedCB, aFactoryReset, _1, _2, _3)
   );
 }
 
@@ -95,21 +105,20 @@ void DaliDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryRe
   if (Error::isOK(aError) && !aNoOrTimeout) {
     // this is my current arc power, save it as brightness for dS system side queries
     minLevel = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %d\n", aResponse, minLevel);
+    LOG(LOG_DEBUG, "DaliDevice: retrieved minimum dimming level: arc power = %d, brightness = %0.1f\n", aResponse, minLevel);
   }
   // initialize the light behaviour with the minimal dimming level
-  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
-  l->initBrightnessParams(minLevel,255);
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);
+  l->initMinBrightness(minLevel);
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
 
 
-// Fade rate: R = 506/SQRT(2^X) [steps/second] -> x = ln2((506/R)^2) : R=44 [steps/sec] -> x = 7
 
 void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 {
-  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(outputs[0]);
+  LightBehaviourPtr l = boost::static_pointer_cast<LightBehaviour>(output);
   if (transitionTime==Infinite || transitionTime!=aTransitionTime) {
     uint8_t tr = 0; // default to 0
     if (aTransitionTime>0) {
@@ -122,7 +131,7 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
     }
     if (tr!=fadeTime || transitionTime==Infinite) {
       LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", tr);
-      daliDeviceContainer().daliComm.daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+      daliDeviceContainer().daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       fadeTime = tr;
     }
     transitionTime = aTransitionTime;
@@ -134,9 +143,9 @@ void DaliDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
 void DaliDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
-  daliDeviceContainer().daliComm.daliSendQuery(
+  daliDeviceContainer().daliComm->daliSendQuery(
     deviceInfo.shortAddress, DALICMD_QUERY_CONTROL_GEAR,
-    boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _2, _3, _4)
+    boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler, _1, _2, _3)
   );
 }
 
@@ -145,15 +154,6 @@ void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler, bool a
 {
   // present if a proper YES (without collision) received
   aPresenceResultHandler(DaliComm::isYes(aNoOrTimeout, aResponse, aError, false));
-}
-
-
-void DaliDevice::identifyToUser()
-{
-  LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(outputs[0]);
-  if (l) {
-    l->blink(4*Second);
-  }
 }
 
 
@@ -172,25 +172,74 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
   else {
     // not disconnectable
     if (aDisconnectResultHandler) {
-      aDisconnectResultHandler(DevicePtr(this), false);
+      aDisconnectResultHandler(false);
     }
   }
 }
 
 
-
-void DaliDevice::updateOutputValue(OutputBehaviour &aOutputBehaviour)
+void DaliDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  if (aOutputBehaviour.getIndex()==0) {
-    setTransitionTime(aOutputBehaviour.transitionTimeForHardware());
+  LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
+    setTransitionTime(lightBehaviour->transitionTimeToNewBrightness());
     // update actual dimmer value
-    uint8_t power = brightnessToArcpower(aOutputBehaviour.valueForHardware());
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %d, transition time= %d [mS], arc power = %d\n", aOutputBehaviour.valueForHardware(), aOutputBehaviour.transitionTimeForHardware()/MilliSecond, power);
-    daliDeviceContainer().daliComm.daliSendDirectPower(deviceInfo.shortAddress, power);
-    aOutputBehaviour.outputValueApplied(); // confirm having applied the value
+    uint8_t power = brightnessToArcpower(lightBehaviour->brightnessForHardware());
+    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, arc power = %d\n", lightBehaviour->brightnessForHardware(), power);
+    daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
+    lightBehaviour->brightnessApplied(); // confirm having applied the value
   }
-  else
-    return inherited::updateOutputValue(aOutputBehaviour); // let superclass handle this
+  inherited::applyChannelValues(aDoneCB, aForDimming);
+}
+
+
+// optimized DALI dimming implementation
+void DaliDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
+{
+  // start dimming
+  if (aChannelType==channeltype_brightness) {
+    ChannelBehaviourPtr ch = getChannelByType(aChannelType);
+    DBGFLOG(LOG_INFO, "DALI dimChannel for brightness %s\n", aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+    MainLoop::currentMainLoop().cancelExecutionTicket(dimRepeaterTicket); // stop and previous dimming activity
+    // Use DALI UP/DOWN dimming commands
+    if (aDimMode==dimmode_stop) {
+      // stop dimming - send MASK
+      daliDeviceContainer().daliComm->daliSendDirectPower(deviceInfo.shortAddress, DALIVALUE_MASK);
+    }
+    else {
+      // start dimming
+      // - configure new fade rate if current does not match
+      if (dimPerMS!=ch->getDimPerMS()) {
+        dimPerMS = ch->getDimPerMS();
+        //   Fade rate: R = 506/SQRT(2^X) [steps/second] -> x = ln2((506/R)^2) : R=44 [steps/sec] -> x = 7
+        double h = 506.0/(dimPerMS*1000);
+        h = log(h*h)/log(2);
+        uint8_t fr = h>0 ? (uint8_t)h : 0;
+        LOG(LOG_DEBUG, "DaliDevice: new dimming rate = %f Steps/second, calculated FADE_RATE setting = %f (rounded %d)\n", dimPerMS*1000, h, fr);
+        if (fr!=fadeRate) {
+          LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_RATE to %d\n", fr);
+          daliDeviceContainer().daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_RATE, fr);
+          fadeRate = fr;
+        }
+      }
+      // - use repeated UP and DOWN commands
+      dimRepeater(deviceInfo.shortAddress, aDimMode==dimmode_up ? DALICMD_UP : DALICMD_DOWN, MainLoop::now());
+    }
+  }
+  else {
+    // not my channel, use standard implementation
+    inherited::dimChannel(aChannelType, aDimMode);
+  }
+}
+
+
+void DaliDevice::dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicroSeconds aCycleStartTime)
+{
+  daliDeviceContainer().daliComm->daliSendCommand(aDaliAddress, aCommand);
+  // schedule next command
+  // - DALI UP and DOWN run 200mS, but can be repeated earlier, so we use 150mS to make sure we don't have hickups
+  //   Note: DALI bus speed limits commands to 120Bytes/sec max, i.e. about 20 per 150mS, i.e. max 10 lamps dimming
+  dimRepeaterTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&DaliDevice::dimRepeater, this, aDaliAddress, aCommand, _1), aCycleStartTime+200*MilliSecond);
 }
 
 
@@ -203,7 +252,7 @@ uint8_t DaliDevice::brightnessToArcpower(Brightness aBrightness)
   double intensity = (double)aBrightness/255;
   if (intensity<0) intensity = 0;
   if (intensity>1) intensity = 1;
-  return log10((intensity*9)+1)*254;
+  return log10((intensity*9)+1)*254; // 0..254, 255 is MASK and is reserved to stop fading
 }
 
 
@@ -248,6 +297,15 @@ string DaliDevice::hardwareGUID()
     return ""; // none
   // return as GS1 element strings
   return string_format("gs1:(01)%llu(21)%llu", deviceInfo.gtin, deviceInfo.serialNo);
+}
+
+
+string DaliDevice::modelGUID()
+{
+  if (deviceInfo.oem_gtin==0)
+    return ""; // none
+  // return as GS1 element strings with Application Identifier 01=GTIN
+  return string_format("gs1:(01)%llu", deviceInfo.gtin);
 }
 
 

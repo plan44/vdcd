@@ -33,9 +33,9 @@ using namespace p44;
 class JsonRpcTool : public Application
 {
   JsonRpcCommPtr jsonRpcComm; // current connection
-  FdComm userInput;
+  FdCommPtr userInput;
 
-  SocketComm jsonRpcServer; // server waiting for connection
+  SocketCommPtr jsonRpcServer; // server waiting for connection
 
   typedef enum {
     idle,
@@ -56,11 +56,11 @@ class JsonRpcTool : public Application
 public:
 
   JsonRpcTool() :
-    jsonRpcServer(SyncIOMainLoop::currentMainLoop()),
-    userInput(SyncIOMainLoop::currentMainLoop()),
     inputState(idle),
     autoaccept(false)
   {
+    userInput = FdCommPtr(new FdComm(SyncIOMainLoop::currentMainLoop()));
+    jsonRpcServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
   }
 
 
@@ -116,21 +116,21 @@ public:
       jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
       jsonRpcComm->setConnectionParams(jsonrpchost, jsonrpcport, SOCK_STREAM, AF_INET);
       jsonRpcComm->setConnectionStatusHandler(boost::bind(&JsonRpcTool::jsonRpcClientConnectionHandler, this, _2));
-      jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3, _4));
+      jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
       jsonRpcComm->initiateConnection();
 
     }
     else {
       // be server
-      jsonRpcServer.setConnectionParams(NULL, jsonrpcport, SOCK_STREAM, AF_INET);
-      jsonRpcServer.setAllowNonlocalConnections(true);
-      jsonRpcServer.startServer(boost::bind(&JsonRpcTool::jsonRpcServerConnectionHandler, this, _1), 1);
+      jsonRpcServer->setConnectionParams(NULL, jsonrpcport, SOCK_STREAM, AF_INET);
+      jsonRpcServer->setAllowNonlocalConnections(true);
+      jsonRpcServer->startServer(boost::bind(&JsonRpcTool::jsonRpcServerConnectionHandler, this, _1), 1);
     }
 
     // init user input
-    userInput.setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1, _2));
-    userInput.setFd(STDIN_FILENO);
-    userInput.makeNonBlocking();
+    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1));
+    userInput->setFd(STDIN_FILENO);
+    userInput->makeNonBlocking();
 
     // app now ready to run
     return run();
@@ -138,12 +138,12 @@ public:
 
 
 
-  SocketCommPtr jsonRpcServerConnectionHandler(SocketComm *aServerSocketCommP)
+  SocketCommPtr jsonRpcServerConnectionHandler(SocketCommPtr aServerSocketComm)
   {
     printf("++++++++++++++ Connection from server\n");
     jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
     jsonRpcComm->setReportAllErrors(true); // server should report all errors
-    jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3, _4));
+    jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
     askMethod();
     return jsonRpcComm;
   }
@@ -165,14 +165,14 @@ public:
   }
 
 
-  void jsonRpcRequestHandler(JsonRpcComm *aJsonRpcComm, const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
+  void jsonRpcRequestHandler(const char *aMethod, const char *aJsonRpcId, JsonObjectPtr aParams)
   {
     printf("\nJSON-RPC request id='%s', method='%s', params=%s\n\n", aJsonRpcId ? aJsonRpcId : "<none>", aMethod, aParams ? aParams->c_strValue() : "<none>");
     if (aJsonRpcId) {
       // this is a method call, expects answer
-      if ((strcmp(aMethod,"announce")==0 || strcmp(aMethod,"announcevdc")==0) && autoaccept) {
+      if ((strcmp(aMethod,"announcedevice")==0 || strcmp(aMethod,"announcevdc")==0) && autoaccept) {
         // just send NULL result
-        printf("Auto-responding with success to 'announce(vdc)' method\n\n");
+        printf("Auto-responding with success to 'announcevdc and announcedevice' methods\n\n");
         jsonRpcComm->sendResult(aJsonRpcId, JsonObjectPtr());
       }
       else {
@@ -186,7 +186,7 @@ public:
   }
 
 
-  void jsonRpcResponseHandler(JsonRpcComm *aJsonRpcComm, int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
+  void jsonRpcResponseHandler(int32_t aResponseId, ErrorPtr &aError, JsonObjectPtr aResultOrErrorData)
   {
     if (Error::isOK(aError)) {
       printf("\nJSON-RPC result id=%d, result=%s\n", aResponseId, aResultOrErrorData ? aResultOrErrorData->c_strValue() : "NULL");
@@ -249,11 +249,11 @@ public:
   }
 
 
-  void userInputHandler(FdComm *aFdCommP, ErrorPtr aError)
+  void userInputHandler(ErrorPtr aError)
   {
     // get user input
     string text;
-    userInput.receiveString(text);
+    userInput->receiveString(text);
     text.erase(text.size()-1, 1); // remove CR
     //printf("User input = %s\n", jsonText.c_str());
     if (inputState==waiting_for_method) {
@@ -290,7 +290,7 @@ public:
       if (sendNotification)
         jsonRpcComm->sendRequest(method.c_str(), params); // no answer expected
       else
-        jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3, _4)); // answer expected, add handler
+        jsonRpcComm->sendRequest(method.c_str(), params, boost::bind(&JsonRpcTool::jsonRpcResponseHandler, this, _1, _2, _3)); // answer expected, add handler
       // and ask for next method
       inputState = waiting_for_method;
       MainLoop::currentMainLoop().executeOnce(boost::bind(&JsonRpcTool::inputPrompt,this), 200*MilliSecond);

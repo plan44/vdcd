@@ -34,15 +34,10 @@ namespace p44 {
   #define VDC_API_DOMAIN 0x0000
   #define VDC_CFG_DOMAIN 0x1000
 
-  #define VDC_API_BHVR_DESC (VDC_API_DOMAIN+1)
-  #define VDC_API_BHVR_SETTINGS (VDC_API_DOMAIN+2)
-  #define VDC_API_BHVR_STATES (VDC_API_DOMAIN+3)
-
-
   class DeviceContainer;
 
   /// base class representing a entity which is addressable with a dSUID
-  /// dS devices are most obvious addressables, but the vDC itself is also addressable and uses this base class
+  /// dS devices are most obvious addressables, but vDCs and the vDC host itself is also addressable and uses this base class
   class DsAddressable : public PropertyContainer
   {
     typedef PropertyContainer inherited;
@@ -101,9 +96,11 @@ namespace p44 {
     /// convenience method to check for existence of a parameter and return appropriate error if not
     static ErrorPtr checkParam(ApiValuePtr aParams, const char *aParamName, ApiValuePtr &aParam);
 
-    /// convenience method to check for existence of a string value and if it does, return its value in one call
+    /// convenience method to check if a string value exists and if yes, return its value in one call
     static ErrorPtr checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue);
 
+    /// convenience method to check if a dSUID value exists and if it does, return its value in one call
+    static ErrorPtr checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid);
 
     /// called by DeviceContainer to handle methods directed to a dSUID
     /// @param aRequest this is the request to respond to
@@ -129,12 +126,10 @@ namespace p44 {
     bool sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler = VdcApiResponseCB());
 
     /// push property value
-    /// @param aName name of the property to return. "*" can be passed to return an object listing all properties in this container,
-    ///   "^" to return the default property value (internally used for apivalue_proxy).
+    /// @param aQuery description of what should be pushed (same syntax as in getProperty API)
     /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
-    /// @param aIndex in case of array, the array element to push. Pass negative value for non-array properties
     /// @return true if push could be sent, false otherwise (e.g. no vdSM connection)
-    bool pushProperty(const string &aName, int aDomain, int aIndex = -1);
+    bool pushProperty(ApiValuePtr aQuery, int aDomain);
 
     /// @}
 
@@ -174,7 +169,24 @@ namespace p44 {
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
     ///   hardwareGUID() must return the same unique ID for the containing hardware device for all contained dSDs
+    /// Already defined schemas for hardwareGUID are
+    /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
+    /// - gs1:(01)ggggg = GS1 formatted GTIN
+    /// - uuid:UUUUUUU = UUID
+    /// - macaddress:MMMMM = MAC Address
     virtual string hardwareGUID() { return ""; }
+
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    /// @note model GUID must be equal between all devices of the same model/class/kind, where "same" should be
+    ///   focused to the context of functionality relevant for the dS system, if possible. On the other hand,
+    ///   identifiers allowing global lookup (such as GTIN) are preferred if available over less generic
+    ///   model identification.
+    /// Already defined schemas for modelGUID are
+    /// - enoceaneep:RRFFTT = 6 hex digits enOcean EEP
+    /// - gs1:(01)ggggg = GS1 formatted GTIN
+    /// - uuid:UUUUUUU = UUID
+    /// - macaddress:MMMMM = MAC Address
+    virtual string modelGUID() { return ""; }
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; }
@@ -194,18 +206,9 @@ namespace p44 {
   protected:
 
     // property access implementation
-    virtual int numProps(int aDomain);
-    virtual const PropertyDescriptor *getPropertyDescriptor(int aPropIndex, int aDomain);
-    virtual bool accessField(bool aForWrite, ApiValuePtr aPropValue, const PropertyDescriptor &aPropertyDescriptor, int aIndex);
-
-    // user property mapping
-    // @param aUserPropertyIndex the index (0..n) of the user property to access
-    // @param aName will be set to the name of the mapped property
-    // @param aIndex will be set to the array index to access within the mapped property
-    // @return error when user property index is unknown in a given device, empty when ok
-    // @note user properties are a workaround to access specific device properties by means of an index for
-    //   in environments not yet fully ready for name properties.
-    ErrorPtr getUserPropertyMapping(int aUserPropertyIndex, string &aName, int &aIndex);
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
   private:
 

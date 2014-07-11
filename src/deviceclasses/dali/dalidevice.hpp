@@ -38,15 +38,18 @@ namespace p44 {
   {
     typedef Device inherited;
 
-    /// the device info
-    DaliDeviceInfo deviceInfo;
+    DaliDeviceInfo deviceInfo; ///< the device info
 
-    /// currently set transition time
-    MLMicroSeconds transitionTime;
-    /// currently set DALI fade rate
-    uint8_t fadeTime;
+    MLMicroSeconds transitionTime; ///< currently set transition time
+    uint8_t fadeTime; ///< currently set DALI fade time
+
+    double dimPerMS; ///< current dim steps per second
+    uint8_t fadeRate; ///< currently set DALI fade rate
+
+    long dimRepeaterTicket; ///< DALI dimming repeater ticket
 
   public:
+
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
     /// get typed container reference
@@ -72,11 +75,6 @@ namespace p44 {
     /// @param aPresenceResultHandler will be called to report presence status
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
-    /// identify the device to the user
-    /// @note for lights, this is usually implemented as a blink operation, but depending on the device type,
-    ///   this can be anything.
-    virtual void identifyToUser();
-
     /// disconnect device. For DALI, we'll check if the device is still present on the bus, and only if not
     /// we allow disconnection
     /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
@@ -85,11 +83,22 @@ namespace p44 {
     ///   false in case it is certain that the device is still connected to this and only this vDC
     virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
-    /// set new output value on device
-    /// @param aOutputBehaviour the output behaviour which has a new output value to be sent to the hardware output
-    /// @note depending on how the actual device communication works, the implementation might need to consult all
-    ///   output behaviours to collect data for an outgoing message.
-    virtual void updateOutputValue(OutputBehaviour &aOutputBehaviour);
+    /// apply all pending channel value updates to the device's hardware
+    /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
+    ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
+    ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @param aCompletedCB if not NULL, must be called when values are applied
+    /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
+    ///   in a single channel (and not switching between color modes etc.)
+    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+
+    /// start or stop dimming DALI channel
+    /// @param aChannel the channelType to start or stop dimming for
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
+    ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
+    ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
+    virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
 
     /// @}
 
@@ -101,6 +110,9 @@ namespace p44 {
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
+
+    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    virtual string modelGUID();
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID();
@@ -136,6 +148,8 @@ namespace p44 {
     void queryMinLevelResponse(CompletedCB aCompletedCB, bool aFactoryReset, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
+
+    void dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicroSeconds aCycleStartTime);
 
   };
 

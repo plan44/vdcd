@@ -43,7 +43,9 @@ ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 {
   LOG(LOG_INFO,"cfg <- vdcd (JSON) result sent: result=%s\n", aResult ? aResult->description().c_str() : "<none>");
   JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
-  P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
+  if (result) {
+    P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
+  }
   return ErrorPtr();
 }
 
@@ -180,33 +182,39 @@ void P44VdcHost::selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, Indi
 
 
 
+string P44VdcHost::webuiURLString()
+{
+  return "http://" + ipv4AddressString() + ":80";
+}
+
+
 
 #pragma mark - Config API
 
 
 P44VdcHost::P44VdcHost() :
-  configApiServer(SyncIOMainLoop::currentMainLoop()),
   learnIdentifyTicket(0)
 {
+  configApiServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
 }
 
 
 void P44VdcHost::startConfigApi()
 {
-  configApiServer.startServer(boost::bind(&P44VdcHost::configApiConnectionHandler, this, _1), 3);
+  configApiServer->startServer(boost::bind(&P44VdcHost::configApiConnectionHandler, this, _1), 3);
 }
 
 
 
-SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketComm *aServerSocketCommP)
+SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketCommPtr aServerSocketCommP)
 {
   JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
-  conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, _1, _2, _3));
+  conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, conn, _1, _2));
   return conn;
 }
 
 
-void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, JsonObjectPtr aJsonObject)
+void P44VdcHost::configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError, JsonObjectPtr aJsonObject)
 {
   ErrorPtr err;
   // when coming from mg44, requests have the following form
@@ -247,11 +255,11 @@ void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, 
         // Notes:
         // - if dSUID is specified invalid or empty, the vdc host itself is addressed.
         // - use x-p44-vdcs and x-p44-devices properties to find dsuids
-        aError = processVdcRequest(JsonCommPtr(aJsonCommP), request);
+        aError = processVdcRequest(aJsonComm, request);
       }
       else if (apiselector=="p44") {
         // process p44 specific requests
-        aError = processP44Request(JsonCommPtr(aJsonCommP), request);
+        aError = processP44Request(aJsonComm, request);
       }
       else {
         // unknown API selector
@@ -261,7 +269,7 @@ void P44VdcHost::configApiRequestHandler(JsonComm *aJsonCommP, ErrorPtr aError, 
   }
   // if error or explicit OK, send response now. Otherwise, request processing will create and send the response
   if (aError) {
-    sendCfgApiResponse(JsonCommPtr(aJsonCommP), JsonObjectPtr(), aError);
+    sendCfgApiResponse(aJsonComm, JsonObjectPtr(), aError);
   }
 }
 
@@ -310,13 +318,30 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
     // get params
     // Note: the "method" or "notification" param will also be in the params, but should not cause any problem
     ApiValuePtr params = JsonApiValue::newValueFromJson(aRequest);
-    string dsuidstring;
-    if (Error::isOK(err = checkStringParam(params, "dSUID", dsuidstring))) {
+    ApiValuePtr o;
+    err = checkParam(params, "dSUID", o);
+    if (Error::isOK(err)) {
       // operation method
-      DsUid dsuid = DsUid(dsuidstring);
+      DsUid dsuid;
       if (isMethod) {
+        dsuid.setAsBinary(o->binaryValue());
         // create request
         P44JsonApiRequestPtr request = P44JsonApiRequestPtr(new P44JsonApiRequest(aJsonComm));
+        // check for old-style name/index and generate basic query (1 or 2 levels)
+        ApiValuePtr query = params->newObject();
+        ApiValuePtr name = params->get("name");
+        if (name) {
+          ApiValuePtr index = params->get("index");
+          ApiValuePtr subquery = params->newNull();
+          if (index) {
+            // subquery
+            subquery->setType(apivalue_object);
+            subquery->add(index->stringValue(), subquery->newNull());
+          }
+          string nm = trimWhiteSpace(name->stringValue()); // to allow a single space for deep recursing wildcard
+          query->add(nm, subquery);
+          params->add("query", query);
+        }
         // handle method
         err = handleMethodForDsUid(cmd, request, dsuid, params);
         // methods send results themselves
@@ -326,7 +351,20 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       }
       else {
         // handle notification
-        handleNotificationForDsUid(cmd, dsuid, params);
+        // dSUID param can be single dSUID or array of dSUIDs
+        if (o->isType(apivalue_array)) {
+          // array of dSUIDs
+          for (int i=0; i<o->arrayLength(); i++) {
+            ApiValuePtr e = o->arrayGet(i);
+            dsuid.setAsBinary(e->binaryValue());
+            handleNotificationForDsUid(cmd, dsuid, params);
+          }
+        }
+        else {
+          // single dSUID
+          dsuid.setAsBinary(o->binaryValue());
+          handleNotificationForDsUid(cmd, dsuid, params);
+        }
         // notifications are always successful
         err = ErrorPtr(new Error(ErrorOK));
       }

@@ -31,9 +31,9 @@ namespace p44 {
     virtual string modelName() { return "UPnP vDC"; }
 
   private:
-    SsdpSearch m_dmr_search;
+    SsdpSearchPtr m_dmr_search;
 
-    void collectHandler(CompletedCB aCompletedCB, SsdpSearch *aSsdpSearchP, ErrorPtr aError);
+    void collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
   };
 
 } // namespace p44
