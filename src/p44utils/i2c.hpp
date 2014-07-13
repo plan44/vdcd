@@ -126,6 +126,34 @@ namespace p44 {
 
 
 
+  class PCF8574 : public I2CBitPortDevice
+  {
+    typedef I2CBitPortDevice inherited;
+
+  protected:
+
+    virtual void updateInputState(int aForBitNo);
+    virtual void updateOutputs(int aForBitNo);
+    virtual void updateDirection(int aForBitNo);
+
+
+  public:
+
+    /// create device
+    /// @param aDeviceAddress slave address of the device
+    /// @param aBusP I2CBus object
+    PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP);
+
+    /// @return device type identifier
+    virtual const char *deviceType() { return "PCF8574"; };
+
+    /// @return true if this device or one of it's ancestors is of the given type
+    virtual bool isKindOf(const char *aDeviceType);
+    
+  };
+
+
+
 
   class I2CBus : public P44Obj
   {
@@ -155,21 +183,26 @@ namespace p44 {
 
     virtual ~I2CBus();
 
-    /// read byte/word
+    /// SMBus read byte/word
     /// @param aDevice device to access
     /// @param aRegister register/command to access
     /// @param aByte/aWord will receive result
     /// @return true if successful
-    bool readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte);
-    bool readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord);
+    bool SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte);
+    bool SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord);
 
-    /// write byte/word
+    /// SMBus write byte/word
     /// @param aDevice device to access
     /// @param aRegister register/command to access
     /// @param aByte/aWord to write
     /// @return true if successful
-    bool writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte);
-    bool writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord);
+    bool SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte);
+    bool SMBusWriteWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord);
+
+    /// I2C direct read/write without SMBus protocol (old devices like PCF8574)
+    bool I2CReadByte(I2CDevice *aDeviceP, uint8_t &aByte);
+    bool I2CWriteByte(I2CDevice *aDeviceP, uint8_t aByte);
+
 
   private:
     bool accessDevice(I2CDevice *aDeviceP);

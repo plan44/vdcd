@@ -19,13 +19,17 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 1
+
 #include "i2c.hpp"
 
-#if defined(__APPLE__) || defined(DIGI_ESP)
+#if (defined(__APPLE__) || defined(DIGI_ESP)) && !defined(RASPBERRYPI)
 #define DISABLE_I2C 1
 #endif
-
-#define DISABLE_I2C 1
 
 #ifndef DISABLE_I2C
 #include <linux/i2c-dev.h>
@@ -93,6 +97,8 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
     // create device from typestring
     if (typeString=="TCA9555")
       dev = I2CDevicePtr(new TCA9555(deviceAddress, bus.get()));
+    else if (typeString=="PCF8574")
+      dev = I2CDevicePtr(new PCF8574(deviceAddress, bus.get()));
     // TODO: add more device types
     // Register new device
     if (dev) {
@@ -136,7 +142,36 @@ I2CDevicePtr I2CBus::getDevice(const char *aDeviceID)
 
 
 
-bool I2CBus::readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
+bool I2CBus::I2CReadByte(I2CDevice *aDeviceP, uint8_t &aByte)
+{
+  if (!accessDevice(aDeviceP)) return false; // cannot read
+  #ifndef DISABLE_I2C
+  int res = i2c_smbus_read_byte(busFD);
+  #else
+  int res = 0x42; // dummy
+  #endif
+  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_byte() = %d / 0x%02X\n", res, res);
+  if (res<0) return false;
+  aByte = (uint8_t)res;
+  return true;
+}
+
+
+bool I2CBus::I2CWriteByte(I2CDevice *aDeviceP, uint8_t aByte)
+{
+  if (!accessDevice(aDeviceP)) return false; // cannot write
+  #ifndef DISABLE_I2C
+  int res = i2c_smbus_write_byte(busFD, aByte);
+  #else
+  int res = 1; // ok
+  #endif
+  DBGFLOG(LOG_INFO,"i2c_smbus_write_byte(0x%02X) = %d\n", aByte, res);
+  return (res>=0);
+}
+
+
+
+bool I2CBus::SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot read
   #ifndef DISABLE_I2C
@@ -144,14 +179,14 @@ bool I2CBus::readByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte)
   #else
   int res = 0x42; // dummy
   #endif
-  DBGLOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
+  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
 }
 
 
-bool I2CBus::readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
+bool I2CBus::SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot read
   #ifndef DISABLE_I2C
@@ -160,14 +195,14 @@ bool I2CBus::readWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord)
   #else
   int res = 0x4242; // dummy
   #endif
-  DBGLOG(LOG_DEBUG,"i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
+  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
   if (res<0) return false;
   aWord = (uint16_t)res;
   return true;
 }
 
 
-bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
+bool I2CBus::SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot write
   #ifndef DISABLE_I2C
@@ -175,12 +210,12 @@ bool I2CBus::writeByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
   #else
   int res = 1; // ok
   #endif
-  DBGLOG(LOG_DEBUG,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
+  DBGFLOG(LOG_INFO,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
   return (res>=0);
 }
 
 
-bool I2CBus::writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
+bool I2CBus::SMBusWriteWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
 {
   if (!accessDevice(aDeviceP)) return false; // cannot write
   #ifndef DISABLE_I2C
@@ -188,7 +223,7 @@ bool I2CBus::writeWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord)
   #else
   int res = 1; // ok
   #endif
-  DBGLOG(LOG_DEBUG,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
+  DBGFLOG(LOG_INFO,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
   return (res>=0);
 }
 
@@ -208,7 +243,7 @@ bool I2CBus::accessDevice(I2CDevice *aDeviceP)
     return false;
   }
   #endif
-  DBGLOG(LOG_DEBUG,"ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
+  DBGFLOG(LOG_DEBUG,"ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
   // remember
   lastDeviceAddress = aDeviceP->deviceAddress;
   return true; // ok
@@ -230,7 +265,7 @@ bool I2CBus::accessBus()
   #else
   busFD = 1; // dummy, signalling open
   #endif
-  DBGLOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
+  DBGFLOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
   return true;
 }
 
@@ -349,8 +384,8 @@ TCA9555::TCA9555(uint8_t aDeviceAddress, I2CBus *aBusP) :
   updateDirection(0); // port 0
   updateDirection(8); // port 1
   // reset polarity inverter
-  i2cbus->writeByte(this, 4, 0); // reset polarity inversion port 0
-  i2cbus->writeByte(this, 5, 0); // reset polarity inversion port 1
+  i2cbus->SMBusWriteByte(this, 4, 0); // reset polarity inversion port 0
+  i2cbus->SMBusWriteByte(this, 5, 0); // reset polarity inversion port 1
 }
 
 
@@ -369,7 +404,7 @@ void TCA9555::updateInputState(int aForBitNo)
   uint8_t port = aForBitNo >> 3; // calculate port No
   uint8_t shift = 8*port;
   uint8_t data;
-  i2cbus->readByte(this, port, data); // get input byte
+  i2cbus->SMBusReadByte(this, port, data); // get input byte
   pinStateMask = (pinStateMask & (~((uint32_t)0xFF) << shift)) | ((uint32_t)data << shift);
 }
 
@@ -379,7 +414,7 @@ void TCA9555::updateOutputs(int aForBitNo)
   if (aForBitNo>15) return;
   uint8_t port = aForBitNo >> 3; // calculate port No
   uint8_t shift = 8*port;
-  i2cbus->writeByte(this, port+2, (outputStateMask >> shift) & 0xFF); // write output byte
+  i2cbus->SMBusWriteByte(this, port+2, (outputStateMask >> shift) & 0xFF); // write output byte
 }
 
 
@@ -391,7 +426,58 @@ void TCA9555::updateDirection(int aForBitNo)
   uint8_t port = aForBitNo >> 3; // calculate port No
   uint8_t shift = 8*port;
   uint8_t data = ~((outputEnableMask >> shift) & 0xFF); // TCA9555 config register has 1 for inputs, 0 for outputs
-  i2cbus->writeByte(this, port+6, data); // set input enable flags in reg 6 or 7
+  i2cbus->SMBusWriteByte(this, port+6, data); // set input enable flags in reg 6 or 7
+}
+
+
+#pragma mark - PCF8574
+
+
+PCF8574::PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP) :
+  inherited(aDeviceAddress, aBusP)
+{
+  // make sure we have all inputs
+  updateDirection(0); // port 0
+}
+
+
+bool PCF8574::isKindOf(const char *aDeviceType)
+{
+  if (strcmp(deviceType(),aDeviceType)==0)
+    return true;
+  else
+    return inherited::isKindOf(aDeviceType);
+}
+
+
+void PCF8574::updateInputState(int aForBitNo)
+{
+  if (aForBitNo>7) return;
+  uint8_t data;
+  if (i2cbus->I2CReadByte(this, data)) {
+    pinStateMask = data;
+  }
+}
+
+
+void PCF8574::updateOutputs(int aForBitNo)
+{
+  if (aForBitNo>7) return;
+  // PCF8574 does not have a direction register, but reading just senses the pin level.
+  // With output set to H, the pin is OC and can be set to Low
+  // -> pins to be used as inputs must always be high
+  uint8_t b =
+    ((~outputEnableMask) & 0xFF) | // pins used as input must have output state High
+    (outputStateMask & 0xFF); // pins used as output will have the correct state from beginning
+  i2cbus->I2CWriteByte(this, b);
+}
+
+
+
+void PCF8574::updateDirection(int aForBitNo)
+{
+  // There is no difference in updating outputs or updating direction for the primitive PCF8574
+  updateOutputs(aForBitNo);
 }
 
 

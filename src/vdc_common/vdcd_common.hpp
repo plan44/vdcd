@@ -12,7 +12,7 @@
 #define LEGACY_DSID_SUPPORT 1 // if set to 1, classic dsids are still supported (using --modernids 0 command line)
 #define PSEUDO_CLASSIC_DSID 1 // if set to 1, classic dsids are used in expanded dSUID format (17 bytes, 8 zeroes in the middle, 2 zeroes at the end)
 
-#if !defined(DIGI_ESP) && !defined(RASPBERRY_PI)
+#if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
   // non official release platform
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
 #endif
