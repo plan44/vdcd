@@ -542,8 +542,16 @@ void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, 
 {
   // save current state in temp scene
   blinkDoneHandler = aDoneCB;
-  blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
-  captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
+  SceneDeviceSettingsPtr scenes = device.getScenes();
+  if (scenes) {
+    // device has scenes, get a default scene to capture current state
+    blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
+    captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
+  }
+  else {
+    // device has no scenes (some switch outputs don't have scenes)
+    beforeBlinkStateSavedHandler(aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent);
+  }
 }
 
 
