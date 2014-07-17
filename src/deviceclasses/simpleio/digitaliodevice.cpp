@@ -55,7 +55,9 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   if (output) {
     // Digital output as light on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
-    // Simulate light device
+    // - use light settings, which include a scene table
+    deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+    // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
     addBehaviour(l);
@@ -103,8 +105,8 @@ void DigitalIODevice::deriveDsUid()
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
   string s = classContainerP->deviceClassContainerInstanceIdentifier();
   s += ':';
-  if (buttonInput) s += ':' + buttonInput->getName();
-  if (indicatorOutput) s += ':' + indicatorOutput->getName();
+  if (buttonInput) { s += ":"; s += buttonInput->getName(); }
+  if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
