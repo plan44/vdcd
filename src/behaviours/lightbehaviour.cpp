@@ -332,8 +332,8 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   fadeDownTicket(0),
   blinkTicket(0)
 {
-  // should always be a member of the light group
-  setGroup(group_yellow_light);
+  // make it member of the light group
+  setGroupMembership(group_yellow_light, true);
   // primary output controls brightness
   setHardwareName("brightness");
   // persistent settings

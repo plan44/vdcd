@@ -64,15 +64,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--modernids 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--announcepause 1"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -80,11 +76,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
@@ -108,7 +104,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -129,6 +125,10 @@
          <CommandLineArgument
             argument = "--digitalio testbutton:in --digitalio testlamp:out --digitalio i2c1.TCA9555@25.7:out"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--digitalio simpin.swkl200Z:out"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a"

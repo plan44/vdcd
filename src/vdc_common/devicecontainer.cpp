@@ -45,7 +45,7 @@ using namespace p44;
 
 // how long vDC waits after receiving ok from one announce until it fires the next
 //#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
-#define DEFAULT_ANNOUNCE_PAUSE (1*Second)
+#define DEFAULT_ANNOUNCE_PAUSE (10*MilliSecond)
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define ANNOUNCE_TIMEOUT (30*Second)

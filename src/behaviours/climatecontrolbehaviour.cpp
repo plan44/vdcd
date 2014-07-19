@@ -27,6 +27,8 @@ using namespace p44;
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice)
 {
+  // make it member of the climate group
+  setGroupMembership(group_blue_heating, true);
   // add the output channel
   // TODO: do we have a proper channel type for this?
   ChannelBehaviourPtr ch = ChannelBehaviourPtr(new HeatingLevelChannel(*this));
