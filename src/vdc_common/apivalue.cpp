@@ -216,7 +216,7 @@ ApiValuePtr ApiValue::newUint64(uint64_t aUint64)
 ApiValuePtr ApiValue::newDouble(double aDouble)
 {
   ApiValuePtr newVal = newValue(apivalue_double);
-  newVal->setDoubleValue(apivalue_double);
+  newVal->setDoubleValue(aDouble);
   return newVal;
 }
 
@@ -273,6 +273,7 @@ ApiValuePtr ApiValue::newNull()
 
 
 // get in different int types
+
 uint8_t ApiValue::uint8Value()
 {
   return uint64Value() & 0xFF;
@@ -306,6 +307,7 @@ int32_t ApiValue::int32Value()
   return (int32_t)int64Value();
 }
 
+// set in different int types
 
 void ApiValue::setUint8Value(uint8_t aUint8)
 {
