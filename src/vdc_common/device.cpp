@@ -275,6 +275,37 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       LOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
     }
   }
+  else if (aMethod=="setOutputChannelValue") {
+    // set output channel value (alias for setProperty outputStates)
+    ApiValuePtr o;
+    if (Error::isOK(err = checkParam(aParams, "channel", o))) {
+      DsChannelType channel = (DsChannelType)o->int32Value();
+      if (Error::isOK(err = checkParam(aParams, "value", o))) {
+        double value = o->doubleValue();
+        // check optional apply_now flag
+        bool apply_now = true; // non-buffered write by default
+        o = aParams->get("apply_now");
+        if (o) {
+          apply_now = o->boolValue();
+        }
+        // reverse build the correctly structured property value: { channelStates: { <channel>: { value:<value> } } }
+        // - value
+        o = aParams->newObject();
+        o->add("value", o->newDouble(value));
+        // - channel id
+        ApiValuePtr ch = o->newObject();
+        ch->add(string_format("%d",channel), o);
+        // - channelStates
+        ApiValuePtr propValue = ch->newObject();
+        propValue->add("channelStates", ch);
+        // now access the property
+        err = accessProperty(apply_now ? access_write : access_write_preload, propValue, ApiValuePtr(), VDC_API_DOMAIN, PropertyDescriptorPtr());
+      }
+    }
+    if (!Error::isOK(err)) {
+      LOG(LOG_WARNING, "setOutputChannelValue error: %s\n", err->description().c_str());
+    }
+  }
   else if (aMethod=="identify") {
     // identify to user
     LOG(LOG_NOTICE, "%s: identify:\n", shortDesc().c_str());

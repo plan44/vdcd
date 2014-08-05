@@ -23,6 +23,7 @@ typedef struct _Vdcapi__VdcResponseGetProperty Vdcapi__VdcResponseGetProperty;
 typedef struct _Vdcapi__VdsmRequestSetProperty Vdcapi__VdsmRequestSetProperty;
 typedef struct _Vdcapi__VdsmSendPing Vdcapi__VdsmSendPing;
 typedef struct _Vdcapi__VdcSendPong Vdcapi__VdcSendPong;
+typedef struct _Vdcapi__VdcSendPushProperty Vdcapi__VdcSendPushProperty;
 typedef struct _Vdcapi__VdsmNotificationCallScene Vdcapi__VdsmNotificationCallScene;
 typedef struct _Vdcapi__VdsmNotificationSaveScene Vdcapi__VdsmNotificationSaveScene;
 typedef struct _Vdcapi__VdsmNotificationUndoScene Vdcapi__VdsmNotificationUndoScene;
@@ -31,7 +32,7 @@ typedef struct _Vdcapi__VdsmNotificationCallMinScene Vdcapi__VdsmNotificationCal
 typedef struct _Vdcapi__VdsmNotificationIdentify Vdcapi__VdsmNotificationIdentify;
 typedef struct _Vdcapi__VdsmNotificationSetControlValue Vdcapi__VdsmNotificationSetControlValue;
 typedef struct _Vdcapi__VdsmNotificationDimChannel Vdcapi__VdsmNotificationDimChannel;
-typedef struct _Vdcapi__VdcSendPushProperty Vdcapi__VdcSendPushProperty;
+typedef struct _Vdcapi__VdsmNotificationSetOutputChannelValue Vdcapi__VdsmNotificationSetOutputChannelValue;
 
 
 /* --- enums --- */
@@ -182,8 +183,8 @@ struct  _Vdcapi__VdsmRequestSetProperty
 {
   ProtobufCMessage base;
   char *dsuid;
-  protobuf_c_boolean has_preload;
-  protobuf_c_boolean preload;
+  protobuf_c_boolean has_dont_apply;
+  protobuf_c_boolean dont_apply;
   size_t n_properties;
   Vdcapi__PropertyElement **properties;
 };
@@ -210,6 +211,18 @@ struct  _Vdcapi__VdcSendPong
 #define VDCAPI__VDC__SEND_PONG__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_pong__descriptor) \
     , NULL }
+
+
+struct  _Vdcapi__VdcSendPushProperty
+{
+  ProtobufCMessage base;
+  char *dsuid;
+  size_t n_properties;
+  Vdcapi__PropertyElement **properties;
+};
+#define VDCAPI__VDC__SEND_PUSH_PROPERTY__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_push_property__descriptor) \
+    , NULL, 0,NULL }
 
 
 struct  _Vdcapi__VdsmNotificationCallScene
@@ -353,16 +366,21 @@ struct  _Vdcapi__VdsmNotificationDimChannel
     , 0,NULL, 0,0, 0,0, 0,0, 0,0, 0,0 }
 
 
-struct  _Vdcapi__VdcSendPushProperty
+struct  _Vdcapi__VdsmNotificationSetOutputChannelValue
 {
   ProtobufCMessage base;
-  char *dsuid;
-  size_t n_properties;
-  Vdcapi__PropertyElement **properties;
+  size_t n_dsuid;
+  char **dsuid;
+  protobuf_c_boolean has_apply_now;
+  protobuf_c_boolean apply_now;
+  protobuf_c_boolean has_channel;
+  int32_t channel;
+  protobuf_c_boolean has_value;
+  double value;
 };
-#define VDCAPI__VDC__SEND_PUSH_PROPERTY__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdc__send_push_property__descriptor) \
-    , NULL, 0,NULL }
+#define VDCAPI__VDSM__NOTIFICATION_SET_OUTPUT_CHANNEL_VALUE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&vdcapi__vdsm__notification_set_output_channel_value__descriptor) \
+    , 0,NULL, 0,1, 0,0, 0,0 }
 
 
 /* Vdcapi__VdsmRequestHello methods */
@@ -650,6 +668,25 @@ Vdcapi__VdcSendPong *
 void   vdcapi__vdc__send_pong__free_unpacked
                      (Vdcapi__VdcSendPong *message,
                       ProtobufCAllocator *allocator);
+/* Vdcapi__VdcSendPushProperty methods */
+void   vdcapi__vdc__send_push_property__init
+                     (Vdcapi__VdcSendPushProperty         *message);
+size_t vdcapi__vdc__send_push_property__get_packed_size
+                     (const Vdcapi__VdcSendPushProperty   *message);
+size_t vdcapi__vdc__send_push_property__pack
+                     (const Vdcapi__VdcSendPushProperty   *message,
+                      uint8_t             *out);
+size_t vdcapi__vdc__send_push_property__pack_to_buffer
+                     (const Vdcapi__VdcSendPushProperty   *message,
+                      ProtobufCBuffer     *buffer);
+Vdcapi__VdcSendPushProperty *
+       vdcapi__vdc__send_push_property__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   vdcapi__vdc__send_push_property__free_unpacked
+                     (Vdcapi__VdcSendPushProperty *message,
+                      ProtobufCAllocator *allocator);
 /* Vdcapi__VdsmNotificationCallScene methods */
 void   vdcapi__vdsm__notification_call_scene__init
                      (Vdcapi__VdsmNotificationCallScene         *message);
@@ -802,24 +839,24 @@ Vdcapi__VdsmNotificationDimChannel *
 void   vdcapi__vdsm__notification_dim_channel__free_unpacked
                      (Vdcapi__VdsmNotificationDimChannel *message,
                       ProtobufCAllocator *allocator);
-/* Vdcapi__VdcSendPushProperty methods */
-void   vdcapi__vdc__send_push_property__init
-                     (Vdcapi__VdcSendPushProperty         *message);
-size_t vdcapi__vdc__send_push_property__get_packed_size
-                     (const Vdcapi__VdcSendPushProperty   *message);
-size_t vdcapi__vdc__send_push_property__pack
-                     (const Vdcapi__VdcSendPushProperty   *message,
+/* Vdcapi__VdsmNotificationSetOutputChannelValue methods */
+void   vdcapi__vdsm__notification_set_output_channel_value__init
+                     (Vdcapi__VdsmNotificationSetOutputChannelValue         *message);
+size_t vdcapi__vdsm__notification_set_output_channel_value__get_packed_size
+                     (const Vdcapi__VdsmNotificationSetOutputChannelValue   *message);
+size_t vdcapi__vdsm__notification_set_output_channel_value__pack
+                     (const Vdcapi__VdsmNotificationSetOutputChannelValue   *message,
                       uint8_t             *out);
-size_t vdcapi__vdc__send_push_property__pack_to_buffer
-                     (const Vdcapi__VdcSendPushProperty   *message,
+size_t vdcapi__vdsm__notification_set_output_channel_value__pack_to_buffer
+                     (const Vdcapi__VdsmNotificationSetOutputChannelValue   *message,
                       ProtobufCBuffer     *buffer);
-Vdcapi__VdcSendPushProperty *
-       vdcapi__vdc__send_push_property__unpack
+Vdcapi__VdsmNotificationSetOutputChannelValue *
+       vdcapi__vdsm__notification_set_output_channel_value__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   vdcapi__vdc__send_push_property__free_unpacked
-                     (Vdcapi__VdcSendPushProperty *message,
+void   vdcapi__vdsm__notification_set_output_channel_value__free_unpacked
+                     (Vdcapi__VdsmNotificationSetOutputChannelValue *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
@@ -868,6 +905,9 @@ typedef void (*Vdcapi__VdsmSendPing_Closure)
 typedef void (*Vdcapi__VdcSendPong_Closure)
                  (const Vdcapi__VdcSendPong *message,
                   void *closure_data);
+typedef void (*Vdcapi__VdcSendPushProperty_Closure)
+                 (const Vdcapi__VdcSendPushProperty *message,
+                  void *closure_data);
 typedef void (*Vdcapi__VdsmNotificationCallScene_Closure)
                  (const Vdcapi__VdsmNotificationCallScene *message,
                   void *closure_data);
@@ -892,8 +932,8 @@ typedef void (*Vdcapi__VdsmNotificationSetControlValue_Closure)
 typedef void (*Vdcapi__VdsmNotificationDimChannel_Closure)
                  (const Vdcapi__VdsmNotificationDimChannel *message,
                   void *closure_data);
-typedef void (*Vdcapi__VdcSendPushProperty_Closure)
-                 (const Vdcapi__VdcSendPushProperty *message,
+typedef void (*Vdcapi__VdsmNotificationSetOutputChannelValue_Closure)
+                 (const Vdcapi__VdsmNotificationSetOutputChannelValue *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -916,6 +956,7 @@ extern const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__desc
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__send_ping__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdc__send_pong__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__vdc__send_push_property__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_call_scene__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_save_scene__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_undo_scene__descriptor;
@@ -924,7 +965,7 @@ extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_call_min_scen
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_identify__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_set_control_value__descriptor;
 extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_dim_channel__descriptor;
-extern const ProtobufCMessageDescriptor vdcapi__vdc__send_push_property__descriptor;
+extern const ProtobufCMessageDescriptor vdcapi__vdsm__notification_set_output_channel_value__descriptor;
 
 PROTOBUF_C_END_DECLS
 

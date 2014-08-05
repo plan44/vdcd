@@ -55,16 +55,18 @@ message vdsm_RequestGetProperty {
     repeated PropertyElement query = 2;
 }
 
-
 message vdc_ResponseGetProperty {
     repeated PropertyElement properties = 1;
 }
 
-
 // expects generic response
 message vdsm_RequestSetProperty {
     optional string dSUID = 1;
-    optional bool preload = 2 [ default = false ];
+// TODO: enable - new as per vdsm MR59
+//    repeated PropertyElement properties = 2;
+
+// TODO: remove this - used now until actual vdsm C code is adapted
+    optional bool dont_apply = 2 [ default = false ];
     repeated PropertyElement properties = 3;
 }
 
@@ -75,6 +77,12 @@ message vdsm_SendPing {
 message vdc_SendPong {
     optional string dSUID = 1;
 }
+
+message vdc_SendPushProperty {
+    optional string dSUID = 1;
+    repeated PropertyElement properties = 2;
+}
+
 
 message vdsm_NotificationCallScene {
     repeated string dSUID = 1;
@@ -135,8 +143,12 @@ message vdsm_NotificationDimChannel {
     optional int32 zone_id = 6;
 }
 
-message vdc_SendPushProperty {
-    optional string dSUID = 1;
-    repeated PropertyElement properties = 2;
+message vdsm_NotificationSetOutputChannelValue {
+    repeated string dSUID = 1;
+    optional bool apply_now = 2 [ default = true ];
+    optional int32 channel = 3;
+    optional double value = 4;
 }
+
+
 

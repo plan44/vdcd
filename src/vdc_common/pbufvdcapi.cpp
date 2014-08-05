@@ -1350,6 +1350,11 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         paramsMsg = &(decodedMsg->vdsm_send_dim_channel->base);
         // pbuf API field names match, we can use generic decoding
         break;
+      case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_OUTPUT_CHANNEL_VALUE:
+        method = "setOutputChannelValue";
+        paramsMsg = &(decodedMsg->vdsm_send_output_channel_value->base);
+        // pbuf API field names match, we can use generic decoding
+        break;
       // incoming responses
       case VDCAPI__TYPE__GENERIC_RESPONSE: {
         // error or NULL response
