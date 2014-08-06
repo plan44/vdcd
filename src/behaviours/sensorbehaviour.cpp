@@ -35,11 +35,11 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
   currentValue(0)
 {
   // set dummy default hardware default configuration
-  setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 100, 1, 15*Second);
+  setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 100, 1, 15*Second, 20*Minute);
 }
 
 
-void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval)
+void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval)
 {
   sensorType = aType;
   sensorUsage = aUsage;
@@ -47,6 +47,7 @@ void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aU
   max = aMax;
   resolution = aResolution;
   updateInterval = aUpdateInterval;
+  alifeSignInterval = aAliveSignInterval;
 }
 
 
@@ -153,6 +154,7 @@ enum {
   max_key,
   resolution_key,
   updateInterval_key,
+  alifeSignInterval_key,
   numDescProperties
 };
 
@@ -167,6 +169,7 @@ const PropertyDescriptorPtr SensorBehaviour::getDescDescriptorByIndex(int aPropI
     { "max", apivalue_double, max_key+descriptions_key_offset, OKEY(sensor_key) },
     { "resolution", apivalue_double, resolution_key+descriptions_key_offset, OKEY(sensor_key) },
     { "updateInterval", apivalue_double, updateInterval_key+descriptions_key_offset, OKEY(sensor_key) },
+    { "alifeSignInterval", apivalue_double, alifeSignInterval_key+descriptions_key_offset, OKEY(sensor_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
@@ -239,6 +242,9 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         case updateInterval_key+descriptions_key_offset:
           aPropValue->setDoubleValue((double)updateInterval/Second);
+          return true;
+        case alifeSignInterval_key+descriptions_key_offset:
+          aPropValue->setDoubleValue((double)alifeSignInterval/Second);
           return true;
         // Settings properties
         case group_key+settings_key_offset:

@@ -43,10 +43,11 @@ namespace p44 {
     /// @{
     DsSensorType sensorType; ///< type and physical unit of sensor
     DsUsageHint sensorUsage; ///< usage for sensor (if known)
-    double min; /// minimum value (corresponding to aEngineeringValue==0)
-    double max; /// max value
-    double resolution; /// change per LSB of sensor engineering value
-    MLMicroSeconds updateInterval;
+    double min; ///< minimum value (corresponding to aEngineeringValue==0)
+    double max; ///< max value
+    double resolution; ///< change per LSB of sensor engineering value
+    MLMicroSeconds updateInterval; ///< approximate time resolution of the sensor (how fast the sensor can track values)
+    MLMicroSeconds alifeSignInterval; ///< how often the sensor reports a value minimally (if it does not report for longer than that, it can be considered out of order)
     /// @}
 
     /// @name persistent settings
@@ -73,7 +74,7 @@ namespace p44 {
     /// initialisation of hardware-specific constants for this sensor
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval);
+    void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval);
 
     /// set group
     virtual void setGroup(DsGroup aGroup) { sensorGroup = aGroup; };
