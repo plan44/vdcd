@@ -700,11 +700,11 @@ static char light_key;
 enum {
   onThreshold_key,
   minBrightness_key,
-  dimTimeUp_key,
-  dimTimeDown_key,
+  dimTimeUp_key, // upAlt1/2 must immediately follow (array index calculation in accessField below!)
   dimTimeUpAlt1_key,
-  dimTimeDownAlt1_key,
   dimTimeUpAlt2_key,
+  dimTimeDown_key, // downAlt1/2 must immediately follow (array index calculation in accessField below!)
+  dimTimeDownAlt1_key,
   dimTimeDownAlt2_key,
   numSettingsProperties
 };
