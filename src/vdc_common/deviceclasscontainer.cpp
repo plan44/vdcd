@@ -194,7 +194,7 @@ PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &a
 PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numClassContainerProperties] = {
-    { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
+    { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
     { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);

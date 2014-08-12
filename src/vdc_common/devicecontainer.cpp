@@ -1079,7 +1079,7 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
   static const PropertyDescription properties[numDeviceContainerProperties] = {
     { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
     { "x-p44-staticvdc", apivalue_object, staticvdc_key, OKEY(vdc_container_key) },
-    { "x-p44-webui-url", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
+    { "configURL", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
   if (aPropIndex<n)
