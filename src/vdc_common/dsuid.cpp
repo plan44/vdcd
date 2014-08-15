@@ -417,6 +417,8 @@ bool DsUid::setAsString(const string &aString)
   return true;
 }
 
+#if VDCS_PSEUDO_CLASSIC_DSID
+
 #pragma mark - getting derived classic equivalent of a dSUID (FNV hashing method)
 
 
@@ -464,6 +466,7 @@ DsUid DsUid::getDerivedPseudoClassicId(ObjectClass aObjectClass) const
   return pseudoclassicId;
 }
 
+#endif
 
 
 

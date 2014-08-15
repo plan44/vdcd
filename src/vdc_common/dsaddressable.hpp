@@ -47,11 +47,6 @@ namespace p44 {
     /// the user-assignable name
     string name;
 
-    #if LEGACY_DSID_SUPPORT
-    /// the legacy (classic) dsid, derived from the dSUID on demand
-    DsUid classidDsid;
-    #endif
-
     /// announcement status
     MLMicroSeconds announced; ///< set when last announced to the vdSM
     MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
@@ -66,8 +61,8 @@ namespace p44 {
     DsAddressable(DeviceContainer *aDeviceContainerP);
     virtual ~DsAddressable();
 
-    /// the dSUID exposed in the VDC API (might be derived, classic one in --modernids=0 mode)
-    const DsUid &getApiDsUid();
+    /// the dSUID exposed in the VDC API (might be pseudoclassic during beta)
+    virtual const DsUid &getApiDsUid();
 
     /// the real (always modern, 34 hex) dSUID
     const DsUid &getDsUid() { return dSUID; };

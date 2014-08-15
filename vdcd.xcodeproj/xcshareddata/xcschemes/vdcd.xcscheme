@@ -63,12 +63,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--modernids 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -104,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -116,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled gpioNS9XXXX.ledred --greenled gpioNS9XXXX.ledgreen --button gpioNS9XXXX.button"

@@ -23,7 +23,6 @@
 #include "digitalio.hpp"
 
 
-#define DEFAULT_USE_MODERN_DSUIDS 1 // 0: no, 1: yes
 #define DEFAULT_USE_PROTOBUF_API 1 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
@@ -228,9 +227,8 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "modernids",     true,  "enabled;1=use modern (GS1/UUID based) 34 hex dsUIDs, 0=classic 24 hex dsids" },
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
-      { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC (usually UUIDv1 generated on the host)" },
+      { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
@@ -330,8 +328,6 @@ public:
       p44VdcHost->setPersistentDataDir(dbdir);
 
       // - set dSUID mode
-      int modernids = DEFAULT_USE_MODERN_DSUIDS;
-      getIntOption("modernids", modernids);
       DsUidPtr externalDsUid;
       string dsuidStr;
       if (getStringOption("dsuid", dsuidStr)) {
@@ -347,7 +343,7 @@ public:
         externalDsUid->setGTIN(gcp, itemref, part);
         externalDsUid->setSerial(serial);
       }
-      p44VdcHost->setIdMode(modernids!=0, externalDsUid);
+      p44VdcHost->setIdMode(externalDsUid);
 
       // - set announce pause
       int announcePause;

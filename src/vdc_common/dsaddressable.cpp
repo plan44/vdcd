@@ -42,23 +42,7 @@ DsAddressable::~DsAddressable()
 
 const DsUid &DsAddressable::getApiDsUid()
 {
-  #if LEGACY_DSID_SUPPORT
-  if (deviceContainerP->usingDsUids())
-    return dSUID;
-  else {
-    // needs pseudo classic ID
-    if (classidDsid.empty()) {
-      #if PSEUDO_CLASSIC_DSID
-      classidDsid = dSUID.getDerivedPseudoClassicId(DSID_OBJECTCLASS_DSDEVICE);
-      #else
-      classidDsid = dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE);
-      #endif
-    }
-    return classidDsid;
-  }
-  #else
   return dSUID;
-  #endif
 }
 
 
@@ -239,9 +223,6 @@ void DsAddressable::checkPresence(PresenceCB aPresenceResultHandler)
 enum {
   type_key,
   dSUID_key,
-  #if LEGACY_DSID_SUPPORT
-  classicid_key,
-  #endif
   model_key,
   hardwareVersion_key,
   hardwareGUID_key,
@@ -267,9 +248,6 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
   static const PropertyDescription properties[numDsAddressableProperties] = {
     { "type", apivalue_string, type_key, OKEY(dsAddressable_key) },
     { "dSUID", apivalue_binary, dSUID_key, OKEY(dsAddressable_key) },
-    #if LEGACY_DSID_SUPPORT
-    { "x-p44-classicid", apivalue_binary, classicid_key, OKEY(dsAddressable_key) },
-    #endif
     { "model", apivalue_string, model_key, OKEY(dsAddressable_key) },
     { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
@@ -299,9 +277,6 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
       switch (aPropertyDescriptor->fieldKey()) {
         case type_key: aPropValue->setStringValue(entityType()); return true; // the entity type
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
-        #if LEGACY_DSID_SUPPORT
-        case classicid_key: aPropValue->setStringValue(dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString()); return true; // always the classic dSUID
-        #endif
         case model_key: aPropValue->setStringValue(modelName()); return true;
         case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
@@ -338,10 +313,6 @@ string DsAddressable::shortDesc()
 {
   // short description is dSUID...
   string s = dSUID.getString();
-  #if LEGACY_DSID_SUPPORT
-  // ...with classic dsid in case we still have legacy ID support
-  string_format_append(s, "/%s", dSUID.getDerivedClassicId(DSID_OBJECTCLASS_DSDEVICE).getString().c_str());
-  #endif
   // ...and user-set name, if any
   if (!name.empty())
     string_format_append(s, " (%s)", name.c_str());

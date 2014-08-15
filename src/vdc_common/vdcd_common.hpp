@@ -9,8 +9,8 @@
 #ifndef P44VDCD_COMMON_HPP_
 #define P44VDCD_COMMON_HPP_
 
-#define LEGACY_DSID_SUPPORT 1 // if set to 1, classic dsids are still supported (using --modernids 0 command line)
-#define PSEUDO_CLASSIC_DSID 1 // if set to 1, classic dsids are used in expanded dSUID format (17 bytes, 8 zeroes in the middle, 2 zeroes at the end)
+#define VDCS_PSEUDO_CLASSIC_DSID 1 // if set to 1, vdcs will expose pseudo-classic IDs to the vdsm
+
 
 #if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
   // non official release platform

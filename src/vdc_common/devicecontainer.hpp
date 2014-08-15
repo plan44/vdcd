@@ -92,7 +92,6 @@ namespace p44 {
     friend class DeviceClassContainer;
     friend class DsAddressable;
 
-    bool dsUids; ///< set to use dsUIDs (GS1/UUID based, 34 hex chars)
     bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
     uint64_t mac; ///< MAC address as found at startup
 
@@ -140,18 +139,14 @@ namespace p44 {
 
 
     /// Set how dSUIDs are generated
-    /// @param aDsUid true to enable modern dSUIDs (GS1/UUID based)
     /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container
     /// @note Must be set before any other activity in the device container, in particular before
     ///   any class containers are added to the device container
-    void setIdMode(bool aDsUid, DsUidPtr aExternalDsUid = DsUidPtr());
+    void setIdMode(DsUidPtr aExternalDsUid);
 
 
     /// @param aAnnouncePause how long to wait between device announcements
     void setAnnouncePause(MLMicroSeconds aAnnouncePause) { announcePause = aAnnouncePause; };
-
-    /// @return true if modern GS1/UUID based dSUIDs should be used
-    bool usingDsUids() { return dsUids; };
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();

@@ -71,6 +71,12 @@ namespace p44 {
 
   public:
 
+    #if VDCS_PSEUDO_CLASSIC_DSID
+    DsUid pseudoClassicId;
+    /// the dSUID exposed in the VDC API (might be pseudoclassic during beta)
+    virtual const DsUid &getApiDsUid();
+    #endif
+
 
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsuids for devices that don't have their own

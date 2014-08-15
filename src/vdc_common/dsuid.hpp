@@ -199,6 +199,9 @@ namespace p44 {
     ///   This method maps bits 48..51 of aSerial into bits 32..35 of the serial number field
     void setDsSerialNo(DsSerialNo aSerialNo);
 
+
+    #if VDCS_PSEUDO_CLASSIC_DSID
+
     /// @deprecated get classic dsid derived via standard hashing procedure from dSUID
     /// @param aObjectClass to set in derived ID
     /// @return a classic 12-byte dsid in the terminal block domain (32 bit serial) with same
@@ -213,6 +216,8 @@ namespace p44 {
     ///   subdeviceindex as the original one (only for 0..7 range) and MSB (bit31) set to
     ///   distinguish it from any real terminal block dsid (those have smaller serial numbers)
     DsUid getDerivedPseudoClassicId(ObjectClass aObjectClass) const;
+
+    #endif
 
 
     /// @}
