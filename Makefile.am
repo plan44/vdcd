@@ -45,7 +45,12 @@ if RASPBERRYPI
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
 vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
 else
-vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+# automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
+# vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+vdcd_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -lcrypto -lz
+
+# build mongoose into vdcd, no library
+MONGOOSE_SRC = src/thirdparty/mongoose/mongoose.c src/thirdparty/mongoose/mongoose.h
 endif
 
 
@@ -70,6 +75,7 @@ vdcd_CXXFLAGS = \
 
 
 vdcd_SOURCES = \
+  ${MONGOOSE_SRC} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
