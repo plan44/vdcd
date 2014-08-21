@@ -220,6 +220,7 @@ static const char *occupText = "Occupancy";
 static const char *unityUnit = "1";
 
 static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
+  // func, type, subDevice, group,    behaviourType,          behaviourParam,        usage,              min,  max,  MSB,  LSB,  updateIv, aliveSignIv, handler,      typeText, unitText, flags
   // A5-02-xx: Temperature sensors
   // - 40 degree range                 behaviour_binaryinput
   { 0x02, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40,    0, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit, dflag_climatecontrolbehaviour },
@@ -282,6 +283,7 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
   { 0x20, 0x01, 0, group_blue_heating, behaviour_output,      outputFunction_positional, usage_room,       0,  100, DB(3,7), DB(3,0),  100, 40*60, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
   { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
+  { 0x20, 0x01, 0, group_blue_heating, behaviour_binaryinput, binInpType_lowBattery,  usage_room,          1,    0, DB(2,4), DB(2,4),  100, 40*60, &stdInputHandler,  "Low Battery", unityUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
 
   // terminator
   { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
