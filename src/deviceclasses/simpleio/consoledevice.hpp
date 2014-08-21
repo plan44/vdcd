@@ -41,6 +41,7 @@ namespace p44 {
     bool hasButton;
     bool hasOutput;
     bool hasColor;
+    bool isValve;
     ConsoleKeyPtr consoleKey;
 
   public:
@@ -81,7 +82,10 @@ namespace p44 {
 	private:
 
     void buttonHandler(bool aState, MLMicroSeconds aTimeStamp);
-		
+    void binaryInputHandler(bool aState, MLMicroSeconds aTimeStamp);
+    void sensorValueHandler(double aValue, MLMicroSeconds aTimeStamp);
+    void sensorJitter(bool aState, MLMicroSeconds aTimeStamp);
+
   };
 
 } // namespace p44

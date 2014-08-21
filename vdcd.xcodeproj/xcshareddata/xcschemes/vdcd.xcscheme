@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -140,6 +140,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testcolor:color"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k heizventil:valve"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

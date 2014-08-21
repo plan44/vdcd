@@ -82,6 +82,10 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+    /// current value and range
+    double getCurrentValue() { return currentValue; };
+    double getMax() { return max; };
+    double getMin() { return min; };
 
     /// get sensor type
     /// @return the sensor type
