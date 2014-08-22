@@ -130,18 +130,17 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
             }
           }
           else {
-            // addressed property is a simple value field -> access it
+            // addressed (and known by descriptor!) property is a simple value field -> access it
             if (aMode==access_read) {
               // read access: create a new apiValue and have it filled
               ApiValuePtr fieldValue = queryValue->newValue(propDesc->type()); // create a value of correct type to get filled
               bool accessOk = accessField(aMode, fieldValue, propDesc); // read
-              if (!accessOk) {
-                fieldValue->setNull(); // access not working -> return NULL
-              }
-              if (accessOk || !wildcard) {
+              // for read, not getting an OK from accessField means: property does not exist (even if known per descriptor),
+              // so it will not be added to the result
+              if (accessOk) {
+                // add to result with actual name (from descriptor)
                 aResultObject->add(propDesc->name(), fieldValue);
               }
-              // add to result with actual name (from descriptor)
               DBGFLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
             }
             else {
@@ -154,9 +153,14 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
         }
         else {
           // no descriptor found for this query element
-          // Note: this means that property is not KNOWN, which is NOT the same as getting false from accessField
+          // Note: this means that property is not KNOWN, which IS not the same as getting false from accessField
           //   (latter means that property IS known, but has no value in the context it was queried)
-          if (!wildcard && !foundone) {
+          //   HOWEVER, for the vdc API it was decided that for reading, these cases should NOT be
+          //   distinguished for getProperty. If a property does not exist for either reason, the return tree just does
+          //   no contain that property.
+          //   Also note that not having a property is not the same as not having a property VALUE:
+          //   latter case will explicitly return a NULL value
+          if (!wildcard && !foundone && aMode!=access_read) {
             // query did address a specific property but it is unknown -> report as error (for read AND write!)
             // - collect error message, but do not abort query processing
             if (!errorMsg.empty()) errorMsg += "; ";
