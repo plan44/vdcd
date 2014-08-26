@@ -62,12 +62,7 @@ message vdc_ResponseGetProperty {
 // expects generic response
 message vdsm_RequestSetProperty {
     optional string dSUID = 1;
-// TODO: enable - new as per vdsm MR59
-//    repeated PropertyElement properties = 2;
-
-// TODO: remove this - used now until actual vdsm C code is adapted
-    optional bool dont_apply = 2 [ default = false ];
-    repeated PropertyElement properties = 3;
+    repeated PropertyElement properties = 2;
 }
 
 message vdsm_SendPing {
@@ -149,6 +144,4 @@ message vdsm_NotificationSetOutputChannelValue {
     optional int32 channel = 3;
     optional double value = 4;
 }
-
-
 
