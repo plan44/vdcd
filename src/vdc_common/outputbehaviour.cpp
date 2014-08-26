@@ -108,9 +108,8 @@ ChannelBehaviourPtr OutputBehaviour::getChannelByType(DsChannelType aChannelType
 bool OutputBehaviour::isMember(DsGroup aGroup)
 {
   return
-    // No more: output group membership determines function, so dont include primary color by default
-    //(aGroup==device.getPrimaryGroup()) || // is always member of primary group
-    ((outputGroups & 0x1ll<<aGroup)!=0); // explicit extra membership flag set
+    // Output group membership determines function, so primary color is not included by default, only if explicitly set
+    (outputGroups & (0x1ll<<aGroup))!=0; // explicit extra membership flag set
 }
 
 

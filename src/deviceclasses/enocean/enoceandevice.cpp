@@ -57,6 +57,8 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSu
   subDevice(0)
 {
   eeFunctionDesc = "device"; // generic description is "device"
+  iconBaseName = "enocean";
+  groupColoredIcon = true;
 }
 
 
@@ -139,6 +141,27 @@ string EnoceanDevice::modelGUID()
 string EnoceanDevice::modelName()
 {
   return string_format("%s EnOcean %s (%02X-%02X-%02X)", manufacturerName().c_str(), eeFunctionDesc.c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
+}
+
+
+string EnoceanDevice::vendorId()
+{
+  return string_format("enoceanvendor:%03X:%s", eeManufacturer, manufacturerName().c_str());
+}
+
+bool EnoceanDevice::getDeviceIcon16(string &aIcon)
+{
+  bool iconFound = false;
+  if (iconBaseName) {
+    if (groupColoredIcon)
+      iconFound = loadGroupColoredIcon(iconBaseName, getDominantGroup(), aIcon);
+    else
+      iconFound = loadIcon(iconBaseName, aIcon);
+  }
+  if (iconFound)
+    return true;
+  // failed
+  return inherited::getDeviceIcon16(aIcon);
 }
 
 

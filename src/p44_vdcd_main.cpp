@@ -244,6 +244,7 @@ public:
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
+      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
@@ -326,7 +327,10 @@ public:
       const char *dbdir = DEFAULT_DBDIR;
       getStringOption("sqlitedir", dbdir);
       p44VdcHost->setPersistentDataDir(dbdir);
-
+      // - set icon directory
+      const char *icondir = NULL;
+      getStringOption("icondir", icondir);
+      p44VdcHost->setIconDir(icondir);
       // - set dSUID mode
       DsUidPtr externalDsUid;
       string dsuidStr;

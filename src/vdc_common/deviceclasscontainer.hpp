@@ -205,7 +205,10 @@ namespace p44 {
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; }
-    
+
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    virtual string vendorId() { return "vendorname:plan44.ch"; };
+
     /// @}
 
 

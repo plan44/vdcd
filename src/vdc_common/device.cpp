@@ -87,6 +87,53 @@ void Device::setPrimaryGroup(DsGroup aColorGroup)
 }
 
 
+DsGroup Device::getDominantGroup()
+{
+  DsGroup group = group_variable;
+  if (output) {
+    // lowest group of output determines dominant color
+    for (int i = group_yellow_light; i<=group_windows; i++) {
+      if (output->isMember((DsGroup)i)) {
+        group = (DsGroup)i;
+        break;
+      }
+    }
+  }
+  if (group==group_variable && buttons.size()>0) {
+    // second priority: color of first button
+    ButtonBehaviourPtr btn = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[0]);
+    group =  btn->buttonGroup;
+  }
+  if (group==group_variable && sensors.size()>0) {
+    // third priority: color of first sensor
+    SensorBehaviourPtr sns = boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0]);
+    group =  sns->sensorGroup;
+  }
+  if (group==group_variable && binaryInputs.size()>0) {
+    // fourth priority: color of first binary input
+    BinaryInputBehaviourPtr bin = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
+    group =  bin->binInputGroup;
+  }
+  if (group==group_variable) {
+    // still undefined -> use primary color
+    group = primaryGroup;
+  }
+  return group;
+}
+
+
+
+bool Device::getDeviceIcon16(string &aIcon)
+{
+  if (loadGroupColoredIcon("vdsd", getDominantGroup(), aIcon))
+    return true;
+  else
+    return inherited::getDeviceIcon16(aIcon);
+}
+
+
+
+
 
 void Device::addBehaviour(DsBehaviourPtr aBehaviour)
 {

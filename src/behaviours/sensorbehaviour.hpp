@@ -35,6 +35,7 @@ namespace p44 {
   class SensorBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
+    friend class Device;
 
   protected:
 

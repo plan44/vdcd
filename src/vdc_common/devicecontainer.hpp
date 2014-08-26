@@ -98,7 +98,8 @@ namespace p44 {
     DsDeviceMap dSDevices; ///< available devices by API-exposed ID (dSUID or derived dsid)
     DsParamStore dsParamStore; ///< the database for storing dS device parameters
 
-    string persistentDataDir;
+    string iconDir; ///< the directory where to load icons from
+    string persistentDataDir; ///< the directory for the vdcd to store SQLite DBs and possibly other persistent data
 
     bool collecting;
     long announcementTicket;
@@ -143,6 +144,17 @@ namespace p44 {
     /// @note Must be set before any other activity in the device container, in particular before
     ///   any class containers are added to the device container
     void setIdMode(DsUidPtr aExternalDsUid);
+
+    /// Set directory for loading device icons
+    /// @param aIconDir  full path to directory to load device icons from. Empty string or NULL means "no icons"
+    /// @note the path needs to contain subdirectories for each size, named iconX with X=side lengt in pixels
+    ///   At this time, only 16x16 icons are defined, so only one subdirectory named icon16 needs to exist
+    ///   within icondir
+    void setIconDir(const char *aIconDir);
+
+    /// Get directory for loading device icons from
+    /// @return the path to the icon dir, always with a trailing path separator, ready to append subpaths and filenames
+    const char *getIconDir();
 
 
     /// @param aAnnouncePause how long to wait between device announcements
@@ -279,7 +291,10 @@ namespace p44 {
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; }
-    
+
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    virtual string vendorId() { return "vendorname:plan44.ch"; };
+
     /// @}
 
 
@@ -317,6 +332,7 @@ namespace p44 {
     // method and notification dispatching
     ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
     void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
+    DsAddressablePtr addressableForDsUid(const DsUid &aDsUid);
 
   private:
 

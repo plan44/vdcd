@@ -101,6 +101,8 @@ namespace p44 {
 		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
 
     string eeFunctionDesc; ///< short functional description (like: button, windowhandle, sensor...)
+    const char *iconBaseName; ///< icon base name
+    bool groupColoredIcon; ///< if set, use color suffix with icon base name
 
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
@@ -162,9 +164,13 @@ namespace p44 {
     /// @param aChannel channel number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     virtual void setAddressingInfo(EnoceanAddress aAddress, EnoceanChannel aChannel);
 
+
     /// device and channel handler implementations can call this to enable immediate sending of output changes for the device
     /// (otherwise, output changes are sent only withing 1sec after receiving a message from the device)
     void setAlwaysUpdateable() { alwaysUpdateable = true; };
+
+    /// set the icon info for the enocean device
+    void setIconInfo(const char *aIconBaseName, bool aGroupColored) { iconBaseName = aIconBaseName; groupColoredIcon = aGroupColored; };
 
     /// get the enocean address identifying the hardware that contains this logical device
     /// @return EnOcean device ID/address
@@ -231,6 +237,13 @@ namespace p44 {
 
     /// @return model GUID in URN format to identify model of device as uniquely as possible
     virtual string modelGUID();
+
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    virtual string vendorId();
+
+    /// @return true if there is an icon, false if not
+    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
+    virtual bool getDeviceIcon16(string &aIcon);
 
     /// @}
 

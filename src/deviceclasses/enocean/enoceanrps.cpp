@@ -53,6 +53,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     // assign EPP information
     newDev->setEEPInfo(aEEProfile, aEEManufacturer);
     newDev->setFunctionDesc("rocker switch");
+    // set icon name: even-numbered subdevice is left, odd is right
+    newDev->setIconInfo(aSubDevice & 0x01 ? "enocean_br" : "enocean_bl", true);
     // RPS switches can be used for anything
     newDev->setPrimaryGroup(group_black_joker);
     // Create two handlers, one for the up button, one for the down button

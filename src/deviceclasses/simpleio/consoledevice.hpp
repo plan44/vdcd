@@ -73,6 +73,9 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "plan44 console-based debug device"; }
 
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    virtual string vendorId() { return "vendorname:plan44.ch"; };
+
     /// @}
 
   protected:

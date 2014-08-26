@@ -146,6 +146,16 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
 }
 
 
+bool HueDevice::getDeviceIcon16(string &aIcon)
+{
+  if (loadIcon("hue", aIcon))
+    return true;
+  else
+    return inherited::getDeviceIcon16(aIcon);
+}
+
+
+
 
 void HueDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {

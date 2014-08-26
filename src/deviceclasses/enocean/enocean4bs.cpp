@@ -367,6 +367,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         newHandler->behaviour = sb;
         if (firstDescriptorForDevice) {
           newDev->setFunctionDesc(string(subdeviceDescP->typeText) + " sensor");
+          newDev->setIconInfo("enocean_sensor", true);
         }
         break;
       }

@@ -114,6 +114,11 @@ namespace p44 {
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vdSD"; }
 
+
+    /// @return true if there is an icon, false if not
+    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
+    virtual bool getDeviceIcon16(string &aIcon);
+
     /// @}
 
 
@@ -128,6 +133,9 @@ namespace p44 {
     /// get basic device color group
     /// @return color group number
     DsGroup getPrimaryGroup() { return primaryGroup; };
+
+    /// get dominant group (i.e. the group that should color the icon)
+    DsGroup getDominantGroup();
 
     /// report that device has vanished (disconnected without being told so via vDC API)
     /// This will call disconnect() on the device, and remove it from all vDC container lists

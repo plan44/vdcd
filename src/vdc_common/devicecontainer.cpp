@@ -126,6 +126,24 @@ void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceCla
 
 
 
+void DeviceContainer::setIconDir(const char *aIconDir)
+{
+	iconDir = nonNullCStr(aIconDir);
+	if (!iconDir.empty() && iconDir[iconDir.length()-1]!='/') {
+		iconDir.append("/");
+	}
+}
+
+
+const char *DeviceContainer::getIconDir()
+{
+	return iconDir.c_str();
+}
+
+
+
+
+
 void DeviceContainer::setPersistentDataDir(const char *aPersistentDataDir)
 {
 	persistentDataDir = nonNullCStr(aPersistentDataDir);
@@ -814,39 +832,47 @@ ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aPar
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
+DsAddressablePtr DeviceContainer::addressableForDsUid(const DsUid &aDsUid)
 {
   if (aDsUid==getApiDsUid() || aDsUid.empty()) {
-    // no ID or that of myself: container level method
-    return handleMethod(aRequest, aMethod, aParams);
+    // no ID or that of myself: vdc-host level method
+    return DsAddressablePtr(this);
   }
   else {
     // Must be device or deviceClassContainer level method
     // - find device to handle it (more probable case)
     DsDeviceMap::iterator pos = dSDevices.find(aDsUid);
     if (pos!=dSDevices.end()) {
-      DevicePtr dev = pos->second;
-      // check special case of Remove command - we must execute this because device should not try to remove itself
-      if (aMethod=="remove") {
-        return removeHandler(aRequest, dev);
-      }
-      else {
-        // let device handle it
-        return dev->handleMethod(aRequest, aMethod, aParams);
-      }
+      return pos->second;
     }
     else {
       // is not a device, try deviceClassContainer
       ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
       if (pos!=deviceClassContainers.end()) {
-        // found
-        return pos->second->handleMethod(aRequest, aMethod, aParams);
-      }
-      else {
-        LOG(LOG_WARNING, "Target entity %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
-        return ErrorPtr(new VdcApiError(404, "unknown dSUID"));
+        return pos->second;
       }
     }
+  }
+  return DsAddressablePtr();
+}
+
+
+
+ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
+{
+  DsAddressablePtr addressable = addressableForDsUid(aDsUid);
+  if (addressable) {
+    // check special case of device remove command - we must execute this because device should not try to remove itself
+    DevicePtr dev = boost::dynamic_pointer_cast<Device>(addressable);
+    if (dev && aMethod=="remove") {
+      return removeHandler(aRequest, dev);
+    }
+    // normal addressable, just let it handle the method
+    return addressable->handleMethod(aRequest, aMethod, aParams);
+  }
+  else {
+    LOG(LOG_WARNING, "Target entity %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+    return ErrorPtr(new VdcApiError(404, "unknown dSUID"));
   }
 }
 
@@ -854,29 +880,12 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
 
 void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  if (aDsUid==getApiDsUid()) {
-    // container level notification
-    handleNotification(aMethod, aParams);
+  DsAddressablePtr addressable = addressableForDsUid(aDsUid);
+  if (addressable) {
+    addressable->handleNotification(aMethod, aParams);
   }
   else {
-    // Must be device level notification
-    // - find device to handle it
-    DsDeviceMap::iterator pos = dSDevices.find(aDsUid);
-    if (pos!=dSDevices.end()) {
-      DevicePtr dev = pos->second;
-      dev->handleNotification(aMethod, aParams);
-    }
-    else {
-      // is not a device, try deviceClassContainer
-      ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
-      if (pos!=deviceClassContainers.end()) {
-        // found
-        return pos->second->handleNotification(aMethod, aParams);
-      }
-      else {
-        LOG(LOG_WARNING, "Target entity %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
-      }
-    }
+    LOG(LOG_WARNING, "Target entity %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
   }
 }
 

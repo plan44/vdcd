@@ -24,6 +24,7 @@
 
 #include "dsuid.hpp"
 #include "propertycontainer.hpp"
+#include "dsdefs.h"
 
 #include "vdcapi.hpp"
 
@@ -145,21 +146,21 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "DsAddressable"; }
+    virtual string modelName() { return "DsAddressable"; };
 
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
-    virtual const char *entityType() { return "*"; }
+    virtual const char *entityType() { return "*"; };
 
     /// @return hardware version string or NULL if none
-    virtual string hardwareVersion() { return ""; }
+    virtual string hardwareVersion() { return ""; };
 
     /// @return number of vdSDs (virtual devices represented by a separate dSUID)
     ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
-    virtual ssize_t numDevicesInHW() { return -1; }
+    virtual ssize_t numDevicesInHW() { return -1; };
 
     /// @return index of this vdSDs (0..numDevicesInHW()-1) among all vdSDs in the same hardware device
     ///   -1 means undefined
-    virtual ssize_t deviceIndexInHW() { return -1; }
+    virtual ssize_t deviceIndexInHW() { return -1; };
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
@@ -169,7 +170,7 @@ namespace p44 {
     /// - gs1:(01)ggggg = GS1 formatted GTIN
     /// - uuid:UUUUUUU = UUID
     /// - macaddress:MMMMM = MAC Address
-    virtual string hardwareGUID() { return ""; }
+    virtual string hardwareGUID() { return ""; };
 
     /// @return model GUID in URN format to identify model of device as uniquely as possible
     /// @note model GUID must be equal between all devices of the same model/class/kind, where "same" should be
@@ -181,10 +182,23 @@ namespace p44 {
     /// - gs1:(01)ggggg = GS1 formatted GTIN
     /// - uuid:UUUUUUU = UUID
     /// - macaddress:MMMMM = MAC Address
-    virtual string modelGUID() { return ""; }
+    virtual string modelGUID() { return ""; };
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
-    virtual string oemGUID() { return ""; }
+    virtual string oemGUID() { return ""; };
+
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    /// @note vendor ID can be simply the name of the vendor in clear text, or possibly a platform-specific, numeric identifier
+    ///   that can be used to look up the vendor in the specific platform context (such as EnOcean)
+    /// Already defined schemas for vendorId are
+    /// - enoceanvendor:VVV[:nnn] = 3 hex digits enOcean vendor ID, optionally followed by vendor name (if known)
+    /// - vendorname:nnnnn = vendor name in plain text
+    virtual string vendorId() { return ""; };
+
+
+    /// @return true if there is an icon, false if not
+    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
+    virtual bool getDeviceIcon16(string &aIcon) { return false; };
 
     /// @}
 
@@ -199,6 +213,10 @@ namespace p44 {
     virtual string description();
 
   protected:
+
+    // icon loader
+    bool loadIcon(const char *aIconName, string &aIcon);
+    bool loadGroupColoredIcon(const char *aIconName, DsGroup aGroup, string &aIcon);
 
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);

@@ -214,6 +214,8 @@ namespace p44 {
     /// @return model GUID in URN format to identify model of device as uniquely as possible
     virtual string modelGUID() { return string_format("sparkcoreid:%s", sparkCoreID.c_str()); }
 
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    virtual string vendorId() { return "vendorname:spark.io"; };
 
     /// @}
 

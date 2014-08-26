@@ -139,25 +139,31 @@ void JsonComm::gotData(ErrorPtr aError)
 
 ErrorPtr JsonComm::sendMessage(JsonObjectPtr aJsonObject)
 {
-  ErrorPtr err;
   string json_string = aJsonObject->json_c_str();
   json_string.append("\n");
-  size_t jsonSize = json_string.size();
+  return sendRaw(json_string);
+}
+
+
+ErrorPtr JsonComm::sendRaw(string &aRawBytes)
+{
+  ErrorPtr err;
   if (transmitBuffer.size()>0) {
     // other messages are already waiting, append entire message
-    transmitBuffer.append(json_string);
+    transmitBuffer.append(aRawBytes);
   }
   else {
+    size_t rawSize = aRawBytes.size();
     // nothing in buffer yet, start new send
-    size_t sentBytes = transmitBytes(jsonSize, (uint8_t *)json_string.c_str(), err);
+    size_t sentBytes = transmitBytes(rawSize, (uint8_t *)aRawBytes.c_str(), err);
     if (Error::isOK(err)) {
       // check if all could be sent
-      if (sentBytes<jsonSize) {
+      if (sentBytes<rawSize) {
         // Not everything (or maybe nothing, transmitBytes() can return 0) was sent
         // - enable callback for ready-for-send
         setTransmitHandler(boost::bind(&JsonComm::canSendData, this, _1));
         // buffer the rest, canSendData handler will take care of writing it out
-        transmitBuffer.assign(json_string.c_str()+sentBytes, jsonSize-sentBytes);
+        transmitBuffer.assign(aRawBytes.c_str()+sentBytes, rawSize-sentBytes);
       }
 			else {
 				// all sent

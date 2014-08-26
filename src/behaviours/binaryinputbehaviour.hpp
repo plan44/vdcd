@@ -34,6 +34,7 @@ namespace p44 {
   class BinaryInputBehaviour : public DsBehaviour
   {
     typedef DsBehaviour inherited;
+    friend class Device;
 
   protected:
 

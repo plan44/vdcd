@@ -132,6 +132,10 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return hueModel; };
 
+    /// @return true if there is an icon, false if not
+    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
+    virtual bool getDeviceIcon16(string &aIcon);
+
     /// @}
 
 

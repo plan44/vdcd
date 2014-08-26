@@ -66,6 +66,11 @@ namespace p44 {
     ErrorPtr sendMessage(JsonObjectPtr aJsonObject);
 
 
+    /// send a JSON message
+    /// @param aRawBytes bytes to be sent
+    /// @result empty or Error object in case of error sending raw data
+    ErrorPtr sendRaw(string &aRawBytes);
+
     /// request closing connection after last message has been sent
     void closeAfterSend();
 

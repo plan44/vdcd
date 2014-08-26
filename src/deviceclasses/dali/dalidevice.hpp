@@ -116,7 +116,11 @@ namespace p44 {
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID();
-    
+
+    /// @return true if there is an icon, false if not
+    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
+    virtual bool getDeviceIcon16(string &aIcon) { if (loadIcon("dali_dimmer", aIcon)) return true; else return inherited::getDeviceIcon16(aIcon); };
+
     /// @}
 
 

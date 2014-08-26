@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -112,6 +112,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/plan44/device_icons"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
