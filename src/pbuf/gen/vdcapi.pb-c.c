@@ -1667,8 +1667,7 @@ const ProtobufCMessageDescriptor vdcapi__vdc__response_get_property__descriptor 
   (ProtobufCMessageInit) vdcapi__vdc__response_get_property__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const protobuf_c_boolean vdcapi__vdsm__request_set_property__dont_apply__default_value = 0;
-static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[3] =
+static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_descriptors[2] =
 {
   {
     "dSUID",
@@ -1683,20 +1682,8 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "dont_apply",
-    2,
-    PROTOBUF_C_LABEL_OPTIONAL,
-    PROTOBUF_C_TYPE_BOOL,
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, has_dont_apply),
-    PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, dont_apply),
-    NULL,
-    &vdcapi__vdsm__request_set_property__dont_apply__default_value,
-    0,            /* packed */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "properties",
-    3,
+    2,
     PROTOBUF_C_LABEL_REPEATED,
     PROTOBUF_C_TYPE_MESSAGE,
     PROTOBUF_C_OFFSETOF(Vdcapi__VdsmRequestSetProperty, n_properties),
@@ -1709,13 +1696,12 @@ static const ProtobufCFieldDescriptor vdcapi__vdsm__request_set_property__field_
 };
 static const unsigned vdcapi__vdsm__request_set_property__field_indices_by_name[] = {
   0,   /* field[0] = dSUID */
-  1,   /* field[1] = dont_apply */
-  2,   /* field[2] = properties */
+  1,   /* field[1] = properties */
 };
 static const ProtobufCIntRange vdcapi__vdsm__request_set_property__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor =
 {
@@ -1725,7 +1711,7 @@ const ProtobufCMessageDescriptor vdcapi__vdsm__request_set_property__descriptor 
   "Vdcapi__VdsmRequestSetProperty",
   "vdcapi",
   sizeof(Vdcapi__VdsmRequestSetProperty),
-  3,
+  2,
   vdcapi__vdsm__request_set_property__field_descriptors,
   vdcapi__vdsm__request_set_property__field_indices_by_name,
   1,  vdcapi__vdsm__request_set_property__number_ranges,
