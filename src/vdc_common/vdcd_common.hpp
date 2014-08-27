@@ -9,7 +9,8 @@
 #ifndef P44VDCD_COMMON_HPP_
 #define P44VDCD_COMMON_HPP_
 
-#define VDCS_PSEUDO_CLASSIC_DSID 1 // if set to 1, vdcs will expose pseudo-classic IDs to the vdsm
+// TODO: remove this!
+#define VDCS_PSEUDO_CLASSIC_DSID 1 // if set to 1, vdcs will expose pseudo-classic IDs to the vdsm. ALPHA PHASE HACK ONLY!!!
 
 
 #if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
