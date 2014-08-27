@@ -149,19 +149,19 @@ string EnoceanDevice::vendorId()
   return string_format("enoceanvendor:%03X:%s", eeManufacturer, manufacturerName().c_str());
 }
 
-bool EnoceanDevice::getDeviceIcon16(string &aIcon)
+bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   bool iconFound = false;
   if (iconBaseName) {
     if (groupColoredIcon)
-      iconFound = loadGroupColoredIcon(iconBaseName, getDominantGroup(), aIcon);
+      iconFound = getGroupColoredIcon(iconBaseName, getDominantGroup(), aIcon, aWithData, aResolutionPrefix);
     else
-      iconFound = loadIcon(iconBaseName, aIcon);
+      iconFound = getIcon(iconBaseName, aIcon, aWithData, aResolutionPrefix);
   }
   if (iconFound)
     return true;
   // failed
-  return inherited::getDeviceIcon16(aIcon);
+  return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
 

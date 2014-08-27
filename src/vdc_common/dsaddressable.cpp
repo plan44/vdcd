@@ -232,6 +232,7 @@ enum {
   oemGUID_key,
   vendorId_key,
   deviceIcon16_key,
+  iconName_key,
   name_key,
   numDsAddressableProperties
 };
@@ -259,6 +260,7 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
     { "vendorId", apivalue_string, vendorId_key, OKEY(dsAddressable_key) },
     { "deviceIcon16", apivalue_binary, deviceIcon16_key, OKEY(dsAddressable_key) },
+    { "x-p44-iconName", apivalue_string, iconName_key, OKEY(dsAddressable_key) },
     { "name", apivalue_string, name_key, OKEY(dsAddressable_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
@@ -287,7 +289,8 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
         case modelGUID_key: if (modelGUID().size()>0) { aPropValue->setStringValue(modelGUID()); return true; } else return false;
         case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
         case vendorId_key: if (vendorId().size()>0) { aPropValue->setStringValue(vendorId()); return true; } else return false;
-        case deviceIcon16_key: { string icon; if (getDeviceIcon16(icon)) { aPropValue->setBinaryValue(icon); return true; } else return false; }
+        case deviceIcon16_key: { string icon; if (getDeviceIcon(icon, true, "icon16")) { aPropValue->setBinaryValue(icon); return true; } else return false; }
+        case iconName_key: { string iconName; bool hasIcon = getDeviceIcon(iconName, false, "icon16"); aPropValue->setStringValue(hasIcon ? iconName : "none"); return true; }
         case name_key: aPropValue->setStringValue(getName()); return true;
         // conditionally available
         case numDevicesInHW_key:
@@ -313,42 +316,58 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 
 #pragma mark - icon loading
 
-bool DsAddressable::loadIcon(const char *aIconName, string &aIcon)
+bool DsAddressable::getIcon(const char *aIconName, string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  DBGLOG(LOG_DEBUG,"Trying to load icon named '%s' for dSUID %s\n", aIconName, dSUID.getString().c_str());
+  DBGLOG(LOG_DEBUG,"Trying to load icon named '%s/%s' for dSUID %s\n", aResolutionPrefix, aIconName, dSUID.getString().c_str());
   const char *iconDir = getDeviceContainer().getIconDir();
   if (iconDir && *iconDir) {
-    string iconPath = string_format("%sicon16/%s.png", iconDir, aIconName);
+    string iconPath = string_format("%s%s/%s.png", iconDir, aResolutionPrefix, aIconName);
     // TODO: maybe add cache lookup here
     // try to access this file
     int fildes = open(iconPath.c_str(), O_RDONLY);
     if (fildes<0) {
       return false; // can't load from this location
     }
-    // file seems to exist, load it
-    ssize_t bytes = 0;
-    const size_t bufsize = 4096; // usually a 16x16 png is 3.4kB
-    char buffer[bufsize];
-    aIcon.clear();
-    while (true) {
-      bytes = read(fildes, buffer, bufsize);
-      if (bytes<=0)
-        break; // done
-      aIcon.append(buffer, bytes);
-    }
-    close(fildes);
-    // done
-    if (bytes<0) {
-      // read error, do not return half-read icon
+    // file seems to exist
+    if (aWithData) {
+      // load it
+      ssize_t bytes = 0;
+      const size_t bufsize = 4096; // usually a 16x16 png is 3.4kB
+      char buffer[bufsize];
       aIcon.clear();
-      return false;
+      while (true) {
+        bytes = read(fildes, buffer, bufsize);
+        if (bytes<=0)
+          break; // done
+        aIcon.append(buffer, bytes);
+      }
+      close(fildes);
+      // done
+      if (bytes<0) {
+        // read error, do not return half-read icon
+        aIcon.clear();
+        return false;
+      }
+      DBGLOG(LOG_DEBUG,"- successfully loaded icon named '%s'\n", aIconName);
     }
-    DBGLOG(LOG_DEBUG,"- successfully loaded icon named '%s'\n", aIconName);
+    else {
+      // just name
+      close(fildes);
+      aIcon = aIconName; // this is a name for which the file exists
+    }
     return true;
   }
   else {
-    // no icon dir, no icons at all
-    return false;
+    // no icon dir
+    if (aWithData) {
+      // data requested but no icon dir -> cannot return data
+      return false;
+    }
+    else {
+      // name requested but no directory to check for file -> always just return name
+      aIcon = aIconName;
+      return true;
+    }
   }
 }
 
@@ -370,17 +389,21 @@ static const char *groupColors[] = {
 const int numGroupColors = sizeof(groupColors)/sizeof(const char *);
 
 
-bool DsAddressable::loadGroupColoredIcon(const char *aIconName, DsGroup aGroup, string &aIcon)
+bool DsAddressable::getGroupColoredIcon(const char *aIconName, DsGroup aGroup, string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   string  iconName;
   bool found = false;
   if (aGroup<numGroupColors) {
     // try first with color name
-    found = loadIcon(string_format("%s_%s", aIconName, groupColors[aGroup]).c_str(), aIcon);
+    found = getIcon(string_format("%s_%s", aIconName, groupColors[aGroup]).c_str(), aIcon, aWithData, aResolutionPrefix);
+  }
+  else {
+    // for groups without a basic color, use _n suffix (n=group no)
+    found = getIcon(string_format("%s_%d", aIconName, (int)aGroup).c_str(), aIcon, aWithData, aResolutionPrefix);
   }
   if (!found) {
-    // try with "other"
-    found = loadIcon(string_format("%s_other", aIconName).c_str(), aIcon);
+    // no group-specific icon found, try with "other"
+    found = getIcon(string_format("%s_other", aIconName).c_str(), aIcon, aWithData, aResolutionPrefix);
   }
   return found;
 }

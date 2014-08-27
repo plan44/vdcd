@@ -241,9 +241,13 @@ namespace p44 {
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId();
 
+    /// Get icon data or name
+    /// @param aIcon string to put result into (when method returns true)
+    /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
+    /// - if aWithData is not set, only the icon name (without file extension) is returned
+    /// @param aWithData if set, PNG data is returned, otherwise only name
     /// @return true if there is an icon, false if not
-    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
-    virtual bool getDeviceIcon16(string &aIcon);
+    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
 
     /// @}
 

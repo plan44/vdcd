@@ -146,12 +146,12 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
 }
 
 
-bool HueDevice::getDeviceIcon16(string &aIcon)
+bool HueDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  if (loadIcon("hue", aIcon))
+  if (getIcon("hue", aIcon, aWithData, aResolutionPrefix))
     return true;
   else
-    return inherited::getDeviceIcon16(aIcon);
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
 

@@ -71,6 +71,17 @@ void DaliDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 }
 
 
+bool DaliDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("dali_dimmer", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
+
+
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query actual arc power level

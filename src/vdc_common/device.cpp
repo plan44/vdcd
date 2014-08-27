@@ -122,13 +122,12 @@ DsGroup Device::getDominantGroup()
 }
 
 
-
-bool Device::getDeviceIcon16(string &aIcon)
+bool Device::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  if (loadGroupColoredIcon("vdsd", getDominantGroup(), aIcon))
+  if (getGroupColoredIcon("vdsd", getDominantGroup(), aIcon, aWithData, aResolutionPrefix))
     return true;
   else
-    return inherited::getDeviceIcon16(aIcon);
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
 

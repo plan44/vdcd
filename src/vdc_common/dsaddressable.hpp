@@ -196,9 +196,13 @@ namespace p44 {
     virtual string vendorId() { return ""; };
 
 
+    /// Get icon data or name
+    /// @param aIcon string to put result into (when method returns true)
+    /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
+    /// - if aWithData is not set, only the icon name (without file extension) is returned
+    /// @param aWithData if set, PNG data is returned, otherwise only name
     /// @return true if there is an icon, false if not
-    /// @param aIcon string to put to binary PNG icon data for 16x16 icon into (when result is true)
-    virtual bool getDeviceIcon16(string &aIcon) { return false; };
+    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix) { return false; };
 
     /// @}
 
@@ -214,9 +218,34 @@ namespace p44 {
 
   protected:
 
-    // icon loader
-    bool loadIcon(const char *aIconName, string &aIcon);
-    bool loadGroupColoredIcon(const char *aIconName, DsGroup aGroup, string &aIcon);
+    /// @name icon loading mechanism
+    /// @{
+
+    /// get icon data or name
+    /// @param aIconName basic name of the icon to load (no filename extension!)
+    /// @param aIcon string to get icon name or data assigned
+    /// @param aWithData if set, aIcon will be set to the icon's PNG data, otherwise aIcon will be set to the icon name
+    /// @param aResolutionPrefix subfolder within icondir to look for files. Usually "icon16".
+    /// @return true if icon data or name could be obtained, false otherwise
+    /// @note when icondir (in devicecontainer) is set, the method will check in this dir if a file with aIconName exists
+    ///   in the subdirectory specified by aResolutionPrefix - even if only querying for icon name. This allows for
+    ///   implementations of getDeviceIcon to start with the most specific icon name, and falling back to more
+    ///   generic icons defined by superclass when specific icons don't exist.
+    ///   When icondir is NOT set, asking for icon data will always fail, and asking for name will always succeed
+    ///   and return aIconName in aIcon.
+    bool getIcon(const char *aIconName, string &aIcon, bool aWithData, const char *aResolutionPrefix);
+
+    /// get icon colored according to aGroup
+    /// @param aIconName basic name of the icon to load (no color suffix nor filename extension!)
+    /// @param aGroup the dS group/color. The color will be appended as suffix to aIconName to build the
+    ///   final icon name. If no specific icon exists for the group, the suffix "_other" will be tried before
+    ///   returning false.
+    /// @param aWithData if set, aIcon will be set to the icon's PNG data, otherwise aIcon will be set to the icon name
+    /// @param aResolutionPrefix subfolder within icondir to look for files. Usually "icon16".
+    /// @return true if icon data or name could be obtained, false otherwise
+    bool getGroupColoredIcon(const char *aIconName, DsGroup aGroup, string &aIcon, bool aWithData, const char *aResolutionPrefix);
+
+    /// @}
 
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
