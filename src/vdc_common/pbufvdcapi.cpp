@@ -19,6 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+//#define ALWAYS_DEBUG 1
+
+// set to 1 to get focus (extensive logging) for this file
+// Note: must be before including "logger.hpp"
+#define DEBUGFOCUS 0
+
 #include "pbufvdcapi.hpp"
 
 
@@ -1062,21 +1068,21 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // no error
     size_t dataSz = socketComm->numBytesReady();
-    DBGLOG(LOG_DEBUG, "gotData: numBytesReady()=%d\n", dataSz);
+    DBGFLOG(LOG_DEBUG, "gotData: numBytesReady()=%d\n", dataSz);
     // read data we've got so far
     if (dataSz>0) {
       // temporary buffer
       uint8_t *buf = new uint8_t[dataSz];
       size_t receivedBytes = socketComm->receiveBytes(dataSz, buf, aError);
-      DBGLOG(LOG_DEBUG, "gotData: receiveBytes(%d)=%d\n", dataSz, receivedBytes);
-      DBGLOG(LOG_DEBUG, "gotData: before appending: receivedMessage.size()=%d\n", receivedMessage.size());
+      DBGFLOG(LOG_DEBUG, "gotData: receiveBytes(%d)=%d\n", dataSz, receivedBytes);
+      DBGFLOG(LOG_DEBUG, "gotData: before appending: receivedMessage.size()=%d\n", receivedMessage.size());
       if (Error::isOK(aError)) {
         // append to receive buffer
         receivedMessage.append((const char *)buf, receivedBytes);
-        DBGLOG(LOG_DEBUG, "gotData: after appending: receivedMessage.size()=%d\n", receivedMessage.size());
+        DBGFLOG(LOG_DEBUG, "gotData: after appending: receivedMessage.size()=%d\n", receivedMessage.size());
         // single message extraction
         while(true) {
-          DBGLOG(LOG_DEBUG, "gotData: processing loop beginning, expectedMsgBytes=%d\n", expectedMsgBytes);
+          DBGFLOG(LOG_DEBUG, "gotData: processing loop beginning, expectedMsgBytes=%d\n", expectedMsgBytes);
           if(expectedMsgBytes==0 && receivedMessage.size()>=2) {
             // got 2-byte length header, decode it
             const uint8_t *sz = (const uint8_t *)receivedMessage.c_str();
@@ -1084,8 +1090,8 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
               (sz[0]<<8) +
               sz[1];
             receivedMessage.erase(0,2);
-            DBGLOG(LOG_DEBUG, "gotData: parsed new header, now expectedMsgBytes=%d\n", expectedMsgBytes);
-            DBGLOG(LOG_DEBUG, "gotData: after removing header: receivedMessage.size()=%d\n", receivedMessage.size());
+            DBGFLOG(LOG_DEBUG, "gotData: parsed new header, now expectedMsgBytes=%d\n", expectedMsgBytes);
+            DBGFLOG(LOG_DEBUG, "gotData: after removing header: receivedMessage.size()=%d\n", receivedMessage.size());
             if (expectedMsgBytes>MAX_DATA_SIZE) {
               aError = ErrorPtr(new VdcApiError(413, "message exceeds maximum length of 16kB"));
               break;
@@ -1093,12 +1099,12 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
           }
           // check for complete message
           if (expectedMsgBytes && (receivedMessage.size()>=expectedMsgBytes)) {
-            DBGLOG(LOG_DEBUG, "gotData: receivedMessage.size()=%d >= expectedMsgBytes=%d -> process\n", receivedMessage.size(), expectedMsgBytes);
+            DBGFLOG(LOG_DEBUG, "gotData: receivedMessage.size()=%d >= expectedMsgBytes=%d -> process\n", receivedMessage.size(), expectedMsgBytes);
             // process message
             aError = processMessage((uint8_t *)receivedMessage.c_str(),expectedMsgBytes);
             // erase processed message
             receivedMessage.erase(0,expectedMsgBytes);
-            DBGLOG(LOG_DEBUG, "gotData: after removing message: receivedMessage.size()=%d\n", receivedMessage.size());
+            DBGFLOG(LOG_DEBUG, "gotData: after removing message: receivedMessage.size()=%d\n", receivedMessage.size());
             expectedMsgBytes = 0; // reset to unknown
             // repeat evaluation with remaining bytes (could be another message)
           }
@@ -1107,7 +1113,7 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
             break;
           }
         }
-        DBGLOG(LOG_DEBUG, "gotData: end of processing loop: receivedMessage.size()=%d\n", receivedMessage.size());
+        DBGFLOG(LOG_DEBUG, "gotData: end of processing loop: receivedMessage.size()=%d\n", receivedMessage.size());
       }
       // forget buffer
       delete[] buf; buf = NULL;
