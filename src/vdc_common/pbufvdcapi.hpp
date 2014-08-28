@@ -280,7 +280,7 @@ namespace p44 {
 // C helper functions to print protobuf
 void protobufMessagePrint(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent);
 
-#endif // DEBUG | ALWAYS_DEBUG
+#endif // DEBUG || ALWAYS_DEBUG
 
 
 #endif /* defined(__vdcd__pbufvdcapi__) */

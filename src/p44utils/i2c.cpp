@@ -19,11 +19,13 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 1
-
-// set to 1 to get focus (extensive logging) for this file
-// Note: must be before including "logger.hpp"
+// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
 #define DEBUGFOCUS 1
+
 
 #include "i2c.hpp"
 

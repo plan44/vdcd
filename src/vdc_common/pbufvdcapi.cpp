@@ -1668,5 +1668,5 @@ void protobufMessagePrintInternal(FILE *aOutFile, const ProtobufCMessage *aMessa
 }
 
 
-#endif // DEBUG | ALWAYS_DEBUG
+#endif // DEBUG || ALWAYS_DEBUG
 
