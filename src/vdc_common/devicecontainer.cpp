@@ -235,7 +235,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vDC initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
+  LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -292,8 +292,19 @@ private:
 
   void queryNextContainer(ErrorPtr aError)
   {
-    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end())
+    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end()) {
+      DeviceClassContainerPtr vdc = nextContainer->second;
+      LOG(LOG_NOTICE,
+        "=== collecting devices from vdc %s #%d with dSUID = %s\n",
+        vdc->deviceClassIdentifier(),
+        vdc->getInstanceNumber(),
+        vdc->getApiDsUid().getString().c_str() // as seen in the API
+      );
+      #if VDCS_PSEUDO_CLASSIC_DSID
+      LOG(LOG_NOTICE,"    real dSUID = %s\n", vdc->shortDesc().c_str());
+      #endif
       nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
+    }
     else
       collectedAll(aError);
   }

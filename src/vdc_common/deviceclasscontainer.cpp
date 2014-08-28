@@ -154,12 +154,20 @@ void DeviceClassContainer::removeDevices(bool aForget)
 
 static char deviceclass_key;
 static char device_container_key;
+static char capabilities_container_key;
 static char device_key;
 
 enum {
   webui_url_key,
+  capabilities_key,
   devices_key,
   numClassContainerProperties
+};
+
+
+enum {
+  capability_metering_key,
+  numCapabilities
 };
 
 
@@ -168,6 +176,9 @@ int DeviceClassContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDes
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
     return (int)devices.size();
+  }
+  else if (aParentDescriptor && aParentDescriptor->hasObjectKey(capabilities_container_key)) {
+    return numCapabilities;
   }
   return inherited::numProps(aDomain, aParentDescriptor)+numClassContainerProperties;
 }
@@ -182,7 +193,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatc
       OKEY(device_key)
     );
   }
-  // None of the containers within Device - let base class handle Device-Level properties
+  // None of the containers within Device - let base class handle vdc-Level properties
   return inherited::getDescriptorByName(aPropMatch, aStartIndex, aDomain, aParentDescriptor);
 }
 
@@ -208,15 +219,27 @@ PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &a
 // note: is only called when getDescriptorByName does not resolve the name
 PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  static const PropertyDescription properties[numClassContainerProperties] = {
-    { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
-    { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
-  };
-  int n = inherited::numProps(aDomain, aParentDescriptor);
-  if (aPropIndex<n)
-    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
-  aPropIndex -= n; // rebase to 0 for my own first property
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  if (aParentDescriptor && aParentDescriptor->hasObjectKey(capabilities_container_key)) {
+    // capabilities level
+    static const PropertyDescription capability_props[numClassContainerProperties] = {
+      { "metering", apivalue_bool, capability_metering_key, OKEY(capabilities_container_key) },
+    };
+    // simple, all on this level
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&capability_props[aPropIndex], aParentDescriptor));
+  }
+  else {
+    // vdc level
+    static const PropertyDescription properties[numClassContainerProperties] = {
+      { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
+      { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
+      { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
+    };
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
 }
 
 
@@ -224,11 +247,20 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
 bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   if (aPropertyDescriptor->hasObjectKey(deviceclass_key)) {
+    // vdc level properties
     if (aMode==access_read) {
       switch (aPropertyDescriptor->fieldKey()) {
         case webui_url_key:
           aPropValue->setStringValue(webuiURLString());
           return true;
+      }
+    }
+  }
+  else if (aPropertyDescriptor->hasObjectKey(capabilities_container_key)) {
+    // capabilities
+    if (aMode==access_read) {
+      switch (aPropertyDescriptor->fieldKey()) {
+        case capability_metering_key: aPropValue->setBoolValue(false); return true; // TODO: implement actual metering flag
       }
     }
   }
