@@ -202,7 +202,7 @@ namespace p44 {
     /// - if aWithData is not set, only the icon name (without file extension) is returned
     /// @param aWithData if set, PNG data is returned, otherwise only name
     /// @return true if there is an icon, false if not
-    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix) { return false; };
+    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
 
     /// @}
 

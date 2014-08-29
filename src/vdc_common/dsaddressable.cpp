@@ -299,7 +299,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
         case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
         case vendorId_key: if (vendorId().size()>0) { aPropValue->setStringValue(vendorId()); return true; } else return false;
         case deviceIcon16_key: { string icon; if (getDeviceIcon(icon, true, "icon16")) { aPropValue->setBinaryValue(icon); return true; } else return false; }
-        case iconName_key: { string iconName; bool hasIcon = getDeviceIcon(iconName, false, "icon16"); aPropValue->setStringValue(hasIcon ? iconName : "none"); return true; }
+        case iconName_key: { string iconName; if (getDeviceIcon(iconName, false, "icon16")) { aPropValue->setStringValue(iconName); return true; } else return false; }
         case name_key: aPropValue->setStringValue(getName()); return true;
         // conditionally available
         case numDevicesInHW_key:
@@ -416,6 +416,16 @@ bool DsAddressable::getGroupColoredIcon(const char *aIconName, DsGroup aGroup, s
   }
   return found;
 }
+
+
+bool DsAddressable::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("unknown", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return false;
+}
+
 
 
 
