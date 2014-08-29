@@ -29,6 +29,7 @@ using namespace p44;
 DemoDeviceContainer::DemoDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
+  initializeName("demo vdc");
 }
 
 

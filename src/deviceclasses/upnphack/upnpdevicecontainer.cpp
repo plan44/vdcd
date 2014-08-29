@@ -14,6 +14,7 @@ UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber, DeviceContainer *a
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
   m_dmr_search = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
+  initializeName("UPnP hack vdc");
 }
 
 

@@ -30,6 +30,7 @@ HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
   inherited(aInstanceNumber, aDeviceContainerP, aTag),
   hueComm()
 {
+  initializeName("hue vdc");
 }
 
 

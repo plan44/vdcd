@@ -30,6 +30,7 @@ DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber, DeviceContainer *a
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
   daliComm = DaliCommPtr(new 	DaliComm(SyncIOMainLoop::currentMainLoop()));
+  initializeName("DALI vdc");
 }
 
 

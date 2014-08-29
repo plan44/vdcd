@@ -102,6 +102,7 @@ StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMa
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
 	deviceConfigs(aDeviceConfigs)
 {
+  initializeName("custom io vdc");
 }
 
 
