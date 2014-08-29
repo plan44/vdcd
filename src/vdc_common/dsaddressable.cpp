@@ -269,7 +269,7 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
     { "vendorId", apivalue_string, vendorId_key, OKEY(dsAddressable_key) },
     { "deviceIcon16", apivalue_binary, deviceIcon16_key, OKEY(dsAddressable_key) },
-    { "x-p44-iconName", apivalue_string, iconName_key, OKEY(dsAddressable_key) },
+    { "deviceIconName", apivalue_string, iconName_key, OKEY(dsAddressable_key) },
     { "name", apivalue_string, name_key, OKEY(dsAddressable_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
