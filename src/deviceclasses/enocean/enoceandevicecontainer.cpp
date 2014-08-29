@@ -41,6 +41,16 @@ const char *EnoceanDeviceContainer::deviceClassIdentifier() const
 }
 
 
+bool EnoceanDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("vdc_enocean", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
+
 #pragma mark - DB and initialisation
 
 

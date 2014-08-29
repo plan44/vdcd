@@ -104,6 +104,17 @@ string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
 }
 
 
+bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("vdc", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
+
+
 // add a device
 bool DeviceClassContainer::addDevice(DevicePtr aDevice)
 {

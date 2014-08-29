@@ -32,9 +32,19 @@ HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
 {
 }
 
+
 const char *HueDeviceContainer::deviceClassIdentifier() const
 {
   return "hue_Lights_Container";
+}
+
+
+bool HueDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("vdc_hue", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
 

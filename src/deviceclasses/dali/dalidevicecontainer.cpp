@@ -41,6 +41,15 @@ const char *DaliDeviceContainer::deviceClassIdentifier() const
 }
 
 
+bool DaliDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("vdc_dali", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
 class DaliDeviceCollector
 {
   DaliCommPtr daliComm;
