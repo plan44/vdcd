@@ -336,7 +336,7 @@ void ButtonBehaviour::localSwitchOutput()
 //  // send status
 //  sendClick(outputOn ? ct_local_on : ct_local_off);
   // pass on local toggle to device container
-  #warning // TODO: tbd
+  // TODO: tbd
 }
 
 
@@ -360,7 +360,7 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
     // issue a state property push
     pushBehaviourState();
     // also let device container know for local click handling
-    #warning "%%% TODO: more elegant solution for this"
+    // TODO: more elegant solution for this
     device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
   }
 }

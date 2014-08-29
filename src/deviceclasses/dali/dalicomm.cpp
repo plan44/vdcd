@@ -112,7 +112,7 @@ void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t 
 }
 
 
-#warning "// TODO: add dali bridge bus short circuit testing"
+// TODO: add dali bridge bus short circuit testing
 
 
 void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, SerialOperationPtr aOperation, OperationQueuePtr aQueueP, ErrorPtr aError)

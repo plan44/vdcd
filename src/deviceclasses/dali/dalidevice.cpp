@@ -257,7 +257,7 @@ void DaliDevice::dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicro
 
 
 
-#warning "// TODO: add error status polling and use DsBehaviour::setHardwareError() to report it"
+// TODO: add error status polling and use DsBehaviour::setHardwareError() to report it
 
 
 uint8_t DaliDevice::brightnessToArcpower(Brightness aBrightness)

@@ -11,6 +11,7 @@
 
 #if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
   // non official release platform
+  #undef ALWAYS_DEBUG // override per-file ALWAYS_DEBUG
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
 #endif
 
