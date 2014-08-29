@@ -9,10 +9,6 @@
 #ifndef P44VDCD_COMMON_HPP_
 #define P44VDCD_COMMON_HPP_
 
-// TODO: remove this!
-#define VDCS_PSEUDO_CLASSIC_DSID 1 // if set to 1, vdcs will expose pseudo-classic IDs to the vdsm. ALPHA PHASE HACK ONLY!!!
-
-
 #if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
   // non official release platform
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
