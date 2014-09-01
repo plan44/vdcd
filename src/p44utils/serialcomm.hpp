@@ -87,7 +87,7 @@ namespace p44 {
 
   public:
 
-    SerialComm(SyncIOMainLoop &aMainLoop);
+    SerialComm(MainLoop &aMainLoop);
     virtual ~SerialComm();
 
     /// Specify the serial connection parameters as single string

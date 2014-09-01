@@ -24,7 +24,7 @@
 
 using namespace p44;
 
-HttpComm::HttpComm(SyncIOMainLoop &aMainLoop) :
+HttpComm::HttpComm(MainLoop &aMainLoop) :
   mainLoop(aMainLoop),
   requestInProgress(false),
   mgConn(NULL),
@@ -220,7 +220,7 @@ bool HttpComm::httpRequest(
     contentType = defaultContentType(); // use default for the class
   // now let subthread handle this
   requestInProgress = true;
-  childThread = SyncIOMainLoop::currentMainLoop().executeInThread(
+  childThread = MainLoop::currentMainLoop().executeInThread(
     boost::bind(&HttpComm::requestThread, this, _1),
     boost::bind(&HttpComm::requestThreadSignal, this, _1, _2)
   );

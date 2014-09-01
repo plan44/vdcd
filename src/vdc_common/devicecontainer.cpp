@@ -544,6 +544,8 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       }
     }
   }
+  // in debug mode, show mainloop statistics
+  LOG(LOG_DEBUG, "%s", MainLoop::currentMainLoop().description().c_str());
   // schedule next run
   periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
 }

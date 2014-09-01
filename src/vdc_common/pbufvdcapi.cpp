@@ -1052,7 +1052,7 @@ VdcPbufApiConnection::VdcPbufApiConnection() :
   expectedMsgBytes(0),
   requestIdCounter(0)
 {
-  socketComm = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
+  socketComm = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
   // install data handler
   socketComm->setReceiveHandler(boost::bind(&VdcPbufApiConnection::gotData, this, _1));
 }

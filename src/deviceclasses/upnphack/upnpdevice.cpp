@@ -31,7 +31,7 @@ UpnpDevice::UpnpDevice(UpnpDeviceContainer *aClassContainerP, string aLocation, 
 
 void UpnpDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
-  SsdpSearchPtr srch = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
+  SsdpSearchPtr srch = SsdpSearchPtr(new SsdpSearch(MainLoop::currentMainLoop()));
   presenceTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&UpnpDevice::timeoutHandler, this, aPresenceResultHandler, srch), 3*Second);
   srch->startSearch(boost::bind(&UpnpDevice::presenceHandler, this, aPresenceResultHandler, _1, _2), upnpDeviceUUID.c_str(), true);
 }

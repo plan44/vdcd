@@ -114,7 +114,7 @@ namespace p44 {
 
   public:
 
-    DaliComm(SyncIOMainLoop &aMainLoop);
+    DaliComm(MainLoop &aMainLoop);
     virtual ~DaliComm();
 
     void startProcedure();

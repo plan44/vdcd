@@ -29,7 +29,7 @@ using namespace p44;
 DaliDeviceContainer::DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
-  daliComm = DaliCommPtr(new 	DaliComm(SyncIOMainLoop::currentMainLoop()));
+  daliComm = DaliCommPtr(new 	DaliComm(MainLoop::currentMainLoop()));
   initializeName("DALI vdc");
 }
 

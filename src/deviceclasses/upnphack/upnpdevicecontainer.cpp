@@ -13,7 +13,7 @@ using namespace p44;
 UpnpDeviceContainer::UpnpDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
-  m_dmr_search = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
+  m_dmr_search = SsdpSearchPtr(new SsdpSearch(MainLoop::currentMainLoop()));
   initializeName("UPnP hack vdc");
 }
 

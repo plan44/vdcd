@@ -29,7 +29,7 @@ EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContai
   learningMode(false),
   selfTesting(false),
   disableProximityCheck(false),
-	enoceanComm(SyncIOMainLoop::currentMainLoop())
+	enoceanComm(MainLoop::currentMainLoop())
 {
   initializeName("EnOcean vdc");
 }

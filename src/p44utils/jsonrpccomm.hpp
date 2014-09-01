@@ -79,7 +79,7 @@ namespace p44 {
 
   public:
 
-    JsonRpcComm(SyncIOMainLoop &aMainLoop);
+    JsonRpcComm(MainLoop &aMainLoop);
     virtual ~JsonRpcComm();
 
     /// install callback for received JSON-RPC requests

@@ -43,7 +43,7 @@ class EnoceanTool : public Application
 public:
 
   EnoceanTool() :
-    enoceanComm(SyncIOMainLoop::currentMainLoop())
+    enoceanComm(MainLoop::currentMainLoop())
   {
   }
 
@@ -126,7 +126,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  MainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static EnoceanTool application;
   // pass control

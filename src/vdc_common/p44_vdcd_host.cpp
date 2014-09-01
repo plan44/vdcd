@@ -195,7 +195,7 @@ string P44VdcHost::webuiURLString()
 P44VdcHost::P44VdcHost() :
   learnIdentifyTicket(0)
 {
-  configApiServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
+  configApiServer = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
 }
 
 
@@ -208,7 +208,7 @@ void P44VdcHost::startConfigApi()
 
 SocketCommPtr P44VdcHost::configApiConnectionHandler(SocketCommPtr aServerSocketCommP)
 {
-  JsonCommPtr conn = JsonCommPtr(new JsonComm(SyncIOMainLoop::currentMainLoop()));
+  JsonCommPtr conn = JsonCommPtr(new JsonComm(MainLoop::currentMainLoop()));
   conn->setMessageHandler(boost::bind(&P44VdcHost::configApiRequestHandler, this, conn, _1, _2));
   return conn;
 }

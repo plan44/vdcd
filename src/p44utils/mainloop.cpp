@@ -41,7 +41,7 @@ using namespace p44;
 // time reference in microseconds
 MLMicroSeconds MainLoop::now()
 {
-#ifdef __APPLE__
+  #ifdef __APPLE__
   static bool timeInfoKnown = false;
   static mach_timebase_info_data_t tb;
   if (!timeInfoKnown) {
@@ -49,12 +49,12 @@ MLMicroSeconds MainLoop::now()
   }
   double t = mach_absolute_time();
   return t * (double)tb.numer / (double)tb.denom / 1e3; // uS
-#else
+  #else
   struct timespec tsp;
   clock_gettime(CLOCK_MONOTONIC, &tsp);
   // return microseconds
   return ((uint64_t)(tsp.tv_sec))*1000000ll + tsp.tv_nsec/1000; // uS
-#endif
+  #endif
 }
 
 
@@ -76,6 +76,10 @@ MainLoop &MainLoop::currentMainLoop()
 }
 
 
+
+
+
+
 ErrorPtr ExecError::exitStatus(int aExitStatus, const char *aContextMessage)
 {
   if (aExitStatus==0)
@@ -93,6 +97,9 @@ MainLoop::MainLoop() :
   idleHandlersChanged(false),
   oneTimeHandlersChanged(false)
 {
+  #if MAINLOOP_STATISTICS
+  statistics_reset();
+  #endif
 }
 
 
@@ -152,6 +159,10 @@ long MainLoop::executeOnceAt(OneTimeCB aCallback, MLMicroSeconds aExecutionTime)
 
 long MainLoop::scheduleOneTimeHandler(OnetimeHandler &aHandler)
 {
+  #if MAINLOOP_STATISTICS
+  size_t n = onetimeHandlers.size()+1;
+  if (n>maxOneTimeHandlers) maxOneTimeHandlers = n;
+  #endif
 	// insert in queue before first item that has a higher execution time
 	OnetimeHandlerList::iterator pos = onetimeHandlers.begin();
   while (pos!=onetimeHandlers.end()) {
@@ -282,7 +293,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
         LOG(LOG_DEBUG,"fork_and_execve: parent will now set up pipe string collector\n");
         close(answerPipe[1]); // close parent's writing end (child uses it!)
         // set up collector for data returned from child process
-        ans = FdStringCollectorPtr(new FdStringCollector(SyncIOMainLoop::currentMainLoop()));
+        ans = FdStringCollectorPtr(new FdStringCollector(MainLoop::currentMainLoop()));
         ans->setFd(answerPipe[0]);
       }
       LOG(LOG_DEBUG,"fork_and_execve: now calling waitForPid(%d)\n", child_pid);
@@ -348,37 +359,6 @@ void MainLoop::terminate(int aExitCode)
 {
   exitCode = aExitCode;
   terminated = true;
-}
-
-
-int MainLoop::run()
-{
-  while (!terminated) {
-    cycleStartTime = now();
-    // start of a new cycle
-    while (!terminated) {
-      bool allCompleted = runOnetimeHandlers();
-      if (terminated) break;
-			if (!runIdleHandlers()) allCompleted = false;
-      if (terminated) break;
-      if (!checkWait()) allCompleted = false;
-      if (terminated) break;
-      MLMicroSeconds timeLeft = remainingCycleTime();
-      if (timeLeft>0) {
-        if (allCompleted) {
-          // nothing to do any more, sleep rest of cycle
-          usleep((useconds_t)timeLeft);
-          break; // end of cycle
-        }
-        // not all completed, use time for running handlers again
-      }
-      else {
-        // no time left, end of cycle
-        break;
-      }
-    } // not terminated
-  } // not terminated
-	return exitCode;
 }
 
 
@@ -478,50 +458,24 @@ bool MainLoop::checkWait()
 
 
 
-#pragma mark - SyncIOMainLoop
 
-
-
-// get the per-thread singleton Synchronous IO mainloop
-SyncIOMainLoop &SyncIOMainLoop::currentMainLoop()
-{
-  SyncIOMainLoop *mlP = NULL;
-	if (currentMainLoopP==NULL) {
-		// need to create it
-		mlP = new SyncIOMainLoop();
-    currentMainLoopP = mlP;
-	}
-  else {
-    mlP = dynamic_cast<SyncIOMainLoop *>(currentMainLoopP);
-  }
-  assert(mlP); // must exist now
-	return *mlP;
-}
-
-
-SyncIOMainLoop::SyncIOMainLoop()
-{
-}
-
-
-
-void SyncIOMainLoop::registerPollHandler(int aFD, int aPollFlags, SyncIOCB aPollEventHandler)
+void MainLoop::registerPollHandler(int aFD, int aPollFlags, IOPollCB aPollEventHandler)
 {
   if (aPollEventHandler.empty())
     unregisterPollHandler(aFD); // no handler means unregistering handler
   // register new handler
-  SyncIOHandler h;
+  IOPollHandler h;
   h.monitoredFD = aFD;
   h.pollFlags = aPollFlags;
   h.pollHandler = aPollEventHandler;
-	syncIOHandlers[aFD] = h;
+	ioPollHandlers[aFD] = h;
 }
 
 
-void SyncIOMainLoop::changePollFlags(int aFD, int aSetPollFlags, int aClearPollFlags)
+void MainLoop::changePollFlags(int aFD, int aSetPollFlags, int aClearPollFlags)
 {
-  SyncIOHandlerMap::iterator pos = syncIOHandlers.find(aFD);
-  if (pos!=syncIOHandlers.end()) {
+  IOPollHandlerMap::iterator pos = ioPollHandlers.find(aFD);
+  if (pos!=ioPollHandlers.end()) {
     // found fd to set flags for
     if (aClearPollFlags>=0) {
       // read modify write
@@ -538,28 +492,28 @@ void SyncIOMainLoop::changePollFlags(int aFD, int aSetPollFlags, int aClearPollF
 
 
 
-void SyncIOMainLoop::unregisterPollHandler(int aFD)
+void MainLoop::unregisterPollHandler(int aFD)
 {
-  syncIOHandlers.erase(aFD);
+  ioPollHandlers.erase(aFD);
 }
 
 
 
-bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
+bool MainLoop::handleIOPoll(MLMicroSeconds aTimeout)
 {
   // create poll structure
   struct pollfd *pollFds = NULL;
-  size_t maxFDsToTest = syncIOHandlers.size();
+  size_t maxFDsToTest = ioPollHandlers.size();
   if (maxFDsToTest>0) {
     // allocate pollfd array (max, in case some are disabled, we'll need less)
     pollFds = new struct pollfd[maxFDsToTest];
   }
   // fill poll structure
-  SyncIOHandlerMap::iterator pos = syncIOHandlers.begin();
+  IOPollHandlerMap::iterator pos = ioPollHandlers.begin();
   size_t numFDsToTest = 0;
   // collect FDs
-  while (pos!=syncIOHandlers.end()) {
-    SyncIOHandler h = pos->second;
+  while (pos!=ioPollHandlers.end()) {
+    IOPollHandler h = pos->second;
     if (h.pollFlags) {
       // don't include handlers that are currently disabled (no flags set)
       struct pollfd *pollfdP = &pollFds[numFDsToTest];
@@ -592,8 +546,8 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
       if (pollfdP->revents) {
         // an event has occurred for this FD
         // - get handler, note that it might have been deleted in the meantime
-        SyncIOHandlerMap::iterator pos = syncIOHandlers.find(pollfdP->fd);
-        if (pos!=syncIOHandlers.end()) {
+        IOPollHandlerMap::iterator pos = ioPollHandlers.find(pollfdP->fd);
+        if (pos!=ioPollHandlers.end()) {
           // - there is a handler
           if (pos->second.pollHandler(cycleStartTime, pollfdP->fd, pollfdP->revents))
             didHandle = true; // really handled (not just checked flags and decided it's nothing to handle)
@@ -609,7 +563,7 @@ bool SyncIOMainLoop::handleSyncIO(MLMicroSeconds aTimeout)
 
 
 
-int SyncIOMainLoop::run()
+int MainLoop::run()
 {
   while (!terminated) {
     cycleStartTime = now();
@@ -626,30 +580,86 @@ int SyncIOMainLoop::run()
       bool iohandled = false;
       if (!allCompleted || timeLeft<=0) {
         // no time to wait for I/O, just check
-        iohandled = handleSyncIO(0);
+        iohandled = handleIOPoll(0);
       }
       else {
         // nothing to do except waiting for I/O
-        iohandled = handleSyncIO(timeLeft);
+        iohandled = handleIOPoll(timeLeft);
         if (!iohandled) {
           // timed out, end of cycle
+          #if MAINLOOP_STATISTICS
+          idleTime += timeLeft;
+          #endif
           break;
         }
         // not timed out, means we might still have some time left
       }
       // if no time left, end the cycle, otherwise re-run handlers
-      if (terminated || remainingCycleTime()<=0)
+      if (terminated || remainingCycleTime()<=0) {
         break; // no more time, end the cycle here
+      }
     } // not terminated
+    #if MAINLOOP_STATISTICS
+    MLMicroSeconds r = remainingCycleTime();
+    if (r<0) lateTime += -r; // how much late we are
+    #endif
   } // not terminated
 	return exitCode;
 }
 
 
+string MainLoop::description()
+{
+  // get some interesting data from mainloop
+  #if MAINLOOP_STATISTICS
+  MLMicroSeconds statisticsPeriod = now()-statisticsStartTime;
+  #endif
+  return string_format(
+    "MainLoop: loopCycleTime = %ld µS%s\n"
+    #if MAINLOOP_STATISTICS
+    "- idle = %d%% of cycle time\n"
+    "- time late at end of cycle = %d%% of cycle time\n"
+    #endif
+    "- number of registered idle handlers: %ld\n"
+    "- number of one-time handlers: %ld, latest in %.3f S from now\n"
+    #if MAINLOOP_STATISTICS
+    "  max number of one-time handlers registered in statistics period: %ld\n"
+    #endif
+    "- number of I/O poll handlers: %ld\n"
+    "- number of process state handlers: %ld\n",
+    loopCycleTime,
+    terminated ? " (terminating)" : "",
+    #if MAINLOOP_STATISTICS
+    statisticsPeriod>0 ? 100ll * idleTime/statisticsPeriod : 0,
+    statisticsPeriod>0 ? 100ll * lateTime/statisticsPeriod : 0,
+    #endif
+    idleHandlers.size(),
+    onetimeHandlers.size(),
+    (double)(onetimeHandlers.size() ? onetimeHandlers.back().executionTime-now() : 0)/Second,
+    #if MAINLOOP_STATISTICS
+    maxOneTimeHandlers,
+    #endif
+    ioPollHandlers.size(),
+    waitHandlers.size()
+  );
+}
+
+
+#if MAINLOOP_STATISTICS
+void MainLoop::statistics_reset()
+{
+  statisticsStartTime = now();
+  maxOneTimeHandlers = 0;
+  idleTime = 0;
+  lateTime = 0;
+}
+#endif
+
+
 #pragma mark - execution in subthreads
 
 
-ChildThreadWrapperPtr SyncIOMainLoop::executeInThread(ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler)
+ChildThreadWrapperPtr MainLoop::executeInThread(ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler)
 {
   return ChildThreadWrapperPtr(new ChildThreadWrapper(*this, aThreadRoutine, aThreadSignalHandler));
 }
@@ -676,7 +686,7 @@ void *ChildThreadWrapper::startFunction()
 
 
 
-ChildThreadWrapper::ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler) :
+ChildThreadWrapper::ChildThreadWrapper(MainLoop &aParentThreadMainLoop, ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler) :
   parentThreadMainLoop(aParentThreadMainLoop),
   threadRoutine(aThreadRoutine),
   parentSignalHandler(aThreadSignalHandler),
@@ -744,7 +754,7 @@ void ChildThreadWrapper::finalizeThreadExecution()
   pthread_join(pthread, NULL);
   threadRunning = false;
   // unregister the handler
-  SyncIOMainLoop::currentMainLoop().unregisterPollHandler(parentSignalFd);
+  MainLoop::currentMainLoop().unregisterPollHandler(parentSignalFd);
   // close the pipes
   close(childSignalFd);
   close(parentSignalFd);
@@ -768,7 +778,7 @@ void ChildThreadWrapper::cancel()
 
 
 
-// called on parent thread from SyncIOMainloop
+// called on parent thread from Mainloop
 bool ChildThreadWrapper::signalPipeHandler(int aPollFlags)
 {
   ThreadSignals sig = threadSignalNone;

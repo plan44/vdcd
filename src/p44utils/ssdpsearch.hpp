@@ -73,7 +73,7 @@ namespace p44 {
     string server; ///< will be set to the SERVER header
     int maxAge; ///< will be set to the max-age value
 
-    SsdpSearch(SyncIOMainLoop &aMainLoop);
+    SsdpSearch(MainLoop &aMainLoop);
     virtual ~SsdpSearch();
 
     /// start a SSDP search for a specific UUID or all root devices

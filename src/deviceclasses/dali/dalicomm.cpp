@@ -37,7 +37,7 @@ using namespace p44;
 #define DALIBRIDGE_BAUDRATE 9600
 
 
-DaliComm::DaliComm(SyncIOMainLoop &aMainLoop) :
+DaliComm::DaliComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
   runningProcedures(0),
   closeAfterIdleTime(Never),

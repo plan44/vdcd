@@ -81,6 +81,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     sb->setHardwareSensorConfig(sensorType_temperature, usage_room, 0, 40, 40.0/255, 100*Second, 5*Minute);
     sb->setGroup(group_blue_heating);
     sb->setHardwareName("Simulated Temperature 0..40 °C");
+    sb->updateSensorValue(21); // default to 21 degrees
     addBehaviour(sb);
     // - create low battery binary input
     BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));

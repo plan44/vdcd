@@ -24,7 +24,7 @@
 using namespace p44;
 
 
-JsonComm::JsonComm(SyncIOMainLoop &aMainLoop) :
+JsonComm::JsonComm(MainLoop &aMainLoop) :
   inherited(aMainLoop),
   tokener(NULL),
   ignoreUntilNextEOM(false),

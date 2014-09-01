@@ -59,8 +59,8 @@ public:
     inputState(idle),
     autoaccept(false)
   {
-    userInput = FdCommPtr(new FdComm(SyncIOMainLoop::currentMainLoop()));
-    jsonRpcServer = SocketCommPtr(new SocketComm(SyncIOMainLoop::currentMainLoop()));
+    userInput = FdCommPtr(new FdComm(MainLoop::currentMainLoop()));
+    jsonRpcServer = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
   }
 
 
@@ -113,7 +113,7 @@ public:
     // Create JSON RPC client or server connection
     if (jsonrpchost) {
       // connect as client to a server
-      jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
+      jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(MainLoop::currentMainLoop()));
       jsonRpcComm->setConnectionParams(jsonrpchost, jsonrpcport, SOCK_STREAM, AF_INET);
       jsonRpcComm->setConnectionStatusHandler(boost::bind(&JsonRpcTool::jsonRpcClientConnectionHandler, this, _2));
       jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
@@ -141,7 +141,7 @@ public:
   SocketCommPtr jsonRpcServerConnectionHandler(SocketCommPtr aServerSocketComm)
   {
     printf("++++++++++++++ Connection from server\n");
-    jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
+    jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(MainLoop::currentMainLoop()));
     jsonRpcComm->setReportAllErrors(true); // server should report all errors
     jsonRpcComm->setRequestHandler(boost::bind(&JsonRpcTool::jsonRpcRequestHandler, this, _1, _2, _3));
     askMethod();
@@ -355,7 +355,7 @@ public:
 int main(int argc, char **argv)
 {
   // create the mainloop
-  SyncIOMainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
+  MainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static JsonRpcTool application;
   // pass control

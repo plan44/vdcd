@@ -26,7 +26,7 @@
 
 using namespace p44;
 
-SocketComm::SocketComm(SyncIOMainLoop &aMainLoop) :
+SocketComm::SocketComm(MainLoop &aMainLoop) :
   FdComm(aMainLoop),
   connectionOpen(false),
   isConnecting(false),

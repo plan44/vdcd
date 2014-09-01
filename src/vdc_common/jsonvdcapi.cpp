@@ -183,7 +183,7 @@ ErrorPtr VdcJsonApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage,
 
 VdcJsonApiConnection::VdcJsonApiConnection()
 {
-  jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(SyncIOMainLoop::currentMainLoop()));
+  jsonRpcComm = JsonRpcCommPtr(new JsonRpcComm(MainLoop::currentMainLoop()));
   // install JSON request handler locally
   jsonRpcComm->setRequestHandler(boost::bind(&VdcJsonApiConnection::jsonRequestHandler, this, _1, _2, _3));
 }

@@ -27,7 +27,7 @@ using namespace p44;
 #pragma mark - VdcApiServer
 
 VdcApiServer::VdcApiServer() :
-  inherited(SyncIOMainLoop::currentMainLoop())
+  inherited(MainLoop::currentMainLoop())
 {
 }
 

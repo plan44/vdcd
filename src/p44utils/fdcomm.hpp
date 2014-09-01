@@ -61,11 +61,11 @@ namespace p44 {
   protected:
 
     int dataFd;
-    SyncIOMainLoop &mainLoop;
+    MainLoop &mainLoop;
 
   public:
 
-    FdComm(SyncIOMainLoop &aMainLoop);
+    FdComm(MainLoop &aMainLoop);
     virtual ~FdComm();
 
     /// place to attach a related object
@@ -75,7 +75,7 @@ namespace p44 {
     /// @param aFd the file descriptor to monitor, -1 to cancel monitoring
     void setFd(int aFd);
 
-    /// Stop monitoring (unregister SyncIOMainLoop callbacks) and close the file descriptor
+    /// Stop monitoring (unregister MainLoop callbacks) and close the file descriptor
     void stopMonitoringAndClose();
 
     /// Get file descriptor
@@ -145,7 +145,7 @@ namespace p44 {
 
     string collectedData; ///< all data received from the fd is collected into this string
 
-    FdStringCollector(SyncIOMainLoop &aMainLoop);
+    FdStringCollector(MainLoop &aMainLoop);
 
     /// collect until file descriptor does not provide any more data
     void collectToEnd(FdCommCB aEndedCallback);

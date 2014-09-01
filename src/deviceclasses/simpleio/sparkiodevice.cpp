@@ -195,7 +195,7 @@ DsScenePtr SparkDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
-  sparkCloudComm(SyncIOMainLoop::currentMainLoop()),
+  sparkCloudComm(MainLoop::currentMainLoop()),
   apiVersion(0)
 {
   // config must be: sparkCoreId:accessToken

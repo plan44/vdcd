@@ -27,11 +27,18 @@
 #include <sys/poll.h>
 #include <pthread.h>
 
+// if set to non-zero, mainloop will have some code to record statistics
+#define MAINLOOP_STATISTICS 1
+
 using namespace std;
 
 namespace p44 {
 
   class MainLoop;
+  class ChildThreadWrapper;
+
+  typedef boost::intrusive_ptr<MainLoop> MainLoopPtr;
+  typedef boost::intrusive_ptr<ChildThreadWrapper> ChildThreadWrapperPtr;
 
   // Mainloop timing unit
   typedef long long MLMicroSeconds;
@@ -42,9 +49,19 @@ namespace p44 {
   const MLMicroSeconds Second = 1000*MilliSecond;
   const MLMicroSeconds Minute = 60*Second;
 
+
+  /// subthread/maintthread communication signals (sent via pipe)
+  typedef enum {
+    threadSignalNone,
+    threadSignalCompleted, ///< sent to parent when child thread terminates
+    threadSignalFailedToStart, ///< sent to parent when child thread could not start
+    threadSignalCancelled, ///< sent to parent when child thread was cancelled (
+    threadSignalUserSignal ///< first user-specified signal
+  } ThreadSignals;
+
+
   /// @name Mainloop callbacks
   /// @{
-
 
   /// Generic handler without any arguments
   typedef boost::function<void ()> SimpleCB;
@@ -68,8 +85,30 @@ namespace p44 {
   /// @param aOutputString the stdout output of the executed command
   typedef boost::function<void (MLMicroSeconds aCycleStartTime, ErrorPtr aError, const string &aOutputString)> ExecCB;
 
+  /// I/O callback
+  /// @param aMainLoop the mainloop which calls this handler
+  /// @param aCycleStartTime the time when the current mainloop cycle has started
+  /// @param aFD the file descriptor that was signalled and has caused this call
+  /// @param aPollFlags the poll flags describing the reason for the callback
+  /// @return should true if callback really handled some I/O, false if it only checked flags and found nothing to do
+  typedef boost::function<bool (MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> IOPollCB;
+
+  /// thread routine, will be called on a separate thread
+  /// @param aThreadWrapper the object that wraps the thread and allows sending signals to the parent thread
+  ///   Use this pointer to call signalParentThread() on
+  /// @note when this routine exits, a threadSignalCompleted will be sent to the parent thread
+  typedef boost::function<void (ChildThreadWrapper &aThread)> ThreadRoutine;
+
+  /// thread signal handler, will be called from main loop of parent thread when child thread uses signalParentThread()
+  /// @param aMainLoop the mainloop of the parent thread which has started the child thread
+  /// @param aChildThread the ChildThreadWrapper object which sent the signal
+  /// @param aSignalCode the signal received from the child thread
+  typedef boost::function<void (ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
+
   /// @}
 
+
+  /// subprocess execution error
   class ExecError : public Error
   {
   public:
@@ -117,6 +156,15 @@ namespace p44 {
 
     WaitHandlerMap waitHandlers;
 
+    typedef struct {
+      int monitoredFD;
+      int pollFlags;
+      IOPollCB pollHandler;
+    } IOPollHandler;
+    typedef std::map<int, IOPollHandler> IOPollHandlerMap;
+
+    IOPollHandlerMap ioPollHandlers;
+
     long ticketNo;
 
   protected:
@@ -126,6 +174,14 @@ namespace p44 {
 
     MLMicroSeconds loopCycleTime;
     MLMicroSeconds cycleStartTime;
+
+    #if MAINLOOP_STATISTICS
+    MLMicroSeconds statisticsStartTime;
+    size_t maxOneTimeHandlers;
+    MLMicroSeconds idleTime;
+    MLMicroSeconds lateTime;
+    #endif
+
 
     // protected constructor
     MainLoop();
@@ -144,6 +200,9 @@ namespace p44 {
     /// get time left for current cycle
     MLMicroSeconds remainingCycleTime();
 
+    /// @name register handlers for idle time (once per mainloop cycle, when all other handlers have been called)
+    /// @{
+
     /// register routine with mainloop for being called at least once per loop cycle
     /// @param aSubscriberP usually "this" of the caller, or another unique memory address which allows unregistering later
     /// @param aCallback the functor to be called
@@ -152,6 +211,12 @@ namespace p44 {
     /// unregister all handlers registered by a given subscriber
     /// @param aSubscriberP a value identifying the subscriber
     void unregisterIdleHandlers(void *aSubscriberP);
+
+    /// @}
+
+
+    /// @name register one-time handlers (fired at specified time)
+    /// @{
 
     /// have handler called from the mainloop once with an optional delay from now
     /// @param aCallback the functor to be called
@@ -181,6 +246,12 @@ namespace p44 {
     /// @return true if the execution specified with aTicketNo was still pending and could be rescheduled
     bool rescheduleExecutionTicketAt(long aTicketNo, MLMicroSeconds aExecutionTime);
 
+    /// @}
+
+
+    /// @name start subprocesses and register handlers for returning subprocess status
+    /// @{
+
     /// execute external binary or interpreter script in a separate process
     /// @param aCallback the functor to be called when execution is done (failed to start or completed)
     /// @param aPath the path to the binary or script
@@ -196,107 +267,22 @@ namespace p44 {
     void fork_and_system(ExecCB aCallback, const char *aCommandLine, bool aPipeBackStdOut = false);
 
 
-    /// have handler called from the mainloop once with an optional delay from now
+    /// have handler called when a specific process delivers a state change
     /// @param aCallback the functor to be called when given process delivers a state change, NULL to remove callback
     /// @param aPid the process to wait for
     void waitForPid(WaitCB aCallback, pid_t aPid);
 
-    /// terminate the mainloop
-    /// @param aExitCode the code to return from run()
-    void terminate(int aExitCode);
-
-    /// run the mainloop
-    /// @return returns a exit code
-    virtual int run();
-
-  protected:
-
-    // run all handlers
-    bool runOnetimeHandlers();
-    long scheduleOneTimeHandler(OnetimeHandler &aHandler);
-    bool runIdleHandlers();
-    bool checkWait();
-
-  private:
-
-    void execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus);
-    void childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError);
-
-  };
+    /// @}
 
 
-  class SyncIOMainLoop;
-
-  class ChildThreadWrapper;
-
-  typedef enum {
-    threadSignalNone,
-    threadSignalCompleted, ///< sent to parent when child thread terminates
-    threadSignalFailedToStart, ///< sent to parent when child thread could not start
-    threadSignalCancelled, ///< sent to parent when child thread was cancelled (
-    threadSignalUserSignal ///< first user-specified signal
-  } ThreadSignals;
-
-
-  /// @name SyncIOMainLoop callbacks
-  /// @{
-
-  /// I/O callback
-  /// @param aMainLoop the mainloop which calls this handler
-  /// @param aCycleStartTime the time when the current mainloop cycle has started
-  /// @param aFD the file descriptor that was signalled and has caused this call
-  /// @param aPollFlags the poll flags describing the reason for the callback
-  /// @return should true if callback really handled some I/O, false if it only checked flags and found nothing to do
-  typedef boost::function<bool (MLMicroSeconds aCycleStartTime, int aFD, int aPollFlags)> SyncIOCB;
-
-  /// thread routine, will be called on a separate thread
-  /// @param aThreadWrapper the object that wraps the thread and allows sending signals to the parent thread
-  ///   Use this pointer to call signalParentThread() on
-  /// @note when this routine exits, a threadSignalCompleted will be sent to the parent thread
-  typedef boost::function<void (ChildThreadWrapper &aThread)> ThreadRoutine;
-
-  /// thread signal handler, will be called from main loop of parent thread when child thread uses signalParentThread()
-  /// @param aMainLoop the mainloop of the parent thread which has started the child thread
-  /// @param aChildThread the ChildThreadWrapper object which sent the signal
-  /// @param aSignalCode the signal received from the child thread
-  typedef boost::function<void (ChildThreadWrapper &aChildThread, ThreadSignals aSignalCode)> ThreadSignalHandler;
-
-  /// @}
-
-
-  typedef boost::intrusive_ptr<SyncIOMainLoop> SyncIOMainLoopPtr;
-  typedef boost::intrusive_ptr<ChildThreadWrapper> ChildThreadWrapperPtr;
-
-
-  /// A main loop with a Synchronous I/O multiplexer (select() call)
-  class SyncIOMainLoop : public MainLoop
-  {
-    typedef MainLoop inherited;
-
-    typedef struct {
-      int monitoredFD;
-      int pollFlags;
-      SyncIOCB pollHandler;
-    } SyncIOHandler;
-    typedef std::map<int, SyncIOHandler> SyncIOHandlerMap;
-
-    SyncIOHandlerMap syncIOHandlers;
-
-    // private constructor
-    SyncIOMainLoop();
-
-  public:
-
-    /// returns the current thread's SyncIOMainLoop
-    /// @return the current SyncIOMainLoop. raises an assertion if current mainloop is not a SyncIOMainLoop
-    /// @note creates a SyncIOMainLoop for the thread if no other type of mainloop already exists
-    static SyncIOMainLoop &currentMainLoop();
+    /// @name register handlers for I/O events
+    /// @{
 
     /// register handler to be called for activity on specified file descriptor
     /// @param aFD the file descriptor to poll
     /// @param aPollFlags POLLxxx flags to specify events we want a callback for
     /// @param aFdEventCB the functor to be called when poll() reports an event for one of the flags set in aPollFlags
-    void registerPollHandler(int aFD, int aPollFlags, SyncIOCB aPollEventHandler);
+    void registerPollHandler(int aFD, int aPollFlags, IOPollCB aPollEventHandler);
 
     /// change the poll flags for an already registered handler
     /// @param aFD the file descriptor
@@ -307,6 +293,12 @@ namespace p44 {
     /// @param aSubscriberP a value identifying the subscriber
     /// @param aFD the file descriptor
     void unregisterPollHandler(int aFD);
+    
+    /// @}
+
+
+    /// @name run handler in separate thread
+    /// @{
 
     /// execute handler in a separate thread
     /// @param aThreadFunctor the functor to be executed in a separate thread
@@ -314,19 +306,39 @@ namespace p44 {
     /// @return wrapper object for child thread.
     ChildThreadWrapperPtr executeInThread(ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler);
 
+    /// @}
+
+
+    /// terminate the mainloop
+    /// @param aExitCode the code to return from run()
+    void terminate(int aExitCode);
+
     /// run the mainloop
     /// @return returns a exit code
-    virtual int run();
+    int run();
+
+    /// description (shows some mainloop key numbers)
+    string description();
+
   protected:
-    /// handle IO
-    /// @return true if I/O handling occurred
-    bool handleSyncIO(MLMicroSeconds aTimeout);
+
+    bool runOnetimeHandlers();
+    long scheduleOneTimeHandler(OnetimeHandler &aHandler);
+    bool runIdleHandlers();
+    bool checkWait();
+    bool handleIOPoll(MLMicroSeconds aTimeout);
 
   private:
 
-    void syncIOHandlerForFd(int aFD, SyncIOHandler &h);
+    void execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus);
+    void childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError);
+    void IOPollHandlerForFd(int aFD, IOPollHandler &h);
+    #if MAINLOOP_STATISTICS
+    void statistics_reset();
+    #endif
 
   };
+
 
 
   class ChildThreadWrapper : public P44Obj
@@ -336,7 +348,7 @@ namespace p44 {
     pthread_t pthread; ///< the pthread
     bool threadRunning; ///< set if thread is active
 
-    SyncIOMainLoop &parentThreadMainLoop; ///< the parent mainloop which created this thread
+    MainLoop &parentThreadMainLoop; ///< the parent mainloop which created this thread
     int childSignalFd; ///< the pipe used to transmit signals from the child thread
     int parentSignalFd; ///< the pipe monitored by parentThreadMainLoop to get signals from child
 
@@ -348,7 +360,7 @@ namespace p44 {
   public:
 
     /// constructor
-    ChildThreadWrapper(SyncIOMainLoop &aParentThreadMainLoop, ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler);
+    ChildThreadWrapper(MainLoop &aParentThreadMainLoop, ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler);
 
     /// destructor
     virtual ~ChildThreadWrapper();

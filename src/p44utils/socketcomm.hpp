@@ -104,7 +104,7 @@ namespace p44 {
     SocketCommPtr serverConnection;
   public:
 
-    SocketComm(SyncIOMainLoop &aMainLoop);
+    SocketComm(MainLoop &aMainLoop);
     virtual ~SocketComm();
 
     /// Set parameters for connection (client and server)

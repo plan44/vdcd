@@ -247,7 +247,7 @@ OperationPtr SerialOperationSendAndReceive::finalize(OperationQueue *aQueueP)
 
 
 // Link into mainloop
-SerialOperationQueue::SerialOperationQueue(SyncIOMainLoop &aMainLoop) :
+SerialOperationQueue::SerialOperationQueue(MainLoop &aMainLoop) :
   inherited(aMainLoop)
 {
   // Set handlers for FdComm

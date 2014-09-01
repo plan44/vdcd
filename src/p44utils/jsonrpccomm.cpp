@@ -25,7 +25,7 @@
 using namespace p44;
 
 
-JsonRpcComm::JsonRpcComm(SyncIOMainLoop &aMainLoop) :
+JsonRpcComm::JsonRpcComm(MainLoop &aMainLoop) :
   inherited(aMainLoop),
   requestIdCounter(0),
   reportAllErrors(false)

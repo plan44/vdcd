@@ -188,7 +188,7 @@ public:
     startedAuth(Never),
     retryLoginTicket(0)
   {
-    bridgeDetector = SsdpSearchPtr(new SsdpSearch(SyncIOMainLoop::currentMainLoop()));
+    bridgeDetector = SsdpSearchPtr(new SsdpSearch(MainLoop::currentMainLoop()));
   }
 
   virtual ~BridgeFinder()
@@ -415,8 +415,8 @@ public:
 
 
 HueComm::HueComm() :
-  inherited(SyncIOMainLoop::currentMainLoop()),
-  bridgeAPIComm(SyncIOMainLoop::currentMainLoop()),
+  inherited(MainLoop::currentMainLoop()),
+  bridgeAPIComm(MainLoop::currentMainLoop()),
   findInProgress(false),
   apiReady(false)
 {

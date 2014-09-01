@@ -866,7 +866,7 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 
 
 
-EnoceanComm::EnoceanComm(SyncIOMainLoop &aMainLoop) :
+EnoceanComm::EnoceanComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
   aliveCheckTicket(0),
   aliveTimeoutTicket(0),

@@ -176,7 +176,7 @@ namespace p44 {
     SerialCommPtr serialComm;
 
     /// create operation queue linked into specified Synchronous IO mainloop
-    SerialOperationQueue(SyncIOMainLoop &aMainLoop);
+    SerialOperationQueue(MainLoop &aMainLoop);
 
     /// destructor
     virtual ~SerialOperationQueue();

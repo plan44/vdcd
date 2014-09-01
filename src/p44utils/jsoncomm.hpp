@@ -53,7 +53,7 @@ namespace p44 {
 
   public:
 
-    JsonComm(SyncIOMainLoop &aMainLoop);
+    JsonComm(MainLoop &aMainLoop);
     virtual ~JsonComm();
 
     /// install callback for received JSON messages

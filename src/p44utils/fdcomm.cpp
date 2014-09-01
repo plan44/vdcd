@@ -30,7 +30,7 @@
 
 using namespace p44;
 
-FdComm::FdComm(SyncIOMainLoop &aMainLoop) :
+FdComm::FdComm(MainLoop &aMainLoop) :
   dataFd(-1),
   mainLoop(aMainLoop)
 {
@@ -259,7 +259,7 @@ void FdComm::makeNonBlocking(int aFd)
 #pragma mark - FdStringCollector
 
 
-FdStringCollector::FdStringCollector(SyncIOMainLoop &aMainLoop) :
+FdStringCollector::FdStringCollector(MainLoop &aMainLoop) :
   FdComm(aMainLoop),
   ended(false)
 {

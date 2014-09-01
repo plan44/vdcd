@@ -26,7 +26,7 @@
 using namespace p44;
 
 
-SerialComm::SerialComm(SyncIOMainLoop &aMainLoop) :
+SerialComm::SerialComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
   connectionPort(0),
   baudRate(9600),
