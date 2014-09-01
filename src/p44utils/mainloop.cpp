@@ -615,32 +615,32 @@ string MainLoop::description()
   MLMicroSeconds statisticsPeriod = now()-statisticsStartTime;
   #endif
   return string_format(
-    "MainLoop: loopCycleTime = %ld µS%s\n"
+    "MainLoop: loopCycleTime = %.6f S%s\n"
     #if MAINLOOP_STATISTICS
     "- idle = %d%% of cycle time\n"
     "- time late at end of cycle = %d%% of cycle time\n"
     #endif
     "- number of registered idle handlers: %ld\n"
-    "- number of one-time handlers: %ld, latest in %.3f S from now\n"
+    "- number of one-time handlers: %ld, latest in %.6f S from now\n"
     #if MAINLOOP_STATISTICS
     "  max number of one-time handlers registered in statistics period: %ld\n"
     #endif
     "- number of I/O poll handlers: %ld\n"
     "- number of process state handlers: %ld\n",
-    loopCycleTime,
+    (double)loopCycleTime/Second,
     terminated ? " (terminating)" : "",
     #if MAINLOOP_STATISTICS
-    statisticsPeriod>0 ? 100ll * idleTime/statisticsPeriod : 0,
-    statisticsPeriod>0 ? 100ll * lateTime/statisticsPeriod : 0,
+    (int)(statisticsPeriod>0 ? 100ll * idleTime/statisticsPeriod : 0),
+    (int)(statisticsPeriod>0 ? 100ll * lateTime/statisticsPeriod : 0),
     #endif
-    idleHandlers.size(),
-    onetimeHandlers.size(),
-    (double)(onetimeHandlers.size() ? onetimeHandlers.back().executionTime-now() : 0)/Second,
+    (long)idleHandlers.size(),
+    (long)onetimeHandlers.size(),
+    (double)(onetimeHandlers.size()>0 ? onetimeHandlers.back().executionTime-now() : 0)/Second,
     #if MAINLOOP_STATISTICS
-    maxOneTimeHandlers,
+    (long)maxOneTimeHandlers,
     #endif
-    ioPollHandlers.size(),
-    waitHandlers.size()
+    (long)ioPollHandlers.size(),
+    (long)waitHandlers.size()
   );
 }
 
