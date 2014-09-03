@@ -212,7 +212,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   // set the behaviour
   SparkLightBehaviourPtr sl = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
   sl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
-  sl->setHardwareName("SparkCore base RGB light");
+  sl->setHardwareName("SparkCore based RGB light");
   sl->initMinBrightness(1); // min brightness is 1
   addBehaviour(sl);
   // dsuid
@@ -307,9 +307,10 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr());
       return;
     }
-    // derive (possibly new) color mode from changed channels
-    sl->deriveColorMode();
     // needs update
+    // - derive (possibly new) color mode from changed channels
+    sl->deriveColorMode();
+    // - process according to spark mode
     uint32_t stateWord;
     uint8_t mode = sl->sparkmode->getChannelValue();
     if (mode==3) {
