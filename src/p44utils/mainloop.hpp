@@ -128,6 +128,7 @@ namespace p44 {
   /// A main loop for a thread
   class MainLoop : public P44Obj
   {
+    friend class ChildThreadWrapper;
 
     typedef struct {
       void *subscriberP;
@@ -177,9 +178,13 @@ namespace p44 {
 
     #if MAINLOOP_STATISTICS
     MLMicroSeconds statisticsStartTime;
+    long statisticsCycles;
     size_t maxOneTimeHandlers;
-    MLMicroSeconds idleTime;
-    MLMicroSeconds lateTime;
+    MLMicroSeconds ioHandlerTime;
+    MLMicroSeconds idleHandlerTime;
+    MLMicroSeconds oneTimeHandlerTime;
+    MLMicroSeconds waitHandlerTime;
+    MLMicroSeconds threadSignalHandlerTime;
     #endif
 
 
