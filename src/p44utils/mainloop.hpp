@@ -325,6 +325,10 @@ namespace p44 {
     /// description (shows some mainloop key numbers)
     string description();
 
+    /// reset statistics
+    void statistics_reset();
+
+
   protected:
 
     bool runOnetimeHandlers();
@@ -338,9 +342,6 @@ namespace p44 {
     void execChildTerminated(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, pid_t aPid, int aStatus);
     void childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnswerCollector, ErrorPtr aError);
     void IOPollHandlerForFd(int aFD, IOPollHandler &h);
-    #if MAINLOOP_STATISTICS
-    void statistics_reset();
-    #endif
 
   };
 

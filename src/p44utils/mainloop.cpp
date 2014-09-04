@@ -657,7 +657,8 @@ string MainLoop::description()
   return string_format(
     "MainLoop: loopCycleTime        : %.6f S%s\n"
     #if MAINLOOP_STATISTICS
-    "- actual cycle time            : %d%%\n"
+    "- statistics period            : %.6f S (%ld cycles)\n"
+    "- actual/specified cycle time  : %d%% (actual average = %.6f S)\n"
     "- idle handlers                : %d%%\n"
     "- one time handlers            : %d%%\n"
     "- I/O poll handlers            : %d%%\n"
@@ -676,7 +677,10 @@ string MainLoop::description()
     (double)loopCycleTime/Second,
     terminated ? " (terminating)" : "",
     #if MAINLOOP_STATISTICS
-    (int)(statisticsPeriod>0 ? 100ll * (statisticsCycles*loopCycleTime)/statisticsPeriod : 0),
+    (double)statisticsPeriod/Second,
+    statisticsCycles,
+    (int)(statisticsCycles>0 ? 100ll * statisticsPeriod/(statisticsCycles*loopCycleTime) : 0),
+    (double)statisticsPeriod/statisticsCycles/Second,
     (int)(statisticsPeriod>0 ? 100ll * ioHandlerTime/statisticsPeriod : 0),
     (int)(statisticsPeriod>0 ? 100ll * idleHandlerTime/statisticsPeriod : 0),
     (int)(statisticsPeriod>0 ? 100ll * oneTimeHandlerTime/statisticsPeriod : 0),
@@ -696,9 +700,9 @@ string MainLoop::description()
 }
 
 
-#if MAINLOOP_STATISTICS
 void MainLoop::statistics_reset()
 {
+  #if MAINLOOP_STATISTICS
   statisticsStartTime = now();
   statisticsCycles = 0;
   maxOneTimeHandlers = 0;
@@ -707,8 +711,8 @@ void MainLoop::statistics_reset()
   oneTimeHandlerTime = 0;
   waitHandlerTime = 0;
   threadSignalHandlerTime = 0;
+  #endif
 }
-#endif
 
 
 #pragma mark - execution in subthreads
