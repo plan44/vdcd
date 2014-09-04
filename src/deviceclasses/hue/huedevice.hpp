@@ -38,23 +38,6 @@ namespace p44 {
 
 
 
-  /// the persistent parameters of a light scene device (including scene table)
-  class HueDeviceSettings : public LightDeviceSettings
-  {
-    typedef LightDeviceSettings inherited;
-
-  public:
-    HueDeviceSettings(Device &aDevice);
-
-    /// factory method to create the correct subclass type of DsScene with default values
-    /// @param aSceneNo the scene number to create a scene object with proper default values for.
-    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
-    
-  };
-
-
-
-
   typedef boost::intrusive_ptr<HueDevice> HueDevicePtr;
   class HueDevice : public Device
   {

@@ -426,6 +426,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
   return inherited::applyScene(aScene);
 }
 
+
 // TODO: for later: consider if fadeDown is not an action like blink...
 void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
 {

@@ -29,25 +29,6 @@ using namespace p44;
 
 
 
-#pragma mark - HueDeviceSettings with default light scenes factory
-
-
-HueDeviceSettings::HueDeviceSettings(Device &aDevice) :
-  inherited(aDevice)
-{
-};
-
-
-DsScenePtr HueDeviceSettings::newDefaultScene(SceneNo aSceneNo)
-{
-  ColorLightScenePtr colorScene = ColorLightScenePtr(new ColorLightScene(*this, aSceneNo));
-  colorScene->setDefaultSceneValues(aSceneNo);
-  // return it
-  return colorScene;
-}
-
-
-
 #pragma mark - HueDevice
 
 
@@ -62,7 +43,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
   // derive the dSUID
   deriveDsUid();
   // use hue light settings, which include a extended scene table
-  deviceSettings = DeviceSettingsPtr(new HueDeviceSettings(*this));
+  deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
   // set the behaviour
   ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
   cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
