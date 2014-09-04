@@ -51,98 +51,196 @@ bool DaliDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const cha
 }
 
 
-class DaliDeviceCollector
+#pragma mark - DB and initialisation
+
+
+#define DALI_SCHEMA_VERSION 1
+
+string DaliPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
-  DaliCommPtr daliComm;
-  CompletedCB callback;
-  DaliComm::ShortAddressListPtr deviceShortAddresses;
-  DaliComm::ShortAddressList::iterator nextDev;
-  DaliDeviceContainer *daliDeviceContainerP;
-  bool incremental;
-public:
-  static void collectDevices(DaliDeviceContainer *aDaliDeviceContainerP, DaliCommPtr aDaliComm, CompletedCB aCallback, bool aIncremental, bool aForceFullScan)
-  {
-    // create new instance, deletes itself when finished
-    new DaliDeviceCollector(aDaliDeviceContainerP, aDaliComm, aCallback, aIncremental, aForceFullScan);
-  };
-private:
-  DaliDeviceCollector(DaliDeviceContainer *aDaliDeviceContainerP, DaliCommPtr aDaliComm, CompletedCB aCallback, bool aIncremental, bool aForceFullScan) :
-    daliComm(aDaliComm),
-    callback(aCallback),
-    incremental(aIncremental),
-    daliDeviceContainerP(aDaliDeviceContainerP)
-  {
-    daliComm->daliFullBusScan(boost::bind(&DaliDeviceCollector::deviceListReceived, this, _1, _2), !aForceFullScan); // allow quick scan when not forced
+  string sql;
+  if (aFromVersion==0) {
+    // create DB from scratch
+		// - use standard globs table for schema version
+    sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
+		// - create my tables
+    sql.append(
+      "CREATE TABLE compositeDevices ("
+      " dimmerUID TEXT,"
+      " dimmerType TEXT,"
+      " collectionID INTEGER," // table-unique ID for this collection
+      " PRIMARY KEY (dimmerUID)"
+      ");"
+    );
+    // reached final version in one step
+    aToVersion = DALI_SCHEMA_VERSION;
   }
+  return sql;
+}
 
-  void deviceListReceived(DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
-  {
-    // save list of short addresses
-    deviceShortAddresses = aDeviceListPtr;
-    // check if any devices
-    if (aError || deviceShortAddresses->size()==0)
-      return completed(aError); // no devices to query, completed
-    // start collecting device info now
-    nextDev = deviceShortAddresses->begin();
-    queryNextDev(ErrorPtr());
-  }
 
-  void queryNextDev(ErrorPtr aError)
-  {
-    if (!aError && nextDev!=deviceShortAddresses->end())
-      daliComm->daliReadDeviceInfo(boost::bind(&DaliDeviceCollector::deviceInfoReceived, this, _1, _2), *nextDev);
-    else
-      return completed(aError);
-  }
-
-  void deviceInfoReceived(DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
-  {
-    bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
-    bool badData =
-      aError &&
-      (aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum) || aError->isError(DaliCommError::domain(), DaliCommErrorBadDeviceInfo));
-    if (!aError || missingData || badData) {
-      if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
-      if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have valid device info\n",aDaliDeviceInfoPtr->shortAddress); }
-      // - create device
-      DaliDevicePtr daliDevice(new DaliDevice(daliDeviceContainerP));
-      // - give it device info (such that it can calculate its dSUID)
-      //   Note: device info might be empty except for short address
-      daliDevice->setDeviceInfo(*aDaliDeviceInfoPtr);
-      // - make it 
-      // - add it to our collection (if not already there)
-      daliDeviceContainerP->addDevice(daliDevice);
-    }
-    else {
-      LOG(LOG_ERR,"Error reading device info: %s\n",aError->description().c_str());
-      return completed(aError);
-    }
-    // check next
-    ++nextDev;
-    queryNextDev(ErrorPtr());
-  }
-
-  void completed(ErrorPtr aError)
-  {
-    // completed
-    callback(aError);
-    // done, delete myself
-    delete this;
-  }
-
-};
+void DaliDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+{
+	string databaseName = getPersistentDataDir();
+	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), DALI_SCHEMA_VERSION, aFactoryReset);
+	aCompletedCB(error); // return status of DB init
+}
 
 
 
-/// collect devices from this device class
-/// @param aCompletedCB will be called when device scan for this device class has been completed
+
+#pragma mark - collect devices
+
+
+
+
 void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
 {
   if (!aIncremental) {
     removeDevices(false);
   }
-  DaliDeviceCollector::collectDevices(this, daliComm, aCompletedCB, aIncremental, aExhaustive);
+  // start collecting, allow quick scan when not exhaustively collecting (will still use full scan when bus collisions are detected)
+  daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), !aExhaustive);
 }
+
+
+void DaliDeviceContainer::deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
+{
+  // check if any devices
+  if (aError || aDeviceListPtr->size()==0)
+    return aCompletedCB(aError); // no devices to query, completed
+  // create a Dali bus device for every detected device
+  DaliBusDeviceListPtr busDevices(new DaliBusDeviceList);
+  for (DaliComm::ShortAddressList::iterator pos = aDeviceListPtr->begin(); pos!=aDeviceListPtr->end(); ++pos) {
+    // create bus device
+    DaliBusDevicePtr busDevice(new DaliBusDevice(*this));
+    // - create simple device info containing only short address
+    DaliDeviceInfo info;
+    info.shortAddress = *pos; // assign short address
+    busDevice->setDeviceInfo(info); // assign info to bus device
+    // - add bus device to list
+    busDevices->push_back(busDevice);
+  }
+  // now start collecting full device for each device
+  queryNextDev(busDevices, busDevices->begin(), aCompletedCB, ErrorPtr());
+}
+
+
+void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aNextDev != aBusDevices->end()) {
+      DaliAddress addr = (*aNextDev)->deviceInfo.shortAddress;
+      daliComm->daliReadDeviceInfo(boost::bind(&DaliDeviceContainer::deviceInfoReceived, this, aBusDevices, aNextDev, aCompletedCB, _1, _2), addr);
+      return;
+    }
+    // all done successfully, complete bus info now available in aBusDevices
+    // - look up composite devices
+    //   If none of the devices are found on the bus, the entire composite device is considered missing
+    //   If at least one device is found, non-found bus devices will be added as dummy bus devices
+    DaliBusDeviceList singleDevices;
+    DaliBusDeviceList::iterator pos = aBusDevices->begin();
+    while (pos!=aBusDevices->end()) {
+      // check if this device is part of a composite device
+      sqlite3pp::query qry(db);
+      string sql = string_format("SELECT collectionID FROM compositeDevices WHERE dimmerUID = '%s'", (*pos)->dSUID.getString().c_str());
+      if (qry.prepare(sql.c_str())==SQLITE_OK) {
+        sqlite3pp::query::iterator i = qry.begin();
+        if (i!=qry.end()) {
+          // this is part of a composite device
+          int collectionID = i->get<int>(0);
+          // - collect all with same masterDSUID (= those that once were combined, in any order)
+          sql = string_format("SELECT dimmerType, dimmerUID FROM compositeDevices WHERE collectionID = %d", collectionID);
+          if (qry.prepare(sql.c_str())==SQLITE_OK) {
+            // we know that we found at least one dimmer of this composite on the bus, so we'll instantiate
+            // a composite (even if some dimmers might be missing)
+            DaliRGBWDevicePtr daliDevice = DaliRGBWDevicePtr(new DaliRGBWDevice(this));
+            for (sqlite3pp::query::iterator j = qry.begin(); j != qry.end(); ++j) {
+              string dimmerType = nonNullCStr(i->get<const char *>(0));
+              DsUid dimmerUID(nonNullCStr(i->get<const char *>(1)));
+              // see if we have this dimmer on the bus
+              DaliBusDevicePtr dimmer;
+              DaliBusDeviceList::iterator pos2 = aBusDevices->begin();
+              while (pos2!=aBusDevices->end()) {
+                if ((*pos2)->dSUID == dimmerUID) {
+                  // create device if not yet existing
+                  dimmer = *pos2;
+                  // consumed, remove from the list
+                  aBusDevices->erase(pos2);
+                  break;
+                }
+              }
+              // process dimmer
+              if (!dimmer) {
+                // dimmer not found
+                LOG(LOG_WARNING, "Missing DALI dimmer %s (type %s) for composite device\n", dimmerUID.getString().c_str(), dimmerType.c_str());
+                // insert dummy instead
+                dimmer = DaliBusDevicePtr(new DaliBusDevice(*this));
+                dimmer->isDummy = true; // disable bus access
+                dimmer->dSUID = dimmerUID; // just set the dSUID we know from the DB
+              }
+              // add the dimmer (real or dummy)
+              daliDevice->addDimmer(dimmer, dimmerType);
+            } // for all needed dimmers
+            // now device has all dimmers (real or dummy), such that it can calculate the composite dSUID
+            daliDevice->deriveDsUid();
+            // - add it to our collection (if not already there)
+            addDevice(daliDevice);
+          }
+        } // part of composite device
+        else {
+          // definitely NOT part of composite, put into single dimmer list
+          singleDevices.push_back(*pos);
+          pos = aBusDevices->erase(pos);
+        }
+      }
+    }
+    // remaining bus members are single dimmer devices
+    for (DaliBusDeviceList::iterator pos = singleDevices.begin(); pos!=singleDevices.end(); ++pos) {
+      DaliBusDevicePtr daliBusDevice = *pos;
+      // simple single-dimmer device
+      DaliDevicePtr daliDevice(new DaliDevice(this));
+      // - set whiteDimmer (gives device info to calculate dSUID)
+      daliDevice->brightnessDimmer = daliBusDevice;
+      // - now device has device info, such that it can calculate its dSUID
+      daliDevice->deriveDsUid();
+      // - add it to our collection (if not already there)
+      addDevice(daliDevice);
+    }
+    // collecting complete
+    aCompletedCB(ErrorPtr());
+  }
+  else {
+    // collecting failed
+    aCompletedCB(aError);
+  }
+}
+
+
+void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
+{
+  bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
+  bool badData =
+    aError &&
+    (aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum) || aError->isError(DaliCommError::domain(), DaliCommErrorBadDeviceInfo));
+  if (!aError || missingData || badData) {
+    // no error, or error but due to missing or bad data -> device exists
+    if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
+    if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have valid device info\n",aDaliDeviceInfoPtr->shortAddress); }
+    // update device info entry in dali bus device
+    (*aNextDev)->setDeviceInfo(*aDaliDeviceInfoPtr);
+  }
+  else {
+    LOG(LOG_ERR,"Error reading device info: %s\n",aError->description().c_str());
+    return aCompletedCB(aError);
+  }
+  // check next
+  ++aNextDev;
+  queryNextDev(aBusDevices, aNextDev, aCompletedCB, ErrorPtr());
+}
+
+
 
 
 #pragma mark - Self test

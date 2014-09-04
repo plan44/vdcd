@@ -27,6 +27,7 @@
 #include "deviceclasscontainer.hpp"
 
 #include "dalicomm.hpp"
+#include "dalidevice.hpp"
 
 using namespace std;
 
@@ -34,11 +35,31 @@ namespace p44 {
 
   class DaliDeviceContainer;
   typedef boost::intrusive_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
+
+  typedef std::list<DaliBusDevicePtr> DaliBusDeviceList;
+  typedef boost::shared_ptr<DaliBusDeviceList> DaliBusDeviceListPtr;
+
+
+  /// persistence for enocean device container
+  class DaliPersistence : public SQLite3Persistence
+  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
   class DaliDeviceContainer : public DeviceClassContainer
   {
     typedef DeviceClassContainer inherited;
+
+		DaliPersistence db;
+
   public:
     DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+
+		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
     // the DALI communication object
     DaliCommPtr daliComm;
@@ -64,6 +85,11 @@ namespace p44 {
     virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
 
   private:
+
+    void deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError);
+    void queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError);
+    void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
+
 
     void testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
     void testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);
