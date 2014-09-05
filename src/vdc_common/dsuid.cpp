@@ -33,6 +33,8 @@ using namespace p44;
 void DsUid::internalInit()
 {
   idType = idtype_undefined;
+  // init such that what we'd read out will be all-zero dSUID
+  idBytes = dsuidBytes;
   memset(raw, 0, sizeof(raw));
 }
 
