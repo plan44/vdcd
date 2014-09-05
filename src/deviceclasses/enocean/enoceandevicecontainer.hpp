@@ -117,6 +117,10 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "EnOcean vDC"; }
 
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
+    virtual string hardwareGUID() { return string_format("enoceanaddress:%08lX", enoceanComm.modemAddress()); };
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
