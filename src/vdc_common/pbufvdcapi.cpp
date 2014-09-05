@@ -1588,8 +1588,13 @@ static void protobufFieldPrint(FILE *aOutFile, const ProtobufCFieldDescriptor *a
     case PROTOBUF_C_TYPE_BYTES: {
       fprintf(aOutFile, "(bytes)");
       ProtobufCBinaryData *bd = ((ProtobufCBinaryData *)aData+aIndex);
-      for (int i=0; i<bd->len; i++) {
+      size_t n = bd->len;
+      if (n>20) n = 20;
+      for (size_t i=0; i<n; i++) {
         fprintf(aOutFile, "%02X", bd->data[i]);
+      }
+      if (n<bd->len) {
+        fprintf(aOutFile, "... (%ld bytes)", bd->len);
       }
       break;
     }
