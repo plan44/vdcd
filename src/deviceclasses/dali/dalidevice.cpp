@@ -60,6 +60,7 @@ void DaliBusDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
   // store the info record
   deviceInfo = aDeviceInfo; // copy
+  derivedDsUid(); // derive dSUID from it
 }
 
 
