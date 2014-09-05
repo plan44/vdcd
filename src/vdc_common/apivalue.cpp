@@ -192,7 +192,7 @@ string ApiValue::description()
     if (b.size()>20) {
       b.erase(20); // truncate to 20
       s = binaryToHexString(b);
-      string_format_append(s, "... (%ld bytes)", s.size());
+      string_format_append(s, "... (%ld bytes)", b.size());
     }
     else {
       s = binaryToHexString(b);
