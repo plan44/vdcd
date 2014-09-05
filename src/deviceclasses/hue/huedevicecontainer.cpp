@@ -34,6 +34,7 @@ HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
 }
 
 
+
 const char *HueDeviceContainer::deviceClassIdentifier() const
 {
   return "hue_Lights_Container";

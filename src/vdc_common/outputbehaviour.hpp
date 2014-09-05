@@ -104,6 +104,9 @@ namespace p44 {
     /// @return true if device is in local priority mode
     bool hasLocalPriority() { return localPriority; };
 
+    /// @return output functionality the hardware provides
+    DsOutputFunction getOutputFunction() { return outputFunction; };
+
     /// @}
 
 

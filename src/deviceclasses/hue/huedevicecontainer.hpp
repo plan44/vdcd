@@ -86,6 +86,10 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "hue vDC"; }
 
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    /// - uuid:UUUUUUU = UUID
+    virtual string hardwareGUID() { return string_format("uuid:%s", bridgeUuid.c_str()); };
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
