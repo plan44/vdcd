@@ -61,17 +61,21 @@ namespace p44 {
 
   /// This is the base class for a "class" (usually: type of hardware) of virtual devices.
   /// In dS terminology, this object represents a vDC (virtual device connector).
-  class DeviceClassContainer : public DsAddressable
+  class DeviceClassContainer : public PersistentParams, public DsAddressable
   {
     typedef DsAddressable inherited;
+    typedef PersistentParams inheritedParams;
 
     DeviceVector devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
     int tag; ///< tag used to in self test failures for showing on LEDs
 
+    /// generic vdc flag word
+    int vdcFlags;
+    /// default dS zone ID
+    int defaultZoneID;
+
   public:
-
-
 
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsuids for devices that don't have their own
@@ -124,6 +128,10 @@ namespace p44 {
     /// @note Current implementation derives this from the devicecontainer's dSUID,
     ///   the deviceClassIdentitfier and the instance number in the form "class:instanceIndex@devicecontainerDsUid"
     string deviceClassContainerInstanceIdentifier() const;
+
+    /// set user assignable name
+    /// @param new name of the addressable entity
+    virtual void setName(const string &aName);
 
     /// @}
 
@@ -183,6 +191,23 @@ namespace p44 {
 		/// @}
 
 
+    /// @name vdc level property persistence
+    /// @{
+
+    /// load parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    ErrorPtr load();
+
+    /// save unsaved parameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    ErrorPtr save();
+
+    /// forget any parameters stored in persistent DB
+    ErrorPtr forget();
+
+		/// @}
+
+
     /// @name identification of the addressable entity
     /// @{
 
@@ -227,6 +252,13 @@ namespace p44 {
     virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
 
     // derive dSUID
     void deriveDsUid();

@@ -28,11 +28,25 @@ using namespace p44;
 
 DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
   inherited(aDeviceContainerP),
+  inheritedParams(aDeviceContainerP->getDsParamStore()),
   instanceNumber(aInstanceNumber),
+  defaultZoneID(0),
+  vdcFlags(0),
   tag(aTag)
 {
 }
 
+
+
+void DeviceClassContainer::setName(const string &aName)
+{
+  if (aName!=getName()) {
+    // has changed
+    inherited::setName(aName);
+    // make sure it will be saved
+    markDirty();
+  }
+}
 
 
 
@@ -59,7 +73,6 @@ void DeviceClassContainer::selfTest(CompletedCB aCompletedCB)
 {
   // by default, assume everything ok
   aCompletedCB(ErrorPtr());
-//%%%  aCompletedCB(ErrorPtr(new Error(-42, "universal error :-)")));
 }
 
 
@@ -146,6 +159,34 @@ void DeviceClassContainer::removeDevices(bool aForget)
 
 
 
+#pragma mark - persistent vdc level params
+
+
+ErrorPtr DeviceClassContainer::load()
+{
+  ErrorPtr err;
+  // load the vdc settings
+  err = loadFromStore(dSUID.getString().c_str());
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc %s: %s", shortDesc().c_str(), err->description().c_str());
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceClassContainer::save()
+{
+  ErrorPtr err;
+  // save the vdc settings
+  err = saveToStore(dSUID.getString().c_str());
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceClassContainer::forget()
+{
+  // delete the vdc settings
+  deleteFromStore();
+  return ErrorPtr();
+}
 
 
 
@@ -158,6 +199,7 @@ static char device_key;
 
 enum {
   webui_url_key,
+  defaultzone_key,
   capabilities_key,
   devices_key,
   numClassContainerProperties
@@ -230,6 +272,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
     // vdc level
     static const PropertyDescription properties[numClassContainerProperties] = {
       { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
+      { "zoneID", apivalue_uint64, defaultzone_key, OKEY(deviceclass_key) },
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
       { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
     };
@@ -248,9 +291,22 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
   if (aPropertyDescriptor->hasObjectKey(deviceclass_key)) {
     // vdc level properties
     if (aMode==access_read) {
+      // read
       switch (aPropertyDescriptor->fieldKey()) {
         case webui_url_key:
           aPropValue->setStringValue(webuiURLString());
+          return true;
+        case defaultzone_key:
+          aPropValue->setInt32Value(defaultZoneID);
+          return true;
+      }
+    }
+    else {
+      // write
+      switch (aPropertyDescriptor->fieldKey()) {
+        case defaultzone_key:
+          defaultZoneID = aPropValue->int32Value();
+          markDirty();
           return true;
       }
     }
@@ -267,6 +323,62 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
   return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
+
+#pragma mark - persistence implementation
+
+// SQLIte3 table name to store these parameters to
+const char *DeviceClassContainer::tableName()
+{
+  return "VdcSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 3;
+
+size_t DeviceClassContainer::numFieldDefs()
+{
+  return inheritedParams::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *DeviceClassContainer::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "vdcFlags", SQLITE_INTEGER },
+    { "vdcName", SQLITE_TEXT },
+    { "defaultZoneID", SQLITE_INTEGER }
+  };
+  if (aIndex<inheritedParams::numFieldDefs())
+    return inheritedParams::getFieldDef(aIndex);
+  aIndex -= inheritedParams::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+{
+  inheritedParams::loadFromRow(aRow, aIndex);
+  // get the field value
+  vdcFlags = aRow->get<int>(aIndex++);
+  setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  defaultZoneID = aRow->get<int>(aIndex++);
+}
+
+
+// bind values to passed statement
+void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+{
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  // bind the fields
+  aStatement.bind(aIndex++, vdcFlags);
+  aStatement.bind(aIndex++, getName().c_str());
+  aStatement.bind(aIndex++, defaultZoneID);
+}
 
 #pragma mark - description/shortDesc
 

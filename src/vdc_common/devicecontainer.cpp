@@ -308,6 +308,8 @@ private:
 
   void containerQueried(ErrorPtr aError)
   {
+    // load persistent params
+    nextContainer->second->load();
     // check next
     ++nextContainer;
     queryNextContainer(aError);
@@ -536,6 +538,11 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       // check again for devices that need to be announced
       startAnnouncing();
       // do a save run as well
+      // - device containers
+      for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+        pos->second->save();
+      }
+      // - devices
       for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
         pos->second->save();
       }
