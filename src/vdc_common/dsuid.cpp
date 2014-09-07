@@ -420,56 +420,6 @@ bool DsUid::setAsString(const string &aString)
 }
 
 
-#pragma mark - getting derived classic equivalent of a dSUID (FNV hashing method)
-
-// TODO: remove this once dSUIDs fully work
-DsUid DsUid::getDerivedClassicId(ObjectClass aObjectClass) const
-{
-  if (idType==idtype_classic) {
-    // already classic, just return myself
-    return *this;
-  }
-  // all other ID types: generate a hashed derivate
-  DsUid classicId;
-  // Calculation of serial (i.e serial number part of classic dsid)
-  Fnv32 hash;
-  hash.addBytes(idBytes-1, raw);
-  uint32_t serial = hash.getHash();
-  serial ^= (serial>>28); // fold 4 MSBits into 4 LSBits, so hash has now 28 bits of length
-  serial <<= 3; // reserve three LSBits for enumerated devices
-  serial |= raw[idBytes-1] & 0x07; // add in last three bits of dSUID's enumeration byte
-  serial |= 0x80000000; // Always set MSBit to make sure these hashed IDs cannot collide with real terminal blocks
-  // create ID now
-  classicId.setObjectClass(aObjectClass);
-  classicId.setDsSerialNo(serial);
-  return classicId;
-}
-
-
-// TODO: remove this once dSUIDs fully work
-DsUid DsUid::getDerivedPseudoClassicId(ObjectClass aObjectClass) const
-{
-  // all other ID types: generate a hashed derivate
-  DsUid pseudoclassicId = getDerivedClassicId(aObjectClass);
-  // convert into ssssssss ssss 0000 0000 ssssssssssss 00 format
-  // - move up tail
-  for (int i=16; i-->10;) {
-    pseudoclassicId.raw[i] = pseudoclassicId.raw[i-4];
-  }
-  // - zero out middle 4 bytes
-  for (int i=6; i<10; i++) {
-    pseudoclassicId.raw[i] = 0x00;
-  }
-  // - zero out index byte
-  pseudoclassicId.raw[16] = 0x00;
-  // set type
-  pseudoclassicId.idType = idtype_gid;
-  pseudoclassicId.idBytes = dsuidBytes;
-  return pseudoclassicId;
-}
-
-
-
 
 #pragma mark - getting dSUID string representation
 

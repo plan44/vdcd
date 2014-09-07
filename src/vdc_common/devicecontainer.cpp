@@ -300,9 +300,6 @@ private:
         vdc->getInstanceNumber(),
         vdc->getApiDsUid().getString().c_str() // as seen in the API
       );
-      #if VDCS_PSEUDO_CLASSIC_DSID
-      LOG(LOG_NOTICE,"    real dSUID = %s\n", vdc->shortDesc().c_str());
-      #endif
       nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
     }
     else

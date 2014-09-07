@@ -75,23 +75,11 @@ int DeviceClassContainer::getInstanceNumber() const
 }
 
 
-#if VDCS_PSEUDO_CLASSIC_DSID
-const DsUid &DeviceClassContainer::getApiDsUid()
-{
-  return pseudoClassicId;
-}
-#endif
-
-
 void DeviceClassContainer::deriveDsUid()
 {
   // class containers have v5 UUIDs based on the device container's master UUID as namespace
   string name = string_format("%s.%d", deviceClassIdentifier(), getInstanceNumber()); // name is class identifier plus instance number: classID.instNo
   dSUID.setNameInSpace(name, getDeviceContainer().dSUID); // domain is dSUID of device container
-  #if VDCS_PSEUDO_CLASSIC_DSID
-  // derive pseudo classic ID
-  pseudoClassicId = dSUID.getDerivedPseudoClassicId(DSID_OBJECTCLASS_DSMETER);
-  #endif
 }
 
 
