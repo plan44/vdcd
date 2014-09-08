@@ -336,7 +336,7 @@ private:
 
   void deviceInitialized(ErrorPtr aError)
   {
-    LOG(LOG_INFO, "--- initialized device: %s",nextDevice->second->description().c_str());
+    LOG(LOG_NOTICE, "--- initialized device: %s",nextDevice->second->description().c_str());
     // check next
     ++nextDevice;
     initializeNextDevice(aError);
@@ -399,7 +399,6 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   // if not collecting, initialize device right away.
   // Otherwise, initialisation will be done when collecting is complete
   if (!collecting) {
-    // trigger announcing when done (no problem when called while already announcing)
     aDevice->initializeDevice(boost::bind(&DeviceContainer::deviceInitialized, this, aDevice), false);
   }
   return true;
@@ -407,7 +406,8 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
 
 void DeviceContainer::deviceInitialized(DevicePtr aDevice)
 {
-  LOG(LOG_INFO, "--- initialized device: %s",aDevice->description().c_str());
+  LOG(LOG_NOTICE, "--- initialized device: %s",aDevice->description().c_str());
+  // trigger announcing when initialized (no problem when called while already announcing)
   startAnnouncing();
 }
 
