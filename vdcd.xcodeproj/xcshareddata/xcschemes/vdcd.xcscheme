@@ -75,7 +75,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /tmp/vdcd --button simpin.a -l 7"
+            argument = "--sqlitedir /tmp/vdcd --button simpin.a -l 7 -k testin:in -k huebutton:in"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -108,7 +108,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"

@@ -66,7 +66,6 @@ namespace p44 {
     typedef DsAddressable inherited;
     typedef PersistentParams inheritedParams;
 
-    DeviceVector devices; ///< the devices of this class
     int instanceNumber; ///< the instance number identifying this instance among other instances of this class
     int tag; ///< tag used to in self test failures for showing on LEDs
 
@@ -74,6 +73,10 @@ namespace p44 {
     int vdcFlags;
     /// default dS zone ID
     int defaultZoneID;
+
+  protected:
+  
+    DeviceVector devices; ///< the devices of this class
 
   public:
 

@@ -173,10 +173,10 @@ void DaliBusDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
       h = h*h;
       h = log(h)/log(2);
       tr = h>1 ? (uint8_t)h : 1;
-      LOG(LOG_DEBUG, "DaliDevice: new transition time = %ld, calculated FADE_TIME setting = %f (rounded %d)\n", aTransitionTime, h, tr);
+      LOG(LOG_DEBUG, "DaliDevice: new transition time = %.1f mS, calculated FADE_TIME setting = %f (rounded %d)\n", (double)aTransitionTime/MilliSecond, h, (int)tr);
     }
     if (tr!=currentFadeTime || currentTransitionTime==Infinite) {
-      LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", tr);
+      LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", (int)tr);
       daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       currentFadeTime = tr;
     }
@@ -191,7 +191,7 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
   if (currentBrightness!=aBrightness) {
     currentBrightness = aBrightness;
     uint8_t power = brightnessToArcpower(aBrightness);
-    LOG(LOG_INFO, "DaliDevice: setting new brightness = %0.0f, arc power = %d\n", aBrightness, power);
+    LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.0f, arc power = %d\n", (int)deviceInfo.shortAddress, aBrightness, (int)power);
     daliDeviceContainer.daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
   }
 }
@@ -476,10 +476,7 @@ bool DaliRGBWDevice::addDimmer(DaliBusDevicePtr aDimmerBusDevice, string aDimmer
 
 void DaliRGBWDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // set up dS behaviour for simple single DALI channel dimmer
-  // - use light settings, which include a scene table
-  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
-  // use hue light settings, which include a extended scene table
+  // set up dS behaviour for color lights, which include a color scene table
   deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
   // set the behaviour
   RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
@@ -597,6 +594,8 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     // anyway, applied now
     cl->appliedRGB();
   }
+  // confirm done
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 
@@ -664,4 +663,20 @@ string DaliRGBWDevice::description()
   if (dimmer) s.append(dimmer->deviceInfo.description());
   return s;
 }
+
+
+ErrorPtr DaliRGBWDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-ungroupDevice") {
+    // Remove this device from the installation, forget the settings
+    respErr = daliDeviceContainer().ungroupDevice(DaliRGBWDevicePtr(this), aRequest);
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
 

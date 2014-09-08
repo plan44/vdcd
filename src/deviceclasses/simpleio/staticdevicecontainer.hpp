@@ -92,7 +92,6 @@ namespace p44 {
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
-
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 

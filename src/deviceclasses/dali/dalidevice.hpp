@@ -185,7 +185,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "p44-dsb DALI bus device"; }
+    virtual string modelName() { return "DALI dimmer"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
@@ -206,7 +206,6 @@ namespace p44 {
 
     /// @}
 
-
     /// derive the dSUID from collected device info
     virtual void deriveDsUid();
 
@@ -223,8 +222,12 @@ namespace p44 {
   {
     typedef Device inherited;
     friend class DaliDeviceCollector;
+    friend class DaliDeviceContainer;
+
+    uint32_t collectionID; ///< the ID of the collection that created this composite device
 
   public:
+
 
     enum {
       dimmer_red,
@@ -290,7 +293,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "p44-dsb DALI bus device"; }
+    virtual string modelName() { return "DALI color dimmer group"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
@@ -311,6 +314,8 @@ namespace p44 {
 
     /// @}
 
+    /// device level API methods (p44 specific, JSON only, for configuring grouped devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
     /// derive the dSUID from collected device info
     virtual void deriveDsUid();

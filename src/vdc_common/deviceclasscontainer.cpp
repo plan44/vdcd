@@ -202,6 +202,8 @@ enum {
   defaultzone_key,
   capabilities_key,
   devices_key,
+  deviceclassidentifier_key,
+  instancenumber_key,
   numClassContainerProperties
 };
 
@@ -274,7 +276,9 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
       { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
       { "zoneID", apivalue_uint64, defaultzone_key, OKEY(deviceclass_key) },
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
-      { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) }
+      { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) },
+      { "x-p44-deviceclass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
+      { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) }
     };
     int n = inherited::numProps(aDomain, aParentDescriptor);
     if (aPropIndex<n)
@@ -298,6 +302,12 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           return true;
         case defaultzone_key:
           aPropValue->setInt32Value(defaultZoneID);
+          return true;
+        case deviceclassidentifier_key:
+          aPropValue->setStringValue(deviceClassIdentifier());
+          return true;
+        case instancenumber_key:
+          aPropValue->setInt32Value(getInstanceNumber());
           return true;
       }
     }
@@ -385,11 +395,7 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
 
 string DeviceClassContainer::description()
 {
-  string d = string_format("%s #%d: %s\n", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str());
-  string_format_append(d, "- contains %d devices:\n", devices.size());
-  for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
-    d.append((*pos)->description());
-  }
+  string d = string_format("%s #%d: %s (%ld devices)\n", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
   return d;
 }
 

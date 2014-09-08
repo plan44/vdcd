@@ -73,8 +73,17 @@ namespace p44 {
     /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
+    /// vdc level methods (p44 specific, JSON only, for configuring multichannel RGB(W) devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
     /// @return human readable model name/short description
     virtual string modelName() { return "DALI vDC"; }
+
+    /// ungroup a previously grouped device
+    /// @param aDevice the device to ungroup
+    /// @param aRequest the API request that causes the ungroup, will be sent an OK when ungrouping is complete
+    /// @return error if not successful
+    ErrorPtr ungroupDevice(DaliRGBWDevicePtr aDevice, VdcApiRequestPtr aRequest);
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
@@ -89,7 +98,7 @@ namespace p44 {
     void deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError);
     void queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError);
     void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
-
+    void groupCollected(VdcApiRequestPtr aRequest);
 
     void testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
     void testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);

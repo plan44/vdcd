@@ -189,7 +189,7 @@ namespace p44 {
     /// @param aParentDescriptor the descriptor of the parent property, is NULL at root level of a DsAdressable
     /// @return pointer to property descriptor or NULL if aPropIndex is out of range
     /// @note base class provides a default implementation which uses numProps/getDescriptorByIndex and compares names.
-    ///   Subclasses may override this to more efficiently access array-like containers where aName can directly be used
+    ///   Subclasses may override this to more efficiently access array-like containers where aPropMatch can directly be used
     ///   to find an element (without iterating through all indices).
     virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
 

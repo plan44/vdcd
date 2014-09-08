@@ -336,6 +336,7 @@ private:
 
   void deviceInitialized(ErrorPtr aError)
   {
+    LOG(LOG_INFO, "--- initialized device: %s",nextDevice->second->description().c_str());
     // check next
     ++nextDevice;
     initializeNextDevice(aError);
@@ -392,18 +393,25 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   }
   // set for given dSUID in the container-wide map of devices
   dSDevices[aDevice->getApiDsUid()] = aDevice;
-  LOG(LOG_NOTICE,"--- added device: %s\n",aDevice->shortDesc().c_str());
-  LOG(LOG_INFO, "- device description: %s",aDevice->description().c_str());
+  LOG(LOG_NOTICE,"--- added device: %s (not yet initialized)\n",aDevice->shortDesc().c_str());
   // load the device's persistent params
   aDevice->load();
   // if not collecting, initialize device right away.
   // Otherwise, initialisation will be done when collecting is complete
   if (!collecting) {
     // trigger announcing when done (no problem when called while already announcing)
-    aDevice->initializeDevice(boost::bind(&DeviceContainer::startAnnouncing, this), false);
+    aDevice->initializeDevice(boost::bind(&DeviceContainer::deviceInitialized, this, aDevice), false);
   }
   return true;
 }
+
+void DeviceContainer::deviceInitialized(DevicePtr aDevice)
+{
+  LOG(LOG_INFO, "--- initialized device: %s",aDevice->description().c_str());
+  startAnnouncing();
+}
+
+
 
 
 // remove a device from container list (but does not disconnect it!)
@@ -1107,6 +1115,41 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
+    // check for vdc access by device class
+    if (!isMatchAll(aPropMatch) && !isdigit(aPropMatch[0])) {
+      aStartIndex = PROPINDEX_NONE; // default: not found
+      // assume by-device class access
+      // ccccccc[:ii] cccc=deviceClassIdentifier(), ii=instance
+      size_t i=aPropMatch.find(':');
+      int instanceNo = 1; // default to first instance
+      if (i!=string::npos) {
+        // with instance number
+        instanceNo = atoi(aPropMatch.c_str()+i+1);
+        aPropMatch.erase(i); // cut off :iii part
+      }
+      int idx = 0;
+      for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+        DeviceClassContainerPtr c = pos->second;
+        if (
+          strcmp(c->deviceClassIdentifier(), aPropMatch.c_str())==0 &&
+          c->getInstanceNumber()==instanceNo
+        ) {
+          // found container by device class identifier / instance number
+          DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+          // name by object classidentifier:instanceno
+          descP->propertyName = string_format("%s:%d", c->deviceClassIdentifier(), c->getInstanceNumber());
+          descP->propertyType = aParentDescriptor->type();
+          descP->propertyFieldKey = idx;
+          descP->propertyObjectKey = OKEY(vdc_key);
+          // specific element accessed, no more elements to look for
+          aStartIndex = PROPINDEX_NONE;
+          return PropertyDescriptorPtr(descP);
+        }
+        idx++;
+      }
+      // not found
+      return PropertyDescriptorPtr();
+    }
     // accessing one of the vdcs by numeric index
     return getDescriptorByNumericName(
       aPropMatch, aStartIndex, aDomain, aParentDescriptor,

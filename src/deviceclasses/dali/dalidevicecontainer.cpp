@@ -140,11 +140,12 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
     //   If none of the devices are found on the bus, the entire composite device is considered missing
     //   If at least one device is found, non-found bus devices will be added as dummy bus devices
     DaliBusDeviceList singleDevices;
-    DaliBusDeviceList::iterator pos = aBusDevices->begin();
-    while (pos!=aBusDevices->end()) {
+    while (aBusDevices->size()>0) {
+      // get first remaining
+      DaliBusDevicePtr busDevice = aBusDevices->front();
       // check if this device is part of a composite device
       sqlite3pp::query qry(db);
-      string sql = string_format("SELECT collectionID FROM compositeDevices WHERE dimmerUID = '%s'", (*pos)->dSUID.getString().c_str());
+      string sql = string_format("SELECT collectionID FROM compositeDevices WHERE dimmerUID = '%s'", busDevice->dSUID.getString().c_str());
       if (qry.prepare(sql.c_str())==SQLITE_OK) {
         sqlite3pp::query::iterator i = qry.begin();
         if (i!=qry.end()) {
@@ -156,18 +157,18 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
             // we know that we found at least one dimmer of this composite on the bus, so we'll instantiate
             // a composite (even if some dimmers might be missing)
             DaliRGBWDevicePtr daliDevice = DaliRGBWDevicePtr(new DaliRGBWDevice(this));
+            daliDevice->collectionID = collectionID; // remember from what collection this was created
             for (sqlite3pp::query::iterator j = qry.begin(); j != qry.end(); ++j) {
               string dimmerType = nonNullCStr(i->get<const char *>(0));
               DsUid dimmerUID(nonNullCStr(i->get<const char *>(1)));
               // see if we have this dimmer on the bus
               DaliBusDevicePtr dimmer;
-              DaliBusDeviceList::iterator pos2 = aBusDevices->begin();
-              while (pos2!=aBusDevices->end()) {
-                if ((*pos2)->dSUID == dimmerUID) {
+              for (DaliBusDeviceList::iterator pos = aBusDevices->begin(); pos!=aBusDevices->end(); ++pos) {
+                if ((*pos)->dSUID == dimmerUID) {
                   // create device if not yet existing
-                  dimmer = *pos2;
+                  dimmer = *pos;
                   // consumed, remove from the list
-                  aBusDevices->erase(pos2);
+                  aBusDevices->erase(pos);
                   break;
                 }
               }
@@ -191,8 +192,8 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
         } // part of composite device
         else {
           // definitely NOT part of composite, put into single dimmer list
-          singleDevices.push_back(*pos);
-          pos = aBusDevices->erase(pos);
+          singleDevices.push_back(busDevice);
+          aBusDevices->remove(busDevice);
         }
       }
     }
@@ -240,6 +241,110 @@ void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, D
   queryNextDev(aBusDevices, aNextDev, aCompletedCB, ErrorPtr());
 }
 
+
+#pragma mark - composite device creation
+
+
+ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-groupDevices") {
+    // create a composite device out of existing single-channel ones
+    ApiValuePtr components;
+    long long collectionID = -1;
+    DeviceVector groupedDevices;
+    respErr = checkParam(aParams, "members", components);
+    if (Error::isOK(respErr)) {
+      if (components->isType(apivalue_object)) {
+        components->resetKeyIteration();
+        string dimmerType;
+        ApiValuePtr o;
+        while (components->nextKeyValue(dimmerType, o)) {
+          DsUid memberUID;
+          memberUID.setAsBinary(o->binaryValue());
+          bool deviceFound = false;
+          // search for this device
+          for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+            // only non-grouped DALI devices can be grouped
+            DaliDevicePtr dev = boost::dynamic_pointer_cast<DaliDevice>(*pos);
+            if (dev && dev->getDsUid() == memberUID) {
+              deviceFound = true;
+              // found this device, create DB entry for it
+              db.executef(
+                "INSERT OR REPLACE INTO compositeDevices (dimmerUID, dimmerType, collectionID) VALUES ('%s','%s',%lld)",
+                memberUID.getString().c_str(),
+                dimmerType.c_str(),
+                collectionID
+              );
+              if (collectionID<0) {
+                // use rowid of just inserted item as collectionID
+                collectionID = db.last_insert_rowid();
+                // - update already inserted first record
+                db.executef(
+                  "UPDATE compositeDevices SET collectionID=%lld WHERE ROWID=%lld",
+                  collectionID,
+                  collectionID
+                );
+              }
+              // remember
+              groupedDevices.push_back(dev);
+              // done
+              break;
+            }
+          }
+          if (!deviceFound) {
+            respErr = ErrorPtr(new WebError(404, "some devices of the group could not be found"));
+            break;
+          }
+        }
+        if (Error::isOK(respErr) && groupedDevices.size()>0) {
+          // all components inserted into DB
+          // - remove grouped single devices
+          for (DeviceVector::iterator pos = groupedDevices.begin(); pos!=groupedDevices.end(); ++pos) {
+            (*pos)->hasVanished(false); // vanish, but keep settings
+          }
+          // - re-collect devices to find grouped composite now
+          collectDevices(boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest), false, false);
+        }
+      }
+    }
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
+ErrorPtr DaliDeviceContainer::ungroupDevice(DaliRGBWDevicePtr aDevice, VdcApiRequestPtr aRequest)
+{
+  ErrorPtr respErr;
+  if (aDevice->collectionID) {
+    // grouped device, delete grouping
+    db.executef(
+      "DELETE FROM compositeDevices WHERE collectionID=%ld",
+      (long)aDevice->collectionID
+    );
+    // delete grouped device
+    aDevice->hasVanished(true); // delete parameters
+    // cause recollect
+    collectDevices(boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest), false, false);
+  }
+  else {
+    // error
+    respErr = ErrorPtr(new WebError(500, "device is not grouped, cannot be ungrouped"));
+  }
+  return respErr;
+}
+
+
+
+
+void DaliDeviceContainer::groupCollected(VdcApiRequestPtr aRequest)
+{
+  // devices re-collected, return ok (empty response)
+  aRequest->sendResult(ApiValuePtr());
+}
 
 
 
