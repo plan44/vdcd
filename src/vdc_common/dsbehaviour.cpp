@@ -92,7 +92,7 @@ ErrorPtr DsBehaviour::load()
 
 ErrorPtr DsBehaviour::save()
 {
-  ErrorPtr err = saveToStore(getDbKey().c_str());
+  ErrorPtr err = saveToStore(getDbKey().c_str(), false); // only one record per dbkey (=per device+behaviourindex)
   if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
   return err;
 }

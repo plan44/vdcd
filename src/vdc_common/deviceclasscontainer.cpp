@@ -176,7 +176,7 @@ ErrorPtr DeviceClassContainer::save()
 {
   ErrorPtr err;
   // save the vdc settings
-  err = saveToStore(dSUID.getString().c_str());
+  err = saveToStore(dSUID.getString().c_str(), false); // only one record per vdc
   return ErrorPtr();
 }
 

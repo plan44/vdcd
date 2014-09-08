@@ -1073,7 +1073,7 @@ ErrorPtr Device::save()
 {
   ErrorPtr err;
   // save the device settings
-  if (deviceSettings) err = deviceSettings->saveToStore(dSUID.getString().c_str());
+  if (deviceSettings) err = deviceSettings->saveToStore(dSUID.getString().c_str(), false); // only one record per device
   if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving settings for device %s: %s", shortDesc().c_str(), err->description().c_str());
   // save the behaviours
   for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->save();

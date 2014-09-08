@@ -119,7 +119,9 @@ namespace p44 {
 
     /// save parameter set to persistent storage if dirty
     /// @param aParentIdentifier identifies the parent of this parameter set (a string (G)UID or the ROWID of a parent parameter set)
-    ErrorPtr saveToStore(const char *aParentIdentifier);
+    /// @param aMultipleChildrenAllowed if true, multiple children of the same parent are allowed. If false, DB might be cleaned
+    ///   from additional childs for that parent that might exist from failed operations)
+    ErrorPtr saveToStore(const char *aParentIdentifier, bool aMultipleChildrenAllowed);
 
     /// delete this parameter set from the store
     ErrorPtr deleteFromStore();
