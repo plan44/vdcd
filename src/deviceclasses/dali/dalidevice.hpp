@@ -206,8 +206,13 @@ namespace p44 {
 
     /// @}
 
+    /// this will be called just before a device is added to the vdc, and thus needs to be fully constructed
+    /// (settings, scenes, behaviours) and MUST have determined the henceforth invariable dSUID.
+    /// After having received this call, the device must also be ready to load persistent settings.
+    virtual void willBeAdded();
+
     /// derive the dSUID from collected device info
-    virtual void deriveDsUid();
+    void deriveDsUid();
 
   private:
 
@@ -317,8 +322,13 @@ namespace p44 {
     /// device level API methods (p44 specific, JSON only, for configuring grouped devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
+    /// this will be called just before a device is added to the vdc, and thus needs to be fully constructed
+    /// (settings, scenes, behaviours) and MUST have determined the henceforth invariable dSUID.
+    /// After having received this call, the device must also be ready to load persistent settings.
+    virtual void willBeAdded();
+
     /// derive the dSUID from collected device info
-    virtual void deriveDsUid();
+    void deriveDsUid();
 
   private:
 

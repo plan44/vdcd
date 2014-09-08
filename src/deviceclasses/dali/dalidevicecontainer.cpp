@@ -184,8 +184,6 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
               // add the dimmer (real or dummy)
               daliDevice->addDimmer(dimmer, dimmerType);
             } // for all needed dimmers
-            // now device has all dimmers (real or dummy), such that it can calculate the composite dSUID
-            daliDevice->deriveDsUid();
             // - add it to our collection (if not already there)
             addDevice(daliDevice);
           }
@@ -204,8 +202,6 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
       DaliDevicePtr daliDevice(new DaliDevice(this));
       // - set whiteDimmer (gives device info to calculate dSUID)
       daliDevice->brightnessDimmer = daliBusDevice;
-      // - now device has device info, such that it can calculate its dSUID
-      daliDevice->deriveDsUid();
       // - add it to our collection (if not already there)
       addDevice(daliDevice);
     }

@@ -269,6 +269,22 @@ DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   setPrimaryGroup(group_yellow_light);
 }
 
+void DaliDevice::willBeAdded()
+{
+  // Note: setting up behaviours late, because we want the brightness dimmer already assigned for the hardware name
+  // set up dS behaviour for simple single DALI channel dimmer
+  // - use light settings, which include a scene table
+  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+  // - set the behaviour
+  LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
+  l->setHardwareName(string_format("DALI dimmer @ %d",brightnessDimmer->deviceInfo.shortAddress));
+  addBehaviour(l);
+  // - derive the DsUid
+  deriveDsUid();
+}
+
+
 DaliDeviceContainer &DaliDevice::daliDeviceContainer()
 {
   return *(static_cast<DaliDeviceContainer *>(classContainerP));
@@ -285,18 +301,8 @@ bool DaliDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResol
 }
 
 
-
-
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // set up dS behaviour for simple single DALI channel dimmer
-  // - use light settings, which include a scene table
-  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
-  // - set the behaviour
-  LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*8=W max wattage
-  l->setHardwareName(string_format("DALI dimmer @ %d",brightnessDimmer->deviceInfo.shortAddress));
-  addBehaviour(l);
   // - sync cached channel values from actual device
   brightnessDimmer->updateParams(boost::bind(&DaliDevice::brightnessDimmerSynced, this, aCompletedCB, aFactoryReset, _1));
 }
@@ -386,8 +392,6 @@ void DaliDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 
 
 
-
-
 void DaliDevice::deriveDsUid()
 {
   // single channel dimmer just uses dSUID derived from single DALI bus device
@@ -440,6 +444,23 @@ DaliRGBWDevice::DaliRGBWDevice(DaliDeviceContainer *aClassContainerP) :
   setPrimaryGroup(group_yellow_light);
 }
 
+
+void DaliRGBWDevice::willBeAdded()
+{
+  // Note: setting up behaviours late, because we want the brightness dimmer already assigned for the hardware name
+  // set up dS behaviour for color lights, which include a color scene table
+  deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
+  // set the behaviour
+  RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
+  cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
+  cl->setHardwareName(string_format("DALI color light"));
+  cl->initMinBrightness(1); // min brightness is 1
+  addBehaviour(cl);
+  // now derive dSUID
+  deriveDsUid();
+}
+
+
 DaliDeviceContainer &DaliRGBWDevice::daliDeviceContainer()
 {
   return *(static_cast<DaliDeviceContainer *>(classContainerP));
@@ -476,14 +497,6 @@ bool DaliRGBWDevice::addDimmer(DaliBusDevicePtr aDimmerBusDevice, string aDimmer
 
 void DaliRGBWDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
-  // set up dS behaviour for color lights, which include a color scene table
-  deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
-  // set the behaviour
-  RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
-  cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
-  cl->setHardwareName(string_format("DALI color light"));
-  cl->initMinBrightness(1); // min brightness is 1
-  addBehaviour(cl);
   // - sync cached channel values from actual devices
   updateNextDimmer(aCompletedCB, aFactoryReset, dimmer_red, ErrorPtr());
 }
@@ -533,6 +546,7 @@ void DaliRGBWDevice::checkPresence(PresenceCB aPresenceResultHandler)
   DaliBusDevicePtr dimmer = firstBusDevice();
   if (dimmer) {
     dimmer->updateStatus(boost::bind(&DaliRGBWDevice::checkPresenceResponse, this, aPresenceResultHandler, dimmer));
+    return;
   }
   // no dimmer -> not present
   aPresenceResultHandler(false);

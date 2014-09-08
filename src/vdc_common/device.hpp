@@ -166,6 +166,11 @@ namespace p44 {
     /// @return NULL if device has no scenes, scene device settings otherwise 
     SceneDeviceSettingsPtr getScenes() { return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings); };
 
+    /// this will be called just before a device is added to the vdc, and thus needs to be fully constructed
+    /// (settings, scenes, behaviours) and MUST have determined the henceforth invariable dSUID.
+    /// After having received this call, the device must also be ready to load persistent settings.
+    virtual void willBeAdded() { /* NOP in base class */};
+
     /// load parameters from persistent DB
     /// @note this is usually called from the device container when device is added (detected)
     virtual ErrorPtr load();
