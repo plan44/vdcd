@@ -190,9 +190,10 @@ string ApiValue::description()
   else if (objectType==apivalue_binary) {
     string b = binaryValue();
     if (b.size()>20) {
+      long sz = b.size();
       b.erase(20); // truncate to 20
       s = binaryToHexString(b);
-      string_format_append(s, "... (%ld bytes)", (long)b.size());
+      string_format_append(s, "... (%ld bytes)", sz);
     }
     else {
       s = binaryToHexString(b);
