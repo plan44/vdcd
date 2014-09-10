@@ -22,9 +22,9 @@
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 1
-// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define DEBUGFOCUS 1
+#define FOCUSLOGLEVEL LOG_DEBUG
 
 
 #include "i2c.hpp"
@@ -152,7 +152,7 @@ bool I2CBus::I2CReadByte(I2CDevice *aDeviceP, uint8_t &aByte)
   #else
   int res = 0x42; // dummy
   #endif
-  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_byte() = %d / 0x%02X\n", res, res);
+  FOCUSLOG("i2c_smbus_read_byte() = %d / 0x%02X\n", res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -167,7 +167,7 @@ bool I2CBus::I2CWriteByte(I2CDevice *aDeviceP, uint8_t aByte)
   #else
   int res = 1; // ok
   #endif
-  DBGFLOG(LOG_INFO,"i2c_smbus_write_byte(0x%02X) = %d\n", aByte, res);
+  FOCUSLOG("i2c_smbus_write_byte(0x%02X) = %d\n", aByte, res);
   return (res>=0);
 }
 
@@ -181,7 +181,7 @@ bool I2CBus::SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByt
   #else
   int res = 0x42; // dummy
   #endif
-  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
+  FOCUSLOG("i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -197,7 +197,7 @@ bool I2CBus::SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWo
   #else
   int res = 0x4242; // dummy
   #endif
-  DBGFLOG(LOG_DEBUG,"i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
+  FOCUSLOG("i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
   if (res<0) return false;
   aWord = (uint16_t)res;
   return true;
@@ -212,7 +212,7 @@ bool I2CBus::SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByt
   #else
   int res = 1; // ok
   #endif
-  DBGFLOG(LOG_INFO,"i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
+  FOCUSLOG("i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
   return (res>=0);
 }
 
@@ -225,7 +225,7 @@ bool I2CBus::SMBusWriteWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWo
   #else
   int res = 1; // ok
   #endif
-  DBGFLOG(LOG_INFO,"i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
+  FOCUSLOG("i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
   return (res>=0);
 }
 
@@ -245,7 +245,7 @@ bool I2CBus::accessDevice(I2CDevice *aDeviceP)
     return false;
   }
   #endif
-  DBGFLOG(LOG_DEBUG,"ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
+  FOCUSLOG("ioctl(busFD, I2C_SLAVE, 0x%02X)\n", aDeviceP->deviceAddress);
   // remember
   lastDeviceAddress = aDeviceP->deviceAddress;
   return true; // ok
@@ -267,7 +267,7 @@ bool I2CBus::accessBus()
   #else
   busFD = 1; // dummy, signalling open
   #endif
-  DBGFLOG(LOG_DEBUG,"open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
+  FOCUSLOG("open(\"%s\", O_RDWR) = %d\n", busDevName.c_str(), busFD);
   return true;
 }
 

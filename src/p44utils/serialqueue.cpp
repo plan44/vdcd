@@ -22,9 +22,9 @@
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 0
-// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define DEBUGFOCUS 0
+#define FOCUSLOGLEVEL 0
 
 
 #include "serialqueue.hpp"
@@ -136,7 +136,7 @@ void SerialOperationSend::appendData(size_t aNumBytes, uint8_t *aBytes)
 bool SerialOperationSend::initiate()
 {
   if (!canInitiate()) return false;
-  DBGFLOG(LOG_INFO,"SerialOperationSend::initiate: sending %d bytes now\n", dataSize);
+  FOCUSLOG("SerialOperationSend::initiate: sending %d bytes now\n", dataSize);
   size_t res;
   if (dataP && transmitter) {
     // transmit
@@ -290,7 +290,7 @@ void SerialOperationQueue::receiveHandler(ErrorPtr aError)
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
     size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
-    DBGFLOG(LOG_DEBUG,"SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
+    FOCUSLOG("SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }
@@ -342,25 +342,25 @@ size_t SerialOperationQueue::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t *aBytes)
 {
-  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardTransmitter(%d bytes) called\n", aNumBytes);
+  FOCUSLOG("SerialOperationQueue::standardTransmitter(%d bytes) called\n", aNumBytes);
   ssize_t res = 0;
   ErrorPtr err = serialComm->establishConnection();
   if (Error::isOK(err)) {
     res = serialComm->transmitBytes(aNumBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGFLOG(LOG_ERR,"Error writing serial: %s\n", err->description().c_str());
+      FOCUSLOG("Error writing serial: %s\n", err->description().c_str());
       res = 0; // none written
     }
     else {
-      if (DBGFLOGENABLED(LOG_DEBUG)) {
+      if (FOCUSLOGENABLED) {
         std::string s;
         for (ssize_t i=0; i<res; i++) {
           string_format_append(s, "%02X ",aBytes[i]);
         }
-        DBGFLOG(LOG_DEBUG,"Transmitted %d bytes: %s\n", res, s.c_str());
+        FOCUSLOG("Transmitted %d bytes: %s\n", res, s.c_str());
       }
       else {
-        DBGFLOG(LOG_INFO,"Transmitted %d bytes\n", res);
+        FOCUSLOG("Transmitted %d bytes\n", res);
       }
     }
   }
@@ -374,28 +374,28 @@ size_t SerialOperationQueue::standardTransmitter(size_t aNumBytes, const uint8_t
 
 size_t SerialOperationQueue::standardReceiver(size_t aMaxBytes, uint8_t *aBytes)
 {
-  DBGFLOG(LOG_DEBUG, "SerialOperationQueue::standardReceiver(%d bytes) called\n", aMaxBytes);
+  FOCUSLOG("SerialOperationQueue::standardReceiver(%d bytes) called\n", aMaxBytes);
   size_t gotBytes = 0;
   if (serialComm->connectionIsOpen()) {
 		// get number of bytes available
     ErrorPtr err;
     gotBytes = serialComm->receiveBytes(aMaxBytes, aBytes, err);
     if (!Error::isOK(err)) {
-      DBGFLOG(LOG_ERR,"- Error reading serial: %s\n", err->description().c_str());
+      FOCUSLOG("- Error reading serial: %s\n", err->description().c_str());
       return 0;
     }
     else {
-      if (DBGFLOGENABLED(LOG_DEBUG)) {
+      if (FOCUSLOGENABLED) {
         if (gotBytes>0) {
           std::string s;
           for (size_t i=0; i<gotBytes; i++) {
             string_format_append(s, "%02X ",aBytes[i]);
           }
-          DBGFLOG(LOG_DEBUG,"- Received %d bytes: %s\n", gotBytes, s.c_str());
+          FOCUSLOG("- Received %d bytes: %s\n", gotBytes, s.c_str());
         }
       }
       else {
-        DBGFLOG(LOG_INFO,"Received %d bytes\n", gotBytes);
+        FOCUSLOG("Received %d bytes\n", gotBytes);
       }
     }
   }

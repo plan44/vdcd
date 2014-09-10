@@ -22,9 +22,9 @@
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 0
-// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define DEBUGFOCUS 0
+#define FOCUSLOGLEVEL 0
 
 #include "buttonbehaviour.hpp"
 
@@ -127,7 +127,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
   MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
   MLMicroSeconds timeSinceRef = aNow-timerRef;
 
-  DBGFLOG(LOG_NOTICE, "button state machine entered in state %s at reference time %d and clickCounter=%d\n", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
+  FOCUSLOG("button state machine entered in state %s at reference time %d and clickCounter=%d\n", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
   switch (state) {
 
     case S0_idle :
@@ -300,7 +300,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       break;
   }
-  DBGFLOG(LOG_NOTICE, " -->                       exit state %s with %sfurther timing needed\n", stateNames[state], timerRef!=Never ? "" : "NO ");
+  FOCUSLOG(" -->                       exit state %s with %sfurther timing needed\n", stateNames[state], timerRef!=Never ? "" : "NO ");
   if (timerRef!=Never) {
     // need timing, schedule calling again
     buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkStateMachine, this, false, _1), aNow+10*MilliSecond);

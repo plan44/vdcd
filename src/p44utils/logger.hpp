@@ -53,14 +53,17 @@
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
-#if DEBUGLOGGING && DEBUGFOCUS
-#define DBGFLOG(lvl,...) DBGLOG(lvl,##__VA_ARGS__)
-#define DEBUGFOCUSLOGGING 1
-#define DBGFLOGENABLED(lvl) globalLogger.logEnabled(lvl)
+#if FOCUSLOGLEVEL
+#define FOCUSLOG(...) DBGLOG(FOCUSLOGLEVEL,##__VA_ARGS__)
+#define FOCUSLOGGING 1
+#define FOCUSLOGENABLED globalLogger.logEnabled(DEBUGFOCUS)
+#if !(defined(DEBUG) || ALWAYS_DEBUG)
+#warning "**** FOCUSLOGLEVEL enabled in non-DEBUG build ****"
+#endif
 #else
-#define DEBUGFOCUSLOGGING 0
-#define DBGFLOG(lvl,...)
-#define DBGFLOGENABLED(lvl) false
+#define FOCUSLOGGING 0
+#define FOCUSLOG(...)
+#define FOCUSLOGENABLED false
 #endif
 
 #define LOGENABLED(lvl) globalLogger.logEnabled(lvl)

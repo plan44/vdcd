@@ -22,9 +22,9 @@
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 0
-// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define DEBUGFOCUS 0
+#define FOCUSLOGLEVEL 0
 
 
 #include "enoceancomm.hpp"
@@ -906,7 +906,7 @@ void EnoceanComm::startWatchDog()
 
 void EnoceanComm::aliveCheck()
 {
-  DBGFLOG(LOG_INFO, "EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
+  FOCUSLOG("EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
   checkPacket->setPacketType(pt_common_cmd);
@@ -971,7 +971,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 		// pass bytes to current telegram
 		size_t consumedBytes = currentIncomingPacket->acceptBytes(remainingBytes, aBytes);
 		if (currentIncomingPacket->isComplete()) {
-      DBGFLOG(LOG_INFO, "Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
+      FOCUSLOG("Received Enocean Packet:\n%s", currentIncomingPacket->description().c_str());
       dispatchPacket(currentIncomingPacket);
       // forget the packet, further incoming bytes will create new packet
 			currentIncomingPacket = Esp3PacketPtr(); // forget
@@ -1007,7 +1007,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
       appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
       apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
       myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
-      DBGFLOG(LOG_INFO, "Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+      FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
     }
   }
   else {
@@ -1033,7 +1033,7 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
     LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
   }
   else {
-    DBGFLOG(LOG_INFO, "Sent EnOcean packet:\n%s", aPacket->description().c_str());
+    FOCUSLOG("Sent EnOcean packet:\n%s", aPacket->description().c_str());
   }
 }
 

@@ -19,9 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-// set to 1 to get focus (extensive logging) for this file
-// Note: must be before including "logger.hpp"
-#define DEBUGFOCUS 0
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 0
 
 #include "propertycontainer.hpp"
 
@@ -35,9 +38,9 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
 {
   ErrorPtr err;
   #if DEBUGFOCUSLOGGING
-  DBGFLOG(LOG_DEBUG,"\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
+  FOCUSLOG("\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
   if (aParentDescriptor) {
-    DBGFLOG(LOG_DEBUG,"- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
+    FOCUSLOG("- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
   #endif
   // for reading, NULL query is like query { "":NULL }
@@ -59,7 +62,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
   ApiValuePtr queryValue;
   string errorMsg;
   while (aQueryObject->nextKeyValue(queryName, queryValue)) {
-    DBGFLOG(LOG_DEBUG,"- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
+    FOCUSLOG("- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
     if (aMode==access_read && queryName=="#") {
       // asking for number of elements at this level -> generate and return int value
       queryValue = queryValue->newValue(apivalue_int64); // integer
@@ -77,7 +80,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
         propDesc = getDescriptorByName(queryName, propIndex, aDomain, aParentDescriptor);
         if (propDesc) {
           foundone = true; // found at least one descriptor for this query element
-          DBGFLOG(LOG_DEBUG,"  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
+          FOCUSLOG("  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
           // actually access by descriptor
           if (propDesc->isStructured()) {
             ApiValuePtr subQuery;
@@ -98,23 +101,23 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
               PropertyDescriptorPtr containerPropDesc = propDesc;
               PropertyContainerPtr container = getContainer(containerPropDesc, containerDomain);
               if (container) {
-                DBGFLOG(LOG_DEBUG,"  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
-                DBGFLOG(LOG_DEBUG,"    >>>> RECURSING into accessProperty()\n");
+                FOCUSLOG("  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
+                FOCUSLOG("    >>>> RECURSING into accessProperty()\n");
                 if (aMode==access_read) {
                   // read needs a result object
                   ApiValuePtr resultValue = queryValue->newValue(apivalue_object);
                   err = container->accessProperty(aMode, subQuery, resultValue, containerDomain, containerPropDesc);
                   if (Error::isOK(err)) {
                     // add to result with actual name (from descriptor)
-                    DBGFLOG(LOG_DEBUG,"\n  <<<< RETURNED from accessProperty() recursion\n");
-                    DBGFLOG(LOG_DEBUG,"  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
+                    FOCUSLOG("\n  <<<< RETURNED from accessProperty() recursion\n");
+                    FOCUSLOG("  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
                     aResultObject->add(propDesc->name(), resultValue);
                   }
                 }
                 else {
                   // for write, just pass the query value
                   err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, containerPropDesc);
-                  DBGFLOG(LOG_DEBUG,"    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
+                  FOCUSLOG("    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
                 }
                 if ((aMode!=access_read) && Error::isOK(err)) {
                   // give this container a chance to post-process write access
@@ -141,7 +144,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                 // add to result with actual name (from descriptor)
                 aResultObject->add(propDesc->name(), fieldValue);
               }
-              DBGFLOG(LOG_DEBUG,"    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
+              FOCUSLOG("    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
             }
             else {
               // write access: just pass the value
@@ -175,7 +178,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
     }
     #if DEBUGLOGGING
     if (aMode==access_read) {
-      DBGFLOG(LOG_DEBUG,"- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
+      FOCUSLOG("- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
     }
     #endif
   }

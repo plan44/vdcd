@@ -23,9 +23,9 @@
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 0
-// - set DEBUGFOCUS to 1 to get focus (extensive logging) for this file
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define DEBUGFOCUS 0
+#define FOCUSLOGLEVEL 0
 
 
 #include "dalicomm.hpp"
@@ -127,7 +127,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
     if (!aError && ropP->getDataSize()>=2) {
       uint8_t resp1 = ropP->getDataP()[0];
       uint8_t resp2 = ropP->getDataP()[1];
-      DBGFLOG(LOG_INFO, "DALI bridge response: %02X %02X (%d pending responses)\n", resp1, resp2, expectedBridgeResponses);
+      FOCUSLOG("DALI bridge response: %02X %02X (%d pending responses)\n", resp1, resp2, expectedBridgeResponses);
       if (aBridgeResultHandler)
         aBridgeResultHandler(resp1, resp2, aError);
     }
@@ -144,7 +144,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
 
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay)
 {
-  DBGFLOG(LOG_INFO, "DALI bridge command:  %02X  %02X %02X (%d pending responses)\n", aCmd, aDali1, aDali2, expectedBridgeResponses);
+  FOCUSLOG("DALI bridge command:  %02X  %02X %02X (%d pending responses)\n", aCmd, aDali1, aDali2, expectedBridgeResponses);
   // reset connection closing timeout
   MainLoop::currentMainLoop().cancelExecutionTicket(connectionTimeoutTicket);
   if (closeAfterIdleTime!=Never) {
