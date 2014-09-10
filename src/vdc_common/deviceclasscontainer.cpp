@@ -278,7 +278,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
       { "zoneID", apivalue_uint64, defaultzone_key, OKEY(deviceclass_key) },
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
       { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) },
-      { "x-p44-deviceclass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
+      { "x-p44-deviceClass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
       { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) }
     };
     int n = inherited::numProps(aDomain, aParentDescriptor);

@@ -1104,6 +1104,7 @@ enum {
   zoneID_key,
   progMode_key,
   idBlockSize_key,
+  deviceType_key,
   // output
   output_description_key, // output is not array!
   output_settings_key, // output is not array!
@@ -1169,6 +1170,7 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     { "zoneID", apivalue_uint64, zoneID_key, OKEY(device_key) },
     { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
     { "idBlockSize", apivalue_uint64, idBlockSize_key, OKEY(device_key) },
+    { "x-p44-deviceType", apivalue_string, deviceType_key, OKEY(device_key) },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
@@ -1322,6 +1324,9 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
           return true;
         case idBlockSize_key:
           aPropValue->setUint16Value(idBlockSize());
+          return true;
+        case deviceType_key:
+          aPropValue->setStringValue(deviceTypeIdentifier());
           return true;
       }
     }

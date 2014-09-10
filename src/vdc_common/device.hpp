@@ -100,6 +100,10 @@ namespace p44 {
     /// @name identification and invariable properties of the device (can be overriden in subclasses)
     /// @{
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "unspecified"; };
+
     /// check if device is public dS device (which should be registered with vdSM)
     /// @return true if device is registerable with vdSM
     virtual bool isPublicDS() { return true; }; // base class assumes that all devices are public
