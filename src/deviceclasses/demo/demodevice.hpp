@@ -38,8 +38,13 @@ namespace p44 {
     typedef Device inherited;
 
   public:
+
     DemoDevice(DemoDeviceContainer *aClassContainerP);
     
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "demo"; };
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

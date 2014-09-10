@@ -47,6 +47,10 @@ namespace p44 {
   public:
     ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "console"; };
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

@@ -29,6 +29,10 @@ namespace p44 {
   public:
     UpnpDevice(UpnpDeviceContainer *aClassContainerP, string aLocation, string aUuid);
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "upnp_demo"; };
+
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 

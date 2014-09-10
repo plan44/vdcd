@@ -44,6 +44,10 @@ namespace p44 {
   public:
     DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
     
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "digitalio"; };
+
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();

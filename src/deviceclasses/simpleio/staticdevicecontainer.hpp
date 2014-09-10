@@ -54,6 +54,10 @@ namespace p44 {
 
     StaticDevice(DeviceClassContainer *aClassContainerP) : Device(aClassContainerP), staticDeviceRowID(0) {};
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "static"; };
+
     StaticDeviceContainer &getStaticDeviceContainer();
 
     /// device level API methods (p44 specific, JSON only, for configuring static devices)

@@ -89,6 +89,10 @@ namespace p44 {
     /// constructor
     Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_4bs"; };
+
     /// device specific teach in response
     /// @note will be called from newDevice() when created device needs a teach-in response
     virtual void sendTeachInResponse();

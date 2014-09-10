@@ -134,6 +134,10 @@ namespace p44 {
     /// constructor
     EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_rps"; };
+
     /// @name dSUID space and hardware grouping properties needed for dS 1.0 backwards compatibility
     /// @{
 

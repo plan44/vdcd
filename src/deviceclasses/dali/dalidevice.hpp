@@ -133,6 +133,10 @@ namespace p44 {
 
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "dali_single"; };
+
     /// get typed container reference
     DaliDeviceContainer &daliDeviceContainer();
 
@@ -246,6 +250,10 @@ namespace p44 {
     DaliBusDevicePtr dimmers[numDimmers];
 
     DaliRGBWDevice(DaliDeviceContainer *aClassContainerP);
+
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "dali_rgbw"; };
 
     /// get typed container reference
     DaliDeviceContainer &daliDeviceContainer();

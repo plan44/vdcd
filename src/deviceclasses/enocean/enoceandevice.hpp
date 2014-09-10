@@ -110,8 +110,13 @@ namespace p44 {
     bool pendingDeviceUpdate; ///< set when update to the device is pending
 
   public:
+
     /// constructor, create device in container
     EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
+
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean"; };
 
     /// get typed container reference
     EnoceanDeviceContainer &getEnoceanDeviceContainer();
