@@ -242,6 +242,7 @@ public:
       { 0  , "announcepause", true,  "milliseconds;pause between device announcements at startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
+      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
@@ -349,10 +350,16 @@ public:
       }
       p44VdcHost->setIdMode(externalDsUid);
 
-      // - set announce pause
+      // - set custom announce pause
       int announcePause;
       if (getIntOption("announcepause", announcePause)){
         p44VdcHost->setAnnouncePause(announcePause*MilliSecond);
+      }
+
+      // - set custom mainloop statistics output interval
+      int mainloopStatsInterval;
+      if (getIntOption("mainloopstats", mainloopStatsInterval)){
+        p44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
       }
 
       // - set API

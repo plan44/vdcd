@@ -47,6 +47,9 @@ using namespace p44;
 //#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
 #define DEFAULT_ANNOUNCE_PAUSE (10*MilliSecond)
 
+// how often to write mainloop statistics into log output
+#define DEFAULT_MAINLOOP_STATS_INTERVAL (120) // every 5 min (with periodic activity every 5 seconds)
+
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define ANNOUNCE_TIMEOUT (30*Second)
 
@@ -64,6 +67,8 @@ DeviceContainer::DeviceContainer() :
   announcementTicket(0),
   periodicTaskTicket(0),
   localDimDirection(0), // undefined
+  mainloopStatsInterval(DEFAULT_MAINLOOP_STATS_INTERVAL),
+  mainLoopStatsCounter(0),
   announcePause(DEFAULT_ANNOUNCE_PAUSE)
 {
   // obtain MAC address
@@ -556,9 +561,17 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       }
     }
   }
-  // in debug mode, show mainloop statistics
-  LOG(LOG_DEBUG, "%s", MainLoop::currentMainLoop().description().c_str());
-  MainLoop::currentMainLoop().statistics_reset();
+  if (mainloopStatsInterval>0) {
+    // show mainloop statistics
+    if (mainLoopStatsCounter<=0) {
+      LOG(LOG_INFO, "%s", MainLoop::currentMainLoop().description().c_str());
+      MainLoop::currentMainLoop().statistics_reset();
+      mainLoopStatsCounter = mainloopStatsInterval;
+    }
+    else {
+      --mainLoopStatsCounter;
+    }
+  }
   // schedule next run
   periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
 }

@@ -120,6 +120,10 @@ namespace p44 {
     // activity monitor
     DoneCB activityHandler;
 
+    // mainloop statistics
+    int mainloopStatsInterval; ///< 0=none, N=every PERIODIC_TASK_INTERVAL*N seconds
+    int mainLoopStatsCounter;
+
     // active vDC API session
     DsUid connectedVdsm;
     long sessionActivityTicket;
@@ -156,9 +160,15 @@ namespace p44 {
     /// @return the path to the icon dir, always with a trailing path separator, ready to append subpaths and filenames
     const char *getIconDir();
 
-
+    /// Set pause between announces
     /// @param aAnnouncePause how long to wait between device announcements
     void setAnnouncePause(MLMicroSeconds aAnnouncePause) { announcePause = aAnnouncePause; };
+
+
+    /// Set how often mainloop statistics are printed out log (LOG_INFO)
+    /// @param aInterval 0=none, N=every PERIODIC_TASK_INTERVAL*N seconds
+    void setMainloopStatsInterval(int aInterval) { mainloopStatsInterval = aInterval; };
+
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
