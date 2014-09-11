@@ -46,6 +46,10 @@ ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
   if (result) {
     P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
   }
+  else {
+    // always return SOMETHING
+    P44VdcHost::sendCfgApiResponse(jsonComm, JsonObject::newNull(), ErrorPtr());
+  }
   return ErrorPtr();
 }
 
