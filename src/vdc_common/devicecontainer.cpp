@@ -48,7 +48,7 @@ using namespace p44;
 #define DEFAULT_ANNOUNCE_PAUSE (10*MilliSecond)
 
 // how often to write mainloop statistics into log output
-#define DEFAULT_MAINLOOP_STATS_INTERVAL (120) // every 5 min (with periodic activity every 5 seconds)
+#define DEFAULT_MAINLOOP_STATS_INTERVAL (60) // every 5 min (with periodic activity every 5 seconds: 60*5 = 300 = 5min)
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define ANNOUNCE_TIMEOUT (30*Second)
@@ -871,10 +871,44 @@ ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aPar
 
 
 
-DsAddressablePtr DeviceContainer::addressableForDsUid(const DsUid &aDsUid)
+DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  if (aDsUid==getApiDsUid() || aDsUid.empty()) {
-    // no ID or that of myself: vdc-host level method
+  if (aDsUid.empty()) {
+    // not addressing by dSUID, check for alternative addressing methods
+    ApiValuePtr o = aParams->get("x-p44-itemSpec");
+    if (o) {
+      string query = o->stringValue();
+      if(query.find("vdc:")==0) {
+        // starts with "vdc:" -> look for vdc by class identifier and instance no
+        query.erase(0, 4); // remove "vdc:" prefix
+        // ccccccc[:ii] cccc=deviceClassIdentifier(), ii=instance
+        size_t i=query.find(':');
+        int instanceNo = 1; // default to first instance
+        if (i!=string::npos) {
+          // with instance number
+          instanceNo = atoi(query.c_str()+i+1);
+          query.erase(i); // cut off :iii part
+        }
+        for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+          DeviceClassContainerPtr c = pos->second;
+          if (
+            strcmp(c->deviceClassIdentifier(), query.c_str())==0 &&
+            c->getInstanceNumber()==instanceNo
+          ) {
+            // found - return this device class container
+            return c;
+          }
+        }
+      }
+      // x-p44-query specified, but nothing found
+      return DsAddressablePtr();
+    }
+    // empty dSUID but no special query: default to vdc-host itself (root object)
+    return DsAddressablePtr(this);
+  }
+  // not special query, not empty dSUID
+  if (aDsUid==getApiDsUid()) {
+    // my own dSUID: vdc-host is addressed
     return DsAddressablePtr(this);
   }
   else {
@@ -892,6 +926,7 @@ DsAddressablePtr DeviceContainer::addressableForDsUid(const DsUid &aDsUid)
       }
     }
   }
+  // not found
   return DsAddressablePtr();
 }
 
@@ -899,7 +934,7 @@ DsAddressablePtr DeviceContainer::addressableForDsUid(const DsUid &aDsUid)
 
 ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  DsAddressablePtr addressable = addressableForDsUid(aDsUid);
+  DsAddressablePtr addressable = addressableForParams(aDsUid, aParams);
   if (addressable) {
     // check special case of device remove command - we must execute this because device should not try to remove itself
     DevicePtr dev = boost::dynamic_pointer_cast<Device>(addressable);
@@ -919,7 +954,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
 
 void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
 {
-  DsAddressablePtr addressable = addressableForDsUid(aDsUid);
+  DsAddressablePtr addressable = addressableForParams(aDsUid, aParams);
   if (addressable) {
     addressable->handleNotification(aMethod, aParams);
   }
@@ -1093,7 +1128,6 @@ static char vdc_key;
 
 enum {
   vdcs_key,
-  staticvdc_key,
   webui_url_key,
   numDeviceContainerProperties
 };
@@ -1114,7 +1148,6 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 {
   static const PropertyDescription properties[numDeviceContainerProperties] = {
     { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
-    { "x-p44-staticvdc", apivalue_object, staticvdc_key, OKEY(vdc_container_key) },
     { "configURL", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
@@ -1128,41 +1161,6 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
-    // check for vdc access by device class
-    if (!isMatchAll(aPropMatch) && !isdigit(aPropMatch[0])) {
-      aStartIndex = PROPINDEX_NONE; // default: not found
-      // assume by-device class access
-      // ccccccc[:ii] cccc=deviceClassIdentifier(), ii=instance
-      size_t i=aPropMatch.find(':');
-      int instanceNo = 1; // default to first instance
-      if (i!=string::npos) {
-        // with instance number
-        instanceNo = atoi(aPropMatch.c_str()+i+1);
-        aPropMatch.erase(i); // cut off :iii part
-      }
-      int idx = 0;
-      for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-        DeviceClassContainerPtr c = pos->second;
-        if (
-          strcmp(c->deviceClassIdentifier(), aPropMatch.c_str())==0 &&
-          c->getInstanceNumber()==instanceNo
-        ) {
-          // found container by device class identifier / instance number
-          DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
-          // name by object classidentifier:instanceno
-          descP->propertyName = string_format("%s:%d", c->deviceClassIdentifier(), c->getInstanceNumber());
-          descP->propertyType = aParentDescriptor->type();
-          descP->propertyFieldKey = idx;
-          descP->propertyObjectKey = OKEY(vdc_key);
-          // specific element accessed, no more elements to look for
-          aStartIndex = PROPINDEX_NONE;
-          return PropertyDescriptorPtr(descP);
-        }
-        idx++;
-      }
-      // not found
-      return PropertyDescriptorPtr();
-    }
     // accessing one of the vdcs by numeric index
     return getDescriptorByNumericName(
       aPropMatch, aStartIndex, aDomain, aParentDescriptor,
@@ -1190,14 +1188,6 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
         return pos->second;
       }
       i++;
-    }
-  }
-  else if (aPropertyDescriptor->fieldKey()==staticvdc_key) {
-    // pick the static device container (by class identifier)
-    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-      if (strcmp(pos->second->deviceClassIdentifier(), "Static_Device_Container")==0) {
-        return pos->second;
-      }
     }
   }
   // unknown here

@@ -342,7 +342,7 @@ namespace p44 {
     // method and notification dispatching
     ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);
     void handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams);
-    DsAddressablePtr addressableForDsUid(const DsUid &aDsUid);
+    DsAddressablePtr addressableForParams(const DsUid &aDsUid, ApiValuePtr aParams);
 
   private:
 

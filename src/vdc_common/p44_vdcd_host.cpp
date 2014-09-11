@@ -327,54 +327,26 @@ ErrorPtr P44VdcHost::processVdcRequest(JsonCommPtr aJsonComm, JsonObjectPtr aReq
         dsuid.setAsBinary(o->binaryValue());
         // create request
         P44JsonApiRequestPtr request = P44JsonApiRequestPtr(new P44JsonApiRequest(aJsonComm));
-        // check for special methods
-        if (cmd=="getIcon16") {
-          // special command to get icon back directly as PNG image
-          ApiValuePtr query = params->newObject();
-          query->add("deviceIcon16", params->newNull());
+        // check for old-style name/index and generate basic query (1 or 2 levels)
+        ApiValuePtr query = params->newObject();
+        ApiValuePtr name = params->get("name");
+        if (name) {
+          ApiValuePtr index = params->get("index");
+          ApiValuePtr subquery = params->newNull();
+          if (index) {
+            // subquery
+            subquery->setType(apivalue_object);
+            subquery->add(index->stringValue(), subquery->newNull());
+          }
+          string nm = trimWhiteSpace(name->stringValue()); // to allow a single space for deep recursing wildcard
+          query->add(nm, subquery);
           params->add("query", query);
-          DsAddressablePtr addressable = addressableForDsUid(dsuid);
-          string icon;
-          if (addressable) {
-            ApiValuePtr result = params->newObject();
-            err = addressable->accessProperty(access_read, query, result, VDC_API_DOMAIN, PropertyDescriptorPtr());
-            if (Error::isOK(err)) {
-              // answer should be just PNG binary, directly return it to caller
-              //DBGLOG(LOG_DEBUG, "result = %s", result->description().c_str());
-              ApiValuePtr o = result->get("deviceIcon16");
-              if (o) {
-                icon = result->get("deviceIcon16")->binaryValue();
-              }
-            }
-          }
-          // always send icon, even if empty (to trigger closeAfterSend)
-          aJsonComm->sendRaw(icon);
-          aJsonComm->closeAfterSend();// connection ends when this is sent
-          // return NULL to the caller, meaning NO further answer is needed
-          err.reset();
         }
-        else {
-          // check for old-style name/index and generate basic query (1 or 2 levels)
-          ApiValuePtr query = params->newObject();
-          ApiValuePtr name = params->get("name");
-          if (name) {
-            ApiValuePtr index = params->get("index");
-            ApiValuePtr subquery = params->newNull();
-            if (index) {
-              // subquery
-              subquery->setType(apivalue_object);
-              subquery->add(index->stringValue(), subquery->newNull());
-            }
-            string nm = trimWhiteSpace(name->stringValue()); // to allow a single space for deep recursing wildcard
-            query->add(nm, subquery);
-            params->add("query", query);
-          }
-          // have method handled
-          err = handleMethodForDsUid(cmd, request, dsuid, params);
-          // methods send results themselves
-          if (Error::isOK(err)) {
-            err.reset(); // even if we get a ErrorOK, make sure we return NULL to the caller, meaning NO answer is needed
-          }
+        // have method handled
+        err = handleMethodForDsUid(cmd, request, dsuid, params);
+        // methods send results themselves
+        if (Error::isOK(err)) {
+          err.reset(); // even if we get a ErrorOK, make sure we return NULL to the caller, meaning NO answer is needed
         }
       }
       else {
