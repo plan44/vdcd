@@ -53,8 +53,10 @@ bool DaliDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const cha
 
 #pragma mark - DB and initialisation
 
-
-#define DALI_SCHEMA_VERSION 1
+// Version history
+//  1 : first version
+#define DALI_SCHEMA_MIN_VERSION 1 // minimally supported version, anything older will be deleted
+#define DALI_SCHEMA_VERSION 1 // current version
 
 string DaliPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -83,7 +85,7 @@ void DaliDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRese
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), DALI_SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), DALI_SCHEMA_VERSION, DALI_SCHEMA_MIN_VERSION, aFactoryReset);
 	aCompletedCB(error); // return status of DB init
 }
 

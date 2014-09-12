@@ -76,80 +76,92 @@ bool SQLite3Persistence::isAvailable()
 }
 
 
-ErrorPtr SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, bool aFactoryReset)
+ErrorPtr SQLite3Persistence::connectAndInitialize(const char *aDatabaseFileName, int aNeededSchemaVersion, int aLowestValidSchemaVersion, bool aFactoryReset)
 {
   int err;
   ErrorPtr errPtr;
-  int currentSchemaVersion = 0; // assume DB not yet existing
+  int currentSchemaVersion;
 
-  if (aFactoryReset) {
-    // make sure we are disconnected
-    if (initialized)
-      finalizeAndDisconnect();
-    // first delete the database entirely
-    unlink(aDatabaseFileName);
-  }
-
-  if (!initialized) {
-    err = connect(aDatabaseFileName);
-    if (err!=SQLITE_OK) {
-      LOG(LOG_ERR, "SQLite3Persistence: Cannot open %s : %s\n", aDatabaseFileName, error_msg());
-      return error();
+  while (true) {
+    // assume DB not yet existing
+    currentSchemaVersion = 0;
+    if (aFactoryReset) {
+      // make sure we are disconnected
+      if (initialized)
+        finalizeAndDisconnect();
+      // first delete the database entirely
+      unlink(aDatabaseFileName);
     }
-    // query the DB version
-    sqlite3pp::query qry(*this);
-    if (qry.prepare("SELECT schemaVersion FROM globs")==SQLITE_OK) {
-      sqlite3pp::query::iterator row = qry.begin();
-      if (row!=qry.end()) {
-        // get current db version
-        currentSchemaVersion = row->get<int>(0);
+    // now initialize the DB
+    if (!initialized) {
+      err = connect(aDatabaseFileName);
+      if (err!=SQLITE_OK) {
+        LOG(LOG_ERR, "SQLite3Persistence: Cannot open %s : %s\n", aDatabaseFileName, error_msg());
+        return error();
       }
-      qry.finish();
-    }
-    // migrate if needed
-    if (currentSchemaVersion>aNeededSchemaVersion) {
-      errPtr = SQLite3Error::err(SQLITE_PERSISTENCE_ERR_SCHEMATOONEW,"Database has too new schema version: cannot be used");
-    }
-    else {
-      while (currentSchemaVersion<aNeededSchemaVersion) {
-        // get SQL statements for migration
-        int nextSchemaVersion = aNeededSchemaVersion;
-        std::string migrationSQL = dbSchemaUpgradeSQL(currentSchemaVersion, nextSchemaVersion);
-        if (migrationSQL.size()==0) {
-          LOG(LOG_ERR, "SQLite3Persistence: Cannot update from version %d to %d\n", currentSchemaVersion, nextSchemaVersion);
-          errPtr = SQLite3Error::err(SQLITE_PERSISTENCE_ERR_MIGRATION,"Database migration error: no update path available");
-          break;
+      // query the DB version
+      sqlite3pp::query qry(*this);
+      if (qry.prepare("SELECT schemaVersion FROM globs")==SQLITE_OK) {
+        sqlite3pp::query::iterator row = qry.begin();
+        if (row!=qry.end()) {
+          // get current db version
+          currentSchemaVersion = row->get<int>(0);
         }
-        // execute the migration SQL
-        sqlite3pp::command migrationCmd(*this);
-        err = migrationCmd.prepare(migrationSQL.c_str());
-        if (err==SQLITE_OK)
-          err = migrationCmd.execute_all();
-        if (err!=SQLITE_OK) {
-          LOG(LOG_ERR,
-            "SQLite3Persistence: Error executing migration SQL from version %d to %d = %s : %s\n",
-            currentSchemaVersion, nextSchemaVersion, migrationSQL.c_str(), error_msg()
-          );
-          errPtr = error("Error executing migration SQL: ");
-          break;
-        }
-        migrationCmd.finish();
-        // successful, we have reached a new version
-        currentSchemaVersion = nextSchemaVersion;
-        // set it in globs
-        err = executef("UPDATE globs SET schemaVersion = %d", currentSchemaVersion);
-        if (err!=SQLITE_OK) {
-          LOG(LOG_ERR, "SQLite3Persistence: Cannot set globs.schemaVersion = %d\n", currentSchemaVersion, error_msg());
-          errPtr = error("Error setting schema version: ");
-          break;
+        qry.finish();
+      }
+      // check for obsolete (ancient, not-to-be-migrated DB versions)
+      if (currentSchemaVersion>0 && aLowestValidSchemaVersion!=0 && currentSchemaVersion<aLowestValidSchemaVersion) {
+        // there is a DB, but it is obsolete and should be deleted
+        aFactoryReset = true; // force a factory reset
+        disconnect();
+        continue; // try again
+      }
+      // migrate if needed
+      if (currentSchemaVersion>aNeededSchemaVersion) {
+        errPtr = SQLite3Error::err(SQLITE_PERSISTENCE_ERR_SCHEMATOONEW,"Database has too new schema version: cannot be used");
+      }
+      else {
+        while (currentSchemaVersion<aNeededSchemaVersion) {
+          // get SQL statements for migration
+          int nextSchemaVersion = aNeededSchemaVersion;
+          std::string migrationSQL = dbSchemaUpgradeSQL(currentSchemaVersion, nextSchemaVersion);
+          if (migrationSQL.size()==0) {
+            LOG(LOG_ERR, "SQLite3Persistence: Cannot update from version %d to %d\n", currentSchemaVersion, nextSchemaVersion);
+            errPtr = SQLite3Error::err(SQLITE_PERSISTENCE_ERR_MIGRATION,"Database migration error: no update path available");
+            break;
+          }
+          // execute the migration SQL
+          sqlite3pp::command migrationCmd(*this);
+          err = migrationCmd.prepare(migrationSQL.c_str());
+          if (err==SQLITE_OK)
+            err = migrationCmd.execute_all();
+          if (err!=SQLITE_OK) {
+            LOG(LOG_ERR,
+              "SQLite3Persistence: Error executing migration SQL from version %d to %d = %s : %s\n",
+              currentSchemaVersion, nextSchemaVersion, migrationSQL.c_str(), error_msg()
+            );
+            errPtr = error("Error executing migration SQL: ");
+            break;
+          }
+          migrationCmd.finish();
+          // successful, we have reached a new version
+          currentSchemaVersion = nextSchemaVersion;
+          // set it in globs
+          err = executef("UPDATE globs SET schemaVersion = %d", currentSchemaVersion);
+          if (err!=SQLITE_OK) {
+            LOG(LOG_ERR, "SQLite3Persistence: Cannot set globs.schemaVersion = %d\n", currentSchemaVersion, error_msg());
+            errPtr = error("Error setting schema version: ");
+            break;
+          }
         }
       }
-    }
-    if (errPtr) {
-      disconnect();
-    }
-    else {
-      initialized = true;
+      if (errPtr) {
+        disconnect();
+      }
+      else {
+        initialized = true;
+      }
+      break;
     }
   }
   // return status

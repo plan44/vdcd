@@ -52,8 +52,10 @@ bool HueDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char
 
 #pragma mark - DB and initialisation
 
-
-#define HUE_SCHEMA_VERSION 1
+// Version history
+//  1 : first version
+#define HUE_SCHEMA_MIN_VERSION 1 // minimally supported version, anything older will be deleted
+#define HUE_SCHEMA_VERSION 1 // current version
 
 string HuePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -78,7 +80,7 @@ void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), HUE_SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), HUE_SCHEMA_VERSION, HUE_SCHEMA_MIN_VERSION, aFactoryReset);
 	aCompletedCB(error); // return status of DB init
 }
 

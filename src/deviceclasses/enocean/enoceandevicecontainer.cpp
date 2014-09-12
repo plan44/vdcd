@@ -54,8 +54,11 @@ bool EnoceanDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const 
 
 #pragma mark - DB and initialisation
 
-
-#define ENOCEAN_SCHEMA_VERSION 4
+// Version history
+//  1..3 : development versions
+//  4 : first actually used schema
+#define ENOCEAN_SCHEMA_MIN_VERSION 4 // minimally supported version, anything older will be deleted
+#define ENOCEAN_SCHEMA_VERSION 4 // current version
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -108,7 +111,7 @@ void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryR
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), ENOCEAN_SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), ENOCEAN_SCHEMA_VERSION, ENOCEAN_SCHEMA_MIN_VERSION, aFactoryReset);
 	aCompletedCB(error); // return status of DB init
 }
 

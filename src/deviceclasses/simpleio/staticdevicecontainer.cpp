@@ -63,7 +63,10 @@ void StaticDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
 #pragma mark - DB and initialisation
 
 
-#define STATICDEVICES_SCHEMA_VERSION 1
+// Version history
+//  1 : First version
+#define STATICDEVICES_SCHEMA_MIN_VERSION 1 // minimally supported version, anything older will be deleted
+#define STATICDEVICES_SCHEMA_VERSION 1 // current version
 
 string StaticDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -99,7 +102,7 @@ void StaticDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRe
 {
   string databaseName = getPersistentDataDir();
   string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
-  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), STATICDEVICES_SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), STATICDEVICES_SCHEMA_VERSION, STATICDEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
   aCompletedCB(error); // return status of DB init
 }
 

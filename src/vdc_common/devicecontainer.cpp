@@ -219,7 +219,12 @@ private:
 };
 
 
-#define DSPARAMS_SCHEMA_VERSION 1
+// Version history
+//  1 : alpha/beta phase DB
+//  2 : no schema change, but forced re-creation due to changed scale of brightness (0..100 now, was 0..255 before)
+//  3 : no schema change, but forced re-creation due to bug in storing output behaviour settings
+#define DSPARAMS_SCHEMA_MIN_VERSION 3 // minimally supported version, anything older will be deleted
+#define DSPARAMS_SCHEMA_VERSION 3 // current version
 
 string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -249,7 +254,7 @@ void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
   // initialize dsParamsDB database
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "DsParams.sqlite3");
-  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, aFactoryReset);
+  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
 
   // start initialisation of class containers
   DeviceClassInitializer::initialize(*this, aCompletedCB, aFactoryReset);
