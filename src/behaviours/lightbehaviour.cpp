@@ -636,8 +636,8 @@ size_t LightBehaviour::numFieldDefs()
 const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
-    { "onThreshold", SQLITE_INTEGER },
-    { "minDim", SQLITE_INTEGER },
+    { "onThreshold", SQLITE_FLOAT },
+    { "minDim", SQLITE_FLOAT },
     { "dimUpTimes", SQLITE_INTEGER },
     { "dimDownTimes", SQLITE_INTEGER },
   };
@@ -655,8 +655,8 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 {
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
-  onThreshold = aRow->get<int>(aIndex++);
-  brightness->setDimMin(aRow->get<int>(aIndex++));
+  onThreshold = aRow->get<double>(aIndex++);
+  brightness->setDimMin(aRow->get<double>(aIndex++));
   uint32_t du = aRow->get<int>(aIndex++);
   uint32_t dd = aRow->get<int>(aIndex++);
   // dissect dimming times

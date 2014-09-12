@@ -218,6 +218,7 @@ void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   // get the fields
   outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
   int flags = aRow->get<int>(aIndex++);
+  outputGroups = aRow->get<long long int>(aIndex++);
   // decode the flags
   pushChanges = flags & outputflag_pushChanges;
 }
@@ -233,6 +234,7 @@ void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   // bind the fields
   aStatement.bind(aIndex++, outputMode);
   aStatement.bind(aIndex++, flags);
+  aStatement.bind(aIndex++, (long long int)outputGroups);
 }
 
 
