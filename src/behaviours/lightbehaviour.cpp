@@ -507,7 +507,7 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene && lightScene->effect==scene_effect_alert) {
     // run blink effect
-    blink(2*Second, lightScene, aDoneCB, 400*MilliSecond, 60);
+    blink(4*Second, lightScene, aDoneCB, 2*Second, 50);
     return;
   }
   // none of my effects, let inherited check
@@ -529,8 +529,8 @@ void LightBehaviour::stopActions()
 
 void LightBehaviour::identifyToUser()
 {
-  // simple, non-parametrized blink
-  blink(4*Second, LightScenePtr(), NULL, 400*MilliSecond, 60);
+  // simple, non-parametrized blink, 4 seconds, 2 second period, 1 second on
+  blink(4*Second, LightScenePtr(), NULL, 2*Second, 50);
 }
 
 
