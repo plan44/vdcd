@@ -41,7 +41,7 @@ namespace p44 {
   public:
     BrightnessChannel(OutputBehaviour &aOutput) : inherited(aOutput)
     {
-      resolution = 1; // light defaults to historic dS resolution
+      resolution = 1.0/256*100; // light defaults to historic dS 1/256 of full scale resolution
       minDim = getMin()+1; // min dimming level defaults to one unit above zero
     };
 
@@ -49,9 +49,9 @@ namespace p44 {
 
     virtual DsChannelType getChannelType() { return channeltype_brightness; }; ///< the dS channel type
     virtual const char *getName() { return "brightness"; };
-    virtual double getMin() { return 0; }; // dS brightness goes from 0 to 255 (historical unit)
-    virtual double getMax() { return 255; };
-    virtual double getDimPerMS() { return 11.0/300; }; // dimming is 11 steps per 300mS (as per ds-light.pdf specification) = 255/11*300 = 7 seconds full scale
+    virtual double getMin() { return 0; }; // dS brightness goes from 0 to 100%
+    virtual double getMax() { return 100; };
+    virtual double getDimPerMS() { return 11.0/256*100/300; }; // dimming is 11 steps(1/256) per 300mS (as per ds-light.pdf specification) = 255/11*300 = 7 seconds full scale
     virtual double getMinDim() { return minDim; };
 
   };
@@ -70,7 +70,7 @@ namespace p44 {
     /// @name light scene specific values
     /// @{
 
-    double sceneBrightness; ///< saved brightness value for this scene (0..255 dS brightness scale)
+    double sceneBrightness; ///< saved brightness value for this scene (0..100% dS brightness scale)
     DsSceneEffect effect; ///< scene effect (transition or alert)
 
     /// @}
@@ -164,7 +164,7 @@ namespace p44 {
 
     /// initialize behaviour with actual device's brightness parameters
     /// @param aMin minimal brightness that can be set
-    /// @note brightness: 0..255, linear brightness as perceived by humans (half value = half brightness)
+    /// @note brightness: 0..100%, linear brightness as perceived by humans (half value = half brightness)
     void initMinBrightness(Brightness aMin);
 
     /// return the brightness to be applied to hardware

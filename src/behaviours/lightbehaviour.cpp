@@ -204,41 +204,41 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, true , false }, // 2 : Area 2 Off - T2_S0
   {   0, scene_effect_smooth, true , false }, // 3 : Area 3 Off - T3_S0
   {   0, scene_effect_smooth, true , false }, // 4 : Area 4 Off - T4_S0
-  { 255, scene_effect_smooth, false, false }, // 5 : Preset 1 - T0_S1
-  { 255, scene_effect_smooth, true , false }, // 6 : Area 1 On - T1_S1
-  { 255, scene_effect_smooth, true , false }, // 7 : Area 2 On - T1_S1
-  { 255, scene_effect_smooth, true , false }, // 8 : Area 3 On - T1_S1
-  { 255, scene_effect_smooth, true , false }, // 9 : Area 4 On - T1_S1
+  { 100, scene_effect_smooth, false, false }, // 5 : Preset 1 - T0_S1
+  { 100, scene_effect_smooth, true , false }, // 6 : Area 1 On - T1_S1
+  { 100, scene_effect_smooth, true , false }, // 7 : Area 2 On - T1_S1
+  { 100, scene_effect_smooth, true , false }, // 8 : Area 3 On - T1_S1
+  { 100, scene_effect_smooth, true , false }, // 9 : Area 4 On - T1_S1
   {   0, scene_effect_smooth, true , false }, // 10 : Area Stepping continue - T1234_CONT
   {   0, scene_effect_smooth, false, false }, // 11 : Decrement - DEC_S
   {   0, scene_effect_smooth, false, false }, // 12 : Increment - INC_S
   {   0, scene_effect_smooth, true , false }, // 13 : Minimum - MIN_S
-  { 255, scene_effect_smooth, true , false }, // 14 : Maximum - MAX_S
+  { 100, scene_effect_smooth, true , false }, // 14 : Maximum - MAX_S
   {   0, scene_effect_smooth, true , false }, // 15 : Stop - STOP_S
   {   0, scene_effect_smooth, false, true  }, // 16 : Reserved
-  { 192, scene_effect_smooth, false, false }, // 17 : Preset 2 - T0_S2
-  { 128, scene_effect_smooth, false, false }, // 18 : Preset 3 - T0_S3
-  {  64, scene_effect_smooth, false, false }, // 19 : Preset 4 - T0_S4
-  { 192, scene_effect_smooth, false, false }, // 20 : Preset 12 - T1_S2
-  { 128, scene_effect_smooth, false, false }, // 21 : Preset 13 - T1_S3
-  {  64, scene_effect_smooth, false, false }, // 22 : Preset 14 - T1_S4
-  { 192, scene_effect_smooth, false, false }, // 23 : Preset 22 - T2_S2
-  { 168, scene_effect_smooth, false, false }, // 24 : Preset 23 - T2_S3
+  {  75, scene_effect_smooth, false, false }, // 17 : Preset 2 - T0_S2
+  {  50, scene_effect_smooth, false, false }, // 18 : Preset 3 - T0_S3
+  {  25, scene_effect_smooth, false, false }, // 19 : Preset 4 - T0_S4
+  {  75, scene_effect_smooth, false, false }, // 20 : Preset 12 - T1_S2
+  {  50, scene_effect_smooth, false, false }, // 21 : Preset 13 - T1_S3
+  {  25, scene_effect_smooth, false, false }, // 22 : Preset 14 - T1_S4
+  {  75, scene_effect_smooth, false, false }, // 23 : Preset 22 - T2_S2
+  {  65, scene_effect_smooth, false, false }, // 24 : Preset 23 - T2_S3
   {  64, scene_effect_smooth, false, false }, // 25 : Preset 24 - T2_S4
-  { 192, scene_effect_smooth, false, false }, // 26 : Preset 32 - T3_S2
-  { 168, scene_effect_smooth, false, false }, // 27 : Preset 33 - T3_S3
-  {  64, scene_effect_smooth, false, false }, // 28 : Preset 34 - T3_S4
-  { 192, scene_effect_smooth, false, false }, // 29 : Preset 42 - T4_S2
-  { 168, scene_effect_smooth, false, false }, // 30 : Preset 43 - T4_S3
-  {  64, scene_effect_smooth, false, false }, // 31 : Preset 44 - T4_S4
+  {  75, scene_effect_smooth, false, false }, // 26 : Preset 32 - T3_S2
+  {  65, scene_effect_smooth, false, false }, // 27 : Preset 33 - T3_S3
+  {  25, scene_effect_smooth, false, false }, // 28 : Preset 34 - T3_S4
+  {  75, scene_effect_smooth, false, false }, // 29 : Preset 42 - T4_S2
+  {  65, scene_effect_smooth, false, false }, // 30 : Preset 43 - T4_S3
+  {  25, scene_effect_smooth, false, false }, // 31 : Preset 44 - T4_S4
   {   0, scene_effect_smooth, false, false }, // 32 : Preset 10 - T1E_S0
-  { 255, scene_effect_smooth, false, false }, // 33 : Preset 11 - T1E_S1
+  { 100, scene_effect_smooth, false, false }, // 33 : Preset 11 - T1E_S1
   {   0, scene_effect_smooth, false, false }, // 34 : Preset 20 - T2E_S0
-  { 255, scene_effect_smooth, false, false }, // 35 : Preset 21 - T2E_S1
+  { 100, scene_effect_smooth, false, false }, // 35 : Preset 21 - T2E_S1
   {   0, scene_effect_smooth, false, false }, // 36 : Preset 30 - T3E_S0
-  { 255, scene_effect_smooth, false, false }, // 37 : Preset 31 - T3E_S1
+  { 100, scene_effect_smooth, false, false }, // 37 : Preset 31 - T3E_S1
   {   0, scene_effect_smooth, false, false }, // 38 : Preset 40 - T4E_S0
-  { 255, scene_effect_smooth, false, false }, // 39 : Preset 41 - T4E_S1
+  { 100, scene_effect_smooth, false, false }, // 39 : Preset 41 - T4E_S1
   {   0, scene_effect_smooth, false, false }, // 40 : Fade down to 0 in 1min - AUTO_OFF
   {   0, scene_effect_smooth, false, true  }, // 41 : Reserved
   {   0, scene_effect_smooth, true , false }, // 42 : Area 1 Decrement - T1_DEC
@@ -250,7 +250,7 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, true , false }, // 48 : Area 4 Decrement - T4_DEC
   {   0, scene_effect_smooth, true , false }, // 49 : Area 4 Increment - T4_INC
   {   0, scene_effect_smooth, true , false }, // 50 : Device (Local Button) on : LOCAL_OFF
-  { 255, scene_effect_smooth, true , false }, // 51 : Device (Local Button) on : LOCAL_ON
+  { 100, scene_effect_smooth, true , false }, // 51 : Device (Local Button) on : LOCAL_ON
   {   0, scene_effect_smooth, true , false }, // 52 : Area 1 Stop - T1_STOP_S
   {   0, scene_effect_smooth, true , false }, // 53 : Area 2 Stop - T2_STOP_S
   {   0, scene_effect_smooth, true , false }, // 54 : Area 3 Stop - T3_STOP_S
@@ -265,19 +265,19 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, false, true  }, // 63 : Reserved
   // global, appartment-wide, group independent scenes
   {   0, scene_effect_slow  , true , false }, // 64 : Auto Standby - AUTO_STANDBY
-  { 255, scene_effect_smooth, true , false }, // 65 : Panic - SIG_PANIC
+  { 100, scene_effect_smooth, true , false }, // 65 : Panic - SIG_PANIC
   {   0, scene_effect_smooth, false, true  }, // 66 : Reserved (ENERGY_OL)
   {   0, scene_effect_smooth, true , false }, // 67 : Standby - STANDBY
   {   0, scene_effect_smooth, true , false }, // 68 : Deep Off - DEEP_OFF
   {   0, scene_effect_smooth, true , false }, // 69 : Sleeping - SLEEPING
-  { 255, scene_effect_smooth, true , true  }, // 70 : Wakeup - WAKE_UP
-  { 255, scene_effect_smooth, true , true  }, // 71 : Present - PRESENT
+  { 100, scene_effect_smooth, true , true  }, // 70 : Wakeup - WAKE_UP
+  { 100, scene_effect_smooth, true , true  }, // 71 : Present - PRESENT
   {   0, scene_effect_smooth, true , false }, // 72 : Absent - ABSENT
   {   0, scene_effect_smooth, true , true  }, // 73 : Door Bell - SIG_BELL
   {   0, scene_effect_smooth, false, true  }, // 74 : Reserved (SIG_ALARM)
-  { 255, scene_effect_smooth, false, true  }, // 75 : Zone Active
-  { 255, scene_effect_smooth, false, true  }, // 76 : Reserved
-  { 255, scene_effect_smooth, false, true  }, // 77 : Reserved
+  { 100, scene_effect_smooth, false, true  }, // 75 : Zone Active
+  { 100, scene_effect_smooth, false, true  }, // 76 : Reserved
+  { 100, scene_effect_smooth, false, true  }, // 77 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 78 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 79 : Reserved
   // all other scenes equal or higher
@@ -327,7 +327,7 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   inherited(aDevice),
   // hardware derived parameters
   // persistent settings
-  onThreshold(128),
+  onThreshold(50.0),
   // volatile state
   fadeDownTicket(0),
   blinkTicket(0)
@@ -715,8 +715,8 @@ int LightBehaviour::numSettingsProps() { return inherited::numSettingsProps()+nu
 const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numSettingsProperties] = {
-    { "onThreshold", apivalue_uint64, onThreshold_key+settings_key_offset, OKEY(light_key) },
-    { "minBrightness", apivalue_uint64, minBrightness_key+settings_key_offset, OKEY(light_key) },
+    { "onThreshold", apivalue_double, onThreshold_key+settings_key_offset, OKEY(light_key) },
+    { "minBrightness", apivalue_double, minBrightness_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUp", apivalue_uint64, dimTimeUp_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUpAlt1", apivalue_uint64, dimTimeUpAlt1_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeUpAlt2", apivalue_uint64, dimTimeUpAlt2_key+settings_key_offset, OKEY(light_key) },
@@ -742,7 +742,7 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
-          aPropValue->setUint8Value(onThreshold);
+          aPropValue->setDoubleValue(onThreshold);
           return true;
         case minBrightness_key+settings_key_offset:
           aPropValue->setDoubleValue(brightness->getMinDim());
@@ -764,7 +764,7 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
-          onThreshold = (Brightness)aPropValue->int32Value();
+          onThreshold = aPropValue->doubleValue();
           markDirty();
           return true;
         case minBrightness_key+settings_key_offset:
@@ -801,8 +801,8 @@ string LightBehaviour::shortDesc()
 string LightBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- brightness = %d, localPriority = %d\n", brightness->getChannelValue(), hasLocalPriority());
-  string_format_append(s, "- dimmable: %d, mindim=%d, onThreshold=%d\n", isDimmable(), brightness->getMinDim(), onThreshold);
+  string_format_append(s, "- brightness = %.1f, localPriority = %d\n", brightness->getChannelValue(), hasLocalPriority());
+  string_format_append(s, "- dimmable: %d, minBrightness=%.1f, onThreshold=%.1f\n", isDimmable(), brightness->getMinDim(), onThreshold);
   s.append(inherited::description());
   return s;
 }

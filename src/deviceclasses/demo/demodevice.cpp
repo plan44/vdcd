@@ -61,9 +61,9 @@ void DemoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     // - display as a bar of hash chars
     string bar;
     while (hwValue>0) {
-      // one hash character per 4 output value steps (0..255 = 0..64 hashes)
+      // one hash character per 2 output value steps (0..100 = 0..50 hashes)
       bar += '#';
-      hwValue -= 4;
+      hwValue -= 2;
     }
     printf("Demo Device Output: %s\n", bar.c_str());
     lightBehaviour->brightnessApplied(); // confirm having applied the value

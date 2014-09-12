@@ -34,7 +34,7 @@ namespace p44 {
 
 
   /// how long dimming through the full scale of a channel should take by default
-  /// @note this is derived from dS-light spec: 11 brightness steps per 300mS -> ~7 seconds for full 0..255 range
+  /// @note this is derived from dS-light spec: 11 brightness (1/256) steps per 300mS -> ~7 seconds for full  range
   #define FULL_SCALE_DIM_TIME_MS 7000
 
   /// represents a single channel of the output

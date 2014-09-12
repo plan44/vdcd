@@ -87,13 +87,13 @@ namespace p44 {
 
 
     /// convert dS brightness value to DALI arc power
-    /// @param aBrightness 0..255
+    /// @param aBrightness 0..100%
     /// @return arcpower 0..254
     uint8_t brightnessToArcpower(Brightness aBrightness);
 
     /// convert DALI arc power to dS brightness value
     /// @param aArcpower 0..254
-    /// @return brightness 0..255
+    /// @return brightness 0..100%
     Brightness arcpowerToBrightness(int aArcpower);
 
     /// set transition time for subsequent brightness changes

@@ -199,7 +199,7 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
 
 uint8_t DaliBusDevice::brightnessToArcpower(Brightness aBrightness)
 {
-  double intensity = (double)aBrightness/255;
+  double intensity = (double)aBrightness/100;
   if (intensity<0) intensity = 0;
   if (intensity>1) intensity = 1;
   return log10((intensity*9)+1)*254; // 0..254, 255 is MASK and is reserved to stop fading
@@ -210,7 +210,7 @@ uint8_t DaliBusDevice::brightnessToArcpower(Brightness aBrightness)
 Brightness DaliBusDevice::arcpowerToBrightness(int aArcpower)
 {
   double intensity = (pow(10, aArcpower/254.0)-1)/9;
-  return intensity*255;
+  return intensity*100;
 }
 
 
@@ -454,7 +454,7 @@ void DaliRGBWDevice::willBeAdded()
   RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
   cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
   cl->setHardwareName(string_format("DALI color light"));
-  cl->initMinBrightness(1); // min brightness is 1
+  cl->initMinBrightness(0.4); // min brightness is 0.4 (~= 1/256)
   addBehaviour(cl);
   // now derive dSUID
   deriveDsUid();
@@ -600,7 +600,7 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       cl->deriveColorMode();
       // RGB lamp, get components
       double r,g,b;
-      cl->getRGB(r, g, b, 255);
+      cl->getRGB(r, g, b, 100); // dali dimmers use abstracted 0..100% brightness as input
       // set transition time for all dimmers to brightness transition time
       MLMicroSeconds tt = cl->transitionTimeToNewBrightness();
       dimmers[dimmer_red]->setTransitionTime(tt);

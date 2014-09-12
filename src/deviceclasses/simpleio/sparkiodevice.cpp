@@ -316,7 +316,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     if (mode==3) {
       // RGB lamp
       double r,g,b;
-      sl->getRGB(r, g, b, 255);
+      sl->getRGB(r, g, b, 255); // Spark RGB values are scaled 0..255
       stateWord =
         (mode << 24) |
         ((int)r << 16) |

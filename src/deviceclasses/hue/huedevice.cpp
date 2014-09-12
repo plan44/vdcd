@@ -28,6 +28,29 @@
 using namespace p44;
 
 
+// hue API conversion factors
+
+
+// - hue: brightness: Brightness of the light. This is a scale from the minimum brightness the light is capable of, 0,
+//        to the maximum capable brightness, 255. Note a brightness of 0 is not off.
+// - dS: brightness: 0..100
+#define HUEAPI_OFFSET_BRIGHTNESS 0.4 // hue brightness starts at 0 (lowest value, but not off), corresonds with one dS step = 0.4
+#define HUEAPI_FACTOR_BRIGHTNESS (255.0/(100-HUEAPI_OFFSET_BRIGHTNESS)) // dS has 99.6 (254/255) not-off brightness steps (0.4..100), 0 is reserved for off
+
+// - hue: hue: Wrapping value between 0 and 65535. Both 0 and 65535 are red, 25500 is green and 46920 is blue.
+// - dS: hue: 0..358.6 degrees
+#define HUEAPI_FACTOR_HUE (65535.0/360)
+
+// - hue: Saturation: 255 is the most saturated (colored) and 0 is the least saturated (white)
+// - dS: 0..100%
+#define HUEAPI_FACTOR_SATURATION (255.0/100)
+
+// - hue: color temperature: 153..500 mired for 2012's hue bulbs
+// - dS: color temperature: 100..10000 mired
+
+// - CIE x,y: hue and dS use 0..1 for x and y
+
+
 
 #pragma mark - HueDevice
 
@@ -111,7 +134,7 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
         ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
         cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
         cl->setHardwareName(string_format("hue color light #%s", lightID.c_str()));
-        cl->initMinBrightness(1); // min brightness is 1
+        cl->initMinBrightness(0.4); // min brightness is roughly 1/256
         addBehaviour(cl);
       }
       else {
@@ -122,17 +145,17 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
         LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
         l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
         l->setHardwareName(string_format("hue lux light #%s", lightID.c_str()));
-        l->initMinBrightness(1); // min brightness is 1
+        l->initMinBrightness(0.4); // min brightness is roughly 1/256
         addBehaviour(l);
       }
       // get current brightness
       o = state->get("on");
       if (o && o->boolValue()) {
         // lamp is on
-        bri = 255; // default to full brightness
+        bri = 100; // default to full brightness
         o = state->get("bri");
         if (o) {
-          bri = o->int32Value();
+          bri = o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS;
         }
         // set current brightness
         output->getChannelByType(channeltype_brightness)->syncChannelValue(bri);
@@ -202,30 +225,6 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-// hue API conversion factors
-
-
-// - hue: brightness: Brightness of the light. This is a scale from the minimum brightness the light is capable of, 0,
-//        to the maximum capable brightness, 255. Note a brightness of 0 is not off.
-// - dS: brightness: 0..255
-#define HUEAPI_FACTOR_BRIGHTNESS (255.0/254) // dS has 254 not-off brightness steps (1..255), 0 is reserved for off
-#define HUEAPI_OFFSET_BRIGHTNESS 1 // hue brightness starts at 0 (lowest value, but not off)
-
-// - hue: hue: Wrapping value between 0 and 65535. Both 0 and 65535 are red, 25500 is green and 46920 is blue.
-// - dS: hue: 0..358.6 degrees
-#define HUEAPI_FACTOR_HUE (65535.0/360)
-
-// - hue: Saturation: 255 is the most saturated (colored) and 0 is the least saturated (white)
-// - dS: 0..100%
-#define HUEAPI_FACTOR_SATURATION (255.0/100)
-
-// - hue: color temperature: 153..500 mired for 2012's hue bulbs
-// - dS: color temperature: 100..10000 mired
-
-// - CIE x,y: hue and dS use 0..1 for x and y
-
-
-
 // NOTE: device's implementation MUST be such that this method can be called multiple times even before aCompletedCB
 //   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
 //   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
@@ -265,7 +264,7 @@ void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       else {
         // light on
         newState->add("on", JsonObject::newBool(true));
-        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS+0.5)); // 1..255 -> 0..255
+        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS+0.5)); // 1..100 -> 0..255
       }
       l->brightness->channelValueApplied(true); // confirm early, as subsequent request might set new value again
     }
@@ -405,7 +404,7 @@ void HueDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo,
         if (o && o->boolValue()) {
           // lamp is on, get brightness
           o = state->get("bri");
-          if (o) l->syncBrightnessFromHardware(o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS); // 0..255 -> 1..255
+          if (o) l->syncBrightnessFromHardware(o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS); // 0..255 -> 0.4..100
         }
         else {
           l->syncBrightnessFromHardware(0); // off

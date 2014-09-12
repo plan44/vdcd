@@ -333,7 +333,7 @@ void ColorLightBehaviour::deriveMissingColorChannels()
         // missing CIE and ct
         HSV[0] = hue->getChannelValue(); // 0..360
         HSV[1] = saturation->getChannelValue()/100; // 0..1
-        HSV[2] = brightness->getChannelValue()/255; // 0..1
+        HSV[2] = brightness->getChannelValue()/100; // 0..1
         HSVtoxyV(HSV, xyV);
         cieX->syncChannelValue(xyV[0]);
         cieY->syncChannelValue(xyV[1]);
@@ -344,7 +344,7 @@ void ColorLightBehaviour::deriveMissingColorChannels()
         // missing HSV and ct
         xyV[0] = cieX->getChannelValue();
         xyV[1] = cieY->getChannelValue();
-        xyV[2] = brightness->getChannelValue()/255; // 0..1
+        xyV[2] = brightness->getChannelValue()/100; // 0..1
         xyVtoCT(xyV, mired);
         ct->syncChannelValue(mired);
       xyVtoHSV:
@@ -367,21 +367,21 @@ void ColorLightBehaviour::deriveMissingColorChannels()
     if (DBGLOGENABLED(LOG_DEBUG)) {
       // show all values, plus RGB
       DBGLOG(LOG_DEBUG, "Color mode = %s\n", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
-      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%, %, 0..255]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
-      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, 0..255]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%, %, %]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, %]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
       Row3 RGB;
       if (colorMode==colorLightModeHueSaturation) {
         // take from HSV
         HSV[0] = hue->getChannelValue(); // 0..360
         HSV[1] = saturation->getChannelValue()/100; // 0..1
-        HSV[2] = brightness->getChannelValue()/255; // 0..1
+        HSV[2] = brightness->getChannelValue()/100; // 0..1
         HSVtoRGB(HSV, RGB);
       }
       else {
         Row3 XYZ;
         xyV[0] = cieX->getChannelValue();
         xyV[1] = cieY->getChannelValue();
-        xyV[2] = brightness->getChannelValue()/255; // 0..1
+        xyV[2] = brightness->getChannelValue()/100; // 0..1
         xyVtoXYZ(xyV, XYZ);
         XYZtoRGB(sRGB_d65_calibration, XYZ, RGB);
       }
@@ -447,7 +447,7 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
     case colorLightModeHueSaturation:
       HSV[0] = hue->getChannelValue(); // 0..360
       HSV[1] = saturation->getChannelValue()/100; // 0..1
-      HSV[2] = brightness->getChannelValue()/255; // 0..1
+      HSV[2] = brightness->getChannelValue()/100; // 0..1
       HSVtoRGB(HSV, RGB);
       break;
     case colorLightModeCt:
@@ -456,7 +456,7 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
     case colorLightModeXY:
       xyV[0] = cieX->getChannelValue();
       xyV[1] = cieY->getChannelValue();
-      xyV[2] = brightness->getChannelValue()/255; // 0..1
+      xyV[2] = brightness->getChannelValue()/100; // 0..1
     xyVToRGB:
       xyVtoXYZ(xyV, XYZ);
       // convert using calibration for this lamp
@@ -464,7 +464,7 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       break;
     default:
       // no color, just set R=G=B=brightness
-      RGB[0] = brightness->getChannelValue()/255;
+      RGB[0] = brightness->getChannelValue()/100;
       RGB[1] = RGB[0];
       RGB[2] = RGB[0];
       break;
@@ -487,7 +487,7 @@ void RGBColorLightBehaviour::setRGB(double aRed, double aGreen, double aBlue, do
   // set the channels
   hue->syncChannelValue(HSV[0]);
   saturation->syncChannelValue(HSV[1]*100);
-  brightness->syncChannelValue(HSV[2]*255);
+  brightness->syncChannelValue(HSV[2]*100);
   // change the mode if needed
   if (colorMode!=colorLightModeHueSaturation) {
     colorMode = colorLightModeHueSaturation;
