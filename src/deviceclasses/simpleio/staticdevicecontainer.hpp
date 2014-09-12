@@ -52,7 +52,7 @@ namespace p44 {
 
   public:
 
-    StaticDevice(DeviceClassContainer *aClassContainerP) : Device(aClassContainerP), staticDeviceRowID(0) {};
+    StaticDevice(DeviceClassContainer *aClassContainerP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -60,8 +60,13 @@ namespace p44 {
 
     StaticDeviceContainer &getStaticDeviceContainer();
 
-    /// device level API methods (p44 specific, JSON only, for configuring static devices)
-    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+    /// check if device can be disconnected by software (i.e. Web-UI)
+    /// @return true if device might be disconnectable by the user via software (i.e. web UI)
+    /// @note devices returning true here might still refuse disconnection on a case by case basis when
+    ///   operational state does not allow disconnection.
+    /// @note devices returning false here might still be disconnectable using disconnect() triggered
+    ///   by vDC API "remove" method.
+    virtual bool isSoftwareDisconnectable();
 
     /// disconnect device. For static device, this means removing the config from the container's DB. Note that command line
     /// static devices cannot be disconnected.

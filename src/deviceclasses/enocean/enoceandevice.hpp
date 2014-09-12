@@ -118,6 +118,11 @@ namespace p44 {
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "enocean"; };
 
+    /// check if device can be disconnected by software (i.e. Web-UI)
+    /// @return true if device might be disconnectable by the user via software (i.e. web UI)
+    /// @note EnOcean devices can be removed not only via unlearning, but also via Web-UI if needed
+    virtual bool isSoftwareDisconnectable() { return true; };
+
     /// get typed container reference
     EnoceanDeviceContainer &getEnoceanDeviceContainer();
 

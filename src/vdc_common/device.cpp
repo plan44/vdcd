@@ -200,11 +200,19 @@ ChannelBehaviourPtr Device::getChannelByType(DsChannelType aChannelType, bool aP
 ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
-//  if (aMethod=="Gugus") {
-//    // Do something
-//  }
-//  else
-  {
+  if (aMethod=="x-p44-removeDevice") {
+    if (isSoftwareDisconnectable()) {
+      // confirm first, because device will get deleted in the process
+      aRequest->sendResult(ApiValuePtr());
+      // Remove this device from the installation, forget the settings
+      hasVanished(true);
+      // now device does not exist any more, so only thing that may happen is return
+    }
+    else {
+      respErr = ErrorPtr(new WebError(403, "device cannot be removed with this method"));
+    }
+  }
+  else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
   }
   return respErr;
@@ -1105,6 +1113,7 @@ enum {
   progMode_key,
   idBlockSize_key,
   deviceType_key,
+  softwareRemovable_key,
   // output
   output_description_key, // output is not array!
   output_settings_key, // output is not array!
@@ -1171,6 +1180,7 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
     { "idBlockSize", apivalue_uint64, idBlockSize_key, OKEY(device_key) },
     { "x-p44-deviceType", apivalue_string, deviceType_key, OKEY(device_key) },
+    { "x-p44-softwareRemovable", apivalue_bool, softwareRemovable_key, OKEY(device_key) },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
@@ -1327,6 +1337,9 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
           return true;
         case deviceType_key:
           aPropValue->setStringValue(deviceTypeIdentifier());
+          return true;
+        case softwareRemovable_key:
+          aPropValue->setBoolValue(isSoftwareDisconnectable()); return true;
           return true;
       }
     }

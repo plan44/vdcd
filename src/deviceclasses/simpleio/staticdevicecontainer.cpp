@@ -32,26 +32,16 @@ using namespace p44;
 #pragma mark - StaticDevice
 
 
-ErrorPtr StaticDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+StaticDevice::StaticDevice(DeviceClassContainer *aClassContainerP) :
+  Device(aClassContainerP), staticDeviceRowID(0)
 {
-  ErrorPtr respErr;
-  if (aMethod=="x-p44-removeDevice") {
-    if (staticDeviceRowID) {
-      // Remove this device from the installation, forget the settings
-      hasVanished(true);
-      // confirm
-      aRequest->sendResult(ApiValuePtr());
-    }
-    else {
-      respErr = ErrorPtr(new WebError(403, "cannot remove static devices specified on the command-line"));
-    }
-  }
-  else {
-    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
-  }
-  return respErr;
 }
 
+
+bool StaticDevice::isSoftwareDisconnectable()
+{
+  return staticDeviceRowID>0; // disconnectable by software if it was created from DB entry (and not on the command line)
+}
 
 StaticDeviceContainer &StaticDevice::getStaticDeviceContainer()
 {
@@ -68,7 +58,6 @@ void StaticDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
-
 
 
 #pragma mark - DB and initialisation

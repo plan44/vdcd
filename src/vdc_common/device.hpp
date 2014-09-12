@@ -279,8 +279,18 @@ namespace p44 {
     ///   this can be anything.
     /// @note base class delegates this to the output behaviour (if any)
     virtual void identifyToUser();
-    
 
+    /// check if device can be disconnected by software (i.e. Web-UI)
+    /// @return true if device might be disconnectable by the user via software (i.e. web UI)
+    /// @note devices returning true here might still refuse disconnection on a case by case basis when
+    ///   operational state does not allow disconnection.
+    /// @note devices returning false here might still be disconnectable using disconnect() triggered
+    ///   by vDC API "remove" method.
+    virtual bool isSoftwareDisconnectable() { return false; }; // by default, devices cannot be removed via Web-UI
+
+    /// callback for disconnect()
+    /// @param aDisconnected returns true if device could be disconnected, false if disconnection by software is not possible
+    ///   in general or could not be performed in the current operational state of the device
     typedef boost::function<void (bool aDisconnected)> DisconnectCB;
 
     /// disconnect device. If presence is represented by data stored in the vDC rather than
