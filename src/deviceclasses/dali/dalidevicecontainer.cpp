@@ -299,8 +299,9 @@ ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const stri
           for (DeviceVector::iterator pos = groupedDevices.begin(); pos!=groupedDevices.end(); ++pos) {
             (*pos)->hasVanished(false); // vanish, but keep settings
           }
-          // - re-collect devices to find grouped composite now
-          collectDevices(boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest), false, false);
+          // - re-collect devices to find grouped composite now, but only in a second starting from main loop, not from here
+          CompletedCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
+          MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false), 1*Second);
         }
       }
     }

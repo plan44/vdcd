@@ -598,9 +598,15 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       // needs update
       // - derive (possibly new) color mode from changed channels
       cl->deriveColorMode();
-      // RGB lamp
+      // RGB lamp, get components
       double r,g,b;
       cl->getRGB(r, g, b, 255);
+      // set transition time for all dimmers to brightness transition time
+      MLMicroSeconds tt = cl->transitionTimeToNewBrightness();
+      dimmers[dimmer_red]->setTransitionTime(tt);
+      dimmers[dimmer_green]->setTransitionTime(tt);
+      dimmers[dimmer_blue]->setTransitionTime(tt);
+      // apply new values
       dimmers[dimmer_red]->setBrightness(r);
       dimmers[dimmer_green]->setBrightness(g);
       dimmers[dimmer_blue]->setBrightness(b);
