@@ -68,6 +68,12 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
 }
 
 
+string HueDevice::getExtraInfo()
+{
+  return string_format("Light #%s", lightID.c_str());
+}
+
+
 
 HueDeviceContainer &HueDevice::hueDeviceContainer()
 {

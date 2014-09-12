@@ -127,6 +127,10 @@ namespace p44 {
     /// @return true if there is an icon, false if not
     virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
 
+    /// Get extra info (plan44 specific) to describe the addressable in more detail
+    /// @return string, single line extra info describing aspects of the device not visible elsewhere
+    virtual string getExtraInfo();
+
     /// @}
 
 

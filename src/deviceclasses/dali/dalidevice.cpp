@@ -301,6 +301,15 @@ bool DaliDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResol
 }
 
 
+string DaliDevice::getExtraInfo()
+{
+  return string_format(
+    "DALI short address: %d",
+    brightnessDimmer->deviceInfo.shortAddress
+  );
+}
+
+
 void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // - sync cached channel values from actual device
@@ -476,6 +485,16 @@ bool DaliRGBWDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aR
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
+
+string DaliRGBWDevice::getExtraInfo()
+{
+  return string_format(
+    "DALI short addresses: Red:%d, Green:%d, Blue:%d",
+    dimmers[dimmer_red]->deviceInfo.shortAddress,
+    dimmers[dimmer_green]->deviceInfo.shortAddress,
+    dimmers[dimmer_blue]->deviceInfo.shortAddress
+  );
+}
 
 
 bool DaliRGBWDevice::addDimmer(DaliBusDevicePtr aDimmerBusDevice, string aDimmerType)
