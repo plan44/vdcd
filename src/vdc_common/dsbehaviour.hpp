@@ -110,6 +110,9 @@ namespace p44 {
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };
 
+    /// @return hardware name
+    string getHardwareName() { return hardwareName; };
+
     /// update of hardware status
     void setHardwareError(DsHardwareError aHardwareError);
 

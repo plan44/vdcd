@@ -60,8 +60,14 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
   lastUpdate = now;
+  // button press is considered a (regular!) user action, have it checked globally first
+  if (aNewState!=currentState) {
+    device.getDeviceContainer().signalDeviceUserAction(device, true);
+    // Note: even if global identify handler processes this, still report state changes (otherwise upstream could get out of sync)
+  }
+  // in all cases, forward binary input state changes
   if (aNewState!=currentState || now>lastPush+changesOnlyInterval) {
-    // changed state
+    // changed state or no update sent for more than changesOnlyInterval
     currentState = aNewState;
     if (lastPush==Never || now>lastPush+minPushInterval) {
       // push the new value

@@ -19,6 +19,13 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 0
+
 #include "enoceanrps.hpp"
 
 #include "buttonbehaviour.hpp"
@@ -61,7 +68,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     // - create button input for down key
     EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
     downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-    downHandler->isBSide = false;
+    downHandler->isRockerUp = false;
     ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
     downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
     downBhvr->setGroup(group_yellow_light); // pre-configure for light
@@ -71,7 +78,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     // - create button input for up key
     EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
     upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-    upHandler->isBSide = true;
+    upHandler->isRockerUp = true;
     ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
     upBhvr->setGroup(group_yellow_light); // pre-configure for light
     upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
@@ -132,49 +139,44 @@ void EnoceanRpsButtonHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // extract payload data
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
   uint8_t status = aEsp3PacketPtr->radioStatus();
+  FOCUSLOG("RPS message: data=0x%02X, status=0x%02X, processing in switchIndex=%d, isRockerUp=%d\n", data, status, switchIndex, isRockerUp);
   // decode
   if (status & status_NU) {
     // N-Message
+    FOCUSLOG("- N-message\n");
     // collect action(s)
     for (int ai=1; ai>=0; ai--) {
+      // first action is in DB7..5, second action is in DB3..1 (if DB0==1)
       uint8_t a = (data >> (4*ai+1)) & 0x07;
       if (ai==0 && (data&0x01)==0)
         break; // no second action
+      FOCUSLOG("- action #%d = %d\n", 2-ai, a);
       if (((a>>1) & 0x03)==switchIndex) {
         // querying this subdevice/rocker
-        if (((a & 0x01)!=0) == isBSide)
-          // my half of the rocker
+        FOCUSLOG("- is my switchIndex == %d\n", switchIndex);
+        if (((a & 0x01)!=0) == isRockerUp) {
+          FOCUSLOG("- is my side (%s) of the switch, isRockerUp == %d\n", isRockerUp ? "Up" : "Down", isRockerUp);
+          // my half of the rocker, DB4 is button state (1=pressed, 0=released)
           setButtonState((data & 0x10)!=0);
+        }
       }
     }
   }
   else {
     // U-Message
+    FOCUSLOG("- U-message\n");
     uint8_t b = (data>>5) & 0x07;
-    bool affectsMe = false;
-    if (status & status_T21) {
-      // 2-rocker
-      if (b==0 || b==3)
-        affectsMe = true; // all buttons or explicitly 3/4 affected
-    }
-    else {
-      // 4-rocker
-      if (b==0 || ((b+1)>>1)>0)
-        affectsMe = true; // all or half of buttons affected = switches affected
-    }
-    if (affectsMe) {
-      // releasing -> affect all
-      // pressing -> ignore
-      // Note: rationale is that pressing should create individual actions, while releasing does not
-      if ((data & 0x10)!=0) {
-        // pressed
-        // NOP, ignore ambiguous pressing of more buttons
-      }
-      else {
-        // released
+    bool pressed = (data & 0x10);
+    FOCUSLOG("- number of buttons still pressed code = %d, action (energy bow) = %s\n", b, pressed ? "PRESSED" : "RELEASED");
+    if (!pressed) {
+      // report release if all buttons are released now
+      if (b==0) {
+        // all buttons released, this includes this button
+        FOCUSLOG("- released multiple buttons, report RELEASED for all\n");
         setButtonState(false);
       }
     }
+    // ignore everything else (more that 2 press actions simultaneously)
   }
 }
 
@@ -186,7 +188,7 @@ void EnoceanRpsButtonHandler::setButtonState(bool aPressed)
     // real change, propagate to behaviour
     ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(behaviour);
     if (b) {
-      LOG(LOG_INFO,"Enocean Button %08X, subDevice %d, channel %d: changed state to %s\n", device.getAddress(), device.getSubDevice(), channel, aPressed ? "pressed" : "released");
+      LOG(LOG_INFO,"Enocean Button %s - %08X, subDevice %d, channel %d: changed state to %s\n", b->getHardwareName().c_str(), device.getAddress(), device.getSubDevice(), channel, aPressed ? "PRESSED" : "RELEASED");
       b->buttonAction(aPressed);
     }
     // update cached status

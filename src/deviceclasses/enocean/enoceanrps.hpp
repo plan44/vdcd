@@ -75,8 +75,8 @@ namespace p44 {
     EnoceanRpsButtonHandler(EnoceanDevice &aDevice);
 
     bool pressed; ///< true if currently pressed, false if released, index: 0=on/down button, 1=off/up button
-    int switchIndex; ///< which switch within the device (0..3)
-    bool isBSide; ///< set if B-side of switch
+    int switchIndex; ///< which switch within the device (A..D)
+    bool isRockerUp; ///< set if rocker up side of switch
 
 
     /// handle radio packet related to this channel
