@@ -270,7 +270,11 @@ bool DsScene::isDontCare()
 
 void DsScene::setDontCare(bool aDontCare)
 {
-  globalSceneFlags = (globalSceneFlags & ~globalflags_sceneDontCare) | (aDontCare ? globalflags_sceneDontCare : 0);
+  uint32_t newFlags = (globalSceneFlags & ~globalflags_sceneDontCare) | (aDontCare ? globalflags_sceneDontCare : 0);
+  if (newFlags!=globalSceneFlags) {
+    globalSceneFlags = newFlags;
+    markDirty();
+  }
 }
 
 
@@ -282,7 +286,11 @@ bool DsScene::ignoresLocalPriority()
 
 void DsScene::setIgnoreLocalPriority(bool aIgnoreLocalPriority)
 {
-  globalSceneFlags = (globalSceneFlags & ~globalflags_ignoreLocalPriority) | (aIgnoreLocalPriority ? globalflags_ignoreLocalPriority : 0);
+  uint32_t newFlags = (globalSceneFlags & ~globalflags_ignoreLocalPriority) | (aIgnoreLocalPriority ? globalflags_ignoreLocalPriority : 0);
+  if (newFlags!=globalSceneFlags) {
+    globalSceneFlags = newFlags;
+    markDirty();
+  }
 }
 
 
@@ -400,11 +408,9 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prop
       switch (aPropertyDescriptor->fieldKey()) {
         case ignoreLocalPriority_key:
           setIgnoreLocalPriority(aPropValue->boolValue());
-          markDirty();
           return true;
         case dontCare_key:
           setDontCare(aPropValue->boolValue());
-          markDirty();
           return true;
       }
     }

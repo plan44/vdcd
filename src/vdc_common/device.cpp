@@ -465,6 +465,18 @@ static SceneNo mainSceneForArea(int aArea)
 }
 
 
+static SceneNo offSceneForArea(int aArea)
+{
+  switch (aArea) {
+    case 1: return T1_S0;
+    case 2: return T2_S0;
+    case 3: return T3_S0;
+    case 4: return T4_S0;
+  }
+  return T0_S0; // no area, off scene for room
+}
+
+
 
 #pragma mark - dimming
 
@@ -1027,6 +1039,29 @@ void Device::saveScene(SceneNo aSceneNo)
 
 void Device::outputSceneValueSaved(DsScenePtr aScene)
 {
+  // Check special area scene case: dontCare need to be updated depending on brightness (if zero, set don't care)
+  SceneNo sceneNo = aScene->sceneNo;
+  int area = areaFromScene(sceneNo);
+  if (area) {
+    // detail check - set don't care when saving Area On-Scene
+    if (sceneNo==mainSceneForArea(area)) {
+      // saving Main ON scene - set dontCare flag when brightness is zero, otherwise clear dontCare
+      ChannelBehaviourPtr ch = output->getChannelByType(channeltype_brightness);
+      if (ch) {
+        bool mustBeDontCare = ch->getChannelValue()==0;
+        // update this main scene's dontCare
+        aScene->setDontCare(mustBeDontCare);
+        // also update the off scene's dontCare
+        SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
+        DsScenePtr offScene = scenes->getScene(offSceneForArea(area));
+        if (offScene) {
+          offScene->setDontCare(mustBeDontCare);
+          // update scene in scene table and DB if dirty
+          updateScene(offScene);
+        }
+      }
+    }
+  }
   // update scene in scene table and DB if dirty
   updateScene(aScene);
 }
