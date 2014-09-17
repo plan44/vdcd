@@ -326,7 +326,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     }
     else {
       // brightness only
-      double br = sl->brightness->getChannelValue();
+      double br = sl->brightness->getChannelValue()*255/sl->brightness->getMax();
       stateWord =
         (mode << 24) |
         ((int)br & 0xFF);
