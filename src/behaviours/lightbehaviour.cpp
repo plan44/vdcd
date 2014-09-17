@@ -329,6 +329,7 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
   // persistent settings
   onThreshold(50.0),
   // volatile state
+  hardwareHasSetMinDim(false),
   fadeDownTicket(0),
   blinkTicket(0)
 {
@@ -351,11 +352,9 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
 
 void LightBehaviour::initMinBrightness(Brightness aMin)
 {
-  // save max and min
-  if (aMin!=brightness->getMinDim()) {
-    brightness->setDimMin(aMin);
-    markDirty();
-  }
+  // save min
+  brightness->setDimMin(aMin);
+  hardwareHasSetMinDim = true;
 }
 
 
@@ -636,8 +635,8 @@ size_t LightBehaviour::numFieldDefs()
 const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
-    { "onThreshold", SQLITE_FLOAT },
-    { "minDim", SQLITE_FLOAT },
+    { "switchThreshold", SQLITE_FLOAT }, // formerly onThreshold, renamed because type changed
+    { "minBrightness", SQLITE_FLOAT }, // formerly minBrightness, renamed because type changed
     { "dimUpTimes", SQLITE_INTEGER },
     { "dimDownTimes", SQLITE_INTEGER },
   };
@@ -656,7 +655,8 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   inherited::loadFromRow(aRow, aIndex);
   // get the fields
   onThreshold = aRow->get<double>(aIndex++);
-  brightness->setDimMin(aRow->get<double>(aIndex++));
+  Brightness md = aRow->get<double>(aIndex++);
+  if (!hardwareHasSetMinDim) brightness->setDimMin(md); // only apply if not set by hardware
   uint32_t du = aRow->get<int>(aIndex++);
   uint32_t dd = aRow->get<int>(aIndex++);
   // dissect dimming times

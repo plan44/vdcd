@@ -147,6 +147,7 @@ namespace p44 {
     DoneCB blinkDoneHandler; ///< called when blinking done
     LightScenePtr blinkRestoreScene; ///< scene to restore
     long fadeDownTicket; ///< for slow fading operations
+    bool hardwareHasSetMinDim; ///< if set, hardware has set minDim (prevents loading from DB)
     /// @}
 
 
