@@ -104,7 +104,10 @@ namespace p44 {
 		const char *getPersistentDataDir();
 
     /// get the tag
-    int getTag() { return tag; };
+    int getTag() const { return tag; };
+
+    /// get number of devices
+    size_t getNumberOfDevices() const { return devices.size(); };
 		
     /// @}
 		
@@ -131,6 +134,11 @@ namespace p44 {
     /// @note Current implementation derives this from the devicecontainer's dSUID,
     ///   the deviceClassIdentitfier and the instance number in the form "class:instanceIndex@devicecontainerDsUid"
     string deviceClassContainerInstanceIdentifier() const;
+
+    /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
+    /// devices.
+    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    bool invisibleWhenEmpty() { return false; }
 
     /// set user assignable name
     /// @param new name of the addressable entity

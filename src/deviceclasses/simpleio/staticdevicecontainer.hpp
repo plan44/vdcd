@@ -101,6 +101,11 @@ namespace p44 {
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
+    /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
+    /// devices.
+    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    bool invisibleWhenEmpty() { return true; }
+
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 

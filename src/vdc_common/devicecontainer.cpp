@@ -1039,7 +1039,8 @@ void DeviceContainer::announceNext()
     DeviceClassContainerPtr vdc = pos->second;
     if (
       vdc->announced==Never &&
-      (vdc->announcing==Never || MainLoop::now()>vdc->announcing+ANNOUNCE_RETRY_TIMEOUT)
+      (vdc->announcing==Never || MainLoop::now()>vdc->announcing+ANNOUNCE_RETRY_TIMEOUT) &&
+      (!vdc->invisibleWhenEmpty() || vdc->getNumberOfDevices()>0)
     ) {
       // mark device as being in process of getting announced
       vdc->announcing = MainLoop::now();
