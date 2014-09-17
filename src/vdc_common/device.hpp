@@ -87,6 +87,7 @@ namespace p44 {
 
     // hardware access serializer/pacer
     DoneCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending
+    DoneCB applyCompleteCB; ///< will be called when apply is complete (set by waitForApplyComplete())
     bool applyInProgress; ///< set when applying values is in progress
     int missedApplyAttempts; ///< number of apply attempts that could not be executed. If>0, completing next apply will trigger a re-apply to finalize values
     DoneCB updatedOrCachedCB; ///< will be called when current values are either read from hardware, or new values have been requested for applying
@@ -160,6 +161,10 @@ namespace p44 {
 
     /// get reference to device container
     DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
+
+    /// install specific or standard device settings
+    /// @param aDeviceSettings specific device settings, if NULL, standard minimal settings will be used
+    void installSettings(DeviceSettingsPtr aDeviceSettings = DeviceSettingsPtr());
 
     /// add a behaviour and set its index
     /// @param aBehaviour a newly created behaviour, will get added to the correct button/binaryInput/sensor/output
@@ -254,6 +259,10 @@ namespace p44 {
     ///   channel updates in the hardware. It also may discard requests (but still calling aAppliedOrSupersededCB) to
     ///   avoid stacking up delayed requests.
     void requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming);
+
+    /// request callback when apply is really complete (all pending applies done)
+    /// @param aApplyCompleteCB will called when values are applied and no other change is pending
+    void waitForApplyComplete(DoneCB aApplyCompleteCB);
 
     /// request that channel values are updated by reading them back from the device's hardware
     /// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
@@ -404,6 +413,7 @@ namespace p44 {
     void updatingChannelsComplete();
     void serializerWatchdog();
     bool checkForReapply();
+    void forkDoneCB(DoneCB aOriginalCB, DoneCB aNewCallback);
 
   };
 

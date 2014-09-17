@@ -36,7 +36,7 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
   // - is a light device
   primaryGroup = group_yellow_light;
   // - use light settings, which include a fully functional scene table
-  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+  installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
   // - create one output with light behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   // - set default config to act as dimmer with variable ramps

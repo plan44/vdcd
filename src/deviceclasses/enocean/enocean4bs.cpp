@@ -332,6 +332,8 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
     if (!newDev) {
       // create device
       newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP, aNumSubdevices));
+      // standard device settings without scene table
+      newDev->installSettings();
       // assign channel and address
       newDev->setAddressingInfo(aAddress, aSubDevice);
       // assign EPP information
@@ -485,6 +487,14 @@ string Enocean4bsHandler::shortDesc()
 
 
 #pragma mark - Enocean4BSDevice
+
+
+Enocean4BSDevice::Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
+  inherited(aClassContainerP, aTotalSubdevices)
+{
+}
+
+
 
 void Enocean4BSDevice::sendTeachInResponse()
 {

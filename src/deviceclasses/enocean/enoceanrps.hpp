@@ -132,7 +132,7 @@ namespace p44 {
   public:
 
     /// constructor
-    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) : inherited(aClassContainerP, aTotalSubdevices) {};
+    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

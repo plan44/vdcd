@@ -56,7 +56,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Digital output as light on/off switch
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // - use light settings, which include a scene table
-    deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+    installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
@@ -64,6 +64,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     addBehaviour(l);
   }
   else {
+    // Standard device settings without scene table
+    installSettings();
     // Digital input as button
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
     buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _1, _2), true);

@@ -208,7 +208,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   // - defaults to yellow (light)
   primaryGroup = group_yellow_light;
   // - use Spark settings, which include a scene table with extendedState for mode
-  deviceSettings = DeviceSettingsPtr(new SparkDeviceSettings(*this));
+  installSettings(DeviceSettingsPtr(new SparkDeviceSettings(*this)));
   // set the behaviour
   SparkLightBehaviourPtr sl = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
   sl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected

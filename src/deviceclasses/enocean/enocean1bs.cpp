@@ -51,6 +51,8 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
     aNumSubdevices = 1; // always has a single subdevice
     // create device
     newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, aNumSubdevices));
+    // standard device settings without scene table
+    newDev->installSettings();
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information

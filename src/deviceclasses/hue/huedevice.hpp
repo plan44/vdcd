@@ -54,7 +54,7 @@ namespace p44 {
     bool repeatApplyAtEnd;
 
   public:
-    HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID);
+    HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

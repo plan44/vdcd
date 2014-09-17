@@ -191,7 +191,7 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
   if (currentBrightness!=aBrightness) {
     currentBrightness = aBrightness;
     uint8_t power = brightnessToArcpower(aBrightness);
-    LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.0f, arc power = %d\n", (int)deviceInfo.shortAddress, aBrightness, (int)power);
+    LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.2f, arc power = %d\n", (int)deviceInfo.shortAddress, aBrightness, (int)power);
     daliDeviceContainer.daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
   }
 }
@@ -274,7 +274,7 @@ void DaliDevice::willBeAdded()
   // Note: setting up behaviours late, because we want the brightness dimmer already assigned for the hardware name
   // set up dS behaviour for simple single DALI channel dimmer
   // - use light settings, which include a scene table
-  deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+  installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
   // - set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
@@ -458,7 +458,7 @@ void DaliRGBWDevice::willBeAdded()
 {
   // Note: setting up behaviours late, because we want the brightness dimmer already assigned for the hardware name
   // set up dS behaviour for color lights, which include a color scene table
-  deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
+  installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
   // set the behaviour
   RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
   cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 0); // DALI lights are always dimmable, no power known

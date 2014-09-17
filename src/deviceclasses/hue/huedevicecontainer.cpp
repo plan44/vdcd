@@ -231,14 +231,23 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
   DBGLOG(LOG_DEBUG, "lights = \n%s\n", aResult ? aResult->c_strValue() : "<none>");
 
   if (aResult) {
-    // { "1": { "name": "Bedroom" }, "2": .... }
+    // pre-v1.3 bridges: { "1": { "name": "Bedroom" }, "2": .... }
+    // v1.3 and later bridges: { "1": { "name": "Bedroom", "state": {...}, "modelid":"LCT001", ... }, "2": .... }
     aResult->resetKeyIteration();
     string lightID;
     JsonObjectPtr lightInfo;
     while (aResult->nextKeyValue(lightID, lightInfo)) {
       // create hue device
       if (lightInfo) {
-        HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID));
+        // pre 1.3 bridges, which do not know yet hue Lux, don't have the "state" -> no state == all lights have color (hue or living color)
+        // 1.3 and later bridges do have "state", and if "state" contains "colormode", it's a color light
+        bool hasColor = true; // assume color (default if no "state" delivered in answer)
+        JsonObjectPtr o = lightInfo->get("state");
+        if (o) {
+          JsonObjectPtr cm = o->get("colormode");
+          if (!cm) hasColor = false; // lamp without color mode -> just brightness (hue lux)
+        }
+        HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID, hasColor));
         if (addDevice(newDev)) {
           // actually added, no duplicate, set the name
           // (otherwise, this is an incremental collect and we knew this light already)

@@ -134,6 +134,18 @@ bool Device::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutio
 
 
 
+void Device::installSettings(DeviceSettingsPtr aDeviceSettings)
+{
+  if (aDeviceSettings) {
+    deviceSettings = aDeviceSettings;
+  }
+  else {
+    // use standard settings
+    deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
+  }
+}
+
+
 
 
 void Device::addBehaviour(DsBehaviourPtr aBehaviour)
@@ -485,7 +497,6 @@ static SceneNo offSceneForArea(int aArea)
 // Note: ensures dimming only continues for at most aAutoStopAfter
 void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
 {
-  // TODO: maybe optimize: area check could be omitted when dimming is running already
   if (aArea!=0) {
     SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
     if (scenes) {
@@ -601,8 +612,9 @@ void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
       double increment = (aDimMode==dimmode_up ? DIM_STEP_INTERVAL_MS : -DIM_STEP_INTERVAL_MS) * ch->getDimPerMS();
       // start ticking
       isDimming = true;
-      // apply start point (non-dimming), then call dim handler
-      requestApplyingChannels(boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()), false);
+      // wait for all apply operations to really complete before starting to dim
+      DoneCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now());
+      waitForApplyComplete(boost::bind(&Device::requestApplyingChannels, this, dd, false));
     }
   }
 }
@@ -688,6 +700,37 @@ void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDim
 }
 
 
+void Device::waitForApplyComplete(DoneCB aApplyCompleteCB)
+{
+  if (!applyInProgress) {
+    // not applying anything, immediately call back
+    FOCUSLOG("- waitForApplyComplete() called while no apply in progress -> immediately call back\n");
+    aApplyCompleteCB();
+  }
+  else {
+    // apply in progress, save callback, will be called once apply is complete
+    if (applyCompleteCB) {
+      // already regeistered, chain it
+      FOCUSLOG("- waitForApplyComplete() called while apply in progress and another callback already set -> install callback fork\n");
+      applyCompleteCB = boost::bind(&Device::forkDoneCB, this, applyCompleteCB, aApplyCompleteCB);
+    }
+    else {
+      FOCUSLOG("- waitForApplyComplete() called while apply in progress and no callback already set -> install callback\n");
+      applyCompleteCB = aApplyCompleteCB;
+    }
+  }
+}
+
+
+void Device::forkDoneCB(DoneCB aOriginalCB, DoneCB aNewCallback)
+{
+  FOCUSLOG("- forking applyCompleteCB\n");
+  aOriginalCB();
+  aNewCallback();
+}
+
+
+
 void Device::serializerWatchdog()
 {
   #if SERIALIZER_WATCHDOG
@@ -702,7 +745,6 @@ void Device::serializerWatchdog()
     LOG(LOG_WARNING, "##### Serializer watchdog force-ends update in device %s\n", shortDesc().c_str());
     updatingChannelsComplete();
     FOCUSLOG("##### Force-ending complete\n");
-
   }
   #endif
 }
@@ -747,6 +789,13 @@ void Device::applyingChannelsComplete()
       DoneCB cb = appliedOrSupersededCB;
       appliedOrSupersededCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, values have been superseded
+      // check for independent operation waiting for apply complete
+      if (applyCompleteCB) {
+        FOCUSLOG("- confirming apply (really) finalized to waitForApplyComplete() client\n");
+        cb = applyCompleteCB;
+        applyCompleteCB = NULL;
+        cb();
+      }
       FOCUSLOG("- confirmed apply (really) finalized\n");
     }
   }
@@ -848,11 +897,13 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       // area dimming continuation
       // - reschedule dimmer timeout (=keep dimming)
       MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
+      // - otherwise: NOP
+      return;
     }
     // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
     dimSceneNo = mainDimScene(aSceneNo);
     if (dimSceneNo!=0) {
-      // Legacy dimming via INC_S/DEC_S/STOP_S
+      // Start/Stop legacy dimming via INC_S/DEC_S/STOP_S
       dimChannelForArea(
         channeltype_default,
         dimSceneNo==STOP_S ? dimmode_stop : (dimSceneNo==INC_S ? dimmode_up : dimmode_down),
@@ -864,6 +915,12 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
     // check for area
     int area = areaFromScene(aSceneNo);
+    // make sure dimming stops for any non-dimming scene call
+    if (currentDimMode!=dimmode_stop) {
+      // any non-dimming scene call stops dimming
+      LOG(LOG_NOTICE, "- interrupts dimming in progress\n");
+      dimChannelForArea(currentDimChannel, dimmode_stop, area, 0);
+    }
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
     if (area) {
       LOG(LOG_DEBUG, "callScene(%d): is area #%d scene\n", aSceneNo, area);
@@ -1096,8 +1153,10 @@ ErrorPtr Device::load()
   ErrorPtr err;
   // if we don't have device settings at this point (created by subclass)
   // create standard base class settings.
-  if (!deviceSettings)
-    deviceSettings = DeviceSettingsPtr(new DeviceSettings(*this));
+  if (!deviceSettings) {
+    LOG(LOG_ERR, "***** Device %s does not have settings at load() time! -> probably misconfigured\n", shortDesc().c_str());
+    return ErrorPtr(new WebError(500,"missing settings"));
+  }
   // load the device settings
   if (deviceSettings) {
     err = deviceSettings->loadFromStore(dSUID.getString().c_str());

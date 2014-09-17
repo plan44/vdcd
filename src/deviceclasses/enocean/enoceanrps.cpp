@@ -34,6 +34,16 @@
 
 using namespace p44;
 
+#pragma mark - EnoceanRPSDevice
+
+EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
+  inherited(aClassContainerP, aTotalSubdevices)
+{
+}
+
+
+#pragma mark - EnoceanRpsHandler
+
 EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
   inherited(aDevice)
 {
@@ -55,6 +65,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
     // create EnoceanRPSDevice device
     newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
+    // standard device settings without scene table
+    newDev->installSettings();
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information
@@ -90,6 +102,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     // F6-10-00 : Window handle
     // create EnoceanRPSDevice device
     newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
+    // standard device settings without scene table
+    newDev->installSettings();
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aSubDevice);
     // assign EPP information

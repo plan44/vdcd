@@ -55,7 +55,7 @@ using namespace p44;
 #pragma mark - HueDevice
 
 
-HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID) :
+HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor) :
   inherited(aClassContainerP),
   lightID(aLightID),
   pendingApplyCB(NULL),
@@ -63,6 +63,28 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
 {
   // hue devices are lights
   setPrimaryGroup(group_yellow_light);
+  if (aIsColor) {
+    // color lamp
+    // - use color light settings, which include a color scene table
+    installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
+    // - set the behaviour
+    ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
+    cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    cl->setHardwareName(string_format("color light #%s", lightID.c_str()));
+    cl->initMinBrightness(0.4); // min brightness is roughly 1/256
+    addBehaviour(cl);
+  }
+  else {
+    // dimmable lamp
+    // - use normal light settings
+    installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
+    // - set the behaviour
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    l->setHardwareName(string_format("monochrome light #%s", lightID.c_str()));
+    l->initMinBrightness(0.4); // min brightness is roughly 1/256
+    addBehaviour(l);
+  }
   // derive the dSUID
   deriveDsUid();
 }
@@ -103,7 +125,6 @@ void HueDevice::setName(const string &aName)
 
 
 
-
 void HueDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // query light attributes and state
@@ -112,11 +133,12 @@ void HueDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 }
 
 
+// TODO: once hue bridge 1.3 is common, this information could be read from the collection result
 void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aDeviceInfo) {
     JsonObjectPtr o;
-    // get model name from device
+    // get model name from device (note: with 1.3 bridge and later this could be read at collection, but pre-1.3 needs this separate call)
     hueModel.clear();
     o = aDeviceInfo->get("type");
     if (o) {
@@ -130,30 +152,6 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
     JsonObjectPtr state = aDeviceInfo->get("state");
     Brightness bri = 0;
     if (state) {
-      // if we have "colormode", it's a color lamp. Otherwise its a hue lux
-      o = state->get("colormode");
-      if (o) {
-        // color lamp
-        // - use color light settings, which include a color scene table
-        deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
-        // - set the behaviour
-        ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
-        cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
-        cl->setHardwareName(string_format("hue color light #%s", lightID.c_str()));
-        cl->initMinBrightness(0.4); // min brightness is roughly 1/256
-        addBehaviour(cl);
-      }
-      else {
-        // dimmable lamp
-        // - use normal light settings
-        deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
-        // - set the behaviour
-        LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-        l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
-        l->setHardwareName(string_format("hue lux light #%s", lightID.c_str()));
-        l->initMinBrightness(0.4); // min brightness is roughly 1/256
-        addBehaviour(l);
-      }
       // get current brightness
       o = state->get("on");
       if (o && o->boolValue()) {
@@ -175,7 +173,7 @@ void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset
 
 bool HueDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  if (getIcon(output->getOutputFunction()==outputFunction_colordimmer ? "hue" : "hue_lux", aIcon, aWithData, aResolutionPrefix))
+  if (output && getIcon(output->getOutputFunction()==outputFunction_colordimmer ? "hue" : "hue_lux", aIcon, aWithData, aResolutionPrefix))
     return true;
   else
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);

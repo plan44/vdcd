@@ -69,6 +69,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // simulate heating valve with lo bat (like thermokon SAB02,SAB05 or Kieback+Peter MD15-FTL)
     // - is heating
     primaryGroup = group_blue_heating;
+    // - standard device settings without scene table
+    installSettings();
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // also put into room temperature control group by default (besides standard blue)
@@ -105,7 +107,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     if (hasColor) {
       // Color light
       // - use color light settings, which include a color scene table
-      deviceSettings = DeviceSettingsPtr(new ColorLightDeviceSettings(*this));
+      installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
       // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
       ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
       addBehaviour(l);
@@ -113,7 +115,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     else {
       // Simple single-channel light
       // - use light settings, which include a scene table
-      deviceSettings = DeviceSettingsPtr(new LightDeviceSettings(*this));
+      installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
       // - add simple single-channel light behaviour
       LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
       l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
@@ -124,6 +126,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // Simulate Button device
     // - defaults to black (generic button)
     primaryGroup = group_black_joker;
+    // - standard device settings without scene table
+    installSettings();
     // - console key input as button
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
