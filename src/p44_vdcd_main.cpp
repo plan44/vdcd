@@ -34,7 +34,7 @@
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
 
-#define MAINLOOP_CYCLE_TIME_uS 20000 // 20mS
+#define MAINLOOP_CYCLE_TIME_uS 33333 // 33mS
 
 using namespace p44;
 
