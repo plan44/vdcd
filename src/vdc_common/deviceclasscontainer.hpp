@@ -138,7 +138,7 @@ namespace p44 {
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
     /// @return if true, this device class should not be announced towards the dS system when it has no devices
-    bool invisibleWhenEmpty() { return false; }
+    virtual bool invisibleWhenEmpty() { return false; }
 
     /// set user assignable name
     /// @param new name of the addressable entity
