@@ -153,7 +153,7 @@ void EnoceanRpsButtonHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // extract payload data
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
   uint8_t status = aEsp3PacketPtr->radioStatus();
-  FOCUSLOG("RPS message: data=0x%02X, status=0x%02X, processing in switchIndex=%d, isRockerUp=%d\n", data, status, switchIndex, isRockerUp);
+  LOG(LOG_INFO, "RPS message: data=0x%02X, status=0x%02X, processing in %s (switchIndex=%d, isRockerUp=%d)\n", data, status, device.shortDesc().c_str(), switchIndex, isRockerUp);
   // decode
   if (status & status_NU) {
     // N-Message

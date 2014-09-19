@@ -79,7 +79,7 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Button was %s\n", aPressed ? "pressed" : "released");
+  LOG(LOG_NOTICE,"Button %s in device %s was %s\n", hardwareName.c_str(), device.shortDesc().c_str(), aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
   checkStateMachine(true, MainLoop::now());
 }

@@ -301,7 +301,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         // get value
         double value = o->doubleValue();
         // now process the value (updates channel values, but does not yet apply them)
-        LOG(LOG_NOTICE, "%s: processControlValue(%s, %f):\n", shortDesc().c_str(), controlValueName.c_str(), value);
+        LOG(LOG_NOTICE, "processControlValue(%s, %f) in device %s:\n", controlValueName.c_str(), value, shortDesc().c_str());
         processControlValue(controlValueName, value);
         // apply the values
         requestApplyingChannels(NULL, false);
@@ -376,7 +376,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
   }
   else if (aMethod=="identify") {
     // identify to user
-    LOG(LOG_NOTICE, "%s: identify:\n", shortDesc().c_str());
+    LOG(LOG_NOTICE, "Identify in device %s:\n", shortDesc().c_str());
     identifyToUser();
   }
   else {
@@ -912,7 +912,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       );
       return;
     }
-    LOG(LOG_NOTICE, "%s: callScene(%d) (non-dimming!):\n", shortDesc().c_str(), aSceneNo);
+    LOG(LOG_NOTICE, "CallScene(%d) (non-dimming!) in device %s:\n", aSceneNo, shortDesc().c_str());
     // check for area
     int area = areaFromScene(aSceneNo);
     // make sure dimming stops for any non-dimming scene call
@@ -923,7 +923,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
     if (area) {
-      LOG(LOG_DEBUG, "callScene(%d): is area #%d scene\n", aSceneNo, area);
+      LOG(LOG_DEBUG, "- callScene(%d): is area #%d scene\n", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
       scene = scenes->getScene(mainSceneForArea(area));
       if (scene->isDontCare()) {
@@ -1014,7 +1014,7 @@ void Device::sceneActionsComplete(DsScenePtr aScene)
 
 void Device::undoScene(SceneNo aSceneNo)
 {
-  LOG(LOG_NOTICE, "%s: undoScene(%d):\n", shortDesc().c_str(), aSceneNo);
+  LOG(LOG_NOTICE, "UndoScene(%d) in device %s:\n", aSceneNo, shortDesc().c_str());
   if (previousState && previousState->sceneNo==aSceneNo) {
     // there is an undo pseudo scene we can apply
     // scene found, now apply it to the output (if any)
@@ -1032,11 +1032,11 @@ void Device::setLocalPriority(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    LOG(LOG_NOTICE, "%s: setLocalPriority(%d):\n", shortDesc().c_str(), aSceneNo);
+    LOG(LOG_NOTICE, "SetLocalPriority(%d) in device %s:\n", aSceneNo, shortDesc().c_str());
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->isDontCare()) {
-      LOG(LOG_DEBUG, "setLocalPriority(%d): localPriority set\n", aSceneNo);
+      LOG(LOG_DEBUG, "- setLocalPriority(%d): localPriority set\n", aSceneNo);
       output->setLocalPriority(true);
     }
   }
@@ -1047,7 +1047,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    LOG(LOG_NOTICE, "%s: callSceneMin(%d):\n", shortDesc().c_str(), aSceneNo);
+    LOG(LOG_NOTICE, "CallSceneMin(%d) in device %s:\n", aSceneNo, shortDesc().c_str());
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->isDontCare()) {
@@ -1078,7 +1078,7 @@ void Device::identifyToUser()
 void Device::saveScene(SceneNo aSceneNo)
 {
   // see if we have a scene table at all
-  LOG(LOG_NOTICE, "%s: saveScene(%d):\n", shortDesc().c_str(), aSceneNo);
+  LOG(LOG_NOTICE, "SaveScene(%d) in device:\n", aSceneNo, shortDesc().c_str());
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
     // we have a device-wide scene table, get the scene object

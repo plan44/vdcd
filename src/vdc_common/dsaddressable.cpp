@@ -176,12 +176,12 @@ void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParam
 {
   if (aMethod=="ping") {
     // issue device ping (which will issue a pong when device is reachable)
-    LOG(LOG_INFO,"ping: %s -> checking presence...\n", shortDesc().c_str());
+    LOG(LOG_INFO,"ping to %s %s -> checking presence...\n", entityType(), shortDesc().c_str());
     checkPresence(boost::bind(&DsAddressable::presenceResultHandler, this, _1));
   }
   else {
     // unknown notification
-    LOG(LOG_WARNING, "unknown notification '%s' for '%s'\n", aMethod.c_str(), shortDesc().c_str());
+    LOG(LOG_WARNING, "unknown notification '%s' for %s %s\n", aMethod.c_str(), entityType(), shortDesc().c_str());
   }
 }
 
@@ -207,11 +207,11 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
 {
   if (aIsPresent) {
     // send back Pong notification
-    LOG(LOG_INFO,"ping: %s is present -> sending pong\n", shortDesc().c_str());
+    LOG(LOG_INFO,"ping: %s %s is present -> sending pong\n", entityType(), shortDesc().c_str());
     sendRequest("pong", ApiValuePtr());
   }
   else {
-    LOG(LOG_NOTICE,"ping: %s is NOT present -> no Pong sent\n", shortDesc().c_str());
+    LOG(LOG_NOTICE,"ping: %s %s is NOT present -> no Pong sent\n", entityType(), shortDesc().c_str());
   }
 }
 
