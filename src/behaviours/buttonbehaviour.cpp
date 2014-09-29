@@ -577,7 +577,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           if (lastClick==Never)
             aPropValue->setNull();
           else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-lastClick)/Second);
+            aPropValue->setDoubleValue((double)(MainLoop::now()-lastClick)/Second);
           return true;
       }
     }

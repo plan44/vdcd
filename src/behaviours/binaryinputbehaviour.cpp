@@ -258,7 +258,7 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           if (lastUpdate==Never)
             aPropValue->setNull();
           else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-lastUpdate)/Second);
+            aPropValue->setDoubleValue((double)(MainLoop::now()-lastUpdate)/Second);
           return true;
       }
     }

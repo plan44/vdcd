@@ -263,7 +263,7 @@ bool ChannelBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVa
           if (channelLastSync==Never)
             aPropValue->setNull(); // no value known
           else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-channelLastSync)/Second);
+            aPropValue->setDoubleValue((double)(MainLoop::now()-channelLastSync)/Second);
           return true;
       }
     }

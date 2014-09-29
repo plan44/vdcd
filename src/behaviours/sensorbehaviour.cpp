@@ -269,7 +269,7 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           if (lastUpdate==Never)
             aPropValue->setNull();
           else
-            aPropValue->setDoubleValue(((double)MainLoop::now()-lastUpdate)/Second);
+            aPropValue->setDoubleValue((double)(MainLoop::now()-lastUpdate)/Second);
           return true;
       }
     }
