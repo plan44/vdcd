@@ -514,7 +514,7 @@ int ButtonBehaviour::numStateProps() { return numStateProperties; }
 const PropertyDescriptorPtr ButtonBehaviour::getStateDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numStateProperties] = {
-    { "value", apivalue_uint64, value_key+states_key_offset, OKEY(button_key) },
+    { "value", apivalue_bool, value_key+states_key_offset, OKEY(button_key) },
     { "clickType", apivalue_uint64, clickType_key+states_key_offset, OKEY(button_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(button_key) },
   };
