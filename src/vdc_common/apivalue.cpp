@@ -25,8 +25,6 @@
 using namespace p44;
 
 
-#pragma mark - ApiValue
-
 
 ApiValue::ApiValue() :
   objectType(apivalue_null)
@@ -88,7 +86,7 @@ void ApiValue::clear()
 
 
 
-// getting and setting as string (for all basic types)
+#pragma mark -  getting and setting as string (for all basic types)
 
 string ApiValue::stringValue()
 {
@@ -199,6 +197,10 @@ string ApiValue::description()
       s = binaryToHexString(b);
     }
   }
+  else if (objectType==apivalue_null) {
+    // show NULL explicitly
+    s = "NULL";
+  }
   else {
     // must be simple type
     s = stringValue();
@@ -208,7 +210,9 @@ string ApiValue::description()
 
 
 
-// factory methods
+#pragma mark - factory methods
+
+
 ApiValuePtr ApiValue::newInt64(int64_t aInt64)
 {
   ApiValuePtr newVal = newValue(apivalue_int64);
@@ -284,7 +288,7 @@ ApiValuePtr ApiValue::newNull()
 
 
 
-// get in different int types
+#pragma mark - get in different int types
 
 uint8_t ApiValue::uint8Value()
 {
@@ -353,8 +357,8 @@ void ApiValue::setInt32Value(int32_t aInt32)
 
 
 
+#pragma mark - convenience utilities
 
-// convenience utilities
 
 size_t ApiValue::stringLength()
 {
@@ -393,8 +397,5 @@ string ApiValue::lowercaseStringValue()
   return lowerCase(stringValue());
 }
 
-
-
-#pragma mark - StandaloneApiValue
 
 
