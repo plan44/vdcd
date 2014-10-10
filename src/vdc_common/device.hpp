@@ -127,6 +127,11 @@ namespace p44 {
     /// @return true if there is an icon, false if not
     virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
 
+    /// check for presence of model feature (flag in dSS visibility matrix)
+    /// @param aFeatureIndex the feature to check for
+    /// @return true if this device has the feature (which means dSS Configurator must provide UI for it)
+    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex);
+
     /// @}
 
 

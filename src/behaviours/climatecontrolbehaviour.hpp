@@ -79,6 +79,11 @@ namespace p44 {
     /// @name interaction with digitalSTROM system
     /// @{
 
+    /// check for presence of model feature (flag in dSS visibility matrix)
+    /// @param aFeatureIndex the feature to check for
+    /// @return true if this output behaviour has the feature (which means dSS Configurator must provide UI for it)
+    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex);
+
     /// Process a named control value. The type, color and settings of the output determine if at all,
     /// and if, how the value affects the output
     /// @param aName the name of the control value, which describes the purpose

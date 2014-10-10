@@ -123,6 +123,11 @@ namespace p44 {
     /// @param aIsMember true to make device member of this group
     void setGroupMembership(DsGroup aGroup, bool aIsMember);
 
+    /// check for presence of model feature (flag in dSS visibility matrix)
+    /// @param aFeatureIndex the feature to check for
+    /// @return true if this output behaviour has the feature (which means dSS Configurator must provide UI for it)
+    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex) { return false; /* base class does not have any specific feature */ };
+
     /// apply scene to output channels
     /// @param aScene the scene to apply to output channels
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.

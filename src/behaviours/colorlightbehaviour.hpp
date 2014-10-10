@@ -231,6 +231,10 @@ namespace p44 {
 
     /// @}
 
+    /// check for presence of model feature (flag in dSS visibility matrix)
+    /// @param aFeatureIndex the feature to check for
+    /// @return true if this output behaviour has the feature (which means dSS Configurator must provide UI for it)
+    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs

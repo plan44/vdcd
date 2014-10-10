@@ -178,6 +178,92 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
   }
 }
 
+#pragma mark - model features
+
+static const char *modelFeatureNames[numModelFeatures] = {
+  "dontcare",
+  "blink",
+  "ledauto",
+  "leddark",
+  "transt",
+  "outmode",
+  "outvalue8",
+  "pushbutton",
+  "pushbdevice",
+  "pushbarea",
+  "pushbadvanced",
+  "pushbcombined",
+  "modelFeature_shadeprops",
+  "shadeposition",
+  "motiontimefins",
+  "optypeconfig",
+  "shadebladeang",
+  "highlevel",
+  "consumption",
+  "jokerconfig",
+  "akmsensor",
+  "akminput",
+  "akmdelay",
+  "twowayconfig",
+  "outputchannels",
+  "heatinggroup",
+  "heatingoutmode",
+  "heatingprops",
+  "pwmvalue"
+};
+
+
+bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
+{
+  // ask output first, might have more specific info
+  if (output) {
+    bool hasFeature = output->hasModelFeature(aFeatureIndex);
+    if (hasFeature) return true; // output has the feature, no need to check at device level
+  }
+  // now check for device level features
+  switch (aFeatureIndex) {
+    case modelFeature_dontcare:
+      // Assumption: all devices with scene table have this
+      return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings)!=NULL;
+    case modelFeature_blink:
+      // Assumption: all devices with an output have this, except heating
+      return output && primaryGroup!=group_blue_heating;
+    case modelFeature_ledauto:
+      // TODO: check this, assuming no virtual device has a LED at all
+      return false;
+    case modelFeature_leddark:
+      // TODO: check this, assuming no virtual device has a LED at all
+      return false;
+    case modelFeature_outmode:
+      // Assuming light, access and alarm output devices have an output mode
+      return (output && (primaryGroup==group_yellow_light || primaryGroup==group_green_access || primaryGroup==group_red_security));
+    case modelFeature_outvalue8:
+      // TODO: this is a tough one, no idea how to derive this. As light is most important, and always has outvalue8 set, return it for now for all outputs
+      return output!=NULL;
+    case modelFeature_pushbutton:
+    case modelFeature_pushbarea:
+    case modelFeature_pushbadvanced:
+      // Assumption: any device with a buttonInputBehaviour has these props
+      return buttons.size()>0;
+    case modelFeature_pushbdevice:
+      // Assumption: no device has a local button
+      return false;
+    case modelFeature_pushbcombined:
+    case modelFeature_twowayconfig:
+      // Assumption: devices with more than single button input are combined up/down (or even 4-way and more) buttons, and need two-way config
+      return buttons.size()>1;
+    case modelFeature_highlevel:
+    case modelFeature_jokerconfig:
+      // Assumption: black joker devices can have a high-level (app) functionality and need joker config
+      return primaryGroup==group_black_joker;
+
+
+
+    default:
+      return false; // not known
+  }
+}
+
 
 #pragma mark - Channels
 
@@ -1215,6 +1301,8 @@ enum {
   // the scenes + undo
   scenes_key,
   undoState_key,
+  // model features
+  modelFeatures_key,
   numDeviceFieldKeys
 };
 
@@ -1234,12 +1322,18 @@ static char device_channels_key;
 
 static char device_scenes_key;
 
+static char device_modelFeatures_key;
+
 
 int Device::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (!aParentDescriptor) {
     // Accessing properties at the Device (root) level
     return inherited::numProps(aDomain, aParentDescriptor)+numDeviceProperties;
+  }
+  else if (aParentDescriptor->hasObjectKey(device_modelFeatures_key)) {
+    // model features
+    return numModelFeatures;
   }
   else if (aParentDescriptor->hasObjectKey(device_buttons_key)) {
     return (int)buttons.size();
@@ -1267,6 +1361,7 @@ int Device::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 
 PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
+  // device level properties
   static const PropertyDescription properties[numDeviceProperties] = {
     // common device properties
     { "primaryGroup", apivalue_uint64, primaryGroup_key, OKEY(device_key) },
@@ -1297,6 +1392,8 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     // the scenes array
     { "scenes", apivalue_object+propflag_container, scenes_key, OKEY(device_scenes_key) },
     { "undoState", apivalue_object, undoState_key, OKEY(device_key) },
+    // the modelFeatures (row from former dSS visibility matrix, controlling what is shown in the UI)
+    { "modelFeatures", apivalue_object+propflag_container, modelFeatures_key, OKEY(device_modelFeatures_key) }
   };
   // C++ object manages different levels, check aParentObjectKey
   if (!aParentDescriptor) {
@@ -1307,6 +1404,17 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     aPropIndex -= n; // rebase to 0 for my own first property
     return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
   }
+  else if (aParentDescriptor->hasObjectKey(device_modelFeatures_key)) {
+    // model features - distinct set of boolean flags
+    if (aPropIndex<numModelFeatures) {
+      DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
+      descP->propertyName = modelFeatureNames[aPropIndex];
+      descP->propertyType = apivalue_bool;
+      descP->propertyFieldKey = aPropIndex;
+      descP->propertyObjectKey = OKEY(device_modelFeatures_key);
+      return descP;
+    }
+  }
   return PropertyDescriptorPtr();
 }
 
@@ -1314,7 +1422,10 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
 
 PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  if (aParentDescriptor && aParentDescriptor->isArrayContainer()) {
+  if (
+    aParentDescriptor && aParentDescriptor->isArrayContainer() &&
+    !aParentDescriptor->hasObjectKey(device_modelFeatures_key) // these are handled by base class via getDescriptorByIndex
+  ) {
     // array-like container
     PropertyDescriptorPtr propDesc;
     bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
@@ -1413,6 +1524,7 @@ PropertyContainerPtr Device::getContainer(PropertyDescriptorPtr &aPropertyDescri
 bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   if (aPropertyDescriptor->hasObjectKey(device_key)) {
+    // Device level field properties
     if (aMode==access_read) {
       // read properties
       switch (aPropertyDescriptor->fieldKey()) {
@@ -1449,6 +1561,18 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
         case progMode_key:
           progMode = aPropValue->boolValue();
           return true;
+      }
+    }
+  }
+  else if (aPropertyDescriptor->hasObjectKey(device_modelFeatures_key)) {
+    // model features
+    if (aMode==access_read) {
+      if (hasModelFeature((DsModelFeatures)aPropertyDescriptor->fieldKey())) {
+        aPropValue->setBoolValue(true);
+        return true;
+      }
+      else {
+        return false;
       }
     }
   }

@@ -350,6 +350,21 @@ LightBehaviour::LightBehaviour(Device &aDevice) :
 }
 
 
+bool LightBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+{
+  // now check for light behaviour level features
+  switch (aFeatureIndex) {
+    case modelFeature_transt:
+      // Assumption: all light output devices have transition times
+      return true;
+    default:
+      // not available at this level, ask base class
+      return inherited::hasModelFeature(aFeatureIndex);
+  }
+}
+
+
+
 void LightBehaviour::initMinBrightness(Brightness aMin)
 {
   // save min

@@ -201,6 +201,21 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
 }
 
 
+bool ColorLightBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+{
+  // now check for light behaviour level features
+  switch (aFeatureIndex) {
+    case modelFeature_outputchannels:
+      // Assumption: all color light output devices need the multi-channel color lamp UI
+      return true;
+    default:
+      // not available at this level, ask base class
+      return inherited::hasModelFeature(aFeatureIndex);
+  }
+}
+
+
+
 void ColorLightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
   // load basic light scene info

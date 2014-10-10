@@ -338,4 +338,39 @@ typedef enum {
 } DsBinaryInputType;
 
 
+/// model features (column from dSS visibility Matrix)
+typedef enum {
+  modelFeature_dontcare,
+  modelFeature_blink,
+  modelFeature_ledauto,
+  modelFeature_leddark,
+  modelFeature_transt,
+  modelFeature_outmode,
+  modelFeature_outvalue8,
+  modelFeature_pushbutton,
+  modelFeature_pushbdevice,
+  modelFeature_pushbarea,
+  modelFeature_pushbadvanced,
+  modelFeature_pushbcombined,
+  modelFeature_modelFeature_shadeprops,
+  modelFeature_shadeposition,
+  modelFeature_motiontimefins,
+  modelFeature_optypeconfig,
+  modelFeature_shadebladeang,
+  modelFeature_highlevel,
+  modelFeature_consumption,
+  modelFeature_jokerconfig,
+  modelFeature_akmsensor,
+  modelFeature_akminput,
+  modelFeature_akmdelay,
+  modelFeature_twowayconfig,
+  modelFeature_outputchannels,
+  modelFeature_heatinggroup,
+  modelFeature_heatingoutmode,
+  modelFeature_heatingprops,
+  modelFeature_pwmvalue,
+  numModelFeatures
+} DsModelFeatures;
+
+
 #endif
