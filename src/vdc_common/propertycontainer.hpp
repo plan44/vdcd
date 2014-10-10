@@ -73,8 +73,6 @@ namespace p44 {
     virtual ApiValueType type() const = 0;
     /// access index/key of the property
     virtual size_t fieldKey() const = 0;
-//    /// access index/key of parent field
-//    virtual size_t parentFieldKey() { return PROPINDEX_NONE; };
     /// extra identification for the object from the API perspective (allows having more than one API object within one C++ object
     virtual intptr_t objectKey() const = 0;
     /// is array container
@@ -114,20 +112,17 @@ namespace p44 {
   public:
     DynamicPropertyDescriptor(PropertyDescriptorPtr aParentDescriptor) :
       inherited(aParentDescriptor),
-//      propertyParentFieldKey(PROPINDEX_NONE),
       arrayContainer(false)
     {};
     string propertyName; ///< name of the property
     ApiValueType propertyType; ///< type of the property value
     size_t propertyFieldKey; ///< key for accessing the property within its container. (size_t to allow using offset into struct)
-//    size_t propertyParentFieldKey; ///< key of the original container field, used for array-like enumerated containers
     intptr_t propertyObjectKey; ///< identifier for object this property belongs to (for properties spread over sublcasses)
     bool arrayContainer;
 
     virtual const char *name() const { return propertyName.c_str(); }
     virtual ApiValueType type() const { return propertyType; }
     virtual size_t fieldKey() const { return propertyFieldKey; }
-//    virtual size_t parentFieldKey() { return propertyParentFieldKey; };
     virtual intptr_t objectKey() const { return propertyObjectKey; }
     virtual bool isArrayContainer() const { return arrayContainer; };
   };
