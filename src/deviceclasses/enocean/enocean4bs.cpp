@@ -387,18 +387,17 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
       case behaviour_output: {
         OutputBehaviourPtr ob;
         if (subdeviceDescP->flags & dflag_climatecontrolbehaviour) {
-          // climate control output, use special behaviour
+          // climate control output, use special behaviour (with has already set its specific default group membership)
           ob = OutputBehaviourPtr(new ClimateControlBehaviour(*newDev.get()));
-          ob->setGroupMembership(group_roomtemperature_control, true); // also put into room temperature control group by default (besides standard blue)
         }
         else {
           // generic output, no scenes or special behaviour
           ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-        }
-        if (subdeviceDescP->group!=group_variable) {
-          // if not unspecified/variable, make output member of this specific group
-          // Note: specialized behaviour, such as ClimateControlBehaviour, will already have set itself a default group.
-          ob->setGroupMembership(subdeviceDescP->group, true);
+          // make output member of the subdevice's group
+          if (subdeviceDescP->group!=group_variable) {
+            // if not unspecified/variable, add group membership
+            ob->setGroupMembership(subdeviceDescP->group, true);
+          }
         }
         ob->setHardwareOutputConfig((DsOutputFunction)subdeviceDescP->behaviourParam, subdeviceDescP->usage, false, 0);
         ob->setHardwareName(newHandler->shortDesc());
