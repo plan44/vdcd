@@ -417,7 +417,7 @@ string DaliDevice::hardwareGUID()
 }
 
 
-string DaliDevice::modelGUID()
+string DaliDevice::hardwareModelGUID()
 {
   if (brightnessDimmer->deviceInfo.oem_gtin==0)
     return ""; // none
@@ -675,7 +675,7 @@ string DaliRGBWDevice::hardwareGUID()
 }
 
 
-string DaliRGBWDevice::modelGUID()
+string DaliRGBWDevice::hardwareModelGUID()
 {
   DaliBusDevicePtr dimmer = firstBusDevice();
   if (!dimmer || dimmer->deviceInfo.oem_gtin==0)

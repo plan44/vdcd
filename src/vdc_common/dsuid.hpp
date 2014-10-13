@@ -38,6 +38,10 @@
 // - plan44 vDC implementation namespace (used for generating vDC-implementation specific dsids)
 #define DSUID_P44VDC_NAMESPACE_UUID "441A1FED-F449-4058-BEBA-13B1C4AB6A93"
 
+// - plan44 model ID namespace (used for generating vDCd-implementation specific model IDs)
+#define DSUID_P44VDC_MODELUID_UUID "4E2E874A-11E1-4A6D-BDBD-D2556CAE3CE5"
+
+
 // components for classic dsids
 #define DSID_OBJECTCLASS_DSDEVICE 0x000000
 #define DSID_OBJECTCLASS_DSMETER 0x000001

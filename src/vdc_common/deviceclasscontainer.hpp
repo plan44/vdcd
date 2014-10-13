@@ -225,6 +225,9 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "vDC virtual device controller"; }
 
+    /// @return unique ID for the functional model of this entity
+    virtual string modelUID();
+
     /// @return the entity type (one of dSD|vdSD|vDChost|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vDC"; }
 

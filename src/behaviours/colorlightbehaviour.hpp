@@ -218,6 +218,10 @@ namespace p44 {
 
     ColorLightBehaviour(Device &aDevice);
 
+    /// device type identifier
+    /// @return constant identifier for this type of behaviour
+    virtual const char *behaviourTypeIdentifier() { return "colorlight"; };
+
     /// @name color services for implementing color lights
     /// @{
 
@@ -277,6 +281,10 @@ namespace p44 {
     /// @}
 
     RGBColorLightBehaviour(Device &aDevice);
+
+    /// device type identifier
+    /// @return constant identifier for this type of behaviour
+    virtual const char *behaviourTypeIdentifier() { return "rgblight"; };
 
     /// @name color services for implementing color lights
     /// @{

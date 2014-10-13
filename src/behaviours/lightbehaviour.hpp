@@ -154,6 +154,10 @@ namespace p44 {
   public:
     LightBehaviour(Device &aDevice);
 
+    /// device type identifier
+    /// @return constant identifier for this type of behaviour
+    virtual const char *behaviourTypeIdentifier() { return "light"; };
+
     /// the brightness channel
     BrightnessChannelPtr brightness;
 

@@ -69,6 +69,10 @@ namespace p44 {
   public:
     ClimateControlBehaviour(Device &aDevice);
 
+    /// device type identifier
+    /// @return constant identifier for this type of behaviour
+    virtual const char *behaviourTypeIdentifier() { return "climatecontrol"; };
+
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 

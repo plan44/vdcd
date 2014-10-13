@@ -194,8 +194,8 @@ namespace p44 {
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
 
-    /// @return model GUID in URN format to identify model of device as uniquely as possible
-    virtual string modelGUID();
+    /// @return model GUID in URN format to identify hardware model of device as uniquely as possible
+    virtual string hardwareModelGUID();
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID();
@@ -316,7 +316,7 @@ namespace p44 {
     virtual string hardwareGUID();
 
     /// @return model GUID in URN format to identify model of device as uniquely as possible
-    virtual string modelGUID();
+    virtual string hardwareModelGUID();
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID();

@@ -116,6 +116,9 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "vdSD - virtual device"; }
 
+    /// @return unique ID for the functional model of this entity
+    virtual string modelUID();
+
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vdSD"; }
 

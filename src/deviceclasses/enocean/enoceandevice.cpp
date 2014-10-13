@@ -132,7 +132,7 @@ string EnoceanDevice::hardwareGUID()
 }
 
 
-string EnoceanDevice::modelGUID()
+string EnoceanDevice::hardwareModelGUID()
 {
   return string_format("enoceaneep:%06lX", getEEProfile());
 }

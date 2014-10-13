@@ -148,6 +148,15 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "DsAddressable"; };
 
+    /// @return unique ID for the functional model of this entity
+    /// @note modelUID must be equal between all devices of the same model/class/kind, where "same" means
+    ///   the functionality relevant for the dS system. If different connected hardware devices
+    ///   (different hardwareModelGuid) provide EXACTLY the same dS functionality, these devices MAY
+    ///   have the same modelUID. Vice versa, two identical hardware devices (two digital input for example)
+    ///   might have the same hardwareModelGuid, but different modelUID if for example one input is mapped
+    ///   as a button, and the other as a binaryInput.
+    virtual string modelUID() = 0;
+
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "*"; };
 
@@ -173,7 +182,7 @@ namespace p44 {
     /// - sparkcoreid:ssssss = spark core ID
     virtual string hardwareGUID() { return ""; };
 
-    /// @return model GUID in URN format to identify model of device as uniquely as possible
+    /// @return model GUID in URN format to identify model of the connected hardware device as uniquely as possible
     /// @note model GUID must be equal between all devices of the same model/class/kind, where "same" should be
     ///   focused to the context of functionality relevant for the dS system, if possible. On the other hand,
     ///   identifiers allowing global lookup (such as GTIN) are preferred if available over less generic
@@ -182,8 +191,7 @@ namespace p44 {
     /// - enoceaneep:RRFFTT = 6 hex digits enOcean EEP
     /// - gs1:(01)ggggg = GS1 formatted GTIN
     /// - uuid:UUUUUUU = UUID
-    /// - macaddress:MMMMM = MAC Address
-    virtual string modelGUID() { return ""; };
+    virtual string hardwareModelGUID() { return ""; };
 
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; };

@@ -35,8 +35,6 @@
 #include "outputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
 
-
-
 using namespace p44;
 
 
@@ -61,6 +59,27 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
 }
 
 
+string Device::modelUID()
+{
+  // combine basic device type identifier, primary group, behaviours and model features and make UUID based dSUID of it
+  DsUid vdcNamespace(DSUID_P44VDC_MODELUID_UUID);
+  string s = string_format("%s:%d:", deviceTypeIdentifier(), primaryGroup);
+  // behaviours
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) s += (*pos)->behaviourTypeIdentifier();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) s += (*pos)->behaviourTypeIdentifier();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) s += (*pos)->behaviourTypeIdentifier();
+  if (output) s += output->behaviourTypeIdentifier();
+  // model features
+  for (int f=0; f<numModelFeatures; f++) {
+    s += hasModelFeature((DsModelFeatures)f) ? 'T' : 'F';
+  }
+  // now make UUIDv5 type dSUID out of it
+  DsUid modelUID;
+  modelUID.setNameInSpace(s, vdcNamespace);
+  return modelUID.getString();
+}
+
+
 Device::~Device()
 {
   buttons.clear();
@@ -68,6 +87,7 @@ Device::~Device()
   sensors.clear();
   output.reset();
 }
+
 
 
 void Device::setName(const string &aName)
@@ -256,9 +276,6 @@ bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
     case modelFeature_jokerconfig:
       // Assumption: black joker devices can have a high-level (app) functionality and need joker config
       return primaryGroup==group_black_joker;
-
-
-
     default:
       return false; // not known
   }

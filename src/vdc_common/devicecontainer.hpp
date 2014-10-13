@@ -290,6 +290,9 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName() { return "vDC host"; }
 
+    /// @return unique ID for the functional model of this entity
+    virtual string modelUID() { return DSUID_P44VDC_MODELUID_UUID; /* using the p44 modelUID namespace UUID itself */ }
+
     /// @return the entity type (one of dSD|vdSD|vDChost|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vDChost"; }
 

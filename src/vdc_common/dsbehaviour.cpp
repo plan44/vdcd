@@ -123,6 +123,7 @@ const char *DsBehaviour::getTypeName()
 enum {
   name_key,
   type_key,
+  behaviourType_key,
   numDsBehaviourDescProperties
 };
 
@@ -162,6 +163,7 @@ PropertyDescriptorPtr DsBehaviour::getDescriptorByIndex(int aPropIndex, int aDom
   static const PropertyDescription descProperties[numDsBehaviourDescProperties] = {
     { "name", apivalue_string, name_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
     { "type", apivalue_string, type_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
+    { "x-p44-behaviourType", apivalue_string, behaviourType_key+descriptions_key_offset, OKEY(dsBehaviour_Key) },
   };
   static const PropertyDescription stateProperties[numDsBehaviourStateProperties] = {
     { "error", apivalue_uint64, error_key+states_key_offset, OKEY(dsBehaviour_Key) },
@@ -209,6 +211,7 @@ bool DsBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
         // descriptions
         case name_key+descriptions_key_offset: aPropValue->setStringValue(hardwareName); return true;
         case type_key+descriptions_key_offset: aPropValue->setStringValue(getTypeName()); return true;
+        case behaviourType_key+descriptions_key_offset: aPropValue->setStringValue(behaviourTypeIdentifier()); return true;
         // state
         case error_key+states_key_offset: aPropValue->setUint16Value(hardwareError); return true;
       }

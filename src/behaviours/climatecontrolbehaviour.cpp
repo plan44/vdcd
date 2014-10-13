@@ -81,3 +81,10 @@ string ClimateControlBehaviour::description()
   s.append(inherited::description());
   return s;
 }
+
+
+// climate scenes:
+
+//  29 Activate control
+//  30 De-activate output
+//  31 Execute valve prophylaxis: Valve will be closed and opened to prevent calcification i.e. removal of calcium deposit

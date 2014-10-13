@@ -37,6 +37,16 @@ DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer 
 }
 
 
+string DeviceClassContainer::modelUID()
+{
+  // use device class identifier as modelID
+  DsUid vdcNamespace(DSUID_P44VDC_MODELUID_UUID);
+  // now make UUIDv5 type dSUID out of it
+  DsUid modelUID;
+  modelUID.setNameInSpace(deviceClassIdentifier(), vdcNamespace);
+  return modelUID.getString();
+}
+
 
 void DeviceClassContainer::setName(const string &aName)
 {

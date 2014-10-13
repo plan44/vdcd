@@ -233,11 +233,12 @@ enum {
   type_key,
   dSUID_key,
   model_key,
+  modelUID_key,
   hardwareVersion_key,
   hardwareGUID_key,
   numDevicesInHW_key,
   deviceIndexInHW_key,
-  modelGUID_key,
+  hardwareModelGUID_key,
   oemGUID_key,
   vendorId_key,
   extraInfo_key,
@@ -262,11 +263,12 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
     { "type", apivalue_string, type_key, OKEY(dsAddressable_key) },
     { "dSUID", apivalue_binary, dSUID_key, OKEY(dsAddressable_key) },
     { "model", apivalue_string, model_key, OKEY(dsAddressable_key) },
+    { "modelUID", apivalue_string, modelUID_key, OKEY(dsAddressable_key) },
     { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
     { "numDevicesInHW", apivalue_uint64, numDevicesInHW_key, OKEY(dsAddressable_key) },
     { "deviceIndexInHW", apivalue_uint64, deviceIndexInHW_key, OKEY(dsAddressable_key) },
-    { "modelGuid", apivalue_string, modelGUID_key, OKEY(dsAddressable_key) },
+    { "hardwareModelGuid", apivalue_string, hardwareModelGUID_key, OKEY(dsAddressable_key) },
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
     { "vendorId", apivalue_string, vendorId_key, OKEY(dsAddressable_key) },
     { "x-p44-extraInfo", apivalue_string, extraInfo_key, OKEY(dsAddressable_key) },
@@ -294,10 +296,11 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
       switch (aPropertyDescriptor->fieldKey()) {
         case type_key: aPropValue->setStringValue(entityType()); return true; // the entity type
         case dSUID_key: aPropValue->setStringValue(dSUID.getString()); return true; // always the real dSUID
-        case model_key: aPropValue->setStringValue(modelName()); return true;
+        case model_key: aPropValue->setStringValue(modelName()); return true; // human readable model identification
+        case modelUID_key: aPropValue->setStringValue(modelUID()); return true; // unique model identification, same features = same model
         case hardwareVersion_key: if (hardwareVersion().size()>0) { aPropValue->setStringValue(hardwareVersion()); return true; } else return false;
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
-        case modelGUID_key: if (modelGUID().size()>0) { aPropValue->setStringValue(modelGUID()); return true; } else return false;
+        case hardwareModelGUID_key: if (hardwareModelGUID().size()>0) { aPropValue->setStringValue(hardwareModelGUID()); return true; } else return false;
         case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
         case vendorId_key: if (vendorId().size()>0) { aPropValue->setStringValue(vendorId()); return true; } else return false;
         case extraInfo_key: if (getExtraInfo().size()>0) { aPropValue->setStringValue(getExtraInfo()); return true; } else return false;

@@ -105,6 +105,11 @@ namespace p44 {
     DsBehaviour(Device &aDevice);
     virtual ~DsBehaviour();
 
+    /// device type identifier
+    /// @return constant identifier for this type of behaviour
+    /// @note default is the basic behaviour type name. Subclasses need to override this method to get separate identification!
+    virtual const char *behaviourTypeIdentifier() { return getTypeName(); }
+
     /// initialisation of hardware-specific constants for this button input
     /// @param aHardwareName name to identify this functionality in hardware (like input terminal label, button label or kind etc.)
     /// @note this must be called once before the device gets added to the device container.
@@ -144,6 +149,7 @@ namespace p44 {
 
     /// textual representation of getType()
     /// @return type string, which is the string used to prefix the xxxDescriptions, xxxSettings and xxxStates properties
+    /// @note this only identifies the basic behaviour type. Subclassed behaviours can only be identified using behaviourTypeIdentifier()
     const char *getTypeName();
 
     /// description of object, mainly for debug and logging
