@@ -31,7 +31,6 @@ EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContai
   disableProximityCheck(false),
 	enoceanComm(MainLoop::currentMainLoop())
 {
-  initializeName("EnOcean vdc");
 }
 
 
