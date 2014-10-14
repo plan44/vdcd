@@ -84,6 +84,8 @@ vdcd_SOURCES = \
   src/p44utils/consolekey.hpp \
   src/p44utils/digitalio.cpp \
   src/p44utils/digitalio.hpp \
+  src/p44utils/analogio.cpp \
+  src/p44utils/analogio.hpp \
   src/p44utils/error.cpp \
   src/p44utils/error.hpp \
   src/p44utils/fnv.cpp \
@@ -188,6 +190,8 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/sparkiodevice.hpp \
   src/deviceclasses/simpleio/digitaliodevice.cpp \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
+  src/deviceclasses/simpleio/analogiodevice.cpp \
+  src/deviceclasses/simpleio/analogiodevice.hpp \
   src/deviceclasses/simpleio/staticdevicecontainer.cpp \
   src/deviceclasses/simpleio/staticdevicecontainer.hpp \
   src/deviceclasses/enocean/enoceancomm.cpp \

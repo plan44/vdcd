@@ -22,6 +22,7 @@
 #include "staticdevicecontainer.hpp"
 
 #include "digitaliodevice.hpp"
+#include "analogiodevice.hpp"
 #include "consoledevice.hpp"
 #include "sparkiodevice.hpp"
 
@@ -120,6 +121,10 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
   if (aDeviceType=="digitalio") {
     // Digital IO based device
     newDev = DevicePtr(new DigitalIODevice(this, aDeviceConfig));
+  }
+  else if (aDeviceType=="analogio") {
+    // Analog IO based device
+    newDev = DevicePtr(new AnalogIODevice(this, aDeviceConfig));
   }
   else if (aDeviceType=="console") {
     // console based simulated device

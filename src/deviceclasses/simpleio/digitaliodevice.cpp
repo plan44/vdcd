@@ -21,8 +21,6 @@
 
 #include "digitaliodevice.hpp"
 
-#include "fnv.hpp"
-
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
 
@@ -30,12 +28,12 @@ using namespace p44;
 
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP)
+  StaticDevice((DeviceClassContainer *)aClassContainerP),
+  digitalIoType(digitalio_unknown)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string ioname = aDeviceConfig;
   bool inverted = false;
-  bool output = false;
   if (i!=string::npos) {
     ioname = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
@@ -43,28 +41,22 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
       inverted = true;
       mode.erase(0,1);
     }
-    if (mode=="in") {
-      output = false;
+    if (mode=="button")
+      digitalIoType = digitalio_button;
+    else if (mode=="light")
+      digitalIoType = digitalio_light;
+    else if (mode=="relay") {
+      digitalIoType = digitalio_relay;
+      LOG(LOG_ERR,"relay type output not yet supported %%%\n");
     }
-    else if (mode=="out") {
-      output = true;
+    else {
+      LOG(LOG_ERR,"unknown digital IO type: %s\n", mode.c_str());
     }
   }
   // basically act as black device so we can configure colors
-  primaryGroup = group_black_joker;
-  if (output) {
-    // Digital output as light on/off switch
-    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
-    // - use light settings, which include a scene table
-    installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
-    // - add simple single-channel light behaviour
-    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-    l->setGroupMembership(group_yellow_light, true); // put into light group by default
-    addBehaviour(l);
-  }
-  else {
+  if (digitalIoType==digitalio_button) {
     // Standard device settings without scene table
+    primaryGroup = group_black_joker;
     installSettings();
     // Digital input as button
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
@@ -74,6 +66,31 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
     addBehaviour(b);
   }
+  else if (digitalIoType==digitalio_light) {
+    // Digital output as light on/off switch
+    primaryGroup = group_yellow_light;
+    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
+    // - use light settings, which include a scene table
+    installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
+    // - add simple single-channel light behaviour
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    l->setGroupMembership(group_yellow_light, true); // put into light group by default
+    addBehaviour(l);
+  }
+//  else if (digitalIoType==digitalio_relay) {
+//    // Standard device settings without scene table
+//    primaryGroup = group_black_joker;
+//    installSettings();
+//    // Digital output
+//    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
+//    // - add generic output behaviour
+//    OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
+//    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+//    o->setGroupMembership(group_black_joker, true); // put into joker group by default
+//    o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)))
+//    addBehaviour(o);
+//  }
 	deriveDsUid();
 }
 
@@ -89,11 +106,17 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 
 void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // light device
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
-  if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
-    indicatorOutput->set(lightBehaviour->brightnessForHardware());
-    lightBehaviour->brightnessApplied(); // confirm having applied the value
+  if (lightBehaviour) {
+    // light
+    if (lightBehaviour->brightnessNeedsApplying()) {
+      indicatorOutput->set(lightBehaviour->brightnessForHardware());
+      lightBehaviour->brightnessApplied(); // confirm having applied the value
+    }
+  }
+  else if (output) {
+    // simple output
+    LOG(LOG_ERR,"simple output not yet supported %%%\n");
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
@@ -101,8 +124,6 @@ void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 
 void DigitalIODevice::deriveDsUid()
 {
-  Fnv64 hash;
-
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::ioname[:ioname ...]
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
@@ -133,6 +154,6 @@ string DigitalIODevice::description()
   if (buttonInput)
     string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName());
   if (indicatorOutput)
-    string_format_append(s, "- On/Off Lamp at Digital IO '%s'\n", indicatorOutput->getName());
+    string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName());
   return s;
 }

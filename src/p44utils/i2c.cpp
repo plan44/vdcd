@@ -36,7 +36,7 @@
 #ifndef DISABLE_I2C
 #include <linux/i2c-dev.h>
 #else
-#warning "No i2C supported on this platform - just showing calls in output"
+#warning "No i2C supported on this platform - just showing calls in focus debug output"
 #endif
 
 using namespace p44;
@@ -101,6 +101,8 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
       dev = I2CDevicePtr(new TCA9555(deviceAddress, bus.get()));
     else if (typeString=="PCF8574")
       dev = I2CDevicePtr(new PCF8574(deviceAddress, bus.get()));
+    else if (typeString=="PCA9685")
+      dev = I2CDevicePtr(new PCA9685(deviceAddress, bus.get()));
     // TODO: add more device types
     // Register new device
     if (dev) {
@@ -525,6 +527,144 @@ void I2CPin::setState(bool aState)
     bitPortDevice->setBitState(pinNumber, aState);
   lastSetState = aState;
 }
+
+
+
+#pragma mark - I2CAnalogPortDevice
+
+
+I2CAnalogPortDevice::I2CAnalogPortDevice(uint8_t aDeviceAddress, I2CBus *aBusP) :
+  inherited(aDeviceAddress, aBusP)
+{
+}
+
+
+
+bool I2CAnalogPortDevice::isKindOf(const char *aDeviceType)
+{
+  if (strcmp(deviceType(),aDeviceType)==0)
+    return true;
+  else
+    return inherited::isKindOf(aDeviceType);
+}
+
+
+
+#pragma mark - PCA9685
+
+
+PCA9685::PCA9685(uint8_t aDeviceAddress, I2CBus *aBusP) :
+  inherited(aDeviceAddress, aBusP)
+{
+  // Initalize
+  // - control register 0: normal operation, auto-increment register address, no subadresses
+  i2cbus->SMBusWriteByte(this, 0, 0x20);
+  // - control register 1: inverted output logic, open collector, when OE is 1, outputs are high impedance
+  i2cbus->SMBusWriteByte(this, 1, 0x13);
+  // - turn off all LEDs
+  i2cbus->SMBusWriteByte(this, 0xFB, 0x00); // none full on
+  i2cbus->SMBusWriteByte(this, 0xFD, 0x10); // all full off
+}
+
+
+bool PCA9685::isKindOf(const char *aDeviceType)
+{
+  if (strcmp(deviceType(),aDeviceType)==0)
+    return true;
+  else
+    return inherited::isKindOf(aDeviceType);
+}
+
+
+double PCA9685::getPinValue(int aPinNo)
+{
+  // get current ratio
+  uint8_t h,l;
+  uint16_t onTime, offTime;
+  // get off time
+  i2cbus->SMBusReadByte(this, 9+aPinNo*4, h);
+  if (h & 0x10) {
+    // full off
+    return 0;
+  }
+  i2cbus->SMBusReadByte(this, 8+aPinNo*4, l);
+  offTime = (h & 0xF)<<8 | l;
+  // get on time
+  i2cbus->SMBusReadByte(this, 7+aPinNo*4, h);
+  if (h & 0x10) {
+    // full on
+    return 100;
+  }
+  i2cbus->SMBusReadByte(this, 6+aPinNo*4, l);
+  onTime = (h & 0xF)<<8 | l;
+  // calculate on ratio in percent
+  onTime = (offTime-onTime) & 0xFFF;
+  return (double)(onTime)/40.96; // %
+}
+
+
+void PCA9685::setPinValue(int aPinNo, double aValue)
+{
+  // check special full on and full off cases first
+  if (aValue==0) {
+    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x00); // no full ON
+    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x10); // but full OFF
+  }
+  else if (aValue>=100) {
+    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x10); // full ON
+    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x00); // buf not full OFF
+  }
+  else {
+    // minimize current by distributing switch on time of the pins
+    // - set on time, staggered by pinNo
+    i2cbus->SMBusWriteByte(this, 6+aPinNo*4, 0x00); // LSB of start time is 0
+    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, aPinNo); // each pin offsets onTime by 1/16 of 12-bit range: upper 4 bits = pinNo
+    uint16_t t = aPinNo<<8; // on time
+    t = (t+(uint16_t)(aValue*40.96)) & 0xFFF; // off time
+    // set off time
+    i2cbus->SMBusWriteByte(this, 6+aPinNo*4, t & 0xFF); // LSB of end time
+    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, (t>>8) & 0xF); // 4 MSB of end time
+  }
+}
+
+
+#pragma mark - I2Cpin
+
+
+/// create i2c based digital input or output pin
+AnalogI2CPin::AnalogI2CPin(int aBusNumber, const char *aDeviceId, int aPinNumber, bool aOutput, double aInitialValue) :
+  output(false)
+{
+  pinNumber = aPinNumber;
+  output = aOutput;
+  I2CDevicePtr dev = I2CManager::sharedManager()->getDevice(aBusNumber, aDeviceId);
+  analogPortDevice = boost::dynamic_pointer_cast<I2CAnalogPortDevice>(dev);
+  if (analogPortDevice && output) {
+    analogPortDevice->setPinValue(pinNumber, aInitialValue);
+  }
+}
+
+
+/// get state of pin
+/// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
+double AnalogI2CPin::getValue()
+{
+  if (analogPortDevice) {
+    return analogPortDevice->getPinValue(pinNumber);
+  }
+  return 0;
+}
+
+
+/// set state of pin (NOP for inputs)
+/// @param aState new state to set output to
+void AnalogI2CPin::setValue(double aValue)
+{
+  if (analogPortDevice && output) {
+    analogPortDevice->setPinValue(pinNumber, aValue);
+  }
+}
+
 
 
 

@@ -47,7 +47,7 @@ namespace p44 {
   
   
 
-  /// simulated I/O pin
+  /// simulated digital I/O pin
   class SimPin : public IOPin
   {
     ConsoleKeyPtr consoleKey;
@@ -69,7 +69,7 @@ namespace p44 {
   };
 
 
-  /// missing (dummy) I/O pin
+  /// missing (dummy) digital I/O pin
   class MissingPin : public IOPin
   {
     bool pinState;
@@ -86,6 +86,67 @@ namespace p44 {
     /// @param aState new state (changes initial state)
     virtual void setState(bool aState) { pinState = aState; }; // remember
   };
+
+
+
+
+  /// abstract wrapper class for analog I/O pin
+  class AnalogIOPin : public P44Obj
+  {
+  public:
+
+    /// get value of pin
+    /// @return current value (from actual pin for inputs, from last set state for outputs)
+    virtual double getValue() = 0;
+
+    /// set value of pin (NOP for inputs)
+    /// @param aValue new value to set output to
+    virtual void setValue(double aValue) = 0;
+  };
+  typedef boost::intrusive_ptr<AnalogIOPin> AnalogIOPinPtr;
+
+
+
+  /// simulated I/O pin
+  class AnalogSimPin : public AnalogIOPin
+  {
+    ConsoleKeyPtr consoleKey;
+    bool output;
+    string name;
+    double pinValue;
+
+  public:
+    // create a simulated pin (using console I/O)
+    AnalogSimPin(const char *aName, bool aOutput, double aInitialValue);
+
+    /// get value of pin
+    /// @return current value (from actual pin for inputs, from last set state for outputs)
+    virtual double getValue();
+
+    /// set value of pin (NOP for inputs)
+    /// @param aValue new value to set output to
+    virtual void setValue(double aValue);
+  };
+
+
+  /// missing (dummy) I/O pin
+  class AnalogMissingPin : public AnalogIOPin
+  {
+    double pinValue;
+
+  public:
+    // create a missing pin (not connected, just keeping state)
+    AnalogMissingPin(double aInitialValue) : pinValue(aInitialValue) {};
+
+    /// get value of pin
+    /// @return current value (from actual pin for inputs, from last set state for outputs)
+    virtual double getValue() { return pinValue; } // return value (which is initial value or value set with setValue later on)
+
+    /// set value of pin (NOP for inputs)
+    /// @param aValue new value to set output to
+    virtual void setValue(double aValue) { pinValue = aValue; } // remember
+  };
+
 
 
 } // namespace

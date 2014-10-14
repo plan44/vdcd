@@ -1,8 +1,22 @@
 //
-//  digitalio.hpp
-//  p44utils
+//  Copyright (c) 2013-2014 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
-//  Copyright (c) 2013-2014 plan44.ch. All rights reserved.
+//  Author: Lukas Zeller <luz@plan44.ch>
+//
+//  This file is part of p44utils.
+//
+//  p44utils is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  p44utils is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
 #ifndef __p44utils__digitalio__
@@ -35,8 +49,10 @@ namespace p44 {
     /// @note possible pin types are
     ///   "missing" : dummy (non-connected) pin
     ///   "gpio.N" or just "N": standard Linux GPIO number N
-    ///   "gpioNS9XXXX.NAME" : DigiESP Linux GPIO named specification DEV, pin number N
-    ///   (DEV: TCA9555@bb for chip at hex bus address bb, complete pin would be like "i2c.TCA9555@20.3")
+    ///   "led.N": standard Linux LED number N
+    ///   "gpioNS9XXXX.NAME" : DigiESP Linux GPIO named NAME
+    ///   "i2cN.DEVICE@i2caddr.pinNumber" : numbered pin of DEVICE at i2caddr on i2c bus N
+    ///     (DEVICE is name of chip, such as PCF8574 or TCA9555)
     DigitalIo(const char* aName, bool aOutput, bool aInverted = false, bool aInitialState = false);
     virtual ~DigitalIo();
 

@@ -209,6 +209,9 @@ public:
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
       staticDeviceConfigs.insert(make_pair("digitalio", aOptionValue));
     }
+    if (strcmp(aOptionDescriptor.longOptionName,"analogio")==0) {
+      staticDeviceConfigs.insert(make_pair("analogio", aOptionValue));
+    }
     else if (strcmp(aOptionDescriptor.longOptionName,"consoleio")==0) {
       staticDeviceConfigs.insert(make_pair("console", aOptionValue));
     }
@@ -251,13 +254,17 @@ public:
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
-      { 'g', "digitalio",     true,  "ioname[:[!](in|out)];add static digital input or output device\n"
+      { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
-                                     "ioname is of form [bus.[device.]]pin:\n"
+                                     "iospec is of form [bus.[device.]]pin:\n"
                                      "- gpio.gpionumber : generic Linux GPIO\n"
-                                     "- i2cN.device@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
-                                     "  (supported for device : TCA9555)" },
-      { 'k', "consoleio",     true,  "name[:(in|out|io)];add static debug device which reads and writes console\n"
+                                     "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
+                                     "  (supported for DEVICE : TCA9555, PCF8574)" },
+      { 0  , "analogio",      true,  "iospec:(dimmer|colordimmer|valve);add static analog input or output device\n"
+                                     "iospec is of form [bus.[device.]]pin:\n"
+                                     "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
+                                     "  (supported for DEVICE : PCA9685)" },
+      { 'k', "consoleio",     true,  "name[:(dimmer|button|valve)];add static debug device which reads and writes console\n"
                                      "(for inputs: first char of name=action key)" },
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },

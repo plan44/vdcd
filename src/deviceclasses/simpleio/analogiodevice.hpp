@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2013-2014 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2014 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //
@@ -19,12 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__consoledevice__
-#define __vdcd__consoledevice__
+#ifndef __vdcd__analogiodevice__
+#define __vdcd__analogiodevice__
 
 #include "device.hpp"
 
-#include "consolekey.hpp"
+#include "analogio.hpp"
 #include "staticdevicecontainer.hpp"
 
 using namespace std;
@@ -32,29 +32,31 @@ using namespace std;
 namespace p44 {
 
   class StaticDeviceContainer;
-  class ConsoleDevice;
-  typedef boost::intrusive_ptr<ConsoleDevice> ConsoleDevicePtr;
-  class ConsoleDevice : public StaticDevice
+  class AnalogIODevice;
+  typedef boost::intrusive_ptr<AnalogIODevice> AnalogIODevicePtr;
+  class AnalogIODevice : public StaticDevice
   {
     typedef StaticDevice inherited;
-    
-    typedef enum {
-      consoleio_unknown,
-      consoleio_button,
-      consoleio_dimmer,
-      consoleio_colordimmer,
-      consoleio_valve,
-    } ConsoleIoType;
 
-    ConsoleIoType consoleIoType;
-    ConsoleKeyPtr consoleKey;
+    typedef enum {
+      analogio_unknown,
+      analogio_dimmer,
+      analogio_colordimmer,
+      analogio_valve
+    } AnalogIoType;
+
+    AnalogIoPtr analogIO;
+    AnalogIoPtr analogIO2; // for RGB
+    AnalogIoPtr analogIO3; // for RGB
+
+    AnalogIoType analogIOType;
 
   public:
-    ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
-    
+    AnalogIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+
     /// device type identifier
-		/// @return constant identifier for this type of device (one container might contain more than one type)
-    virtual const char *deviceTypeIdentifier() { return "console"; };
+    /// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "analogio"; };
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -68,7 +70,7 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    /// @param aDoneCB if not NULL, must be called when values are applied
+    /// @param aCompletedCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
@@ -80,7 +82,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "plan44 console-based debug device"; }
+    virtual string modelName();
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId() { return "vendorname:plan44.ch"; };
@@ -90,16 +92,9 @@ namespace p44 {
   protected:
 
     void deriveDsUid();
-		
-	private:
-
-    void buttonHandler(bool aState, MLMicroSeconds aTimeStamp);
-    void binaryInputHandler(bool aState, MLMicroSeconds aTimeStamp);
-    void sensorValueHandler(double aValue, MLMicroSeconds aTimeStamp);
-    void sensorJitter(bool aState, MLMicroSeconds aTimeStamp);
 
   };
 
 } // namespace p44
 
-#endif /* defined(__vdcd__consoledevice__) */
+#endif /* defined(__vdcd__analogiodevice__) */

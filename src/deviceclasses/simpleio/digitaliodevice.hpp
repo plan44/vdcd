@@ -37,9 +37,19 @@ namespace p44 {
   class DigitalIODevice : public StaticDevice
   {
     typedef StaticDevice inherited;
-    
+
+    typedef enum {
+      digitalio_unknown,
+      digitalio_button,
+      digitalio_light,
+      digitalio_relay,
+    } DigitalIoType;
+
+
 		ButtonInputPtr buttonInput;
     IndicatorOutputPtr indicatorOutput;
+
+    DigitalIoType digitalIoType;
 
   public:
     DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);

@@ -64,27 +64,31 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /tmp/vdcd --button simpin.a -k button:in -k taste:in -k schalter:in -k dimmer:in -k licht1:out -k licht2:out -k farb1:color -k farb2:color -k heizventil:valve -l 7"
+            argument = "--sqlitedir /tmp/vdcd"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--button simpin.a -k button:button -k taste:button -k schalter:button -k dimmer:button -k licht1:dimmer -k licht2:dimmer -k farb1:colordimmer -k farb2:colordimmer -k heizventil:valve -l 7"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /tmp/vdcd --button simpin.a -l 7 -k testin:in -k huebutton:in"
+            argument = "--button simpin.a -l 7 -k testin:button --analogio i2c1.PCA9685@40.0:dimmer"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
@@ -96,19 +100,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.233 --daliportidle 15"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.1.62"
+            argument = "--enocean 192.168.59.233"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -116,7 +120,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
@@ -131,11 +135,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--digitalio testbutton:in --digitalio testlamp:out --digitalio i2c1.TCA9555@25.7:out"
+            argument = "--digitalio testbutton:button --digitalio testlamp:dimmer--digitalio i2c1.TCA9555@25.7:light"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--digitalio simpin.swkl200Z:out"
+            argument = "--digitalio simpin.swkl200Z:dimmer"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -143,15 +147,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k testin:in -k dimmer:in"
+            argument = "-k testin:button -k dimmer:button"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k testout:out"
+            argument = "-k testout:dimmer"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k testcolor:color"
+            argument = "-k testcolor:colordimmer"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

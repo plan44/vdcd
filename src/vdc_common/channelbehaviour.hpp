@@ -194,6 +194,22 @@ namespace p44 {
   typedef vector<ChannelBehaviourPtr> ChannelBehaviourVector;
 
 
+
+  /// digital switch channel
+  class DigitalChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    DigitalChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 100; /* on or off */ };
+    virtual DsChannelType getChannelType() { return channeltype_default; }; ///< no real dS channel type
+    virtual const char *getName() { return "switch"; };
+    virtual double getMin() { return 0; }; // compatible with brightness: 0 to 100%
+    virtual double getMax() { return 100; };
+  };
+  typedef boost::intrusive_ptr<DigitalChannel> DigitalChannelPtr;
+
+
   /// custom channel with instance variables defining the properties
   class CustomChannel : public ChannelBehaviour
   {

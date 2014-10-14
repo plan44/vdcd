@@ -23,6 +23,11 @@
 
 using namespace p44;
 
+
+static char nextIoSimKey = 'a';
+
+#pragma mark - digital I/O
+
 SimPin::SimPin(const char *aName, bool aOutput, bool aInitialState) :
   name(aName),
   output(aOutput),
@@ -30,10 +35,9 @@ SimPin::SimPin(const char *aName, bool aOutput, bool aInitialState) :
 {
   LOG(LOG_ALERT, "Initialized SimPin \"%s\" as %s with initial state %s\n", name.c_str(), aOutput ? "output" : "input", pinState ? "HI" : "LO");
   if (!aOutput) {
-    static char nextGpioSimKey = 'a';
     if (!output) {
       consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(
-        nextGpioSimKey++,
+        nextIoSimKey++,
         name.c_str(),
         pinState
       );
@@ -57,5 +61,42 @@ void SimPin::setState(bool aState)
   if (pinState!=aState) {
     pinState = aState;
     LOG(LOG_ALERT, ">>> SimPin \"%s\" set to %s\n", name.c_str(), pinState ? "HI" : "LO");
+  }
+}
+
+
+#pragma mark - analog I/O
+
+
+AnalogSimPin::AnalogSimPin(const char *aName, bool aOutput, double aInitialValue) :
+  name(aName),
+  output(aOutput),
+  pinValue(aInitialValue)
+{
+  LOG(LOG_ALERT, "Initialized AnalogSimPin \"%s\" as %s with initial value %.2f\n", name.c_str(), aOutput ? "output" : "input", pinValue);
+  if (!aOutput) {
+    if (!output) {
+      consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(
+        nextIoSimKey++,
+        name.c_str(),
+        false
+      );
+    }
+  }
+}
+
+
+double AnalogSimPin::getValue()
+{
+  return pinValue; // just return last set value (as set by setValue or modified by key presses)
+}
+
+
+void AnalogSimPin::setValue(double aValue)
+{
+  if (!output) return; // non-outputs cannot be set
+  if (pinValue!=aValue) {
+    pinValue = aValue;
+    LOG(LOG_ALERT, ">>> AnalogSimPin \"%s\" set to %.2f\n", name.c_str(), pinValue);
   }
 }

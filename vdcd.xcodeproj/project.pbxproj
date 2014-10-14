@@ -110,6 +110,10 @@
 		ED5C8EB817CF396F002CC15F /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		ED5C8EB917CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
+		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
+		ED5D486919ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
+		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
+		ED5D487F19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -298,10 +302,10 @@
 		ED36999C178DA01D00376405 /* i2c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = i2c.cpp; sourceTree = "<group>"; };
 		ED36999D178DA01E00376405 /* i2c.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = i2c.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED36999F178DA0A300376405 /* p44_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44_common.hpp; sourceTree = "<group>"; };
-		ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = staticdevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = staticdevicecontainer.cpp; sourceTree = "<group>"; };
 		ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = staticdevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitaliodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitaliodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitaliodevice.hpp; sourceTree = "<group>"; };
 		ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = buttonbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = buttonbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED55760B174CC03A00CCC4DD /* socketcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socketcomm.cpp; sourceTree = "<group>"; };
@@ -329,6 +333,10 @@
 		ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = propertycontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5C8EB217CF3908002CC15F /* enoceantool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = enoceantool; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED5C8EB317CF393E002CC15F /* enoceantool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceantool.cpp; sourceTree = "<group>"; };
+		ED5D486619ED502F000DF5A5 /* analogio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = analogio.cpp; sourceTree = "<group>"; };
+		ED5D486719ED502F000DF5A5 /* analogio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = analogio.hpp; sourceTree = "<group>"; };
+		ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = analogiodevice.cpp; sourceTree = "<group>"; };
+		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = analogiodevice.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -607,6 +615,8 @@
 				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
 				ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */,
 				ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */,
+				ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */,
+				ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */,
 				EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */,
 				EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */,
 			);
@@ -653,6 +663,8 @@
 				ED369999178D6A2C00376405 /* iopin.hpp */,
 				ED369996178D5BD600376405 /* digitalio.cpp */,
 				ED369997178D5BE300376405 /* digitalio.hpp */,
+				ED5D486619ED502F000DF5A5 /* analogio.cpp */,
+				ED5D486719ED502F000DF5A5 /* analogio.hpp */,
 				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
 				EDC1166D177EDDDF00F27115 /* consolekey.hpp */,
 				ED17F4C61769F51D0076B47C /* persistentparams.cpp */,
@@ -920,6 +932,7 @@
 				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
 				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
+				ED5D487F19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED2C9DE619518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
@@ -939,6 +952,7 @@
 				ED1F82F7184E410000339A22 /* messages.proto in Sources */,
 				ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */,
 				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,
+				ED5D486919ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */,
 				ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */,
 				ED3126D318318CC100FAF28B /* binaryinputbehaviour.cpp in Sources */,
@@ -1017,6 +1031,7 @@
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
 				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
+				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
@@ -1040,6 +1055,7 @@
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
+				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,

@@ -35,37 +35,29 @@ using namespace p44;
 
 ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
-  hasButton(false),
-  hasOutput(false),
-  hasColor(false),
-  isValve(false)
+  consoleIoType(consoleio_unknown)
 {
   size_t i = aDeviceConfig.find_first_of(':');
   string name = aDeviceConfig;
   if (i!=string::npos) {
     name = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
-    if (mode=="in")
-      hasButton = true;
-    else if (mode=="out")
-      hasOutput = true;
-    else if (mode=="io") {
-      hasButton = true;
-      hasOutput = true;
-    }
-    else if (mode=="color") {
-      hasOutput = true;
-      hasColor = true;
-    }
-    else if (mode=="valve") {
-      isValve = true;
+    if (mode=="button")
+      consoleIoType = consoleio_button;
+    else if (mode=="dimmer")
+      consoleIoType = consoleio_dimmer;
+    else if (mode=="colordimmer")
+      consoleIoType = consoleio_colordimmer;
+    else if (mode=="valve")
+      consoleIoType = consoleio_valve;
+    else {
+      LOG(LOG_ERR,"unknown console IO type: %s\n", mode.c_str());
     }
   }
   // assign name
   initializeName(name);
   // create I/O
-  // - special cases first
-  if (isValve) {
+  if (consoleIoType==consoleio_valve) {
     // simulate heating valve with lo bat (like thermokon SAB02,SAB05 or Kieback+Peter MD15-FTL)
     // - is heating
     primaryGroup = group_blue_heating;
@@ -73,8 +65,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     installSettings();
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
-    ob->setGroupMembership(group_roomtemperature_control, true); // also put into room temperature control group by default (besides standard blue)
-    ob->setGroupMembership(group_blue_heating, true);
+    ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
     ob->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
     ob->setHardwareName("Simulated valve, 0..100");
     addBehaviour(ob);
@@ -99,30 +90,28 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey('$', "random sensor simulation change");
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::sensorJitter, this, _1, _2));
   }
-  else if (hasOutput) {
-    // Simulate light device
+  else if (consoleIoType==consoleio_dimmer) {
+    // Simple single-channel light
     // - defaults to yellow (light)
     primaryGroup = group_yellow_light;
-    // - create output(s)
-    if (hasColor) {
-      // Color light
-      // - use color light settings, which include a color scene table
-      installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
-      // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
-      ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
-      addBehaviour(l);
-    }
-    else {
-      // Simple single-channel light
-      // - use light settings, which include a scene table
-      installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
-      // - add simple single-channel light behaviour
-      LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-      l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
-      addBehaviour(l);
-    }
+    // - use light settings, which include a scene table
+    installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
+    // - add simple single-channel light behaviour
+    LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
+    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+    addBehaviour(l);
   }
-  else if (hasButton) {
+  else if (consoleIoType==consoleio_colordimmer) {
+    // Color light
+    // - defaults to yellow (light)
+    primaryGroup = group_yellow_light;
+    // - use color light settings, which include a color scene table
+    installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
+    // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
+    ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
+    addBehaviour(l);
+  }
+  else if (consoleIoType==consoleio_button) {
     // Simulate Button device
     // - defaults to black (generic button)
     primaryGroup = group_black_joker;
@@ -239,11 +228,11 @@ void ConsoleDevice::deriveDsUid()
 string ConsoleDevice::description()
 {
   string s = inherited::description();
-  if (hasOutput)
-    string_format_append(s, "- has output printing value to console\n");
-  if (hasButton)
+  if (consoleIoType==consoleio_dimmer || consoleIoType==consoleio_colordimmer)
+    string_format_append(s, "- has output printing channel value(s) to console\n");
+  if (consoleIoType==consoleio_button)
     string_format_append(s, "- has button which can be switched via console keypresses\n");
-  if (isValve)
+  if (consoleIoType==consoleio_valve)
     string_format_append(s, "- has valve actuator shown on console, pseudo temperature, battery low via console keypress\n");
   return s;
 }
