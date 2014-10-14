@@ -222,8 +222,15 @@ namespace p44 {
     /// @name identification of the addressable entity
     /// @{
 
+    /// @return human readable, language independent model name/short description
+    /// @note base class will construct this from global product name and vdcModelSuffix()
+    virtual string modelName() { return string_format("%s %s", getDeviceContainer().productName.c_str(), vdcModelSuffix().c_str()); }
+
     /// @return human readable model name/short description
-    virtual string modelName() { return "vDC virtual device controller"; }
+    virtual string vdcModelSuffix() = 0;
+
+    /// @return human readable product version string
+    virtual string modelVersion() { return getDeviceContainer().modelVersion(); /* same as entire vdc host */ }
 
     /// @return unique ID for the functional model of this entity
     virtual string modelUID();

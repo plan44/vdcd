@@ -76,8 +76,9 @@ namespace p44 {
     /// vdc level methods (p44 specific, JSON only, for configuring multichannel RGB(W) devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "DALI vDC"; }
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "DALI"; }
 
     /// ungroup a previously grouped device
     /// @param aDevice the device to ungroup

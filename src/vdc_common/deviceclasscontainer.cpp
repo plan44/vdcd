@@ -37,6 +37,7 @@ DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer 
 }
 
 
+
 string DeviceClassContainer::modelUID()
 {
   // use device class identifier as modelID

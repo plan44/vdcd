@@ -43,8 +43,9 @@ namespace p44 {
 
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "Experimental Demo vDC"; }
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "Experimental Demo"; }
 
   };
 

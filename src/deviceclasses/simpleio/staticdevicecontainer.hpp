@@ -34,8 +34,7 @@ namespace p44 {
   class StaticDeviceContainer;
 
   /// persistence for enocean device container
-  class StaticDevicePersistence : public SQLite3Persistence
-  {
+  class StaticDevicePersistence : public SQLite3Persistence  {
     typedef SQLite3Persistence inherited;
   protected:
     /// Get DB Schema creation/upgrade SQL statements
@@ -109,8 +108,9 @@ namespace p44 {
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "GPIO,I2C,console vDC"; }
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "GPIO,I2C,console"; }
 
   private:
 

@@ -230,6 +230,8 @@ public:
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
+      { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
+      { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
@@ -328,27 +330,38 @@ public:
       const char *dbdir = DEFAULT_DBDIR;
       getStringOption("sqlitedir", dbdir);
       p44VdcHost->setPersistentDataDir(dbdir);
+
       // - set icon directory
       const char *icondir = NULL;
       getStringOption("icondir", icondir);
       p44VdcHost->setIconDir(icondir);
+      string s;
+
       // - set dSUID mode
       DsUidPtr externalDsUid;
-      string dsuidStr;
-      if (getStringOption("dsuid", dsuidStr)) {
-        externalDsUid = DsUidPtr(new DsUid(dsuidStr));
+      if (getStringOption("dsuid", s)) {
+        externalDsUid = DsUidPtr(new DsUid(s));
       }
-      else if (getStringOption("sgtin", dsuidStr)) {
+      else if (getStringOption("sgtin", s)) {
         int part;
         uint64_t gcp;
         uint32_t itemref;
         uint64_t serial;
-        sscanf(dsuidStr.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
-        externalDsUid = DsUidPtr(new DsUid(dsuidStr));
+        sscanf(s.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
+        externalDsUid = DsUidPtr(new DsUid(s));
         externalDsUid->setGTIN(gcp, itemref, part);
         externalDsUid->setSerial(serial);
       }
       p44VdcHost->setIdMode(externalDsUid);
+
+      // - set product name and version
+      if (getStringOption("productname", s)) {
+        p44VdcHost->setProductName(s);
+      }
+      // - set product name and version
+      if (getStringOption("productversion", s)) {
+        p44VdcHost->setProductVersion(s);
+      }
 
       // - set custom announce pause
       int announcePause;

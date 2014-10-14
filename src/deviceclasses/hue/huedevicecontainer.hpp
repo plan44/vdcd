@@ -83,8 +83,9 @@ namespace p44 {
     /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
     void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "hue vDC"; }
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "hue"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// - uuid:UUUUUUU = UUID

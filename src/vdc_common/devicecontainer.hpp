@@ -101,6 +101,9 @@ namespace p44 {
     string iconDir; ///< the directory where to load icons from
     string persistentDataDir; ///< the directory for the vdcd to store SQLite DBs and possibly other persistent data
 
+    string productName; ///< the name of the vdcd product as a a whole
+    string productVersion; ///< the version string of the vdcd product as a a whole
+
     bool collecting;
     long announcementTicket;
     long periodicTaskTicket;
@@ -141,6 +144,15 @@ namespace p44 {
 
     /// active session
     VdcApiConnectionPtr getSessionConnection() { return activeSessionConnection; };
+
+
+    /// set the name of the vdcd product as a a whole
+    /// @param aProductName product (model) name
+    void setProductName(const string &aProductName) { productName = aProductName; }
+
+    /// set the the version string of the vdcd product as a a whole
+    /// @param aProductVersion product version string
+    void setProductVersion(const string &aProductVersion) { productVersion = aProductVersion; }
 
 
     /// Set how dSUIDs are generated
@@ -288,7 +300,10 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "vDC host"; }
+    virtual string modelName() { return productName.size()>0 ? productName : "vDC host"; }
+
+    /// @return human readable product version string
+    virtual string modelVersion() { return productVersion; }
 
     /// @return unique ID for the functional model of this entity
     virtual string modelUID() { return DSUID_P44VDC_MODELUID_UUID; /* using the p44 modelUID namespace UUID itself */ }

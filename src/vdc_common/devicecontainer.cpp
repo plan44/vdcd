@@ -56,6 +56,8 @@ using namespace p44;
 // how long until a not acknowledged announcement for a device is retried again for the same device
 #define ANNOUNCE_RETRY_TIMEOUT (300*Second)
 
+// default product name
+#define DEFAULT_PRODUCT_NAME "plan44.ch vdcd"
 
 DeviceContainer::DeviceContainer() :
   mac(0),
@@ -69,7 +71,8 @@ DeviceContainer::DeviceContainer() :
   localDimDirection(0), // undefined
   mainloopStatsInterval(DEFAULT_MAINLOOP_STATS_INTERVAL),
   mainLoopStatsCounter(0),
-  announcePause(DEFAULT_ANNOUNCE_PAUSE)
+  announcePause(DEFAULT_ANNOUNCE_PAUSE),
+  productName(DEFAULT_PRODUCT_NAME)
 {
   // obtain MAC address
   mac = macAddress();

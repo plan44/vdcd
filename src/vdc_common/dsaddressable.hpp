@@ -145,8 +145,13 @@ namespace p44 {
     /// @name identification of the addressable entity
     /// @{
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "DsAddressable"; };
+    /// @return human readable, language independent model name/short description
+    virtual string modelName() = 0;
+
+    /// @return human readable version string
+    /// @note base class implementation returns version string of vdc host by default
+    virtual string modelVersion();
+
 
     /// @return unique ID for the functional model of this entity
     /// @note modelUID must be equal between all devices of the same model/class/kind, where "same" means

@@ -114,8 +114,9 @@ namespace p44 {
     ///   the devices are not disconnected (=unlearned) by this.
     virtual void removeDevices(bool aForget);
 
-    /// @return human readable model name/short description
-    virtual string modelName() { return "EnOcean vDC"; }
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "EnOcean"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
