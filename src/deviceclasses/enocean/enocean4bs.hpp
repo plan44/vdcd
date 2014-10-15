@@ -71,6 +71,9 @@ namespace p44 {
     ///   channel's data when packet already exists
     virtual void collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr);
 
+    /// check if channel is alive = has received life sign within timeout window
+    virtual bool isAlive();
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();

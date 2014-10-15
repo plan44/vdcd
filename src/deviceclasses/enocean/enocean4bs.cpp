@@ -61,7 +61,7 @@ namespace p44 {
     uint8_t msBit; ///< most significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
     uint8_t lsBit; ///< least significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
     double updateInterval; ///< normal update interval (average time resolution) in seconds
-    double alifeSignInterval; ///< maximum interval between two reports of a sensor. If sensor does not push a value for longer than that, it should be considered out-of-order
+    double aliveSignInterval; ///< maximum interval between two reports of a sensor. If sensor does not push a value for longer than that, it should be considered out-of-order
     BitFieldHandlerFunc bitFieldHandler; ///< function used to convert between bit field in 4BS telegram and engineering value for the behaviour
     const char *typeText;
     const char *unitText;
@@ -281,7 +281,7 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
 
   // A5-20-01: HVAC heating valve actuator
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL
-  { 0x20, 0x01, 0, group_blue_heating, behaviour_output,      outputFunction_positional, usage_room,       0,  100, DB(3,7), DB(3,0),  100, 40*60, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
+  { 0x20, 0x01, 0, group_blue_heating, behaviour_output,      outputFunction_positional, usage_room,       0,  100, DB(3,7), DB(3,0),  100,     0, &stdOutputHandler, "Valve", "", dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
   { 0x20, 0x01, 0, group_blue_heating, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &stdSensorHandler, tempText, tempUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
   { 0x20, 0x01, 0, group_blue_heating, behaviour_binaryinput, binInpType_lowBattery,  usage_room,          1,    0, DB(2,4), DB(2,4),  100, 40*60, &stdInputHandler,  "Low Battery", unityUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
 
@@ -295,6 +295,21 @@ Enocean4bsHandler::Enocean4bsHandler(EnoceanDevice &aDevice) :
   channelDescriptorP(NULL)
 {
 }
+
+
+#define TIMEOUT_FACTOR_FOR_INACTIVE 4
+
+bool Enocean4bsHandler::isAlive()
+{
+  if (channelDescriptorP->aliveSignInterval<=0)
+    return true; // no alive sign interval to check, assume alive
+  // check if gotten no message for longer than aliveSignInterval
+  if (MainLoop::now()-device.getLastPacketTime() < channelDescriptorP->aliveSignInterval*Second*TIMEOUT_FACTOR_FOR_INACTIVE)
+    return true;
+  // timed out
+  return false;
+}
+
 
 
 EnoceanDevicePtr Enocean4bsHandler::newDevice(
@@ -360,7 +375,7 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
         SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*newDev.get()));
         int numBits = (subdeviceDescP->msBit-subdeviceDescP->lsBit)+1; // number of bits
         double resolution = (subdeviceDescP->max-subdeviceDescP->min) / ((1<<numBits)-1); // units per LSB
-        sb->setHardwareSensorConfig((DsSensorType)subdeviceDescP->behaviourParam, subdeviceDescP->usage, subdeviceDescP->min, subdeviceDescP->max, resolution, subdeviceDescP->updateInterval*Second, subdeviceDescP->alifeSignInterval*Second);
+        sb->setHardwareSensorConfig((DsSensorType)subdeviceDescP->behaviourParam, subdeviceDescP->usage, subdeviceDescP->min, subdeviceDescP->max, resolution, subdeviceDescP->updateInterval*Second, subdeviceDescP->aliveSignInterval*Second);
         if (subdeviceDescP->flags & dflag_climatecontrolbehaviour)
           sb->setGroup(group_roomtemperature_control);
         else

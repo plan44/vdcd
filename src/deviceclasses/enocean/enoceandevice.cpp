@@ -59,6 +59,7 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSu
   eeFunctionDesc = "device"; // generic description is "device"
   iconBaseName = "enocean";
   groupColoredIcon = true;
+  lastPacketTime = MainLoop::now(); // consider packet received at time of creation (to avoid devices starting inactive)
 }
 
 
@@ -112,7 +113,6 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 {
   return eeManufacturer;
 }
-
 
 
 void EnoceanDevice::deriveDsUid()
@@ -251,6 +251,7 @@ void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   LOG(LOG_INFO, "EnOcean device %s: now starts processing packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
+  lastPacketTime = MainLoop::now();
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
@@ -261,6 +262,20 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
     sendOutgoingUpdate();
   }
 }
+
+
+void EnoceanDevice::checkPresence(PresenceCB aPresenceResultHandler)
+{
+  bool present = true;
+  for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+    if (!(*pos)->isAlive()) {
+      present = false; // one channel not alive -> device not present
+      break;
+    }
+  }
+  aPresenceResultHandler(present);
+}
+
 
 
 string EnoceanDevice::description()

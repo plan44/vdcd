@@ -75,6 +75,9 @@ namespace p44 {
     /// @note non-outputs will do nothing in this method
     virtual void collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr) { /* NOP */ };
 
+    /// check if channel is alive (for regularily sending sensors: has received life sign within timeout window)
+    virtual bool isAlive() { return true; } // assume alive by default
+
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc() = 0;
@@ -109,6 +112,8 @@ namespace p44 {
     bool alwaysUpdateable; ///< if set, device updates are sent immediately, otherwise, updates are only sent as response to a device message
     bool pendingDeviceUpdate; ///< set when update to the device is pending
 
+    MLMicroSeconds lastPacketTime; ///< time when device received last packet (or device was created)
+
   public:
 
     /// constructor, create device in container
@@ -122,6 +127,14 @@ namespace p44 {
     /// @return true if device might be disconnectable by the user via software (i.e. web UI)
     /// @note EnOcean devices can be removed not only via unlearning, but also via Web-UI if needed
     virtual bool isSoftwareDisconnectable() { return true; };
+
+    /// return time when last packet was received for this device
+    /// @return time when last packet was received or Never
+    MLMicroSeconds getLastPacketTime() { return lastPacketTime; };
+
+    /// check presence of this addressable
+    /// @param aPresenceResultHandler will be called to report presence status
+    virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
     /// get typed container reference
     EnoceanDeviceContainer &getEnoceanDeviceContainer();

@@ -71,7 +71,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /tmp/vdcd"
+            argument = "--sqlitedir /tmp/vdcd --productname P44-DSB-MAC --productversion 0.0.4.2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
