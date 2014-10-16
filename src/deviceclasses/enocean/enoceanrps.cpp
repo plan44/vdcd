@@ -131,6 +131,29 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     newHandler->behaviour = bb;
     newDev->addChannelHandler(newHandler);
   }
+  else if (functionProfile==0xF60400) {
+    // F6-04-01 and F6-04-02 : key card activated switch
+    // create EnoceanRPSDevice device
+    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
+    // standard device settings without scene table
+    newDev->installSettings();
+    // assign channel and address
+    newDev->setAddressingInfo(aAddress, aSubDevice);
+    // assign EPP information
+    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    newDev->setFunctionDesc("key card switch");
+    // key card switches can be used for anything
+    newDev->setPrimaryGroup(group_black_joker);
+    // Current simple dS mapping: one binary input
+    // - 1: card inserted, 0: card extracted
+    EnoceanRpsCardKeyHandlerPtr newHandler = EnoceanRpsCardKeyHandlerPtr(new EnoceanRpsCardKeyHandler(*newDev.get()));
+    BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+    bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+    bb->setGroup(group_black_joker); // joker by default
+    bb->setHardwareName("card inserted");
+    newHandler->behaviour = bb;
+    newDev->addChannelHandler(newHandler);
+  }
   // RPS never needs a teach-in response
   // return device (or empty if none created)
   return newDev;
@@ -266,8 +289,81 @@ string EnoceanRpsWindowHandleHandler::shortDesc()
 }
 
 
+#pragma mark - key card switch
+
+
+EnoceanRpsCardKeyHandler::EnoceanRpsCardKeyHandler(EnoceanDevice &aDevice) :
+  inherited(aDevice)
+{
+}
+
+
+
+
+
+// device specific radio packet handling
+void EnoceanRpsCardKeyHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+{
+  bool isInserted = false;
+  // extract payload data
+  uint8_t data = aEsp3PacketPtr->radioUserData()[0];
+  if (device.getEEProfile()==0xF60402) {
+    // Key Card Activated Switch ERP2
+    // - just evaluate DB0.2 "State of card"
+    isInserted = data & 0x04; // Bit2
+  }
+  else {
+    // Asssume ERP1 Key Card Activated Switch
+    uint8_t status = aEsp3PacketPtr->radioStatus();
+    isInserted = (status & status_NU)!=0 && data==0x70;
+  }
+  // report data for this binary input
+  BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
+  if (bb) {
+    LOG(LOG_INFO,"Enocean Key Card Switch %08X, changed state to %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
+    bb->updateInputState(isInserted); // report the status
+  }
+}
+
+
+string EnoceanRpsCardKeyHandler::shortDesc()
+{
+  return "Key Card Switch";
+}
+
+
 
 #pragma mark - EnoceanRPSDevice
+
+
+bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
+{
+  // F6-02-xx can also be F6-04-01 or F6-04-02
+  if ((getEEProfile() & eep_ignore_type_mask)==0xF60200 || (getEEProfile() & eep_ignore_type_mask)==0xF60400) {
+    // is two-way rocker that can also be a key card switch or vice versa
+    aApiObjectValue->add(string_format("%d",0xF602FF), aApiObjectValue->newString("dual rocker switch"));
+    aApiObjectValue->add(string_format("%d",0xF60401), aApiObjectValue->newString("key card activated switch"));
+    aApiObjectValue->add(string_format("%d",0xF60402), aApiObjectValue->newString("key card activated switch ERP2"));
+    return true;
+  }
+  return false; // no variants
+}
+
+
+bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
+{
+  // check if changeable profile code
+  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402) {
+    if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
+    // change profile now
+    switchToProfile(aProfile);
+    return true;
+  }
+  return false; // invalid profile
+}
+
+
+
 
 int EnoceanRPSDevice::idBlockSize()
 {

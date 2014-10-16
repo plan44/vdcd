@@ -386,7 +386,7 @@ namespace p44 {
 
     /// manufacturer name lookup
     /// @param aManufacturerCode EEP manufacturer code
-    /// @return manufacturer name string
+    /// @return manufacturer name string or NULL if unknown code
     static const char *manufacturerName(EnoceanManufacturer aManufacturerCode);
 
 

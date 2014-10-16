@@ -1412,7 +1412,7 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     // the modelFeatures (row from former dSS visibility matrix, controlling what is shown in the UI)
     { "modelFeatures", apivalue_object+propflag_container, modelFeatures_key, OKEY(device_modelFeatures_key) }
   };
-  // C++ object manages different levels, check aParentObjectKey
+  // C++ object manages different levels, check aParentDescriptor
   if (!aParentDescriptor) {
     // root level - accessing properties on the Device level
     int n = inherited::numProps(aDomain, aParentDescriptor);

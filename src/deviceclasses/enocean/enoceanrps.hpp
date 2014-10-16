@@ -122,6 +122,29 @@ namespace p44 {
 
 
 
+  /// single EnOcean key card switch handler
+  class EnoceanRpsCardKeyHandler : public EnoceanRpsHandler
+  {
+    typedef EnoceanRpsHandler inherited;
+    friend class EnoceanRpsHandler;
+
+    /// private constructor, create new channels using factory static method
+    EnoceanRpsCardKeyHandler(EnoceanDevice &aDevice);
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+  private:
+
+  };
+  typedef boost::intrusive_ptr<EnoceanRpsCardKeyHandler> EnoceanRpsCardKeyHandlerPtr;
+
+
 
 
 
@@ -137,6 +160,15 @@ namespace p44 {
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "enocean_rps"; };
+
+    /// get profile variants this device can have
+    /// @param aApiObjectValue must be an object typed API value, will receive profile variants as EEP/description key/values
+    /// @return true if device has variants
+    virtual bool getProfileVariants(ApiValuePtr aApiObjectValue);
+
+    /// @param aProfile must be an EEP profile code
+    /// @return true if profile variant is valid and can be set
+    virtual bool setProfileVariant(EnoceanProfile aProfile);
 
     /// @name dSUID space and hardware grouping properties needed for dS 1.0 backwards compatibility
     /// @{

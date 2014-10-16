@@ -140,14 +140,17 @@ string EnoceanDevice::hardwareModelGUID()
 
 string EnoceanDevice::modelName()
 {
-  return string_format("%s EnOcean %s (%02X-%02X-%02X)", manufacturerName().c_str(), eeFunctionDesc.c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
+  const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
+  return string_format("%s%sEnOcean %s (%02X-%02X-%02X)", mn ? mn : "", mn ? " " : "", eeFunctionDesc.c_str(), EEP_RORG(eeProfile), EEP_FUNC(eeProfile), EEP_TYPE(eeProfile));
 }
 
 
 string EnoceanDevice::vendorId()
 {
-  return string_format("enoceanvendor:%03X:%s", eeManufacturer, manufacturerName().c_str());
+  const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
+  return string_format("enoceanvendor:%03X%s%s", eeManufacturer, mn ? ":" : "", mn ? mn : "");
 }
+
 
 bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
@@ -165,18 +168,24 @@ bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aRe
 }
 
 
-string EnoceanDevice::manufacturerName()
-{
-  return EnoceanComm::manufacturerName(eeManufacturer);
-}
-
-
 void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // clear learn-in data from DB
   getEnoceanDeviceContainer().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND subdevice=%d", getAddress(), getSubDevice());
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
+}
+
+
+void EnoceanDevice::switchToProfile(EnoceanProfile aProfile)
+{
+  // make sure object is retained locally
+  EnoceanDevicePtr keepMeAlive(this); // make sure this object lives until routine terminates
+  // have devices related to current profile deleted, including settings
+  // Note: this removes myself from container, but
+  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true);
+  // - create new ones, with same address and manufacturer, but new profile
+  EnoceanDevice::createDevicesFromEEP(&getEnoceanDeviceContainer(), getAddress(), aProfile, getEEManufacturer());
 }
 
 
@@ -282,13 +291,14 @@ string EnoceanDevice::description()
 {
   string s = inherited::description();
   string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
+  const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   string_format_append(s,
     "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
     eeFunctionDesc.c_str(),
     (eeProfile>>16) & 0xFF,
     (eeProfile>>8) & 0xFF,
     eeProfile & 0xFF,
-    manufacturerName().c_str(),
+    mn ? mn : "<unknown>",
     eeManufacturer
   );
   // show channels
@@ -296,6 +306,72 @@ string EnoceanDevice::description()
     string_format_append(s, "- EnOcean device channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
   }
   return s;
+}
+
+
+#pragma mark - property access
+
+
+enum {
+  profileVariants_key,
+  profile_key,
+  numProperties
+};
+
+static char enoceanDevice_key;
+
+
+int EnoceanDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+}
+
+
+PropertyDescriptorPtr EnoceanDevice::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numProperties] = {
+    { "x-p44-profileVariants", apivalue_null, profileVariants_key, OKEY(enoceanDevice_key) },
+    { "x-p44-profile", apivalue_int64, profile_key, OKEY(enoceanDevice_key) },
+  };
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
+  else {
+    // other level
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  }
+}
+
+
+// access to all fields
+bool EnoceanDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(enoceanDevice_key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case profileVariants_key:
+          aPropValue->setType(apivalue_object); // make object (incoming object is NULL)
+          return getProfileVariants(aPropValue);
+        case profile_key:
+          aPropValue->setInt32Value(getEEProfile()); return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case profile_key:
+          setProfileVariant(aPropValue->int32Value()); return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
 
 
@@ -334,15 +410,15 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 }
 
 
-int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket)
+int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer)
 {
   EnoceanSubDevice totalSubDevices = 1; // at least one
   EnoceanSubDevice subDevice = 0;
   while (subDevice<totalSubDevices) {
     EnoceanDevicePtr newDev = newDevice(
       aClassContainerP,
-      aLearnInPacket->radioSender(), subDevice,
-      aLearnInPacket->eepProfile(), aLearnInPacket->eepManufacturer(),
+      aAddress, subDevice,
+      aProfile, aManufacturer,
       totalSubDevices, // possibly update total
       subDevice==0 // allow sending teach-in response for first subdevice only
     );

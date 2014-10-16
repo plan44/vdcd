@@ -177,9 +177,11 @@ namespace p44 {
 
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
-    /// @param aLearnInPacket the packet containing the EPP and possibly other learn-in relevant information
+    /// @param aAddress the EnOcean address
+    /// @param aProfile the EPP
+    /// @param aManufacturer the manufacturer code
     /// @return number of devices created
-    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, Esp3PacketPtr aLearnInPacket);
+    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer);
     
 
     /// set the enocean address identifying the device
@@ -239,14 +241,18 @@ namespace p44 {
     /// @note will be called from newDevice() when created device needs a teach-in response
     virtual void sendTeachInResponse() { /* NOP in base class */ };
 
-
-    /// description of object, mainly for debug and logging
-    /// @return manufacturer name according to EPP
-    string manufacturerName();
-
     /// description of object, mainly for debug and logging
     /// @return textual description of object
     virtual string description();
+
+    /// get profile variants this device can have
+    /// @param aApiObjectValue must be an object typed API value, will receive profile variants as EEP/description key/values
+    /// @return true if device has variants
+    virtual bool getProfileVariants(ApiValuePtr aApiObjectValue) { return false; /* none in base class */ };
+
+    /// @param aProfile must be an EEP profile code
+    /// @return true if profile variant is valid and can be set
+    virtual bool setProfileVariant(EnoceanProfile aProfile) { return false; /* profile not changeable in base class */ };
 
 
     /// @name identification of the addressable entity
@@ -277,8 +283,16 @@ namespace p44 {
 
   protected:
 
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
     /// derive dSUID from hardware address
     void deriveDsUid();
+
+    /// switch EEP profile
+    void switchToProfile(EnoceanProfile aProfile);
 
   private:
 

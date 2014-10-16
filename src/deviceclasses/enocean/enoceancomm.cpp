@@ -690,12 +690,13 @@ string Esp3Packet::description()
       );
       // EEP info if any
       if (eepHasTeachInfo()) {
+        const char *mn = EnoceanComm::manufacturerName(eepManufacturer());
         string_format_append(t,
           "- Is Learn-In packet: EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
           (eepProfile()>>16) & 0xFF,
           (eepProfile()>>8) & 0xFF,
           eepProfile() & 0xFF,
-          EnoceanComm::manufacturerName(eepManufacturer()),
+          mn ? mn : "<unknown>",
           eepManufacturer()
         );
       }
@@ -851,7 +852,7 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
     manP++;
   }
   // none found
-  return "<unknown>";
+  return NULL;
 }
 
 

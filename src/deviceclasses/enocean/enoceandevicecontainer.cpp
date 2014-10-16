@@ -271,7 +271,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       ErrorPtr learnStatus;
       if (learnIn) {
         // new device learned in, add logical devices for it
-        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr);
+        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr->radioSender(), aEsp3PacketPtr->eepProfile(), aEsp3PacketPtr->eepManufacturer());
         if (numNewDevices>0) {
           // successfully learned at least one device
           // - update learn status (device learned)
