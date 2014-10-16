@@ -606,11 +606,12 @@ double PCA9685::getPinValue(int aPinNo)
 void PCA9685::setPinValue(int aPinNo, double aValue)
 {
   // check special full on and full off cases first
-  if (aValue==0) {
+  uint16_t v = (uint16_t)(aValue*40.96);
+  if (v==0) {
     i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x00); // no full ON
     i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x10); // but full OFF
   }
-  else if (aValue>=100) {
+  else if (v>=0x0FFF) {
     i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x10); // full ON
     i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x00); // buf not full OFF
   }
@@ -620,10 +621,10 @@ void PCA9685::setPinValue(int aPinNo, double aValue)
     i2cbus->SMBusWriteByte(this, 6+aPinNo*4, 0x00); // LSB of start time is 0
     i2cbus->SMBusWriteByte(this, 7+aPinNo*4, aPinNo); // each pin offsets onTime by 1/16 of 12-bit range: upper 4 bits = pinNo
     uint16_t t = aPinNo<<8; // on time
-    t = (t+(uint16_t)(aValue*40.96)) & 0xFFF; // off time
+    t = (t+v) & 0xFFF; // off time with wrap around
     // set off time
-    i2cbus->SMBusWriteByte(this, 6+aPinNo*4, t & 0xFF); // LSB of end time
-    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, (t>>8) & 0xF); // 4 MSB of end time
+    i2cbus->SMBusWriteByte(this, 8+aPinNo*4, t & 0xFF); // LSB of end time
+    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, (t>>8) & 0xF); // 4 MSB of end time
   }
 }
 
