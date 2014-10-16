@@ -286,7 +286,7 @@ static const p44::Enocean4BSDescriptor enocean4BSdescriptors[] = {
   { 0x20, 0x01, 0, group_blue_heating, behaviour_binaryinput, binInpType_lowBattery,  usage_room,          1,    0, DB(2,4), DB(2,4),  100, 40*60, &stdInputHandler,  "Low Battery", unityUnit, dflag_NeedsTeachInResponse|dflag_climatecontrolbehaviour },
 
   // terminator
-  { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
+  { 0, 0, 0, group_black_joker, behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL, 0 },
 };
 
 
