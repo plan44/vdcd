@@ -333,6 +333,9 @@ namespace p44 {
     /// @return number of output channels in this device
     int numChannels();
 
+    /// @return true if any channel needs to be applied to hardware
+    bool needsToApplyChannels();
+
     /// get channel by index
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aPendingApplyOnly if true, only channels with pending values to be applied are returned

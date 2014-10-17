@@ -229,25 +229,12 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-// NOTE: device's implementation MUST be such that this method can be called multiple times even before aCompletedCB
-//   from the previous call has been called. Device implementation MUST call once for every call, but MAY return an error
-//   for earlier calls superseeded by a later call. Implementation should be such that the channel values present at the
-//   most recent call's value gets applied to the hardware.
 void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // check if any channel has changed at all
-  bool needsUpdate = false;
-  for (int i=0; i<numChannels(); i++) {
-    if (getChannelByIndex(i, true)) {
-      // channel needs update
-      needsUpdate = true;
-      break; // no more checking needed, need device level update anyway
-    }
-  }
   // Update of light state needed
   LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (l) {
-    if (!needsUpdate) {
+    if (!needsToApplyChannels()) {
       // NOP for this call
       channelValuesSent(l, aDoneCB, JsonObjectPtr(), ErrorPtr());
       return;

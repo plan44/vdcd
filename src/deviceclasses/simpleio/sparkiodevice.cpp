@@ -291,18 +291,9 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // check if any channel has changed at all
-  bool needsUpdate = false;
-  for (int i=0; i<numChannels(); i++) {
-    if (getChannelByIndex(i, true)) {
-      // channel needs update
-      needsUpdate = true;
-      break; // no more checking needed, need device level update anyway
-    }
-  }
   SparkLightBehaviourPtr sl = boost::dynamic_pointer_cast<SparkLightBehaviour>(output);
   if (sl) {
-    if (!needsUpdate) {
+    if (!needsToApplyChannels()) {
       // NOP for this call
       channelValuesSent(sl, aDoneCB, JsonObjectPtr(), ErrorPtr());
       return;

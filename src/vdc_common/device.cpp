@@ -294,6 +294,19 @@ int Device::numChannels()
 }
 
 
+bool Device::needsToApplyChannels()
+{
+  for (int i=0; i<numChannels(); i++) {
+    if (getChannelByIndex(i, true)) {
+      // at least this channel needs update
+      return true;
+    }
+  }
+  // no channel needs apply
+  return false;
+}
+
+
 ChannelBehaviourPtr Device::getChannelByIndex(size_t aChannelIndex, bool aPendingApplyOnly)
 {
   if (!output) return ChannelBehaviourPtr();

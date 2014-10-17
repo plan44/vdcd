@@ -602,18 +602,9 @@ void DaliRGBWDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDis
 
 void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
-  // check if any channel has changed at all
-  bool needsUpdate = false;
-  for (int i=0; i<numChannels(); i++) {
-    if (getChannelByIndex(i, true)) {
-      // channel needs update
-      needsUpdate = true;
-      break; // no more checking needed, need device level update anyway
-    }
-  }
   RGBColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<RGBColorLightBehaviour>(output);
   if (cl) {
-    if (needsUpdate) {
+    if (needsToApplyChannels()) {
       // needs update
       // - derive (possibly new) color mode from changed channels
       cl->deriveColorMode();
