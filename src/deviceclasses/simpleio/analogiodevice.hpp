@@ -41,13 +41,13 @@ namespace p44 {
     typedef enum {
       analogio_unknown,
       analogio_dimmer,
-      analogio_colordimmer,
+      analogio_rgbdimmer,
       analogio_valve
     } AnalogIoType;
 
-    AnalogIoPtr analogIO;
-    AnalogIoPtr analogIO2; // for RGB
-    AnalogIoPtr analogIO3; // for RGB
+    AnalogIoPtr analogIO; // brighness for single channel, red for RGB
+    AnalogIoPtr analogIO2; // green for RGB
+    AnalogIoPtr analogIO3; // blue for RGB
 
     AnalogIoType analogIOType;
 

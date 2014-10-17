@@ -260,7 +260,7 @@ public:
                                      "- gpio.gpionumber : generic Linux GPIO\n"
                                      "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
                                      "  (supported for DEVICE : TCA9555, PCF8574)" },
-      { 0  , "analogio",      true,  "iospec:(dimmer|colordimmer|valve);add static analog input or output device\n"
+      { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
                                      "iospec is of form [bus.[device.]]pin:\n"
                                      "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
                                      "  (supported for DEVICE : PCA9685)" },

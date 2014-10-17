@@ -41,8 +41,8 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
   }
   if (mode=="dimmer")
     analogIOType = analogio_dimmer;
-  else if (mode=="colordimmer")
-    analogIOType = analogio_colordimmer;
+  else if (mode=="rgbdimmer")
+    analogIOType = analogio_rgbdimmer;
   else if (mode=="valve")
     analogIOType = analogio_valve;
   else {
@@ -59,14 +59,36 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, false, -1);
     l->setGroupMembership(group_yellow_light, true); // put into light group by default
     addBehaviour(l);
   }
-  else if (analogIOType==analogio_colordimmer) {
-    LOG(LOG_ERR,"colordimmer type output not yet supported %%%\n");
+  else if (analogIOType==analogio_rgbdimmer) {
     // - is light
     primaryGroup = group_yellow_light;
+    // - need 3 IO names for R,G,B
+    size_t p;
+    p = ioname.find_first_of('|');
+    if (p!=string::npos) {
+      // at least 2 pins specified
+      // - create red output
+      analogIO = AnalogIoPtr(new AnalogIo(ioname.substr(0,p).c_str(), true, 0));
+      ioname.erase(0,p+1);
+      p = ioname.find_first_of('|');
+      if (p!=string::npos) {
+        // 3 pins specified
+        // - create green output
+        analogIO2 = AnalogIoPtr(new AnalogIo(ioname.substr(0,p).c_str(), true, 0));
+        // - create blue output from rest
+        analogIO3 = AnalogIoPtr(new AnalogIo(ioname.substr(p+1).c_str(), true, 0));
+        // Complete set of outputs, now create RGB light
+        // - use color light settings, which include a color scene table
+        installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
+        // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
+        RGBColorLightBehaviourPtr l = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
+        addBehaviour(l);
+      }
+    }
   }
   else if (analogIOType==analogio_valve) {
     // Analog output as valve controlling output
@@ -89,11 +111,43 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
 void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   // generic device, show changed channels
-  if (analogIOType==analogio_colordimmer) {
-    LOG(LOG_ERR,"colordimmer type output not yet supported %%%\n");
+  if (analogIOType==analogio_dimmer) {
+    // single channel PWM dimmer
+    LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
+    if (l && l->brightnessNeedsApplying()) {
+      double pwm = l->brightnessToPWM(l->brightnessForHardware(), 100);
+      analogIO->setValue(pwm);
+      l->brightnessApplied(); // confirm having applied the new brightness
+    }
   }
-  else if (analogIO) {
-    // simple single channel output
+  else if (analogIOType==analogio_rgbdimmer) {
+    // three channel RGB PWM dimmer
+    RGBColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<RGBColorLightBehaviour>(output);
+    if (cl) {
+      if (needsToApplyChannels()) {
+        // needs update
+        // - derive (possibly new) color mode from changed channels
+        cl->deriveColorMode();
+        // RGB lamp, get components
+        double r,g,b;
+        cl->getRGB(r, g, b, 100); // get brightness per R,G,B channel
+        // transfer to outputs
+        // - red
+        double pwm = cl->brightnessToPWM(r, 100);
+        analogIO->setValue(pwm);
+        // - green
+        pwm = cl->brightnessToPWM(g, 100);
+        analogIO2->setValue(pwm);
+        // - red
+        pwm = cl->brightnessToPWM(b, 100);
+        analogIO3->setValue(pwm);
+      } // if needs update
+      // anyway, applied now
+      cl->appliedRGB();
+    }
+  }
+  else {
+    // direct single channel PWM output
     ChannelBehaviourPtr ch = getChannelByIndex(0);
     if (ch && ch->needsApplying()) {
       double chVal = ch->getChannelValue()-ch->getMin();
@@ -124,8 +178,8 @@ string AnalogIODevice::modelName()
 {
   if (analogIOType==analogio_dimmer)
     return string_format("Dimmer @ %s", analogIO->getName());
-  if (analogIOType==analogio_colordimmer)
-    return string_format("Color Dimmer @ %s", analogIO->getName());
+  if (analogIOType==analogio_rgbdimmer)
+    return string_format("RGB Dimmer @ %s,%s,%s", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
   else if (analogIOType==analogio_valve)
     return string_format("Heating Valve @ %s", analogIO->getName());
   return "Analog I/O";
@@ -137,7 +191,7 @@ string AnalogIODevice::description()
   string s = inherited::description();
   if (analogIOType==analogio_dimmer)
     string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName());
-  if (analogIOType==analogio_colordimmer)
+  if (analogIOType==analogio_rgbdimmer)
     string_format_append(s, "- Color Dimmer at Analog outputs '%s','%s','%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
   else if (analogIOType==analogio_valve)
     return string_format("Heating Valve @ '%s'\n", analogIO->getName());
