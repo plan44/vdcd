@@ -81,12 +81,20 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
   }
   // dissect device ID into type and busAddress
   // - type string
+  //   consists of Chip name plus optional options suffix. Like "PCA9685" or "PCA9685-TP" (TP=options)
   string typeString = "generic";
+  string deviceOptions = ""; // no options
   string s = aDeviceID;
   size_t i = s.find_first_of('@');
   if (i!=string::npos) {
     typeString = s.substr(0,i);
     s.erase(0,i+1);
+    // extract device options, if any (appended to device name after a dash)
+    size_t j = typeString.find_first_of('-');
+    if (j!=string::npos) {
+      deviceOptions = typeString.substr(j+1);
+      typeString.erase(j);
+    }
   }
   // - device address (hex)
   int deviceAddress = 0;
@@ -98,11 +106,11 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
   if (!dev) {
     // create device from typestring
     if (typeString=="TCA9555")
-      dev = I2CDevicePtr(new TCA9555(deviceAddress, bus.get()));
+      dev = I2CDevicePtr(new TCA9555(deviceAddress, bus.get(), deviceOptions.c_str()));
     else if (typeString=="PCF8574")
-      dev = I2CDevicePtr(new PCF8574(deviceAddress, bus.get()));
+      dev = I2CDevicePtr(new PCF8574(deviceAddress, bus.get(), deviceOptions.c_str()));
     else if (typeString=="PCA9685")
-      dev = I2CDevicePtr(new PCA9685(deviceAddress, bus.get()));
+      dev = I2CDevicePtr(new PCA9685(deviceAddress, bus.get(), deviceOptions.c_str()));
     // TODO: add more device types
     // Register new device
     if (dev) {
@@ -381,7 +389,7 @@ void I2CBitPortDevice::setAsOutput(int aBitNo, bool aOutput, bool aInitialState)
 #pragma mark - TCA9555
 
 
-TCA9555::TCA9555(uint8_t aDeviceAddress, I2CBus *aBusP) :
+TCA9555::TCA9555(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions) :
   inherited(aDeviceAddress, aBusP)
 {
   // make sure we have all inputs
@@ -437,7 +445,7 @@ void TCA9555::updateDirection(int aForBitNo)
 #pragma mark - PCF8574
 
 
-PCF8574::PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP) :
+PCF8574::PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions) :
   inherited(aDeviceAddress, aBusP)
 {
   // make sure we have all inputs
@@ -553,14 +561,19 @@ bool I2CAnalogPortDevice::isKindOf(const char *aDeviceType)
 #pragma mark - PCA9685
 
 
-PCA9685::PCA9685(uint8_t aDeviceAddress, I2CBus *aBusP) :
+PCA9685::PCA9685(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions) :
   inherited(aDeviceAddress, aBusP)
 {
   // Initalize
-  // - control register 0: normal operation, auto-increment register address, no subadresses
+  // device options:
+  // - 'I' : output invert (Low when active)
+  // - 'O' : open drain (pull to low only, vs. totem pole)
+  bool inverted = strchr(aDeviceOptions, 'I');
+  bool opendrain = strchr(aDeviceOptions, 'O');
+  // - control register 0 = MODE1: normal operation, auto-increment register address, no subadresses
   i2cbus->SMBusWriteByte(this, 0, 0x20);
-  // - control register 1: inverted output logic, open collector, when OE is 1, outputs are high impedance
-  i2cbus->SMBusWriteByte(this, 1, 0x13);
+  // - control register 1 = MODE2: when OE is 1, outputs are high impedance, plus invert and opendrain/totempole according to options
+  i2cbus->SMBusWriteByte(this, 1, 0x03 + (inverted ? 0x10 : 0) + (opendrain ? 0 : 0x04));
   // - turn off all LEDs
   i2cbus->SMBusWriteByte(this, 0xFB, 0x00); // none full on
   i2cbus->SMBusWriteByte(this, 0xFD, 0x10); // all full off

@@ -199,7 +199,8 @@ namespace p44 {
     /// create device
     /// @param aDeviceAddress slave address of the device
     /// @param aBusP I2CBus object
-    TCA9555(uint8_t aDeviceAddress, I2CBus *aBusP);
+    /// @param aDeviceOptions optional device-level options
+    TCA9555(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions);
 
     /// @return device type identifier
     virtual const char *deviceType() { return "TCA9555"; };
@@ -227,7 +228,8 @@ namespace p44 {
     /// create device
     /// @param aDeviceAddress slave address of the device
     /// @param aBusP I2CBus object
-    PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP);
+    /// @param aDeviceOptions optional device-level options
+    PCF8574(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions);
 
     /// @return device type identifier
     virtual const char *deviceType() { return "PCF8574"; };
@@ -300,7 +302,8 @@ namespace p44 {
     /// create device
     /// @param aDeviceAddress slave address of the device
     /// @param aBusP I2CBus object
-    PCA9685(uint8_t aDeviceAddress, I2CBus *aBusP);
+    /// @param aDeviceOptions optional device-level options
+    PCA9685(uint8_t aDeviceAddress, I2CBus *aBusP, const char *aDeviceOptions);
 
     /// @return device type identifier
     virtual const char *deviceType() { return "PCA9685"; };
