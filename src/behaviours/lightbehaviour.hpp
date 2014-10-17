@@ -138,6 +138,7 @@ namespace p44 {
     Brightness onThreshold; ///< if !isDimmable, output will be on when output value is >= the threshold
     DimmingTime dimTimeUp[3]; ///< dimming up time
     DimmingTime dimTimeDown[3]; ///< dimming down time
+    double dimCurveExp; ///< exponent for logarithmic curve (1=linear, 2=quadratic, 3=cubic, ...)
     /// @}
 
 
@@ -251,7 +252,20 @@ namespace p44 {
     /// @param aDimUp true when dimming up, false when dimming down
     MLMicroSeconds transitionTimeFromSceneEffect(DsSceneEffect aEffect, bool aDimUp);
 
+
+    /// get PWM value for brightness (from brightness channel) according to dim curve
+    /// @param aPWM will receive the PWM value corresponding to current brightness from 0..aMax
+    /// @param aMax max PWM duty cycle value
+    double brightnessToPWM(Brightness aBrightness, double aMaxPWM);
+
+    /// set PWM value from lamp (to update brightness channel) according to dim curve
+    /// @param aPWM PWM value to be converted back to brightness
+    /// @param aMax max PWM duty cycle value
+    Brightness PWMToBrightness(double aPWM, double aMaxPWM);
+
+
     /// @}
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs

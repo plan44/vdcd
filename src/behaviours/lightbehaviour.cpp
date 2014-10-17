@@ -21,6 +21,8 @@
 
 #include "lightbehaviour.hpp"
 
+#include <math.h>
+
 using namespace p44;
 
 
@@ -322,12 +324,14 @@ DsScenePtr LightDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 #pragma mark - LightBehaviour
 
+#define STANDARD_DIM_CURVE_EXPONENT 4 // standard exponent, usually ok for PWM for LEDs
 
 LightBehaviour::LightBehaviour(Device &aDevice) :
   inherited(aDevice),
   // hardware derived parameters
   // persistent settings
   onThreshold(50.0),
+  dimCurveExp(STANDARD_DIM_CURVE_EXPONENT),
   // volatile state
   hardwareHasSetMinDim(false),
   fadeDownTicket(0),
@@ -548,6 +552,40 @@ void LightBehaviour::identifyToUser()
 }
 
 
+#pragma mark - PWM dim curve
+
+// TODO: implement multi point adjustable curves, logarithmic curve with adjustable exponent for now
+
+// PWM    = PWM value
+// maxPWM = max PWM value
+// B      = brightness
+// maxB   = max brightness value
+// S      = dim Curve Exponent (1=linear, 2=quadratic, ...)
+//
+//                   (B*S/maxB)
+//                 e            - 1
+// PWM =  maxPWM * ----------------
+//                      S
+//                    e   - 1
+//
+//                           S
+//        maxB        P * (e   - 1)
+// B   =  ---- * ln ( ------------- + 1)
+//          S             maxP
+//
+
+double LightBehaviour::brightnessToPWM(Brightness aBrightness, double aMaxPWM)
+{
+  return aMaxPWM*((exp(aBrightness*dimCurveExp/100)-1)/(exp(dimCurveExp)-1));
+}
+
+
+Brightness LightBehaviour::PWMToBrightness(double aPWM, double aMaxPWM)
+{
+  return 100/dimCurveExp*log(aPWM*(exp(dimCurveExp)-1)/aMaxPWM + 1);
+}
+
+
 
 
 #pragma mark - blinking
@@ -639,7 +677,7 @@ const char *LightBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 4;
+static const size_t numFields = 5;
 
 size_t LightBehaviour::numFieldDefs()
 {
@@ -654,6 +692,7 @@ const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
     { "minBrightness", SQLITE_FLOAT }, // formerly minBrightness, renamed because type changed
     { "dimUpTimes", SQLITE_INTEGER },
     { "dimDownTimes", SQLITE_INTEGER },
+    { "dimCurveExp", SQLITE_FLOAT },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -674,6 +713,10 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
   if (!hardwareHasSetMinDim) brightness->setDimMin(md); // only apply if not set by hardware
   uint32_t du = aRow->get<int>(aIndex++);
   uint32_t dd = aRow->get<int>(aIndex++);
+  // read dim curve exponent only if not NULL
+  if (aRow->column_type(aIndex)!=SQLITE_NULL)
+    dimCurveExp = aRow->get<double>(aIndex);
+  aIndex++;
   // dissect dimming times
   dimTimeUp[0] = du & 0xFF;
   dimTimeUp[1] = (du>>8) & 0xFF;
@@ -702,6 +745,7 @@ void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
   aStatement.bind(aIndex++, brightness->getMinDim());
   aStatement.bind(aIndex++, (int)du);
   aStatement.bind(aIndex++, (int)dd);
+  aStatement.bind(aIndex++, dimCurveExp);
 }
 
 
@@ -722,6 +766,7 @@ enum {
   dimTimeDown_key, // downAlt1/2 must immediately follow (array index calculation in accessField below!)
   dimTimeDownAlt1_key,
   dimTimeDownAlt2_key,
+  dimCurveExp_key,
   numSettingsProperties
 };
 
@@ -738,6 +783,7 @@ const PropertyDescriptorPtr LightBehaviour::getSettingsDescriptorByIndex(int aPr
     { "dimTimeDown", apivalue_uint64, dimTimeDown_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeDownAlt1", apivalue_uint64, dimTimeDownAlt1_key+settings_key_offset, OKEY(light_key) },
     { "dimTimeDownAlt2", apivalue_uint64, dimTimeDownAlt2_key+settings_key_offset, OKEY(light_key) },
+    { "x-p44-dimCurveExp", apivalue_double, dimCurveExp_key+settings_key_offset, OKEY(light_key) },
   };
   int n = inherited::numSettingsProps();
   if (aPropIndex<n)
@@ -772,6 +818,9 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
         case dimTimeDownAlt2_key+settings_key_offset:
           aPropValue->setUint8Value(dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)]);
           return true;
+        case dimCurveExp_key+settings_key_offset:
+          aPropValue->setDoubleValue(dimCurveExp);
+          return true;
       }
     }
     else {
@@ -795,6 +844,10 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
           dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          return true;
+        case dimCurveExp_key+settings_key_offset:
+          dimCurveExp = aPropValue->doubleValue();
+          markDirty();
           return true;
       }
     }
