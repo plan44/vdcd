@@ -237,7 +237,7 @@ PropertyDescriptorPtr PropertyContainer::getDescriptorByName(string aPropMatch, 
     // - name part with a trailing asterisk: wildcard.
     // - #n to access n-th property
     PropertyDescriptorPtr propDesc;
-    bool wildcard;
+    bool wildcard = false; // assume no wildcard
     if (aPropMatch.empty()) {
       wildcard = true; // implicit wildcard, empty name counts like "*"
     }
