@@ -76,6 +76,8 @@
 		ED36999E178DA01E00376405 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
 		ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */; };
 		ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */; };
+		ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5133BB19F6A6B70027999E /* simplescene.cpp */; };
+		ED5133BE19F6A6B70027999E /* simplescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5133BB19F6A6B70027999E /* simplescene.cpp */; };
 		ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
 		ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
@@ -306,6 +308,8 @@
 		ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = staticdevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitaliodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitaliodevice.hpp; sourceTree = "<group>"; };
+		ED5133BB19F6A6B70027999E /* simplescene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = simplescene.cpp; path = ../../../../vdcd/src/vdc_common/simplescene.cpp; sourceTree = "<group>"; };
+		ED5133BC19F6A6B70027999E /* simplescene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = simplescene.hpp; path = ../../../../vdcd/src/vdc_common/simplescene.hpp; sourceTree = "<group>"; };
 		ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = buttonbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = buttonbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED55760B174CC03A00CCC4DD /* socketcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socketcomm.cpp; sourceTree = "<group>"; };
@@ -485,6 +489,8 @@
 				ED69C169176787FB00D9E596 /* dsdefs.h */,
 				ED81337117C644AE003982CC /* dsscene.cpp */,
 				ED81337217C644AE003982CC /* dsscene.hpp */,
+				ED5133BB19F6A6B70027999E /* simplescene.cpp */,
+				ED5133BC19F6A6B70027999E /* simplescene.hpp */,
 				ED81337417C65F7E003982CC /* devicesettings.cpp */,
 				ED81337517C65F7E003982CC /* devicesettings.hpp */,
 				EDCFE855171FE841001D35F3 /* device.cpp */,
@@ -916,6 +922,7 @@
 				ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */,
 				EDF62B49183A0ED20016BFDA /* upnpdevicecontainer.cpp in Sources */,
 				ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */,
+				ED5133BE19F6A6B70027999E /* simplescene.cpp in Sources */,
 				ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */,
 				ED3126A018318CC100FAF28B /* logger.cpp in Sources */,
 				ED3126A218318CC100FAF28B /* utils.cpp in Sources */,
@@ -1013,6 +1020,7 @@
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
+				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,

@@ -146,6 +146,8 @@ vdcd_SOURCES = \
   src/vdc_common/channelbehaviour.hpp \
   src/vdc_common/dsscene.cpp \
   src/vdc_common/dsscene.hpp \
+  src/vdc_common/simplescene.cpp \
+  src/vdc_common/simplescene.hpp \
   src/vdc_common/device.cpp \
   src/vdc_common/device.hpp \
   src/vdc_common/devicesettings.cpp \
@@ -296,6 +298,8 @@ demovdc_SOURCES = \
   src/vdc_common/channelbehaviour.hpp \
   src/vdc_common/dsscene.cpp \
   src/vdc_common/dsscene.hpp \
+  src/vdc_common/simplescene.cpp \
+  src/vdc_common/simplescene.hpp \
   src/vdc_common/device.cpp \
   src/vdc_common/device.hpp \
   src/vdc_common/devicesettings.cpp \

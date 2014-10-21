@@ -420,7 +420,6 @@ bool DsScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prop
 
 
 
-
 #pragma mark - scene device settings base class
 
 

@@ -23,7 +23,7 @@
 #define __vdcd__lightbehaviour__
 
 #include "device.hpp"
-#include "dsscene.hpp"
+#include "simplescene.hpp"
 #include "outputbehaviour.hpp"
 
 using namespace std;
@@ -61,51 +61,20 @@ namespace p44 {
 
   /// A concrete class implementing the Scene object for a simple (single channel = brightness) light device
   /// @note subclasses can implement more parameters, like for exampe ColorLightScene for color lights.
-  class LightScene : public DsScene
+  class LightScene : public SimpleScene
   {
-    typedef DsScene inherited;
+    typedef SimpleScene inherited;
+
   public:
-    LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
-
-    /// @name light scene specific values
-    /// @{
-
-    double sceneBrightness; ///< saved brightness value for this scene (0..100% dS brightness scale)
-    DsSceneEffect effect; ///< scene effect (transition or alert)
-
-    /// @}
-
-    /// Set default scene values for a specified scene number
-    /// @param aSceneNo the scene number to set default values
-    virtual void setDefaultSceneValues(SceneNo aSceneNo);
-
-    // scene values implementation
-    virtual double sceneValue(size_t aOutputIndex);
-    virtual void setSceneValue(size_t aOutputIndex, double aValue);
-
-  protected:
-
-    // persistence implementation
-    virtual const char *tableName();
-    virtual size_t numFieldDefs();
-    virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
-
-    // property access implementation
-    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
-    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+    LightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) : inherited(aSceneDeviceSettings, aSceneNo) {}; ///< constructor, sets values according to dS specs' default values
 
   };
   typedef boost::intrusive_ptr<LightScene> LightScenePtr;
-  typedef map<SceneNo, LightScenePtr> LightSceneMap;
-
 
 
 
   /// the persistent parameters of a light scene device (including scene table)
-  /// @note subclasses can implement more parameters, like for exampe ColorLightDeviceSettings for color lights.
+  /// @note subclasses can implement more parameters, like for example ColorLightDeviceSettings for color lights.
   class LightDeviceSettings : public SceneDeviceSettings
   {
     typedef SceneDeviceSettings inherited;
