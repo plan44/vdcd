@@ -156,7 +156,8 @@ void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncre
     // create devices from command line config
     for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
       // create device of appropriate class
-      addStaticDevice(pos->first, pos->second);
+      StaticDevicePtr dev = addStaticDevice(pos->first, pos->second);
+      dev->initializeName(pos->second); // for command line devices, use config as name
     }
     // then add those from the DB
     sqlite3pp::query qry(db);
@@ -182,25 +183,32 @@ ErrorPtr StaticDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const st
     respErr = checkStringParam(aParams, "deviceType", deviceType);
     if (Error::isOK(respErr)) {
       respErr = checkStringParam(aParams, "deviceConfig", deviceConfig);
-      // try to create device
-      StaticDevicePtr dev = addStaticDevice(deviceType, deviceConfig);
-      if (!dev) {
-        respErr = ErrorPtr(new WebError(500, "invalid configuration for static device -> none created"));
-      }
-      else {
-        // insert into database
-        db.executef(
-          "INSERT OR REPLACE INTO devConfigs (devicetype, deviceconfig) VALUES ('%s','%s')",
-          deviceType.c_str(), deviceConfig.c_str()
-        );
-        dev->staticDeviceRowID = db.last_insert_rowid();
-        // confirm
-        ApiValuePtr r = aRequest->newApiValue();
-        r->setType(apivalue_object);
-        r->add("dSUID", r->newBinary(dev->dSUID.getBinary()));
-        r->add("rowid", r->newUint64(dev->staticDeviceRowID));
-        r->add("name", r->newString(dev->getName()));
-        respErr = aRequest->sendResult(r);
+      if (Error::isOK(respErr)) {
+        // optional name
+        string name; // default to config
+        checkStringParam(aParams, "name", name);
+        // try to create device
+        StaticDevicePtr dev = addStaticDevice(deviceType, deviceConfig);
+        if (!dev) {
+          respErr = ErrorPtr(new WebError(500, "invalid configuration for static device -> none created"));
+        }
+        else {
+          // set name
+          if (name.size()>0) dev->setName(name);
+          // insert into database
+          db.executef(
+            "INSERT OR REPLACE INTO devConfigs (devicetype, deviceconfig) VALUES ('%s','%s')",
+            deviceType.c_str(), deviceConfig.c_str()
+          );
+          dev->staticDeviceRowID = db.last_insert_rowid();
+          // confirm
+          ApiValuePtr r = aRequest->newApiValue();
+          r->setType(apivalue_object);
+          r->add("dSUID", r->newBinary(dev->dSUID.getBinary()));
+          r->add("rowid", r->newUint64(dev->staticDeviceRowID));
+          r->add("name", r->newString(dev->getName()));
+          respErr = aRequest->sendResult(r);
+        }
       }
     }
   }

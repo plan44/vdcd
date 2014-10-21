@@ -56,6 +56,9 @@ namespace p44 {
 
     virtual ~ConsoleKey();
 
+    /// get key code
+    char getKeyCode() { return keyCode; };
+
     /// get state of input
     /// @return true if key is pressed
     bool isSet();

@@ -62,6 +62,9 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
+    /// Get extra info (plan44 specific) to describe the addressable in more detail
+    /// @return string, single line extra info describing aspects of the device not visible elsewhere
+    virtual string getExtraInfo();
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{

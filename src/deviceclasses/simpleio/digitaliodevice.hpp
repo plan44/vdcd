@@ -40,9 +40,10 @@ namespace p44 {
 
     typedef enum {
       digitalio_unknown,
-      digitalio_button,
-      digitalio_light,
-      digitalio_relay,
+      digitalio_button, // button input
+      digitalio_input, // binary input
+      digitalio_light, // light output
+      digitalio_relay, // general purpose relay output
     } DigitalIoType;
 
 
@@ -62,6 +63,9 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
+    /// Get extra info (plan44 specific) to describe the addressable in more detail
+    /// @return string, single line extra info describing aspects of the device not visible elsewhere
+    virtual string getExtraInfo();
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
@@ -96,7 +100,8 @@ namespace p44 {
 	private:
 
     void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
-		
+    void inputHandler(bool aNewState, MLMicroSeconds aTimestamp);
+
   };
 
 } // namespace p44

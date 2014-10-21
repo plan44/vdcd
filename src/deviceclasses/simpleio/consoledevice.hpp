@@ -41,6 +41,7 @@ namespace p44 {
     typedef enum {
       consoleio_unknown,
       consoleio_button,
+      consoleio_input,
       consoleio_dimmer,
       consoleio_colordimmer,
       consoleio_valve,
@@ -48,6 +49,7 @@ namespace p44 {
 
     ConsoleIoType consoleIoType;
     ConsoleKeyPtr consoleKey;
+    string consoleName;
 
   public:
     ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -80,7 +82,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "plan44 console-based debug device"; }
+    virtual string modelName();
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId() { return "vendorname:plan44.ch"; };

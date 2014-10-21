@@ -71,7 +71,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /tmp/vdcd --productname P44-DSB-MAC --productversion 0.0.4.2"
+            argument = "--sqlitedir /tmp/vdcd"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -79,7 +79,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--button simpin.a -l 7 -k testin:button --analogio i2c1.PCA9685@40.0|i2c1.PCA9685@40.1|i2c1.PCA9685@40.2:rgbdimmer"
+            argument = "--button simpin.a -l 7 -k testin:button --analogio i2c1.PCA9685@40.0:dimmer"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -124,7 +124,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/plan44/device_icons"

@@ -22,6 +22,7 @@
 #include "digitaliodevice.hpp"
 
 #include "buttonbehaviour.hpp"
+#include "binaryinputbehaviour.hpp"
 #include "lightbehaviour.hpp"
 
 using namespace p44;
@@ -43,6 +44,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     }
     if (mode=="button")
       digitalIoType = digitalio_button;
+    else if (mode=="input")
+      digitalIoType = digitalio_input;
     else if (mode=="light")
       digitalIoType = digitalio_light;
     else if (mode=="relay") {
@@ -66,6 +69,18 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
     addBehaviour(b);
   }
+  else if (digitalIoType==digitalio_input) {
+    // Standard device settings without scene table
+    primaryGroup = group_black_joker;
+    installSettings();
+    // Digital input as binary input (AKM, automation block type)
+    buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
+    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1, _2), true);
+    // - create one binary input
+    BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+    b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+    addBehaviour(b);
+  }
   else if (digitalIoType==digitalio_light) {
     // Digital output as light on/off switch
     primaryGroup = group_yellow_light;
@@ -78,19 +93,19 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     l->setGroupMembership(group_yellow_light, true); // put into light group by default
     addBehaviour(l);
   }
-//  else if (digitalIoType==digitalio_relay) {
-//    // Standard device settings without scene table
-//    primaryGroup = group_black_joker;
-//    installSettings();
-//    // Digital output
-//    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
-//    // - add generic output behaviour
-//    OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-//    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-//    o->setGroupMembership(group_black_joker, true); // put into joker group by default
-//    o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)))
-//    addBehaviour(o);
-//  }
+  else if (digitalIoType==digitalio_relay) {
+    // Standard device settings without scene table
+    primaryGroup = group_black_joker;
+    installSettings();
+    // Digital output
+    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
+    // - add generic output behaviour
+    OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
+    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    o->setGroupMembership(group_black_joker, true); // put into joker group by default
+    o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
+    addBehaviour(o);
+  }
 	deriveDsUid();
 }
 
@@ -104,6 +119,16 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
+void DigitalIODevice::inputHandler(bool aNewState, MLMicroSeconds aTimestamp)
+{
+  BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
+  if (b) {
+    b->updateInputState(aNewState);
+  }
+}
+
+
+
 void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
@@ -115,8 +140,9 @@ void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     }
   }
   else if (output) {
-    // simple output
-    LOG(LOG_ERR,"simple output not yet supported %%%\n");
+    // simple switch output, activates at 50% of possible output range
+    ChannelBehaviourPtr ch = output->getChannelByIndex(0);
+    indicatorOutput->set(ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2);
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
@@ -137,14 +163,25 @@ void DigitalIODevice::deriveDsUid()
 
 string DigitalIODevice::modelName()
 {
-  if (indicatorOutput)
-    return string_format("Digital Output @ %s", indicatorOutput->getName());
-  else if (buttonInput)
-    return string_format("Digital Input @ %s", buttonInput->getName());
-  return "Digital I/O";
+  switch (digitalIoType) {
+    case digitalio_button: return "Button digital input";
+    case digitalio_input: return "Binary digital input";
+    case digitalio_light: return "Light controlling output";
+    case digitalio_relay: return "Relay controlling output";
+    default: return "Digital I/O";
+  }
 }
 
 
+string DigitalIODevice::getExtraInfo()
+{
+  if (buttonInput)
+    return string_format("Input: %s\n", buttonInput->getName());
+  else if (indicatorOutput)
+    return string_format("Output: %s\n", indicatorOutput->getName());
+  else
+    return "?";
+}
 
 
 

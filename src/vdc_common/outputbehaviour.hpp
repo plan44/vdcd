@@ -62,12 +62,6 @@ namespace p44 {
     bool localPriority; ///< if set device is in local priority mode
     /// @}
 
-    /// add a channel to the output
-    /// @param aChannel the channel to add
-    /// @note this is usually called by initialisation code of classes derived from OutputBehaviour to
-    ///   add the behaviour specific channels.
-    void addChannel(ChannelBehaviourPtr aChannel);
-
   public:
 
     OutputBehaviour(Device &aDevice);
@@ -88,6 +82,12 @@ namespace p44 {
     /// @param aChannelType the channel type, can be channeltype_default to get primary/default channel
     /// @return NULL for unknown channel
     ChannelBehaviourPtr getChannelByType(DsChannelType aChannelType, bool aPendingApplyOnly = false);
+
+    /// add a channel to the output
+    /// @param aChannel the channel to add
+    /// @note this is usually called by initialisation code of classes derived from OutputBehaviour to
+    ///   add the behaviour specific channels.
+    void addChannel(ChannelBehaviourPtr aChannel);
 
     /// @}
 

@@ -44,6 +44,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     string mode = aDeviceConfig.substr(i+1,string::npos);
     if (mode=="button")
       consoleIoType = consoleio_button;
+    else if (mode=="input")
+      consoleIoType = consoleio_input;
     else if (mode=="dimmer")
       consoleIoType = consoleio_dimmer;
     else if (mode=="colordimmer")
@@ -54,10 +56,37 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       LOG(LOG_ERR,"unknown console IO type: %s\n", mode.c_str());
     }
   }
-  // assign name
-  initializeName(name);
+  // assign name for showing on console and for creating dSUID from
+  consoleName = name;
   // create I/O
-  if (consoleIoType==consoleio_valve) {
+  if (consoleIoType==consoleio_button) {
+    // Simulate Button device
+    // - defaults to black (generic button)
+    primaryGroup = group_black_joker;
+    // - standard device settings without scene table
+    installSettings();
+    // - console key input as button
+    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
+    // - create one button input
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
+    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
+    b->setHardwareName(string_format("console key '%c'",name[0]));
+    addBehaviour(b);
+  }
+  else if (consoleIoType==consoleio_input) {
+    // Standard device settings without scene table
+    primaryGroup = group_black_joker;
+    installSettings();
+    // Digital input as binary input (AKM, automation block type)
+    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::binaryInputHandler, this, _1, _2));
+    // - create one binary input
+    BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+    b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+    addBehaviour(b);
+  }
+  else if (consoleIoType==consoleio_valve) {
     // simulate heating valve with lo bat (like thermokon SAB02,SAB05 or Kieback+Peter MD15-FTL)
     // - is heating
     primaryGroup = group_blue_heating;
@@ -111,22 +140,22 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     ColorLightBehaviourPtr l = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
     addBehaviour(l);
   }
-  else if (consoleIoType==consoleio_button) {
-    // Simulate Button device
-    // - defaults to black (generic button)
-    primaryGroup = group_black_joker;
-    // - standard device settings without scene table
-    installSettings();
-    // - console key input as button
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
-    // - create one button input
-    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
-    b->setHardwareName(string_format("console key '%c'",name[0]));
-    addBehaviour(b);
+  deriveDsUid();
+}
+
+
+string ConsoleDevice::modelName()
+{
+  string m = "Console ";
+  switch (consoleIoType) {
+    case consoleio_button: string_format_append(m, "button key:'%c'", consoleKey->getKeyCode()); break;
+    case consoleio_input: string_format_append(m, "binary input key:'%c'", consoleKey->getKeyCode()); break;
+    case consoleio_valve: m += "valve"; break;
+    case consoleio_dimmer: m += "dimmer"; break;
+    case consoleio_colordimmer: m += "color dimmer"; break;
+    default: break;
   }
-	deriveDsUid();
+  return m;
 }
 
 
@@ -220,7 +249,7 @@ void ConsoleDevice::deriveDsUid()
   //   UUIDv5 with name = classcontainerinstanceid::consoledevicename
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
   string s = classContainerP->deviceClassContainerInstanceIdentifier();
-  s += "::" + getName();
+  s += "::" + consoleName;
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 

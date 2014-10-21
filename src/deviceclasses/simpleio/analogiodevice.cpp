@@ -177,13 +177,24 @@ void AnalogIODevice::deriveDsUid()
 string AnalogIODevice::modelName()
 {
   if (analogIOType==analogio_dimmer)
-    return string_format("Dimmer @ %s", analogIO->getName());
+    return "Dimmer output";
   if (analogIOType==analogio_rgbdimmer)
-    return string_format("RGB Dimmer @ %s,%s,%s", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
+    return "RGB dimmer outputs";
   else if (analogIOType==analogio_valve)
-    return string_format("Heating Valve @ %s", analogIO->getName());
+    return "Heating Valve output";
   return "Analog I/O";
 }
+
+
+string AnalogIODevice::getExtraInfo()
+{
+  if (analogIOType==analogio_rgbdimmer)
+    return string_format("RGB Outputs: %s, %s, %s", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
+  else if (analogIOType==analogio_dimmer || analogIOType==analogio_valve)
+    return string_format("Output: %s", analogIO->getName());
+  return "Analog I/O";
+}
+
 
 
 string AnalogIODevice::description()
@@ -192,7 +203,7 @@ string AnalogIODevice::description()
   if (analogIOType==analogio_dimmer)
     string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName());
   if (analogIOType==analogio_rgbdimmer)
-    string_format_append(s, "- Color Dimmer at Analog outputs '%s','%s','%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
+    string_format_append(s, "- Color Dimmer at Analog outputs '%s', '%s', '%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
   else if (analogIOType==analogio_valve)
     return string_format("Heating Valve @ '%s'\n", analogIO->getName());
   return s;

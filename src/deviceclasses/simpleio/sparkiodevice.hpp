@@ -213,7 +213,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "SparkCore based RGB light"; }
+    virtual string modelName() { return "SparkCore RGB light"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID() { return string_format("sparkcoreid:%s", sparkCoreID.c_str()); }
