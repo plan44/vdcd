@@ -45,18 +45,20 @@
 #define DEBUGLOGGING 1
 #define DBGLOGENABLED(lvl) globalLogger.logEnabled(lvl)
 #define DBGLOG(lvl,...) { if (globalLogger.logEnabled(lvl)) globalLogger.log(lvl,##__VA_ARGS__); }
+#define DBGFOCUSLOG FOCUSLOG
 #define LOGGER_DEFAULT_LOGLEVEL LOG_DEBUG
 #else
 #define DEBUGLOGGING 0
 #define DBGLOGENABLED(lvl) false
 #define DBGLOG(lvl,...)
+#define DBGFOCUSLOG(...)
 #define LOGGER_DEFAULT_LOGLEVEL LOG_NOTICE
 #endif
 
 #if FOCUSLOGLEVEL
-#define FOCUSLOG(...) DBGLOG(FOCUSLOGLEVEL,##__VA_ARGS__)
+#define FOCUSLOG(...) LOG(FOCUSLOGLEVEL,##__VA_ARGS__)
 #define FOCUSLOGGING 1
-#define FOCUSLOGENABLED globalLogger.logEnabled(DEBUGFOCUS)
+#define FOCUSLOGENABLED globalLogger.logEnabled(FOCUSLOGLEVEL)
 #if !(defined(DEBUG) || ALWAYS_DEBUG)
 #warning "**** FOCUSLOGLEVEL enabled in non-DEBUG build ****"
 #endif

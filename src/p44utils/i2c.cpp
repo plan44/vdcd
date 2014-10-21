@@ -21,10 +21,10 @@
 
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
-#define ALWAYS_DEBUG 1
+#define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL LOG_DEBUG
+#define FOCUSLOGLEVEL 7
 
 
 #include "i2c.hpp"
@@ -162,7 +162,8 @@ bool I2CBus::I2CReadByte(I2CDevice *aDeviceP, uint8_t &aByte)
   #else
   int res = 0x42; // dummy
   #endif
-  FOCUSLOG("i2c_smbus_read_byte() = %d / 0x%02X\n", res, res);
+  // read is shown only in real Debug log, because button polling creates lots of accesses
+  DBGFOCUSLOG("i2c_smbus_read_byte() = %d / 0x%02X\n", res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -191,7 +192,8 @@ bool I2CBus::SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByt
   #else
   int res = 0x42; // dummy
   #endif
-  FOCUSLOG("i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
+  // read is shown only in real Debug log, because button polling creates lots of accesses
+  DBGFOCUSLOG("i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -207,7 +209,8 @@ bool I2CBus::SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWo
   #else
   int res = 0x4242; // dummy
   #endif
-  FOCUSLOG("i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
+  // read is shown only in real Debug log, because button polling creates lots of accesses
+  DBGFOCUSLOG("i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
   if (res<0) return false;
   aWord = (uint16_t)res;
   return true;
