@@ -323,7 +323,13 @@ static char enoceanDevice_key;
 
 int EnoceanDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  // Note: only add my own count when accessing root level properties!!
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level, add mine
+    return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  }
+  // just return base class' count
+  return inherited::numProps(aDomain, aParentDescriptor);
 }
 
 

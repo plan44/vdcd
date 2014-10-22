@@ -79,7 +79,13 @@ static char upnpDevice_key;
 
 int UpnpDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
-  return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  // Note: only add my own count when accessing root level properties!!
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level, add mine
+    return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  }
+  // just return base class' count
+  return inherited::numProps(aDomain, aParentDescriptor);
 }
 
 
@@ -88,7 +94,18 @@ PropertyDescriptorPtr UpnpDevice::getDescriptorByIndex(int aPropIndex, int aDoma
   static const PropertyDescription properties[numProperties] = {
     { "descriptionURL", apivalue_string, descriptionURL_key, OKEY(upnpDevice_key) }, // custom UPnP property revealing the description URL
   };
-  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
+  else {
+    // other level
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  }
 }
 
 
