@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 plan44.ch. All rights reserved.
 //
 
-#include "SimpleScene.hpp"
+#include "simplescene.hpp"
 
 
 #pragma mark - SimpleScene
