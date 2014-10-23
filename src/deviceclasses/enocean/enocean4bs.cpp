@@ -347,8 +347,11 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
     if (!newDev) {
       // create device
       newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP, aNumSubdevices));
-      // standard device settings without scene table
-      newDev->installSettings();
+      // climate control needs scene table, others don't
+      if (subdeviceDescP->flags & dflag_climatecontrolbehaviour)
+        newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
+      else
+        newDev->installSettings(); // no scenes
       // assign channel and address
       newDev->setAddressingInfo(aAddress, aSubDevice);
       // assign EPP information
