@@ -25,7 +25,9 @@ using namespace p44;
 
 
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
-  inherited(aDevice)
+  inherited(aDevice),
+  summerMode(false), // assume valve active
+  runProphylaxis(false) // no run scheduled
 {
   // make it member of the room temperature control group by default
   setGroupMembership(group_roomtemperature_control, true);
@@ -66,6 +68,56 @@ bool ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 }
 
 
+// apply scene
+// - special climate scenes:
+//   29 Activate control
+//   30 De-activate output
+//   31 Execute valve prophylaxis: Valve will be closed and opened to prevent calcification i.e. removal of calcium deposit
+bool ClimateControlBehaviour::applyScene(DsScenePtr aScene)
+{
+  // check the special hardwired scenes
+  if (isMember(group_roomtemperature_control)) {
+    SceneNo sceneNo = aScene->sceneNo;
+    switch (sceneNo) {
+      case 29:
+        // switch to winter mode
+        summerMode = false;
+        return true;
+      case 30:
+        // switch to summer mode
+        summerMode = true;
+        return true;
+      case 31:
+        // valve prophylaxis
+        runProphylaxis = true;
+        return true;
+    }
+  }
+  // other type of scene, let base class handle it
+  return inherited::applyScene(aScene);
+}
+
+
+#pragma mark - persistence
+
+/// load values from passed row
+void ClimateControlBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  // get the data
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // decode the flags
+  if (aCommonFlagsP) summerMode = *aCommonFlagsP & outputflag_summerMode;
+}
+
+
+// bind values to passed statement
+void ClimateControlBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  // encode the flags
+  if (summerMode) aCommonFlags |= outputflag_summerMode;
+  // bind
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+}
 
 
 
@@ -77,14 +129,8 @@ string ClimateControlBehaviour::shortDesc()
 
 string ClimateControlBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
+  string s = string_format("%s behaviour (in %smode)\n", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
   s.append(inherited::description());
   return s;
 }
 
-
-// climate scenes:
-
-//  29 Activate control
-//  30 De-activate output
-//  31 Execute valve prophylaxis: Valve will be closed and opened to prevent calcification i.e. removal of calcium deposit

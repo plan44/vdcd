@@ -24,6 +24,7 @@
 
 #include "device.hpp"
 #include "outputbehaviour.hpp"
+#include "simplescene.hpp"
 
 using namespace std;
 
@@ -52,6 +53,8 @@ namespace p44 {
   {
     typedef OutputBehaviour inherited;
 
+  protected:
+
     /// @name hardware derived parameters (constant during operation)
     /// @{
     /// @}
@@ -59,11 +62,21 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
+
+    /// set if climate controlling output is in summer mode (uses less energy or is switched off)
+    /// @note this flag is not exposed as a property, but set/reset by callScene(29=wintermode) and callScene(30=summermode)
+    bool summerMode;
+
     /// @}
 
 
     /// @name internal volatile state
     /// @{
+
+    /// if set, a valve phrophylaxis run is performed on next occasion. Flag automatically resets afterwards.
+    /// @note this flag is not exposed as a property, but can be set by callScene(31=prophylaxis)
+    bool runProphylaxis;
+
     /// @}
 
   public:
@@ -76,6 +89,12 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+    /// @return true if device should be in summer mode
+    bool isSummerMode() { return summerMode; };
+
+    /// @return true if device should run a prophylaxis cycle
+    /// @note automatically resets the internal flag when queried
+    bool shouldRunProphylaxis() { if (runProphylaxis) { runProphylaxis=false; return true; } else return false; };
 
     /// @}
 
@@ -94,6 +113,14 @@ namespace p44 {
     /// @param aValue the control value to process
     virtual void processControlValue(const string &aName, double aValue);
 
+    /// apply scene to output channels
+    /// @param aScene the scene to apply to output channels
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot yet be applied to hardware, and/or will be performed later/separately
+    /// @note this derived class' applyScene only implements special hard-wired behaviour specific scenes,
+    ///   basic scene apply functionality is provided by base class' implementation already.
+    virtual bool applyScene(DsScenePtr aScene);
+
     /// @}
 
     /// description of object, mainly for debug and logging
@@ -103,6 +130,17 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
+
+  protected:
+
+    // persistence implementation
+    enum {
+      outputflag_summerMode = inherited::outputflag_nextflag<<0,
+      outputflag_nextflag = inherited::outputflag_nextflag<<1
+    };
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
+
 
   };
 
