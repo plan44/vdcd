@@ -206,11 +206,6 @@ namespace p44 {
     /// @return EnOcean device ID/address
     EnoceanSubDevice getSubDevice();
 
-		/// get number of subdevices in the physical device (of which this logical device represents one subdevice)
-		/// @return number of subdevices
-		EnoceanChannel getTotalSubDevices();
-		
-
     /// set EEP information
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)

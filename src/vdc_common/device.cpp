@@ -1321,7 +1321,6 @@ enum {
   primaryGroup_key,
   zoneID_key,
   progMode_key,
-  idBlockSize_key,
   deviceType_key,
   softwareRemovable_key,
   // output
@@ -1397,7 +1396,6 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     { "primaryGroup", apivalue_uint64, primaryGroup_key, OKEY(device_key) },
     { "zoneID", apivalue_uint64, zoneID_key, OKEY(device_key) },
     { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
-    { "idBlockSize", apivalue_uint64, idBlockSize_key, OKEY(device_key) },
     { "x-p44-deviceType", apivalue_string, deviceType_key, OKEY(device_key) },
     { "x-p44-softwareRemovable", apivalue_bool, softwareRemovable_key, OKEY(device_key) },
     // the behaviour arrays
@@ -1567,9 +1565,6 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
           return true;
         case progMode_key:
           aPropValue->setBoolValue(progMode);
-          return true;
-        case idBlockSize_key:
-          aPropValue->setUint16Value(idBlockSize());
           return true;
         case deviceType_key:
           aPropValue->setStringValue(deviceTypeIdentifier());

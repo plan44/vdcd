@@ -361,26 +361,3 @@ bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
   }
   return false; // invalid profile
 }
-
-
-
-
-int EnoceanRPSDevice::idBlockSize()
-{
-  // reserve another dSUID so vdSM could split the 2-way button into two separate devices
-  return 2;
-}
-
-
-ssize_t EnoceanRPSDevice::numDevicesInHW()
-{
-  return getTotalSubDevices();
-}
-
-
-ssize_t EnoceanRPSDevice::deviceIndexInHW()
-{
-  return getSubDevice();
-}
-
-

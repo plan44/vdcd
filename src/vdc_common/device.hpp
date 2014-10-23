@@ -109,10 +109,6 @@ namespace p44 {
     /// @return true if device is registerable with vdSM
     virtual bool isPublicDS() { return true; }; // base class assumes that all devices are public
 
-    /// @return size of dSUID block (number of consecutive dSUIDs) that is guaranteed reserved for this device
-    /// @note devices can
-    virtual int idBlockSize() { return 1; }; // normal devices only reserve one single ID (their own)
-
     /// @return human readable model name/short description
     virtual string modelName() { return "vdSD - virtual device"; }
 

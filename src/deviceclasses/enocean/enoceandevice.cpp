@@ -81,13 +81,6 @@ EnoceanSubDevice EnoceanDevice::getSubDevice()
 }
 
 
-EnoceanSubDevice EnoceanDevice::getTotalSubDevices()
-{
-	return totalSubdevices;
-}
-
-
-
 void EnoceanDevice::setAddressingInfo(EnoceanAddress aAddress, EnoceanSubDevice aSubDevice)
 {
   enoceanAddress = aAddress;
@@ -122,7 +115,7 @@ void EnoceanDevice::deriveDsUid()
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
   string s = string_format("%08lX", getAddress()); // base address comes from
   dSUID.setNameInSpace(s, enOceanNamespace);
-  dSUID.setSubdeviceIndex(getSubDevice()*idBlockSize()); // space subdevices according to idBlockSize (e.g. up/down-buttons will reserve a second subdevice to allow vdSM to expand it into 2 separate buttons)
+  dSUID.setSubdeviceIndex(getSubDevice()*2); // historically space subdevices in double steps, to (theoretically) allow vdsm to split them (rocker switches) further. Kept this way to prevent existing dSUIDs to change
 }
 
 

@@ -168,18 +168,8 @@ namespace p44 {
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; };
 
-    /// @return number of vdSDs (virtual devices represented by a separate dSUID)
-    ///   that are contained in the same hardware device. -1 means "not available or ambiguous"
-    virtual ssize_t numDevicesInHW() { return -1; };
-
-    /// @return index of this vdSDs (0..numDevicesInHW()-1) among all vdSDs in the same hardware device
-    ///   -1 means undefined
-    virtual ssize_t deviceIndexInHW() { return -1; };
-
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
-    /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
-    ///   hardwareGUID() must return the same unique ID for the containing hardware device for all contained dSDs
-    /// Already defined schemas for hardwareGUID are
+    /// @note Already defined schemas for hardwareGUID are
     /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
     /// - gs1:(01)ggggg = GS1 formatted GTIN
     /// - uuid:UUUUUUU = UUID

@@ -244,8 +244,6 @@ enum {
   modelVersion_key,
   hardwareVersion_key,
   hardwareGUID_key,
-  numDevicesInHW_key,
-  deviceIndexInHW_key,
   hardwareModelGUID_key,
   oemGUID_key,
   vendorId_key,
@@ -276,8 +274,6 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
     { "modelVersion", apivalue_string, modelVersion_key, OKEY(dsAddressable_key) },
     { "hardwareVersion", apivalue_string, hardwareVersion_key, OKEY(dsAddressable_key) },
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
-    { "numDevicesInHW", apivalue_uint64, numDevicesInHW_key, OKEY(dsAddressable_key) },
-    { "deviceIndexInHW", apivalue_uint64, deviceIndexInHW_key, OKEY(dsAddressable_key) },
     { "hardwareModelGuid", apivalue_string, hardwareModelGUID_key, OKEY(dsAddressable_key) },
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
     { "vendorId", apivalue_string, vendorId_key, OKEY(dsAddressable_key) },
@@ -320,19 +316,6 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
         case deviceIcon16_key: { string icon; if (getDeviceIcon(icon, true, "icon16")) { aPropValue->setBinaryValue(icon); return true; } else return false; }
         case iconName_key: { string iconName; if (getDeviceIcon(iconName, false, "icon16")) { aPropValue->setStringValue(iconName); return true; } else return false; }
         case name_key: aPropValue->setStringValue(getName()); return true;
-        // conditionally available
-        case numDevicesInHW_key:
-          if (numDevicesInHW()>=0) {
-            aPropValue->setUint16Value((int)numDevicesInHW());
-            return true;
-          }
-          return false; // no such property
-        case deviceIndexInHW_key:
-          if (deviceIndexInHW()>=0) {
-            aPropValue->setUint16Value((int)deviceIndexInHW());
-            return true;
-          }
-          return false; // no such property
       }
       return true;
     }

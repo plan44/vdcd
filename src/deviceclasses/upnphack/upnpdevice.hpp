@@ -50,8 +50,6 @@ namespace p44 {
     virtual string modelName();
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
-    /// @note when grouping vdSDs which belong to the same hardware device using numDevicesInHW() and deviceIndexInHW()
-    ///   hardwareGUID() must return the same unique ID for the containing hardware device for all contained dSDs
     virtual string hardwareGUID();
 
     /// @}
