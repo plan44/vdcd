@@ -26,7 +26,6 @@
 
 #include "enoceancomm.hpp"
 
-#include "enoceandevice.hpp"
 
 using namespace std;
 
@@ -101,7 +100,6 @@ namespace p44 {
     EnoceanProfile eeProfile; ///< the EEP (RORG/FUNC/TYPE)
     EnoceanManufacturer eeManufacturer; ///< the manufacturer ID
     EnoceanSubDevice subDevice; ///< the subdevice number (relevant when one physical EnOcean device is represented as multiple vdSDs)
-		EnoceanSubDevice totalSubdevices; ///< number of subdevices in the physical device (of which this logical device represents one, which can have one or multiple channels)
 
     string eeFunctionDesc; ///< short functional description (like: button, windowhandle, sensor...)
     const char *iconBaseName; ///< icon base name
@@ -117,7 +115,7 @@ namespace p44 {
   public:
 
     /// constructor, create device in container
-    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
+    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -141,17 +139,16 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
-    /// @param aSubDevice subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aNumSubdevices total number of subdevices is returned here
     /// @param aSendTeachInResponse if this is set, a teach-in response will be sent for profiles that need one
     ///   (This is set to false when re-creating logical devices from DB)
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
-      EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
+      EnoceanAddress aAddress,
+      EnoceanSubDevice aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      EnoceanSubDevice &aNumSubdevices,
       bool aSendTeachInResponse
     );
 

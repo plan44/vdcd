@@ -45,15 +45,16 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDevice subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aNumSubdevicesP if not NULL, total number of subdevices is returned here
+    /// @param aSendTeachInResponse enable sending teach-in response for this device
+    /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
-      EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
+      EnoceanAddress aAddress,
+      EnoceanSubDevice aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      EnoceanSubDevice &aNumSubdevices,
       bool aNeedsTeachInResponse
     );
 
@@ -155,7 +156,7 @@ namespace p44 {
   public:
 
     /// constructor
-    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices);
+    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

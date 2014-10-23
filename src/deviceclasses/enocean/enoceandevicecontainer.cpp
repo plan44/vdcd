@@ -141,12 +141,10 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncr
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
       for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-        EnoceanSubDevice numSubdevices;
         EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
           this,
-          i->get<int>(0), i->get<int>(1), // address / subdevice
+          i->get<int>(0), i->get<int>(1), // address / subdeviceIndex
           i->get<int>(2), i->get<int>(3), // profile / manufacturer
-          numSubdevices,
           false // don't send teach-in responses
         );
         if (newdev) {

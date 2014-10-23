@@ -36,8 +36,8 @@ using namespace p44;
 
 #pragma mark - EnoceanRPSDevice
 
-EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
-  inherited(aClassContainerP, aTotalSubdevices)
+EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP) :
+  inherited(aClassContainerP)
 {
 }
 
@@ -52,107 +52,112 @@ EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
 
 EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
-  EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
+  EnoceanAddress aAddress,
+  EnoceanSubDevice aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  EnoceanSubDevice &aNumSubdevices,
   bool aNeedsTeachInResponse
 ) {
   EnoceanDevicePtr newDev; // none so far
-  aNumSubdevices = 1; // default to one
   EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
   if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    // 2 or 4 rocker switch = 2 or 4 dsDevices
-    aNumSubdevices = functionProfile==0xF60300 ? 4 : 2;
-    // create EnoceanRPSDevice device
-    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
-    // standard device settings without scene table
-    newDev->installSettings();
-    // assign channel and address
-    newDev->setAddressingInfo(aAddress, aSubDevice);
-    // assign EPP information
-    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-    newDev->setFunctionDesc("rocker switch");
-    // set icon name: even-numbered subdevice is left, odd is right
-    newDev->setIconInfo(aSubDevice & 0x01 ? "enocean_br" : "enocean_bl", true);
-    // RPS switches can be used for anything
-    newDev->setPrimaryGroup(group_black_joker);
-    // Create two handlers, one for the up button, one for the down button
-    // - create button input for down key
-    EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-    downHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-    downHandler->isRockerUp = false;
-    ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-    downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
-    downBhvr->setGroup(group_yellow_light); // pre-configure for light
-    downBhvr->setHardwareName("Down key");
-    downHandler->behaviour = downBhvr;
-    newDev->addChannelHandler(downHandler);
-    // - create button input for up key
-    EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-    upHandler->switchIndex = aSubDevice; // each switch gets its own subdevice
-    upHandler->isRockerUp = true;
-    ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-    upBhvr->setGroup(group_yellow_light); // pre-configure for light
-    upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
-    upBhvr->setHardwareName("Up key");
-    upHandler->behaviour = upBhvr;
-    newDev->addChannelHandler(upHandler);
+    // F6-02-xx or F6-03-xx: 2 or 4 rocker switch = max 2 or 4 dsDevices
+    EnoceanSubDevice numSubDevices = functionProfile==0xF60300 ? 4 : 2;
+    if (aSubDeviceIndex<numSubDevices) {
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("rocker switch");
+      // set icon name: even-numbered subdevice is left, odd is right
+      newDev->setIconInfo(aSubDeviceIndex & 0x01 ? "enocean_br" : "enocean_bl", true);
+      // RPS switches can be used for anything
+      newDev->setPrimaryGroup(group_black_joker);
+      // Create two handlers, one for the up button, one for the down button
+      // - create button input for down key
+      EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+      downHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
+      downHandler->isRockerUp = false;
+      ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+      downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
+      downBhvr->setGroup(group_yellow_light); // pre-configure for light
+      downBhvr->setHardwareName("Down key");
+      downHandler->behaviour = downBhvr;
+      newDev->addChannelHandler(downHandler);
+      // - create button input for up key
+      EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+      upHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
+      upHandler->isRockerUp = true;
+      ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+      upBhvr->setGroup(group_yellow_light); // pre-configure for light
+      upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
+      upBhvr->setHardwareName("Up key");
+      upHandler->behaviour = upBhvr;
+      newDev->addChannelHandler(upHandler);
+    }
   }
   else if (functionProfile==0xF61000) {
-    // F6-10-00 : Window handle
-    // create EnoceanRPSDevice device
-    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
-    // standard device settings without scene table
-    newDev->installSettings();
-    // assign channel and address
-    newDev->setAddressingInfo(aAddress, aSubDevice);
-    // assign EPP information
-    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-    newDev->setFunctionDesc("window handle");
-    // Window handle switches can be used for anything
-    newDev->setPrimaryGroup(group_black_joker);
-    // Current simple dS mapping: two binary inputs
-    // - Input0: 0: Window closed (Handle down position), 1: Window open (all other handle positions)
-    EnoceanRpsWindowHandleHandlerPtr newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
-    BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-    bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
-    bb->setGroup(group_black_joker); // joker by default
-    bb->setHardwareName("Window open");
-    newHandler->isTiltedStatus = false;
-    newHandler->behaviour = bb;
-    newDev->addChannelHandler(newHandler);
-    // - Input1: 0: Window fully open (Handle horizontal left or right), 1: Window tilted (Handle up position)
-    newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
-    bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-    bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
-    bb->setGroup(group_black_joker); // joker by default
-    bb->setHardwareName("Window tilted");
-    newHandler->isTiltedStatus = true;
-    newHandler->behaviour = bb;
-    newDev->addChannelHandler(newHandler);
+    // F6-10-00 : Window handle = single device
+    if (aSubDeviceIndex<1) {
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("window handle");
+      // Window handle switches can be used for anything
+      newDev->setPrimaryGroup(group_black_joker);
+      // Current simple dS mapping: two binary inputs
+      // - Input0: 0: Window closed (Handle down position), 1: Window open (all other handle positions)
+      EnoceanRpsWindowHandleHandlerPtr newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
+      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("Window open");
+      newHandler->isTiltedStatus = false;
+      newHandler->behaviour = bb;
+      newDev->addChannelHandler(newHandler);
+      // - Input1: 0: Window fully open (Handle horizontal left or right), 1: Window tilted (Handle up position)
+      newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
+      bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("Window tilted");
+      newHandler->isTiltedStatus = true;
+      newHandler->behaviour = bb;
+      newDev->addChannelHandler(newHandler);
+    }
   }
   else if (functionProfile==0xF60400) {
-    // F6-04-01 and F6-04-02 : key card activated switch
-    // create EnoceanRPSDevice device
-    newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, aNumSubdevices));
-    // standard device settings without scene table
-    newDev->installSettings();
-    // assign channel and address
-    newDev->setAddressingInfo(aAddress, aSubDevice);
-    // assign EPP information
-    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-    newDev->setFunctionDesc("key card switch");
-    // key card switches can be used for anything
-    newDev->setPrimaryGroup(group_black_joker);
-    // Current simple dS mapping: one binary input
-    // - 1: card inserted, 0: card extracted
-    EnoceanRpsCardKeyHandlerPtr newHandler = EnoceanRpsCardKeyHandlerPtr(new EnoceanRpsCardKeyHandler(*newDev.get()));
-    BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-    bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
-    bb->setGroup(group_black_joker); // joker by default
-    bb->setHardwareName("card inserted");
-    newHandler->behaviour = bb;
-    newDev->addChannelHandler(newHandler);
+    // F6-04-01 and F6-04-02 : key card activated switch = single device
+    if (aSubDeviceIndex<1) {
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("key card switch");
+      // key card switches can be used for anything
+      newDev->setPrimaryGroup(group_black_joker);
+      // Current simple dS mapping: one binary input
+      // - 1: card inserted, 0: card extracted
+      EnoceanRpsCardKeyHandlerPtr newHandler = EnoceanRpsCardKeyHandlerPtr(new EnoceanRpsCardKeyHandler(*newDev.get()));
+      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("card inserted");
+      newHandler->behaviour = bb;
+      newDev->addChannelHandler(newHandler);
+    }
   }
   // RPS never needs a teach-in response
   // return device (or empty if none created)

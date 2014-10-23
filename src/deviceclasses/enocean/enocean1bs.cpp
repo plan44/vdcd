@@ -36,40 +36,40 @@ Enocean1bsHandler::Enocean1bsHandler(EnoceanDevice &aDevice) :
 
 EnoceanDevicePtr Enocean1bsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
-  EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
+  EnoceanAddress aAddress,
+  EnoceanSubDevice aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  EnoceanSubDevice &aNumSubdevices,
   bool aSendTeachInResponse
 ) {
   EepFunc func = EEP_FUNC(aEEProfile);
   EepType type = EEP_TYPE(aEEProfile);
   EnoceanDevicePtr newDev; // none so far
-  aNumSubdevices = 0; // none found
   // At this time, only the "single input contact" profile is defined in EEP: D5-00-01
   if (func==0x00 && type==0x01) {
-    // single input contact
-    aNumSubdevices = 1; // always has a single subdevice
-    // create device
-    newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP, aNumSubdevices));
-    // standard device settings without scene table
-    newDev->installSettings();
-    // assign channel and address
-    newDev->setAddressingInfo(aAddress, aSubDevice);
-    // assign EPP information
-    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-    newDev->setFunctionDesc("single contact");
-    // joker by default, we don't know what kind of contact this is
-    newDev->setPrimaryGroup(group_black_joker);
-    // create channel handler
-    Enocean1bsHandlerPtr newHandler = Enocean1bsHandlerPtr(new Enocean1bsHandler(*newDev.get()));
-    // create the behaviour
-    BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-    bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Minute);
-    bb->setGroup(group_black_joker); // joker by default
-    bb->setHardwareName(newHandler->shortDesc());
-    newHandler->behaviour = bb;
-    // add channel to device
-    newDev->addChannelHandler(newHandler);
+    // single input contact, always consists of a single device
+    if (aSubDeviceIndex<1) {
+      // create device
+      newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("single contact");
+      // joker by default, we don't know what kind of contact this is
+      newDev->setPrimaryGroup(group_black_joker);
+      // create channel handler
+      Enocean1bsHandlerPtr newHandler = Enocean1bsHandlerPtr(new Enocean1bsHandler(*newDev.get()));
+      // create the behaviour
+      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Minute);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName(newHandler->shortDesc());
+      newHandler->behaviour = bb;
+      // add channel to device
+      newDev->addChannelHandler(newHandler);
+    }
   }
   // return device (or empty if none created)
   return newDev;

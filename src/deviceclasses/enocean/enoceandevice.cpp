@@ -47,11 +47,10 @@ EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
 
 #pragma mark - EnoceanDevice
 
-EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP, EnoceanSubDevice aTotalSubdevices) :
+EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
   Device(aClassContainerP),
   eeProfile(eep_profile_unknown),
   eeManufacturer(manufacturer_unknown),
-	totalSubdevices(aTotalSubdevices),
   alwaysUpdateable(false),
   pendingDeviceUpdate(false),
   subDevice(0)
@@ -379,9 +378,9 @@ bool EnoceanDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 
 EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
-  EnoceanAddress aAddress, EnoceanSubDevice aSubDevice,
+  EnoceanAddress aAddress,
+  EnoceanSubDevice aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  EnoceanSubDevice &aNumSubdevices,
   bool aSendTeachInResponse
 ) {
   EnoceanDevicePtr newDev;
@@ -389,16 +388,16 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   // dispatch to factory according to RORG
   switch (rorg) {
     case rorg_RPS:
-      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
+      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_1BS:
-      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
+      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_4BS:
-      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
+      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
 //    case rorg_VLD:
-//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDevice, aEEProfile, aEEManufacturer, aNumSubdevices, aSendTeachInResponse);
+//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
 //      break;
     default:
       LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
@@ -411,27 +410,27 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 
 int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer)
 {
-  EnoceanSubDevice totalSubDevices = 1; // at least one
-  EnoceanSubDevice subDevice = 0;
-  while (subDevice<totalSubDevices) {
+  EnoceanSubDevice subDeviceIndex = 0; // start at
+  while (true) {
+    // create devices until done
     EnoceanDevicePtr newDev = newDevice(
       aClassContainerP,
-      aAddress, subDevice,
+      aAddress,
+      subDeviceIndex, // index to create a device for
       aProfile, aManufacturer,
-      totalSubDevices, // possibly update total
-      subDevice==0 // allow sending teach-in response for first subdevice only
+      subDeviceIndex==0 // allow sending teach-in response for first subdevice only
     );
     if (!newDev) {
-      // could not create a device
-      break;
+      // could not create a device for subDeviceIndex
+      break; // -> done
     }
     // created device
     // - add it to the container
     aClassContainerP->addAndRemeberDevice(newDev);
     // - count it
-    subDevice++;
+    subDeviceIndex++;
   }
   // return number of devices created
-  return subDevice;
+  return subDeviceIndex;
 }
 
