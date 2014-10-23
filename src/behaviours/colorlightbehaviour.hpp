@@ -143,6 +143,7 @@ namespace p44 {
   class ColorLightScene : public LightScene
   {
     typedef LightScene inherited;
+    
   public:
     ColorLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
 
@@ -169,8 +170,8 @@ namespace p44 {
     virtual const char *tableName();
     virtual size_t numFieldDefs();
     virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
   };
   typedef boost::intrusive_ptr<ColorLightScene> ColorLightScenePtr;
@@ -326,8 +327,8 @@ namespace p44 {
     virtual const char *tableName();
     virtual size_t numFieldDefs();
     virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
   };
 

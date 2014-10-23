@@ -84,16 +84,18 @@ namespace p44 {
     /// load values from passed row
     /// @param aRow result row to get parameter values from
     /// @param aIndex index of first column to load
+    /// @param aCommonFlags flag word already containing flags from superclasses (which are included in a flagword saved by subclasses)
     /// @note the base class loads ROWID and the parent identifier (first item in keyDefs) automatically.
     ///   subclasses should always call inherited loadFromRow() FIRST
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
 
     /// bind values to passed statement
     /// @param aStatement statement to bind parameter values to
     /// @param aIndex index of first column to bind, will be incremented past the last bound column
+    /// @param aCommonFlags flag word already containing flags from superclasses (which are included in a flagword saved by subclasses)
     /// @note the base class binds ROWID and the parent identifier (first item in keyDefs) automatically.
     ///   subclasses should always call inherited bindToStatement() FIRST
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
     /// load child parameters (if any)
     virtual ErrorPtr loadChildren() { return ErrorPtr(); };

@@ -118,9 +118,9 @@ const FieldDefinition *ColorLightScene::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void ColorLightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void ColorLightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   colorMode = (ColorLightMode)aRow->get<int>(aIndex++);
   XOrHueOrCt = aRow->get<double>(aIndex++);
@@ -129,9 +129,9 @@ void ColorLightScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 /// bind values to passed statement
-void ColorLightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void ColorLightScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, (int)colorMode);
   aStatement.bind(aIndex++, XOrHueOrCt);
@@ -577,9 +577,9 @@ const FieldDefinition *RGBColorLightBehaviour::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void RGBColorLightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void RGBColorLightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   //  [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
   for (int i=0; i<3; i++) {
@@ -591,9 +591,9 @@ void RGBColorLightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &
 
 
 // bind values to passed statement
-void RGBColorLightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void RGBColorLightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   //  [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
   for (int i=0; i<3; i++) {

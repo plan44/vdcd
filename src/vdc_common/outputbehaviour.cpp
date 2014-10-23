@@ -207,33 +207,30 @@ const FieldDefinition *OutputBehaviour::getFieldDef(size_t aIndex)
 }
 
 
-enum {
-  outputflag_pushChanges = 0x0001,
-};
-
 /// load values from passed row
-void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, NULL); // common flags are loaded here, not in superclasses
   // get the fields
   outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
-  int flags = aRow->get<int>(aIndex++);
+  uint64_t flags = aRow->get<long long int>(aIndex++);
   outputGroups = aRow->get<long long int>(aIndex++);
-  // decode the flags
+  // decode my own flags
   pushChanges = flags & outputflag_pushChanges;
+  // pass the flags out to subclass which called this superclass to get the flags (and decode themselves)
+  if (aCommonFlagsP) *aCommonFlagsP = flags;
 }
 
 
 // bind values to passed statement
-void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // encode the flags
-  int flags = 0;
-  if (pushChanges) flags |= outputflag_pushChanges;
+  if (pushChanges) aCommonFlags |= outputflag_pushChanges;
   // bind the fields
   aStatement.bind(aIndex++, outputMode);
-  aStatement.bind(aIndex++, flags);
+  aStatement.bind(aIndex++, (int64_t)aCommonFlags);
   aStatement.bind(aIndex++, (long long int)outputGroups);
 }
 

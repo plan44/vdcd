@@ -406,31 +406,28 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
 }
 
 
-enum {
-  buttonflag_setsLocalPriority = 0x0001,
-  buttonflag_callsPresent = 0x0002
-};
-
 /// load values from passed row
-void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, NULL); // no common flags in base class
   // get the fields
   buttonGroup = (DsGroup)aRow->get<int>(aIndex++);
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
-  int flags = aRow->get<int>(aIndex++);
+  uint64_t flags = aRow->get<int>(aIndex++);
   buttonChannel = (DsChannelType)aRow->get<int>(aIndex++);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
+  // pass the flags out to subclasses which call this superclass to get the flags (and decode themselves)
+  if (aCommonFlagsP) *aCommonFlagsP = flags;
 }
 
 
 // bind values to passed statement
-void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // encode the flags
   int flags = 0;
   if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;

@@ -242,9 +242,9 @@ enum {
 
 
 /// load values from passed row
-void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inheritedParams::loadFromRow(aRow, aIndex);
+  inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   sceneNo = aRow->get<int>(aIndex++);
   globalSceneFlags = aRow->get<int>(aIndex++);
@@ -252,9 +252,9 @@ void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 // bind values to passed statement
-void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, (int)sceneNo);
   aStatement.bind(aIndex++, (int)globalSceneFlags);
@@ -481,7 +481,8 @@ ErrorPtr SceneDeviceSettings::loadChildren()
       // got record
       // - load record fields into scene object
       int index = 0;
-      scene->loadFromRow(row, index);
+      uint64_t flags;
+      scene->loadFromRow(row, index, &flags);
       // - put scene into map of non-default scenes
       scenes[scene->sceneNo] = scene;
       // - fresh object for next row

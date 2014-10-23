@@ -170,7 +170,7 @@ sqlite3pp::query *PersistentParams::newLoadAllQuery(const char *aParentIdentifie
 
 
 /// load values from passed row
-void PersistentParams::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void PersistentParams::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   // - load ROWID which is always there
   rowid = aRow->get<long long>(aIndex++);
@@ -195,7 +195,8 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
     if (row!=queryP->end()) {
       // got record
       int index = 0;
-      loadFromRow(row, index); // might set dirty when assigning properties...
+      uint64_t flags; // storage to distribute flags over hierarchy
+      loadFromRow(row, index, &flags); // might set dirty when assigning properties...
       dirty = false; // ...so: just loaded: make clean
     }
     delete queryP; queryP = NULL;
@@ -216,7 +217,7 @@ void PersistentParams::markDirty()
 
 
 /// bind values to passed statement
-void PersistentParams::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void PersistentParams::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   // the parent identifier is the first column to bind
   aStatement.bind(aIndex++, aParentIdentifier, false); // text not static
@@ -257,7 +258,7 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier, bool aMult
       if (Error::isOK(err)) {
         // bind the values
         int index = 1; // SQLite parameter indexes are 1-based!
-        bindToStatement(cmd, index, aParentIdentifier);
+        bindToStatement(cmd, index, aParentIdentifier, 0); // no flags yet, class hierarchy will collect them
         // now execute command
         if (cmd.execute()==SQLITE_OK) {
           // ok, updated ok
@@ -298,7 +299,7 @@ ErrorPtr PersistentParams::saveToStore(const char *aParentIdentifier, bool aMult
       if (Error::isOK(err)) {
         // bind the values
         int index = 1; // SQLite parameter indexes are 1-based!
-        bindToStatement(cmd, index, aParentIdentifier);
+        bindToStatement(cmd, index, aParentIdentifier, 0); // no flags yet, class hierarchy will collect them
         // now execute command
         if (cmd.execute()==SQLITE_OK) {
           // get the new ROWID

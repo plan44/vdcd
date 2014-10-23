@@ -69,9 +69,9 @@ const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the field value
   deviceFlags = aRow->get<int>(aIndex++);
   device.setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
@@ -80,9 +80,9 @@ void DeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 // bind values to passed statement
-void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, deviceFlags);
   aStatement.bind(aIndex++, device.getName().c_str());

@@ -382,9 +382,9 @@ const FieldDefinition *DeviceClassContainer::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inheritedParams::loadFromRow(aRow, aIndex);
+  inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the field value
   vdcFlags = aRow->get<int>(aIndex++);
   setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
@@ -393,9 +393,9 @@ void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 
 
 // bind values to passed statement
-void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, vdcFlags);
   aStatement.bind(aIndex++, getName().c_str());

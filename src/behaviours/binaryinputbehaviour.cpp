@@ -117,9 +117,9 @@ const FieldDefinition *BinaryInputBehaviour::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   binInputGroup = (DsGroup)aRow->get<int>(aIndex++);
   minPushInterval = aRow->get<long long int>(aIndex++);
@@ -129,9 +129,9 @@ void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 
 
 // bind values to passed statement
-void BinaryInputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void BinaryInputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, binInputGroup);
   aStatement.bind(aIndex++, (long long int)minPushInterval);

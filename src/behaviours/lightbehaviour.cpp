@@ -435,9 +435,9 @@ const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   onThreshold = aRow->get<double>(aIndex++);
   Brightness md = aRow->get<double>(aIndex++);
@@ -459,9 +459,9 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 // bind values to passed statement
-void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void LightBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // create dimming time fields
   uint32_t du =
     dimTimeUp[0] |

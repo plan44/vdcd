@@ -119,9 +119,9 @@ const FieldDefinition *SensorBehaviour::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   sensorGroup = (DsGroup)aRow->get<int>(aIndex++);
   minPushInterval = aRow->get<long long int>(aIndex++);
@@ -130,9 +130,9 @@ void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 // bind values to passed statement
-void SensorBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void SensorBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, sensorGroup);
   aStatement.bind(aIndex++, (long long int)minPushInterval);

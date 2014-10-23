@@ -170,8 +170,8 @@ namespace p44 {
     virtual const FieldDefinition *getKeyDef(size_t aIndex);
     virtual size_t numFieldDefs();
     virtual const FieldDefinition *getFieldDef(size_t aIndex);
-    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex);
-    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
   private:
 
