@@ -227,8 +227,9 @@ namespace p44 {
 
     /// factory method to create the correct subclass type of DsScene with default values
     /// @param aSceneNo the scene number to create a scene object with proper default values for.
-    /// @note this method must be derived in concrete subclasses to return the appropriate scene object
-    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo) = 0;
+    /// @note this method can be derived in concrete subclasses to return the appropriate scene object.
+    ///   Base class returns a SimpleScene.
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
 
     /// @}
 

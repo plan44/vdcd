@@ -23,6 +23,7 @@
 
 #include "device.hpp"
 #include "outputbehaviour.hpp"
+#include "simplescene.hpp"
 
 using namespace p44;
 
@@ -429,6 +430,15 @@ SceneDeviceSettings::SceneDeviceSettings(Device &aDevice) :
 }
 
 
+DsScenePtr SceneDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+{
+  SimpleScenePtr simpleScene = SimpleScenePtr(new SimpleScene(*this, aSceneNo));
+  simpleScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return simpleScene;
+}
+
+
 
 DsScenePtr SceneDeviceSettings::getScene(SceneNo aSceneNo)
 {
@@ -457,6 +467,9 @@ void SceneDeviceSettings::updateScene(DsScenePtr aScene)
   // as we need the ROWID of the lightsettings as parentID, make sure we get saved if we don't have one
   if (rowid==0) markDirty();
 }
+
+
+
 
 
 #pragma mark - scene table persistence
