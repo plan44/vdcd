@@ -130,9 +130,9 @@ private:
       // morse out tag number of device class failing self test until button is pressed
       greenLED->steadyOff();
       int numBlinks = nextContainer->second->getTag();
-      redLED->blinkFor(600*MilliSecond*numBlinks, 600*MilliSecond, 50);
+      redLED->blinkFor(300*MilliSecond*numBlinks, 300*MilliSecond, 50);
       // call myself again later
-      errorReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SelfTestRunner::containerTested, this, aError), 600*MilliSecond*numBlinks+2*Second);
+      errorReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SelfTestRunner::containerTested, this, aError), 300*MilliSecond*numBlinks+2*Second);
       // also install button responder
       button->setButtonHandler(boost::bind(&SelfTestRunner::errorAcknowledged, this), false); // report only release
     }
