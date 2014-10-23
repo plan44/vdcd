@@ -58,8 +58,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   }
   // basically act as black device so we can configure colors
   if (digitalIoType==digitalio_button) {
-    // Standard device settings without scene table
     primaryGroup = group_black_joker;
+    // Standard device settings without scene table
     installSettings();
     // Digital input as button
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
@@ -70,8 +70,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     addBehaviour(b);
   }
   else if (digitalIoType==digitalio_input) {
-    // Standard device settings without scene table
     primaryGroup = group_black_joker;
+    // Standard device settings without scene table
     installSettings();
     // Digital input as binary input (AKM, automation block type)
     buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
@@ -94,9 +94,9 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
-    // Standard device settings without scene table
     primaryGroup = group_black_joker;
-    installSettings();
+    // - standard device settings with scene table
+    installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // Digital output
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // - add generic output behaviour

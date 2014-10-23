@@ -90,8 +90,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // simulate heating valve with lo bat (like thermokon SAB02,SAB05 or Kieback+Peter MD15-FTL)
     // - is heating
     primaryGroup = group_blue_heating;
-    // - standard device settings without scene table
-    installSettings();
+    // - standard device settings with scene table
+    installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
