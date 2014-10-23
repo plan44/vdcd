@@ -231,7 +231,7 @@ namespace p44 {
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
-    virtual string description();
+    virtual string description() = 0;
 
   protected:
 
