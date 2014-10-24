@@ -19,6 +19,15 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 0
+
+
 #include "jsonrpccomm.hpp"
 
 
@@ -78,7 +87,7 @@ ErrorPtr JsonRpcComm::sendRequest(const char *aMethod, JsonObjectPtr aParams, Js
     pendingAnswers[requestIdCounter] = aResponseHandler;
   }
   // now send
-  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 request message:\n  %s\n", request->c_strValue());
+  FOCUSLOG("Sending JSON-RPC 2.0 request message:\n  %s\n", request->c_strValue());
   return sendMessage(request);
 }
 
@@ -91,7 +100,7 @@ ErrorPtr JsonRpcComm::sendResult(const char *aJsonRpcId, JsonObjectPtr aResult)
   // add the ID so the caller can associate with a previous request
   response->add("id", JsonObject::newString(aJsonRpcId));
   // now send
-  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 result message:\n  %s\n", response->c_strValue());
+  FOCUSLOG("Sending JSON-RPC 2.0 result message:\n  %s\n", response->c_strValue());
   return sendMessage(response);
 }
 
@@ -119,7 +128,7 @@ ErrorPtr JsonRpcComm::sendError(const char *aJsonRpcId, uint32_t aErrorCode, con
   // add the ID so the caller can associate with a previous request
   response->add("id", aJsonRpcId ? JsonObject::newString(aJsonRpcId) : JsonObjectPtr());
   // now send
-  DBGLOG(LOG_DEBUG,"Sending JSON-RPC 2.0 error message:\n  %s\n", response->c_strValue());
+  FOCUSLOG("Sending JSON-RPC 2.0 error message:\n  %s\n", response->c_strValue());
   return sendMessage(response);
 }
 
@@ -146,7 +155,7 @@ void JsonRpcComm::gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject)
   const char *idString = NULL;
   if (Error::isOK(aError)) {
     // received proper JSON, now check JSON-RPC specifics
-    DBGLOG(LOG_DEBUG,"Received JSON message:\n  %s\n", aJsonObject->c_strValue());
+    FOCUSLOG("Received JSON message:\n  %s\n", aJsonObject->c_strValue());
     if (aJsonObject->isType(json_type_array)) {
       respErr = ErrorPtr(new JsonRpcError(JSONRPC_INVALID_REQUEST, "Invalid Request - batch mode not supported by this implementation"));
     }
