@@ -72,9 +72,9 @@ const FieldDefinition *SimpleScene::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void SimpleScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
+void SimpleScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
-  inherited::loadFromRow(aRow, aIndex);
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
   value = aRow->get<double>(aIndex++);
   effect = (DsSceneEffect)aRow->get<int>(aIndex++);
@@ -82,9 +82,9 @@ void SimpleScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex)
 
 
 /// bind values to passed statement
-void SimpleScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier)
+void SimpleScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
-  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier);
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, value);
   aStatement.bind(aIndex++, effect);
