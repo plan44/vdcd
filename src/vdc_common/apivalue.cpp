@@ -183,7 +183,13 @@ string ApiValue::description()
     s += " ]";
   }
   else if (objectType==apivalue_string) {
-    s = shellQuote(stringValue());
+    string s2 = stringValue();
+    size_t l = s2.size();
+    if (l>100) {
+      s2.erase(100); // truncate to 100
+      string_format_append(s2, "... (%ld bytes)", l);
+    }
+    s = shellQuote(s2);
   }
   else if (objectType==apivalue_binary) {
     string b = binaryValue();
@@ -199,7 +205,7 @@ string ApiValue::description()
   }
   else if (objectType==apivalue_null) {
     // show NULL explicitly
-    s = "NULL";
+    s = "null"; // JSON parser compatible, lowercase
   }
   else {
     // must be simple type
