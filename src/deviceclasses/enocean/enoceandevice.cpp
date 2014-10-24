@@ -53,6 +53,7 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
   eeManufacturer(manufacturer_unknown),
   alwaysUpdateable(false),
   pendingDeviceUpdate(false),
+  updateAtEveryReceive(true), // on by default
   subDevice(0)
 {
   eeFunctionDesc = "device"; // generic description is "device"
@@ -209,10 +210,25 @@ EnoceanChannelHandlerPtr EnoceanDevice::channelForBehaviour(const DsBehaviour *a
 
 
 
+void EnoceanDevice::needOutgoingUpdate()
+{
+  // anyway, we need an update
+  pendingDeviceUpdate = true;
+  // send it right away when possible (line powered devices only)
+  if (alwaysUpdateable) {
+    sendOutgoingUpdate();
+  }
+  else {
+    LOG(LOG_INFO,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
+  }
+}
+
+
 void EnoceanDevice::sendOutgoingUpdate()
 {
-  pendingDeviceUpdate = true; // always send, for now (but nothing will be sent for devices without outputs)
   if (pendingDeviceUpdate) {
+    // clear flag now, so handlers can trigger yet another update in collectOutgoingMessageData() if needed (e.g. heating valve service sequence)
+    pendingDeviceUpdate = false; // done
     // collect data from all channels to compose an outgoing message
     Esp3PacketPtr outgoingEsp3Packet;
     for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
@@ -226,7 +242,6 @@ void EnoceanDevice::sendOutgoingUpdate()
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
     }
-    pendingDeviceUpdate = false; // done
   }
 }
 
@@ -241,9 +256,9 @@ void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       break; // no more checking needed, need device level update anyway
     }
   }
-  if (pendingDeviceUpdate && alwaysUpdateable) {
-    // send immediately
-    sendOutgoingUpdate();
+  if (pendingDeviceUpdate) {
+    // we need to apply data
+    needOutgoingUpdate();
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
@@ -258,8 +273,9 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
   }
   // if device cannot be update whenever output value change is requested, send updates after receiving a message
-  if (!alwaysUpdateable) {
+  if (pendingDeviceUpdate || updateAtEveryReceive) {
     // send updates, if any
+    pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
     sendOutgoingUpdate();
   }
 }

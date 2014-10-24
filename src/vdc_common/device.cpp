@@ -121,6 +121,7 @@ DsGroup Device::getDominantGroup()
       }
     }
   }
+  // if no or undefined output, check input colors
   if (group==group_variable && buttons.size()>0) {
     // second priority: color of first button
     ButtonBehaviourPtr btn = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[0]);
@@ -140,6 +141,9 @@ DsGroup Device::getDominantGroup()
     // still undefined -> use primary color
     group = primaryGroup;
   }
+  // map some secondary output groups to base colors
+  if (group==group_roomtemperature_control)
+    group = group_blue_heating; // roomtemperature is blue
   return group;
 }
 

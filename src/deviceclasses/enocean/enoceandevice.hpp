@@ -108,6 +108,7 @@ namespace p44 {
     EnoceanChannelHandlerVector channels; ///< the channel handlers for this device
 
     bool alwaysUpdateable; ///< if set, device updates are sent immediately, otherwise, updates are only sent as response to a device message
+    bool updateAtEveryReceive; ///< if set, current values are sent to the device whenever a message is received, even if output state has not changed
     bool pendingDeviceUpdate; ///< set when update to the device is pending
 
     MLMicroSeconds lastPacketTime; ///< time when device received last packet (or device was created)
@@ -189,7 +190,12 @@ namespace p44 {
 
     /// device and channel handler implementations can call this to enable immediate sending of output changes for the device
     /// (otherwise, output changes are sent only withing 1sec after receiving a message from the device)
-    void setAlwaysUpdateable() { alwaysUpdateable = true; };
+    void setAlwaysUpdateable(bool aAlwaysUpdateable = true) { alwaysUpdateable = aAlwaysUpdateable; };
+
+    /// device and channel handler implementations can call this to enable immediate sending of output changes for the device
+    /// (otherwise, output changes are sent only withing 1sec after receiving a message from the device)
+    void setUpdateAtEveryReceive(bool aUpdateAtEveryReceive = true) { updateAtEveryReceive = aUpdateAtEveryReceive; };
+
 
     /// set the icon info for the enocean device
     void setIconInfo(const char *aIconBaseName, bool aGroupColored) { iconBaseName = aIconBaseName; groupColoredIcon = aGroupColored; };
@@ -224,9 +230,14 @@ namespace p44 {
     /// @note base class implementation passes packet to all registered channels
     virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
 
+    /// signal that we need an outgoing packet at next possible occasion
+    /// @note will cause output data from channel handlers to be collected
+    /// @note can be called from channel handlers to trigger another update after the current one
+    void needOutgoingUpdate();
+
     /// send outgoing packet updating outputs and device settings
-    /// @note this will be called shortly after an incoming packet was received
-    ///   when device updates are pending
+    /// @note do not call this directly, use needOutgoingUpdate() instead to make
+    ///   sure outgoing package is sent at appropriate time for device (e.g. just after receiving for battery powered devices)
     void sendOutgoingUpdate();
 
     /// device specific teach in response

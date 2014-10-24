@@ -76,11 +76,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a -k button:button -k taste:button -k schalter:button -k dimmer:button -k licht1:dimmer -k licht2:dimmer -k farb1:colordimmer -k farb2:colordimmer -k heizventil:valve -l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--button simpin.a -l 7 -k testin:button --analogio i2c1.PCA9685@40.0:dimmer"
-            isEnabled = "YES">
+            argument = "--button simpin.a -l 7 -k testin:button"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -127,7 +127,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/plan44/device_icons"
+            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44BridgeLinux/p44/www/icons"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

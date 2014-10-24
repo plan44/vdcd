@@ -280,7 +280,7 @@ typedef enum {
   hardwareError_none, ///< hardware is ok
   hardwareError_openCircuit, ///< input or output open circuit  (eg. bulb burnt)
   hardwareError_shortCircuit, ///< input or output short circuit
-  hardwareError_overload, ///< output overload
+  hardwareError_overload, ///< output overload, including mechanical overload (e.g. heating valve actuator obstructed)
   hardwareError_busConnection, ///< third party device bus problem (such as DALI short-circuit)
   hardwareError_lowBattery, ///< third party device has low battery
   hardwareError_deviceError, ///< other device error

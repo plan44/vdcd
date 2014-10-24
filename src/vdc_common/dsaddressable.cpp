@@ -449,7 +449,7 @@ string DsAddressable::description()
 {
   string s = string_format("%s %s", entityType(), shortDesc().c_str());
   if (announced!=Never)
-    string_format_append(s, " - Announced %lld", announced);
+    string_format_append(s, " - announced");
   else
     s.append(" - not yet announced");
   s.append("\n");
