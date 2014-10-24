@@ -53,7 +53,7 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
   eeManufacturer(manufacturer_unknown),
   alwaysUpdateable(false),
   pendingDeviceUpdate(false),
-  updateAtEveryReceive(true), // on by default
+  updateAtEveryReceive(false),
   subDevice(0)
 {
   eeFunctionDesc = "device"; // generic description is "device"

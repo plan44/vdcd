@@ -92,11 +92,11 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
   // check for specialized handlers for certain profiles first
   if (aEEProfile==0xA52001) {
     // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
-    return EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+    newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   else {
     // check table based sensors, might create more than
-    return Enocean4bsSensorHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+    newDev = Enocean4bsSensorHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   return newDev;
 }
@@ -554,6 +554,7 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     Enocean4bsSensorHandler::addSensorChannel(newDev, lowBatInput, false);
     // A5-20-01 need teach-in response
     newDev->sendTeachInResponse();
+    newDev->setUpdateAtEveryReceive();
   }
   // return device (or empty if none created)
   return newDev;
