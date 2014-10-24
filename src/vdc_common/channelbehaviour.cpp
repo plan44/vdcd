@@ -69,10 +69,13 @@ string ChannelBehaviour::description()
 // NOT to be used to change the hardware channel value!
 void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
 {
-  LOG(LOG_INFO,
-    "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
-    getName(), output.device.shortDesc().c_str(), cachedChannelValue, aActualChannelValue
-  );
+  if (LOGENABLED(LOG_INFO)) {
+    string s = output.device.shortDesc();
+    LOG(LOG_INFO,
+      "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
+      getName(), s.c_str(), cachedChannelValue, aActualChannelValue
+    );
+  }
   cachedChannelValue = aActualChannelValue;
   channelUpdatePending = false; // we are in sync
   channelLastSync = MainLoop::now(); // value is current
@@ -105,10 +108,13 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     aNewValue = getMin();
   // prevent propagating changes smaller than device resolution
   if (aAlwaysApply || fabs(aNewValue-cachedChannelValue)>=getResolution()) {
-    LOG(LOG_INFO,
-      "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.0f (transition time=%d mS)\n",
-      getName(), output.device.shortDesc().c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
-    );
+    if (LOGENABLED(LOG_INFO)) {
+      string s = output.device.shortDesc();
+      LOG(LOG_INFO,
+        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.0f (transition time=%d mS)\n",
+        getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
+      );
+    }
     // apply
     cachedChannelValue = aNewValue;
     nextTransitionTime = aTransitionTime;
@@ -152,10 +158,13 @@ void ChannelBehaviour::channelValueApplied(bool aAnyWay)
     channelLastSync = MainLoop::now(); // now we know that we are in sync
     if (!aAnyWay) {
       // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
-      LOG(LOG_INFO,
-        "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
-        getName(), output.device.shortDesc().c_str(), cachedChannelValue
-      );
+      if (LOGENABLED(LOG_INFO)) {
+        string s = output.device.shortDesc();
+        LOG(LOG_INFO,
+          "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
+          getName(), s.c_str(), cachedChannelValue
+        );
+      }
     }
   }
 }
