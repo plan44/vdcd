@@ -70,7 +70,7 @@ void Enocean4BSDevice::sendTeachInResponse()
     // set destination
     responsePacket->setRadioDestination(getAddress());
     // now send
-    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", getEEProfile());
+    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X\n", getEEProfile());
     getEnoceanDeviceContainer().enoceanComm.sendPacket(responsePacket);
   }
 }
@@ -552,8 +552,10 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
     // also has a temperature sensor built-in
     Enocean4bsSensorHandler::addSensorChannel(newDev, lowBatInput, false);
-    // A5-20-01 need teach-in response
-    newDev->sendTeachInResponse();
+    // A5-20-01 need teach-in response if requested (i.e. if this device creation is caused by learn-in, not reinstantiation from DB)
+    if (aSendTeachInResponse) {
+      newDev->sendTeachInResponse();
+    }
     newDev->setUpdateAtEveryReceive();
   }
   // return device (or empty if none created)
