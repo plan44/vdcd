@@ -166,13 +166,21 @@ ErrorPtr DsAddressable::handleMethod(VdcApiRequestPtr aRequest, const string &aM
 
 bool DsAddressable::pushProperty(ApiValuePtr aQuery, int aDomain)
 {
-  // get the value
-  ApiValuePtr value = aQuery->newValue(apivalue_object);
-  ErrorPtr err = accessProperty(access_read, aQuery, value, aDomain, PropertyDescriptorPtr());
-  if (Error::isOK(err)) {
-    ApiValuePtr pushParams = aQuery->newValue(apivalue_object);
-    pushParams->add("properties", value);
-    return sendRequest("pushProperty", pushParams);
+  if (announced!=Never) {
+    // device is announced: push value changes
+    // - get the value
+    ApiValuePtr value = aQuery->newValue(apivalue_object);
+    ErrorPtr err = accessProperty(access_read, aQuery, value, aDomain, PropertyDescriptorPtr());
+    if (Error::isOK(err)) {
+      // - send pushProperty
+      ApiValuePtr pushParams = aQuery->newValue(apivalue_object);
+      pushParams->add("properties", value);
+      return sendRequest("pushProperty", pushParams);
+    }
+  }
+  else {
+    // not announced, suppress pushProperty
+    LOG(LOG_WARNING, "pushProperty suppressed because %s %s is not yet announced\n", entityType(), shortDesc().c_str());
   }
   return false;
 }

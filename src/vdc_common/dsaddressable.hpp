@@ -124,7 +124,7 @@ namespace p44 {
     /// push property value
     /// @param aQuery description of what should be pushed (same syntax as in getProperty API)
     /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
-    /// @return true if push could be sent, false otherwise (e.g. no vdSM connection)
+    /// @return true if push could be sent, false otherwise (e.g. no vdSM connection, or device not yet announced)
     bool pushProperty(ApiValuePtr aQuery, int aDomain);
 
     /// @}
