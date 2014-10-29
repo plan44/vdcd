@@ -68,8 +68,7 @@ bool DsBehaviour::pushBehaviourState()
     ApiValuePtr subQuery = query->newValue(apivalue_object);
     subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
     query->add(string(getTypeName()).append("States"), subQuery);
-    device.pushProperty(query, VDC_API_DOMAIN);
-    return true;
+    return device.pushProperty(query, VDC_API_DOMAIN);
   }
   // could not push
   return false;
