@@ -24,13 +24,17 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 0
+#define FOCUSLOGLEVEL 7
 
 #include "pbufvdcapi.hpp"
 
 
 using namespace p44;
 
+#if FOCUSLOGGING
+// C helper functions to print protobuf
+void protobufMessagePrint(FILE *aOutFile, const ProtobufCMessage *aMessageP, int aIndent);
+#endif // FOCUSLOGGING
 
 
 #pragma mark - PbufApiValue
@@ -1132,8 +1136,8 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
 ErrorPtr VdcPbufApiConnection::sendMessage(const Vdcapi__Message *aVdcApiMessage)
 {
   ErrorPtr err;
-  #if defined(DEBUG) || ALWAYS_DEBUG
-  if (DBGLOGENABLED(LOG_DEBUG)) {
+  #if FOCUSLOGGING
+  if (FOCUSLOGENABLED) {
     protobufMessagePrint(stdout, &aVdcApiMessage->base, 0);
   }
   #endif
@@ -1537,7 +1541,7 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
 
 #pragma mark - generic protobuf-C message printing
 
-#if defined(DEBUG) || ALWAYS_DEBUG
+#if FOCUSLOGGING
 
 
 static void printLfAndIndent(FILE *aOutFile, int aIndent)
@@ -1674,5 +1678,5 @@ void protobufMessagePrintInternal(FILE *aOutFile, const ProtobufCMessage *aMessa
 }
 
 
-#endif // DEBUG || ALWAYS_DEBUG
+#endif // FOCUSLOGGING
 
