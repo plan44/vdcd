@@ -233,7 +233,8 @@ static const char *modelFeatureNames[numModelFeatures] = {
   "heatinggroup",
   "heatingoutmode",
   "heatingprops",
-  "pwmvalue"
+  "pwmvalue",
+  "valvetype",
 };
 
 

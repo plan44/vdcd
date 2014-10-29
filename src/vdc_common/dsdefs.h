@@ -369,6 +369,7 @@ typedef enum {
   modelFeature_heatingoutmode,
   modelFeature_heatingprops,
   modelFeature_pwmvalue,
+  modelFeature_valvetype,
   numModelFeatures
 } DsModelFeatures;
 
