@@ -26,7 +26,6 @@
 
 #include "enoceandevice.hpp"
 
-
 using namespace std;
 
 namespace p44 {
@@ -124,9 +123,9 @@ namespace p44 {
     );
 
 
-    /// factory: add sensor channel to device by descriptor
+    /// factory: add sensor/binary input channel to device by descriptor
     /// @param aDevice the device to add the channel to
-    /// @param aSensorDescriptor a sensor descriptor
+    /// @param aSensorDescriptor a sensor or binary input descriptor
     /// @param aSetDeviceDescription if set, this sensor channel is the "main" channel and will set description on the device itself
     static void addSensorChannel(
       EnoceanDevicePtr aDevice,
@@ -134,6 +133,14 @@ namespace p44 {
       bool aSetDeviceDescription
     );
 
+    /// factory: create behaviour (sensor/binary input) by descriptor
+    /// @param aDevice the device to add the behaviour to
+    /// @param aSensorDescriptor a sensor or binary input descriptor
+    /// @return the behaviour
+    static DsBehaviourPtr newSensorBehaviour(const Enocean4BSSensorDescriptor &aSensorDescriptor, DevicePtr aDevice);
+
+    /// utility: get description string from sensor descriptor info
+    static string sensorDesc(const Enocean4BSSensorDescriptor &aSensorDescriptor);
 
     /// handle radio packet related to this channel
     /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
@@ -198,6 +205,53 @@ namespace p44 {
     virtual string shortDesc();
   };
 
+
+
+  /// heating valve handler
+  class EnoceanA5130XHandler : public Enocean4bsHandler
+  {
+    typedef Enocean4bsHandler inherited;
+    friend class Enocean4bsHandler;
+
+    // behaviours for extra sensors
+    // Note: using base class' behaviour pointer for first sensor = dawn sensor
+    DsBehaviourPtr outdoorTemp;
+    DsBehaviourPtr windSpeed;
+    DsBehaviourPtr dayIndicator;
+    DsBehaviourPtr rainIndicator;
+    DsBehaviourPtr sunWest;
+    DsBehaviourPtr sunSouth;
+    DsBehaviourPtr sunEast;
+
+    /// private constructor, friend class' Enocean4bsHandler::newDevice is the place to call it from
+    EnoceanA5130XHandler(EnoceanDevice &aDevice);
+
+  public:
+
+    /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
+    /// @param aClassContainerP the class container
+    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
+    /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
+    /// @param aSendTeachInResponse enable sending teach-in response for this device
+    /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
+    static EnoceanDevicePtr newDevice(
+      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanAddress aAddress,
+      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
+      bool aSendTeachInResponse
+    );
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+  };
+  typedef boost::intrusive_ptr<EnoceanA5130XHandler> EnoceanA5130XHandlerPtr;
 
 
 

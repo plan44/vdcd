@@ -94,8 +94,12 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
     // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
     newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
+  else if (aEEProfile==0xA51301) {
+    // use specialized handler for multi-telegram sensor
+    newDev = EnoceanA5130XHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+  }
   else {
-    // check table based sensors, might create more than
+    // check table based sensors, might create more than one device
     newDev = Enocean4bsSensorHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   return newDev;
@@ -121,12 +125,17 @@ void Enocean4bsHandler::prepare4BSpacket(Esp3PacketPtr &aOutgoingPacket, uint32_
 #pragma mark - generic table driven sensor handler
 
 
-/// decoder function
-/// @param aDescriptor descriptor for data to extract
-/// @param a4BSdata the 4BS data as 32-bit value, MSB=enocean DB_3, LSB=enocean DB_0
-typedef void (*BitFieldHandlerFunc)(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata);
+
 
 namespace p44 {
+
+  struct Enocean4BSSensorDescriptor;
+
+  /// decoder function
+  /// @param aDescriptor descriptor for data to extract
+  /// @param a4BSdata the 4BS data as 32-bit value, MSB=enocean DB_3, LSB=enocean DB_0
+  typedef void (*BitFieldHandlerFunc)(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata);
+
 
   /// enocean sensor value descriptor
   typedef struct Enocean4BSSensorDescriptor {
@@ -155,16 +164,15 @@ namespace p44 {
 #pragma mark - bit field handlers for Enocean4bsSensorHandler
 
 /// standard bitfield extractor function for sensor behaviours (read only)
-static void stdSensorHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+static void stdSensorHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
 {
-  const Enocean4BSSensorDescriptor *descP = aHandler.sensorChannelDescriptorP;
-  if (descP && !aForSend) {
-    uint32_t value = a4BSdata>>descP->lsBit;
-    int numBits = descP->msBit-descP->lsBit+1;
+  if (!aForSend) {
+    uint32_t value = a4BSdata>>aSensorDescriptor.lsBit;
+    int numBits = aSensorDescriptor.msBit-aSensorDescriptor.lsBit+1;
     long mask = (1l<<numBits)-1;
     value &= mask;
     // now pass to behaviour
-    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aHandler.behaviour);
+    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour);
     if (sb) {
       sb->updateEngineeringValue(value);
     }
@@ -172,17 +180,17 @@ static void stdSensorHandler(const Enocean4bsSensorHandler &aHandler, bool aForS
 }
 
 /// inverted bitfield extractor function
-static void invSensorHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+static void invSensorHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
 {
   if (!aForSend) {
     uint32_t data = ~a4BSdata;
-    stdSensorHandler(aHandler, false, data);
+    stdSensorHandler(aSensorDescriptor, aBehaviour, false, data);
   }
 }
 
 
 /// two-range illumination handler, as used in A5-06-01 and A5-06-02
-static void illumHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+static void illumHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
 {
   uint32_t data = 0;
   if (!aForSend) {
@@ -198,15 +206,14 @@ static void illumHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend,
       // DB(0,0)==1: put DB(1) into DB(2,0)..DB(1,1)
       data = (a4BSdata<<1) & 0x0001FE00; // double range, half resolution
     }
-    stdSensorHandler(aHandler, false, data);
+    stdSensorHandler(aSensorDescriptor, aBehaviour, false, data);
   }
 }
 
 
-static void powerMeterHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+static void powerMeterHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
 {
-  const Enocean4BSSensorDescriptor *descP = aHandler.sensorChannelDescriptorP;
-  if (descP && !aForSend) {
+  if (!aForSend) {
     // raw value is in DB3.7..DB1.0 (upper 24 bits)
     uint32_t value = a4BSdata>>8;
     // scaling is in bits DB0.1 and DB0.0 : 00=scale1, 01=scale10, 10=scale100, 11=scale1000
@@ -216,7 +223,7 @@ static void powerMeterHandler(const Enocean4bsSensorHandler &aHandler, bool aFor
       case 2: divisor = 100; break; // value scale is 0.01kWh or 0.01W per LSB
       case 3: divisor = 1000; break; // value scale is 0.001kWh (1Wh) or 0.001W (1mW) per LSB
     }
-    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aHandler.behaviour);
+    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour);
     if (sb) {
       // DB0.2 signals which value it is: 0=cumulative (energy), 1=current value (power)
       if (a4BSdata & 0x04) {
@@ -240,19 +247,18 @@ static void powerMeterHandler(const Enocean4bsSensorHandler &aHandler, bool aFor
 
 
 /// standard binary input handler
-static void stdInputHandler(const Enocean4bsSensorHandler &aHandler, bool aForSend, uint32_t &a4BSdata)
+static void stdInputHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
 {
-  const Enocean4BSSensorDescriptor *descP = aHandler.sensorChannelDescriptorP;
   // read only
-  if (descP && !aForSend) {
-    bool newRawState = (a4BSdata>>descP->lsBit) & 0x01;
+  if (!aForSend) {
+    bool newRawState = (a4BSdata>>aSensorDescriptor.lsBit) & 0x01;
     bool newState;
     if (newRawState)
-      newState = (bool)descP->max; // true: report value for max
+      newState = (bool)aSensorDescriptor.max; // true: report value for max
     else
-      newState = (bool)descP->min; // false: report value for min
+      newState = (bool)aSensorDescriptor.min; // false: report value for min
     // now pass to behaviour
-    BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(aHandler.behaviour);
+    BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(aBehaviour);
     if (bb) {
       bb->updateInputState(newState);
     }
@@ -336,6 +342,10 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   // - e.g. Eltako FWZ12-16A
   { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Power", "W" },
   { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Energy", "kWh" },
+
+  // A5-13-01..06: Environmental parameters
+  // - e.g. Eltako FWZ12-16A
+
 
   // terminator
   { 0,    0,    0, group_black_joker,  group_black_joker,             behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
@@ -438,15 +448,9 @@ void Enocean4bsSensorHandler::addSensorChannel(
   // assign descriptor
   newHandler->sensorChannelDescriptorP = &aSensorDescriptor;
   // create the behaviour
+  newHandler->behaviour = Enocean4bsSensorHandler::newSensorBehaviour(aSensorDescriptor, aDevice);
   switch (aSensorDescriptor.behaviourType) {
     case behaviour_sensor: {
-      SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*aDevice.get()));
-      int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
-      double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
-      sb->setHardwareSensorConfig((DsSensorType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, aSensorDescriptor.min, aSensorDescriptor.max, resolution, aSensorDescriptor.updateInterval*Second, aSensorDescriptor.aliveSignInterval*Second);
-      sb->setGroup(aSensorDescriptor.channelGroup);
-      sb->setHardwareName(newHandler->shortDesc());
-      newHandler->behaviour = sb;
       if (aSetDeviceDescription) {
         aDevice->setFunctionDesc(string(aSensorDescriptor.typeText) + " sensor");
         aDevice->setIconInfo("enocean_sensor", true);
@@ -454,11 +458,6 @@ void Enocean4bsSensorHandler::addSensorChannel(
       break;
     }
     case behaviour_binaryinput: {
-      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*aDevice.get()));
-      bb->setHardwareInputConfig((DsBinaryInputType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, true, aSensorDescriptor.updateInterval*Second);
-      bb->setGroup(aSensorDescriptor.channelGroup);
-      bb->setHardwareName(newHandler->shortDesc());
-      newHandler->behaviour = bb;
       if (aSetDeviceDescription) {
         aDevice->setFunctionDesc(string(aSensorDescriptor.typeText) + " input");
       }
@@ -474,6 +473,37 @@ void Enocean4bsSensorHandler::addSensorChannel(
 
 
 
+// static factory method
+DsBehaviourPtr Enocean4bsSensorHandler::newSensorBehaviour(const Enocean4BSSensorDescriptor &aSensorDescriptor, DevicePtr aDevice) {
+  // create the behaviour
+  switch (aSensorDescriptor.behaviourType) {
+    case behaviour_sensor: {
+      SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*aDevice.get()));
+      int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
+      double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
+      sb->setHardwareSensorConfig((DsSensorType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, aSensorDescriptor.min, aSensorDescriptor.max, resolution, aSensorDescriptor.updateInterval*Second, aSensorDescriptor.aliveSignInterval*Second);
+      sb->setGroup(aSensorDescriptor.channelGroup);
+      sb->setHardwareName(Enocean4bsSensorHandler::sensorDesc(aSensorDescriptor));
+      return sb;
+    }
+    case behaviour_binaryinput: {
+      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*aDevice.get()));
+      bb->setHardwareInputConfig((DsBinaryInputType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, true, aSensorDescriptor.updateInterval*Second);
+      bb->setGroup(aSensorDescriptor.channelGroup);
+      bb->setHardwareName(Enocean4bsSensorHandler::sensorDesc(aSensorDescriptor));
+      return bb;
+    }
+    default: {
+      break;
+    }
+  }
+  // none
+  return DsBehaviourPtr();
+}
+
+
+
+
 
 // handle incoming data from device and extract data for this channel
 void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
@@ -486,7 +516,7 @@ void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         // create 32bit data word
         uint32_t data = aEsp3PacketPtr->get4BSdata();
         // call bit field handler, will pass result to behaviour
-        sensorChannelDescriptorP->bitFieldHandler(*this, false, data);
+        sensorChannelDescriptorP->bitFieldHandler(*sensorChannelDescriptorP, behaviour, false, data);
       }
     }
   }
@@ -495,8 +525,15 @@ void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 
 string Enocean4bsSensorHandler::shortDesc()
 {
-  return string_format("%s, %0.3f..%0.3f %s", sensorChannelDescriptorP->typeText, sensorChannelDescriptorP->min, sensorChannelDescriptorP->max, sensorChannelDescriptorP->unitText);
+  return Enocean4bsSensorHandler::sensorDesc(*sensorChannelDescriptorP);
 }
+
+
+string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSensorDescriptor)
+{
+  return string_format("%s, %0.3f..%0.3f %s", aSensorDescriptor.typeText, aSensorDescriptor.min, aSensorDescriptor.max, aSensorDescriptor.unitText);
+}
+
 
 
 
@@ -667,6 +704,130 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
 string EnoceanA52001Handler::shortDesc()
 {
   return string_format("valve output, 0..100 %%");
+}
+
+
+
+#pragma mark - EnoceanA5130XHandler
+
+// configuration for A5-13-0X sensor channels
+// - A5-13-01 telegram
+static const p44::Enocean4BSSensorDescriptor A513dawnSensor =
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 999, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit };
+static const p44::Enocean4BSSensorDescriptor A513outdoorTemp =
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_temperature, usage_outdoors, -40, 80, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit };
+static const p44::Enocean4BSSensorDescriptor A513windSpeed =
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_wind_speed, usage_outdoors, 0, 70, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, "wind speed", "m/s" };
+static const p44::Enocean4BSSensorDescriptor A513dayIndicator =
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_none,  usage_outdoors, 1,  0, DB(0,2), DB(0,2), 100, 40*60, &stdInputHandler,  "Day indicator", unityUnit };
+static const p44::Enocean4BSSensorDescriptor A513rainIndicator =
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_rain,  usage_outdoors, 0,  1, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  "Rain indicator", unityUnit };
+// - A5-13-02 telegram
+static const p44::Enocean4BSSensorDescriptor A513sunWest =
+  { 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, "Sun west", illumUnit };
+static const p44::Enocean4BSSensorDescriptor A513sunSouth =
+  { 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, "Sun south", illumUnit };
+static const p44::Enocean4BSSensorDescriptor A513sunEast =
+  { 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, "Sun east", illumUnit };
+
+EnoceanA5130XHandler::EnoceanA5130XHandler(EnoceanDevice &aDevice) :
+  inherited(aDevice)
+{
+}
+
+
+// static factory method
+EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
+  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanAddress aAddress,
+  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
+  bool aSendTeachInResponse
+) {
+  // A5-13-01..06 (actually used 01,02): environmental sensor
+  // - e.g. Eltako Multisensor MS with FWS61
+  // create device
+  EnoceanDevicePtr newDev; // none so far
+  if (aSubDeviceIndex<1) {
+    // only one device
+    newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
+    // sensor only, standard settings without scene table
+    newDev->installSettings();
+    // assign channel and address
+    newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+    // assign EPP information
+    newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+    // is joker (AKM type)
+    newDev->setPrimaryGroup(group_black_joker);
+    // function
+    newDev->setFunctionDesc("environmental multisensor");
+    // - create A5-13-0X specific handler (which handles all sensors)
+    EnoceanA5130XHandlerPtr newHandler = EnoceanA5130XHandlerPtr(new EnoceanA5130XHandler(*newDev.get()));
+    // - Add channel-built-in behaviour
+    newHandler->behaviour = Enocean4bsSensorHandler::newSensorBehaviour(A513dawnSensor, newDev);
+    // - register the handler and the default behaviour
+    newDev->addChannelHandler(newHandler);
+    // - Add extra behaviours for A5-13-01
+    newHandler->outdoorTemp = Enocean4bsSensorHandler::newSensorBehaviour(A513outdoorTemp, newDev);
+    newDev->addBehaviour(newHandler->outdoorTemp);
+    newHandler->windSpeed = Enocean4bsSensorHandler::newSensorBehaviour(A513windSpeed, newDev);
+    newDev->addBehaviour(newHandler->windSpeed);
+    newHandler->dayIndicator = Enocean4bsSensorHandler::newSensorBehaviour(A513dayIndicator, newDev);
+    newDev->addBehaviour(newHandler->dayIndicator);
+    newHandler->rainIndicator = Enocean4bsSensorHandler::newSensorBehaviour(A513rainIndicator, newDev);
+    newDev->addBehaviour(newHandler->rainIndicator);
+    // - Add extra behaviours for A5-13-02
+    newHandler->sunWest = Enocean4bsSensorHandler::newSensorBehaviour(A513sunWest, newDev);
+    newDev->addBehaviour(newHandler->sunWest);
+    newHandler->sunSouth = Enocean4bsSensorHandler::newSensorBehaviour(A513sunSouth, newDev);
+    newDev->addBehaviour(newHandler->sunSouth);
+    newHandler->sunEast = Enocean4bsSensorHandler::newSensorBehaviour(A513sunEast, newDev);
+    newDev->addBehaviour(newHandler->sunEast);
+  }
+  // return device (or empty if none created)
+  return newDev;
+}
+
+
+
+// handle incoming data from device and extract data for this channel
+void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+{
+  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
+    // only look at non-teach-in packets
+    if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
+      // only look at 4BS packets of correct length
+      // - check identifier to see what info we got
+      uint32_t data = aEsp3PacketPtr->get4BSdata();
+      uint8_t identifier = (data>>4) & 0x0F;
+      switch (identifier) {
+        case 1:
+          // A5-13-01
+          A513dawnSensor.bitFieldHandler(A513dawnSensor, behaviour, false, data);
+          A513dawnSensor.bitFieldHandler(A513outdoorTemp, outdoorTemp, false, data);
+          A513dawnSensor.bitFieldHandler(A513windSpeed, windSpeed, false, data);
+          A513dawnSensor.bitFieldHandler(A513dayIndicator, dayIndicator, false, data);
+          A513dawnSensor.bitFieldHandler(A513rainIndicator, rainIndicator, false, data);
+          break;
+        case 2:
+          // A5-13-02
+          A513sunWest.bitFieldHandler(A513sunWest, sunWest, false, data);
+          A513sunSouth.bitFieldHandler(A513sunSouth, sunSouth, false, data);
+          A513sunEast.bitFieldHandler(A513sunEast, sunEast, false, data);
+          break;
+        default:
+          // A5-13-03..06 are not supported
+          break;
+      }
+    }
+  }
+}
+
+
+
+string EnoceanA5130XHandler::shortDesc()
+{
+  return string_format("Dawn/Temp/Wind/Rain/Sun outdoor sensor");
 }
 
 
