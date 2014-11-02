@@ -401,6 +401,7 @@ namespace p44 {
     void aliveCheckTimeout();
     void aliveCheckOK();
     void resetDone();
+    void reopenConnection();
 
 	};
 

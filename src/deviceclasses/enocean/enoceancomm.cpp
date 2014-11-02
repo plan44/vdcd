@@ -863,7 +863,7 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 #define ENOCEAN_ESP3_BAUDRATE 57600
 
 #define ENOCEAN_ESP3_ALIVECHECK_INTERVAL (30*Second)
-#define ENOCEAN_ESP3_ALIVECHECK_TIMEOUT (1*Second)
+#define ENOCEAN_ESP3_ALIVECHECK_TIMEOUT (3*Second)
 
 
 
@@ -925,6 +925,13 @@ void EnoceanComm::aliveCheck()
 }
 
 
+void EnoceanComm::aliveCheckOK()
+{
+  // cancel timeout (watchdog)
+  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
+}
+
+
 void EnoceanComm::aliveCheckTimeout()
 {
   // alive check failed, try to recover EnOcean interface
@@ -935,24 +942,25 @@ void EnoceanComm::aliveCheckTimeout()
   serialComm->closeConnection();
   // - do a hardware reset of the module if possible
   if (enoceanResetPin) enoceanResetPin->set(true); // reset
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 1*Second);
-}
-
-
-void EnoceanComm::aliveCheckOK()
-{
-  // cancel timeout (watchdog)
-  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 2*Second);
 }
 
 
 void EnoceanComm::resetDone()
 {
-  LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset and re-opening connection\n");
+  LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset\n");
   if (enoceanResetPin) enoceanResetPin->set(false); // release reset
+  // wait a little, then re-open connection
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::reopenConnection, this), 2*Second);
+}
+
+
+void EnoceanComm::reopenConnection()
+{
+  LOG(LOG_NOTICE, "EnoceanComm: re-opening connection\n");
 	serialComm->requestConnection(); // re-open connection
-  // restart alive checks
-  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 5*Second);
+  // restart alive checks, not too soon after reset
+  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 10*Second);
 }
 
 
