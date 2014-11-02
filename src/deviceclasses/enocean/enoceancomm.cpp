@@ -24,7 +24,7 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 0
+#define FOCUSLOGLEVEL 7
 
 
 #include "enoceancomm.hpp"
@@ -964,6 +964,13 @@ void EnoceanComm::setRadioPacketHandler(RadioPacketCB aRadioPacketCB)
 
 size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
+  if (FOCUSLOGGING) {
+    string d = string_format("accepting %d bytes:", aNumBytes);
+    for (size_t i = 0; i<aNumBytes; i++) {
+      string_format_append(d, "%02X ", aBytes[i]);
+    }
+    FOCUSLOG("%s\n",d.c_str());
+  }
 	size_t remainingBytes = aNumBytes;
 	while (remainingBytes>0) {
 		if (!currentIncomingPacket) {

@@ -76,11 +76,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a -k button:button -k taste:button -k schalter:button -k dimmer:button -k licht1:dimmer -k licht2:dimmer -k farb1:colordimmer -k farb2:colordimmer -k heizventil:valve -l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a -l 7 -k testin:button"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -107,12 +107,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.59.233"
-            isEnabled = "NO">
+            argument = "--enocean 192.168.1.221"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
