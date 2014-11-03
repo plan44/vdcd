@@ -29,6 +29,7 @@ EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContai
   learningMode(false),
   selfTesting(false),
   disableProximityCheck(false),
+  heatingValveSensorsEnabled(true),
 	enoceanComm(MainLoop::currentMainLoop())
 {
 }

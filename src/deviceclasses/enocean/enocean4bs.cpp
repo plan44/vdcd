@@ -585,9 +585,11 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
     newHandler->behaviour = ob;
     newDev->addChannelHandler(newHandler);
-    // also has a temperature sensor built-in
-    Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
-    // also has a temperature sensor built-in
+    if (aClassContainerP->heatingValveSensorsEnabled) {
+      // valve sensors enabled - add built-in temp sensor
+      Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
+    }
+    // report low bat status as a binary input
     Enocean4bsSensorHandler::addSensorChannel(newDev, lowBatInput, false);
     // A5-20-01 need teach-in response if requested (i.e. if this device creation is caused by learn-in, not reinstantiation from DB)
     if (aSendTeachInResponse) {

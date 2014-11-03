@@ -24,6 +24,7 @@
 
 
 #define DEFAULT_USE_PROTOBUF_API 1 // 0: no, 1: yes
+#define DEFAULT_USE_VALVE_SENSORS 0 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
@@ -231,6 +232,7 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
+      { 0  , "valvesensors",  false, "enabled;1=heating valves may have sensors, 0: no sensors" },
       { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
@@ -424,6 +426,11 @@ public:
       if (enoceanname) {
         EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, p44VdcHost.get(), 2)); // Tag 2 = EnOcean
         enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
+        // check visibility of heating valves' sensors
+        int valveSensors = DEFAULT_USE_VALVE_SENSORS;
+        getIntOption("valvesensors", protobufapi);
+        enoceanDeviceContainer->heatingValveSensorsEnabled = valveSensors;
+        // add
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       // - Add hue support
