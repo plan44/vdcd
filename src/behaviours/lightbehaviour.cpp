@@ -438,8 +438,11 @@ const FieldDefinition *LightBehaviour::getFieldDef(size_t aIndex)
 void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
-  // get the fields
-  onThreshold = aRow->get<double>(aIndex++);
+  // read onThreshold only if not NULL
+  if (aRow->column_type(aIndex)!=SQLITE_NULL)
+    onThreshold = aRow->get<double>(aIndex);
+  aIndex++;
+  // get the other fields
   Brightness md = aRow->get<double>(aIndex++);
   if (!hardwareHasSetMinDim) brightness->setDimMin(md); // only apply if not set by hardware
   uint32_t du = aRow->get<int>(aIndex++);
