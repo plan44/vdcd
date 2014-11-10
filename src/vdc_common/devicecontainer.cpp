@@ -949,7 +949,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
     if (dev && aMethod=="remove") {
       return removeHandler(aRequest, dev);
     }
-    // normal addressable, just let it handle the method
+    // normal addressable or not remove -> just let addressable handle the method itself
     return addressable->handleMethod(aRequest, aMethod, aParams);
   }
   else {
@@ -979,13 +979,14 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
 ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice)
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
-  // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete
-  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aRequest, _1));
+  // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete.
+  //   That's why we are passing aDevice to the handler, so we can be certain the device lives long enough 
+  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aDevice, aRequest, _1));
   return ErrorPtr();
 }
 
 
-void DeviceContainer::removeResultHandler(VdcApiRequestPtr aRequest, bool aDisconnected)
+void DeviceContainer::removeResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, bool aDisconnected)
 {
   if (aDisconnected)
     aRequest->sendResult(ApiValuePtr()); // disconnected successfully

@@ -154,7 +154,7 @@ void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 			break;
 		}
 	}
-  // announce to global device container
+  // remove from global device container
   deviceContainerP->removeDevice(aDevice, aForget);
 }
 
