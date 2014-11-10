@@ -41,7 +41,7 @@ typedef enum {
   MIN_S = 13,             ///< minimum value
   MAX_S = 14,             ///< maximum value
   STOP_S = 15,            ///< stop
-  ///< empty
+  ///< 16 reserved
   T0_S2 = 17,             ///< main scene 2
   T0_S3 = 18,             ///< main scene 3
   T0_S4 = 19,             ///< main scene 4
@@ -66,7 +66,7 @@ typedef enum {
   T4E_S0 = 38,            ///< area 4 extended off scene
   T4E_S1 = 39,            ///< area 4 extended on scene
   AUTO_OFF = 40,          ///< slow motion off (1 minute down to 0)
-  ///< empty
+  ///< 41 - reserved
   T1_DEC = 42,            ///< area 1 decrement value
   T1_INC = 43,            ///< area 1 increment value
   T2_DEC = 44,            ///< area 2 decrement value
@@ -81,19 +81,37 @@ typedef enum {
   T2_STOP_S = 53,         ///< area 2 stop
   T3_STOP_S = 54,         ///< area 3 stop
   T4_STOP_S = 55,         ///< area 4 stop
+  ///< 56..63 - reserved
+  START_APARTMENT_SCENES = 64,                    ///< 64 - first apartment scene
+  AUTO_STANDBY = (START_APARTMENT_SCENES + 0),    ///< 64 - auto-standby scene
+  SIG_PANIC = (START_APARTMENT_SCENES + 1),       ///< 65 - panic
+  ENERGY_OL = (START_APARTMENT_SCENES + 2),       ///< 66 - overload energy consumption dSM
+  STANDBY = (START_APARTMENT_SCENES + 3),         ///< 67 - standby scene
+  DEEP_OFF = (START_APARTMENT_SCENES + 4),        ///< 68 - deep off scene
+  SLEEPING = (START_APARTMENT_SCENES + 5),        ///< 69 - sleeping
+  WAKE_UP = (START_APARTMENT_SCENES + 6),         ///< 70 - wakeup
+  PRESENT = (START_APARTMENT_SCENES + 7),         ///< 71 - at home
+  ABSENT = (START_APARTMENT_SCENES + 8),          ///< 72 - not at home
+  BELL1 = (START_APARTMENT_SCENES + 9),           ///< 73 - Bell1
+  ALARM1 = (START_APARTMENT_SCENES + 10),         ///< 74 - Alarm1
+  ZONE_ACTIVE = (START_APARTMENT_SCENES + 11),    ///< 75 - Zone active
+  FIRE = (START_APARTMENT_SCENES + 12),           ///< 76 - Fire
+  ///< 77 - reserved
+  ///< 78 - reserved
+  ///< 79 - reserved
+  BELL2 = (START_APARTMENT_SCENES + 16),          ///< 80 - Bell2
+  BELL3 = (START_APARTMENT_SCENES + 17),          ///< 81 - Bell3
+  BELL4 = (START_APARTMENT_SCENES + 18),          ///< 82 - Bell4
+  ALARM2 = (START_APARTMENT_SCENES + 19),         ///< 83 - Alarm2
+  ALARM3 = (START_APARTMENT_SCENES + 20),         ///< 84 - Alarm3
+  ALARM4 = (START_APARTMENT_SCENES + 21),         ///< 85 - Alarm4
+  WIND = (START_APARTMENT_SCENES + 22),           ///< 86 - Wind
+  NO_WIND = (START_APARTMENT_SCENES + 23),        ///< 87 - No Wind
+  RAIN = (START_APARTMENT_SCENES + 24),           ///< 88 - Rain
+  NO_RAIN = (START_APARTMENT_SCENES + 25),        ///< 89 - No Rain
+  HAIL = (START_APARTMENT_SCENES + 26),           ///< 90 - Hail
+  NO_HAIL = (START_APARTMENT_SCENES + 27),        ///< 91 - No Hail
 
-  START_APARTMENT_SCENES = 64,                    ///< first apartment scene
-  AUTO_STANDBY = (START_APARTMENT_SCENES + 0),    ///< auto-standby scene
-  SIG_PANIC = (START_APARTMENT_SCENES + 1),       ///< panic
-  ENERGY_OL = (START_APARTMENT_SCENES + 2),       ///< overload energy consumption dSM
-  STANDBY = (START_APARTMENT_SCENES + 3),         ///< standby scene
-  DEEP_OFF = (START_APARTMENT_SCENES + 4),        ///< deep off scene
-  SLEEPING = (START_APARTMENT_SCENES + 5),        ///< sleeping
-  WAKE_UP = (START_APARTMENT_SCENES + 6),         ///< awake
-  PRESENT = (START_APARTMENT_SCENES + 7),         ///< at home
-  ABSENT = (START_APARTMENT_SCENES + 8),          ///< not at home
-  SIG_BELL = (START_APARTMENT_SCENES + 9),        ///< bell
-  SIG_ALARM = (START_APARTMENT_SCENES + 10),      ///< alarm/fire
 } DsSceneNumber;
 
 /// Scene Effects (transition and alerting)

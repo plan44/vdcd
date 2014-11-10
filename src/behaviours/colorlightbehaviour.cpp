@@ -146,11 +146,21 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
   // set the common light scene defaults
   inherited::setDefaultSceneValues(aSceneNo);
-  // TODO: implement according to dS Specs for color lights
-  // for now, just initialize without color
-  colorMode = colorLightModeNone;
-//  XOrHueOrCt = 370; // Mired = 1E6/colorTempKelvin : 370mired = 2700K = warm white
-//  YOrSat = 0;
+  // Add special color lamp behaviour
+  switch (aSceneNo) {
+    case ALARM1:
+    case FIRE:
+      // Alert - use cold white
+      colorMode = colorLightModeCt;
+      XOrHueOrCt = 153; // = 1E6/153 = 6535K = cold white
+      YOrSat = 0;
+      break;
+    default:
+      // default color is warm white
+      colorMode = colorLightModeCt;
+      XOrHueOrCt = 370; // = 1E6/370 = 2700k = warm white
+      YOrSat = 0;
+  }
 }
 
 

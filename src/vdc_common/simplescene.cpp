@@ -155,7 +155,7 @@ typedef struct {
   bool dontCare; ///< if set, applying this scene does not change the output value
 } DefaultSceneParams;
 
-#define NUMDEFAULTSCENES 80 ///< Number of default scenes
+#define NUMDEFAULTSCENES 78 ///< Number of default scenes
 
 // General rules
 
@@ -245,24 +245,23 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, false, true  }, // 62 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 63 : Reserved
   // global, appartment-wide, group independent scenes
-  {   0, scene_effect_slow  , true , false }, // 64 : Auto Standby - AUTO_STANDBY
-  { 100, scene_effect_smooth, true , false }, // 65 : Panic - SIG_PANIC
-  {   0, scene_effect_smooth, false, true  }, // 66 : Reserved (ENERGY_OL)
-  {   0, scene_effect_smooth, true , false }, // 67 : Standby - STANDBY
-  {   0, scene_effect_smooth, true , false }, // 68 : Deep Off - DEEP_OFF
-  {   0, scene_effect_smooth, true , false }, // 69 : Sleeping - SLEEPING
-  { 100, scene_effect_smooth, true , true  }, // 70 : Wakeup - WAKE_UP
-  { 100, scene_effect_smooth, true , true  }, // 71 : Present - PRESENT
-  {   0, scene_effect_smooth, true , false }, // 72 : Absent - ABSENT
-  {   0, scene_effect_smooth, true , true  }, // 73 : Door Bell - SIG_BELL
-  {   0, scene_effect_smooth, false, true  }, // 74 : Reserved (SIG_ALARM)
-  { 100, scene_effect_smooth, false, true  }, // 75 : Zone Active
-  { 100, scene_effect_smooth, false, true  }, // 76 : Reserved
-  { 100, scene_effect_smooth, false, true  }, // 77 : Reserved
-  {   0, scene_effect_smooth, false, true  }, // 78 : Reserved
-  {   0, scene_effect_smooth, false, true  }, // 79 : Reserved
+  {   0, scene_effect_slow  , true , false }, //  +0 = 64 : Auto Standby - AUTO_STANDBY
+  { 100, scene_effect_smooth, true , false }, //  +1 = 65 : Panic - SIG_PANIC
+  {   0, scene_effect_smooth, false, true  }, //  +2 = 66 : Reserved (ENERGY_OL)
+  {   0, scene_effect_smooth, true , false }, //  +3 = 67 : Standby - STANDBY
+  {   0, scene_effect_smooth, true , false }, //  +4 = 68 : Deep Off - DEEP_OFF
+  {   0, scene_effect_smooth, true , false }, //  +5 = 69 : Sleeping - SLEEPING
+  { 100, scene_effect_smooth, true , true  }, //  +6 = 70 : Wakeup - WAKE_UP
+  { 100, scene_effect_smooth, true , true  }, //  +7 = 71 : Present - PRESENT
+  {   0, scene_effect_smooth, true , false }, //  +8 = 72 : Absent - ABSENT
+  {   0, scene_effect_smooth, true , true  }, //  +9 = 73 : Door Bell - SIG_BELL
+  { 100, scene_effect_smooth, false, true  }, // +10 = 74 : Alarm1 - SIG_ALARM
+  { 100, scene_effect_smooth, false, true  }, // +11 = 75 : Zone Active
+  { 100, scene_effect_smooth, true,  false }, // +12 = 76 : Fire
+  { 100, scene_effect_smooth, false, true  }, // +13 = 77 : Reserved
+
   // all other scenes equal or higher
-  {   0, scene_effect_smooth, false, true  }, // 80..n : Reserved
+  {   0, scene_effect_smooth, false, true  }, // 78..n : zero output, don't care, Reserved
 };
 
 
