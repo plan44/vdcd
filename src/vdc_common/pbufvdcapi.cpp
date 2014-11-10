@@ -1283,6 +1283,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
     switch (decodedMsg->type) {
       // incoming method calls
       case VDCAPI__TYPE__VDSM_REQUEST_HELLO: {
+        if (!decodedMsg->vdsm_request_hello) goto badMessage;
         method = "hello";
         paramsMsg = &(decodedMsg->vdsm_request_hello->base);
         responseType = VDCAPI__TYPE__VDC_RESPONSE_HELLO;
@@ -1290,6 +1291,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         break;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_GET_PROPERTY: {
+        if (!decodedMsg->vdsm_request_get_property) goto badMessage;
         method = "getProperty";
         paramsMsg = &(decodedMsg->vdsm_request_get_property->base);
         responseType = VDCAPI__TYPE__VDC_RESPONSE_GET_PROPERTY;
@@ -1297,6 +1299,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         break;
       }
       case VDCAPI__TYPE__VDSM_REQUEST_SET_PROPERTY: {
+        if (!decodedMsg->vdsm_request_set_property) goto badMessage;
         method = "setProperty";
         paramsMsg = &(decodedMsg->vdsm_request_set_property->base);
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
@@ -1304,6 +1307,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         break;
       }
       case VDCAPI__TYPE__VDSM_SEND_REMOVE: {
+        if (!decodedMsg->vdsm_send_remove) goto badMessage;
         method = "remove";
         paramsMsg = &(decodedMsg->vdsm_send_remove->base);
         responseType = VDCAPI__TYPE__GENERIC_RESPONSE;
@@ -1317,51 +1321,61 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       }
       // Notifications
       case VDCAPI__TYPE__VDSM_SEND_PING: {
+        if (!decodedMsg->vdsm_send_ping) goto badMessage;
         method = "ping";
         paramsMsg = &(decodedMsg->vdsm_send_ping->base);
         goto getDsUid;
       }
       case VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_SCENE:
+        if (!decodedMsg->vdsm_send_call_scene) goto badMessage;
         method = "callScene";
         paramsMsg = &(decodedMsg->vdsm_send_call_scene->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SAVE_SCENE:
+        if (!decodedMsg->vdsm_send_save_scene) goto badMessage;
         method = "saveScene";
         paramsMsg = &(decodedMsg->vdsm_send_save_scene->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_UNDO_SCENE:
+        if (!decodedMsg->vdsm_send_undo_scene) goto badMessage;
         method = "undoScene";
         paramsMsg = &(decodedMsg->vdsm_send_undo_scene->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_LOCAL_PRIO:
+        if (!decodedMsg->vdsm_send_set_local_prio) goto badMessage;
         method = "setLocalPriority";
         paramsMsg = &(decodedMsg->vdsm_send_set_local_prio->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_CONTROL_VALUE:
+        if (!decodedMsg->vdsm_send_set_control_value) goto badMessage;
         method = "setControlValue";
         paramsMsg = &(decodedMsg->vdsm_send_set_control_value->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_CALL_MIN_SCENE:
+        if (!decodedMsg->vdsm_send_call_min_scene) goto badMessage;
         method = "callSceneMin";
         paramsMsg = &(decodedMsg->vdsm_send_call_min_scene->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_IDENTIFY:
+        if (!decodedMsg->vdsm_send_identify) goto badMessage;
         method = "identify";
         paramsMsg = &(decodedMsg->vdsm_send_identify->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_DIM_CHANNEL:
+        if (!decodedMsg->vdsm_send_dim_channel) goto badMessage;
         method = "dimChannel";
         paramsMsg = &(decodedMsg->vdsm_send_dim_channel->base);
         // pbuf API field names match, we can use generic decoding
         break;
       case VDCAPI__TYPE__VDSM_NOTIFICATION_SET_OUTPUT_CHANNEL_VALUE:
+        if (!decodedMsg->vdsm_send_output_channel_value) goto badMessage;
         method = "setOutputChannelValue";
         paramsMsg = &(decodedMsg->vdsm_send_output_channel_value->base);
         // pbuf API field names match, we can use generic decoding
@@ -1369,6 +1383,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       // incoming responses
       case VDCAPI__TYPE__GENERIC_RESPONSE: {
         // error or NULL response
+        if (!decodedMsg->generic_response) goto badMessage;
         if (decodedMsg->generic_response->code!=VDCAPI__RESULT_CODE__ERR_OK) {
           // convert to HTTP-style internal codes
           ErrorCode errorCode = pbufToInternalError(decodedMsg->generic_response->code);
@@ -1382,6 +1397,10 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       getDsUid:
         msgFieldsObj->addObjectFieldFromMessage(*paramsMsg, "dSUID"); // get the dSUID
         paramsMsg = NULL; // prevent generic parameter mapping, mapping was done explicitly before
+        break;
+      // invalid message, type does not correspond with actual message
+      badMessage:
+        err = ErrorPtr(new VdcApiError(400,"message type and contents do not match"));
         break;
       // unknown message type
       default:
@@ -1435,13 +1454,27 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       else {
         LOG(LOG_INFO,"vdSM -> vDC (pbuf) notification received: method='%s', params=%s\n", method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
-      // call handler
-      apiRequestHandler(VdcPbufApiConnectionPtr(this), request, method, msgFieldsObj);
+      if (!Error::isOK(err)) {
+        // error decoding message
+        if (request) {
+          // report immediately if this is a method
+          request->inherited::sendError(err);
+        }
+        else {
+          // just log
+          LOG(LOG_ERR, "Ill-formed notification: %s -> ignored", err->description().c_str());
+        }
+        err.reset(); // reported
+      }
+      else {
+        // call handler
+        apiRequestHandler(VdcPbufApiConnectionPtr(this), request, method, msgFieldsObj);
+      }
     }
     // free the unpacked message
     vdcapi__message__free_unpacked(decodedMsg, NULL); // Free the message from unpack()
   }
-  // return error, in case one is left
+  // return error, in case protobuf message is not decodeable
   return err;
 }
 
