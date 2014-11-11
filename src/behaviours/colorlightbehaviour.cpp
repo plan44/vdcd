@@ -477,6 +477,7 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       break;
     case colorLightModeCt:
       CTtoxyV(ct->getChannelValue(), xyV);
+      xyV[2] = brightness->getChannelValue()/100; // 0..1
       goto xyVToRGB;
     case colorLightModeXY:
       xyV[0] = cieX->getChannelValue();

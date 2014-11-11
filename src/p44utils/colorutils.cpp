@@ -312,12 +312,14 @@ bool p44::CTtoxyV(double mired, Row3 &xyV)
     xyV[0] = 0.33;
     xyV[1] = 0.33; // CT < 948 || CT > 10115
   }
-  for (int i=0; i<countCts; i++) {
-    if (CT<cts[i][0]) {
-      double fac = (CT-cts[i-1][0])/(cts[i][0]-cts[i-1][0]);
-      xyV[1] = fac*(cts[i][1]-cts[i-1][1])+cts[i-1][1];
-      xyV[0] = 0.68-((i-1)/100)-(fac/100);
-      break;
+  else {
+    for (int i=0; i<countCts; i++) {
+      if (CT<cts[i][0]) {
+        double fac = (CT-cts[i-1][0])/(cts[i][0]-cts[i-1][0]);
+        xyV[1] = fac*(cts[i][1]-cts[i-1][1])+cts[i-1][1];
+        xyV[0] = 0.68-((i-1)/100.0)-(fac/100);
+        break;
+      }
     }
   }
   xyV[2] = 1.0; // mired has no brightness information, assume 100% = 1.0
