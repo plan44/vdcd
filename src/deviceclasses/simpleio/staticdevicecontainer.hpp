@@ -33,7 +33,7 @@ namespace p44 {
 
   class StaticDeviceContainer;
 
-  /// persistence for enocean device container
+  /// persistence for static device container
   class StaticDevicePersistence : public SQLite3Persistence  {
     typedef SQLite3Persistence inherited;
   protected:

@@ -17,6 +17,7 @@
 // device classes to be used
 #include "dalidevicecontainer.hpp"
 #include "huedevicecontainer.hpp"
+#include "oladevicecontainer.hpp"
 #include "enoceandevicecontainer.hpp"
 #include "staticdevicecontainer.hpp"
 
@@ -242,6 +243,7 @@ public:
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -437,6 +439,11 @@ public:
       if (getOption("huelights")) {
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
         hueDeviceContainer->addClassToDeviceContainer();
+      }
+      // - Add OLA support
+      if (getOption("ola")) {
+        OlaDeviceContainerPtr olaDeviceContainer = OlaDeviceContainerPtr(new OlaDeviceContainer(1, p44VdcHost.get(), 5)); // Tag 5 = ola
+        olaDeviceContainer->addClassToDeviceContainer();
       }
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {

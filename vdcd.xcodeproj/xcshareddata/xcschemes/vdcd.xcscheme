@@ -64,7 +64,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--protobufapi 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest"
@@ -108,7 +108,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.1.221"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
@@ -123,8 +123,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--staticdevices"
+            argument = "--ola"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--staticdevices"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44BridgeLinux/p44/www/icons"

@@ -170,6 +170,8 @@
 		EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */; };
 		EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
 		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
+		EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */; };
+		EDDDD5531A125FBC007D2ABE /* oladevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
@@ -415,6 +417,10 @@
 		EDCFE85F17203E47001D35F3 /* fnv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fnv.hpp; sourceTree = "<group>"; };
 		EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; lineEnding = 0; path = xcode_docset_doxygen.sh; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		EDCFE86617212BA9001D35F3 /* doxygen.config */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doxygen.config; sourceTree = "<group>"; };
+		EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oladevice.cpp; sourceTree = "<group>"; };
+		EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = oladevice.hpp; sourceTree = "<group>"; };
+		EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = oladevicecontainer.cpp; sourceTree = "<group>"; };
+		EDDDD5511A125FBC007D2ABE /* oladevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = oladevicecontainer.hpp; sourceTree = "<group>"; };
 		EDDE42BC17F35419005B97A0 /* macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = macaddress.cpp; sourceTree = "<group>"; };
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = macaddress.hpp; sourceTree = "<group>"; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; };
@@ -556,6 +562,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				EDDDD54D1A125F8E007D2ABE /* ola */,
 				EDF62B43183A0EA50016BFDA /* upnphack */,
 				ED31268F1831865800FAF28B /* demo */,
 				ED31268E183122F600FAF28B /* simpleio */,
@@ -764,6 +771,17 @@
 				ED5C8EB317CF393E002CC15F /* enoceantool.cpp */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		EDDDD54D1A125F8E007D2ABE /* ola */ = {
+			isa = PBXGroup;
+			children = (
+				EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */,
+				EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */,
+				EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */,
+				EDDDD5511A125FBC007D2ABE /* oladevicecontainer.hpp */,
+			);
+			path = ola;
 			sourceTree = "<group>";
 		};
 		EDF62B43183A0EA50016BFDA /* upnphack */ = {
@@ -1018,6 +1036,7 @@
 				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
+				EDDDD5531A125FBC007D2ABE /* oladevicecontainer.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
@@ -1061,6 +1080,7 @@
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
+				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,
@@ -1261,6 +1281,9 @@
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
+					"-lola",
+					"-lolacommon",
+					"-lprotobuf",
 				);
 				PRODUCT_NAME = vdcd;
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
@@ -1278,6 +1301,9 @@
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
+					"-lola",
+					"-lolacommon",
+					"-lprotobuf",
 				);
 				PRODUCT_NAME = vdcd;
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/pbuf/gen\"";
