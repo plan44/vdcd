@@ -110,10 +110,18 @@ bool p44::matrix3x3_inverse(const Matrix3x3 &inmatrix, Matrix3x3 &em)
 bool p44::XYZtoRGB(const Matrix3x3 &calib, const Row3 &XYZ, Row3 &RGB)
 {
   Matrix3x3 m_inv;
+  double r,g,b; // uncompanded
   if (!matrix3x3_inverse(calib, m_inv)) return false;
-  RGB[0] = m_inv[0][0]*XYZ[0] + m_inv[0][1]*XYZ[1] + m_inv[0][2]*XYZ[2];
-  RGB[1] = m_inv[1][0]*XYZ[0] + m_inv[1][1]*XYZ[1] + m_inv[1][2]*XYZ[2];
-  RGB[2] = m_inv[2][0]*XYZ[0] + m_inv[2][1]*XYZ[1] + m_inv[2][2]*XYZ[2];
+  r = m_inv[0][0]*XYZ[0] + m_inv[0][1]*XYZ[1] + m_inv[0][2]*XYZ[2];
+  g = m_inv[1][0]*XYZ[0] + m_inv[1][1]*XYZ[1] + m_inv[1][2]*XYZ[2];
+  b = m_inv[2][0]*XYZ[0] + m_inv[2][1]*XYZ[1] + m_inv[2][2]*XYZ[2];
+  // apply sRGB companding
+  // see http://www.brucelindbloom.com/index.html?ColorCalculator.html, math section
+  double gamma = 2.2;
+  double power = 1/gamma;
+  RGB[0] = pow(r, power);
+  RGB[1] = pow(g, power);
+  RGB[2] = pow(b, power);
   return true;
 }
 
@@ -263,6 +271,7 @@ bool p44::xyVtoHSV(const Row3 &xyV, Row3 &HSV)
 }
 
 
+// color temperature and y vs. x coordinate in 1/100 steps, from x=0.66 down to x=0.30
 const int countCts = 37;
 const double cts[countCts][2] = {
   { 948,0.33782873820708 },
@@ -313,11 +322,11 @@ bool p44::CTtoxyV(double mired, Row3 &xyV)
     xyV[1] = 0.33; // CT < 948 || CT > 10115
   }
   else {
-    for (int i=0; i<countCts; i++) {
+    for (int i=1; i<countCts; i++) {
       if (CT<cts[i][0]) {
         double fac = (CT-cts[i-1][0])/(cts[i][0]-cts[i-1][0]);
         xyV[1] = fac*(cts[i][1]-cts[i-1][1])+cts[i-1][1];
-        xyV[0] = 0.68-((i-1)/100.0)-(fac/100);
+        xyV[0] = 0.66-((i-1)/100.0)-(fac/100);
         break;
       }
     }
