@@ -430,7 +430,7 @@ RGBColorLightBehaviour::RGBColorLightBehaviour(Device &aDevice) :
   // default to sRGB with D65 white point
   matrix3x3_copy(sRGB_d65_calibration, calibration);
   // default white assumed to contribute equally to R,G,B with 50% each
-  whiteRGB[0] = 0.5; whiteRGB[1] = 0.5; whiteRGB[2] = 0.5;
+  whiteRGB[0] = 0.35; whiteRGB[1] = 0.35; whiteRGB[2] = 0.35;
   // default amber assumed to be AMBER web color #FFBE00 = 100%, 75%, 0% contributing 50% intensity
   amberRGB[0] = 0.5; amberRGB[1] = 0.375; amberRGB[2] = 0;
 }
@@ -465,8 +465,8 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       CTtoxyV(ct->getChannelValue(), xyV);
       xyVtoXYZ(xyV, XYZ);
       XYZtoRGB(calibration, XYZ, RGB);
-      // for color temperature, color is more important than brightness, so scale down if a color component exceeds 1
-      double m = 1;
+      // get maximum component brightness -> gives 100% brightness point, will be scaled down according to actual brightness
+      double m = 0;
       if (RGB[0]>m) m = RGB[0];
       if (RGB[1]>m) m = RGB[1];
       if (RGB[2]>m) m = RGB[2];
@@ -493,9 +493,9 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       break;
     }
   }
-  aRed = colorCompScaled(RGB[0], aMax*scale);
-  aGreen = colorCompScaled(RGB[1], aMax*scale);
-  aBlue = colorCompScaled(RGB[2], aMax*scale);
+  aRed = colorCompScaled(RGB[0]*scale, aMax);
+  aGreen = colorCompScaled(RGB[1]*scale, aMax);
+  aBlue = colorCompScaled(RGB[2]*scale, aMax);
 }
 
 
