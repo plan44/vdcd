@@ -391,32 +391,10 @@ void ColorLightBehaviour::deriveMissingColorChannels()
     derivedValuesComplete = true;
     if (DBGLOGENABLED(LOG_DEBUG)) {
       // show all values, plus RGB
-      DBGLOG(LOG_DEBUG, "Color mode = %s\n", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
-      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%, %, %]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
-      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, %]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
-      Row3 RGB;
-      if (colorMode==colorLightModeHueSaturation) {
-        // take from HSV
-        HSV[0] = hue->getChannelValue(); // 0..360
-        HSV[1] = saturation->getChannelValue()/100; // 0..1
-        HSV[2] = brightness->getChannelValue()/100; // 0..1
-        HSVtoRGB(HSV, RGB);
-      }
-      else {
-        Row3 XYZ;
-        xyV[0] = cieX->getChannelValue();
-        xyV[1] = cieY->getChannelValue();
-        xyV[2] = brightness->getChannelValue()/100; // 0..1
-        xyVtoXYZ(xyV, XYZ);
-        XYZtoRGB(sRGB_d65_calibration, XYZ, RGB);
-      }
-      DBGLOG(LOG_DEBUG, "- RGB : %6.4f, %6.4f, %6.4f [0..1, 0..1, 0..1]\n", RGB[0], RGB[1], RGB[2]);
-      double mired;
-      if (colorMode==colorLightModeHueSaturation) {
-        HSVtoxyV(HSV, xyV);
-      }
-      xyVtoCT(xyV, mired);
-      DBGLOG(LOG_DEBUG, "- CT  : %6.0f, %6.0f [mired, K]\n", mired, 1E6/mired);
+      DBGLOG(LOG_DEBUG, "Color mode = %s, actual and derived channel settings:\n", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
+      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%%, %%, %%]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, %%]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- CT  : %6.0f, %6.0f [mired, K]\n", ct->getChannelValue(), 1E6/ct->getChannelValue());
     }
   }
 }
@@ -468,36 +446,52 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
   Row3 xyV;
   Row3 XYZ;
   Row3 HSV;
+  double scale = 1;
   switch (colorMode) {
-    case colorLightModeHueSaturation:
+    case colorLightModeHueSaturation: {
       HSV[0] = hue->getChannelValue(); // 0..360
       HSV[1] = saturation->getChannelValue()/100; // 0..1
       HSV[2] = brightness->getChannelValue()/100; // 0..1
       HSVtoRGB(HSV, RGB);
       break;
-    case colorLightModeCt:
+    }
+    case colorLightModeCt: {
+      // Note: for some reason, passing brightness to V gives bad results,
+      // so for now we always assume 1 and scale resulting RGB
       CTtoxyV(ct->getChannelValue(), xyV);
-      xyV[2] = brightness->getChannelValue()/100; // 0..1
-      goto xyVToRGB;
-    case colorLightModeXY:
+      xyVtoXYZ(xyV, XYZ);
+      XYZtoRGB(calibration, XYZ, RGB);
+      // for color temperature, color is more important than brightness, so scale down if a color component exceeds 1
+      double m = 1;
+      if (RGB[0]>m) m = RGB[0];
+      if (RGB[1]>m) m = RGB[1];
+      if (RGB[2]>m) m = RGB[2];
+      // include actual brightness into scale calculation
+      scale = brightness->getChannelValue()/100/m;
+      break;
+    }
+    case colorLightModeXY: {
+      // Note: for some reason, passing brightness to V gives bad results,
+      // so for now we always assume 1 and scale resulting RGB
       xyV[0] = cieX->getChannelValue();
       xyV[1] = cieY->getChannelValue();
-      xyV[2] = brightness->getChannelValue()/100; // 0..1
-    xyVToRGB:
       xyVtoXYZ(xyV, XYZ);
       // convert using calibration for this lamp
       XYZtoRGB(calibration, XYZ, RGB);
+      scale = brightness->getChannelValue()/100; // 0..1
       break;
-    default:
+    }
+    default: {
       // no color, just set R=G=B=brightness
       RGB[0] = brightness->getChannelValue()/100;
       RGB[1] = RGB[0];
       RGB[2] = RGB[0];
       break;
+    }
   }
-  aRed = colorCompScaled(RGB[0], aMax);
-  aGreen = colorCompScaled(RGB[1], aMax);
-  aBlue = colorCompScaled(RGB[2], aMax);
+  aRed = colorCompScaled(RGB[0], aMax*scale);
+  aGreen = colorCompScaled(RGB[1], aMax*scale);
+  aBlue = colorCompScaled(RGB[2], aMax*scale);
 }
 
 
