@@ -148,7 +148,7 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special color lamp behaviour
   switch (aSceneNo) {
-    case ALARM1:
+    case SIG_PANIC:
     case FIRE:
       // Alert - use cold white
       colorMode = colorLightModeCt;
