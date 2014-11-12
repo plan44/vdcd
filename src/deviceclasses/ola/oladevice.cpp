@@ -164,7 +164,9 @@ void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     // single channel dimmer
     LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
     if (l && l->brightnessNeedsApplying()) {
-      setDMXChannel(whiteChannel,(DmxValue)l->brightnessForHardware()*255/100);
+      double w = l->brightnessForHardware()*255/100;
+      setDMXChannel(whiteChannel,(DmxValue)w);
+      if (!aForDimming) LOG(LOG_INFO, "OLA device %s: DMX512 channel %d=%d\n", shortDesc().c_str(), whiteChannel, (int)w);
       l->brightnessApplied(); // confirm having applied the new brightness
     }
   }
@@ -179,11 +181,33 @@ void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         cl->deriveColorMode();
         // RGB lamp, get components
         double r,g,b;
-        cl->getRGB(r, g, b, 255); // get brightness per R,G,B channel
-        // transfer to outputs
+        double w = 0;
+        double a = 0;
+        if (whiteChannel!=dmxNone) {
+          if (amberChannel!=dmxNone) {
+            // RGBW
+            cl->getRGBWA(r, g, b, w, a, 255);
+            setDMXChannel(amberChannel,(DmxValue)a);
+          }
+          else {
+            // RGBW
+            cl->getRGBW(r, g, b, w, 255);
+          }
+          setDMXChannel(whiteChannel,(DmxValue)w);
+        }
+        else {
+          // RGB
+          cl->getRGB(r, g, b, 255); // get brightness per R,G,B channel
+        }
+        // There's always RGB
         setDMXChannel(redChannel,(DmxValue)r);
         setDMXChannel(greenChannel,(DmxValue)g);
         setDMXChannel(blueChannel,(DmxValue)b);
+        if (!aForDimming) LOG(LOG_INFO,
+          "OLA device %s: set DMX512 channels R(%hd)=%d, G(%hd)=%d, B(%hd)=%d, W(%hd)=%d, A(%hd)=%d\n",
+          shortDesc().c_str(),
+          redChannel, (int)r, greenChannel, (int)g, blueChannel, (int)b, whiteChannel, (int)w, amberChannel, (int)a
+        );
       } // if needs update
       // anyway, applied now
       cl->appliedRGB();
@@ -221,6 +245,22 @@ string OlaDevice::modelName()
 
 
 
+bool OlaDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  const char *iconName = NULL;
+  switch (olaType) {
+    case ola_dimmer: iconName = "ola_dimmer"; break;
+    case ola_tunablewhitedimmer: iconName = "ola_ct"; break;
+    case ola_fullcolordimmer: iconName = "ola_color"; break;
+    default: break;
+  }
+  if (iconName && getIcon(iconName, aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
 string OlaDevice::getExtraInfo()
 {
   if (olaType==ola_dimmer)
@@ -238,11 +278,11 @@ string OlaDevice::description()
 {
   string s = inherited::description();
   if (olaType==ola_dimmer)
-    string_format_append(s, "- DMX512 Dimmer: brightness=%d", whiteChannel);
+    string_format_append(s, "- DMX512 Dimmer: brightness=%d\n", whiteChannel);
   else if (olaType==ola_tunablewhitedimmer)
-    string_format_append(s, "- DMX512 Tunable white dimmer: white=%d, amber=%d", whiteChannel, amberChannel);
+    string_format_append(s, "- DMX512 Tunable white dimmer: white=%d, amber=%d\n", whiteChannel, amberChannel);
   else if (olaType==ola_fullcolordimmer)
-    string_format_append(s, "- DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
+    string_format_append(s, "- DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d\n", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
   return s;
 }
 

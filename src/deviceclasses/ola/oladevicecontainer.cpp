@@ -109,6 +109,14 @@ void OlaDeviceContainer::dmxSend()
 }
 
 
+bool OlaDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("vdc_ola", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
 
 // device class name
 const char *OlaDeviceContainer::deviceClassIdentifier() const

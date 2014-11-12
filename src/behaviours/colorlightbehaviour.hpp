@@ -279,6 +279,8 @@ namespace p44 {
     /// @name settings (color calibration)
     /// @{
     Matrix3x3 calibration; ///< calibration matrix: [[Xr,Xg,Xb],[Yr,Yg,Yb],[Zr,Zg,Zb]]
+    Row3 whiteRGB; ///< R,G,B relative intensities that can be replaced by a extra white channel
+    Row3 amberRGB; ///< R,G,B relative intensities that can be replaced by a extra amber channel
     /// @}
 
     RGBColorLightBehaviour(Device &aDevice);
@@ -305,6 +307,22 @@ namespace p44 {
     /// @param aRed,aGreen,aBlue current R,G,B values to be converted to color channel settings
     /// @param aMax max value for aRed,aGreen,aBlue
     void setRGB(double aRed, double aGreen, double aBlue, double aMax);
+
+    /// get RGB colors (from current channel settings, HSV, CIE, CT + brightness) for applying to lamp
+    /// @param aRed,aGreen,aBlue,aWhite will receive the R,G,B,W values corresponding to current channels
+    /// @param aMax max value for aRed,aGreen,aBlue,aWhite
+    void getRGBW(double &aRed, double &aGreen, double &aBlue, double &aWhite, double aMax);
+
+    /// set RGB values from lamp (to update channel values from actual lamp setting)
+    /// @param aRed,aGreen,aBlue,aWhite current R,G,B,W values to be converted to color channel settings
+    /// @param aMax max value for aRed,aGreen,aBlue,aWhite
+    void setRGBW(double aRed, double aGreen, double aBlue, double aWhite, double aMax);
+
+    /// get RGB colors (from current channel settings, HSV, CIE, CT + brightness) for applying to lamp
+    /// @param aRed,aGreen,aBlue,aWhite,aAmber will receive the R,G,B,W,A values corresponding to current channels
+    /// @param aMax max value for aRed,aGreen,aBlue,aWhite,aAmber
+    void getRGBWA(double &aRed, double &aGreen, double &aBlue, double &aWhite, double &aAmber, double aMax);
+
 
     /// mark RGB values applied (flags channels applied depending on colormode)
     void appliedRGB();

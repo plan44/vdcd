@@ -80,6 +80,14 @@ namespace p44 {
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
+    /// Get icon data or name
+    /// @param aIcon string to put result into (when method returns true)
+    /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
+    /// - if aWithData is not set, only the icon name (without file extension) is returned
+    /// @param aWithData if set, PNG data is returned, otherwise only name
+    /// @return true if there is an icon, false if not
+    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
+
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
     virtual string vdcModelSuffix() { return "OLA/DMX512"; }

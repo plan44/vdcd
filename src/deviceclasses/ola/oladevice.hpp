@@ -87,6 +87,14 @@ namespace p44 {
     /// @return textual description of object
     virtual string description();
 
+    /// Get icon data or name
+    /// @param aIcon string to put result into (when method returns true)
+    /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
+    /// - if aWithData is not set, only the icon name (without file extension) is returned
+    /// @param aWithData if set, PNG data is returned, otherwise only name
+    /// @return true if there is an icon, false if not
+    virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
+
     /// Get extra info (plan44 specific) to describe the addressable in more detail
     /// @return string, single line extra info describing aspects of the device not visible elsewhere
     virtual string getExtraInfo();

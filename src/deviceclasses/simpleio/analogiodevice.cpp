@@ -66,7 +66,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
   else if (analogIOType==analogio_rgbdimmer) {
     // - is light
     primaryGroup = group_yellow_light;
-    // - need 3 IO names for R,G,B
+    // - need 3 IO names for R,G,B, optional fourth for W
     size_t p;
     p = ioname.find_first_of('|');
     if (p!=string::npos) {
@@ -79,9 +79,17 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
         // 3 pins specified
         // - create green output
         analogIO2 = AnalogIoPtr(new AnalogIo(ioname.substr(0,p).c_str(), true, 0));
+        ioname.erase(0,p+1);
+        p = ioname.find_first_of('|');
+        if (p!=string::npos) {
+          // extra 4th pin for white specified
+          // - create white output from rest
+          analogIO4 = AnalogIoPtr(new AnalogIo(ioname.substr(p+1).c_str(), true, 0));
+          ioname.erase(p); // remove specification of white channel
+        }
         // - create blue output from rest
-        analogIO3 = AnalogIoPtr(new AnalogIo(ioname.substr(p+1).c_str(), true, 0));
-        // Complete set of outputs, now create RGB light
+        analogIO3 = AnalogIoPtr(new AnalogIo(ioname.c_str(), true, 0));
+        // Complete set of outputs, now create RGB light (with optional white channel)
         // - use color light settings, which include a color scene table
         installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
         // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
@@ -129,11 +137,20 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         // - derive (possibly new) color mode from changed channels
         cl->deriveColorMode();
         // RGB lamp, get components
-        double r,g,b;
-        cl->getRGB(r, g, b, 100); // get brightness per R,G,B channel
-        // transfer to outputs
+        double r, g, b, pwm;
+        if (analogIO4) {
+          // RGBW lamp
+          double w;
+          cl->getRGBW(r, g, b, w, 100); // get brightness for R,G,B,W channels
+          pwm = cl->brightnessToPWM(w, 100);
+          analogIO4->setValue(pwm);
+        }
+        else {
+          // RGB only
+          cl->getRGB(r, g, b, 100); // get brightness for R,G,B channels
+        }
         // - red
-        double pwm = cl->brightnessToPWM(r, 100);
+        pwm = cl->brightnessToPWM(r, 100);
         analogIO->setValue(pwm);
         // - green
         pwm = cl->brightnessToPWM(g, 100);
@@ -170,6 +187,7 @@ void AnalogIODevice::deriveDsUid()
   if (analogIO) { s += ":"; s += analogIO->getName(); }
   if (analogIO2) { s += ":"; s += analogIO2->getName(); }
   if (analogIO3) { s += ":"; s += analogIO3->getName(); }
+  if (analogIO4) { s += ":"; s += analogIO4->getName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
@@ -179,7 +197,7 @@ string AnalogIODevice::modelName()
   if (analogIOType==analogio_dimmer)
     return "Dimmer output";
   if (analogIOType==analogio_rgbdimmer)
-    return "RGB dimmer outputs";
+    return "RGB(W) dimmer outputs";
   else if (analogIOType==analogio_valve)
     return "Heating Valve output";
   return "Analog I/O";
@@ -189,7 +207,7 @@ string AnalogIODevice::modelName()
 string AnalogIODevice::getExtraInfo()
 {
   if (analogIOType==analogio_rgbdimmer)
-    return string_format("RGB Outputs: %s, %s, %s", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
+    return string_format("RGB Outputs:%s, %s, %s; White:%s", analogIO->getName(), analogIO2->getName(), analogIO3->getName(), analogIO4 ? analogIO->getName() : "none");
   else if (analogIOType==analogio_dimmer || analogIOType==analogio_valve)
     return string_format("Output: %s", analogIO->getName());
   return "Analog I/O";
@@ -203,7 +221,7 @@ string AnalogIODevice::description()
   if (analogIOType==analogio_dimmer)
     string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName());
   if (analogIOType==analogio_rgbdimmer)
-    string_format_append(s, "- Color Dimmer at Analog outputs '%s', '%s', '%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName());
+    string_format_append(s, "- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName(), analogIO4 ? analogIO->getName() : "none");
   else if (analogIOType==analogio_valve)
     return string_format("Heating Valve @ '%s'\n", analogIO->getName());
   return s;

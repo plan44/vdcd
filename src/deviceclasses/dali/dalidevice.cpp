@@ -488,12 +488,16 @@ bool DaliRGBWDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aR
 
 string DaliRGBWDevice::getExtraInfo()
 {
-  return string_format(
+  string s = string_format(
     "DALI short addresses: Red:%d, Green:%d, Blue:%d",
     dimmers[dimmer_red]->deviceInfo.shortAddress,
     dimmers[dimmer_green]->deviceInfo.shortAddress,
     dimmers[dimmer_blue]->deviceInfo.shortAddress
   );
+  if (dimmers[dimmer_white]) {
+    string_format_append(s, ", White:%d", dimmers[dimmer_white]->deviceInfo.shortAddress);
+  }
+  return s;
 }
 
 
@@ -540,7 +544,13 @@ void DaliRGBWDevice::updateNextDimmer(CompletedCB aCompletedCB, bool aFactoryRes
   double r = dimmers[dimmer_red] ? dimmers[dimmer_red]->currentBrightness : 0;
   double g = dimmers[dimmer_green] ? dimmers[dimmer_green]->currentBrightness : 0;
   double b = dimmers[dimmer_blue] ? dimmers[dimmer_blue]->currentBrightness : 0;
-  cl->setRGB(r, g, b, 255);
+  if (dimmers[dimmer_white]) {
+    double w = dimmers[dimmer_white]->currentBrightness;
+    cl->setRGBW(r, g, b, w, 255);
+  }
+  else {
+    cl->setRGB(r, g, b, 255);
+  }
   // complete - continue with initialisation in superclasses
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
@@ -608,11 +618,30 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       // needs update
       // - derive (possibly new) color mode from changed channels
       cl->deriveColorMode();
-      // RGB lamp, get components
-      double r,g,b;
-      cl->getRGB(r, g, b, 100); // dali dimmers use abstracted 0..100% brightness as input
-      // set transition time for all dimmers to brightness transition time
+      // transition time is that of the brightness channel
       MLMicroSeconds tt = cl->transitionTimeToNewBrightness();
+      // RGB lamp, get components
+      double r,g,b,w;
+      if (dimmers[dimmer_white]) {
+        // RGBW
+        cl->getRGBW(r, g, b, w, 100); // dali dimmers use abstracted 0..100% brightness as input
+        if (!aForDimming) LOG(LOG_INFO,
+          "DALI composite RGB device %s: R=%d, G=%d, B=%d, W=%d\n",
+          shortDesc().c_str(),
+          (int)r, (int)g, (int)b, (int)w
+        );
+        dimmers[dimmer_white]->setTransitionTime(tt);
+      }
+      else {
+        // RGB
+        cl->getRGB(r, g, b, 100); // dali dimmers use abstracted 0..100% brightness as input
+        if (!aForDimming) LOG(LOG_INFO,
+          "DALI composite RGBW device %s: R=%d, G=%d, B=%d\n",
+          shortDesc().c_str(),
+          (int)r, (int)g, (int)b
+        );
+      }
+      // set transition time for all dimmers to brightness transition time
       dimmers[dimmer_red]->setTransitionTime(tt);
       dimmers[dimmer_green]->setTransitionTime(tt);
       dimmers[dimmer_blue]->setTransitionTime(tt);
@@ -620,6 +649,7 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       dimmers[dimmer_red]->setBrightness(r);
       dimmers[dimmer_green]->setBrightness(g);
       dimmers[dimmer_blue]->setBrightness(b);
+      if (dimmers[dimmer_white]) dimmers[dimmer_white]->setBrightness(w);
     } // if needs update
     // anyway, applied now
     cl->appliedRGB();

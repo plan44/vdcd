@@ -48,6 +48,7 @@ namespace p44 {
     AnalogIoPtr analogIO; // brighness for single channel, red for RGB
     AnalogIoPtr analogIO2; // green for RGB
     AnalogIoPtr analogIO3; // blue for RGB
+    AnalogIoPtr analogIO4; // white for RGBW
 
     AnalogIoType analogIOType;
 

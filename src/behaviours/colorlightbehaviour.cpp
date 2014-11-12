@@ -429,6 +429,10 @@ RGBColorLightBehaviour::RGBColorLightBehaviour(Device &aDevice) :
 {
   // default to sRGB with D65 white point
   matrix3x3_copy(sRGB_d65_calibration, calibration);
+  // default white assumed to contribute equally to R,G,B with 50% each
+  whiteRGB[0] = 0.5; whiteRGB[1] = 0.5; whiteRGB[2] = 0.5;
+  // default amber assumed to be AMBER web color #FFBE00 = 100%, 75%, 0% contributing 50% intensity
+  amberRGB[0] = 0.5; amberRGB[1] = 0.375; amberRGB[2] = 0;
 }
 
 
@@ -501,6 +505,108 @@ void RGBColorLightBehaviour::setRGB(double aRed, double aGreen, double aBlue, do
   RGB[0] = aRed/aMax;
   RGB[1] = aGreen/aMax;
   RGB[2] = aBlue/aMax;
+  // always convert to HSV, as this can actually represent the values seen on the light
+  Row3 HSV;
+  RGBtoHSV(RGB, HSV);
+  // set the channels
+  hue->syncChannelValue(HSV[0]);
+  saturation->syncChannelValue(HSV[1]*100);
+  brightness->syncChannelValue(HSV[2]*100);
+  // change the mode if needed
+  if (colorMode!=colorLightModeHueSaturation) {
+    colorMode = colorLightModeHueSaturation;
+    // force recalculation of derived color value
+    derivedValuesComplete = false;
+  }
+}
+
+
+static double transferToColor(Row3 &aCol, double &aRed, double &aGreen, double &aBlue)
+{
+  bool hasRed = aCol[0]>0;
+  bool hasGreen = aCol[1]>0;
+  bool hasBlue = aCol[2]>0;
+  double fr = hasRed ? aRed/aCol[0] : 0;
+  double fg = hasGreen ? aGreen/aCol[1] : 0;
+  double fb = hasBlue ? aBlue/aCol[2] : 0;
+  // - find non-zero fraction to use of external color
+  double f = fg>fb && hasBlue ? fb : fg;
+  f = fr>f && (hasBlue || hasGreen) ? f : fr;
+  if (f>1) f=1; // limit to 1
+  // - now subtract from RGB values what we've transferred to separate color
+  if (hasRed) aRed = aRed - f*aCol[0];
+  if (hasGreen) aGreen = aGreen - f*aCol[1];
+  if (hasBlue) aBlue = aBlue - f*aCol[2];
+  // - find fraction RGB HAS to contribute without loosing color information
+  double u = 1-aCol[0]; // how much of red RGB needs to contribute
+  if (1-aCol[1]>u) u = 1-aCol[1]; // how much of green
+  if (1-aCol[2]>u) u = 1-aCol[2]; // how much of blue
+  //   now scale RGB up to minimal fraction it HAS to contribute
+  if (u>0) {
+    u = 1/u;
+    aRed *= u;
+    aBlue *= u;
+    aGreen *= u;
+  }
+  return f;
+}
+
+
+static void transferFromColor(Row3 &aCol, double aAmount, double &aRed, double &aGreen, double &aBlue)
+{
+  // first scale RGB down to non-transferable amount
+  if (aCol[0]<1) aRed *= 1-aCol[0];
+  if (aCol[1]<1) aGreen *= 1-aCol[1];
+  if (aCol[2]<1) aBlue *= 1-aCol[2];
+  // then add amount from separate color
+  aRed += aAmount*aCol[0];
+  aGreen += aAmount*aCol[1];
+  aBlue += aAmount*aCol[2];
+}
+
+
+
+
+void RGBColorLightBehaviour::getRGBW(double &aRed, double &aGreen, double &aBlue, double &aWhite, double aMax)
+{
+  // first get 0..1 RGB
+  double r,g,b;
+  getRGB(r, g, b, 1);
+  // transfer as much as possible to the white channel
+  double w = transferToColor(whiteRGB, r, g, b);
+  // Finally scale as requested
+  aWhite = colorCompScaled(w, aMax);
+  aRed = colorCompScaled(r, aMax);
+  aGreen = colorCompScaled(g, aMax);
+  aBlue = colorCompScaled(b, aMax);
+}
+
+
+void RGBColorLightBehaviour::getRGBWA(double &aRed, double &aGreen, double &aBlue, double &aWhite, double &aAmber, double aMax)
+{
+  // first get RGBW
+  double r,g,b;
+  getRGB(r, g, b, 1);
+  // transfer as much as possible to the white channel
+  double w = transferToColor(whiteRGB, r, g, b);
+  // then transfer as much as possible to the amber channel
+  double a = transferToColor(amberRGB, r, g, b);
+  // Finally scale as requested
+  aAmber = colorCompScaled(a, aMax);
+  aWhite = colorCompScaled(w, aMax);
+  aRed = colorCompScaled(r, aMax);
+  aGreen = colorCompScaled(g, aMax);
+  aBlue = colorCompScaled(b, aMax);
+}
+
+
+void RGBColorLightBehaviour::setRGBW(double aRed, double aGreen, double aBlue, double aWhite, double aMax)
+{
+  Row3 RGB;
+  RGB[0] = aRed/aMax;
+  RGB[1] = aGreen/aMax;
+  RGB[2] = aBlue/aMax;
+  transferFromColor(whiteRGB, aWhite/aMax, RGB[0], RGB[1], RGB[2]);
   // always convert to HSV, as this can actually represent the values seen on the light
   Row3 HSV;
   RGBtoHSV(RGB, HSV);
