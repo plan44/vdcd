@@ -181,21 +181,21 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   // group related scenes
   // { brightness, effect, ignoreLocalPriority, dontCare }
   {   0, scene_effect_smooth, false, false }, // 0 : Preset 0 - T0_S0
-  {   0, scene_effect_smooth, true , false }, // 1 : Area 1 Off - T1_S0
-  {   0, scene_effect_smooth, true , false }, // 2 : Area 2 Off - T2_S0
-  {   0, scene_effect_smooth, true , false }, // 3 : Area 3 Off - T3_S0
-  {   0, scene_effect_smooth, true , false }, // 4 : Area 4 Off - T4_S0
+  {   0, scene_effect_smooth, true,  false }, // 1 : Area 1 Off - T1_S0
+  {   0, scene_effect_smooth, true,  false }, // 2 : Area 2 Off - T2_S0
+  {   0, scene_effect_smooth, true,  false }, // 3 : Area 3 Off - T3_S0
+  {   0, scene_effect_smooth, true,  false }, // 4 : Area 4 Off - T4_S0
   { 100, scene_effect_smooth, false, false }, // 5 : Preset 1 - T0_S1
-  { 100, scene_effect_smooth, true , false }, // 6 : Area 1 On - T1_S1
-  { 100, scene_effect_smooth, true , false }, // 7 : Area 2 On - T1_S1
-  { 100, scene_effect_smooth, true , false }, // 8 : Area 3 On - T1_S1
-  { 100, scene_effect_smooth, true , false }, // 9 : Area 4 On - T1_S1
-  {   0, scene_effect_smooth, true , false }, // 10 : Area Stepping continue - T1234_CONT
+  { 100, scene_effect_smooth, true,  false }, // 6 : Area 1 On - T1_S1
+  { 100, scene_effect_smooth, true,  false }, // 7 : Area 2 On - T1_S1
+  { 100, scene_effect_smooth, true,  false }, // 8 : Area 3 On - T1_S1
+  { 100, scene_effect_smooth, true,  false }, // 9 : Area 4 On - T1_S1
+  {   0, scene_effect_smooth, true,  false }, // 10 : Area Stepping continue - T1234_CONT
   {   0, scene_effect_smooth, false, false }, // 11 : Decrement - DEC_S
   {   0, scene_effect_smooth, false, false }, // 12 : Increment - INC_S
-  {   0, scene_effect_smooth, true , false }, // 13 : Minimum - MIN_S
-  { 100, scene_effect_smooth, true , false }, // 14 : Maximum - MAX_S
-  {   0, scene_effect_smooth, true , false }, // 15 : Stop - STOP_S
+  {   0, scene_effect_smooth, true,  false }, // 13 : Minimum - MIN_S
+  { 100, scene_effect_smooth, true,  false }, // 14 : Maximum - MAX_S
+  {   0, scene_effect_smooth, true,  false }, // 15 : Stop - STOP_S
   {   0, scene_effect_smooth, false, true  }, // 16 : Reserved
   {  75, scene_effect_smooth, false, false }, // 17 : Preset 2 - T0_S2
   {  50, scene_effect_smooth, false, false }, // 18 : Preset 3 - T0_S3
@@ -222,20 +222,20 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 100, scene_effect_smooth, false, false }, // 39 : Preset 41 - T4E_S1
   {   0, scene_effect_smooth, false, false }, // 40 : Fade down to 0 in 1min - AUTO_OFF
   {   0, scene_effect_smooth, false, true  }, // 41 : Reserved
-  {   0, scene_effect_smooth, true , false }, // 42 : Area 1 Decrement - T1_DEC
-  {   0, scene_effect_smooth, true , false }, // 43 : Area 1 Increment - T1_INC
-  {   0, scene_effect_smooth, true , false }, // 44 : Area 2 Decrement - T2_DEC
-  {   0, scene_effect_smooth, true , false }, // 45 : Area 2 Increment - T2_INC
-  {   0, scene_effect_smooth, true , false }, // 46 : Area 3 Decrement - T3_DEC
-  {   0, scene_effect_smooth, true , false }, // 47 : Area 3 Increment - T3_INC
-  {   0, scene_effect_smooth, true , false }, // 48 : Area 4 Decrement - T4_DEC
-  {   0, scene_effect_smooth, true , false }, // 49 : Area 4 Increment - T4_INC
-  {   0, scene_effect_smooth, true , false }, // 50 : Device (Local Button) on : LOCAL_OFF
-  { 100, scene_effect_smooth, true , false }, // 51 : Device (Local Button) on : LOCAL_ON
-  {   0, scene_effect_smooth, true , false }, // 52 : Area 1 Stop - T1_STOP_S
-  {   0, scene_effect_smooth, true , false }, // 53 : Area 2 Stop - T2_STOP_S
-  {   0, scene_effect_smooth, true , false }, // 54 : Area 3 Stop - T3_STOP_S
-  {   0, scene_effect_smooth, true , false }, // 55 : Area 4 Stop - T4_STOP_S
+  {   0, scene_effect_smooth, true,  false }, // 42 : Area 1 Decrement - T1_DEC
+  {   0, scene_effect_smooth, true,  false }, // 43 : Area 1 Increment - T1_INC
+  {   0, scene_effect_smooth, true,  false }, // 44 : Area 2 Decrement - T2_DEC
+  {   0, scene_effect_smooth, true,  false }, // 45 : Area 2 Increment - T2_INC
+  {   0, scene_effect_smooth, true,  false }, // 46 : Area 3 Decrement - T3_DEC
+  {   0, scene_effect_smooth, true,  false }, // 47 : Area 3 Increment - T3_INC
+  {   0, scene_effect_smooth, true,  false }, // 48 : Area 4 Decrement - T4_DEC
+  {   0, scene_effect_smooth, true,  false }, // 49 : Area 4 Increment - T4_INC
+  {   0, scene_effect_smooth, true,  false }, // 50 : Device (Local Button) on : LOCAL_OFF
+  { 100, scene_effect_smooth, true,  false }, // 51 : Device (Local Button) on : LOCAL_ON
+  {   0, scene_effect_smooth, true,  false }, // 52 : Area 1 Stop - T1_STOP_S
+  {   0, scene_effect_smooth, true,  false }, // 53 : Area 2 Stop - T2_STOP_S
+  {   0, scene_effect_smooth, true,  false }, // 54 : Area 3 Stop - T3_STOP_S
+  {   0, scene_effect_smooth, true,  false }, // 55 : Area 4 Stop - T4_STOP_S
   {   0, scene_effect_smooth, false, true  }, // 56 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 57 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 58 : Reserved
@@ -245,19 +245,19 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, false, true  }, // 62 : Reserved
   {   0, scene_effect_smooth, false, true  }, // 63 : Reserved
   // global, appartment-wide, group independent scenes
-  {   0, scene_effect_slow  , true , false }, //  +0 = 64 : Auto Standby - AUTO_STANDBY
-  { 100, scene_effect_smooth, true , false }, //  +1 = 65 : Panic - SIG_PANIC
+  {   0, scene_effect_slow,   true,  false }, //  +0 = 64 : Auto Standby - AUTO_STANDBY
+  { 100, scene_effect_none,   true,  false }, //  +1 = 65 : Panic - SIG_PANIC
   {   0, scene_effect_smooth, false, true  }, //  +2 = 66 : Reserved (ENERGY_OL)
-  {   0, scene_effect_smooth, true , false }, //  +3 = 67 : Standby - STANDBY
-  {   0, scene_effect_smooth, true , false }, //  +4 = 68 : Deep Off - DEEP_OFF
-  {   0, scene_effect_smooth, true , false }, //  +5 = 69 : Sleeping - SLEEPING
-  { 100, scene_effect_smooth, true , true  }, //  +6 = 70 : Wakeup - WAKE_UP
-  { 100, scene_effect_smooth, true , true  }, //  +7 = 71 : Present - PRESENT
-  {   0, scene_effect_smooth, true , false }, //  +8 = 72 : Absent - ABSENT
-  {   0, scene_effect_smooth, true , true  }, //  +9 = 73 : Door Bell - SIG_BELL
+  {   0, scene_effect_smooth, true,  false }, //  +3 = 67 : Standby - STANDBY
+  {   0, scene_effect_smooth, true,  false }, //  +4 = 68 : Deep Off - DEEP_OFF
+  {   0, scene_effect_smooth, true,  false }, //  +5 = 69 : Sleeping - SLEEPING
+  { 100, scene_effect_smooth, true,  true  }, //  +6 = 70 : Wakeup - WAKE_UP
+  { 100, scene_effect_smooth, true,  true  }, //  +7 = 71 : Present - PRESENT
+  {   0, scene_effect_smooth, true,  false }, //  +8 = 72 : Absent - ABSENT
+  {   0, scene_effect_smooth, true,  true  }, //  +9 = 73 : Door Bell - SIG_BELL
   { 100, scene_effect_smooth, false, true  }, // +10 = 74 : Alarm1 - SIG_ALARM
   { 100, scene_effect_smooth, false, true  }, // +11 = 75 : Zone Active
-  { 100, scene_effect_smooth, true,  false }, // +12 = 76 : Fire
+  { 100, scene_effect_none,   true,  false }, // +12 = 76 : Fire
   { 100, scene_effect_smooth, false, true  }, // +13 = 77 : Reserved
 
   // all other scenes equal or higher
