@@ -43,12 +43,13 @@ if RASPBERRYPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz -lola -lolacommon -lprotobuf
+vdcd_OLA = -D DISABLE_OLA=0
 else
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 # vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
 vdcd_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -lcrypto -lz
-
+vdcd_OLA = -D DISABLE_OLA=1
 # build mongoose into vdcd, no library
 MONGOOSE_SRC = src/thirdparty/mongoose/mongoose.c src/thirdparty/mongoose/mongoose.h
 endif
@@ -66,12 +67,13 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  -I ${srcdir}/src/deviceclasses/ola \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
-  ${vdcd_DEBUG}
+  ${vdcd_DEBUG} ${vdcd_OLA}
 
 
 vdcd_SOURCES = \
@@ -215,6 +217,10 @@ vdcd_SOURCES = \
   src/deviceclasses/dali/dalidevice.hpp \
   src/deviceclasses/dali/dalidevicecontainer.cpp \
   src/deviceclasses/dali/dalidevicecontainer.hpp \
+  src/deviceclasses/ola/oladevice.cpp \
+  src/deviceclasses/ola/oladevice.hpp \
+  src/deviceclasses/ola/oladevicecontainer.cpp \
+  src/deviceclasses/ola/oladevicecontainer.hpp \
   src/deviceclasses/hue/huecomm.cpp \
   src/deviceclasses/hue/huecomm.hpp \
   src/deviceclasses/hue/huedevicecontainer.cpp \
