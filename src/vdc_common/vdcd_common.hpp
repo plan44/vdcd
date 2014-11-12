@@ -15,6 +15,17 @@
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
 #endif
 
+// auto-disable some features depending on platform
+// - No i2c on Mac or DigiESP, but always on RaspberryPi
+#if (defined(__APPLE__) || defined(DIGI_ESP)) && !defined(RASPBERRYPI)
+  #define DISABLE_I2C 1
+#endif
+// - No OLA on DIGI_ESP
+#if defined(DIGI_ESP)
+  #define DISABLE_OLA 1
+#endif
+
+
 #include "p44_common.hpp"
 
 #include "application.hpp"

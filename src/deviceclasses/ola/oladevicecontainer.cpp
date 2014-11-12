@@ -21,6 +21,8 @@
 
 #include "oladevicecontainer.hpp"
 
+#if !DISABLE_OLA
+
 #include "oladevice.hpp"
 
 #import <ola/DmxBuffer.h>
@@ -211,5 +213,6 @@ ErrorPtr OlaDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const strin
   return respErr;
 }
 
+#endif // !DISABLE_OLA
 
 

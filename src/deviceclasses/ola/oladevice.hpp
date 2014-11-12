@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if !DISABLE_OLA
+
 #include "oladevicecontainer.hpp"
 
 using namespace std;
@@ -170,4 +172,5 @@ namespace p44 {
 
 } // namespace p44
 
+#endif // !DISABLE_OLA
 #endif /* defined(__vdcd__oladevice__) */

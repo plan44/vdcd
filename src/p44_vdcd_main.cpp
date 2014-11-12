@@ -17,9 +17,12 @@
 // device classes to be used
 #include "dalidevicecontainer.hpp"
 #include "huedevicecontainer.hpp"
-#include "oladevicecontainer.hpp"
 #include "enoceandevicecontainer.hpp"
 #include "staticdevicecontainer.hpp"
+
+#if !DISABLE_OLA
+#include "oladevicecontainer.hpp"
+#endif
 
 #include "digitalio.hpp"
 
@@ -243,7 +246,9 @@ public:
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
+      #endif
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -262,12 +267,18 @@ public:
                                      "Use ! for inverted polarity (default is noninverted input)\n"
                                      "iospec is of form [bus.[device.]]pin:\n"
                                      "- gpio.gpionumber : generic Linux GPIO\n"
+      #if !DISABLE_I2C
                                      "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
-                                     "  (supported for DEVICE : TCA9555, PCF8574)" },
+                                     "  (supported for DEVICE : TCA9555, PCF8574)"
+      #endif
+                                     },
       { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
                                      "iospec is of form [bus.[device.]]pin:\n"
+      #if !DISABLE_I2C
                                      "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
-                                     "  (supported for DEVICE : PCA9685)" },
+                                     "  (supported for DEVICE : PCA9685)"
+      #endif
+                                     },
       { 'k', "consoleio",     true,  "name[:(dimmer|button|valve)];add static debug device which reads and writes console\n"
                                      "(for inputs: first char of name=action key)" },
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
@@ -440,11 +451,13 @@ public:
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
         hueDeviceContainer->addClassToDeviceContainer();
       }
+      #if !DISABLE_OLA
       // - Add OLA support
       if (getOption("ola")) {
         OlaDeviceContainerPtr olaDeviceContainer = OlaDeviceContainerPtr(new OlaDeviceContainer(1, p44VdcHost.get(), 5)); // Tag 5 = ola
         olaDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static

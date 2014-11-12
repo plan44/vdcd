@@ -21,6 +21,8 @@
 
 #include "oladevice.hpp"
 
+#if !DISABLE_OLA
+
 #include "lightbehaviour.hpp"
 #include "colorlightbehaviour.hpp"
 
@@ -285,4 +287,8 @@ string OlaDevice::description()
     string_format_append(s, "- DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d\n", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
   return s;
 }
+
+#endif // !DISABLE_OLA
+
+
 
