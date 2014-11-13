@@ -43,8 +43,11 @@ if RASPBERRYPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz -lola -lolacommon -lprotobuf
-vdcd_OLA = -D DISABLE_OLA=0
+#vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz -lola -lolacommon -lprotobuf
+#vdcd_OLA = -D DISABLE_OLA=0
+# For now, no OLA
+vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_OLA = -D DISABLE_OLA=1
 else
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 # vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
