@@ -179,6 +179,12 @@ Device &DsScene::getDevice()
 }
 
 
+OutputBehaviourPtr DsScene::getOutputBehaviour()
+{
+  return sceneDeviceSettings.device.output;
+}
+
+
 
 #pragma mark - scene persistence
 

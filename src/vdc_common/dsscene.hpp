@@ -46,6 +46,9 @@ namespace p44 {
   class Device;
   class DeviceSettings;
 
+  class OutputBehaviour;
+  typedef boost::intrusive_ptr<OutputBehaviour> OutputBehaviourPtr;
+
   /// Abstract base class for a single entry of a device's scene table. Implements the basic persistence
   /// and property access mechanisms which can be extended in concrete subclasses.
   /// @note concrete subclasses for standard dS behaviours exist as part of the behaviour implementation
@@ -155,6 +158,11 @@ namespace p44 {
     /// get device
     /// @return the device this scene belongs to
     Device &getDevice();
+
+    /// get device
+    /// @return the output behaviour controlled by this scene
+    OutputBehaviourPtr getOutputBehaviour();
+
 
   protected:
 

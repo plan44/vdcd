@@ -61,6 +61,9 @@ namespace p44 {
     DmxChannel blueChannel;
     DmxChannel amberChannel;
 
+    DmxChannel hPosChannel;
+    DmxChannel vPosChannel;
+
   public:
 
     OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDeviceConfig);

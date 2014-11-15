@@ -186,6 +186,8 @@ vdcd_SOURCES = \
   src/behaviours/lightbehaviour.hpp \
   src/behaviours/colorlightbehaviour.cpp \
   src/behaviours/colorlightbehaviour.hpp \
+  src/behaviours/movinglightbehaviour.cpp \
+  src/behaviours/movinglightbehaviour.hpp \
   src/deviceclasses/simpleio/consoledevice.cpp \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
@@ -377,6 +379,8 @@ demovdc_SOURCES = \
   src/behaviours/lightbehaviour.hpp \
   src/behaviours/colorlightbehaviour.cpp \
   src/behaviours/colorlightbehaviour.hpp \
+  src/behaviours/movinglightbehaviour.cpp \
+  src/behaviours/movinglightbehaviour.hpp \
   src/deviceclasses/demo/demodevice.cpp \
   src/deviceclasses/demo/demodevice.hpp \
   src/deviceclasses/demo/demodevicecontainer.cpp \

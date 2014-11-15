@@ -125,6 +125,8 @@
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED7627281920E8F70068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
+		ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
+		ED780C741A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
 		ED81337917C6C765003982CC /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
@@ -362,6 +364,8 @@
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; };
 		ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = colorlightbehaviour.hpp; sourceTree = "<group>"; };
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorlightbehaviour.cpp; sourceTree = "<group>"; };
+		ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = movinglightbehaviour.hpp; sourceTree = "<group>"; };
+		ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = movinglightbehaviour.cpp; sourceTree = "<group>"; };
 		ED81337117C644AE003982CC /* dsscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsscene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81337217C644AE003982CC /* dsscene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsscene.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED81337417C65F7E003982CC /* devicesettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = devicesettings.cpp; sourceTree = "<group>"; };
@@ -553,6 +557,8 @@
 				ED5B293A1749446300334C71 /* lightbehaviour.hpp */,
 				ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */,
 				ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */,
+				ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */,
+				ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */,
 				EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */,
 				EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */,
 			);
@@ -963,6 +969,7 @@
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
 				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
 				EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */,
+				ED780C741A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				ED3126BA18318CC100FAF28B /* persistentparams.cpp in Sources */,
 				ED7627281920E8F70068D9A3 /* colorlightbehaviour.cpp in Sources */,
 				ED3126C218318CC100FAF28B /* sqlite3pp.cpp in Sources */,
@@ -1061,6 +1068,7 @@
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
+				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,

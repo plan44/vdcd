@@ -25,6 +25,7 @@
 
 #include "lightbehaviour.hpp"
 #include "colorlightbehaviour.hpp"
+#include "movinglightbehaviour.hpp"
 
 
 using namespace p44;
@@ -112,15 +113,26 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
         case 'G' : greenChannel = channelNo; break;
         case 'B' : blueChannel = channelNo; break;
         case 'A' : amberChannel = channelNo; break;
+        case 'H' : hPosChannel = channelNo; break;
+        case 'V' : vPosChannel = channelNo; break;
       }
     }
     if (redChannel!=dmxNone && greenChannel!=dmxNone && blueChannel!=dmxNone) {
-      // Complete set of outputs, now create RGB light
-      // - use color light settings, which include a color scene table
-      installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
-      // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
-      RGBColorLightBehaviourPtr l = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
-      addBehaviour(l);
+      // Complete set of outputs to create RGB light
+      if (hPosChannel!=dmxNone || vPosChannel!=dmxNone) {
+        // also has position, use moving light behaviour
+        installSettings(DeviceSettingsPtr(new MovingLightDeviceSettings(*this)));
+        // - add moving color light behaviour
+        MovingLightBehaviourPtr ml = MovingLightBehaviourPtr(new MovingLightBehaviour(*this));
+        addBehaviour(ml);
+      }
+      else {
+        // just color light settings, which include a color scene table
+        installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
+        // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
+        RGBColorLightBehaviourPtr l = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
+        addBehaviour(l);
+      }
     }
   }
   deriveDsUid();
@@ -173,8 +185,7 @@ void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     }
   }
   else if (olaType==ola_fullcolordimmer) {
-    // for now: only RGB, later: als support RGBW and RGBWA
-    // %%%three channel RGB dimmer
+    // RGB, RGBW or RGBWA dimmer
     RGBColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<RGBColorLightBehaviour>(output);
     if (cl) {
       if (needsToApplyChannels()) {
@@ -205,10 +216,22 @@ void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         setDMXChannel(redChannel,(DmxValue)r);
         setDMXChannel(greenChannel,(DmxValue)g);
         setDMXChannel(blueChannel,(DmxValue)b);
+        // there might be position as well
+        double h = 0;
+        double v = 0;
+        MovingLightBehaviourPtr ml = boost::dynamic_pointer_cast<MovingLightBehaviour>(output);
+        if (ml) {
+          h = ml->horizontalPosition->getChannelValue()/100*255;
+          setDMXChannel(hPosChannel,(DmxValue)r);
+          v = ml->verticalPosition->getChannelValue()/100*255;
+          setDMXChannel(vPosChannel,(DmxValue)r);
+        }
         if (!aForDimming) LOG(LOG_INFO,
-          "OLA device %s: set DMX512 channels R(%hd)=%d, G(%hd)=%d, B(%hd)=%d, W(%hd)=%d, A(%hd)=%d\n",
+          "OLA device %s: set DMX512 channels R(%hd)=%d, G(%hd)=%d, B(%hd)=%d, W(%hd)=%d, A(%hd)=%d, H(%hd)=%d, V(%hd)=%d\n",
           shortDesc().c_str(),
-          redChannel, (int)r, greenChannel, (int)g, blueChannel, (int)b, whiteChannel, (int)w, amberChannel, (int)a
+          redChannel, (int)r, greenChannel, (int)g, blueChannel, (int)b,
+          whiteChannel, (int)w, amberChannel, (int)a,
+          hPosChannel, (int)h, vPosChannel, (int)v
         );
       } // if needs update
       // anyway, applied now
