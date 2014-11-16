@@ -116,16 +116,25 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
 }
 
 
+
+
+
+#define TRANSITION_STEP_TIME (10*MilliSecond)
+
 void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
+  MLMicroSeconds transitionTime = 0;
   // generic device, show changed channels
   if (analogIOType==analogio_dimmer) {
     // single channel PWM dimmer
     LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
     if (l && l->brightnessNeedsApplying()) {
-      double pwm = l->brightnessToPWM(l->brightnessForHardware(), 100);
-      analogIO->setValue(pwm);
-      l->brightnessApplied(); // confirm having applied the new brightness
+      transitionTime = l->transitionTimeToNewBrightness();
+      applyChannelValueSteps(aDoneCB, aForDimming, 0, transitionTime==0 ? 1 : (double)TRANSITION_STEP_TIME/transitionTime);
+    }
+    else {
+      // no change, but consider applied anyway!
+      l->brightnessApplied();
     }
   }
   else if (analogIOType==analogio_rgbdimmer) {
@@ -136,35 +145,19 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         // needs update
         // - derive (possibly new) color mode from changed channels
         cl->deriveColorMode();
-        // RGB lamp, get components
-        double r, g, b, pwm;
-        if (analogIO4) {
-          // RGBW lamp
-          double w;
-          cl->getRGBW(r, g, b, w, 100); // get brightness for R,G,B,W channels
-          pwm = cl->brightnessToPWM(w, 100);
-          analogIO4->setValue(pwm);
-        }
-        else {
-          // RGB only
-          cl->getRGB(r, g, b, 100); // get brightness for R,G,B channels
-        }
-        // - red
-        pwm = cl->brightnessToPWM(r, 100);
-        analogIO->setValue(pwm);
-        // - green
-        pwm = cl->brightnessToPWM(g, 100);
-        analogIO2->setValue(pwm);
-        // - red
-        pwm = cl->brightnessToPWM(b, 100);
-        analogIO3->setValue(pwm);
+        // - calculate and start transition
+        //   TODO: depending to what channel has changed, take transition time from that channel. For now always using brightness transition time
+        transitionTime = cl->transitionTimeToNewBrightness();
+        applyChannelValueSteps(aDoneCB, aForDimming, 0, transitionTime==0 ? 1 : (double)TRANSITION_STEP_TIME/transitionTime);
       } // if needs update
-      // anyway, applied now
-      cl->appliedRGB();
+      else {
+        // no change, but consider applied anyway!
+        cl->appliedRGB();
+      }
     }
   }
   else {
-    // direct single channel PWM output
+    // direct single channel PWM output, no smooth transitions
     ChannelBehaviourPtr ch = getChannelByIndex(0);
     if (ch && ch->needsApplying()) {
       double chVal = ch->getChannelValue()-ch->getMin();
@@ -175,6 +168,79 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
+
+
+
+void AnalogIODevice::applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double aProgress, double aStepSize)
+{
+  // generic device, show changed channels
+  if (analogIOType==analogio_dimmer) {
+    // single channel PWM dimmer
+    LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
+    l->setBrightnessTransitionProgress(aProgress); // set progress so channel can calculate intermediate value
+    double w = l->brightnessForHardware();
+    double pwm = l->brightnessToPWM(w, 100);
+    analogIO->setValue(pwm);
+    // next step
+    aProgress += aStepSize;
+    if (aProgress<1) {
+      LOG(LOG_DEBUG, "AnalogIO device %s: transitional PWM value: %.2f\n", shortDesc().c_str(), w);
+      // not yet complete, schedule next step
+      MainLoop::currentMainLoop().executeOnce(
+        boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aDoneCB, aForDimming, aProgress, aStepSize),
+        TRANSITION_STEP_TIME
+      );
+      return; // will be called later again
+    }
+    if (!aForDimming) LOG(LOG_INFO, "AnalogIO device %s: final PWM value: %.2f\n", shortDesc().c_str(), w);
+    l->brightnessApplied(); // confirm having applied the new brightness
+  }
+  else if (analogIOType==analogio_rgbdimmer) {
+    // three channel RGB PWM dimmer
+    RGBColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<RGBColorLightBehaviour>(output);
+    cl->setColorTransitionProgress(aProgress);
+    // RGB lamp, get components
+    double r, g, b, pwm;
+    double w = 0;
+    if (analogIO4) {
+      // RGBW lamp
+      cl->getRGBW(r, g, b, w, 100); // get brightness for R,G,B,W channels
+      pwm = cl->brightnessToPWM(w, 100);
+      analogIO4->setValue(pwm);
+    }
+    else {
+      // RGB only
+      cl->getRGB(r, g, b, 100); // get brightness for R,G,B channels
+    }
+    // - red
+    pwm = cl->brightnessToPWM(r, 100);
+    analogIO->setValue(pwm);
+    // - green
+    pwm = cl->brightnessToPWM(g, 100);
+    analogIO2->setValue(pwm);
+    // - red
+    pwm = cl->brightnessToPWM(b, 100);
+    analogIO3->setValue(pwm);
+    // next step
+    aProgress += aStepSize;
+    if (aProgress<1) {
+      LOG(LOG_DEBUG, "AnalogIO device %s: transitional RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", shortDesc().c_str(), r, g, b, w);
+      // not yet complete, schedule next step
+      MainLoop::currentMainLoop().executeOnce(
+        boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aDoneCB, aForDimming, aProgress, aStepSize),
+        TRANSITION_STEP_TIME
+      );
+      return; // will be called later again
+    }
+    if (!aForDimming) LOG(LOG_INFO, "AnalogIO device %s: final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", shortDesc().c_str(), r, g, b, w);
+    // applied now
+    cl->appliedRGB();
+  }
+  // all done, let base class finish (usually just call aDoneCB)
+  inherited::applyChannelValues(aDoneCB, aForDimming);
+}
+
+
 
 
 void AnalogIODevice::deriveDsUid()

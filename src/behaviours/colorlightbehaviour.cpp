@@ -623,6 +623,29 @@ void RGBColorLightBehaviour::setRGBW(double aRed, double aGreen, double aBlue, d
 }
 
 
+void RGBColorLightBehaviour::setColorTransitionProgress(double aProgress)
+{
+  brightness->setTransitionProgress(aProgress);
+  switch (colorMode) {
+    case colorLightModeHueSaturation:
+      hue->setTransitionProgress(aProgress);
+      saturation->setTransitionProgress(aProgress);
+      break;
+    case colorLightModeCt:
+      ct->setTransitionProgress(aProgress);
+      break;
+    case colorLightModeXY:
+      cieX->setTransitionProgress(aProgress);
+      cieY->setTransitionProgress(aProgress);
+      break;
+    default:
+      // no color
+      break;
+  }
+}
+
+
+
 void RGBColorLightBehaviour::appliedRGB()
 {
   brightness->channelValueApplied(true);

@@ -213,6 +213,23 @@ void MovingLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
 }
 
 
+
+void MovingLightBehaviour::setPositionTransitionProgress(double aProgress)
+{
+  horizontalPosition->setTransitionProgress(aProgress);
+  verticalPosition->setTransitionProgress(aProgress);
+}
+
+
+
+void MovingLightBehaviour::appliedPosition()
+{
+  horizontalPosition->channelValueApplied();
+  verticalPosition->channelValueApplied();
+}
+
+
+
 #pragma mark - description/shortDesc
 
 

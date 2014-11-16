@@ -33,6 +33,8 @@ ChannelBehaviour::ChannelBehaviour(OutputBehaviour &aOutput) :
   nextTransitionTime(0), // none
   channelLastSync(Never), // we don't known nor have we sent the output state
   cachedChannelValue(0), // channel output value cache
+  previousChannelValue(0), // previous output value
+  transitionProgress(1), // no transition in progress
   resolution(1) // dummy default resolution (derived classes must provide sensible defaults)
 {
 }
@@ -65,6 +67,19 @@ string ChannelBehaviour::description()
 #pragma mark - channel value handling
 
 
+
+double ChannelBehaviour::getChannelValue()
+{
+  if (transitionProgress<1 && channelUpdatePending) {
+    // calculate transitional value
+    return previousChannelValue+transitionProgress*(cachedChannelValue-previousChannelValue);
+  }
+  else {
+    return cachedChannelValue;
+  }
+}
+
+
 // used at startup and before saving scenes to get the current value FROM the hardware
 // NOT to be used to change the hardware channel value!
 void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
@@ -77,6 +92,7 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
     );
   }
   cachedChannelValue = aActualChannelValue;
+  previousChannelValue = aActualChannelValue;
   channelUpdatePending = false; // we are in sync
   channelLastSync = MainLoop::now(); // value is current
 }
@@ -115,7 +131,10 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
         getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
       );
     }
-    // apply
+    // remember previous value for applying transition if a change is not already pending.
+    if (!channelUpdatePending)
+      previousChannelValue = channelLastSync!=Never ? cachedChannelValue : aNewValue;
+    // save target parameters for next transition
     cachedChannelValue = aNewValue;
     nextTransitionTime = aTransitionTime;
     channelUpdatePending = true; // pending to be sent to the device
@@ -141,6 +160,10 @@ double ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTran
   }
   // apply (silently), only if value has actually changed (but even if change is below resolution)
   if (newValue!=cachedChannelValue) {
+    // remember previous value for applying transition if a change is not already pending.
+    if (!channelUpdatePending)
+      previousChannelValue = channelLastSync!=Never ? cachedChannelValue : newValue; // If there is no valid previous value, set current as previous.
+    // save target parameters for next transition
     cachedChannelValue = newValue;
     nextTransitionTime = aTransitionTime;
     channelUpdatePending = true; // pending to be sent to the device
@@ -155,7 +178,9 @@ void ChannelBehaviour::channelValueApplied(bool aAnyWay)
 {
   if (channelUpdatePending || aAnyWay) {
     channelUpdatePending = false; // applied
+    transitionProgress = 1; // done
     channelLastSync = MainLoop::now(); // now we know that we are in sync
+    previousChannelValue = cachedChannelValue; // no transition pending any more, previous value = current value
     if (!aAnyWay) {
       // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
       if (LOGENABLED(LOG_INFO)) {

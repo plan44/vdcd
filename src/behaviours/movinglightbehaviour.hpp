@@ -143,6 +143,13 @@ namespace p44 {
     /// @return textual description of object
     virtual string shortDesc();
 
+    /// set color transition progress
+    /// @param aProgress how much the transition has progressed on the time scale already, 0..1
+    void setPositionTransitionProgress(double aProgress);
+
+    /// mark horizontal and vertical position values applied
+    void appliedPosition();
+
   protected:
 
     /// called by applyScene to load channel values from a scene.

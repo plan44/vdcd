@@ -66,6 +66,8 @@ namespace p44 {
     /// @{
     bool channelUpdatePending; ///< set if cachedOutputValue represents a value to be transmitted to the hardware
     double cachedChannelValue; ///< the cached channel value
+    double previousChannelValue; ///< the previous channel value, can be used for performing transitions
+    double transitionProgress; ///< how much the transition has progressed so far (0..1)
     MLMicroSeconds channelLastSync; ///< Never if the cachedChannelValue is not yet applied to the hardware or retrieved from hardware, otherwise when it was last synchronized
     MLMicroSeconds nextTransitionTime; ///< the transition time to use for the next channel value change
     /// @}
@@ -127,10 +129,15 @@ namespace p44 {
     /// @return new channel value after increment/decrement
     double dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime);
 
-    /// get current value as set in device hardware
+    /// get current value of channel. During transitions, this might be a calculated intermediate value
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
-    double getChannelValue() { return cachedChannelValue; };
+    double getChannelValue();
+
+    /// set transition progress (0..1).
+    /// If not 1 and updates pending, getChannelValue() will return a calculated intermediate value
+    /// @param aProgress how much the transition has progressed on the time scale already, 0..1 
+    void setTransitionProgress(double aProgress) { transitionProgress = aProgress; };
 
     /// get time of last sync with hardware (applied or synchronized back)
     /// @return time of last sync, p44::Never if value never synchronized

@@ -140,6 +140,10 @@ namespace p44 {
 
     void deriveDsUid();
 
+  private:
+
+    virtual void applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double aProgress, double aStepSize);
+
   };
   typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;
 
