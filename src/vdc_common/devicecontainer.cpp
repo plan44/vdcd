@@ -375,6 +375,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental
     if (!aIncremental) {
       // only for non-incremental collect, close vdsm connection
       if (activeSessionConnection) {
+        LOG(LOG_NOTICE, "requested to re-collect devices -> closing vDC API connection\n");
         activeSessionConnection->closeConnection(); // close the API connection
         resetAnnouncing();
         activeSessionConnection.reset(); // forget connection
@@ -703,7 +704,7 @@ bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams,
 
 void DeviceContainer::sessionTimeoutHandler()
 {
-  LOG(LOG_INFO,"vDC API session timed out -> ends here\n");
+  LOG(LOG_NOTICE,"vDC API session timed out -> ends here\n");
   if (activeSessionConnection) {
     activeSessionConnection->closeConnection();
     resetAnnouncing(); // stop possibly ongoing announcing
@@ -721,16 +722,17 @@ void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConn
   }
   else {
     // error or connection closed
+    LOG(LOG_ERR,"vDC API connection closing, reason: %s\n", aError->description().c_str());
     // - close if not already closed
     aApiConnection->closeConnection();
     if (aApiConnection==activeSessionConnection) {
       // this is the active session connection
       resetAnnouncing(); // stop possibly ongoing announcing
       activeSessionConnection.reset();
-      LOG(LOG_INFO,"vDC API session ends because connection closed \n");
+      LOG(LOG_NOTICE,"vDC API session ends because connection closed \n");
     }
     else {
-      LOG(LOG_INFO,"vDC API connection (not yet in session) closed \n");
+      LOG(LOG_NOTICE,"vDC API connection (not yet in session) closed \n");
     }
   }
 }

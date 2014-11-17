@@ -1202,6 +1202,7 @@ void VdcPbufApiConnection::canSendData(ErrorPtr aError)
       // check for closing connection when no data pending to be sent any more
       if (closeWhenSent && transmitBuffer.size()==0) {
         closeWhenSent = false; // done
+        LOG(LOG_NOTICE,"vDC API request demands ending connection now\n");
         closeConnection();
       }
     }
