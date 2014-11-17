@@ -37,9 +37,14 @@ using namespace std;
 
 namespace p44 {
 
+  typedef uint16_t DmxChannel;
+  typedef uint8_t DmxValue;
+  const DmxChannel dmxNone = 0; // no channel
+
   class OlaDeviceContainer;
   class OlaDevice;
   typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;
+
 
   /// persistence for ola device container
   class OlaDevicePersistence : public SQLite3Persistence  {
@@ -60,10 +65,12 @@ namespace p44 {
 
     OlaDevicePersistence db;
 
-    ola::DmxBuffer dmxBuffer;
-    ola::client::StreamingClient olaClient;
-    long dmxSenderTicket;
-    
+    // OLA Thread
+    ChildThreadWrapperPtr olaThread;
+    pthread_mutex_t olaBufferAccess;
+    ola::DmxBuffer *dmxBufferP;
+    ola::client::StreamingClient *olaClientP;
+
 
   public:
     OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
@@ -98,7 +105,8 @@ namespace p44 {
 
     OlaDevicePtr addOlaDevice(string aDeviceType, string aDeviceConfig);
 
-    void dmxSend();
+    void olaThreadRoutine(ChildThreadWrapper &aThread);
+    void setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue);
 
   };
 

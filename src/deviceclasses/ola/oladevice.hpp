@@ -34,11 +34,6 @@ namespace p44 {
 
   class OlaDeviceContainer;
 
-  typedef uint16_t DmxChannel;
-  typedef uint8_t DmxValue;
-  const DmxChannel dmxNone = 0; // no channel
-
-
   class OlaDevice : public Device
   {
     typedef Device inherited;

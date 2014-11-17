@@ -62,16 +62,12 @@ string OlaDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersio
 
 
 OlaDeviceContainer::OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
-  olaClient((ola::client::StreamingClient::Options())),
-  dmxSenderTicket(0)
+  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
 {
-  // turn on OLA logging
-  ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
 }
 
 
-#define DMX512_SEND_INTERVAL (250*MilliSecond)
+#define DMX512_INTERFRAME_PAUSE (50*MilliSecond)
 #define DMX512_RETRY_INTERVAL (15*Second)
 #define DMX512_UNIVERSE 42
 
@@ -82,31 +78,47 @@ void OlaDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
   string databaseName = getPersistentDataDir();
   string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
   err = db.connectAndInitialize(databaseName.c_str(), OLADEVICES_SCHEMA_VERSION, OLADEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
-  // initialize OLA client
-  // from: http://docs.openlighting.org/doc/latest/classola_1_1client_1_1_streaming_client.html
-  dmxBuffer.Blackout();  // Set all channels to 0
-  // Setup the client, this connects to the server
-  if (olaClient.Setup()) {
-    // client set-up ok, install regular data sender
-    dmxSenderTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&OlaDeviceContainer::dmxSend, this));
-  }
-  else {
-    err = ErrorPtr(new WebError(500,"Cannot set up OLA client"));
-  }
-  aCompletedCB(err); // return status of DB init
+  // launch OLA thread
+  pthread_mutex_init(&olaBufferAccess, NULL);
+  olaThread = MainLoop::currentMainLoop().executeInThread(boost::bind(&OlaDeviceContainer::olaThreadRoutine, this, _1), NULL);
+  // done
+  aCompletedCB(ErrorPtr());
 }
 
 
-void OlaDeviceContainer::dmxSend()
+void OlaDeviceContainer::olaThreadRoutine(ChildThreadWrapper &aThread)
 {
-  if (olaClient.SendDMX(DMX512_UNIVERSE, dmxBuffer, ola::client::StreamingClient::SendArgs())) {
-    // successful, send soon
-    dmxSenderTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&OlaDeviceContainer::dmxSend, this), DMX512_SEND_INTERVAL);
+  // turn on OLA logging when loglevel is debugging, otherwise off
+  ola::InitLogging(LOGENABLED(LOG_DEBUG) ? ola::OLA_LOG_WARN : ola::OLA_LOG_NONE, ola::OLA_LOG_STDERR);
+  dmxBufferP = new ola::DmxBuffer;
+  olaClientP = new ola::client::StreamingClient((ola::client::StreamingClient::Options()));
+  if (olaClientP && dmxBufferP) {
+    dmxBufferP->Blackout();
+    if (olaClientP->Setup()) {
+      while (true) {
+        pthread_mutex_lock(&olaBufferAccess);
+        bool ok = olaClientP->SendDMX(DMX512_UNIVERSE, *dmxBufferP, ola::client::StreamingClient::SendArgs());
+        pthread_mutex_unlock(&olaBufferAccess);
+        if (ok) {
+          // successful send
+          usleep(DMX512_INTERFRAME_PAUSE); // sleep a little between frames.
+        }
+        else {
+          // unsuccessful send, do not try too often
+          usleep(DMX512_RETRY_INTERVAL); // sleep longer between failed attempts
+        }
+      }
+    }
   }
-  else {
-    // failed, retry later, but not too soon
-    LOG(LOG_WARNING,"OLA client - cannot send DMX buffer. Retrying later.\n");
-    dmxSenderTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&OlaDeviceContainer::dmxSend, this), DMX512_RETRY_INTERVAL);
+}
+
+
+void OlaDeviceContainer::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
+{
+  if (dmxBufferP && aChannel>=1 && aChannel<=512) {
+    pthread_mutex_lock(&olaBufferAccess);
+    dmxBufferP->SetChannel(aChannel-1, aChannelValue);
+    pthread_mutex_unlock(&olaBufferAccess);
   }
 }
 

@@ -306,8 +306,8 @@ namespace p44 {
     /// @{
 
     /// execute handler in a separate thread
-    /// @param aThreadFunctor the functor to be executed in a separate thread
-    /// @param aSubmitterP optionally, an identifying value which allows to cancel the pending execution requests
+    /// @param aThreadRoutine the routine to be executed in a separate thread
+    /// @param aThreadSignalHandler will be called from main loop of parent thread when child thread uses signalParentThread()
     /// @return wrapper object for child thread.
     ChildThreadWrapperPtr executeInThread(ThreadRoutine aThreadRoutine, ThreadSignalHandler aThreadSignalHandler);
 

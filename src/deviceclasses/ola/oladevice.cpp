@@ -164,9 +164,7 @@ void OlaDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHan
 
 void OlaDevice::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
 {
-  if (aChannel>=1 && aChannel<=512) {
-    getOlaDeviceContainer().dmxBuffer.SetChannel(aChannel-1, aChannelValue);
-  }
+  getOlaDeviceContainer().setDMXChannel(aChannel, aChannelValue);
 }
 
 
