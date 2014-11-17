@@ -479,6 +479,7 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       // so for now we always assume 1 and scale resulting RGB
       xyV[0] = cieX->getChannelValue();
       xyV[1] = cieY->getChannelValue();
+      xyV[2] = 1;
       xyVtoXYZ(xyV, XYZ);
       // convert using calibration for this lamp
       XYZtoRGB(calibration, XYZ, RGB);
@@ -538,9 +539,9 @@ static double transferToColor(Row3 &aCol, double &aRed, double &aGreen, double &
   if (hasGreen) aGreen = aGreen - f*aCol[1];
   if (hasBlue) aBlue = aBlue - f*aCol[2];
   // - find fraction RGB HAS to contribute without loosing color information
-  double u = 1-aCol[0]; // how much of red RGB needs to contribute
-  if (1-aCol[1]>u) u = 1-aCol[1]; // how much of green
-  if (1-aCol[2]>u) u = 1-aCol[2]; // how much of blue
+  double u = 1-f*aCol[0]; // how much of red RGB needs to contribute
+  if (1-f*aCol[1]>u) u = 1-f*aCol[1]; // how much of green
+  if (1-f*aCol[2]>u) u = 1-f*aCol[2]; // how much of blue
   //   now scale RGB up to minimal fraction it HAS to contribute
   if (u>0) {
     u = 1/u;

@@ -127,7 +127,7 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     if (LOGENABLED(LOG_INFO)) {
       string s = output.device.shortDesc();
       LOG(LOG_INFO,
-        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.0f (transition time=%d mS)\n",
+        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%d mS)\n",
         getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
       );
     }
