@@ -476,7 +476,7 @@ void HueDevice::deriveDsUid()
   }
   else {
     // we have a unique ID for the lamp itself, identify trough that
-    string s = "hueUniqueID::";
+    s = "hueUniqueID::";
     s += uniqueID;
   }
   dSUID.setNameInSpace(s, vdcNamespace);
