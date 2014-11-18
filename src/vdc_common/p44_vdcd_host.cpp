@@ -433,8 +433,9 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       if (o) {
         // set new value first
         int newLevel = o->int32Value();
+        int oldLevel = LOGLEVEL;
         SETLOGLEVEL(newLevel);
-        LOG(LOG_WARNING,"\n========== changed log level to %d ===============\n", newLevel);
+        LOG(LOG_WARNING,"\n========== changed log level from %d to %d ===============\n", oldLevel, newLevel);
       }
       // anyway: return current value
       sendCfgApiResponse(aJsonComm, JsonObject::newInt32(LOGLEVEL), ErrorPtr());
