@@ -292,11 +292,11 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
       while (fd>STDERR_FILENO) close(fd--);
       // change to the requested child process
       execve(aPath, aArgv, aEnvp); // replace process with new binary/script
-      // execv returns only in case of error
+      // execv returns only in case of error
       exit(127);
     }
     else {
-      // this is the parent process, wait for the child to terminate
+      // this is the parent process, wait for the child to terminate
       LOG(LOG_DEBUG,"fork_and_execve: child pid=%d, parent will now set up pipe string collector\n", child_pid);
       FdStringCollectorPtr ans;
       if (aPipeBackStdOut) {
@@ -312,7 +312,7 @@ void MainLoop::fork_and_execve(ExecCB aCallback, const char *aPath, char *const 
   }
   else {
     if (aCallback) {
-      // fork failed, call back with error
+      // fork failed, call back with error
       aCallback(cycleStartTime, SysError::errNo(),"");
     }
   }
@@ -454,15 +454,15 @@ bool MainLoop::checkWait()
       // error when calling waitpid
       int e = errno;
       if (e==ECHILD) {
-        // no more children
+        // no more children
         LOG(LOG_DEBUG,"checkWait: no children any more -> ending all waits\n");
-        // - inform all still waiting handlers
+        // - inform all still waiting handlers
         WaitHandlerMap oldHandlers = waitHandlers; // copy
         waitHandlers.clear(); // remove all handlers from real list, as new handlers might be added in handlers we'll call now
         ML_STAT_START
         for (WaitHandlerMap::iterator pos = oldHandlers.begin(); pos!=oldHandlers.end(); pos++) {
           WaitCB cb = pos->second.callback; // get callback
-          cb(cycleStartTime, pos->second.pid, 0); // fake status
+          cb(cycleStartTime, pos->second.pid, 0); // fake status
         }
         ML_STAT_ADD(waitHandlerTime);
       }
@@ -543,7 +543,7 @@ bool MainLoop::handleIOPoll(MLMicroSeconds aTimeout)
     }
     ++pos;
   }
-  // block until input becomes available or timeout
+  // block until input becomes available or timeout
   int numReadyFDs = 0;
   if (numFDsToTest>0) {
     // actual FDs to test

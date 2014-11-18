@@ -290,7 +290,7 @@ void SerialOperationQueue::receiveHandler(ErrorPtr aError)
   if (receiver) {
     uint8_t buffer[RECBUFFER_SIZE];
     size_t numBytes = receiver(RECBUFFER_SIZE, buffer);
-    FOCUSLOG("SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
+    FOCUSLOG("SerialOperationQueue::receiveHandler: got %d bytes to accept\n", numBytes);
     if (numBytes>0) {
       acceptBytes(numBytes, buffer);
     }

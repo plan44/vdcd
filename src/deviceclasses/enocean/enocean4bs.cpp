@@ -158,7 +158,7 @@ namespace p44 {
     const char *unitText;
   } Enocean4BSSensorDescriptor;
 
-} // namespace p44
+} // namespace p44
 
 
 #pragma mark - bit field handlers for Enocean4bsSensorHandler

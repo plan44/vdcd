@@ -102,7 +102,7 @@ bool FdComm::dataMonitorHandler(MLMicroSeconds aCycleStartTime, int aFd, int aPo
     }
     else {
       // alerted for read, but nothing to read any more - is also an exception
-      FOCUSLOG("- POLLIN with no data - calling data exception handler\n");
+      FOCUSLOG("- POLLIN with no data - calling data exception handler\n");
       dataExceptionHandler(aFd, aPollFlags);
       aPollFlags = 0; // handle only once
     }
@@ -290,8 +290,8 @@ void FdStringCollector::dataExceptionHandler(int aFd, int aPollFlags)
   if ((aPollFlags & (POLLHUP|POLLIN|POLLERR)) != 0) {
     // - other end has closed connection (POLLHUP)
     // - linux socket was closed server side and does not return POLLHUP, but POLLIN with no data
-    // - error (POLLERR)
-    // end polling for data
+    // - error (POLLERR)
+    // end polling for data
     setReceiveHandler(NULL);
     // if ending first time, call back
     if (!ended && endedCallback) {

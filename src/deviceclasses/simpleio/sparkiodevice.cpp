@@ -227,7 +227,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
   string data;
   HttpComm::appendFormValue(data, "access_token", sparkCoreToken);
   HttpComm::appendFormValue(data, "args", aArgs);
-  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
+  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
   return sparkCloudComm.jsonReturningRequest(url.c_str(), aResponseCB, "POST", data);
 }
 
@@ -346,7 +346,7 @@ void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviou
     aSparkLightBehaviour->appliedRGB();
   }
   else {
-    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
+    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
   }
   // confirm done
   if (aDoneCB) aDoneCB();

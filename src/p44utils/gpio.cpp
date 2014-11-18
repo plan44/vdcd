@@ -72,7 +72,7 @@ void GpioLedPin::setState(bool aState)
 {
   if (ledFD<0) return; // non-existing pins cannot be set
   ledState = aState;
-  // - set value
+  // - set value
   char buf[2];
   buf[0] = ledState ? '1' : '0';
   buf[1] = 0;
@@ -162,7 +162,7 @@ void GpioPin::setState(bool aState)
   if (!output) return; // non-outputs cannot be set
   if (gpioFD<0) return; // non-existing pins cannot be set
   pinState = aState;
-  // - set value
+  // - set value
   char buf[2];
   buf[0] = pinState ? '1' : '0';
   buf[1] = 0;
@@ -407,7 +407,7 @@ void GpioNS9XXXPin::setState(bool aState)
   if (!output) return; // non-outputs cannot be set
   if (gpioFD<0) return; // non-existing pins cannot be set
   pinState = aState;
-  // - set value
+  // - set value
   int setval = pinState;
   #ifndef __APPLE__
   int ret_val;

@@ -69,9 +69,9 @@ const char *Error::getErrorMessage() const
 
 
 
-std::string Error::description() const
+string Error::description() const
 {
-  std::string errorText;
+  string errorText;
   if (errorMessage.size()>0)
     errorText = errorMessage;
   else

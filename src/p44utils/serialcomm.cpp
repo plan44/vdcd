@@ -119,15 +119,15 @@ ErrorPtr SerialComm::establishConnection()
         return SysError::errNo("Cannot open serial port: ");
       }
       tcgetattr(connectionFd,&oldTermIO); // save current port settings
-      // see "man termios" for details
+      // see "man termios" for details
       memset(&newtio, 0, sizeof(newtio));
-      // - 8-N-1, no modem control lines (local), reading enabled
+      // - 8-N-1, no modem control lines (local), reading enabled
       newtio.c_cflag = CS8 | CLOCAL | CREAD;
-      // - ignore parity errors
+      // - ignore parity errors
       newtio.c_iflag = IGNPAR;
-      // - no output control
+      // - no output control
       newtio.c_oflag = 0;
-      // - no input control (non-canonical)
+      // - no input control (non-canonical)
       newtio.c_lflag = 0;
       // - no inter-char time
       newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
@@ -135,7 +135,7 @@ ErrorPtr SerialComm::establishConnection()
       newtio.c_cc[VMIN]     = 1;   /* blocking read until 1 chars received */
       // - set speed (as this ors into c_cflag, this must be after setting c_cflag initial value)
       cfsetspeed(&newtio, baudRateCode);
-      // - set new params
+      // - set new params
       tcflush(connectionFd, TCIFLUSH);
       tcsetattr(connectionFd,TCSANOW,&newtio);
     }
@@ -145,7 +145,7 @@ ErrorPtr SerialComm::establishConnection()
       if ((connectionFd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         return SysError::errNo("Cannot create socket: ");
       }
-      // prepare IP address
+      // prepare IP address
       memset(&conn_addr, '0', sizeof(conn_addr));
       conn_addr.sin_family = AF_INET;
       conn_addr.sin_port = htons(connectionPort);
@@ -196,7 +196,7 @@ void SerialComm::closeConnection()
     if (serialConnection) {
       tcsetattr(connectionFd,TCSANOW,&oldTermIO);
     }
-    // close
+    // close
     close(connectionFd);
     // closed
     connectionOpen = false;

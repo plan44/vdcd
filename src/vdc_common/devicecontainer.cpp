@@ -386,7 +386,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental
   }
 }
 
-} // namespace
+} // namespace
 
 
 
@@ -982,7 +982,7 @@ ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDe
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
   // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete.
-  //   That's why we are passing aDevice to the handler, so we can be certain the device lives long enough 
+  //   That's why we are passing aDevice to the handler, so we can be certain the device lives long enough
   aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aDevice, aRequest, _1));
   return ErrorPtr();
 }

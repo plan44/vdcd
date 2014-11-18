@@ -523,7 +523,7 @@ public:
     if (aState==true && !aHasChanged) {
       // keypress reported again
       if (aTimeSincePreviousChange>=5*Second) {
-        // visually acknowledge long keypress by turning LED red
+        // visually acknowledge long keypress by turning LED red
         indicateTempStatus(tempstatus_buttonpressedlong);
         LOG(LOG_WARNING,"Button held for >5 seconds now...\n");
       }
@@ -534,7 +534,7 @@ public:
         LOG(LOG_WARNING,"Very long button press detected -> clean exit(2) in 2 seconds\n");
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
-        // for now exit(2) is switching off daemon, so we switch off the LEDs as well
+        // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
