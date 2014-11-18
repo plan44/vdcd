@@ -44,6 +44,7 @@ namespace p44 {
     typedef Device inherited;
 
     string lightID; ///< the ID as used in the hue bridge
+    string uniqueID; ///< the unique light ID (which is available in v1.4 and later APIs)
 
     // information from the device itself
     string hueModel;
@@ -54,7 +55,7 @@ namespace p44 {
     bool repeatApplyAtEnd;
 
   public:
-    HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor);
+    HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor, const string &aUniqueID);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -117,7 +118,10 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return hueModel; };
+    virtual string modelName();
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID();
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)

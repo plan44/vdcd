@@ -55,9 +55,10 @@ using namespace p44;
 #pragma mark - HueDevice
 
 
-HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor) :
+HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor, const string &aUniqueID) :
   inherited(aClassContainerP),
   lightID(aLightID),
+  uniqueID(aUniqueID),
   pendingApplyCB(NULL),
   repeatApplyAtEnd(false)
 {
@@ -177,6 +178,22 @@ bool HueDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolu
     return true;
   else
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
+
+string HueDevice::modelName()
+{
+  return hueModel;
+}
+
+
+string HueDevice::hardwareGUID()
+{
+  if (!uniqueID.empty())
+    return string_format("hueuid:%s", uniqueID.c_str());
+  else
+    return inherited::hardwareGUID();
 }
 
 
@@ -444,13 +461,24 @@ void HueDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo,
 
 void HueDevice::deriveDsUid()
 {
-  // NOTE: lightID is not exactly a stable ID. But the hue API does not provide anything better at this time
   // vDC implementation specific UUID:
+  // - for lamps without unique ID:
   //   UUIDv5 with name = classcontainerinstanceid::bridgeUUID:huelightid
+  // - for lamps with unique ID:
+  //   UUIDv5 with name = hueUniqueID::uniqueID
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
-  s += "::" + hueDeviceContainer().bridgeUuid;
-  s += ":" + lightID;
+  string s;
+  if (uniqueID.empty()) {
+    // we don't have an unique ID, identify relative to bridge's UUID
+    s = classContainerP->deviceClassContainerInstanceIdentifier();
+    s += "::" + hueDeviceContainer().bridgeUuid;
+    s += ":" + lightID;
+  }
+  else {
+    // we have a unique ID for the lamp itself, identify trough that
+    string s = "hueUniqueID::";
+    s += uniqueID;
+  }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 

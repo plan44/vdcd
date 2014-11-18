@@ -232,6 +232,7 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
   if (aResult) {
     // pre-v1.3 bridges: { "1": { "name": "Bedroom" }, "2": .... }
     // v1.3 and later bridges: { "1": { "name": "Bedroom", "state": {...}, "modelid":"LCT001", ... }, "2": .... }
+    // v1.4 and later bridges: { "1": { "state": {...}, "type": "Dimmable light", "name": "lux demoboard", "modelid": "LWB004","uniqueid":"00:17:88:01:00:e5:a0:87-0b", "swversion": "66012040" }
     aResult->resetKeyIteration();
     string lightID;
     JsonObjectPtr lightInfo;
@@ -246,7 +247,12 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
           JsonObjectPtr cm = o->get("colormode");
           if (!cm) hasColor = false; // lamp without color mode -> just brightness (hue lux)
         }
-        HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID, hasColor));
+        // 1.4 and later FINALLY have a "uniqueid"!
+        string uniqueID;
+        o = lightInfo->get("uniqueid");
+        if (o) uniqueID = o->stringValue();
+        // create device now
+        HueDevicePtr newDev = HueDevicePtr(new HueDevice(this, lightID, hasColor, uniqueID));
         if (addDevice(newDev)) {
           // actually added, no duplicate, set the name
           // (otherwise, this is an incremental collect and we knew this light already)
