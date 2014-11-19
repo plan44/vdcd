@@ -686,10 +686,6 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 #pragma mark - vDC API
 
 
-#define SESSION_TIMEOUT (3*Minute) // 3 minutes
-
-
-
 bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
   if (activeSessionConnection) {
@@ -699,19 +695,6 @@ bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams,
   // cannot send
   return false;
 }
-
-
-
-void DeviceContainer::sessionTimeoutHandler()
-{
-  LOG(LOG_NOTICE,"vDC API session timed out -> ends here\n");
-  if (activeSessionConnection) {
-    activeSessionConnection->closeConnection();
-    resetAnnouncing(); // stop possibly ongoing announcing
-    activeSessionConnection.reset();
-  }
-}
-
 
 
 void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConnection, ErrorPtr &aError)
@@ -742,9 +725,6 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
 {
   ErrorPtr respErr;
   signalActivity();
-  // retrigger session timout
-  MainLoop::currentMainLoop().cancelExecutionTicket(sessionActivityTicket);
-  sessionActivityTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::sessionTimeoutHandler,this), SESSION_TIMEOUT);
   // now process
   if (aRequest) {
     // Methods

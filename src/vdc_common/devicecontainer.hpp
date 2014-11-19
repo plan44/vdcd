@@ -377,9 +377,6 @@ namespace p44 {
     // API request handling
     void vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
-    // generic session handling
-    void sessionTimeoutHandler();
-
     // vDC level method and notification handlers
     ErrorPtr helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
     ErrorPtr byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
@@ -396,14 +393,11 @@ namespace p44 {
     // activity monitor
     void signalActivity();
 
-    // getting MAC
-    void getMyMac(CompletedCB aCompletedCB, bool aFactoryReset);
-
-  public:
-    // public for C++ limitation reasons only, semantically private
-
     // periodic task
     void periodicTask(MLMicroSeconds aCycleStartTime);
+
+    // getting MAC
+    void getMyMac(CompletedCB aCompletedCB, bool aFactoryReset);
 
   };
 
