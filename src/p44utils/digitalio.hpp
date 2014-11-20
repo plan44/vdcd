@@ -57,7 +57,7 @@ namespace p44 {
     virtual ~DigitalIo();
 
 		/// get name
-		const char *getName() { return string_format("%s%s", inverted ? "/" : "", name.c_str()).c_str(); };
+		string getName() { return string_format("%s%s", inverted ? "/" : "", name.c_str()); };
 
     /// check for output
     bool isOutput() { return output; };

@@ -49,7 +49,7 @@ namespace p44 {
     virtual ~AnalogIo();
 
     /// get name
-    const char *getName() { return name.c_str(); };
+    string getName() { return name.c_str(); };
 
     /// check for output
     bool isOutput() { return output; };

@@ -273,9 +273,9 @@ string AnalogIODevice::modelName()
 string AnalogIODevice::getExtraInfo()
 {
   if (analogIOType==analogio_rgbdimmer)
-    return string_format("RGB Outputs:%s, %s, %s; White:%s", analogIO->getName(), analogIO2->getName(), analogIO3->getName(), analogIO4 ? analogIO4->getName() : "none");
+    return string_format("RGB Outputs:%s, %s, %s; White:%s", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
   else if (analogIOType==analogio_dimmer || analogIOType==analogio_valve)
-    return string_format("Output: %s", analogIO->getName());
+    return string_format("Output: %s", analogIO->getName().c_str());
   return "Analog I/O";
 }
 
@@ -285,11 +285,11 @@ string AnalogIODevice::description()
 {
   string s = inherited::description();
   if (analogIOType==analogio_dimmer)
-    string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName());
+    string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName().c_str());
   if (analogIOType==analogio_rgbdimmer)
-    string_format_append(s, "- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'\n", analogIO->getName(), analogIO2->getName(), analogIO3->getName(), analogIO4 ? analogIO4->getName() : "none");
+    string_format_append(s, "- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'\n", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
   else if (analogIOType==analogio_valve)
-    return string_format("Heating Valve @ '%s'\n", analogIO->getName());
+    return string_format("Heating Valve @ '%s'\n", analogIO->getName().c_str());
   return s;
 }
 

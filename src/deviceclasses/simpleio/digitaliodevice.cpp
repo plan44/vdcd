@@ -51,7 +51,6 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
       digitalIoType = digitalio_light;
     else if (mode=="relay") {
       digitalIoType = digitalio_relay;
-      LOG(LOG_ERR,"relay type output not yet supported %%%\n");
     }
     else {
       LOG(LOG_ERR,"unknown digital IO type: %s\n", mode.c_str());
@@ -177,9 +176,9 @@ string DigitalIODevice::modelName()
 string DigitalIODevice::getExtraInfo()
 {
   if (buttonInput)
-    return string_format("Input: %s\n", buttonInput->getName());
+    return string_format("Input: %s\n", buttonInput->getName().c_str());
   else if (indicatorOutput)
-    return string_format("Output: %s\n", indicatorOutput->getName());
+    return string_format("Output: %s\n", indicatorOutput->getName().c_str());
   else
     return "?";
 }
@@ -190,8 +189,8 @@ string DigitalIODevice::description()
 {
   string s = inherited::description();
   if (buttonInput)
-    string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName());
+    string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName().c_str());
   if (indicatorOutput)
-    string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName());
+    string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName().c_str());
   return s;
 }
