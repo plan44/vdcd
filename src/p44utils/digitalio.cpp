@@ -71,13 +71,15 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     busName = name.substr(0,i);
     // rest is device + pinname or just pinname
     pinName = name.substr(i+1,string::npos);
-    i = pinName.find_first_of('.');
-    if (i!=string::npos) {
-      // separate device and pin names
-      // - extract device name
-      deviceName = pinName.substr(0,i);
-      // - remove device name from pin name string
-      pinName.erase(0,i+1);
+    if (busName!="syscmd") {
+      i = pinName.find(".");
+      if (i!=string::npos) {
+        // separate device and pin names
+        // - extract device name
+        deviceName = pinName.substr(0,i);
+        // - remove device name from pin name string
+        pinName.erase(0,i+1);
+      }
     }
   }
   // now create appropriate pin
@@ -110,6 +112,10 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
     int busNumber = atoi(busName.c_str()+3);
     int pinNumber = atoi(pinName.c_str());
     ioPin = IOPinPtr(new I2CPin(busNumber, deviceName.c_str(), pinNumber, output, initialPinState));
+  }
+  else if (busName=="syscmd") {
+    // digital I/O calling system command to turn on/off
+    ioPin = IOPinPtr(new SysCommandPin(pinName.c_str(), output, initialPinState));
   }
   else {
     // all other/unknown bus names default to simulated pin

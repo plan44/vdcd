@@ -78,6 +78,10 @@ AnalogIo::AnalogIo(const char* aAnalogIoName, bool aOutput, double aInitialValue
     int pinNumber = atoi(pinName.c_str());
     ioPin = AnalogIOPinPtr(new AnalogI2CPin(busNumber, deviceName.c_str(), pinNumber, output, aInitialValue));
   }
+  else if (busName=="syscmd") {
+    // analog I/O calling system command to set value
+    ioPin = AnalogIOPinPtr(new AnalogSysCommandPin(pinName.c_str(), output, aInitialValue));
+  }
   else {
     // all other/unknown bus names default to simulated pin
     ioPin = AnalogIOPinPtr(new AnalogSimPin(name.c_str(), output, aInitialValue)); // set even for inputs

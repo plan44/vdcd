@@ -30,6 +30,8 @@ using namespace std;
 
 namespace p44 {
 
+  #pragma mark - digital pins
+
   /// abstract wrapper class for digital I/O pin
   class IOPin : public P44Obj
   {
@@ -88,7 +90,39 @@ namespace p44 {
   };
 
 
+  /// Digital System Command I/O pin
+  class SysCommandPin : public IOPin
+  {
+    string onCommand;
+    string offCommand;
+    bool pinState;
+    bool output;
+    bool changing;
+    bool changePending;
 
+  public:
+    // create a pin using a command line to act
+    SysCommandPin(const char *aConfig, bool aOutput, bool aInitialState);
+
+    /// get state of pin
+    /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
+    virtual bool getState() { return pinState; } // return state (which is initialstate or state set with setState later on)
+
+    /// set state of pin (NOP for inputs)
+    /// @param aState new state to set output to
+    virtual void setState(bool aState);
+
+  private:
+
+    string stateSetCommand(bool aState);
+    void applyState(bool aState);
+    void stateUpdated(ErrorPtr aError, const string &aOutputString);
+
+  };
+
+
+
+  #pragma mark - analog pins
 
   /// abstract wrapper class for analog I/O pin
   class AnalogIOPin : public P44Obj
@@ -145,6 +179,38 @@ namespace p44 {
     /// set value of pin (NOP for inputs)
     /// @param aValue new value to set output to
     virtual void setValue(double aValue) { pinValue = aValue; } // remember
+  };
+
+
+
+  /// Digital System Command I/O pin
+  class AnalogSysCommandPin : public AnalogIOPin
+  {
+    string setCommand;
+    double pinValue;
+    int range;
+    bool output;
+    bool changing;
+    bool changePending;
+
+  public:
+    // create a pin using a command line to act
+    AnalogSysCommandPin(const char *aConfig, bool aOutput, double aInitialValue);
+
+    /// get value of pin
+    /// @return current value (from actual pin for inputs, from last set state for outputs)
+    virtual double getValue() { return pinValue; } // return value (which is initial value or value set with setValue later on)
+
+    /// set value of pin (NOP for inputs)
+    /// @param aValue new value to set output to
+    virtual void setValue(double aValue);
+
+  private:
+
+    string valueSetCommand(double aValue);
+    void applyValue(double aValue);
+    void valueUpdated(ErrorPtr aError, const string &aOutputString);
+    
   };
 
 
