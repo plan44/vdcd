@@ -34,10 +34,10 @@ using namespace p44;
 #pragma mark - OlaDevice
 
 
-static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelType, DmxChannel &aChannelNo)
+static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelType, DmxChannel &aChannelNo, DmxValue &aDefaultValue)
 {
   // check for channel spec
-  // syntax is: C=n[,C=n,...] where C=channel type character, n=channel number
+  // syntax is: C=n[=v][,C=n[=v],...] where C=channel type character, n=channel number, v=default value (if missing, default value is 0)
   size_t i = aConfig.find_first_of('=', aStartPos);
   if (i==string::npos || i==0) return false;
   // first char before = is channel type
@@ -46,12 +46,21 @@ static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelTy
   int n;
   if (sscanf(aConfig.c_str()+i+1, "%d", &n)!=1) return false;
   aChannelNo = n;
-  // advance until after next colon
-  i = aConfig.find_first_of(',', i);
-  if (i==string::npos)
+  // find next comma
+  size_t e = aConfig.find_first_of(',', i);
+  // check for default value
+  aDefaultValue = 0; // zero by default
+  i = aConfig.find_first_of('=', i+1); // second equal sign?
+  if (i!=string::npos && (e==string::npos || i<e)) {
+    // default value must follow
+    if (sscanf(aConfig.c_str()+i+1, "%d", &n)!=1) return false;
+    aDefaultValue = n;
+  }
+  // skip to beginning of next item (or end)
+  if (e==string::npos)
     aStartPos = aConfig.size();
   else
-    aStartPos = i+1; // next item after ,
+    aStartPos = e+1; // next item after ,
   return true;
 }
 
@@ -65,6 +74,7 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
   blueChannel(dmxNone),
   amberChannel(dmxNone)
 {
+  // evaluate config
   string config = aDeviceConfig;
   string mode = "dimmer"; // default to dimmer
   size_t i = aDeviceConfig.find_first_of(':');
@@ -83,12 +93,28 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
   }
   // by default, act as black device so we can configure colors
   primaryGroup = group_black_joker;
-  if (olaType==ola_dimmer) {
-    // Single channel DMX512 dimmer
-    int channel;
-    if (sscanf(config.c_str(), "%d", &channel)) {
-      whiteChannel = channel;
+  // get DMX channels specifications
+  char channelType;
+  DmxChannel channelNo;
+  DmxValue defaultValue;
+  size_t p = 0;
+  while (nextChannelSpec(config, p, channelType, channelNo, defaultValue)) {
+    switch (channelType) {
+      case 'W' : whiteChannel = channelNo; break;
+      case 'R' : redChannel = channelNo; break;
+      case 'G' : greenChannel = channelNo; break;
+      case 'B' : blueChannel = channelNo; break;
+      case 'A' : amberChannel = channelNo; break;
+      case 'H' : hPosChannel = channelNo; break;
+      case 'V' : vPosChannel = channelNo; break;
+      default : break; // static channel, just set default once
     }
+    // set initial default value (will stay in the buffer)
+    setDMXChannel(channelNo, defaultValue);
+  }
+  // now create device according to type
+  if (olaType==ola_dimmer) {
+    // Single channel DMX512 dimmer, only use white channel
     // - is light
     primaryGroup = group_yellow_light;
     // - use light settings, which include a scene table
@@ -102,21 +128,6 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
   else if (olaType==ola_fullcolordimmer) {
     // - is RGB
     primaryGroup = group_yellow_light;
-    // - get DMX channels for colors
-    char channelType;
-    DmxChannel channelNo;
-    size_t p = 0;
-    while (nextChannelSpec(config, p, channelType, channelNo)) {
-      switch (channelType) {
-        case 'W' : whiteChannel = channelNo; break;
-        case 'R' : redChannel = channelNo; break;
-        case 'G' : greenChannel = channelNo; break;
-        case 'B' : blueChannel = channelNo; break;
-        case 'A' : amberChannel = channelNo; break;
-        case 'H' : hPosChannel = channelNo; break;
-        case 'V' : vPosChannel = channelNo; break;
-      }
-    }
     if (redChannel!=dmxNone && greenChannel!=dmxNone && blueChannel!=dmxNone) {
       // Complete set of outputs to create RGB light
       if (hPosChannel!=dmxNone || vPosChannel!=dmxNone) {
@@ -267,9 +278,9 @@ void OlaDevice::applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double 
     double v = 0;
     if (ml) {
       h = ml->horizontalPosition->getChannelValue()/100*255;
-      setDMXChannel(hPosChannel,(DmxValue)r);
+      setDMXChannel(hPosChannel,(DmxValue)h);
       v = ml->verticalPosition->getChannelValue()/100*255;
-      setDMXChannel(vPosChannel,(DmxValue)r);
+      setDMXChannel(vPosChannel,(DmxValue)v);
     }
     // next step
     aProgress += aStepSize;
@@ -350,13 +361,18 @@ bool OlaDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolu
 
 string OlaDevice::getExtraInfo()
 {
+  string s;
   if (olaType==ola_dimmer)
-    return string_format("DMX512 Dimmer: brightness=%d", whiteChannel);
+    s = string_format("DMX512 Dimmer: brightness=%d", whiteChannel);
   else if (olaType==ola_tunablewhitedimmer)
-    return string_format("DMX512 Tunable white dimmer: white=%d, amber=%d", whiteChannel, amberChannel);
+    s = string_format("DMX512 Tunable white dimmer: white=%d, amber=%d", whiteChannel, amberChannel);
   else if (olaType==ola_fullcolordimmer)
-    return string_format("DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
-  return "DMX512 device";
+    s = string_format("DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
+  else
+    s = "DMX512 device";
+  if (hPosChannel!=dmxNone || vPosChannel!=dmxNone)
+    string_format_append(s, " with position: h=%d, v=%d", hPosChannel, vPosChannel);
+  return s;
 }
 
 
@@ -370,6 +386,8 @@ string OlaDevice::description()
     string_format_append(s, "- DMX512 Tunable white dimmer: white=%d, amber=%d\n", whiteChannel, amberChannel);
   else if (olaType==ola_fullcolordimmer)
     string_format_append(s, "- DMX512 Full color dimmer: RGB=%d,%d,%d, white=%d, amber=%d\n", redChannel, greenChannel, blueChannel, whiteChannel, amberChannel);
+  if (hPosChannel!=dmxNone || vPosChannel!=dmxNone)
+    string_format_append(s, "- With position: horizontal=%d, vertical=%d\n", hPosChannel, vPosChannel);
   return s;
 }
 

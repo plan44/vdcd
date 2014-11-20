@@ -143,35 +143,6 @@ namespace p44 {
   typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;
 
 
-//
-//
-//
-//  typedef boost::intrusive_ptr<AnalogIODevice> AnalogIODevicePtr;
-//  class AnalogIODevice : public OlaDevice
-//  {
-//    typedef StaticDevice inherited;
-//
-//    typedef enum {
-//      ola_unknown,
-//      ola_dimmer,
-//      ola_colordimmer,
-//    } OlaType;
-//
-//    OlaType olaType;
-//
-//  public:
-//    AnalogIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
-//
-//    /// device type identifier
-//    /// @return constant identifier for this type of device (one container might contain more than one type)
-//    virtual const char *deviceTypeIdentifier() { return "analogio"; };
-//
-//
-//
-//
-//
-//  };
-
 } // namespace p44
 
 #endif // !DISABLE_OLA
