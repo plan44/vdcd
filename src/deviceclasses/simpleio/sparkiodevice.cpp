@@ -199,7 +199,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   apiVersion(0)
 {
   // config must be: sparkCoreId:accessToken
-  size_t i = aDeviceConfig.find_first_of(':');
+  size_t i = aDeviceConfig.find(":");
   if (i!=string::npos) {
     sparkCoreID = aDeviceConfig.substr(0,i);
     sparkCoreToken = aDeviceConfig.substr(i+1,string::npos);

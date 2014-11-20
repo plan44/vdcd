@@ -34,7 +34,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
 {
   string ioname = aDeviceConfig;
   string mode = "dimmer"; // default to dimmer
-  size_t i = aDeviceConfig.find_first_of(':');
+  size_t i = aDeviceConfig.find(":");
   if (i!=string::npos) {
     ioname = aDeviceConfig.substr(0,i);
     mode = aDeviceConfig.substr(i+1,string::npos);
@@ -68,19 +68,19 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     primaryGroup = group_yellow_light;
     // - need 3 IO names for R,G,B, optional fourth for W
     size_t p;
-    p = ioname.find_first_of('|');
+    p = ioname.find("|");
     if (p!=string::npos) {
       // at least 2 pins specified
       // - create red output
       analogIO = AnalogIoPtr(new AnalogIo(ioname.substr(0,p).c_str(), true, 0));
       ioname.erase(0,p+1);
-      p = ioname.find_first_of('|');
+      p = ioname.find("|");
       if (p!=string::npos) {
         // 3 pins specified
         // - create green output
         analogIO2 = AnalogIoPtr(new AnalogIo(ioname.substr(0,p).c_str(), true, 0));
         ioname.erase(0,p+1);
-        p = ioname.find_first_of('|');
+        p = ioname.find("|");
         if (p!=string::npos) {
           // extra 4th pin for white specified
           // - create white output from rest

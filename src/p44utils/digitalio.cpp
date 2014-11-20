@@ -62,7 +62,7 @@ DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInit
   string busName;
   string deviceName;
   string pinName;
-  size_t i = name.find_first_of('.');
+  size_t i = name.find(".");
   if (i==string::npos) {
     // no structured name, assume GPIO
     busName = "gpio";

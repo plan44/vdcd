@@ -37,7 +37,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   StaticDevice((DeviceClassContainer *)aClassContainerP),
   consoleIoType(consoleio_unknown)
 {
-  size_t i = aDeviceConfig.find_first_of(':');
+  size_t i = aDeviceConfig.find(":");
   string name = aDeviceConfig;
   if (i!=string::npos) {
     name = aDeviceConfig.substr(0,i);

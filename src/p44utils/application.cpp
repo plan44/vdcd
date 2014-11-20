@@ -298,7 +298,7 @@ void CmdLineApp::parseCommandLine(int aArgc, char **aArgv)
           }
         }
         // search for option argument directly following option separated by equal sign
-        string::size_type n = optName.find_first_of('=');
+        string::size_type n = optName.find("=");
         if (n!=string::npos) {
           optArgFound = true; // explicit specification, counts as option argument even if empty string
           optArg = optName.substr(n+1,string::npos);

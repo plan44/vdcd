@@ -51,7 +51,7 @@ void SerialComm::setConnectionSpecification(const char* aConnectionSpec, uint16_
     if (aConnectionSpec[0]=='/') {
       // serial device
       path = aConnectionSpec;
-      size_t n = path.find_first_of(':');
+      size_t n = path.find(":");
       if (n!=string::npos) {
         // explicit specification of baudrate
         string opt = path.substr(n+1,string::npos);

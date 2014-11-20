@@ -52,7 +52,7 @@ AnalogIo::AnalogIo(const char* aAnalogIoName, bool aOutput, double aInitialValue
   string busName;
   string deviceName;
   string pinName;
-  size_t i = name.find_first_of('.');
+  size_t i = name.find(".");
   if (i==string::npos) {
     // no structured name, NOP
     return;
@@ -61,7 +61,7 @@ AnalogIo::AnalogIo(const char* aAnalogIoName, bool aOutput, double aInitialValue
     busName = name.substr(0,i);
     // rest is device + pinname or just pinname
     pinName = name.substr(i+1,string::npos);
-    i = pinName.find_first_of('.');
+    i = pinName.find(".");
     if (i!=string::npos) {
       // separate device and pin names
       // - extract device name

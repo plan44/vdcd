@@ -85,12 +85,12 @@ I2CDevicePtr I2CManager::getDevice(int aBusNumber, const char *aDeviceID)
   string typeString = "generic";
   string deviceOptions = ""; // no options
   string s = aDeviceID;
-  size_t i = s.find_first_of('@');
+  size_t i = s.find("@");
   if (i!=string::npos) {
     typeString = s.substr(0,i);
     s.erase(0,i+1);
     // extract device options, if any (appended to device name after a dash)
-    size_t j = typeString.find_first_of('-');
+    size_t j = typeString.find("-");
     if (j!=string::npos) {
       deviceOptions = typeString.substr(j+1);
       typeString.erase(j);

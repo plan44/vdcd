@@ -38,7 +38,7 @@ static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelTy
 {
   // check for channel spec
   // syntax is: C=n[=v][,C=n[=v],...] where C=channel type character, n=channel number, v=default value (if missing, default value is 0)
-  size_t i = aConfig.find_first_of('=', aStartPos);
+  size_t i = aConfig.find("=", aStartPos);
   if (i==string::npos || i==0) return false;
   // first char before = is channel type
   aChannelType = aConfig[aStartPos];
@@ -47,10 +47,10 @@ static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelTy
   if (sscanf(aConfig.c_str()+i+1, "%d", &n)!=1) return false;
   aChannelNo = n;
   // find next comma
-  size_t e = aConfig.find_first_of(',', i);
+  size_t e = aConfig.find(",", i);
   // check for default value
   aDefaultValue = 0; // zero by default
-  i = aConfig.find_first_of('=', i+1); // second equal sign?
+  i = aConfig.find("=", i+1); // second equal sign?
   if (i!=string::npos && (e==string::npos || i<e)) {
     // default value must follow
     if (sscanf(aConfig.c_str()+i+1, "%d", &n)!=1) return false;
@@ -77,7 +77,7 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
   // evaluate config
   string config = aDeviceConfig;
   string mode = "dimmer"; // default to dimmer
-  size_t i = aDeviceConfig.find_first_of(':');
+  size_t i = aDeviceConfig.find(":");
   if (i!=string::npos) {
     mode = aDeviceConfig.substr(0,i);
     config = aDeviceConfig.substr(i+1,string::npos);

@@ -32,7 +32,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   StaticDevice((DeviceClassContainer *)aClassContainerP),
   digitalIoType(digitalio_unknown)
 {
-  size_t i = aDeviceConfig.find_first_of(':');
+  // last : separates behaviour from pin specification
+  size_t i = aDeviceConfig.rfind(":");
   string ioname = aDeviceConfig;
   bool inverted = false;
   if (i!=string::npos) {

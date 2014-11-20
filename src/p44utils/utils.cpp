@@ -167,7 +167,7 @@ bool p44::nextLine(const char * &aCursor, string &aLine)
 
 bool p44::keyAndValue(const string &aInput, string &aKey, string &aValue)
 {
-  size_t i = aInput.find_first_of(':');
+  size_t i = aInput.find(":");
   if (i==string::npos) return false; // not a key: value line
   // get key, trim whitespace
   aKey = trimWhiteSpace(aInput.substr(0,i), true, true);
