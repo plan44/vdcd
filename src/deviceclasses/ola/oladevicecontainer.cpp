@@ -25,7 +25,7 @@
 
 #include "oladevice.hpp"
 
-#import <ola/DmxBuffer.h>
+#include <ola/DmxBuffer.h>
 
 using namespace p44;
 
