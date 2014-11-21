@@ -20,6 +20,7 @@
 //
 
 #include "outputbehaviour.hpp"
+#include "simplescene.hpp"
 
 using namespace p44;
 
@@ -132,6 +133,39 @@ void OutputBehaviour::setGroupMembership(DsGroup aGroup, bool aIsMember)
 
 
 #pragma mark - scene handling
+
+
+
+// default loader for single-value outputs. Note that this is overridden by more complex behaviours such as light
+void OutputBehaviour::loadChannelsFromScene(DsScenePtr aScene)
+{
+  if (aScene) {
+    // load default channel's value from first channel of scene
+    ChannelBehaviourPtr ch = getChannelByIndex(0);
+    if (ch) {
+      ch->setChannelValueIfNotDontCare(aScene, aScene->sceneValue(0), 0, 0, true);
+    }
+  }
+}
+
+
+void OutputBehaviour::saveChannelsToScene(DsScenePtr aScene)
+{
+  if (aScene) {
+    // save default channel's value to first channel of scene
+    ChannelBehaviourPtr ch = getChannelByIndex(0);
+    if (ch) {
+      double newval = ch->getChannelValue();
+      double oldval = aScene->sceneValue(0);
+      if (newval!=oldval) {
+        aScene->setSceneValue(0, newval);
+        markDirty();
+      }
+    }
+    aScene->setSceneValueFlags(0, valueflags_dontCare, false);
+  }
+}
+
 
 
 bool OutputBehaviour::applyScene(DsScenePtr aScene)

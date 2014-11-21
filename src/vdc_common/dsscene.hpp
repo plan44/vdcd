@@ -143,7 +143,7 @@ namespace p44 {
     /// @return the scene value
     virtual double sceneValue(size_t aChannelIndex) = 0;
 
-    /// modify per-value scene flags
+    /// modify scene value
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aValue the new scene value
     virtual void setSceneValue(size_t aChannelIndex, double aValue) = 0;

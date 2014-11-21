@@ -242,9 +242,9 @@ enum {
   globalflags_ignoreLocalPriority = 0x0002,
   globalflags_sceneLevelMask = 0x0003,
 
-  // per value dontCare flags, 8 channels max
+  // per value dontCare flags, 16 channels max
   globalflags_valueDontCare0 = 0x100,
-  globalflags_valueDontCareMask = 0xFF00,
+  globalflags_valueDontCareMask = 0xFFFF00,
 };
 
 
@@ -313,7 +313,7 @@ int DsScene::numSceneValues()
 uint32_t DsScene::sceneValueFlags(size_t aOutputIndex)
 {
   uint32_t flags = 0;
-  // up to 8 channel's dontCare flags are mapped into globalSceneFlags
+  // up to 16 channel's dontCare flags are mapped into globalSceneFlags
   if (aOutputIndex<numSceneValues()) {
     if (globalSceneFlags & (globalflags_valueDontCare0<<aOutputIndex)) {
       flags |= valueflags_dontCare; // this value's dontCare is set
@@ -325,7 +325,7 @@ uint32_t DsScene::sceneValueFlags(size_t aOutputIndex)
 
 void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool aSet)
 {
-  // up to 8 channel's dontCare flags are mapped into globalSceneFlags
+  // up to 16 channel's dontCare flags are mapped into globalSceneFlags
   if (aOutputIndex<numSceneValues()) {
     uint32_t flagmask = globalflags_valueDontCare0<<aOutputIndex;
     uint32_t newFlags;

@@ -203,7 +203,10 @@ void LightBehaviour::loadChannelsFromScene(DsScenePtr aScene)
     DsSceneEffect e = lightScene->effect;
     brightness->setChannelValueIfNotDontCare(lightScene, b, transitionTimeFromSceneEffect(e, true), transitionTimeFromSceneEffect(e, false), true);
   }
-  inherited::loadChannelsFromScene(aScene);
+  else {
+    // only if not light scene, use default loader
+    inherited::loadChannelsFromScene(aScene);
+  }
 }
 
 
@@ -214,6 +217,10 @@ void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
     // save brightness channel from scene
     lightScene->setRepVar(lightScene->value, brightness->getChannelValue());
     lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
+  }
+  else {
+    // only if not light scene, use default save
+    inherited::saveChannelsToScene(aScene);
   }
 }
 

@@ -184,14 +184,14 @@ namespace p44 {
     /// @param aScene the scene to load channel values from
     /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
     ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
-    virtual void loadChannelsFromScene(DsScenePtr aScene) { /* NOP in base class */ };
+    virtual void loadChannelsFromScene(DsScenePtr aScene);
 
     /// called by captureScene to save channel values to a scene.
     /// @param aScene the scene to save channel values to
     /// @note Scenes don't have 1:1 representation of all channel values for footprint and logic reasons, so this method
     ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
-    virtual void saveChannelsToScene(DsScenePtr aScene) { /* NOP in base class */ };
+    virtual void saveChannelsToScene(DsScenePtr aScene);
 
     // the behaviour type
     virtual BehaviourType getType() { return behaviour_output; };
