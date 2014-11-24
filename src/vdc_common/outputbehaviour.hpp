@@ -159,7 +159,8 @@ namespace p44 {
     virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
-    virtual void onAtMinBrightness() { /* NOP in base class, only relevant for lights */ };
+    /// @param aScene the scene to take all other channel values from, except brightness which is set to light's minDim
+    virtual void onAtMinBrightness(DsScenePtr aScene) { /* NOP in base class, only relevant for lights */ };
 
     /// Process a named control value. The type, color and settings of the output determine if at all,
     /// and if, how the value affects the output

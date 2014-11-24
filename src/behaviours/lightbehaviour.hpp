@@ -198,7 +198,8 @@ namespace p44 {
     virtual void stopActions();
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
-    virtual void onAtMinBrightness();
+    /// @param aScene the scene to take all other channel values from, except brightness which is set to light's minDim
+    virtual void onAtMinBrightness(DsScenePtr aScene);
 
     /// identify the device to the user in a behaviour-specific way
     /// @note implemented as blinking for LightBehaviour
