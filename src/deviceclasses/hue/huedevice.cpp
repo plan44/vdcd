@@ -262,22 +262,24 @@ void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     string url = string_format("/lights/%s/state", lightID.c_str());
     JsonObjectPtr newState = JsonObject::newObj();
     // brightness is always re-applied unless it's dimming
+    bool lightIsOn = true; // assume on
     if (!aForDimming || l->brightness->needsApplying()) {
       Brightness b = l->brightnessForHardware();
       transitionTime = l->transitionTimeToNewBrightness();
       if (b==0) {
         // light off, no other parameters
         newState->add("on", JsonObject::newBool(false));
+        lightIsOn = false;
       }
       else {
         // light on
         newState->add("on", JsonObject::newBool(true));
-        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS+0.5)); // 1..100 -> 0..255
+        newState->add("bri", JsonObject::newInt32((b-HUEAPI_OFFSET_BRIGHTNESS)*HUEAPI_FACTOR_BRIGHTNESS+0.5)); // 0.4..100 -> 0..255
       }
       l->brightness->channelValueApplied(true); // confirm early, as subsequent request might set new value again
     }
-    // for color lights, also check color
-    if (cl) {
+    // for color lights, also check color (but not if light is off)
+    if (cl && lightIsOn) {
       // derive (possibly new) color mode from changed channels
       cl->deriveColorMode();
       // add color in case it was set (by scene call)
@@ -330,7 +332,6 @@ void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     }
     // use transition time from (1/10 = 100mS second resolution)
     newState->add("transitiontime", JsonObject::newInt64(transitionTime/(100*MilliSecond)));
-    // TODO: use result to sync channel value
     hueComm().apiAction(httpMethodPUT, url.c_str(), newState, boost::bind(&HueDevice::channelValuesSent, this, l, aDoneCB, _1, _2));
   }
 }
@@ -372,7 +373,7 @@ void HueDevice::channelValuesSent(LightBehaviourPtr aLightBehaviour, DoneCB aDon
           else if (param=="on") {
             if (!val->boolValue()) {
               aLightBehaviour->syncBrightnessFromHardware(0);
-              blockBrightness = true; // prevent syncing brightness
+              blockBrightness = true; // prevent syncing brightness, lamp is off, logical brightness is 0
             }
           }
           else if (param=="bri" && !blockBrightness) {
