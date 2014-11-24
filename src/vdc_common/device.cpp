@@ -25,7 +25,7 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 0
+#define FOCUSLOGLEVEL 7
 
 
 #include "device.hpp"
@@ -845,8 +845,10 @@ void Device::waitForApplyComplete(DoneCB aApplyCompleteCB)
 
 void Device::forkDoneCB(DoneCB aOriginalCB, DoneCB aNewCallback)
 {
-  FOCUSLOG("- forking applyCompleteCB\n");
+  FOCUSLOG("forkDoneCB:\n");
+  FOCUSLOG("- calling original callback\n");
   aOriginalCB();
+  FOCUSLOG("- calling new callback\n");
   aNewCallback();
 }
 
@@ -904,21 +906,22 @@ void Device::applyingChannelsComplete()
   if (!checkForReapply()) {
     // apply complete and no final re-apply pending
     // - confirm because finally applied
-    FOCUSLOG("- applyingChannelsComplete - really completed\n");
+    FOCUSLOG("- applyingChannelsComplete - really completed, now checking callbacks\n");
+    DoneCB cb;
     if (appliedOrSupersededCB) {
       FOCUSLOG("- confirming apply (really) finalized\n");
-      DoneCB cb = appliedOrSupersededCB;
+      cb = appliedOrSupersededCB;
       appliedOrSupersededCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, values have been superseded
-      // check for independent operation waiting for apply complete
-      if (applyCompleteCB) {
-        FOCUSLOG("- confirming apply (really) finalized to waitForApplyComplete() client\n");
-        cb = applyCompleteCB;
-        applyCompleteCB = NULL;
-        cb();
-      }
-      FOCUSLOG("- confirmed apply (really) finalized\n");
     }
+    // check for independent operation waiting for apply complete
+    if (applyCompleteCB) {
+      FOCUSLOG("- confirming apply (really) finalized to waitForApplyComplete() client\n");
+      cb = applyCompleteCB;
+      applyCompleteCB = NULL;
+      cb();
+    }
+    FOCUSLOG("- confirmed apply (really) finalized\n");
   }
 }
 
@@ -1173,7 +1176,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->isDontCare()) {
       if (output) {
-        output->onAtMinBrightness();
+        output->onAtMinBrightness(scene);
         // apply the values now, not dimming
         requestApplyingChannels(NULL, false);
       }
