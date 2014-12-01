@@ -401,7 +401,9 @@ jsonrpctool_CPPFLAGS = \
 
 jsonrpctool_CXXFLAGS = $(JSONC_LIBS) $(PTHREAD_CFLAGS)
 
-jsonrpctool_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
+# automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
+#  jsonrpctool_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
+jsonrpctool_LDADD = $(PTHREAD_LIBS) -ljson-c
 
 jsonrpctool_SOURCES = \
   src/p44utils/p44obj.cpp \
