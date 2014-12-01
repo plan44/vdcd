@@ -16,6 +16,7 @@
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */; };
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
+		ED07E7181A2D14AA009845D5 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
@@ -91,7 +92,6 @@
 		ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29391749446200334C71 /* lightbehaviour.cpp */; };
 		ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */; };
 		ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */; };
-		ED5C8E9917CF3908002CC15F /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
 		ED5C8E9A17CF3908002CC15F /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
 		ED5C8E9B17CF3908002CC15F /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED5C8E9C17CF3908002CC15F /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
@@ -105,17 +105,13 @@
 		ED5C8EA617CF3908002CC15F /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		ED5C8EA717CF3908002CC15F /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED5C8EA817CF3908002CC15F /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
-		ED5C8EA917CF3908002CC15F /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
-		ED5C8EAB17CF3908002CC15F /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
 		ED5C8EB517CF3952002CC15F /* jsonrpctool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BBFE17B4ED31004DB38D /* jsonrpctool.cpp */; };
 		ED5C8EB717CF395A002CC15F /* enoceantool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5C8EB317CF393E002CC15F /* enoceantool.cpp */; };
 		ED5C8EB817CF396F002CC15F /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		ED5C8EB917CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
-		ED5D486919ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
-		ED5D487F19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -149,9 +145,6 @@
 		EDB5BC0917B4ED92004DB38D /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		EDB5BC0A17B4ED92004DB38D /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		EDB5BC0B17B4ED92004DB38D /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
-		EDB5BC0C17B4ED92004DB38D /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
-		EDB5BC0D17B4ED92004DB38D /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
-		EDB5BC0E17B4ED92004DB38D /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
 		EDB5BC0F17B4ED92004DB38D /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDB5BC1217B4ED92004DB38D /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB5BC1317B4ED92004DB38D /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
@@ -963,11 +956,11 @@
 				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
 				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
-				ED5D487F19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				ED1F8302184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED2C9DE619518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				ED3126B518318CC100FAF28B /* mainloop.cpp in Sources */,
 				ED3126B918318CC100FAF28B /* application.cpp in Sources */,
+				ED07E7181A2D14AA009845D5 /* consolekey.cpp in Sources */,
 				EDF62B4A183A0ED20016BFDA /* upnpdevice.cpp in Sources */,
 				ED780C741A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				ED3126BA18318CC100FAF28B /* persistentparams.cpp in Sources */,
@@ -984,7 +977,6 @@
 				ED1F82F7184E410000339A22 /* messages.proto in Sources */,
 				ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */,
 				ED3126CD18318CC100FAF28B /* demo_main.cpp in Sources */,
-				ED5D486919ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED3126D018318CC100FAF28B /* socketcomm.cpp in Sources */,
 				ED3126D118318CC100FAF28B /* jsoncomm.cpp in Sources */,
 				ED3126D318318CC100FAF28B /* binaryinputbehaviour.cpp in Sources */,
@@ -1000,7 +992,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED5C8E9917CF3908002CC15F /* i2c.cpp in Sources */,
 				ED5C8E9A17CF3908002CC15F /* gpio.cpp in Sources */,
 				ED5C8E9B17CF3908002CC15F /* mainloop.cpp in Sources */,
 				ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */,
@@ -1017,8 +1008,6 @@
 				ED5C8EA617CF3908002CC15F /* socketcomm.cpp in Sources */,
 				ED5C8EA717CF3908002CC15F /* application.cpp in Sources */,
 				ED5C8EA817CF3908002CC15F /* error.cpp in Sources */,
-				ED5C8EA917CF3908002CC15F /* digitalio.cpp in Sources */,
-				ED5C8EAB17CF3908002CC15F /* iopin.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1110,7 +1099,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EDB5BC1817B4ED92004DB38D /* jsonobject.cpp in Sources */,
-				EDB5BC0C17B4ED92004DB38D /* i2c.cpp in Sources */,
 				EDB5BC0B17B4ED92004DB38D /* gpio.cpp in Sources */,
 				EDB5BC0917B4ED92004DB38D /* mainloop.cpp in Sources */,
 				EDB5BC0F17B4ED92004DB38D /* consolekey.cpp in Sources */,
@@ -1127,9 +1115,7 @@
 				EDB5BC0A17B4ED92004DB38D /* application.cpp in Sources */,
 				EDB5BC0817B4ED92004DB38D /* error.cpp in Sources */,
 				ED5C8EB917CF3E11002CC15F /* p44obj.cpp in Sources */,
-				EDB5BC0E17B4ED92004DB38D /* digitalio.cpp in Sources */,
 				EDB5BC1617B4ED92004DB38D /* jsoncomm.cpp in Sources */,
-				EDB5BC0D17B4ED92004DB38D /* iopin.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -264,7 +264,7 @@ void OutputBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   if (pushChanges) aCommonFlags |= outputflag_pushChanges;
   // bind the fields
   aStatement.bind(aIndex++, outputMode);
-  aStatement.bind(aIndex++, (int64_t)aCommonFlags);
+  aStatement.bind(aIndex++, (long long int)aCommonFlags);
   aStatement.bind(aIndex++, (long long int)outputGroups);
 }
 

@@ -54,7 +54,6 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "modernids",     true,  "enabled;1=use modern (GS1/UUID based) 34 hex dsUIDs, 0=classic 24 hex dsids" },
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -83,10 +82,6 @@ public:
     const char *dbdir = DEFAULT_DBDIR;
     getStringOption("sqlitedir", dbdir);
     deviceContainer->setPersistentDataDir(dbdir);
-    // - set dSUID mode
-    int modernids = DEFAULT_USE_MODERN_DSIDS;
-    getIntOption("modernids", modernids);
-    deviceContainer->setIdMode(modernids!=0);
     // - set up vDC API
     int protobufapi = DEFAULT_USE_PROTOBUF_API;
     getIntOption("protobufapi", protobufapi);
