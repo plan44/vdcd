@@ -289,7 +289,9 @@ demovdc_CPPFLAGS = \
 
 demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBUFC_CFLAGS)
 
-demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+# automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
+#  demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
+demovdc_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -lcrypto -lz
 
 nodist_demovdc_SOURCES = $(PROTOBUF_GENERATED)
 
