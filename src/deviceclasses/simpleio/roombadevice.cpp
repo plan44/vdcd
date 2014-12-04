@@ -58,8 +58,42 @@ RoombaDevice::RoombaDevice(StaticDeviceContainer *aClassContainerP, const string
   // digital channel
   o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
   addBehaviour(o);
+  // sensor
+  
+
   // dsuid
 	deriveDsUid();
+}
+
+
+void RoombaDevice::callScene(SceneNo aSceneNo, bool aForce)
+{
+  if (aSceneNo==BELL1) {
+    FOCUSLOG("****** Roomba must Sing!\n");
+    SocketCommPtr sock = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
+    sock->setConnectionParams(roombaIPAddress.c_str(), "9001");
+    sock->initiateConnection();
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&RoombaDevice::startSong, this, sock), 2*Second);
+  }
+  else {
+    inherited::callScene(aSceneNo, aForce);
+  }
+}
+
+void RoombaDevice::startSong(SocketCommPtr sock)
+{
+  const uint8_t song[] = { 140, 0, 11,  64, 32,  64, 32,  64, 64,  64, 32,  64, 32,  64, 64,  64, 32,  67, 32,  60, 32,  62, 32,  64, 64, 141, 0 };
+  // const uint8_t song[] = { 141, 0 };
+  ErrorPtr err;
+  sock->transmitBytes(sizeof(song), song, err);
+  sock->closeConnection();
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&RoombaDevice::songDone, this, sock), 5*Second);
+}
+
+
+void RoombaDevice::songDone(SocketCommPtr sock)
+{
+  sock->closeConnection();
 }
 
 

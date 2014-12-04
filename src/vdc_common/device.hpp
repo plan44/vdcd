@@ -218,7 +218,7 @@ namespace p44 {
 
     /// call scene on this device
     /// @param aSceneNo the scene to call.
-    void callScene(SceneNo aSceneNo, bool aForce);
+    virtual void callScene(SceneNo aSceneNo, bool aForce);
 
     /// undo scene call on this device (i.e. revert outputs to values present immediately before calling that scene)
     /// @param aSceneNo the scene call to undo (needs to be specified to prevent undoing the wrong scene)

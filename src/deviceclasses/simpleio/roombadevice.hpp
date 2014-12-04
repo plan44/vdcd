@@ -87,6 +87,10 @@ namespace p44 {
     /// @note implementation must use channel's syncChannelValue() method
     virtual void syncChannelValues(DoneCB aDoneCB);
 
+    /// call scene on this device
+    /// @param aSceneNo the scene to call.
+    virtual void callScene(SceneNo aSceneNo, bool aForce);
+
     /// @}
 
 
@@ -123,6 +127,8 @@ namespace p44 {
     void firstCommandSent(DoneCB aDoneCB, bool aShouldRun, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void sendFinalCommand(DoneCB aDoneCB, bool aShouldRun);
     void finalCommandSent(DoneCB aDoneCB, bool aShouldRun);
+    void startSong(SocketCommPtr sock);
+    void songDone(SocketCommPtr sock);
 
   };
   
