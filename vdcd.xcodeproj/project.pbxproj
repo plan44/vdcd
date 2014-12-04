@@ -129,6 +129,7 @@
 		ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
 		ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
+		ED8D078A1A30735400FD4DD2 /* roombadevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8D07881A30735400FD4DD2 /* roombadevice.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDADCADC1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
@@ -371,6 +372,8 @@
 		ED81338117C72F87003982CC /* sensorbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = sensorbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED8D07881A30735400FD4DD2 /* roombadevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = roombadevice.cpp; sourceTree = "<group>"; };
+		ED8D07891A30735400FD4DD2 /* roombadevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = roombadevice.hpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = apivalue.cpp; sourceTree = "<group>"; };
 		EDADCADA1846373300297214 /* apivalue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = apivalue.hpp; sourceTree = "<group>"; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ssdpsearch.cpp; sourceTree = "<group>"; };
@@ -621,6 +624,8 @@
 		ED31268E183122F600FAF28B /* simpleio */ = {
 			isa = PBXGroup;
 			children = (
+				ED8D07881A30735400FD4DD2 /* roombadevice.cpp */,
+				ED8D07891A30735400FD4DD2 /* roombadevice.hpp */,
 				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
 				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
 				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
@@ -1056,6 +1061,7 @@
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
+				ED8D078A1A30735400FD4DD2 /* roombadevice.cpp in Sources */,
 				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,

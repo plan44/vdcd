@@ -95,6 +95,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
         "Host: %s\r\n"
         "Content-Type: %s; charset=UTF-8\r\n"
         "Content-Length: %ld\r\n"
+        "Authorisation: Basic YWRtaW46cm9vbWJhd2lmaQo=\r\n"
         "\r\n"
         "%s",
         method.c_str(),
@@ -114,6 +115,7 @@ void HttpComm::requestThread(ChildThreadWrapper &aThread)
         ebuf, ebufSz,
         "%s %s HTTP/1.1\r\n"
         "Host: %s\r\n"
+        "Authorization: Basic YWRtaW46cm9vbWJhd2lmaQ==\r\n"
 //        "Content-Type: %s; charset=UTF-8\r\n"
         "\r\n",
         method.c_str(),
