@@ -283,6 +283,12 @@ static const char *occupText = "Occupancy";
 
 static const char *unityUnit = "1";
 
+static const char *setPointText = "Set Point";
+
+static const char *dayNightText = "Day/Night";
+
+
+
 static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   // func,type, SD,primarygroup,       channelGroup,                  behaviourType,          behaviourParam,        usage,              min,  max,  MSB,  LSB,  updateIv, aliveSignIv, handler,      typeText, unitText, flags
   // A5-02-xx: Temperature sensors
@@ -332,11 +338,16 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7),  100, 40*60, &stdInputHandler,  occupText, unityUnit },
   { 0x07, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6),  100, 40*60, &stdSensorHandler, illumText, illumUnit },
 
-  // A5-10-06: Room Panel
+  // A5-10-03: Room Panel with Temperature Sensor and Set Point Control
+  // - e.g. Eltako FTR78S
+  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &invSensorHandler, tempText, tempUnit },
+  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+
+  // A5-10-06: Room Panel with Temperature Sensor, Set Point Control, Day/Night Control
   // - e.g. Eltako FTR55D
   { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &invSensorHandler, tempText, tempUnit },
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, 40*60, &stdSensorHandler, "Set Point", unityUnit },
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0),  100, 40*60, &stdInputHandler,  "Day/Night", unityUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0),  100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
 
   // A5-12-01: Energy meter
   // - e.g. Eltako FWZ12-16A
