@@ -372,8 +372,10 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    /// @note the implementation must capture the channel values to be applied before returning from this method call,
+    ///   because channel values might change again before a delayed apply mechanism calls aDoneCB.
     /// @note this method will NOT be called again until aCompletedCB is called, even if that takes a long time.
-    ///   Device::requestApplyingChannels() provides an implementation that prevent calling applyChannelValues too early,
+    ///   Device::requestApplyingChannels() provides an implementation that serializes calls to applyChannelValues and syncChannelValues
     virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming) { if (aDoneCB) aDoneCB(); /* just call completed in base class */ };
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
