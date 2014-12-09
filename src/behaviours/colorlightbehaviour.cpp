@@ -400,6 +400,27 @@ void ColorLightBehaviour::deriveMissingColorChannels()
 }
 
 
+void ColorLightBehaviour::appliedColorValues()
+{
+  brightness->channelValueApplied(true);
+  switch (colorMode) {
+    case colorLightModeHueSaturation:
+      hue->channelValueApplied(true);
+      saturation->channelValueApplied(true);
+      break;
+    case colorLightModeCt:
+      ct->channelValueApplied(true);
+      break;
+    case colorLightModeXY:
+      cieX->channelValueApplied(true);
+      cieY->channelValueApplied(true);
+      break;
+    default:
+      // no color
+      break;
+  }
+}
+
 
 #pragma mark - description/shortDesc
 
@@ -645,28 +666,6 @@ void RGBColorLightBehaviour::setColorTransitionProgress(double aProgress)
   }
 }
 
-
-
-void RGBColorLightBehaviour::appliedRGB()
-{
-  brightness->channelValueApplied(true);
-  switch (colorMode) {
-    case colorLightModeHueSaturation:
-      hue->channelValueApplied(true);
-      saturation->channelValueApplied(true);
-      break;
-    case colorLightModeCt:
-      ct->channelValueApplied(true);
-      break;
-    case colorLightModeXY:
-      cieX->channelValueApplied(true);
-      cieY->channelValueApplied(true);
-      break;
-    default:
-      // no color
-      break;
-  }
-}
 
 
 

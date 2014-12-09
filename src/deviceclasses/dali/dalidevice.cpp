@@ -652,7 +652,7 @@ void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       if (dimmers[dimmer_white]) dimmers[dimmer_white]->setBrightness(w);
     } // if needs update
     // anyway, applied now
-    cl->appliedRGB();
+    cl->appliedColorValues();
   }
   // confirm done
   inherited::applyChannelValues(aDoneCB, aForDimming);

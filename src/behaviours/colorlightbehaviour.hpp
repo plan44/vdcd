@@ -234,6 +234,9 @@ namespace p44 {
     /// by converting between representations
     void deriveMissingColorChannels();
 
+    /// mark Color Light values applied (flags channels applied depending on colormode)
+    void appliedColorValues();
+
     /// @}
 
     /// check for presence of model feature (flag in dSS visibility matrix)
@@ -326,9 +329,6 @@ namespace p44 {
     /// set color transition progress
     /// @param aProgress how much the transition has progressed on the time scale already, 0..1
     void setColorTransitionProgress(double aProgress);
-
-    /// mark RGB values applied (flags channels applied depending on colormode)
-    void appliedRGB();
 
     /// @}
 

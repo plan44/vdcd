@@ -343,7 +343,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    aSparkLightBehaviour->appliedRGB();
+    aSparkLightBehaviour->appliedColorValues();
   }
   else {
     LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());

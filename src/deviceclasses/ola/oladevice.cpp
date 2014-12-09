@@ -212,7 +212,7 @@ void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       }
       else {
         // no change, but consider applied anyway!
-        cl->appliedRGB();
+        cl->appliedColorValues();
       }
     }
   }
@@ -308,7 +308,7 @@ void OlaDevice::applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double 
     );
     // applied now
     if (ml) ml->appliedPosition();
-    cl->appliedRGB();
+    cl->appliedColorValues();
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }

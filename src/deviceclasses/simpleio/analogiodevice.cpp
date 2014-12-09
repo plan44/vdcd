@@ -152,7 +152,7 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
       } // if needs update
       else {
         // no change, but consider applied anyway!
-        cl->appliedRGB();
+        cl->appliedColorValues();
       }
     }
   }
@@ -234,7 +234,7 @@ void AnalogIODevice::applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, do
     }
     if (!aForDimming) LOG(LOG_INFO, "AnalogIO device %s: final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", shortDesc().c_str(), r, g, b, w);
     // applied now
-    cl->appliedRGB();
+    cl->appliedColorValues();
   }
   // all done, let base class finish (usually just call aDoneCB)
   inherited::applyChannelValues(aDoneCB, aForDimming);
