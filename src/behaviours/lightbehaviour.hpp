@@ -152,7 +152,7 @@ namespace p44 {
     /// @param aBrightness current brightness value read back from hardware
     /// @note this wraps the dimmable/switch functionality (does not change channel value when onThreshold
     ///   condition is already met to allow saving virtual brightness to scenes)
-    void syncBrightnessFromHardware(Brightness aBrightness);
+    void syncBrightnessFromHardware(Brightness aBrightness, bool aAlwaysSync=false);
 
     /// wrapper to confirm having applied brightness
     bool brightnessNeedsApplying() { return brightness->needsApplying(); };

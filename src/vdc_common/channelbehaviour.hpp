@@ -101,9 +101,10 @@ namespace p44 {
     /// set actual current output value as read from the device on startup, or before saving scenes
     /// to sync local cache value
     /// @param aActualChannelValue the value as read from the device
-    /// @note only used at startup to get the inital value FROM the hardware.
+    /// @param aAlwaysSync if set, value is synchronized even if current value is still pending to be applied
+    /// @note only used to get the actual value FROM the hardware.
     ///   NOT to be used to change the hardware output value!
-    void syncChannelValue(double aActualChannelValue);
+    void syncChannelValue(double aActualChannelValue, bool aAlwaysSync=false);
 
     /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aValue the new output value

@@ -121,13 +121,13 @@ Brightness LightBehaviour::brightnessForHardware()
 }
 
 
-void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness)
+void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness, bool aAlwaysSync)
 {
   if (
     isDimmable() || // for dimmable lights: always update value
-    ((aBrightness>=onThreshold) != (brightness->getChannelValue()>=onThreshold)) // for switched outputs: keep value if onThreshold conditions is already met
+    ((aBrightness>=onThreshold) != (brightness->getChannelValue()>=onThreshold)) // for switched outputs: keep value if onThreshold condition is already met
   ) {
-    brightness->syncChannelValue(aBrightness);
+    brightness->syncChannelValue(aBrightness, aAlwaysSync);
   }
 }
 

@@ -82,19 +82,22 @@ double ChannelBehaviour::getChannelValue()
 
 // used at startup and before saving scenes to get the current value FROM the hardware
 // NOT to be used to change the hardware channel value!
-void ChannelBehaviour::syncChannelValue(double aActualChannelValue)
+void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlwaysSync)
 {
-  if (LOGENABLED(LOG_INFO)) {
-    string s = output.device.shortDesc();
-    LOG(LOG_INFO,
-      "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
-      getName(), s.c_str(), cachedChannelValue, aActualChannelValue
-    );
+  if (!channelUpdatePending || aAlwaysSync) {
+    if (LOGENABLED(LOG_INFO)) {
+      string s = output.device.shortDesc();
+      LOG(LOG_INFO,
+        "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
+        getName(), s.c_str(), cachedChannelValue, aActualChannelValue
+      );
+    }
+    cachedChannelValue = aActualChannelValue;
+    previousChannelValue = aActualChannelValue;
+    transitionProgress = 1; // transition done
+    channelUpdatePending = false; // we are in sync
+    channelLastSync = MainLoop::now(); // value is current
   }
-  cachedChannelValue = aActualChannelValue;
-  previousChannelValue = aActualChannelValue;
-  channelUpdatePending = false; // we are in sync
-  channelLastSync = MainLoop::now(); // value is current
 }
 
 
