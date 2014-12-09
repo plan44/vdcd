@@ -61,6 +61,7 @@ using namespace p44;
 
 DeviceContainer::DeviceContainer() :
   mac(0),
+  externalDsuid(false),
   DsAddressable(this),
   collecting(false),
   lastActivity(0),
@@ -76,6 +77,7 @@ DeviceContainer::DeviceContainer() :
 {
   // obtain MAC address
   mac = macAddress();
+  deriveDsUid(); // make sure we have a vdc host dSUID FROM THE BEGINNING. Usually, setIdMode derives it again, but just in case...
 }
 
 
