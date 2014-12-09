@@ -354,10 +354,6 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Power", "W" },
   { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Energy", "kWh" },
 
-  // A5-13-01..06: Environmental parameters
-  // - e.g. Eltako FWZ12-16A
-
-
   // terminator
   { 0,    0,    0, group_black_joker,  group_black_joker,             behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
 };
