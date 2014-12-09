@@ -131,6 +131,7 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     if (l && l->brightnessNeedsApplying()) {
       transitionTime = l->transitionTimeToNewBrightness();
       applyChannelValueSteps(aDoneCB, aForDimming, 0, transitionTime==0 ? 1 : (double)TRANSITION_STEP_TIME/transitionTime);
+      return;
     }
     else {
       // no change, but consider applied anyway!
@@ -149,6 +150,7 @@ void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
         //   TODO: depending to what channel has changed, take transition time from that channel. For now always using brightness transition time
         transitionTime = cl->transitionTimeToNewBrightness();
         applyChannelValueSteps(aDoneCB, aForDimming, 0, transitionTime==0 ? 1 : (double)TRANSITION_STEP_TIME/transitionTime);
+        return;
       } // if needs update
       else {
         // no change, but consider applied anyway!
