@@ -143,9 +143,10 @@ namespace p44 {
     /// @return textual description of object
     virtual string shortDesc();
 
-    /// set color transition progress
-    /// @param aProgress how much the transition has progressed on the time scale already, 0..1
-    void setPositionTransitionProgress(double aProgress);
+    /// step through transitions
+    /// @param aStepSize how much to step. Default is zero and means starting transition
+    /// @return true if there's another step to take, false if end of transition already reached
+    void positionTransitionStep(double aStepSize = 0);
 
     /// mark horizontal and vertical position values applied
     void appliedPosition();

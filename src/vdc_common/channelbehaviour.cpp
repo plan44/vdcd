@@ -67,14 +67,43 @@ string ChannelBehaviour::description()
 #pragma mark - channel value handling
 
 
+bool ChannelBehaviour::transitionStep(double aStepSize)
+{
+  if (aStepSize<=0) {
+    transitionProgress = 0; // start
+    return true; // in transition
+  }
+  if (inTransition()) {
+    transitionProgress += aStepSize;
+    if (transitionProgress>1) transitionProgress=1;
+    return true; // still in transition (at least until this step is actually applied)
+  }
+  // no longer in transition
+  return false;
+}
+
+
+bool ChannelBehaviour::inTransition()
+{
+  return transitionProgress<1;
+}
+
 
 double ChannelBehaviour::getChannelValue()
 {
-  if (transitionProgress<1 && channelUpdatePending) {
+  // current value is cached value
+  return cachedChannelValue;
+}
+
+
+double ChannelBehaviour::getTransitionalValue()
+{
+  if (inTransition()) {
     // calculate transitional value
     return previousChannelValue+transitionProgress*(cachedChannelValue-previousChannelValue);
   }
   else {
+    // current value is cached value
     return cachedChannelValue;
   }
 }
@@ -92,9 +121,16 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlways
         getName(), s.c_str(), cachedChannelValue, aActualChannelValue
       );
     }
-    cachedChannelValue = aActualChannelValue;
-    previousChannelValue = aActualChannelValue;
-    transitionProgress = 1; // transition done
+    // make sure new value is within bounds
+    if (aActualChannelValue>getMax())
+      cachedChannelValue = getMax();
+    else if (aActualChannelValue<getMin())
+      cachedChannelValue = getMin();
+    else
+      cachedChannelValue = aActualChannelValue;
+    // reset transitions and pending updates
+    previousChannelValue = cachedChannelValue;
+    transitionProgress = 1; // not in transition
     channelUpdatePending = false; // we are in sync
     channelLastSync = MainLoop::now(); // value is current
   }
@@ -104,14 +140,14 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlways
 
 void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply)
 {
-  setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
+  setChannelValue(aNewValue, aNewValue>getTransitionalValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
 }
 
 
 void ChannelBehaviour::setChannelValueIfNotDontCare(DsScenePtr aScene, double aNewValue, MLMicroSeconds aTransitionTimeUp, MLMicroSeconds aTransitionTimeDown, bool aAlwaysApply)
 {
   if (!(aScene->isSceneValueFlagSet(getChannelIndex(), valueflags_dontCare))) {
-    setChannelValue(aNewValue, aNewValue>getChannelValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
+    setChannelValue(aNewValue, aNewValue>getTransitionalValue() ? aTransitionTimeUp : aTransitionTimeDown, aAlwaysApply);
   }
 }
 
@@ -125,8 +161,8 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     aNewValue = getMax();
   else if (aNewValue<getMin())
     aNewValue = getMin();
-  // prevent propagating changes smaller than device resolution
-  if (aAlwaysApply || fabs(aNewValue-cachedChannelValue)>=getResolution()) {
+  // prevent propagating changes smaller than device resolution, but always apply when transition is in progress
+  if (aAlwaysApply || inTransition() || fabs(aNewValue-cachedChannelValue)>=getResolution()) {
     if (LOGENABLED(LOG_INFO)) {
       string s = output.device.shortDesc();
       LOG(LOG_INFO,
@@ -134,9 +170,9 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
         getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
       );
     }
-    // remember previous value for applying transition if a change is not already pending.
-    if (!channelUpdatePending)
-      previousChannelValue = channelLastSync!=Never ? cachedChannelValue : aNewValue;
+    // setting new value captures current (possibly transitional) value as previous and completes transition
+    previousChannelValue = channelLastSync!=Never ? getTransitionalValue() : aNewValue; // If there is no valid previous value, set current as previous.
+    transitionProgress = 1; // consider done
     // save target parameters for next transition
     cachedChannelValue = aNewValue;
     nextTransitionTime = aTransitionTime;
@@ -163,9 +199,9 @@ double ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTran
   }
   // apply (silently), only if value has actually changed (but even if change is below resolution)
   if (newValue!=cachedChannelValue) {
-    // remember previous value for applying transition if a change is not already pending.
-    if (!channelUpdatePending)
-      previousChannelValue = channelLastSync!=Never ? cachedChannelValue : newValue; // If there is no valid previous value, set current as previous.
+    // setting new value captures current (possibly transitional) value as previous and completes transition
+    previousChannelValue = channelLastSync!=Never ? getTransitionalValue() : newValue; // If there is no valid previous value, set current as previous.
+    transitionProgress = 1; // consider done
     // save target parameters for next transition
     cachedChannelValue = newValue;
     nextTransitionTime = aTransitionTime;
@@ -180,17 +216,15 @@ double ChannelBehaviour::dimChannelValue(double aIncrement, MLMicroSeconds aTran
 void ChannelBehaviour::channelValueApplied(bool aAnyWay)
 {
   if (channelUpdatePending || aAnyWay) {
-    channelUpdatePending = false; // applied
-    transitionProgress = 1; // done
+    channelUpdatePending = false; // applied (might still be in transition, though)
     channelLastSync = MainLoop::now(); // now we know that we are in sync
-    previousChannelValue = cachedChannelValue; // no transition pending any more, previous value = current value
     if (!aAnyWay) {
       // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
       if (LOGENABLED(LOG_INFO)) {
         string s = output.device.shortDesc();
         LOG(LOG_INFO,
-          "Channel '%s' in device %s: has applied new value %0.2f to hardware\n",
-          getName(), s.c_str(), cachedChannelValue
+          "Channel '%s' in device %s: has applied new value %0.2f to hardware%s\n",
+          getName(), s.c_str(), cachedChannelValue, inTransition() ? " (still in transition)" : " (complete)"
         );
       }
     }

@@ -59,6 +59,8 @@ namespace p44 {
     DmxChannel hPosChannel;
     DmxChannel vPosChannel;
 
+    long transitionTicket;
+
   public:
 
     OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -137,7 +139,7 @@ namespace p44 {
 
   private:
 
-    virtual void applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double aProgress, double aStepSize);
+    virtual void applyChannelValueSteps(bool aForDimming, double aStepSize);
 
   };
   typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;

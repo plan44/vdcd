@@ -112,7 +112,7 @@ Brightness LightBehaviour::brightnessForHardware()
 {
   if (isDimmable()) {
     // dim output
-    return brightness->getChannelValue();
+    return brightness->getTransitionalValue();
   }
   else {
     // switch output

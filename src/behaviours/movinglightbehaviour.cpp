@@ -214,10 +214,10 @@ void MovingLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
 
 
 
-void MovingLightBehaviour::setPositionTransitionProgress(double aProgress)
+void MovingLightBehaviour::positionTransitionStep(double aStepSize)
 {
-  horizontalPosition->setTransitionProgress(aProgress);
-  verticalPosition->setTransitionProgress(aProgress);
+  horizontalPosition->transitionStep(aStepSize);
+  verticalPosition->transitionStep(aStepSize);
 }
 
 

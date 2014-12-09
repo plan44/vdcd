@@ -237,6 +237,11 @@ namespace p44 {
     /// mark Color Light values applied (flags channels applied depending on colormode)
     void appliedColorValues();
 
+    /// step through transitions
+    /// @param aStepSize how much to step. Default is zero and means starting transition
+    /// @return true if there's another step to take, false if end of transition already reached
+    bool colorTransitionStep(double aStepSize = 0);
+
     /// @}
 
     /// check for presence of model feature (flag in dSS visibility matrix)
@@ -325,10 +330,6 @@ namespace p44 {
     /// @param aRed,aGreen,aBlue,aWhite,aAmber will receive the R,G,B,W,A values corresponding to current channels
     /// @param aMax max value for aRed,aGreen,aBlue,aWhite,aAmber
     void getRGBWA(double &aRed, double &aGreen, double &aBlue, double &aWhite, double &aAmber, double aMax);
-
-    /// set color transition progress
-    /// @param aProgress how much the transition has progressed on the time scale already, 0..1
-    void setColorTransitionProgress(double aProgress);
 
     /// @}
 

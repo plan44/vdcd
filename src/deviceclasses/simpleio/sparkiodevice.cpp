@@ -303,7 +303,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     sl->deriveColorMode();
     // - process according to spark mode
     uint32_t stateWord;
-    uint8_t mode = sl->sparkmode->getChannelValue();
+    uint8_t mode = sl->sparkmode->getTransitionalValue();
     if (mode==3) {
       // RGB lamp
       double r,g,b;
@@ -317,7 +317,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
     }
     else {
       // brightness only
-      double br = sl->brightness->getChannelValue()*255/sl->brightness->getMax();
+      double br = sl->brightness->getTransitionalValue()*255/sl->brightness->getMax();
       stateWord =
         (mode << 24) |
         ((int)br & 0xFF);

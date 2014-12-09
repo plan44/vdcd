@@ -130,15 +130,24 @@ namespace p44 {
     /// @return new channel value after increment/decrement
     double dimChannelValue(double aIncrement, MLMicroSeconds aTransitionTime);
 
-    /// get current value of channel. During transitions, this might be a calculated intermediate value
+    /// get current value of channel. This is always the target value, even if channel is still in transition
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
     double getChannelValue();
 
-    /// set transition progress (0..1).
-    /// If not 1 and updates pending, getChannelValue() will return a calculated intermediate value
-    /// @param aProgress how much the transition has progressed on the time scale already, 0..1 
-    void setTransitionProgress(double aProgress) { transitionProgress = aProgress; };
+    /// get current value of channel, which might be a calculated intermediate value between a previous value and getChannelValue()
+    /// @note does not trigger a device read, but returns chached value
+    //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
+    double getTransitionalValue();
+
+    /// step through transitions
+    /// @param aStepSize how much to step. Default is zero and means starting transition
+    /// @return true if there's another step to take, false if end of transition already reached
+    bool transitionStep(double aStepSize=0);
+
+    /// check if in transition
+    /// @return true if transition not complete and getTransitionalValue() will return a intermediate value
+    bool inTransition();
 
     /// get time of last sync with hardware (applied or synchronized back)
     /// @return time of last sync, p44::Never if value never synchronized

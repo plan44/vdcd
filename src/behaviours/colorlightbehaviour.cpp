@@ -422,6 +422,30 @@ void ColorLightBehaviour::appliedColorValues()
 }
 
 
+bool ColorLightBehaviour::colorTransitionStep(double aStepSize)
+{
+  bool moreSteps = brightness->transitionStep(aStepSize);
+  switch (colorMode) {
+    case colorLightModeHueSaturation:
+      hue->transitionStep(aStepSize);
+      saturation->transitionStep(aStepSize);
+      break;
+    case colorLightModeCt:
+      ct->transitionStep(aStepSize);
+      break;
+    case colorLightModeXY:
+      cieX->transitionStep(aStepSize);
+      cieY->transitionStep(aStepSize);
+      break;
+    default:
+      // no color
+      break;
+  }
+  return moreSteps;
+}
+
+
+
 #pragma mark - description/shortDesc
 
 
@@ -474,16 +498,16 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
   double scale = 1;
   switch (colorMode) {
     case colorLightModeHueSaturation: {
-      HSV[0] = hue->getChannelValue(); // 0..360
-      HSV[1] = saturation->getChannelValue()/100; // 0..1
-      HSV[2] = brightness->getChannelValue()/100; // 0..1
+      HSV[0] = hue->getTransitionalValue(); // 0..360
+      HSV[1] = saturation->getTransitionalValue()/100; // 0..1
+      HSV[2] = brightness->getTransitionalValue()/100; // 0..1
       HSVtoRGB(HSV, RGB);
       break;
     }
     case colorLightModeCt: {
       // Note: for some reason, passing brightness to V gives bad results,
       // so for now we always assume 1 and scale resulting RGB
-      CTtoxyV(ct->getChannelValue(), xyV);
+      CTtoxyV(ct->getTransitionalValue(), xyV);
       xyVtoXYZ(xyV, XYZ);
       XYZtoRGB(calibration, XYZ, RGB);
       // get maximum component brightness -> gives 100% brightness point, will be scaled down according to actual brightness
@@ -492,24 +516,24 @@ void RGBColorLightBehaviour::getRGB(double &aRed, double &aGreen, double &aBlue,
       if (RGB[1]>m) m = RGB[1];
       if (RGB[2]>m) m = RGB[2];
       // include actual brightness into scale calculation
-      scale = brightness->getChannelValue()/100/m;
+      scale = brightness->getTransitionalValue()/100/m;
       break;
     }
     case colorLightModeXY: {
       // Note: for some reason, passing brightness to V gives bad results,
       // so for now we always assume 1 and scale resulting RGB
-      xyV[0] = cieX->getChannelValue();
-      xyV[1] = cieY->getChannelValue();
+      xyV[0] = cieX->getTransitionalValue();
+      xyV[1] = cieY->getTransitionalValue();
       xyV[2] = 1;
       xyVtoXYZ(xyV, XYZ);
       // convert using calibration for this lamp
       XYZtoRGB(calibration, XYZ, RGB);
-      scale = brightness->getChannelValue()/100; // 0..1
+      scale = brightness->getTransitionalValue()/100; // 0..1
       break;
     }
     default: {
       // no color, just set R=G=B=brightness
-      RGB[0] = brightness->getChannelValue()/100;
+      RGB[0] = brightness->getTransitionalValue()/100;
       RGB[1] = RGB[0];
       RGB[2] = RGB[0];
       break;
@@ -641,28 +665,6 @@ void RGBColorLightBehaviour::setRGBW(double aRed, double aGreen, double aBlue, d
     colorMode = colorLightModeHueSaturation;
     // force recalculation of derived color value
     derivedValuesComplete = false;
-  }
-}
-
-
-void RGBColorLightBehaviour::setColorTransitionProgress(double aProgress)
-{
-  brightness->setTransitionProgress(aProgress);
-  switch (colorMode) {
-    case colorLightModeHueSaturation:
-      hue->setTransitionProgress(aProgress);
-      saturation->setTransitionProgress(aProgress);
-      break;
-    case colorLightModeCt:
-      ct->setTransitionProgress(aProgress);
-      break;
-    case colorLightModeXY:
-      cieX->setTransitionProgress(aProgress);
-      cieY->setTransitionProgress(aProgress);
-      break;
-    default:
-      // no color
-      break;
   }
 }
 

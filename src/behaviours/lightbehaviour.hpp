@@ -157,10 +157,10 @@ namespace p44 {
     /// wrapper to confirm having applied brightness
     bool brightnessNeedsApplying() { return brightness->needsApplying(); };
 
-    /// set transition progress for brightness (0..1).
-    /// If not 1 and updates pending, brightnessForHardware() will return a calculated intermediate value
-    /// @param aProgress how much the transition has progressed on the time scale already, 0..1
-    void setBrightnessTransitionProgress(double aProgress) { brightness->setTransitionProgress(aProgress); };
+    /// step through transitions
+    /// @param aStepSize how much to step. Default is zero and means starting transition
+    /// @return true if there's another step to take, false if end of transition already reached
+    bool brightnessTransitionStep(double aStepSize = 0) { return brightness->transitionStep(aStepSize); };
 
     /// wrapper to confirm having applied brightness
     void brightnessApplied() { brightness->channelValueApplied(); };

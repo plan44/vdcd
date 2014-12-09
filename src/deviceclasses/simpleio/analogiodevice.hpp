@@ -52,6 +52,8 @@ namespace p44 {
 
     AnalogIoType analogIOType;
 
+    long transitionTicket;
+
   public:
     AnalogIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
 
@@ -99,7 +101,7 @@ namespace p44 {
 
   private:
 
-    virtual void applyChannelValueSteps(DoneCB aDoneCB, bool aForDimming, double aProgress, double aStepSize);
+    virtual void applyChannelValueSteps(bool aForDimming, double aStepSize);
 
   };
 
