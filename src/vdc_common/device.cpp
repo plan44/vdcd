@@ -302,8 +302,10 @@ int Device::numChannels()
 bool Device::needsToApplyChannels()
 {
   for (int i=0; i<numChannels(); i++) {
-    if (getChannelByIndex(i, true)) {
+    ChannelBehaviourPtr ch = getChannelByIndex(i, true);
+    if (ch) {
       // at least this channel needs update
+      LOG(LOG_DEBUG,"needsToApplyChannels() returns true because of channel '%s'\n", ch->description().c_str());
       return true;
     }
   }
