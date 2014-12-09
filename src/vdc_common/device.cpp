@@ -990,14 +990,14 @@ void Device::updatingChannelsComplete()
   }
   #endif
   if (updateInProgress) {
-    FOCUSLOG("endUpdatingChannels in device %s, actually waiting for these result\n", shortDesc().c_str());
+    FOCUSLOG("endUpdatingChannels in device %s (while actually waiting for these updates!)\n", shortDesc().c_str());
     updateInProgress = false;
     if (updatedOrCachedCB) {
-      FOCUSLOG("- confirming channels updated from hardware\n");
+      FOCUSLOG("- confirming channels updated from hardware (= calling callback now)\n");
       DoneCB cb = updatedOrCachedCB;
       updatedOrCachedCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, cached values are either updated from hardware or superseded by pending updates TO hardware
-      FOCUSLOG("- confirmed channels updated from hardware\n");
+      FOCUSLOG("- confirmed channels updated from hardware (= callback has possibly launched apply already and returned now)\n");
     }
   }
   else {
