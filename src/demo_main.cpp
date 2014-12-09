@@ -69,6 +69,9 @@ public:
     setCommandDescriptors(usageText, options);
     parseCommandLine(argc, argv);
 
+    // create the root object
+    deviceContainer = DeviceContainerPtr(new DeviceContainer);
+
     // log level?
     int loglevel = DEFAULT_LOGLEVEL;
     getIntOption("loglevel", loglevel);
