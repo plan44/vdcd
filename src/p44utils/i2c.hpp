@@ -91,21 +91,28 @@ namespace p44 {
 
     virtual ~I2CBus();
 
-    /// SMBus read byte/word
+    typedef uint8_t smbus_block_t[32];
+
+    /// SMBus read byte/word/block
     /// @param aDevice device to access
     /// @param aRegister register/command to access
-    /// @param aByte/aWord will receive result
+    /// @param aCount (for blocks only) number of bytes
+    /// @param aByte/aWord/aData will receive result
     /// @return true if successful
     bool SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByte);
     bool SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWord);
+    bool SMBusReadBlock(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aCount, smbus_block_t &aData);
 
-    /// SMBus write byte/word
+    /// SMBus write byte/word/block
     /// @param aDevice device to access
     /// @param aRegister register/command to access
-    /// @param aByte/aWord to write
+    /// @param aCount (for blocks only) number of bytes
+    /// @param aByte/aWord/aDataP data to write
     /// @return true if successful
     bool SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte);
     bool SMBusWriteWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWord);
+    bool SMBusWriteBlock(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aCount, const uint8_t *aDataP);
+    bool SMBusWriteBytes(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aCount, const uint8_t *aDataP);
 
     /// I2C direct read/write without SMBus protocol (old devices like PCF8574)
     bool I2CReadByte(I2CDevice *aDeviceP, uint8_t &aByte);

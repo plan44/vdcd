@@ -178,7 +178,7 @@ bool I2CBus::I2CWriteByte(I2CDevice *aDeviceP, uint8_t aByte)
   #else
   int res = 1; // ok
   #endif
-  FOCUSLOG("i2c_smbus_write_byte(0x%02X) = %d\n", aByte, res);
+  FOCUSLOG("i2c_smbus_write_byte(byte=0x%02X) = %d\n", aByte, res);
   return (res>=0);
 }
 
@@ -193,7 +193,7 @@ bool I2CBus::SMBusReadByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aByt
   int res = 0x42; // dummy
   #endif
   // read is shown only in real Debug log, because button polling creates lots of accesses
-  DBGFOCUSLOG("i2c_smbus_read_byte_data(0x%02X) = %d / 0x%02X\n", aRegister, res, res);
+  DBGFOCUSLOG("i2c_smbus_read_byte_data(cmd=0x%02X) = %d / 0x%02X\n", aRegister, res, res);
   if (res<0) return false;
   aByte = (uint8_t)res;
   return true;
@@ -210,11 +210,34 @@ bool I2CBus::SMBusReadWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t &aWo
   int res = 0x4242; // dummy
   #endif
   // read is shown only in real Debug log, because button polling creates lots of accesses
-  DBGFOCUSLOG("i2c_smbus_read_word_data(0x%02X) = %d / 0x%04X\n", aRegister, res, res);
+  DBGFOCUSLOG("i2c_smbus_read_word_data(cmd=0x%02X) = %d / 0x%04X\n", aRegister, res, res);
   if (res<0) return false;
   aWord = (uint16_t)res;
   return true;
 }
+
+
+bool I2CBus::SMBusReadBlock(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t &aCount, smbus_block_t &aData)
+{
+  if (!accessDevice(aDeviceP)) return false; // cannot read
+  #if !DISABLE_I2C
+  int res = i2c_smbus_read_block_data(busFD, aRegister, aData);
+  if (res<0) return false;
+  #else
+  int res = 0; // no data
+  #endif
+  if (FOCUSLOGENABLED) {
+    string data;
+    for (uint8_t i=0; i<res; i++) string_format_append(data, ", 0x%02X", aData[i]);
+    FOCUSLOG("i2c_smbus_read_block_data(cmd=0x%02X) = %d / 0x%02X%s\n", aRegister, res, res, data.c_str());
+  }
+  if (res<0) return false;
+  aCount = (uint16_t)res;
+  return true;
+}
+
+
+
 
 
 bool I2CBus::SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByte)
@@ -225,7 +248,7 @@ bool I2CBus::SMBusWriteByte(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aByt
   #else
   int res = 1; // ok
   #endif
-  FOCUSLOG("i2c_smbus_write_byte_data(0x%02X, 0x%02X) = %d\n", aRegister, aByte, res);
+  FOCUSLOG("i2c_smbus_write_byte_data(cmd=0x%02X, byte=0x%02X) = %d\n", aRegister, aByte, res);
   return (res>=0);
 }
 
@@ -238,9 +261,49 @@ bool I2CBus::SMBusWriteWord(I2CDevice *aDeviceP, uint8_t aRegister, uint16_t aWo
   #else
   int res = 1; // ok
   #endif
-  FOCUSLOG("i2c_smbus_write_word_data(0x%02X, 0x%04X) = %d\n", aRegister, aWord, res);
+  FOCUSLOG("i2c_smbus_write_word_data(cmd=0x%02X, word=0x%04X) = %d\n", aRegister, aWord, res);
   return (res>=0);
 }
+
+
+bool I2CBus::SMBusWriteBlock(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aCount, const uint8_t *aDataP)
+{
+  if (!accessDevice(aDeviceP)) return false; // cannot write
+  #if !DISABLE_I2C
+  int res = i2c_smbus_write_block_data(busFD, aRegister, aCount, aDataP);
+  #else
+  int res = 1; // ok
+  #endif
+  if (FOCUSLOGENABLED) {
+    string data;
+    if (res>=0) {
+      for (uint8_t i=0; i<aCount; i++) string_format_append(data, ", 0x%02X", aDataP[i]);
+    }
+    FOCUSLOG("i2c_smbus_write_block_data(cmd=0x%02X, count=0x%02X%s) = %d\n", aRegister, aCount, data.c_str(), res);
+  }
+  return (res>=0);
+}
+
+
+// Not proper block, but just some bytes in a row, count byte not sent
+bool I2CBus::SMBusWriteBytes(I2CDevice *aDeviceP, uint8_t aRegister, uint8_t aCount, const uint8_t *aDataP)
+{
+  if (!accessDevice(aDeviceP)) return false; // cannot write
+  #if !DISABLE_I2C
+  int res = i2c_smbus_write_i2c_block_data(busFD, aRegister, aCount, aDataP);
+  #else
+  int res = 1; // ok
+  #endif
+  if (FOCUSLOGENABLED) {
+    string data;
+    if (res>=0) {
+      for (uint8_t i=0; i<aCount; i++) string_format_append(data, ", 0x%02X", aDataP[i]);
+    }
+    FOCUSLOG("i2c_smbus_write_i2c_block_data(cmd=0x%02X, count=0x%02X%s) = %d\n", aRegister, aCount, data.c_str(), res);
+  }
+  return (res>=0);
+}
+
 
 
 
@@ -621,27 +684,34 @@ double PCA9685::getPinValue(int aPinNo)
 
 void PCA9685::setPinValue(int aPinNo, double aValue)
 {
+  uint8_t leddata[4];
   // check special full on and full off cases first
   uint16_t v = (uint16_t)(aValue*40.96);
   if (v==0) {
-    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x00); // no full ON
-    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x10); // but full OFF
+    leddata[0] = 0;
+    leddata[1] = 0x00; // not full ON
+    leddata[2] = 0;
+    leddata[3] = 0x10; // but full OFF
   }
   else if (v>=0x0FFF) {
-    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, 0x10); // full ON
-    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, 0x00); // buf not full OFF
+    leddata[0] = 0;
+    leddata[1] = 0x10; // full ON
+    leddata[2] = 0;
+    leddata[3] = 0x00; // but not full OFF
   }
   else {
     // minimize current by distributing switch on time of the pins
     // - set on time, staggered by pinNo
-    i2cbus->SMBusWriteByte(this, 6+aPinNo*4, 0x00); // LSB of start time is 0
-    i2cbus->SMBusWriteByte(this, 7+aPinNo*4, aPinNo); // each pin offsets onTime by 1/16 of 12-bit range: upper 4 bits = pinNo
+    leddata[0] = 0x00; // LSB of start time is 0
+    leddata[1] = aPinNo; // each pin offsets onTime by 1/16 of 12-bit range: upper 4 bits = pinNo
     uint16_t t = aPinNo<<8; // on time
     t = (t+v) & 0xFFF; // off time with wrap around
     // set off time
-    i2cbus->SMBusWriteByte(this, 8+aPinNo*4, t & 0xFF); // LSB of end time
-    i2cbus->SMBusWriteByte(this, 9+aPinNo*4, (t>>8) & 0xF); // 4 MSB of end time
+    leddata[2] = t & 0xFF; // LSB of end time
+    leddata[3] = (t>>8) & 0xF; // 4 MSB of end time
   }
+  // send as one transaction
+  i2cbus->SMBusWriteBytes(this, 6+aPinNo*4, 4, leddata);
 }
 
 
