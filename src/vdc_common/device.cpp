@@ -717,7 +717,7 @@ void Device::dimAutostopHandler(DsChannelType aChannel)
 // actual dimming implementation, usually overridden by subclasses to provide more optimized/precise dimming
 void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 {
-  DBGLOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+  LOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
   // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
   if (aDimMode==dimmode_stop) {
     // stop dimming
@@ -736,7 +736,7 @@ void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
       // start ticking
       isDimming = true;
       // wait for all apply operations to really complete before starting to dim
-      DoneCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now());
+      DoneCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()+10*MilliSecond);
       waitForApplyComplete(boost::bind(&Device::requestApplyingChannels, this, dd, false));
     }
   }
@@ -758,7 +758,7 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
   MLMicroSeconds now = MainLoop::now();
   while (aNextDimAt<now) {
     // missed this step - simply increment channel and target time, but do not cause re-apply
-    DBGLOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
+    LOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
     aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
     aNextDimAt += DIM_STEP_INTERVAL;
   }
