@@ -75,7 +75,11 @@ bool ChannelBehaviour::transitionStep(double aStepSize)
   }
   if (inTransition()) {
     transitionProgress += aStepSize;
-    if (transitionProgress>1) transitionProgress=1;
+    if (transitionProgress>=1) {
+      // transition complete
+      transitionProgress=1;
+      previousChannelValue = cachedChannelValue; // end of transition reached, old previous value is no longer needed
+    }
     return true; // still in transition (at least until this step is actually applied)
   }
   // no longer in transition
