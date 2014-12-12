@@ -150,12 +150,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
     stopActions();
     SceneNo sceneNo = lightScene->sceneNo;
     // now check for special hard-wired scenes
-    if (sceneNo==MIN_S) {
-      brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, false));
-      LOG(LOG_NOTICE,"- ApplyScene(MIN_S): setting brightness to minDim %0.1f\n", brightness->getMinDim());
-      return true;
-    }
-    else if (sceneNo==AUTO_OFF) {
+    if (sceneNo==AUTO_OFF) {
       // slow fade down
       Brightness b = brightness->getChannelValue();
       if (b>0) {
