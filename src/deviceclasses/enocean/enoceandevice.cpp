@@ -219,7 +219,7 @@ void EnoceanDevice::needOutgoingUpdate()
     sendOutgoingUpdate();
   }
   else {
-    LOG(LOG_INFO,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
+    LOG(LOG_NOTICE,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
   }
 }
 
@@ -272,10 +272,11 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
   }
-  // if device cannot be update whenever output value change is requested, send updates after receiving a message
+  // if device cannot be updated whenever output value change is requested, send updates after receiving a message
   if (pendingDeviceUpdate || updateAtEveryReceive) {
     // send updates, if any
     pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
+    LOG(LOG_NOTICE,"EnOcean device %s: pending output update is now sent to device\n", shortDesc().c_str());
     sendOutgoingUpdate();
   }
 }
