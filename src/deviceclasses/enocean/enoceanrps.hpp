@@ -147,6 +147,32 @@ namespace p44 {
 
 
 
+  /// single EnOcean smoke detector handler
+  class EnoceanRpsSmokeDetectorHandler : public EnoceanRpsHandler
+  {
+    typedef EnoceanRpsHandler inherited;
+    friend class EnoceanRpsHandler;
+
+    bool isBatteryStatus; ///< set if this represents the battery status (otherwise, it's the alarm status)
+
+    /// private constructor, create new channels using factory static method
+    EnoceanRpsSmokeDetectorHandler(EnoceanDevice &aDevice);
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+  private:
+
+  };
+  typedef boost::intrusive_ptr<EnoceanRpsSmokeDetectorHandler> EnoceanRpsSmokeDetectorHandlerPtr;
+
+
+
 
 
   class EnoceanRPSDevice : public EnoceanDevice

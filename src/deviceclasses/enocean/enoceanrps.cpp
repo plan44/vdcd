@@ -159,6 +159,44 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       newDev->addChannelHandler(newHandler);
     }
   }
+  else if (aEEProfile==0xF605C0) {
+    // F6-05-xx - EEP for "detectors"
+    // F6-05-C0 - custom pseudo-EEP for not yet defined smoke alarm profile (Eltako FRW and alphaEOS GUARD)
+    if (aSubDeviceIndex<1) {
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("smoke detector");
+      // smoke detectors can be used for anything
+      newDev->setPrimaryGroup(group_black_joker);
+      // Current simple dS mapping: one binary input for smoke alarm status, one for low bat status
+      EnoceanRpsSmokeDetectorHandlerPtr newHandler;
+      BinaryInputBehaviourPtr bb;
+      // - Alarm: 1: Alarm, 0: no Alarm
+      newHandler = EnoceanRpsSmokeDetectorHandlerPtr(new EnoceanRpsSmokeDetectorHandler(*newDev.get()));
+      bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_smoke, usage_room, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("Smoke alarm");
+      newHandler->behaviour = bb;
+      newHandler->isBatteryStatus = false;
+      newDev->addChannelHandler(newHandler);
+      // - Low Battery: 1: battery low, 0: battery OK
+      newHandler = EnoceanRpsSmokeDetectorHandlerPtr(new EnoceanRpsSmokeDetectorHandler(*newDev.get()));
+      bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_lowBattery, usage_room, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("Low Battery");
+      newHandler->behaviour = bb;
+      newHandler->isBatteryStatus = true;
+      newDev->addChannelHandler(newHandler);
+    }
+  }
   // RPS never needs a teach-in response
   // return device (or empty if none created)
   return newDev;
@@ -277,7 +315,7 @@ void EnoceanRpsWindowHandleHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketP
     BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
     if (bb) {
       if (isTiltedStatus) {
-        LOG(LOG_INFO,"Enocean Window Handle %08X, changed state to %s\n", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
+        LOG(LOG_INFO,"Enocean Window Handle %08X reports state: %s\n", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
         bb->updateInputState(tilted); // report the tilted status
       }
       else {
@@ -325,7 +363,7 @@ void EnoceanRpsCardKeyHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // report data for this binary input
   BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
   if (bb) {
-    LOG(LOG_INFO,"Enocean Key Card Switch %08X, changed state to %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
+    LOG(LOG_INFO,"Enocean Key Card Switch %08X reports state: %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
     bb->updateInputState(isInserted); // report the status
   }
 }
@@ -337,18 +375,69 @@ string EnoceanRpsCardKeyHandler::shortDesc()
 }
 
 
+#pragma mark - Smoke Detector
+
+EnoceanRpsSmokeDetectorHandler::EnoceanRpsSmokeDetectorHandler(EnoceanDevice &aDevice) :
+inherited(aDevice)
+{
+}
+
+
+
+// AlphaEOS GUARD + Eltako FRW
+//                          DATA 	STATUS
+//  Alarm - Ein             10		30
+//  Alarm ­ Aus              00 		20
+//  Batterie - ok 7.5 - 9V 	00 		20
+//  Batterie - fail (<7.5V) 30 		30
+
+
+// device specific radio packet handling
+void EnoceanRpsSmokeDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+{
+  // extract payload data
+  uint8_t data = aEsp3PacketPtr->radioUserData()[0];
+  BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
+  if (isBatteryStatus) {
+    // battery status channel
+    bool lowBat = (data & 0x30)==0x30;
+    LOG(LOG_INFO,"Enocean Smoke Detector %08X reports state: Battery %s\n", device.getAddress(), lowBat ? "LOW" : "ok");
+    bb->updateInputState(lowBat);
+  }
+  else {
+    // smoke alarm status
+    bool smokeAlarm = (data & 0x30)==0x10;
+    LOG(LOG_INFO,"Enocean Smoke Detector %08X reports state: %s\n", device.getAddress(), smokeAlarm ? "SMOKE ALARM" : "no alarm");
+    bb->updateInputState(smokeAlarm);
+  }
+}
+
+
+string EnoceanRpsSmokeDetectorHandler::shortDesc()
+{
+  return "Smoke Alarm";
+}
+
+
+
+
 
 #pragma mark - EnoceanRPSDevice
 
 
 bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 {
-  // F6-02-xx can also be F6-04-01 or F6-04-02
-  if ((getEEProfile() & eep_ignore_type_mask)==0xF60200 || (getEEProfile() & eep_ignore_type_mask)==0xF60400) {
-    // is two-way rocker that can also be a key card switch or vice versa
+  // F6-02-xx, F6-04-01, F6-04-02, F6-05-C0 are interchangeable
+  if (
+    (getEEProfile() & eep_ignore_type_mask)==0xF60200 || // dual rocker
+    getEEProfile()==0xF60401 || getEEProfile()==0xF60402 || // key card switch
+    getEEProfile()==0xF605C0 // smoke detector Eltako FRW or alphaEOS GUARD
+  ) {
+    // two-way rocker, key card switch, smoke detector
     aApiObjectValue->add(string_format("%d",0xF602FF), aApiObjectValue->newString("dual rocker switch"));
     aApiObjectValue->add(string_format("%d",0xF60401), aApiObjectValue->newString("key card activated switch"));
     aApiObjectValue->add(string_format("%d",0xF60402), aApiObjectValue->newString("key card activated switch ERP2"));
+    aApiObjectValue->add(string_format("%d",0xF605C0), aApiObjectValue->newString("Smoke detector FRW/GUARD"));
     return true;
   }
   return false; // no variants
@@ -358,7 +447,7 @@ bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
 {
   // check if changeable profile code
-  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402) {
+  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402 || aProfile==0xF605C0) {
     if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
     // change profile now
     switchToProfile(aProfile);

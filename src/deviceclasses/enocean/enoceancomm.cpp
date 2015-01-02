@@ -493,6 +493,9 @@ RadioOrg Esp3Packet::eepRorg()
 //
 //
 //  1   x    0   x   x   x   0   0   0   0    F6   04   01     Key Card   no unqiue SIGNATURE (overlaps with 2-Rocker)
+//
+//  1   x    0   0   x   x   0   0   0   0    F6   05   xx     Detectors  no unqiue SIGNATURE (overlaps with 2-Rocker) - e.g. alphaEOS GUARD
+
 
 
 // 1BS Telegrams
