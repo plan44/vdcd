@@ -112,6 +112,8 @@ namespace p44 {
     bool pendingDeviceUpdate; ///< set when update to the device is pending
 
     MLMicroSeconds lastPacketTime; ///< time when device received last packet (or device was created)
+    int16_t lastRSSI; ///< RSSI of last packet received
+    uint8_t lastRepeaterCount; ///< last packet's repeater count
 
   public:
 

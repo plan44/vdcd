@@ -60,6 +60,8 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
   iconBaseName = "enocean";
   groupColoredIcon = true;
   lastPacketTime = MainLoop::now(); // consider packet received at time of creation (to avoid devices starting inactive)
+  lastRSSI = -999; // not valid
+  lastRepeaterCount = 0; // dummy
 }
 
 
@@ -268,6 +270,8 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   LOG(LOG_INFO, "EnOcean device %s: now starts processing packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
   lastPacketTime = MainLoop::now();
+  lastRSSI = aEsp3PacketPtr->radioDBm();
+  lastRepeaterCount = aEsp3PacketPtr->radioRepeaterCount();
   // pass to every channel
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
     (*pos)->handleRadioPacket(aEsp3PacketPtr);
@@ -324,6 +328,9 @@ string EnoceanDevice::description()
 enum {
   profileVariants_key,
   profile_key,
+  packetage_key,
+  rssi_key,
+  repeaterCount_key,
   numProperties
 };
 
@@ -347,6 +354,9 @@ PropertyDescriptorPtr EnoceanDevice::getDescriptorByIndex(int aPropIndex, int aD
   static const PropertyDescription properties[numProperties] = {
     { "x-p44-profileVariants", apivalue_null, profileVariants_key, OKEY(enoceanDevice_key) },
     { "x-p44-profile", apivalue_int64, profile_key, OKEY(enoceanDevice_key) },
+    { "x-p44-packetAge", apivalue_double, packetage_key, OKEY(enoceanDevice_key) },
+    { "x-p44-rssi", apivalue_int64, rssi_key, OKEY(enoceanDevice_key) },
+    { "x-p44-repeaterCount", apivalue_int64, repeaterCount_key, OKEY(enoceanDevice_key) },
   };
   if (!aParentDescriptor) {
     // root level - accessing properties on the Device level
@@ -375,6 +385,25 @@ bool EnoceanDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
           return getProfileVariants(aPropValue);
         case profile_key:
           aPropValue->setInt32Value(getEEProfile()); return true;
+        case packetage_key:
+          // Note lastPacketTime is set to now at startup, so additionally check lastRSSI
+          if (lastPacketTime==Never || lastRSSI<=-999)
+            aPropValue->setNull();
+          else
+            aPropValue->setDoubleValue((double)(MainLoop::now()-lastPacketTime)/Second);
+          return true;
+        case rssi_key:
+          if (lastRSSI<=-999)
+            aPropValue->setNull();
+          else
+            aPropValue->setInt32Value(lastRSSI);
+          return true;
+        case repeaterCount_key:
+          if (lastRSSI<=-999)
+            aPropValue->setNull();
+          else
+            aPropValue->setUint8Value(lastRepeaterCount);
+          return true;
       }
     }
     else {

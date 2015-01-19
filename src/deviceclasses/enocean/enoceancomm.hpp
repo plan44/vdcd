@@ -60,11 +60,12 @@ namespace p44 {
   } RadioOrg;
 
 
-  // RPS bits
+  // status bits
   typedef enum {
-    status_mask = 0x30,
-    status_T21 = 0x20,
-    status_NU = 0x10 // set if N-Message, cleared if U-Message
+    status_rps_mask = 0x30, // RPS bits
+    status_T21 = 0x20, // RPS T21 bit
+    status_NU = 0x10, // RPS N/U bit set if N-Message, cleared if U-Message
+    status_repeaterCount_mask = 0x0F // mask for repeater count
   } StatusBits;
 
 
@@ -249,6 +250,9 @@ namespace p44 {
 
     /// @return RSSI in dBm (negative, higher (more near zero) values = better signal)
     int radioDBm();
+
+    /// @return repeater count (0=none, 1..n = number of repeaters)
+    uint8_t radioRepeaterCount();
 
     /// @return security level
     uint8_t radioSecurityLevel();

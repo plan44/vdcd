@@ -353,6 +353,11 @@ uint8_t Esp3Packet::radioStatus()
 }
 
 
+uint8_t Esp3Packet::radioRepeaterCount()
+{
+  return radioStatus() & status_repeaterCount_mask;
+}
+
 
 
 size_t Esp3Packet::radioUserDataLength()
@@ -682,13 +687,14 @@ string Esp3Packet::description()
       // ESP3 radio packet
       string_format_append(t,
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08lX, status=0x%02X\n"
-        "- subtelegrams=%d, destination=0x%08lX, dBm=%d, secLevel=%d\n",
+        "- subtelegrams=%d, destination=0x%08lX, dBm=%d, repeated=%d, secLevel=%d\n",
         eepRorg(),
         radioSender(),
         radioStatus(),
         radioSubtelegrams(),
         radioDestination(),
         radioDBm(),
+        radioRepeaterCount(),
         radioSecurityLevel()
       );
       // EEP info if any
