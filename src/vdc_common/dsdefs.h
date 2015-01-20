@@ -133,7 +133,7 @@ typedef enum {
 
 
 
-/// group/color (upper 4 bits in LTNUMGRP0)
+/// group/color
 typedef enum {
   group_variable = 0,
   group_yellow_light = 1,
