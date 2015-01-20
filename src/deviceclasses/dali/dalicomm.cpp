@@ -504,6 +504,7 @@ void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 // Scan DALI bus by random address
 
 #define MAX_RESTARTS 3
+#define RESCAN_RETRY_DELAY (30*Second)
 
 class DaliFullBusScanner : public P44Obj
 {
@@ -534,9 +535,17 @@ private:
     foundDevicesPtr(new DaliComm::ShortAddressList)
   {
     daliComm.startProcedure();
+    // start a scan
+    startScan();
+  }
+
+
+  void startScan()
+  {
     // first scan for used short addresses
     DaliBusScanner::scanBus(daliComm,boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _1, _2));
   }
+
 
   void shortAddrListReceived(DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
   {
@@ -607,6 +616,9 @@ private:
   void compareNext()
   {
     // issue next compare command
+    // Note: It seems that some devices (e.g. Unidim UK2) need all three bytes of the search address sent anew for every COMPARE
+    //   therefore we prohibit the optimisation for now:
+    setLMH = true;
     // - update address bytes as needed (only those that have changed)
     uint8_t by = (searchAddr>>16) & 0xFF;
     if (by!=searchH || setLMH) {
@@ -685,8 +697,17 @@ private:
     if (aError)
       return completed(aError);
     if (aNoOrTimeout) {
+      // should not happen, probably bus error led to false device detection -> restart search after a while
       LOG(LOG_WARNING, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
-      // TODO: should not happen, probably bus error led to false device detection, restart search
+      if (restarts<MAX_RESTARTS) {
+        LOG(LOG_NOTICE, "- restarting complete scan after a delay\n");
+        restarts++;
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliFullBusScanner::startScan, this), RESCAN_RETRY_DELAY);
+        return;
+      }
+      else {
+        return completed(ErrorPtr(new DaliCommError(DaliCommErrorDeviceSearch, "Detected device does not respond to QUERY_SHORT_ADDRESS")));
+      }
     }
     else {
       // response is short address in 0AAAAAA1 format or DALIVALUE_MASK (no adress)
