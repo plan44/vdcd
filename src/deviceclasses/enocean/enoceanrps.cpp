@@ -415,7 +415,7 @@ void EnoceanRpsSmokeDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3Packet
 
 string EnoceanRpsSmokeDetectorHandler::shortDesc()
 {
-  return "Smoke Alarm";
+  return "Smoke Detector";
 }
 
 
