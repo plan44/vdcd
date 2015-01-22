@@ -103,6 +103,7 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
   }
   // start collecting, allow quick scan when not exhaustively collecting (will still use full scan when bus collisions are detected)
   daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), !aExhaustive);
+  //daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), false); // %%% for debugging random address scanner
 }
 
 

@@ -243,6 +243,8 @@ public:
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
+      { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
+      { 0  , "dalirxadj",     true,  "adjustment;DALI signal adjustment for receiving" },
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
@@ -431,6 +433,9 @@ public:
         getIntOption("daliportidle", sec);
         DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
         daliDeviceContainer->daliComm->setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+        int adj;
+        if (getIntOption("dalitxadj", adj)) daliDeviceContainer->daliComm->setDaliSendAdj(adj);
+        if (getIntOption("dalirxadj", adj)) daliDeviceContainer->daliComm->setDaliSampleAdj(adj);
         daliDeviceContainer->addClassToDeviceContainer();
       }
       // - Add EnOcean devices class if EnOcean modem serialport/host is specified

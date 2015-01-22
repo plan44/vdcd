@@ -25,7 +25,7 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 0
+#define FOCUSLOGLEVEL 7
 
 
 #include "dalicomm.hpp"
@@ -36,6 +36,10 @@ using namespace p44;
 // pseudo baudrate for dali bridge must be 9600bd
 #define DALIBRIDGE_BAUDRATE 9600
 
+// default sending and sampling adjustment values
+#define DEFAULT_SENDING_EDGE_ADJUSTMENT 16 // one step (1/16th = 16/256th DALI bit time) delay of rising edge by default is probably better
+#define DEFAULT_SAMPLING_POINT_ADJUSTMENT 0
+
 
 DaliComm::DaliComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
@@ -43,7 +47,9 @@ DaliComm::DaliComm(MainLoop &aMainLoop) :
   closeAfterIdleTime(Never),
   connectionTimeoutTicket(0),
   expectedBridgeResponses(0),
-  responsesInSequence(false)
+  responsesInSequence(false),
+  sendEdgeAdj(DEFAULT_SENDING_EDGE_ADJUSTMENT),
+  samplePointAdj(DEFAULT_SAMPLING_POINT_ADJUSTMENT)
 {
 }
 
@@ -91,6 +97,8 @@ bool DaliComm::isBusy()
 // - 3 byte debug commands
 #define CMD_CODE_ECHO_DATA1 0x41 // returns RESP_DATA echoing DATA1
 #define CMD_CODE_ECHO_DATA2 0x42 // returns RESP_DATA echoing DATA2
+#define CMD_CODE_OVLRESET 0x43 // reset overload, DATA1 0=autoreset enabled, 1=autoreset disabled
+#define CMD_CODE_EDGEADJ 0x44 // set DALI sending edge adjustment, DATA1=sending delay for going-inactive edge, DATA2=delay of sampling point, in number of 1/256th periods (with actual resolution of 1/16th bit for now)
 
 // bridge responses
 #define RESP_CODE_ACK 0x2A // reponse for all commands that do not return data, second byte is status
@@ -104,6 +112,41 @@ bool DaliComm::isBusy()
 
 #define BUFFERED_BRIDGE_RESPONSES_HIGH 35 // Rx buf in bridge is 80 bytes = 40 answers, only use 35 to make sure
 #define BUFFERED_BRIDGE_RESPONSES_LOW 5 // low watermark to restart sending
+
+
+static const char *bridgeCmdName(uint8_t aBridgeCmd)
+{
+  switch (aBridgeCmd) {
+    case CMD_CODE_RESET: return "RESETBRIDGE";
+    case CMD_CODE_SEND16: return "SEND16";
+    case CMD_CODE_2SEND16: return "DOUBLESEND16";
+    case CMD_CODE_SEND16_REC8: return "SEND16_REC8";
+    case CMD_CODE_OVLRESET: return "OVLRESET";
+    case CMD_CODE_EDGEADJ: return "EDGEADJ";
+    default: return "???";
+  }
+}
+
+
+static const char *bridgeResponseText(uint8_t aResp1, uint8_t aResp2)
+{
+  if (aResp1==RESP_CODE_ACK) {
+    switch (aResp2) {
+      case ACK_OK: return "OK";
+      case ACK_TIMEOUT: return "TIMEOUT";
+      case ACK_FRAME_ERR: return "FRAME_ERROR";
+      case ACK_OVERLOAD: return "BUS_OVERLOAD";
+      case ACK_INVALIDCMD: return "INVALID_COMMAND";
+      default: return "UNKNOWN ACK CODE";
+    }
+  }
+  else {
+    static char msg[20];
+    sprintf(msg, "DATA = %02X", aResp2);
+    return msg;
+  }
+}
+
 
 
 void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
@@ -127,7 +170,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
     if (!aError && ropP->getDataSize()>=2) {
       uint8_t resp1 = ropP->getDataP()[0];
       uint8_t resp2 = ropP->getDataP()[1];
-      FOCUSLOG("DALI bridge response: %02X %02X (%d pending responses)\n", resp1, resp2, expectedBridgeResponses);
+      FOCUSLOG("DALI bridge response: %s (%02X %02X) - %d pending responses\n", bridgeResponseText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
       if (aBridgeResultHandler)
         aBridgeResultHandler(resp1, resp2, aError);
     }
@@ -144,7 +187,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
 
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay)
 {
-  FOCUSLOG("DALI bridge command:  %02X  %02X %02X (%d pending responses)\n", aCmd, aDali1, aDali2, expectedBridgeResponses);
+  FOCUSLOG("DALI bridge command:  %s (%02X)  %02X %02X (%d pending responses)\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses);
   // reset connection closing timeout
   MainLoop::currentMainLoop().cancelExecutionTicket(connectionTimeoutTicket);
   if (closeAfterIdleTime!=Never) {
@@ -254,10 +297,14 @@ void DaliComm::daliQueryResponseHandler(DaliQueryResultCB aResultCB, uint8_t aRe
 
 void DaliComm::reset(DaliCommandStatusCB aStatusCB)
 {
+  // 3 reset commands in row will terminate any out-of-sync commands
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
-  sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL); // 3 reset commands in row will terminate any out-of-sync commands
-  daliSend(DALICMD_TERMINATE, 0, aStatusCB); // terminate any special commands on the DALI bus
+  sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
+  // set DALI signal edge adjustments (available from fim_dali v3 onwards)
+  sendBridgeCommand(CMD_CODE_EDGEADJ, sendEdgeAdj, samplePointAdj, NULL);
+  // terminate any special commands on the DALI bus
+  daliSend(DALICMD_TERMINATE, 0, aStatusCB);
 }
 
 
@@ -504,7 +551,10 @@ void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 // Scan DALI bus by random address
 
 #define MAX_RESTARTS 3
-#define RESCAN_RETRY_DELAY (30*Second)
+#define MAX_COMPARE_REPEATS 0
+#define MAX_SHORTADDR_READ_REPEATS 2
+#define RESCAN_RETRY_DELAY (10*Second)
+#define READ_SHORT_ADDR_SEND_DELAY 0
 
 class DaliFullBusScanner : public P44Obj
 {
@@ -517,6 +567,8 @@ class DaliFullBusScanner : public P44Obj
   uint8_t searchL, searchM, searchH;
   uint32_t lastSearchMin; // for re-starting
   int restarts;
+  int compareRepeat;
+  int readShortAddrRepeat;
   bool setLMH;
   DaliComm::ShortAddressListPtr foundDevicesPtr;
   DaliComm::ShortAddressListPtr usedShortAddrsPtr;
@@ -564,10 +616,12 @@ private:
     // Terminate any special modes first
     daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // initialize entire system for random address selection process
-    daliComm.daliSendTwice(DALICMD_INITIALISE, 0x00);
-    daliComm.daliSendTwice(DALICMD_RANDOMISE, 0x00);
+    daliComm.daliSendTwice(DALICMD_INITIALISE, 0x00, NULL, 100*MilliSecond);
+    daliComm.daliSendTwice(DALICMD_RANDOMISE, 0x00, NULL, 100*MilliSecond);
     // start search at lowest address
-    newSearchUpFrom(0);
+    restarts = 0;
+    // - as specs say DALICMD_RANDOMISE might need 100mS until new random addresses are ready, wait a little before actually starting
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliFullBusScanner::newSearchUpFrom, this, 0), 150*MilliSecond);
   };
 
 
@@ -605,10 +659,10 @@ private:
     searchMax = 0xFFFFFF;
     searchMin = aMinSearch;
     lastSearchMin = aMinSearch;
-    restarts = 0;
     searchAddr = (searchMax-aMinSearch)/2+aMinSearch; // start in the middle
     // no search address currently set
     setLMH = true;
+    compareRepeat = 0;
     compareNext();
   }
 
@@ -616,9 +670,9 @@ private:
   void compareNext()
   {
     // issue next compare command
-    // Note: It seems that some devices (e.g. Unidim UK2) need all three bytes of the search address sent anew for every COMPARE
-    //   therefore we prohibit the optimisation for now:
-    setLMH = true;
+//    // Note: It seems that some devices (e.g. Unidim UK2) need all three bytes of the search address sent anew for every COMPARE
+//    //   therefore we prohibit the optimisation for now:
+//    setLMH = true;
     // - update address bytes as needed (only those that have changed)
     uint8_t by = (searchAddr>>16) & 0xFF;
     if (by!=searchH || setLMH) {
@@ -650,9 +704,19 @@ private:
       completed(aError); // other error, abort
       return;
     }
-    DBGLOG(LOG_DEBUG, "DALICMD_COMPARE result = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
+    compareRepeat++;
+    DBGLOG(LOG_DEBUG, "DALICMD_COMPARE result #%d = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", compareRepeat, isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
+    // repeat to make sure
+    if (!isYes && compareRepeat<=MAX_COMPARE_REPEATS) {
+      DBGLOG(LOG_DEBUG, "- not trusting compare NO result yet, retrying...\n");
+      compareNext();
+      return;
+    }
     // any ballast has smaller or equal random address?
     if (isYes) {
+      if (compareRepeat>1) {
+        DBGLOG(LOG_DEBUG, "- got a NO in first attempt but now a YES in %d attempt! -> unreliable answers\n", compareRepeat);
+      }
       // yes, there is at least one, max address is what we searched so far
       searchMax = searchAddr;
     }
@@ -669,12 +733,13 @@ private:
       // found!
       LOG(LOG_NOTICE, "- Found device at 0x%06X\n", searchAddr);
       // read current short address
-      daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _1, _2, _3));
+      readShortAddrRepeat = 0;
+      daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _1, _2, _3), READ_SHORT_ADDR_SEND_DELAY);
     }
     else {
       // not yet - continue
       searchAddr = searchMin + (searchMax-searchMin)/2;
-      DBGLOG(LOG_DEBUG, "                         Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
+      DBGLOG(LOG_DEBUG, "                            Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
       if (searchAddr>0xFFFFFF) {
         LOG(LOG_WARNING, "- failed search\n");
         if (restarts<MAX_RESTARTS) {
@@ -687,7 +752,8 @@ private:
           return completed(ErrorPtr(new DaliCommError(DaliCommErrorDeviceSearch, "Binary search got out of range")));
         }
       }
-      // issue next compare
+      // issue next address' compare
+      compareRepeat = 0;
       compareNext();
     }
   }
@@ -697,8 +763,15 @@ private:
     if (aError)
       return completed(aError);
     if (aNoOrTimeout) {
-      // should not happen, probably bus error led to false device detection -> restart search after a while
+      // should not happen, but just retry
       LOG(LOG_WARNING, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
+      readShortAddrRepeat++;
+      if (readShortAddrRepeat<=MAX_SHORTADDR_READ_REPEATS) {
+        daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _1, _2, _3), READ_SHORT_ADDR_SEND_DELAY);
+        return;
+      }
+      // should definitely not happen, probably bus error led to false device detection -> restart search after a while
+      LOG(LOG_WARNING, "- Device at 0x%06X did not respond to %d attempts of DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr, MAX_SHORTADDR_READ_REPEATS+1);
       if (restarts<MAX_RESTARTS) {
         LOG(LOG_NOTICE, "- restarting complete scan after a delay\n");
         restarts++;

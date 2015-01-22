@@ -112,6 +112,9 @@ namespace p44 {
     int expectedBridgeResponses; ///< not yet received bridge responses
     bool responsesInSequence; ///< set when repsonses need to be in sequence with requests
 
+    uint8_t sendEdgeAdj; ///< adjustment for sending rising edge - first param to CMD_CODE_EDGEADJ
+    uint8_t samplePointAdj; ///< adjustment for sampling point - second param to CMD_CODE_EDGEADJ
+
   public:
 
     DaliComm(MainLoop &aMainLoop);
@@ -129,6 +132,14 @@ namespace p44 {
     /// @param aCloseAfterIdleTime if not Never, serial port will be closed after being idle for the specified time
     void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime);
 
+    /// set DALI edge adjustment
+    /// @param how much (in 1/256th DALI bit time units) to delay the going inactive edge of the sending signal, to compensate for slow falling (going active) edge on the bus
+    void setDaliSendAdj(uint8_t aSendEdgeDelay) { sendEdgeAdj = aSendEdgeDelay; };
+
+    /// @param how much (in 1/256th DALI bit time units) to delay or advance the sample point when receiving DALI data
+    void setDaliSampleAdj(int8_t aSamplePointDelay) { samplePointAdj = (uint8_t)aSamplePointDelay; };
+
+
     /// callback function for sendBridgeCommand
     typedef boost::function<void (uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)> DaliBridgeResultCB;
 
@@ -137,6 +148,7 @@ namespace p44 {
     /// @param aDali1 first DALI byte
     /// @param aDali2 second DALI byte
     /// @param aResultCB callback executed when bridge response arrives
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay = -1);
 
 
@@ -150,22 +162,26 @@ namespace p44 {
     /// @param aDali1 first DALI byte
     /// @param aDali2 second DALI byte
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aPower Arc power
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aDTRValue the value to be sent to DTR before executing aCommand
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendDtrAndCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
 
@@ -173,18 +189,21 @@ namespace p44 {
     /// @param aDali1 first DALI byte
     /// @param aDali2 second DALI byte
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendTwice(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// Send DALI config command (send twice within 100ms)
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendConfigCommand(DaliAddress aAddress, uint8_t aCommand, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aDTRValue the value to be sent to DTR before executing aCommand
     /// @param aStatusCB status callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendDtrAndConfigCommand(DaliAddress aAddress, uint8_t aCommand, uint8_t aDTRValue, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// callback function for daliSendXXX methods returning data
@@ -194,11 +213,13 @@ namespace p44 {
     /// @param aDali1 first DALI byte
     /// @param aDali2 second DALI byte
     /// @param aResultCB result callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendAndReceive(uint8_t aDali1, uint8_t aDali2, DaliQueryResultCB aResultCB, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command
     /// @param aResultCB result callback
+    /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
     void daliSendQuery(DaliAddress aAddress, uint8_t aQueryCommand, DaliQueryResultCB aResultCB, int aWithDelay = -1);
 
     /// helper to check daliSendQuery() callback response for a DALI YES answer

@@ -99,11 +99,15 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.233 --daliportidle 15"
-            isEnabled = "NO">
+            argument = "--dali 192.168.59.233 --dalitxadj 16"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--dali localhost:2101"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -112,7 +116,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enoceanreset gpioNS9XXXX.enoceanreset"
@@ -124,7 +128,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
