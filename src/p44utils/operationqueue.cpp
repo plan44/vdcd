@@ -59,15 +59,18 @@ void Operation::setInitiatesAt(MLMicroSeconds aInitiatesAt)
 // check if can be initiated
 bool Operation::canInitiate()
 {
+  MLMicroSeconds now = MainLoop::now();
   if (initiationDelay>0) {
+    //DBGLOG(LOG_DEBUG,"requesting initiation delay of %lld uS\n", initiationDelay);
     if (initiatesNotBefore==0) {
       // first time queried, start delay now
-      initiatesNotBefore = MainLoop::now()+initiationDelay;
+      initiatesNotBefore = now+initiationDelay;
+      //DBGLOG(LOG_DEBUG,"- now is %lld, will initiate at %lld uS\n", now, initiatesNotBefore);
       initiationDelay = 0; // consumed
     }
   }
   // can be initiated when delay is over
-  return initiatesNotBefore==0 || initiatesNotBefore<MainLoop::now();
+  return initiatesNotBefore==0 || initiatesNotBefore<now;
 }
 
 
