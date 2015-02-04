@@ -281,6 +281,8 @@ static const char *illumUnit = "lx";
 
 static const char *occupText = "Occupancy";
 
+static const char *pirText = "PIR";
+
 static const char *unityUnit = "1";
 
 static const char *setPointText = "Set Point";
@@ -320,39 +322,56 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   // - 10 bit
   { 0x02, 0x20, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,        -10, 42.2, DB(2,1), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
   { 0x02, 0x30, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40, 62.3, DB(2,1), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
-  // A5-04-01: Temperature and Humidity
-  // - e.g. Alpha Sense
+  // A5-04-xx: Temperature and Humidity
+  // - 0..40 degree indoor, e.g. Alpha Sense
   { 0x04, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler,  tempText, tempUnit },
   { 0x04, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler,  humText,  humUnit  },
+  // -20..60 degree outdoor, e.g. Alpha Sense
+  { 0x04, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_outdoors,    -20, 61.6, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler,  tempText, tempUnit },
+  { 0x04, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_outdoors,      0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler,  humText,  humUnit  },
 
   // A5-06-xx: Light Sensor
-  { 0x06, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_outdoors,    600,60000, DB(2,0), DB(1,0),  100, 40*60, &illumHandler,     illumText, illumUnit },
-  { 0x06, 0x02, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,0), DB(1,0),  100, 40*60, &illumHandler,     illumText, illumUnit },
-  { 0x06, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6),  100, 40*60, &stdSensorHandler, illumText, illumUnit },
+  { 0x06, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_outdoors,    600,60000, DB(2,0), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
+  { 0x06, 0x02, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,0), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
+  { 0x06, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
 
   // A5-07-xx: Occupancy Sensor
   // - two slightly different occupancy sensors
-  { 0x07, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(1,7), DB(1,7),  100, 40*60, &stdInputHandler,  occupText, unityUnit },
-  { 0x07, 0x02, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7),  100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x07, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(1,7), DB(1,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x07, 0x02, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
   // - occupancy sensor with illumination sensor
-  { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7),  100, 40*60, &stdInputHandler,  occupText, unityUnit },
-  { 0x07, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6),  100, 40*60, &stdSensorHandler, illumText, illumUnit },
+  { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x07, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
+
+  // A5-08-01: Light, Temperature and Occupancy sensor
+  // - e.g. Eltako FBH
+  { 0x08, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0,  510, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   51, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  pirText, unityUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
 
   // A5-10-03: Room Panel with Temperature Sensor and Set Point Control
   // - e.g. Eltako FTR78S
-  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &invSensorHandler, tempText, tempUnit },
-  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
+  { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
 
   // A5-10-06: Room Panel with Temperature Sensor, Set Point Control, Day/Night Control
   // - e.g. Eltako FTR55D
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0),  100, 40*60, &invSensorHandler, tempText, tempUnit },
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0),  100, 40*60, &stdSensorHandler, setPointText, unityUnit },
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0),  100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
+
+  // A5-10-11: Room Panel with Temperature Sensor, Set Point Control, Humidity
+  // - e.g. Thermokon Thanos
+  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, humText,  humUnit },
+  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
+  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
 
   // A5-12-01: Energy meter
   // - e.g. Eltako FWZ12-16A
-  { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Power", "W" },
-  { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0),  600, 40*60, &powerMeterHandler, "Energy", "kWh" },
+  { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_power,       usage_room,          0, 2500, DB(3,7), DB(1,0), 600, 40*60, &powerMeterHandler, "Power", "W" },
+  { 0x12, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_sensor,      sensorType_energy,      usage_room,          0, 16e9, DB(3,7), DB(1,0), 600, 40*60, &powerMeterHandler, "Energy", "kWh" },
 
   // terminator
   { 0,    0,    0, group_black_joker,  group_black_joker,             behaviour_undefined, 0, usage_undefined, 0, 0, 0, 0, 0, 0, NULL /* NULL for extractor function terminates list */, NULL, NULL },
