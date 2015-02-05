@@ -247,8 +247,9 @@ void LightBehaviour::onAtMinBrightness(DsScenePtr aScene)
 {
   if (brightness->getChannelValue()<=0) {
     // device is off and must be set to minimal logical brightness
+    // but only if the brightness stored in the scene is not zero
     LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
-    if (lightScene) {
+    if (lightScene && lightScene->sceneValue(brightness->getChannelIndex())>0) {
       // - load scene values for channels
       loadChannelsFromScene(lightScene);
       // - override brightness with minDim
