@@ -201,6 +201,10 @@ namespace p44 {
     /// @param aScene the scene to take all other channel values from, except brightness which is set to light's minDim
     virtual void onAtMinBrightness(DsScenePtr aScene);
 
+    /// check if this channel of this device is allowed to dim now (for lights, this will prevent dimming lights that are off)
+    /// @param aChannelType the channel to check
+    virtual bool canDim(DsChannelType aChannelType);
+
     /// identify the device to the user in a behaviour-specific way
     /// @note implemented as blinking for LightBehaviour
     virtual void identifyToUser();

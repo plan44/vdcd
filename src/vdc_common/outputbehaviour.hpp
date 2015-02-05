@@ -162,6 +162,11 @@ namespace p44 {
     /// @param aScene the scene to take all other channel values from, except brightness which is set to light's minDim
     virtual void onAtMinBrightness(DsScenePtr aScene) { /* NOP in base class, only relevant for lights */ };
 
+    /// check if this channel of this device is allowed to dim now (for lights, this will prevent dimming lights that are off)
+    /// @param aChannelType the channel to check
+    virtual bool canDim(DsChannelType aChannelType) { return true; /* in base class, nothing prevents dimming */ };
+
+
     /// Process a named control value. The type, color and settings of the output determine if at all,
     /// and if, how the value affects the output
     /// @param aName the name of the control value, which describes the purpose

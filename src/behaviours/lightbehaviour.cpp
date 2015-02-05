@@ -243,6 +243,13 @@ MLMicroSeconds LightBehaviour::transitionTimeFromSceneEffect(DsSceneEffect aEffe
 
 
 
+bool LightBehaviour::canDim(DsChannelType aChannelType)
+{
+  // to dim anything (not only brightness), brightness value must be >0
+  return brightness->getChannelValue()>0;
+}
+
+
 void LightBehaviour::onAtMinBrightness(DsScenePtr aScene)
 {
   if (brightness->getChannelValue()<=0) {
