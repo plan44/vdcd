@@ -615,11 +615,20 @@ static SceneNo offSceneForArea(int aArea)
 
 #pragma mark - dimming
 
+// dS Dimming rule for Light:
+//  Rule 4 All devices which are turned on and not in local priority state take part in the dimming process.
+
 
 // implementation of "dimChannel" vDC API command and legacy dimming
 // Note: ensures dimming only continues for at most aAutoStopAfter
 void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
 {
+  // check basic dimmability (e.g. avoid dimming brightness for lights that are off)
+  if (!output || (aDimMode!=dimmode_stop && !(output->canDim(aChannel)))) {
+    LOG(LOG_DEBUG, "- behaviour does not allow dimming channel type %d now (e.g. because light is off)\n", aChannel);
+    return;
+  }
+  // check area if any
   if (aArea!=0) {
     SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
     if (scenes) {
@@ -630,6 +639,13 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
         LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
         return; // not in this area, suppress dimming
       }
+    }
+  }
+  else {
+    // non-area dimming: suppress if device is in local priority
+    if (output->hasLocalPriority()) {
+      LOG(LOG_DEBUG, "- Non-area dimming, localPriority set -> suppressed\n");
+      return; // local priority active, suppress dimming
     }
   }
   // requested dimming this device, no area suppress active

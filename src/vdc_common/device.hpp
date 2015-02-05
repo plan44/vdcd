@@ -280,8 +280,8 @@ namespace p44 {
     /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
     /// @note unlike the vDC API "dimChannel" command, which must be repeated for dimming operations >5sec, this
     ///   method MUST NOT terminate dimming automatically except when reaching the minimum or maximum level
-    ///   available for the device. The 5 second timeout is implemented at the device level and causes calling
-    ///   dimChannel() to be called with aDimMode=0 when timeout happens.
+    ///   available for the device. Dimming timeouts are implemented at the device level and cause calling
+    ///   dimChannel() with aDimMode=0 when timeout happens.
     /// @note this method can rely on a clean start-stop sequence in all cases, which means it will be called once to
     ///   start a dimming process, and once again to stop it. There are no repeated start commands or missing stops - Device
     ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()

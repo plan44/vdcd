@@ -26,13 +26,6 @@
 using namespace p44;
 
 
-// Light rules
-
-//  Rule 3 If a digitalSTROM Device is in local priority state, a scene call is ignored.
-//  Rule 4 All devices which are turned on and not in local priority state take part in the dimming process.
-
-
-
 
 #pragma mark - LightDeviceSettings with default light scenes factory
 
@@ -242,6 +235,8 @@ MLMicroSeconds LightBehaviour::transitionTimeFromSceneEffect(DsSceneEffect aEffe
 }
 
 
+// dS Dimming rule for Light:
+//  Rule 4 All devices which are turned on and not in local priority state take part in the dimming process.
 
 bool LightBehaviour::canDim(DsChannelType aChannelType)
 {
