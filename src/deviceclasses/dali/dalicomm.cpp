@@ -155,9 +155,6 @@ void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t 
 }
 
 
-// TODO: add dali bridge bus short circuit testing
-
-
 void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, SerialOperationPtr aOperation, OperationQueuePtr aQueueP, ErrorPtr aError)
 {
   if (expectedBridgeResponses>0) expectedBridgeResponses--;
@@ -256,6 +253,8 @@ static ErrorPtr checkBridgeResponse(uint8_t aResp1, uint8_t aResp2, ErrorPtr aEr
           return ErrorPtr(new DaliCommError(DaliCommErrorDALIFrame));
         case ACK_INVALIDCMD:
           return ErrorPtr(new DaliCommError(DaliCommErrorBridgeCmd));
+        case ACK_OVERLOAD:
+          return ErrorPtr(new DaliCommError(DaliCommErrorBusOverload));
       }
       break;
     case RESP_CODE_DATA:
@@ -476,6 +475,12 @@ private:
 
   void handleMissingShortAddressResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
+    // check for overload condition
+    if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorBusOverload)) {
+      LOG(LOG_ERR,"DALI bus has overload - possibly due to short circuit, defective ballasts or more than 64 devices connected\n");
+      LOG(LOG_ERR,"-> Please power down installation, check DALI bus and try again\n");
+      completed(aError);
+    }
     if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
       // we have devices without short addresses
       unconfiguredDevices = true;
@@ -627,7 +632,7 @@ private:
 
   bool isShortAddressInList(DaliAddress aShortAddress, DaliComm::ShortAddressListPtr aShortAddressList)
   {
-    if (!usedShortAddrsPtr)
+    if (!aShortAddressList)
       return true; // no info, consider all used as we don't know
     for (DaliComm::ShortAddressList::iterator pos = aShortAddressList->begin(); pos!=aShortAddressList->end(); ++pos) {
       if (aShortAddress==(*pos))
@@ -670,9 +675,6 @@ private:
   void compareNext()
   {
     // issue next compare command
-//    // Note: It seems that some devices (e.g. Unidim UK2) need all three bytes of the search address sent anew for every COMPARE
-//    //   therefore we prohibit the optimisation for now:
-//    setLMH = true;
     // - update address bytes as needed (only those that have changed)
     uint8_t by = (searchAddr>>16) & 0xFF;
     if (by!=searchH || setLMH) {
@@ -786,8 +788,10 @@ private:
       // response is short address in 0AAAAAA1 format or DALIVALUE_MASK (no adress)
       newAddress = DaliBroadcast; // none
       DaliAddress shortAddress = newAddress; // none
+      bool needsNewAddress = false;
       if (aResponse==DALIVALUE_MASK) {
         // device has no short address yet, assign one
+        needsNewAddress = true;
         newAddress = newShortAddress();
         LOG(LOG_NOTICE, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
       }
@@ -797,12 +801,18 @@ private:
         // check for collisions
         if (isShortAddressInList(shortAddress, foundDevicesPtr)) {
           newAddress = newShortAddress();
+          needsNewAddress = true;
           LOG(LOG_NOTICE, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
         }
       }
       // check if we need to re-assign the short address
-      if (newAddress!=DaliBroadcast) {
-        // new address must be assigned
+      if (needsNewAddress) {
+        if (newAddress==DaliBroadcast) {
+          // no more short addresses available
+          LOG(LOG_ERR, "Bus has too many devices, device 0x%06X cannot be assigned a short address and will not be usable\n", searchAddr);
+        }
+        // new address must be assigned (or in case none is available, a possibly
+        // existing short address will be removed by assigning DaliBroadcast==0xFF)
         daliComm.daliSend(DALICMD_PROGRAM_SHORT_ADDRESS, DaliComm::dali1FromAddress(newAddress)+1);
         daliComm.daliSendAndReceive(
           DALICMD_VERIFY_SHORT_ADDRESS, DaliComm::dali1FromAddress(newAddress)+1,
@@ -819,8 +829,9 @@ private:
 
   void handleNewShortAddressVerify(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
-    if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, false)) {
-      // real clean YES - new short address verified
+    if (newAddress==DaliBroadcast || DaliComm::isYes(aNoOrTimeout, aResponse, aError, false)) {
+      // address was deleted, not added in the first place (more than 64 devices)
+      // OR real clean YES - new short address verified
       deviceFound(newAddress);
     }
     else {
@@ -832,8 +843,11 @@ private:
 
   void deviceFound(DaliAddress aShortAddress)
   {
-    // store short address
-    foundDevicesPtr->push_back(aShortAddress);
+    // store short address if real address
+    // (if broadcast, means that this device is w/o short address because >64 devices are on the bus)
+    if (aShortAddress!=DaliBroadcast) {
+      foundDevicesPtr->push_back(aShortAddress);
+    }
     // withdraw this device from further searches
     daliComm.daliSend(DALICMD_WITHDRAW, 0x00);
     // continue searching devices

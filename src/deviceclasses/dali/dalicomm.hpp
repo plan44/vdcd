@@ -47,7 +47,8 @@ namespace p44 {
     DaliCommErrorInvalidAnswer,
     DaliCommErrorNeedFullScan,
     DaliCommErrorDeviceSearch,
-    DaliCommErrorSetShortAddress
+    DaliCommErrorSetShortAddress,
+    DaliCommErrorBusOverload
   } DaliCommErrors;
 
   class DaliCommError : public Error
