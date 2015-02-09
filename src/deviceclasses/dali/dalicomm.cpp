@@ -268,14 +268,14 @@ static ErrorPtr checkBridgeResponse(uint8_t aResp1, uint8_t aResp2, ErrorPtr aEr
 void DaliComm::daliCommandStatusHandler(DaliCommandStatusCB aResultCB, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
 {
   bool noOrTimeout;
-  aError = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
-  if (!aError && noOrTimeout) {
+  ErrorPtr err = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
+  if (!err && noOrTimeout) {
     // timeout for a send-only command -> out of sync, bridge communication error
-    aError = ErrorPtr(new DaliCommError(DaliCommErrorBridgeComm));
+    err = ErrorPtr(new DaliCommError(DaliCommErrorBridgeComm));
   }
   // execute callback if any
   if (aResultCB)
-    aResultCB(aError);
+    aResultCB(err);
 }
 
 
@@ -283,10 +283,10 @@ void DaliComm::daliCommandStatusHandler(DaliCommandStatusCB aResultCB, uint8_t a
 void DaliComm::daliQueryResponseHandler(DaliQueryResultCB aResultCB, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError)
 {
   bool noOrTimeout;
-  aError = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
+  ErrorPtr err = checkBridgeResponse(aResp1, aResp2, aError, noOrTimeout);
   // execute callback if any
   if (aResultCB)
-    aResultCB(noOrTimeout, aResp2, aError);
+    aResultCB(noOrTimeout, aResp2, err);
 }
 
 
@@ -466,6 +466,11 @@ private:
 
   void resetComplete(ErrorPtr aError)
   {
+    // check for overload condition
+    if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorBusOverload)) {
+      LOG(LOG_ERR,"DALI bus has overload - possibly due to short circuit, defective ballasts or more than 64 devices connected\n");
+      LOG(LOG_ERR,"-> Please power down installation, check DALI bus and try again\n");
+    }
     if (aError)
       return completed(aError);
     // check if there are devices without short address
@@ -475,12 +480,6 @@ private:
 
   void handleMissingShortAddressResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
-    // check for overload condition
-    if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorBusOverload)) {
-      LOG(LOG_ERR,"DALI bus has overload - possibly due to short circuit, defective ballasts or more than 64 devices connected\n");
-      LOG(LOG_ERR,"-> Please power down installation, check DALI bus and try again\n");
-      completed(aError);
-    }
     if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
       // we have devices without short addresses
       unconfiguredDevices = true;
