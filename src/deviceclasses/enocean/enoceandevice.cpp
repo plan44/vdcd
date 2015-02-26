@@ -177,7 +177,7 @@ void EnoceanDevice::switchToProfile(EnoceanProfile aProfile)
   // make sure object is retained locally
   EnoceanDevicePtr keepMeAlive(this); // make sure this object lives until routine terminates
   // have devices related to current profile deleted, including settings
-  // Note: this removes myself from container, but
+  // Note: this removes myself from container, and deletes the config (which is valid for the previous profile, i.e. a different type of device)
   getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true);
   // - create new ones, with same address and manufacturer, but new profile
   EnoceanDevice::createDevicesFromEEP(&getEnoceanDeviceContainer(), getAddress(), aProfile, getEEManufacturer());

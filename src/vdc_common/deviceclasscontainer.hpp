@@ -144,6 +144,9 @@ namespace p44 {
     /// @param new name of the addressable entity
     virtual void setName(const string &aName);
 
+    /// vdc level methods (p44 specific)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
     /// @}
 
 
@@ -283,6 +286,10 @@ namespace p44 {
 
     // derive dSUID
     void deriveDsUid();
+
+  private:
+
+    void collectDevicesMethodComplete(VdcApiRequestPtr aRequest, ErrorPtr aError);
 
   };
 

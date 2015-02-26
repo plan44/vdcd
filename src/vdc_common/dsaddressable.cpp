@@ -98,16 +98,29 @@ ErrorPtr DsAddressable::checkParam(ApiValuePtr aParams, const char *aParamName, 
 }
 
 
-ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue)
+ErrorPtr DsAddressable::checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aString)
 {
   ErrorPtr err;
   ApiValuePtr o;
   err = checkParam(aParams, aParamName, o);
   if (Error::isOK(err)) {
-    aParamValue = o->stringValue();
+    aString = o->stringValue();
   }
   return err;
 }
+
+
+ErrorPtr DsAddressable::checkBoolParam(ApiValuePtr aParams, const char *aParamName, bool &aBool)
+{
+  ErrorPtr err;
+  ApiValuePtr o;
+  err = checkParam(aParams, aParamName, o);
+  if (Error::isOK(err)) {
+    aBool = o->boolValue();
+  }
+  return err;
+}
+
 
 
 ErrorPtr DsAddressable::checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid)

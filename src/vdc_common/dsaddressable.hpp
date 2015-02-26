@@ -90,12 +90,31 @@ namespace p44 {
     /// @{
 
     /// convenience method to check for existence of a parameter and return appropriate error if not
+    /// @param aParams API value object containing parameters
+    /// @param aParamName name of the parameter within aParams to check for
+    /// @param aParam will be set to the API value of the parameter
+    /// @return returns error if not parameter named aParamName exists in aParams
     static ErrorPtr checkParam(ApiValuePtr aParams, const char *aParamName, ApiValuePtr &aParam);
 
     /// convenience method to check if a string value exists and if yes, return its value in one call
-    static ErrorPtr checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aParamValue);
+    /// @param aParams API value object containing parameters
+    /// @param aParamName name of the parameter within aParams to check for
+    /// @param aString will be set to the string value if aParamName is present, otherwise it will be left untouched
+    /// @return returns error if not parameter named aParamName exists in aParams
+    static ErrorPtr checkStringParam(ApiValuePtr aParams, const char *aParamName, string &aString);
+
+    /// convenience method to check if a boolean value exists and if yes, return its value in one call
+    /// @param aParams API value object containing parameters
+    /// @param aParamName name of the parameter within aParams to check for
+    /// @param aBool will be set to the boolean value if aParamName is present, otherwise it will be left untouched
+    /// @return returns error if not parameter named aParamName exists in aParams
+    static ErrorPtr checkBoolParam(ApiValuePtr aParams, const char *aParamName, bool &aBool);
 
     /// convenience method to check if a dSUID value exists and if it does, return its value in one call
+    /// @param aParams API value object containing parameters
+    /// @param aParamName name of the parameter within aParams to check for
+    /// @param aDsUid will be set to the dSUID value if aParamName is present, otherwise it will be left untouched
+    /// @return returns error if not parameter named aParamName exists in aParams
     static ErrorPtr checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid);
 
     /// called by DeviceContainer to handle methods directed to a dSUID

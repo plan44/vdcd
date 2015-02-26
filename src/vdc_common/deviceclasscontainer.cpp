@@ -60,6 +60,37 @@ void DeviceClassContainer::setName(const string &aName)
 }
 
 
+ErrorPtr DeviceClassContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-collectDevices") {
+    // (re)collect devices of this particular device class
+    bool incremental = true;
+    bool exhaustive = false;
+    checkBoolParam(aParams, "incremental", incremental);
+    checkBoolParam(aParams, "exhaustive", exhaustive);
+    collectDevices(boost::bind(&DeviceClassContainer::collectDevicesMethodComplete, this, aRequest, _1), incremental, exhaustive);
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
+void DeviceClassContainer::collectDevicesMethodComplete(VdcApiRequestPtr aRequest, ErrorPtr aError)
+{
+  // devices re-collected, return ok (empty response)
+  if (Error::isOK(aError)) {
+    // collected ok
+    aRequest->sendResult(ApiValuePtr());
+  }
+  else {
+    // collected with error, report it
+    aRequest->sendError(aError);
+  }
+}
+
 
 
 void DeviceClassContainer::addClassToDeviceContainer()

@@ -103,7 +103,6 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
   }
   // start collecting, allow quick scan when not exhaustively collecting (will still use full scan when bus collisions are detected)
   daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), !aExhaustive);
-  //daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), false); // %%% for debugging random address scanner
 }
 
 
@@ -301,7 +300,7 @@ ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const stri
           for (DeviceVector::iterator pos = groupedDevices.begin(); pos!=groupedDevices.end(); ++pos) {
             (*pos)->hasVanished(false); // vanish, but keep settings
           }
-          // - re-collect devices to find grouped composite now, but only in a second starting from main loop, not from here
+          // - re-collect devices to find grouped composite now, but only after a second, starting from main loop, not from here
           CompletedCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
           MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false), 1*Second);
         }
