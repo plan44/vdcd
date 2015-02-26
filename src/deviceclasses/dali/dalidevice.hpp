@@ -33,18 +33,24 @@ namespace p44 {
 
   class DaliDeviceContainer;
   class DaliBusDevice;
+  class DaliBusDeviceGroup;
   class DaliDevice;
+  class DaliDimmerDevice;
   class DaliRGBWDevice;
 
   typedef boost::intrusive_ptr<DaliBusDevice> DaliBusDevicePtr;
+  typedef boost::intrusive_ptr<DaliBusDeviceGroup> DaliBusDeviceGroupPtr;
   typedef boost::intrusive_ptr<DaliDevice> DaliDevicePtr;
+  typedef boost::intrusive_ptr<DaliDimmerDevice> DaliDimmerDevicePtr;
   typedef boost::intrusive_ptr<DaliRGBWDevice> DaliRGBWDevicePtr;
 
   class DaliBusDevice : public P44Obj
   {
     typedef P44Obj inherited;
+    friend class DaliBusDeviceGroup;
     friend class DaliDevice;
     friend class DaliRGBWDevice;
+    friend class DaliDimmerDevice;
     friend class DaliDeviceContainer;
 
     DaliDeviceInfo deviceInfo; ///< the device info of the bus device (ballast)
@@ -75,9 +81,18 @@ namespace p44 {
     void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
 
     /// derive the dSUID from collected device info
-    void derivedDsUid();
+    virtual void deriveDsUid();
+
+    /// check if bus device represents a DALI group
+    /// @return true if group
+    virtual bool isGrouped() { return false; }
 
   protected:
+
+    /// initialize device for first use
+    /// @param aCompletedCB will be called when initialisation is complete
+    /// @param aUsedGroupsMask groups that are in use. Single devices should not be in any of these groups
+    virtual void initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask);
 
     /// update parameters from device to local vars
     void updateParams(CompletedCB aCompletedCB);
@@ -109,8 +124,25 @@ namespace p44 {
     /// @param aDimPerMS dim speed in brightness value per millsecond
     void dim(DsDimMode aDimMode, double aDimPerMS);
 
+    /// DALI address to use for querying brightness etc.
+    /// @return DALI address
+    /// @note this will be overridden in DaliBusDeviceGroup to read info from single master dimmer, not group
+    virtual uint8_t addressForQuery() { return deviceInfo.shortAddress; };
+
+
+    typedef boost::function<void (uint16_t aGroupBitMask, ErrorPtr aError)> DaliGroupsCB;
+    /// Utility: Retrieve group membership mask for a given short address
+    /// @param aDaliGroupsCB delivers the result
+    /// @param aShortAddress which device to query (note: not necessarily myself!)
+    void getGroupMemberShip(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress);
+
+
 
   private:
+
+    void queryGroup0to7Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void queryGroup8to15Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, uint16_t aGroupBitMask, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void groupMembershipResponse(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError);
 
     void queryActualLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
     void queryMinLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
@@ -122,6 +154,68 @@ namespace p44 {
   };
 
 
+  class DaliBusDeviceGroup : public DaliBusDevice
+  {
+    typedef DaliBusDevice inherited;
+    friend class DaliDevice;
+    friend class DaliRGBWDevice;
+    friend class DaliDeviceContainer;
+
+    string mixID; ///< dSUIDs of all members, XOR mixed
+    DaliAddress groupMaster; ///< the DALI short address of the master dimmer (i.e. the one that is read from)
+    DaliComm::ShortAddressList groupMembers; ///< short addresses of members of the group
+
+  public:
+
+    /// initialize device for first use
+    /// @param aCompletedCB will be called when initialisation is complete
+    /// @param aUsedGroupsMask groups that are in use. grouped devices should not be in any of these groups except their own group
+    virtual void initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask);
+
+    /// creates a dimmer group, addressed via a group address rather than single bus address
+    /// @note initially, the group is empty. addDaliBusDevice must be used to add devices
+    /// @param aGroupNo the group number for this group
+    DaliBusDeviceGroup(DaliDeviceContainer &aDaliDeviceContainer, uint8_t aGroupNo);
+
+    /// add a DALI bus device to the group. This will check if the device in question already is configured
+    /// correctly for the group, and if not, device will be made member of the group
+    /// @param aDaliBusDevice a completely scanned DALI bus device having a valid dSUID
+    /// @note the device passed will be checked to be a member of the specified group, and will be reprogrammed if it isn't yet.
+    void addDaliBusDevice(DaliBusDevicePtr aDaliBusDevice);
+
+    /// derive the dSUID from mix of dSUIDs of single bus devices
+    virtual void deriveDsUid();
+
+    /// check if bus device represents a DALI group
+    /// @return true if group
+    virtual bool isGrouped() { return true; }
+
+  protected:
+
+    /// DALI address to use for querying brightness etc.
+    /// @return DALI address
+    /// @note reading info from single master dimmer, not group
+    virtual uint8_t addressForQuery() { return groupMaster; };
+
+
+  private:
+
+    void initNextGroupMember(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember);
+    void groupMembershipResponse(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError);
+
+
+  };
+
+
+  /// types of DALI dS devices
+  typedef enum {
+    dalidevice_single, ///< single DALI dimmer, single channel
+    dalidevice_group, ///< group of DALI dimmers, single channel
+    dalidevice_composite ///< multichannel color/tunable white device consisting of multiple dimmers or groups
+  } DaliDeviceTypes;
+
+
+  /// base class for all DALI devices
   class DaliDevice : public Device
   {
     typedef Device inherited;
@@ -129,16 +223,38 @@ namespace p44 {
 
   public:
 
-    DaliBusDevicePtr brightnessDimmer; ///< the actual DALI device controlling brightness
-
     DaliDevice(DaliDeviceContainer *aClassContainerP);
 
-    /// device type identifier
-		/// @return constant identifier for this type of device (one container might contain more than one type)
-    virtual const char *deviceTypeIdentifier() { return "dali_single"; };
+    /// @return type of DALI device
+    virtual DaliDeviceTypes daliTechnicalType() = 0;
 
     /// get typed container reference
     DaliDeviceContainer &daliDeviceContainer();
+
+    /// device level API methods (p44 specific, JSON only, for configuring grouped devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
+  };
+
+
+
+  class DaliDimmerDevice : public DaliDevice
+  {
+    typedef DaliDevice inherited;
+    friend class DaliDeviceCollector;
+
+  public:
+
+    DaliBusDevicePtr brightnessDimmer; ///< the actual DALI device controlling brightness
+
+    DaliDimmerDevice(DaliDeviceContainer *aClassContainerP);
+
+    /// @return technical type of DALI device
+    virtual DaliDeviceTypes daliTechnicalType() { return brightnessDimmer && brightnessDimmer->isGrouped() ? dalidevice_group : dalidevice_single; }
+
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return daliTechnicalType()==dalidevice_group ? "dali_group" : "dali_single"; };
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -189,7 +305,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "DALI dimmer"; }
+    virtual string modelName() { return daliTechnicalType()==dalidevice_group ? "DALI dimmer group" : "DALI dimmer"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
@@ -231,9 +347,9 @@ namespace p44 {
   };
 
 
-  class DaliRGBWDevice : public Device
+  class DaliRGBWDevice : public DaliDevice
   {
-    typedef Device inherited;
+    typedef DaliDevice inherited;
     friend class DaliDeviceCollector;
     friend class DaliDeviceContainer;
 
@@ -254,6 +370,9 @@ namespace p44 {
     DaliBusDevicePtr dimmers[numDimmers];
 
     DaliRGBWDevice(DaliDeviceContainer *aClassContainerP);
+
+    /// @return type of DALI device
+    virtual DaliDeviceTypes daliTechnicalType() { return dalidevice_composite; }
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -310,7 +429,7 @@ namespace p44 {
     /// @{
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "DALI color dimmer group"; }
+    virtual string modelName() { return "DALI composite color light"; }
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     virtual string hardwareGUID();
@@ -334,9 +453,6 @@ namespace p44 {
     virtual string getExtraInfo();
 
     /// @}
-
-    /// device level API methods (p44 specific, JSON only, for configuring grouped devices)
-    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
     /// this will be called just before a device is added to the vdc, and thus needs to be fully constructed
     /// (settings, scenes, behaviours) and MUST have determined the henceforth invariable dSUID.

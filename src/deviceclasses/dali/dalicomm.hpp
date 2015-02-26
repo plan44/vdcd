@@ -184,7 +184,7 @@ namespace p44 {
     /// @param aPower Arc power
     /// @param aStatusCB status callback
     /// @param aWithDelay if>0, time (in microseconds) to delay BEFORE sending the command
-    void daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
+    void daliSendDirectPower(DaliAddress aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB = NULL, int aWithDelay = -1);
 
     /// @param aAddress DALI address (device short address, or group address + DaliGroup, or DaliBroadcast)
     /// @param aCommand command

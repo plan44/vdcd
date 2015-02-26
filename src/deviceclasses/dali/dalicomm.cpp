@@ -316,7 +316,7 @@ void DaliComm::daliSend(uint8_t aDali1, uint8_t aDali2, DaliCommandStatusCB aSta
   sendBridgeCommand(CMD_CODE_SEND16, aDali1, aDali2, boost::bind(&DaliComm::daliCommandStatusHandler, this, aStatusCB, _1, _2, _3), aWithDelay);
 }
 
-void DaliComm::daliSendDirectPower(uint8_t aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB, int aWithDelay)
+void DaliComm::daliSendDirectPower(DaliAddress aAddress, uint8_t aPower, DaliCommandStatusCB aStatusCB, int aWithDelay)
 {
   daliSend(dali1FromAddress(aAddress), aPower, aStatusCB, aWithDelay);
 }

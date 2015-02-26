@@ -42,11 +42,11 @@
 #define DSUID_P44VDC_MODELUID_UUID "4E2E874A-11E1-4A6D-BDBD-D2556CAE3CE5"
 
 
-// components for classic dsids
-#define DSID_OBJECTCLASS_DSDEVICE 0x000000
-#define DSID_OBJECTCLASS_DSMETER 0x000001
-#define DSID_OBJECTCLASS_DS485IF 0x00000F
-#define DSID_OBJECTCLASS_MACADDRESS 0xFF0000
+//// components for classic dsids
+//#define DSID_OBJECTCLASS_DSDEVICE 0x000000
+//#define DSID_OBJECTCLASS_DSMETER 0x000001
+//#define DSID_OBJECTCLASS_DS485IF 0x00000F
+//#define DSID_OBJECTCLASS_MACADDRESS 0xFF0000
 
 
 
@@ -63,7 +63,6 @@ namespace p44 {
     /// type of ID
     typedef enum {
       idtype_undefined,
-      idtype_classic, // 12-byte classic dSUID
       idtype_gid, // classic dSUID, but encoded as GID96 within dSUID
       idtype_sgtin, // dSUID based on SGTIN96
       idtype_uuid, // dSUID based on UUID
@@ -75,12 +74,8 @@ namespace p44 {
     static const uint8_t dsuidBytes = 17; ///< total bytes in a dSUID
     static const uint8_t uuidBytes = 16; ///< actual ID bytes (UUID or EPC96 mapped into UUID)
 
-    // old 96 bit dSUID
+    // GID96 based dSUID
     static const uint8_t GID96Header = 0x35; ///< GID96 8bit header byte
-    static const uint32_t ManagerNo = 0x04175FE; ///< 28bit Manager number (for Aizo GmbH)
-    typedef uint32_t ObjectClass; ///< 24bit object class
-    typedef uint64_t DsSerialNo; ///< 36bit serial no (up to 52bits for certain object classes such as MAC-address)
-    static const uint8_t dsidBytes = 12; ///< total bytes in a (classic) dSUID
 
     typedef uint8_t RawID[dsuidBytes];
 
@@ -189,23 +184,17 @@ namespace p44 {
     /// @}
 
 
-    /// @name classic dsids
+    /// @name Utilities
     /// @{
 
-    /// @deprecated set object class
-    /// @param aObjectClass 24 bit object class. If 0xFF0000, aSerialNo can be up to 52 bits
-    void setObjectClass(ObjectClass aObjectClass);
-
-    /// @deprecated set serial number
-    /// @param aSerialNo 36 bit serial number except if object class is already set 0xFFxxxx, in this case
-    ///   aSerialNo can be up to 52 bits.
-    ///   dS defines only 48 bits for MAC address (bits 48..51 in aSerialNo zero)
-    ///   This method maps bits 48..51 of aSerial into bits 32..35 of the serial number field
-    void setDsSerialNo(DsSerialNo aSerialNo);
-
+    /// XOR the bytes of this dSUID into a Mix. This is useful to create
+    /// a ordering independent value to identify a group of dSUIDs, which then can be hashed into
+    /// a UUIDv5 based new dSUID
+    /// @param aMix binary string which already contains a single dSUID, a mix, or is empty. If initially empty,
+    ///   aMix will be set to getBinary(), otherwise it will be set to a bytewise XOR of getBinary and aMix
+    void xorDsUidIntoMix(string &aMix);
 
     /// @}
-
   };
   typedef boost::intrusive_ptr<DsUid> DsUidPtr;
 

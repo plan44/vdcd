@@ -60,11 +60,11 @@ void DaliBusDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 {
   // store the info record
   deviceInfo = aDeviceInfo; // copy
-  derivedDsUid(); // derive dSUID from it
+  deriveDsUid(); // derive dSUID from it
 }
 
 
-void DaliBusDevice::derivedDsUid()
+void DaliBusDevice::deriveDsUid()
 {
   if (isDummy) return;
   // vDC implementation specific UUID:
@@ -120,12 +120,82 @@ void DaliBusDevice::derivedDsUid()
 }
 
 
+
+void DaliBusDevice::getGroupMemberShip(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress)
+{
+  daliDeviceContainer.daliComm->daliSendQuery(
+    aShortAddress,
+    DALICMD_QUERY_GROUPS_0_TO_7,
+    boost::bind(&DaliBusDevice::queryGroup0to7Response,this, aDaliGroupsCB, aShortAddress, _1, _2, _3)
+  );
+}
+
+
+void DaliBusDevice::queryGroup0to7Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  uint16_t groupBitMask = 0; // no groups yet
+  if (Error::isOK(aError) && !aNoOrTimeout) {
+    groupBitMask = aResponse;
+  }
+  // anyway, query other half
+  daliDeviceContainer.daliComm->daliSendQuery(
+    aShortAddress,
+    DALICMD_QUERY_GROUPS_8_TO_15,
+    boost::bind(&DaliBusDevice::queryGroup8to15Response,this, aDaliGroupsCB, aShortAddress, groupBitMask, _1, _2, _3)
+  );
+}
+
+
+void DaliBusDevice::queryGroup8to15Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, uint16_t aGroupBitMask, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  // group 8..15 membership result
+  if (Error::isOK(aError) && !aNoOrTimeout) {
+    aGroupBitMask |= ((uint16_t)aResponse)<<8;
+  }
+  if (aDaliGroupsCB) aDaliGroupsCB(aGroupBitMask, aError);
+}
+
+
+
+
+
+
+void DaliBusDevice::initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask)
+{
+  // make sure device is in none of the used groups
+  if (aUsedGroupsMask==0) {
+    // no groups in use at all, just return
+    if (aCompletedCB) aCompletedCB(ErrorPtr());
+    return;
+  }
+  // need to query current groups
+  getGroupMemberShip(boost::bind(&DaliBusDevice::groupMembershipResponse, this, aCompletedCB, aUsedGroupsMask, deviceInfo.shortAddress, _1, _2), deviceInfo.shortAddress);
+}
+
+
+void DaliBusDevice::groupMembershipResponse(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError)
+{
+  // remove groups that are in use on the bus
+  if (Error::isOK(aError)) {
+    for (int g=0; g<16; ++g) {
+      if (aUsedGroupsMask & aGroups & (1<<g)) {
+        // single device is member of a group in use -> remove it
+        LOG(LOG_INFO, "- removing single DALI bus device with shortaddr %d from group %d\n", aShortAddress, g);
+        daliDeviceContainer.daliComm->daliSendConfigCommand(aShortAddress, DALICMD_REMOVE_FROM_GROUP|g);
+      }
+    }
+  }
+  if (aCompletedCB) aCompletedCB(aError);
+}
+
+
+
 void DaliBusDevice::updateParams(CompletedCB aCompletedCB)
 {
   if (isDummy) aCompletedCB(ErrorPtr());
   // query actual arc power level
   daliDeviceContainer.daliComm->daliSendQuery(
-    deviceInfo.shortAddress,
+    addressForQuery(),
     DALICMD_QUERY_ACTUAL_LEVEL,
     boost::bind(&DaliBusDevice::queryActualLevelResponse,this, aCompletedCB, _1, _2, _3)
   );
@@ -143,7 +213,7 @@ void DaliBusDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aNoO
   }
   // next: query the minimum dimming level
   daliDeviceContainer.daliComm->daliSendQuery(
-    deviceInfo.shortAddress,
+    addressForQuery(),
     DALICMD_QUERY_MIN_LEVEL,
     boost::bind(&DaliBusDevice::queryMinLevelResponse,this, aCompletedCB, _1, _2, _3)
   );
@@ -169,7 +239,8 @@ void DaliBusDevice::updateStatus(CompletedCB aCompletedCB)
   if (isDummy) aCompletedCB(ErrorPtr());
   // query the device for status
   daliDeviceContainer.daliComm->daliSendQuery(
-    deviceInfo.shortAddress, DALICMD_QUERY_STATUS,
+    addressForQuery(),
+    DALICMD_QUERY_STATUS,
     boost::bind(&DaliBusDevice::queryStatusResponse, this, aCompletedCB, _1, _2, _3)
   );
 }
@@ -289,7 +360,95 @@ void DaliBusDevice::dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMi
 
 
 
-#pragma mark - DaliDevice (single channel)
+#pragma mark - DaliBusDeviceGroup (multiple DALI devices, addressed as a group, forming single channel dimmer)
+
+
+DaliBusDeviceGroup::DaliBusDeviceGroup(DaliDeviceContainer &aDaliDeviceContainer, uint8_t aGroupNo) :
+  inherited(aDaliDeviceContainer),
+  groupMaster(DaliBroadcast)
+{
+  mixID.erase(); // no members yet
+  // set the group address to use
+  deviceInfo.shortAddress = aGroupNo|DaliGroup;
+}
+
+
+void DaliBusDeviceGroup::addDaliBusDevice(DaliBusDevicePtr aDaliBusDevice)
+{
+  // add the ID to the mix
+  LOG(LOG_NOTICE, "- DALI bus device with shortaddr %d is grouped in DALI group %d\n", aDaliBusDevice->deviceInfo.shortAddress, deviceInfo.shortAddress & DaliGroupMask);
+  aDaliBusDevice->dSUID.xorDsUidIntoMix(mixID);
+  // if this is the first valid device, use it as master
+  if (groupMaster==DaliBroadcast && !aDaliBusDevice->isDummy) {
+    // this is the master device
+    LOG(LOG_INFO, "- DALI bus device with shortaddr %d is master of the group (queried for brightness, mindim)\n", aDaliBusDevice->deviceInfo.shortAddress);
+    groupMaster = aDaliBusDevice->deviceInfo.shortAddress;
+  }
+  // add member
+  groupMembers.push_back(aDaliBusDevice->deviceInfo.shortAddress);
+}
+
+
+void DaliBusDeviceGroup::initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask)
+{
+  DaliComm::ShortAddressList::iterator pos = groupMembers.begin();
+  initNextGroupMember(aCompletedCB, pos);
+}
+
+
+void DaliBusDeviceGroup::initNextGroupMember(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember)
+{
+  if (aNextMember!=groupMembers.end()) {
+    // another member, query group membership, then adjust if needed
+    // need to query current groups
+    getGroupMemberShip(
+      boost::bind(&DaliBusDeviceGroup::groupMembershipResponse, this, aCompletedCB, aNextMember, _1, _2),
+      *aNextMember
+    );
+  }
+  else {
+    // all done
+    if (aCompletedCB) aCompletedCB(ErrorPtr());
+  }
+}
+
+void DaliBusDeviceGroup::groupMembershipResponse(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError)
+{
+  uint8_t groupNo = deviceInfo.shortAddress & DaliGroupMask;
+  // make sure device is member of the group
+  if ((aGroups & (1<<groupNo))==0) {
+    // is not yet member of this group -> add it
+    LOG(LOG_INFO, "- making DALI bus device with shortaddr %d member of group %d\n", *aNextMember, groupNo);
+    daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_ADD_TO_GROUP|groupNo);
+  }
+  // remove from all other groups
+  aGroups &= ~(1<<groupNo); // do not remove again from target group
+  for (groupNo=0; groupNo<16; groupNo++) {
+    if (aGroups & (1<<groupNo)) {
+      // device is member of a group it shouldn't be in -> remove it
+      LOG(LOG_INFO, "- removing DALI bus device with shortaddr %d from group %d\n", *aNextMember, groupNo);
+      daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_REMOVE_FROM_GROUP|groupNo);
+    }
+  }
+  // done adding this member to group
+  // - check if more to process
+  ++aNextMember;
+  initNextGroupMember(aCompletedCB, aNextMember);
+}
+
+
+
+
+/// derive the dSUID from collected device info
+void DaliBusDeviceGroup::deriveDsUid()
+{
+  DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
+  // use xored IDs of group members as base for creating UUIDv5 in vdcNamespace
+  dSUID.setNameInSpace("daligroup:"+mixID, vdcNamespace);
+}
+
+
+#pragma mark - DaliDevice (base class)
 
 
 DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
@@ -299,7 +458,36 @@ DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
   setPrimaryGroup(group_yellow_light);
 }
 
-void DaliDevice::willBeAdded()
+
+DaliDeviceContainer &DaliDevice::daliDeviceContainer()
+{
+  return *(static_cast<DaliDeviceContainer *>(classContainerP));
+}
+
+
+ErrorPtr DaliDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  if (aMethod=="x-p44-ungroupDevice") {
+    // Remove this device from the installation, forget the settings
+    return daliDeviceContainer().ungroupDevice(this, aRequest);
+  }
+  else {
+    return inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+}
+
+
+
+#pragma mark - DaliDimmerDevice (single channel)
+
+
+DaliDimmerDevice::DaliDimmerDevice(DaliDeviceContainer *aClassContainerP) :
+  DaliDevice(aClassContainerP)
+{
+}
+
+
+void DaliDimmerDevice::willBeAdded()
 {
   // Note: setting up behaviours late, because we want the brightness dimmer already assigned for the hardware name
   // set up dS behaviour for simple single DALI channel dimmer
@@ -308,21 +496,17 @@ void DaliDevice::willBeAdded()
   // - set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
   l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
-  l->setHardwareName(string_format("DALI dimmer @ %d",brightnessDimmer->deviceInfo.shortAddress));
+  if (daliTechnicalType()==dalidevice_group)
+    l->setHardwareName(string_format("DALI dimmer group # %d",brightnessDimmer->deviceInfo.shortAddress & DaliGroupMask));
+  else
+    l->setHardwareName(string_format("DALI dimmer @ %d",brightnessDimmer->deviceInfo.shortAddress));
   addBehaviour(l);
   // - derive the DsUid
   deriveDsUid();
 }
 
 
-DaliDeviceContainer &DaliDevice::daliDeviceContainer()
-{
-  return *(static_cast<DaliDeviceContainer *>(classContainerP));
-}
-
-
-
-bool DaliDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool DaliDimmerDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("dali_dimmer", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -331,23 +515,31 @@ bool DaliDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResol
 }
 
 
-string DaliDevice::getExtraInfo()
+string DaliDimmerDevice::getExtraInfo()
 {
-  return string_format(
-    "DALI short address: %d",
-    brightnessDimmer->deviceInfo.shortAddress
-  );
+  if (daliTechnicalType()==dalidevice_group) {
+    return string_format(
+      "DALI group address: %d",
+      brightnessDimmer->deviceInfo.shortAddress & DaliGroupMask
+    );
+  }
+  else {
+    return string_format(
+      "DALI short address: %d",
+      brightnessDimmer->deviceInfo.shortAddress
+    );
+  }
 }
 
 
-void DaliDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+void DaliDimmerDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 {
   // - sync cached channel values from actual device
-  brightnessDimmer->updateParams(boost::bind(&DaliDevice::brightnessDimmerSynced, this, aCompletedCB, aFactoryReset, _1));
+  brightnessDimmer->updateParams(boost::bind(&DaliDimmerDevice::brightnessDimmerSynced, this, aCompletedCB, aFactoryReset, _1));
 }
 
 
-void DaliDevice::brightnessDimmerSynced(CompletedCB aCompletedCB, bool aFactoryReset, ErrorPtr aError)
+void DaliDimmerDevice::brightnessDimmerSynced(CompletedCB aCompletedCB, bool aFactoryReset, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // save brightness now
@@ -367,14 +559,14 @@ void DaliDevice::brightnessDimmerSynced(CompletedCB aCompletedCB, bool aFactoryR
 
 
 
-void DaliDevice::checkPresence(PresenceCB aPresenceResultHandler)
+void DaliDimmerDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
   // query the device
-  brightnessDimmer->updateStatus(boost::bind(&DaliDevice::checkPresenceResponse, this, aPresenceResultHandler));
+  brightnessDimmer->updateStatus(boost::bind(&DaliDimmerDevice::checkPresenceResponse, this, aPresenceResultHandler));
 }
 
 
-void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler)
+void DaliDimmerDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler)
 {
   // present if a proper YES (without collision) received
   aPresenceResultHandler(brightnessDimmer->isPresent);
@@ -382,12 +574,12 @@ void DaliDevice::checkPresenceResponse(PresenceCB aPresenceResultHandler)
 
 
 
-void DaliDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
+void DaliDimmerDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
-  checkPresence(boost::bind(&DaliDevice::disconnectableHandler, this, aForgetParams, aDisconnectResultHandler, _1));
+  checkPresence(boost::bind(&DaliDimmerDevice::disconnectableHandler, this, aForgetParams, aDisconnectResultHandler, _1));
 }
 
-void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent)
+void DaliDimmerDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent)
 {
   if (!aPresent) {
     // call inherited disconnect
@@ -402,7 +594,7 @@ void DaliDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconn
 }
 
 
-void DaliDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void DaliDimmerDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
@@ -416,7 +608,7 @@ void DaliDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 
 
 // optimized DALI dimming implementation
-void DaliDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
+void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 {
   // start dimming
   if (aChannelType==channeltype_brightness) {
@@ -431,14 +623,14 @@ void DaliDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 
 
 
-void DaliDevice::deriveDsUid()
+void DaliDimmerDevice::deriveDsUid()
 {
   // single channel dimmer just uses dSUID derived from single DALI bus device
   dSUID = brightnessDimmer->dSUID;
 }
 
 
-string DaliDevice::hardwareGUID()
+string DaliDimmerDevice::hardwareGUID()
 {
   if (brightnessDimmer->deviceInfo.gtin==0)
     return ""; // none
@@ -447,7 +639,7 @@ string DaliDevice::hardwareGUID()
 }
 
 
-string DaliDevice::hardwareModelGUID()
+string DaliDimmerDevice::hardwareModelGUID()
 {
   if (brightnessDimmer->deviceInfo.oem_gtin==0)
     return ""; // none
@@ -456,7 +648,7 @@ string DaliDevice::hardwareModelGUID()
 }
 
 
-string DaliDevice::oemGUID()
+string DaliDimmerDevice::oemGUID()
 {
   if (brightnessDimmer->deviceInfo.oem_gtin==0)
     return ""; // none
@@ -465,7 +657,7 @@ string DaliDevice::oemGUID()
 }
 
 
-string DaliDevice::description()
+string DaliDimmerDevice::description()
 {
   string s = inherited::description();
   s.append(brightnessDimmer->deviceInfo.description());
@@ -477,10 +669,8 @@ string DaliDevice::description()
 
 
 DaliRGBWDevice::DaliRGBWDevice(DaliDeviceContainer *aClassContainerP) :
-  Device((DeviceClassContainer *)aClassContainerP)
+  DaliDevice(aClassContainerP)
 {
-  // DALI devices are always light (in this implementation, at least)
-  setPrimaryGroup(group_yellow_light);
 }
 
 
@@ -498,13 +688,6 @@ void DaliRGBWDevice::willBeAdded()
   // now derive dSUID
   deriveDsUid();
 }
-
-
-DaliDeviceContainer &DaliRGBWDevice::daliDeviceContainer()
-{
-  return *(static_cast<DaliDeviceContainer *>(classContainerP));
-}
-
 
 
 bool DaliRGBWDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
@@ -699,16 +882,7 @@ void DaliRGBWDevice::deriveDsUid()
   for (DimmerIndex idx=dimmer_red; idx<numDimmers; idx++) {
     if (dimmers[idx]) {
       // use this dimmer's dSUID as part of the mix
-      string dimID = dimmers[idx]->dSUID.getBinary();
-      if (mixID.empty()) {
-        mixID = dimID;
-      }
-      else {
-        // xor into mix, order of dimmers does not matter for this
-        for (size_t i=0; i<mixID.size(); i++) {
-          mixID[i] = mixID[i] ^ dimID[i];
-        }
-      }
+      dimmers[idx]->dSUID.xorDsUidIntoMix(mixID);
     }
   }
   // use xored ID as base for creating UUIDv5 in vdcNamespace
@@ -753,20 +927,4 @@ string DaliRGBWDevice::description()
   if (dimmer) s.append(dimmer->deviceInfo.description());
   return s;
 }
-
-
-ErrorPtr DaliRGBWDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
-{
-  ErrorPtr respErr;
-  if (aMethod=="x-p44-ungroupDevice") {
-    // Remove this device from the installation, forget the settings
-    respErr = daliDeviceContainer().ungroupDevice(DaliRGBWDevicePtr(this), aRequest);
-  }
-  else {
-    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
-  }
-  return respErr;
-}
-
-
 

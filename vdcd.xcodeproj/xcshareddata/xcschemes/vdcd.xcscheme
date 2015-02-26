@@ -103,7 +103,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.221 --dalitxadj 16"
+            argument = "--dali 192.168.59.221 --daliportidle 10 --dalitxadj 16"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

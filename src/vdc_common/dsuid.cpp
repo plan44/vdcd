@@ -71,17 +71,6 @@ void DsUid::setIdType(DsUidType aIdType)
     idType = aIdType;
     memset(raw, 0, sizeof(raw));
     switch (idType) {
-      // classic
-      case idtype_classic:
-        idBytes = dsidBytes;
-        // header byte
-        raw[0] = GID96Header;
-        // constant manager number
-        raw[1] = (ManagerNo>>20) & 0xFF;
-        raw[2] = (ManagerNo>>12) & 0xFF;
-        raw[3] = (ManagerNo>>4) & 0xFF;
-        raw[4] = (ManagerNo<<4) & 0xF0;
-        break;
       // dSUID
       case idtype_sgtin:
         raw[0] = SGTIN96Header;
@@ -230,87 +219,6 @@ void DsUid::setNameInSpace(const string &aName, const DsUid &aNameSpace)
 
 
 
-
-
-#pragma mark - set classic dSID from classic GID96 class/serial
-
-
-// Sample real dsids
-// 35 04 17 5F E0 00 00 10 00 00 14 d9  dSM
-// 35 04 17 5F E0 00 00 00 00 00 b4 c1	SW-TKM210
-
-
-// Standard dSID fields:
-// - h: 8 bit  : constant header byte 0x35
-// - m: 28 bit : constant manager number for Aizo 0x04175FE
-// - c: 24 bit : object class
-// - d: 36 bit : device serial
-// 00 01 02 03 04 05 06 07 08 09 10 11
-// hh mm mm mm mc cc cc cd dd dd dd dd
-
-// Class 0xFFxxxx field usage
-// - h: 8 bit  : constant header byte 0x35
-// - m: 28 bit : constant manager number for Aizo 0x04175FE
-// - c: 8 bit  : object class upper 8 bits = 0xFF
-// - M: 16 bit : object class lower 16 bits used for MAC address first two bytes
-// - X: 4 bit  : device serial upper 4 bits: 0x0 for MAC address, we map bits 48..51 of aSerialNo here
-// - N: 32 bit : device serial lower 32 bits used for MAC address last four bytes
-// 00 01 02 03 04 05 06 07 08 09 10 11
-// hh mm mm mm mc cM MM MX NN NN NN NN
-
-
-#define MACADDRESSCLASS_MSB (DSID_OBJECTCLASS_MACADDRESS>>16)
-#define OBJECTCLASS_MSB_MASK 0xFF0000
-
-
-void DsUid::setObjectClass(ObjectClass aObjectClass)
-{
-  // setting object class switches to classic dSUID
-  setIdType(idtype_classic);
-  // first nibble of object class shares byte 4 with last nibble of ManagerNo
-  raw[4] |= (aObjectClass>>20) & 0x0F; // or in
-  // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
-  if ((aObjectClass & OBJECTCLASS_MSB_MASK)==DSID_OBJECTCLASS_MACADDRESS) {
-    // MAC address object class
-    // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
-    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dSUID (as a 4 bit extension of the MAC address mapping)
-    raw[5] = ((aObjectClass>>12) & 0xF0);
-  }
-  else {
-    // Regular object class
-    raw[5] = (aObjectClass>>12) & 0xFF;
-    raw[6] = (aObjectClass>>4) & 0xFF;
-    // lowest 4 bits of object class combined with highest 4 bit of 36bit aSerialNo
-    raw[7] = (raw[7] & 0x0F) | ((aObjectClass<<4) & 0xF0);
-  }
-}
-
-
-void DsUid::setDsSerialNo(DsSerialNo aSerialNo)
-{
-  // setting dS serial number switches to classic dSUID
-  setIdType(idtype_classic);
-  // object class 0xFFxxxx is special, contains bits 32..47 of MAC address
-  if ((((raw[4] & 0x0F)<<4) | ((raw[5] & 0xF0)>>4))==MACADDRESSCLASS_MSB) {
-    // MAC address object class
-    // serialNo can be up to 52 bits (lower 48 reserved for MAC address)
-    // Note: bits 48..51 of aSerialNo are mapped into bits 32..35 of the dSUID (as a 4 bit extension of the MAC address mapping)
-    raw[5] = (raw[5] & 0xF0) | ((aSerialNo>>44) & 0x0F);
-    raw[6] = (aSerialNo>>36) & 0xFF;
-    raw[7] = ((aSerialNo>>28) & 0xF0) | ((aSerialNo>>48) & 0x0F);
-  }
-  else {
-    // lowest 4 bits of object class combined with highest 4 bit of 36bit aSerialNo
-    raw[7] = (raw[7] & 0xF0) | ((aSerialNo>>32) & 0x0F);
-  }
-  // lower 4 bytes are always bits 0..31 of aSerialNo
-  raw[8] = (aSerialNo>>24) & 0xFF;
-  raw[9] = (aSerialNo>>16) & 0xFF;
-  raw[10] = (aSerialNo>>8) & 0xFF;
-  raw[11] = aSerialNo & 0xFF;
-}
-
-
 #pragma mark - binary string (bytes) representation
 
 bool DsUid::setAsBinary(const string &aBinary)
@@ -319,11 +227,7 @@ bool DsUid::setAsBinary(const string &aBinary)
     idBytes = dsuidBytes;
     memcpy(raw, aBinary.c_str(), idBytes);
     detectSubType();
-  }
-  else if (aBinary.size()==dsidBytes) {
-    idBytes = dsidBytes;
-    memcpy(raw, aBinary.c_str(), idBytes);
-    idType = idtype_classic;
+    return true;
   }
   return false;
 }
@@ -397,12 +301,7 @@ bool DsUid::setAsString(const string &aString)
     }
   }
   // determine type of dSUID
-  if (byteIndex==dsidBytes && raw[0]==GID96Header) {
-    // must be a classic dSUID (pure GID96)
-    idType = idtype_classic;
-    idBytes = dsidBytes;
-  }
-  else if (byteIndex==dsuidBytes || (hasDashes && byteIndex==uuidBytes)) {
+  if (byteIndex==dsuidBytes || (hasDashes && byteIndex==uuidBytes)) {
     // must be a dSUID (when read with dashes, it can also be a pure UUID without the subdevice index byte)
     idType = idtype_other;
     idBytes = dsuidBytes;
@@ -453,6 +352,26 @@ bool DsUid::operator< (const DsUid &aDsUid) const
     return idType<aDsUid.idType;
 }
 
+
+#pragma mark - utilities
+
+
+void DsUid::xorDsUidIntoMix(string &aMix)
+{
+  string b = getBinary(); // will always be of size dsuidBytes
+  if (aMix.empty()) {
+    aMix = b;
+  }
+  else {
+    // xor into mix, order of mixed components does not matter
+    for (size_t i=0; i<dsuidBytes; i++) {
+      if (i<aMix.size())
+        aMix[i] = aMix[i] ^ b[i];
+      else
+        aMix.append(1, b[i]); // mix was too short, append extra chars
+    }
+  }
+}
 
 
 

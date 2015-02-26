@@ -88,7 +88,7 @@ namespace p44 {
     /// @param aDevice the device to ungroup
     /// @param aRequest the API request that causes the ungroup, will be sent an OK when ungrouping is complete
     /// @return error if not successful
-    ErrorPtr ungroupDevice(DaliRGBWDevicePtr aDevice, VdcApiRequestPtr aRequest);
+    ErrorPtr ungroupDevice(DaliDevicePtr aDevice, VdcApiRequestPtr aRequest);
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
@@ -102,6 +102,8 @@ namespace p44 {
 
     void deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError);
     void queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError);
+    void initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, CompletedCB aCompletedCB, ErrorPtr aError);
+    void createDsDevices(DaliBusDeviceListPtr aDimmerDevices, CompletedCB aCompletedCB);
     void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
     void groupCollected(VdcApiRequestPtr aRequest);
 
