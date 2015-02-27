@@ -478,6 +478,14 @@ private:
   }
 
 
+  typedef enum {
+    dqs_controlgear,
+    dqs_random_h,
+    dqs_random_m,
+    dqs_random_l
+  } DeviceQueryState;
+
+
   void handleMissingShortAddressResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
     if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
@@ -486,16 +494,17 @@ private:
     }
     // start the scan
     shortAddress = 0;
-    queryNext();
+    queryNext(dqs_controlgear);
   };
 
+
   // handle scan result
-  void handleScanResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+  void handleScanResponse(DeviceQueryState aQueryState, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
     bool isYes = false;
     if (aError && aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
       // framing error, indicates that we might have duplicates
-      LOG(LOG_INFO, "Detected framing error for response from short address %d - probably short address collision\n", shortAddress);
+      LOG(LOG_INFO, "Detected framing error for %d-th response from short address %d - probably short address collision\n", (int)aQueryState, shortAddress);
       probablyCollision = true;
       isYes = true; // still count as YES
       aError.reset(); // do not count as error aborting the search
@@ -503,30 +512,48 @@ private:
     else if (!aError && !aNoOrTimeout) {
       // no error, no timeout
       isYes = true;
-      if (aResponse!=DALIANSWER_YES) {
+      if (aQueryState==dqs_controlgear && aResponse!=DALIANSWER_YES) {
         // not entirely correct answer, also indicates collision
         LOG(LOG_INFO, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
         probablyCollision = true;
       }
     }
-    if (isYes) {
-      activeDevicesPtr->push_back(shortAddress);
-    }
-    shortAddress++;
-    if (shortAddress<DALI_MAXDEVICES && !aError) {
-      // more devices to scan
-      queryNext();
+    if (aQueryState==dqs_random_l || aNoOrTimeout) {
+      // last byte of existing device checked or timeout -> query complete for this short address
+      if (isYes) {
+        activeDevicesPtr->push_back(shortAddress);
+        LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
+      }
+      shortAddress++;
+      if (shortAddress<DALI_MAXDEVICES && !aError) {
+        // more devices to scan
+        queryNext(dqs_controlgear);
+      }
+      else {
+        return completed(aError);
+      }
     }
     else {
-      return completed(aError);
+      // more to check from same device
+      queryNext((DeviceQueryState)((int)aQueryState+1));
     }
   };
 
+
   // query next device
-  void queryNext()
+  void queryNext(DeviceQueryState aQueryState)
   {
-    daliComm.daliSendQuery(shortAddress, DALICMD_QUERY_CONTROL_GEAR, boost::bind(&DaliBusScanner::handleScanResponse, this, _1, _2, _3));
+    uint8_t q;
+    switch (aQueryState) {
+      default: q = DALICMD_QUERY_CONTROL_GEAR; break;
+      case dqs_random_h: q = DALICMD_QUERY_RANDOM_ADDRESS_H; break;
+      case dqs_random_m: q = DALICMD_QUERY_RANDOM_ADDRESS_M; break;
+      case dqs_random_l: q = DALICMD_QUERY_RANDOM_ADDRESS_L; break;
+    }
+    daliComm.daliSendQuery(shortAddress, q, boost::bind(&DaliBusScanner::handleScanResponse, this, aQueryState, _1, _2, _3));
   }
+
+
 
   void completed(ErrorPtr aError)
   {
@@ -898,7 +925,7 @@ private:
     memory(new MemoryVector)
   {
     daliComm.startProcedure();
-    LOG(LOG_INFO, "DALI - reading %d bytes from bank %d at offset %d:\n", aNumBytes, aBank, aOffset);
+    LOG(LOG_INFO, "DALI bus address %d - reading %d bytes from bank %d at offset %d:\n", busAddress, aNumBytes, aBank, aOffset);
     // set DTR1 = bank
     daliComm.daliSend(DALICMD_SET_DTR1, aBank);
     // set DTR = offset within bank
@@ -984,7 +1011,7 @@ private:
     if (aError)
       return complete(aError);
     if (aBank0Data->size()==DALIMEM_BANK0_MINBYTES) {
-      // sum up starting with checksum itself, result must be 0xFF in the end
+      // sum up starting with checksum itself, result must be 0x00 in the end
       for (int i=0x01; i<DALIMEM_BANK0_MINBYTES; i++) {
         bankChecksum += (*aBank0Data)[i];
       }
@@ -1020,13 +1047,14 @@ private:
         deviceInfo->serialNo = (deviceInfo->serialNo << 8) + (*aBank0Data)[i];
       }
       // check for extra data device may have
-      int extraBytes = (*aBank0Data)[0]-DALIMEM_BANK0_MINBYTES;
+      // Note: aBank0Data[0] is address of highest byte, so NUMBER of bytes is one more!
+      int extraBytes = (*aBank0Data)[0]+1-DALIMEM_BANK0_MINBYTES;
       if (extraBytes>0) {
         // issue read of extra bytes
         DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank0ExtraData, this, _1, _2), busAddress, 0, DALIMEM_BANK0_MINBYTES, extraBytes);
       }
       else {
-        // directly continue by reading bank1
+        // no extra bytes, bank 0 reading is complete
         bank0readcomplete();
       }
     }
@@ -1041,7 +1069,7 @@ private:
     if (aError)
       return complete(aError);
     else {
-      // add extra bytes to checksum, result must be 0xFF in the end
+      // add extra bytes to checksum, result must be 0x00 in the end
       for (int i=0; i<aBank0Data->size(); i++) {
         bankChecksum += (*aBank0Data)[i];
       }
@@ -1055,10 +1083,8 @@ private:
   void bank0readcomplete()
   {
     // verify checksum of bank0 data first
-    // - per specs, correct sum should be 0x00 here.
-    // - However, for example Osram QTI seem to have it implemented incorrectly, and sum up to 0xFF instead,
-    //   so we allow this as well (altough it doubles probability of false positives).
-    if (bankChecksum!=0x00 && bankChecksum!=0xFF) {
+    // - per specs, correct sum must be 0x00 here.
+    if (bankChecksum!=0x00) {
       // checksum error
       // - invalidate gtin, serial and fw version
       deviceInfo->gtin = 0;
@@ -1066,7 +1092,7 @@ private:
       deviceInfo->fw_version_minor = 0;
       deviceInfo->serialNo = 0;
       // - report error
-      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0x00 (0xFF accepted as well for bad devices), actual sum is 0x%02X\n", busAddress, bankChecksum);
+      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X\n", busAddress, bankChecksum);
       return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memory bank 0 checksum at shortAddress %d", busAddress))));
     }
     // now read OEM info from bank1
@@ -1080,22 +1106,22 @@ private:
     if (aError)
       return complete(aError);
     if (aBank1Data->size()==DALIMEM_BANK1_MINBYTES) {
-      // sum up starting with checksum itself, result must be 0xFF in the end
+      // sum up starting with checksum itself, result must be 0x00 in the end
       for (int i=0x01; i<DALIMEM_BANK1_MINBYTES; i++) {
         bankChecksum += (*aBank1Data)[i];
       }
       // OEM GTIN: bytes 0x03..0x08, MSB first
-      deviceInfo->gtin = 0;
+      deviceInfo->oem_gtin = 0;
       for (int i=0x03; i<=0x08; i++) {
         deviceInfo->oem_gtin = (deviceInfo->oem_gtin << 8) + (*aBank1Data)[i];
       }
       // Serial: bytes 0x09..0x0C
-      deviceInfo->serialNo = 0;
+      deviceInfo->oem_serialNo = 0;
       for (int i=0x09; i<=0x0C; i++) {
         deviceInfo->oem_serialNo = (deviceInfo->oem_serialNo << 8) + (*aBank1Data)[i];
       }
       // check for extra data device may have
-      int extraBytes = (*aBank1Data)[0]-DALIMEM_BANK1_MINBYTES;
+      int extraBytes = (*aBank1Data)[0]+1-DALIMEM_BANK1_MINBYTES;
       if (extraBytes>0) {
         // issue read of extra bytes
         DaliMemoryReader::readMemory(daliComm, boost::bind(&DaliDeviceInfoReader::handleBank1ExtraData, this, _1, _2), busAddress, 0, DALIMEM_BANK1_MINBYTES, extraBytes);
@@ -1117,7 +1143,7 @@ private:
     if (aError)
       return complete(aError);
     else {
-      // add extra bytes to checksum, result must be 0xFF in the end
+      // add extra bytes to checksum, result must be 0x00 in the end
       for (int i=0; i<aBank1Data->size(); i++) {
         bankChecksum += (*aBank1Data)[i];
       }
@@ -1132,17 +1158,15 @@ private:
   {
     if (Error::isOK(aError)) {
       // test checksum
-      // - per specs, correct sum should be 0x00 here.
-      // - However, for example Osram QTI seem to have it implemented incorrectly, and sum up to 0xFF instead,
-      //   so we allow this as well (altough it doubles probability of false positives).
-      if (bankChecksum!=0x00 && bankChecksum!=0xFF) {
+      // - per specs, correct sum must be 0x00 here.
+      if (bankChecksum!=0x00) {
         // checksum error
-        // - invalidate gtin, serial and fw version
+        // - invalidate OEM gtin and serial
         deviceInfo->oem_gtin = 0;
         deviceInfo->oem_serialNo = 0;
         // - report error
-        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0x00 (0xFF accepted as well for bad devices), actual sum is 0x%02X\n", busAddress, bankChecksum);
-        aError = ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memeory bank 1 checksum at shortAddress %d", busAddress)));
+        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X\n", busAddress, bankChecksum);
+        aError = ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memory bank 1 checksum at shortAddress %d", busAddress)));
       }
     }
     complete(aError);
