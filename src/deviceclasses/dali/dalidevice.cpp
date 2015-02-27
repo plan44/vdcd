@@ -70,7 +70,37 @@ void DaliBusDevice::derivedDsUid()
   // vDC implementation specific UUID:
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
   string s;
-  if (deviceInfo.uniquelyIdentifying()) {
+  #ifdef OLD_BUGGY_CHKSUM_COMPATIBLE
+  if (deviceInfo.devInfStatus==DaliDeviceInfo::devinf_maybe) {
+    // assume we can use devInf to derive dSUID from
+    deviceInfo.devInfStatus = DaliDeviceInfo::devinf_solid;
+    // but only actually use it if there is no device entry for the shortaddress-based dSUID with a non-zero name
+    // (as this means the device has been already actively used/configured with the shortaddr-dSUID)
+    // - calculate the short address based dSUID
+    s = daliDeviceContainer.deviceClassContainerInstanceIdentifier();
+    string_format_append(s, "::%d", deviceInfo.shortAddress);
+    DsUid shortAddrBasedDsUid;
+    shortAddrBasedDsUid.setNameInSpace(s, vdcNamespace);
+    // - check for named device in database consisting of this dimmer with shortaddr based dSUID
+    //   Note that only single dimmer device are checked for, composite devices will not have this compatibility mechanism
+    sqlite3pp::query qry(daliDeviceContainer.getDeviceContainer().getDsParamStore());
+    // Note: this is a bit ugly, as it has the device settings table name hard coded
+    string sql = string_format("SELECT deviceName FROM DeviceSettings WHERE parentID='%s'", shortAddrBasedDsUid.getString().c_str());
+    if (qry.prepare(sql.c_str())==SQLITE_OK) {
+      sqlite3pp::query::iterator i = qry.begin();
+      if (i!=qry.end()) {
+        // the length of the name
+        string n = nonNullCStr(i->get<const char *>(0));
+        if (n.length()>0) {
+          // shortAddr based device has already been named. So keep that, and don't generate a devInf based dSUID
+          deviceInfo.devInfStatus = DaliDeviceInfo::devinf_notForID;
+          LOG(LOG_WARNING, "DaliBusDevice shortaddr %d kept with shortaddr-based dSUID because it is already named: '%s'\n", deviceInfo.shortAddress, n.c_str());
+        }
+      }
+    }
+  }
+  #endif // OLD_BUGGY_CHKSUM_COMPATIBLE
+  if (deviceInfo.devInfStatus==DaliDeviceInfo::devinf_solid) {
     // uniquely identified by GTIN+Serial, but unknown partition value:
     // - Proceed according to dS rule 2:
     //   "vDC can determine GTIN and serial number of Device → combine GTIN and
@@ -80,7 +110,7 @@ void DaliBusDevice::derivedDsUid()
     s = string_format("(01)%llu(21)%llu", deviceInfo.gtin, deviceInfo.serialNo);
   }
   else {
-    // not uniquely identified by itself:
+    // not uniquely identified by devInf (or shortaddr based version already in use):
     // - generate id in vDC namespace
     //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
     s = daliDeviceContainer.deviceClassContainerInstanceIdentifier();

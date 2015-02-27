@@ -1008,9 +1008,11 @@ private:
   {
     deviceInfo.reset(new DaliDeviceInfo);
     deviceInfo->shortAddress = busAddress;
+    deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // no info yet
     if (aError)
       return complete(aError);
     if (aBank0Data->size()==DALIMEM_BANK0_MINBYTES) {
+      deviceInfo->devInfStatus = DaliDeviceInfo::devinf_solid; // assume solid info present
       // sum up starting with checksum itself, result must be 0x00 in the end
       for (int i=0x01; i<DALIMEM_BANK0_MINBYTES; i++) {
         bankChecksum += (*aBank0Data)[i];
@@ -1025,6 +1027,7 @@ private:
           // - report error
           if (numSame>=10) {
             LOG(LOG_ERR, "DALI shortaddress %d Bank 0 has >%d consecutive bytes of 0x%02X - indicates invalid GTIN/Serial data -> ignoring\n", busAddress, numSame, refByte);
+            deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // no valid device info
             return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadDeviceInfo,string_format("bad repetitive DALI memory bank 0 contents shortAddress %d", busAddress))));
           }
         }
@@ -1064,6 +1067,7 @@ private:
     }
   };
 
+
   void handleBank0ExtraData(DaliComm::MemoryVectorPtr aBank0Data, ErrorPtr aError)
   {
     if (aError)
@@ -1073,6 +1077,20 @@ private:
       for (int i=0; i<aBank0Data->size(); i++) {
         bankChecksum += (*aBank0Data)[i];
       }
+      // Note: before 2015-02-27, we had a bug which caused the last extra byte not being read, so the checksum reached zero
+      // only if the last byte was 0. We also passed the if checksum was 0xFF, because our reference devices always had 0x01 in
+      // the last byte, and I assumed missing by 1 was the result of not precise enough specs or a bug in the device.
+      #ifdef OLD_BUGGY_CHKSUM_COMPATIBLE
+      if (bankChecksum==0) {
+        // by specs, this is a correct checksum.
+        // - now check if the buggy checker would have passed it, too (which is when last byte is 0x01 or 0x00)
+        uint8_t lastByte = (*aBank0Data)[aBank0Data->size()-1];
+        if (lastByte!=0x00 && lastByte!=0x01) {
+          // this bank 0 data would not have passed the buggy checker
+          deviceInfo->devInfStatus = DaliDeviceInfo::devinf_maybe; // might be usable to identify device, but needs backwards compatibility checking
+        }
+      }
+      #endif
       // TODO: look at that data
       // now get OEM info
       bank0readcomplete();
@@ -1086,6 +1104,7 @@ private:
     // - per specs, correct sum must be 0x00 here.
     if (bankChecksum!=0x00) {
       // checksum error
+      deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // device info is invalid
       // - invalidate gtin, serial and fw version
       deviceInfo->gtin = 0;
       deviceInfo->fw_version_major = 0;
@@ -1192,6 +1211,7 @@ void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddre
 
 #pragma mark - DALI device info
 
+
 DaliDeviceInfo::DaliDeviceInfo()
 {
   gtin = 0;
@@ -1200,13 +1220,14 @@ DaliDeviceInfo::DaliDeviceInfo()
   serialNo = 0;
   oem_gtin = 0;
   oem_serialNo = 0;
+  devInfStatus = devinf_none;
 }
 
 
 string DaliDeviceInfo::description()
 {
   string s = string_format("- DaliDeviceInfo for shortAddress %d\n", shortAddress);
-  string_format_append(s, "  - is %suniquely defining the device\n", uniquelyIdentifying() ? "" : "NOT ");
+  string_format_append(s, "  - is %suniquely defining the device\n", devInfStatus==devinf_solid ? "" : "NOT ");
   string_format_append(s, "  - GTIN       : %lld\n", gtin);
   string_format_append(s, "  - Serial     : %lld\n", serialNo);
   string_format_append(s, "  - OEM GTIN   : %lld\n", oem_gtin);

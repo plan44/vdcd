@@ -161,8 +161,9 @@ bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const ch
 // add a device
 bool DeviceClassContainer::addDevice(DevicePtr aDevice)
 {
-  // announce to global device container
+  // let device consider its internal structure and dSUID for the last time
   aDevice->willBeAdded();
+  // announce to global device container
   if (deviceContainerP->addDevice(aDevice)) {
     // not a duplicate
     // - save in my own list

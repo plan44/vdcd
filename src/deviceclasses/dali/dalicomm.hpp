@@ -31,6 +31,13 @@
 
 using namespace std;
 
+// Note: before 2015-02-27, we had a bug which caused the last extra byte not being read, so the checksum reached zero
+// only if the last byte was 0. We also passed the if checksum was 0xFF, because our reference devices always had 0x01 in
+// the last byte, and I assumed missing by 1 was the result of not precise enough specs or a bug in the device.
+// If OLD_BUGGY_CHKSUM_COMPATIBLE is defined, extra checks will be made to keep already-in-use devices identified by
+// shortaddr to avoid messing up existing installations
+#define OLD_BUGGY_CHKSUM_COMPATIBLE 1
+
 namespace p44 {
 
   // Errors
@@ -76,6 +83,13 @@ namespace p44 {
   class DaliDeviceInfo : public P44Obj
   {
   public:
+    typedef enum {
+      devinf_none,
+      devinf_maybe,
+      devinf_solid,
+      devinf_notForID
+    } DaliDevInfStatus;
+
     DaliDeviceInfo();
     // short address
     DaliAddress shortAddress;
@@ -89,8 +103,8 @@ namespace p44 {
     long long oem_serialNo; /// < unique serial number
     /// text description
     string description();
-    /// returns true if uniquely identifying the device (real GTIN + serial found)
-    bool uniquelyIdentifying();
+    /// status of device info
+    DaliDevInfStatus devInfStatus;
   };
 
 

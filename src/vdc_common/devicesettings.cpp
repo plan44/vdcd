@@ -39,6 +39,7 @@ DeviceSettings::DeviceSettings(Device &aDevice) :
 const char *DeviceSettings::tableName()
 {
   return "DeviceSettings";
+  // Note: there's a hard-coded dependency on this table being called "DeviceSettings" in the DaliBusDevice class!
 }
 
 
@@ -56,7 +57,7 @@ const FieldDefinition *DeviceSettings::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "deviceFlags", SQLITE_INTEGER },
-    { "deviceName", SQLITE_TEXT },
+    { "deviceName", SQLITE_TEXT }, // Note: there's a hard-coded dependency on this field being called "deviceName" in the DaliBusDevice class!
     { "zoneID", SQLITE_INTEGER }
   };
   if (aIndex<inherited::numFieldDefs())

@@ -123,7 +123,7 @@ void DaliDeviceContainer::deviceListReceived(CompletedCB aCompletedCB, DaliComm:
     // - add bus device to list
     busDevices->push_back(busDevice);
   }
-  // now start collecting full device for each device
+  // now start collecting full device info for each device
   queryNextDev(busDevices, busDevices->begin(), aCompletedCB, ErrorPtr());
 }
 
