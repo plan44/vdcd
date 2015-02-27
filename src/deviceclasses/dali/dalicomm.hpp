@@ -292,22 +292,6 @@ namespace p44 {
     void daliQueryResponseHandler(DaliQueryResultCB aResultCB, uint8_t aResp1, uint8_t aResp2, ErrorPtr aError);
     void connectionTimeout();
 
-  public:
-    // %%% test
-    void testReset();
-    void testResetAck(ErrorPtr aError);
-
-    void testBusScan();
-    void testBusScanAck(ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
-
-    void testFullBusScan();
-    void testFullBusScanAck(ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
-
-    void testReadBytes(DaliAddress aShortAddress);
-    void testReadBytesAck(MemoryVectorPtr aMemoryPtr, ErrorPtr aError);
-
-    void testReadDeviceInfo(DaliAddress aShortAddress);
-    void testReadDeviceInfoAck(DaliDeviceInfoPtr aDeviceInfo, ErrorPtr aError);
   };
 
 } // namespace p44
