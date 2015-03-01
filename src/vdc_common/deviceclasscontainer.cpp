@@ -253,6 +253,7 @@ enum {
   devices_key,
   deviceclassidentifier_key,
   instancenumber_key,
+  rescanModes_key,
   numClassContainerProperties
 };
 
@@ -327,7 +328,8 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
       { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) },
       { "x-p44-deviceClass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
-      { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) }
+      { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) },
+      { "x-p44-rescanModes", apivalue_uint64, rescanModes_key, OKEY(deviceclass_key) }
     };
     int n = inherited::numProps(aDomain, aParentDescriptor);
     if (aPropIndex<n)
@@ -357,6 +359,9 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           return true;
         case instancenumber_key:
           aPropValue->setInt32Value(getInstanceNumber());
+          return true;
+        case rescanModes_key:
+          aPropValue->setInt32Value(getRescanModes());
           return true;
       }
     }

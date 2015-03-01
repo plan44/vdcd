@@ -153,6 +153,18 @@ namespace p44 {
     /// @name device collection, learning/pairing, self test
     /// @{
 
+    /// Rescan modes
+    enum {
+      rescanmode_none = 0, ///< no mode bits set -> no rescan supported at all
+      rescanmode_incremental = 0x01, ///< incremental rescan supported
+      rescanmode_normal = 0x02, ///< normal rescan supported
+      rescanmode_exhaustive = 0x04 ///< exhaustive rescan supported
+    };
+    /// get supported rescan modes for this device class. This indicates (usually to a web-UI) which
+    /// of the flags to collectDevices() make sense for this device class.
+    /// @return a combination of rescanmode_xxx bits
+    virtual int getRescanModes() const { return rescanmode_none; }; // by default, assume not rescannable
+
     /// collect devices from this device classes for normal operation
     /// @param aCompletedCB will be called when device scan for this device class has been completed
     /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices

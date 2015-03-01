@@ -74,6 +74,10 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
+    /// get supported rescan modes for this device class
+    /// @return a combination of rescanmode_xxx bits
+    virtual int getRescanModes() const;
+
     /// collect and add devices to the container
     virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 

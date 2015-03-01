@@ -94,6 +94,11 @@ void DaliDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRese
 #pragma mark - collect devices
 
 
+int DaliDeviceContainer::getRescanModes() const
+{
+  // normal and incremental make sense, no exhaustive mode
+  return rescanmode_incremental+rescanmode_normal+rescanmode_exhaustive;
+}
 
 
 void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)

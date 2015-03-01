@@ -88,6 +88,12 @@ void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
 #pragma mark - collect devices
 
 
+int HueDeviceContainer::getRescanModes() const
+{
+  // normal and incremental make sense, no exhaustive mode
+  return rescanmode_incremental+rescanmode_normal;
+}
+
 
 void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
