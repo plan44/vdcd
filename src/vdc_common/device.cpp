@@ -278,9 +278,22 @@ bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
       // Assumption: devices with more than single button input are combined up/down (or even 4-way and more) buttons, and need two-way config
       return buttons.size()>1;
     case modelFeature_highlevel:
-    case modelFeature_jokerconfig:
-      // Assumption: black joker devices can have a high-level (app) functionality and need joker config
+      // Assumption: only black joker devices can have a high-level (app) functionality
       return primaryGroup==group_black_joker;
+    case modelFeature_jokerconfig:
+      // Assumption: black joker devices need joker config (setting color) only if there are buttons or an output.
+      // Pure sensors or binary inputs don't need color config
+      return primaryGroup==group_black_joker && (output || buttons.size()>0);
+    case modelFeature_akmsensor:
+      // Assumption: only devices with binaryinputs that do not have a predefined type need akmsensor
+      for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) {
+        BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(*pos);
+        if (b && b->getHardwareInputType()==binInpType_none) {
+          return true; // input with no predefined functionality, need to be able to configure sensor
+        }
+      }
+      // no inputs or all inputs have predefined functionality
+      return false;
     default:
       return false; // not known
   }

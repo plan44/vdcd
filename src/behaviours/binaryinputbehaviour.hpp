@@ -74,6 +74,10 @@ namespace p44 {
     ///   also derive default values for settings from this information.
     void setHardwareInputConfig(DsBinaryInputType aInputType, DsUsageHint aUsage, bool aReportsChanges, MLMicroSeconds aUpdateInterval);
 
+    /// get the hardware input type
+    /// @return the type of the input
+    DsBinaryInputType getHardwareInputType() { return hardwareInputType; };
+
     /// set group
     virtual void setGroup(DsGroup aGroup) { binInputGroup = aGroup; };
 
