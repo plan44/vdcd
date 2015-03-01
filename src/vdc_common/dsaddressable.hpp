@@ -86,6 +86,10 @@ namespace p44 {
     ///   propagate to hardware
     void initializeName(const string &aName);
 
+    /// report that this addressable has vanished (temporarily or permanently disconnected)
+    /// @note only addressables that have been announced on the vDC API will send a vanish message
+    void reportVanished();
+
     /// @name vDC API
     /// @{
 

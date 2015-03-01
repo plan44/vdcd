@@ -128,7 +128,7 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 
 
 
-void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // install standard packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
@@ -137,7 +137,7 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncr
   // incrementally collecting EnOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
-    removeDevices(false);
+    removeDevices(aClearSettings);
     // - read learned-in EnOcean button IDs from DB
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {

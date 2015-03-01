@@ -89,12 +89,12 @@ void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset
 
 
 
-void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   collectedHandler = aCompletedCB;
   if (!aIncremental) {
     // full collect, remove all devices
-    removeDevices(false);
+    removeDevices(aClearSettings);
   }
   // load hue bridge uuid and token
   sqlite3pp::query qry(db);

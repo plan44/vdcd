@@ -284,21 +284,23 @@ class DeviceClassCollector
   CompletedCB callback;
   bool exhaustive;
   bool incremental;
+  bool clear;
   ContainerMap::iterator nextContainer;
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
-  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive)
+  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassCollector(aDeviceContainerP, aCallback, aIncremental, aExhaustive);
+    new DeviceClassCollector(aDeviceContainerP, aCallback, aIncremental, aExhaustive, aClearSettings);
   };
 private:
-  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive) :
+  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings) :
     callback(aCallback),
     deviceContainerP(aDeviceContainerP),
     incremental(aIncremental),
-    exhaustive(aExhaustive)
+    exhaustive(aExhaustive),
+    clear(aClearSettings)
   {
     nextContainer = deviceContainerP->deviceClassContainers.begin();
     queryNextContainer(ErrorPtr());
@@ -315,7 +317,7 @@ private:
         vdc->getInstanceNumber(),
         vdc->getApiDsUid().getString().c_str() // as seen in the API
       );
-      nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive);
+      nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive, clear);
     }
     else
       collectedAll(aError);
@@ -370,7 +372,7 @@ private:
 
 
 
-void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   if (!collecting) {
     collecting = true;
@@ -384,7 +386,7 @@ void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental
       }
       dSDevices.clear(); // forget existing ones
     }
-    DeviceClassCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive);
+    DeviceClassCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive, aClearSettings);
   }
 }
 

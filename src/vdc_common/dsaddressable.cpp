@@ -80,6 +80,14 @@ void DsAddressable::initializeName(const string &aName)
 }
 
 
+void DsAddressable::reportVanished()
+{
+  if (announced!=Never) {
+    // report to vDC API client that the device is now offline
+    sendRequest("vanish", ApiValuePtr());
+  }
+}
+
 
 #pragma mark - vDC API
 

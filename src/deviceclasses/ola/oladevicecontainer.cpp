@@ -160,12 +160,12 @@ OlaDevicePtr OlaDeviceContainer::addOlaDevice(string aDeviceType, string aDevice
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void OlaDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void OlaDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
     // non-incremental, re-collect all devices
-    removeDevices(false);
+    removeDevices(aClearSettings);
     // then add those from the DB
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT devicetype, deviceconfig, rowid FROM devConfigs")==SQLITE_OK) {

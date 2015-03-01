@@ -147,12 +147,12 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
     // non-incremental, re-collect all devices
-    removeDevices(false);
+    removeDevices(aClearSettings);
     // create devices from command line config
     for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
       // create device of appropriate class

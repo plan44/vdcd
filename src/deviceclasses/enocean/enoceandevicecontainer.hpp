@@ -111,7 +111,7 @@ namespace p44 {
     virtual void selfTest(CompletedCB aCompletedCB);
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
     ///   the devices are not disconnected (=unlearned) by this.

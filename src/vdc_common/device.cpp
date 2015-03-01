@@ -522,12 +522,11 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
 void Device::hasVanished(bool aForgetParams)
 {
   // have device send a vanish message
-  sendRequest("vanish", ApiValuePtr());
+  reportVanished();
   // then disconnect it in software
   // Note that disconnect() might delete the Device object (so 'this' gets invalid)
   disconnect(aForgetParams, NULL);
 }
-
 
 
 // returns 0 for non-area scenes, area number for area scenes

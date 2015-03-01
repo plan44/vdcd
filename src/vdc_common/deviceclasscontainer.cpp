@@ -67,9 +67,11 @@ ErrorPtr DeviceClassContainer::handleMethod(VdcApiRequestPtr aRequest, const str
     // (re)collect devices of this particular device class
     bool incremental = true;
     bool exhaustive = false;
+    bool clear = false;
     checkBoolParam(aParams, "incremental", incremental);
     checkBoolParam(aParams, "exhaustive", exhaustive);
-    collectDevices(boost::bind(&DeviceClassContainer::collectDevicesMethodComplete, this, aRequest, _1), incremental, exhaustive);
+    checkBoolParam(aParams, "clear", clear);
+    collectDevices(boost::bind(&DeviceClassContainer::collectDevicesMethodComplete, this, aRequest, _1), incremental, exhaustive, clear);
   }
   else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
@@ -195,6 +197,9 @@ void DeviceClassContainer::removeDevices(bool aForget)
 {
 	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
     DevicePtr dev = *pos;
+    // inform upstream about these devices going offline now (if API connection is up at all at this time)
+    dev->reportVanished();
+    // now actually remove
     deviceContainerP->removeDevice(dev, aForget);
   }
   // clear my own list

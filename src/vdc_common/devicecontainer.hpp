@@ -216,8 +216,12 @@ namespace p44 {
     ///   might not get detected this way
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
-    ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.  
-    void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+    ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
+    /// @param aClearSettings if set, persistent settings of currently known devices will be deleted before
+    ///   re-scanning for devices, which means devices will have default settings after collecting.
+    ///   Note that this is mutually exclusive with aIncremental (incremental scan does not remove any devices,
+    ///   and thus cannot remove any settings, either)
+    void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// Put device class controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs

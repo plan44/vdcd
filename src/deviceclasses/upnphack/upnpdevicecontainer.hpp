@@ -25,7 +25,7 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs

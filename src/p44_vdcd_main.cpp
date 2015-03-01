@@ -686,7 +686,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental, false); // no forced full scan (only if needed)
+    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental, false, false); // no forced full scan (only if needed), no settings clearing
   }
 
 

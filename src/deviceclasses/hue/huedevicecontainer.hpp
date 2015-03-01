@@ -75,7 +75,7 @@ namespace p44 {
     virtual const char *deviceClassIdentifier() const;
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive);
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode

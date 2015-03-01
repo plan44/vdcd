@@ -129,7 +129,7 @@ public:
     }
     else {
       // init ok, collect devices
-      deviceContainer->collectDevices(boost::bind(&DemoVdc::devicesCollected, this, _1), false, false); // no forced full scan (only if needed)
+      deviceContainer->collectDevices(boost::bind(&DemoVdc::devicesCollected, this, _1), false, false, false); // no forced full scan (only if needed)
     }
   }
 

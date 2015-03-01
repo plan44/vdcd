@@ -45,12 +45,12 @@ void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr
 #define COLLECTING_TIME (15*Second)
 
 /// collect devices for this device class
-void UpnpDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void UpnpDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting Demo devices makes no sense, they are statically created at startup
   if (!aIncremental) {
     // non-incremental, re-collect all devices
-    removeDevices(false);
+    removeDevices(aClearSettings);
   }
   // start a search (which times out after a while)
   m_dmr_search->startSearchForTarget(

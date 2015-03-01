@@ -160,7 +160,11 @@ namespace p44 {
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
     ///   recollect lost devices, assign bus addresses etc.). Without this flag set, device search should
     ///   still be complete under normal conditions, but might sacrifice corner case detection for speed.
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive) = 0;
+    /// @param aClearSettings if set, persistent settings of currently known devices will be deleted before
+    ///   re-scanning for devices, which means devices will have default settings after collecting.
+    ///   Note that this is mutually exclusive with aIncremental (incremental scan does not remove any devices,
+    ///   and thus cannot remove any settings, either)
+    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings) = 0;
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
@@ -170,8 +174,9 @@ namespace p44 {
     virtual void selfTest(CompletedCB aCompletedCB);
 
     /// Forget all previously collected devices
-    /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
-    ///   the device is not disconnected (=unlearned) by this.
+    /// @param aForget if set, all parameters stored for the device (if any) will be deleted.
+    /// @note the device is not disconnected (=unlearned) by this, so it will re-appear when scanned again
+    /// @note if vdc API client is connected, it will receive "vanish" messages for all devices
     virtual void removeDevices(bool aForget);
 
     /// set container learn mode

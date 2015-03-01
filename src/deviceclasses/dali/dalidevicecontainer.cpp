@@ -96,10 +96,10 @@ void DaliDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryRese
 
 
 
-void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   if (!aIncremental) {
-    removeDevices(false);
+    removeDevices(aClearSettings);
   }
   // start collecting, allow quick scan when not exhaustively collecting (will still use full scan when bus collisions are detected)
   daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), !aExhaustive);
@@ -302,7 +302,7 @@ ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const stri
           }
           // - re-collect devices to find grouped composite now, but only after a second, starting from main loop, not from here
           CompletedCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
-          MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false), 1*Second);
+          MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false, false), 1*Second);
         }
       }
     }
@@ -326,7 +326,7 @@ ErrorPtr DaliDeviceContainer::ungroupDevice(DaliRGBWDevicePtr aDevice, VdcApiReq
     // delete grouped device
     aDevice->hasVanished(true); // delete parameters
     // cause recollect
-    collectDevices(boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest), false, false);
+    collectDevices(boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest), false, false, false);
   }
   else {
     // error

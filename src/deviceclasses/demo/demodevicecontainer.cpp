@@ -40,12 +40,12 @@ const char *DemoDeviceContainer::deviceClassIdentifier() const
 
 
 /// collect devices from this device class
-void DemoDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive)
+void DemoDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting Demo devices makes no sense, they are statically created at startup
   if (!aIncremental) {
     // non-incremental, re-collect all devices
-    removeDevices(false);
+    removeDevices(aClearSettings);
     // create one single demo device
     DevicePtr newDev = DevicePtr(new DemoDevice(this));
     // add to container
