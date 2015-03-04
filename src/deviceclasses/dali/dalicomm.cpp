@@ -508,6 +508,7 @@ private:
       probablyCollision = true;
       isYes = true; // still count as YES
       aError.reset(); // do not count as error aborting the search
+      aQueryState=dqs_random_l; // one error is enough, no need to check other bytes
     }
     else if (!aError && !aNoOrTimeout) {
       // no error, no timeout
@@ -519,7 +520,7 @@ private:
       }
     }
     if (aQueryState==dqs_random_l || aNoOrTimeout) {
-      // last byte of existing device checked or timeout -> query complete for this short address
+      // collision already detected, or last byte of existing device checked, or timeout -> query complete for this short address
       if (isYes) {
         activeDevicesPtr->push_back(shortAddress);
         LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
