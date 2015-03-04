@@ -1049,6 +1049,12 @@ private:
       for (int i=0x0B; i<=0x0E; i++) {
         deviceInfo->serialNo = (deviceInfo->serialNo << 8) + (*aBank0Data)[i];
       }
+      // again, make plausibility check
+      if (deviceInfo->gtin==0 || deviceInfo->serialNo==0) {
+        // zero GTIN or S/N is probably not valid
+        LOG(LOG_ERR, "DALI shortaddress %d has device info with GTIN==0 or S/N==0 - consider invalid -> ignoring\n", busAddress);
+        deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // consider invalid
+      }
       // check for extra data device may have
       // Note: aBank0Data[0] is address of highest byte, so NUMBER of bytes is one more!
       int extraBytes = (*aBank0Data)[0]+1-DALIMEM_BANK0_MINBYTES;
@@ -1081,8 +1087,8 @@ private:
       // only if the last byte was 0. We also passed the if checksum was 0xFF, because our reference devices always had 0x01 in
       // the last byte, and I assumed missing by 1 was the result of not precise enough specs or a bug in the device.
       #ifdef OLD_BUGGY_CHKSUM_COMPATIBLE
-      if (bankChecksum==0) {
-        // by specs, this is a correct checksum.
+      if (bankChecksum==0 && deviceInfo->devInfStatus==DaliDeviceInfo::devinf_solid) {
+        // by specs, this is a correct checksum, and a seemingly solid device info
         // - now check if the buggy checker would have passed it, too (which is when last byte is 0x01 or 0x00)
         uint8_t lastByte = (*aBank0Data)[aBank0Data->size()-1];
         if (lastByte!=0x00 && lastByte!=0x01) {
