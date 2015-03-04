@@ -867,14 +867,14 @@ private:
     else {
       // short address verification failed
       LOG(LOG_ERR, "Error - could not assign new short address %d\n", newAddress);
-      return completed(ErrorPtr(new DaliCommError(DaliCommErrorSetShortAddress, "Failed setting short address")));
+      deviceFound(DaliBroadcast); // not really a usable device, but withdraw it and continue searching
     }
   }
 
   void deviceFound(DaliAddress aShortAddress)
   {
     // store short address if real address
-    // (if broadcast, means that this device is w/o short address because >64 devices are on the bus)
+    // (if broadcast, means that this device is w/o short address because >64 devices are on the bus, or short address could not be programmed)
     if (aShortAddress!=DaliBroadcast) {
       foundDevicesPtr->push_back(aShortAddress);
     }
