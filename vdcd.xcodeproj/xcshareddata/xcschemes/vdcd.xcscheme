@@ -107,7 +107,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali localhost:2101"
+            argument = "--dali localhost:2101 --dalitxadj 16"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

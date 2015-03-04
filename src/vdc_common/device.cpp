@@ -1232,7 +1232,7 @@ void Device::identifyToUser()
 void Device::saveScene(SceneNo aSceneNo)
 {
   // see if we have a scene table at all
-  LOG(LOG_NOTICE, "SaveScene(%d) in device:\n", aSceneNo, shortDesc().c_str());
+  LOG(LOG_NOTICE, "SaveScene(%d) in device: %s\n", aSceneNo, shortDesc().c_str());
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
     // we have a device-wide scene table, get the scene object
