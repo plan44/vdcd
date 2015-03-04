@@ -559,7 +559,10 @@ private:
   void completed(ErrorPtr aError)
   {
     // scan done or error, return list to callback
-    if (!aError && (probablyCollision || unconfiguredDevices)) {
+    if (probablyCollision || unconfiguredDevices) {
+      if (!Error::isOK(aError)) {
+        LOG(LOG_WARNING, "Error (%s) in quick scan ignored because we need to do a full scan anyway\n", aError->description().c_str());
+      }
       aError = ErrorPtr(new DaliCommError(DaliCommErrorNeedFullScan,"Need full bus scan"));
     }
     daliComm.endProcedure();
