@@ -227,14 +227,14 @@ void HueDeviceContainer::collectLights()
 {
   // Note: can be used to incrementally search additional lights
   // issue lights query
+  LOG(LOG_INFO, "Querying hue bridge for available lights...\n");
   hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _1, _2));
 }
 
 
 void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError)
 {
-  DBGLOG(LOG_DEBUG, "lights = \n%s\n", aResult ? aResult->c_strValue() : "<none>");
-
+  LOG(LOG_INFO, "hue bridge reports lights = \n%s\n", aResult ? aResult->c_strValue() : "<none>");
   if (aResult) {
     // pre-v1.3 bridges: { "1": { "name": "Bedroom" }, "2": .... }
     // v1.3 and later bridges: { "1": { "name": "Bedroom", "state": {...}, "modelid":"LCT001", ... }, "2": .... }
