@@ -151,6 +151,7 @@ static const char *bridgeResponseText(uint8_t aResp1, uint8_t aResp2)
 
 void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
 {
+  closeAfterIdleTime = aCloseAfterIdleTime;
   serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
 }
 
@@ -188,7 +189,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
   // reset connection closing timeout
   MainLoop::currentMainLoop().cancelExecutionTicket(connectionTimeoutTicket);
   if (closeAfterIdleTime!=Never) {
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliComm::connectionTimeout, this), closeAfterIdleTime);
+    connectionTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliComm::connectionTimeout, this), closeAfterIdleTime);
   }
   // deliver unhandled error
   SerialOperationSendAndReceive *opP = NULL;
