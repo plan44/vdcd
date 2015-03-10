@@ -300,7 +300,8 @@ public:
       if (i!=string::npos) {
         // is from Philips
         // - check model number
-        i = aResponse.find("<modelNumber>929000226503</modelNumber>");
+        i = aResponse.find("<modelNumber>929000226503</modelNumber>"); // real hue bridge
+        //if (i==string::npos) i = aResponse.find("<modelNumber>8986674235553</modelNumber>"); // try deCONZ pseudo model number
         if (i!=string::npos) {
           // is the right model
           // - get base URL
