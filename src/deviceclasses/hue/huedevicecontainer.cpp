@@ -49,6 +49,13 @@ bool HueDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char
 }
 
 
+string HueDeviceContainer::getExtraInfo()
+{
+  return string_format("hue api: %s", hueComm.baseURL.c_str());
+}
+
+
+
 #pragma mark - DB and initialisation
 
 // Version history

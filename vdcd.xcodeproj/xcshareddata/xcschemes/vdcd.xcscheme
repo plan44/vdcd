@@ -48,7 +48,8 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
@@ -104,7 +105,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10 --dalitxadj 16"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2101 --dalitxadj 16"
@@ -124,6 +125,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--hueapiurl http://192.168.1.148:80/api"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -190,7 +195,8 @@
       useCustomWorkingDirectory = "NO"
       buildConfiguration = "Release"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"

@@ -154,6 +154,8 @@ void HueApiOperation::abortOperation(ErrorPtr aError)
 
 #pragma mark - BridgeFinder
 
+// string used in place of UUID when using fixed hue API URL
+#define PSEUDO_UUID_FOR_FIXED_API "fixed_api_base_URL"
 
 class p44::BridgeFinder : public P44Obj
 {
@@ -203,8 +205,20 @@ public:
     userName = nonNullCStr(aUserName);
     deviceType = nonNullCStr(aDeviceType);
     authTimeWindow = aAuthTimeWindow;
-    keepAlive = BridgeFinderPtr(this);
-    bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeDiscoveryHandler, this, _1, _2), NULL);
+    if (hueComm.fixedBaseURL.empty()) {
+      // actually search for a bridge
+      keepAlive = BridgeFinderPtr(this);
+      bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeDiscoveryHandler, this, _1, _2), NULL);
+    }
+    else {
+      // we have a pre-known base URL for the hue API, use this without any find operation
+      keepAlive = BridgeFinderPtr(this);
+      // - just put it in as the only auth candidate
+      authCandidates.clear();
+      authCandidates[PSEUDO_UUID_FOR_FIXED_API] = hueComm.fixedBaseURL;
+      startedAuth = MainLoop::now();
+      attemptPairingWithCandidates();
+    }
   };
 
 
@@ -214,8 +228,18 @@ public:
     callback = aFindHandler;
     uuid = hueComm.uuid;;
     userName = hueComm.userName;
-    keepAlive = BridgeFinderPtr(this);
-    bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeRefindHandler, this, _1, _2), uuid.c_str());
+    if (hueComm.fixedBaseURL.empty() && uuid!=PSEUDO_UUID_FOR_FIXED_API) {
+      // actually search for bridge
+      keepAlive = BridgeFinderPtr(this);
+      bridgeDetector->startSearch(boost::bind(&BridgeFinder::bridgeRefindHandler, this, _1, _2), uuid.c_str());
+    }
+    else {
+      // we have a pre-known base URL for the hue API, use this without any find operation
+      hueComm.baseURL = hueComm.fixedBaseURL; // use it
+      hueComm.apiReady = true; // can use API now
+      DBGLOG(LOG_DEBUG, "Using fixed API URL to access hue Bridge %s: %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
+      callback(ErrorPtr()); // success
+    }
   };
 
 

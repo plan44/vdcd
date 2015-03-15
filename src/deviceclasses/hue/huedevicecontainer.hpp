@@ -54,7 +54,6 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
     friend class HueDevice;
 
-    HueComm hueComm;
     HuePersistence db;
 
     CompletedCB collectedHandler;
@@ -68,7 +67,10 @@ namespace p44 {
     /// @}
 
   public:
+
     HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+
+    HueComm hueComm;
 
 		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
 
@@ -102,6 +104,10 @@ namespace p44 {
     /// @param aWithData if set, PNG data is returned, otherwise only name
     /// @return true if there is an icon, false if not
     virtual bool getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix);
+
+    /// Get extra info (plan44 specific) to describe the addressable in more detail
+    /// @return string, single line extra info describing aspects of the device not visible elsewhere
+    virtual string getExtraInfo();
 
   private:
 

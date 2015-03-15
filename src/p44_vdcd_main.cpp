@@ -248,6 +248,7 @@ public:
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
+      { 0,   "hueapiurl",     true,  "hue API url; use hue bridge API at specific location (disables UPnP/SSDP search)" },
       #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
@@ -454,6 +455,10 @@ public:
       // - Add hue support
       if (getOption("huelights")) {
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
+        string apiurl;
+        if (getStringOption("hueapiurl", apiurl)) {
+          hueDeviceContainer->hueComm.fixedBaseURL = apiurl;
+        }
         hueDeviceContainer->addClassToDeviceContainer();
       }
       #if !DISABLE_OLA
