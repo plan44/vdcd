@@ -734,21 +734,22 @@ private:
     // Anything received but timeout is considered a yes
     bool isYes = DaliComm::isYes(aNoOrTimeout, aResponse, aError, true);
     if (aError) {
+      LOG(LOG_ERR, "compare result error: %s -> aborted scan\n", aError->description().c_str());
       completed(aError); // other error, abort
       return;
     }
     compareRepeat++;
-    DBGLOG(LOG_DEBUG, "DALICMD_COMPARE result #%d = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", compareRepeat, isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
+    LOG(LOG_DEBUG, "DALICMD_COMPARE result #%d = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", compareRepeat, isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
     // repeat to make sure
     if (!isYes && compareRepeat<=MAX_COMPARE_REPEATS) {
-      DBGLOG(LOG_DEBUG, "- not trusting compare NO result yet, retrying...\n");
+      LOG(LOG_DEBUG, "- not trusting compare NO result yet, retrying...\n");
       compareNext();
       return;
     }
     // any ballast has smaller or equal random address?
     if (isYes) {
       if (compareRepeat>1) {
-        DBGLOG(LOG_DEBUG, "- got a NO in first attempt but now a YES in %d attempt! -> unreliable answers\n", compareRepeat);
+        LOG(LOG_DEBUG, "- got a NO in first attempt but now a YES in %d attempt! -> unreliable answers\n", compareRepeat);
       }
       // yes, there is at least one, max address is what we searched so far
       searchMax = searchAddr;
@@ -772,7 +773,7 @@ private:
     else {
       // not yet - continue
       searchAddr = searchMin + (searchMax-searchMin)/2;
-      DBGLOG(LOG_DEBUG, "                            Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
+      LOG(LOG_DEBUG, "                            Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
       if (searchAddr>0xFFFFFF) {
         LOG(LOG_WARNING, "- failed search\n");
         if (restarts<MAX_RESTARTS) {
@@ -828,7 +829,7 @@ private:
       }
       else {
         shortAddress = DaliComm::addressFromDaliResponse(aResponse);
-        DBGLOG(LOG_INFO, "- Device at 0x%06X has short address: %d\n", searchAddr, shortAddress);
+        LOG(LOG_INFO, "- Device at 0x%06X has short address: %d\n", searchAddr, shortAddress);
         // check for collisions
         if (isShortAddressInList(shortAddress, foundDevicesPtr)) {
           newAddress = newShortAddress();
