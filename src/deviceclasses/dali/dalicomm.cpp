@@ -97,7 +97,7 @@ bool DaliComm::isBusy()
 // - 3 byte debug commands
 #define CMD_CODE_ECHO_DATA1 0x41 // returns RESP_DATA echoing DATA1
 #define CMD_CODE_ECHO_DATA2 0x42 // returns RESP_DATA echoing DATA2
-#define CMD_CODE_OVLRESET 0x43 // reset overload, DATA1 0=autoreset enabled, 1=autoreset disabled
+#define CMD_CODE_OVLRESET 0x43 // reset overload, DATA1 0=autoreset enabled, 1=autoreset disabled, 0x55=overload detector disabled
 #define CMD_CODE_EDGEADJ 0x44 // set DALI sending edge adjustment, DATA1=sending delay for going-inactive edge, DATA2=delay of sampling point, in number of 1/256th periods (with actual resolution of 1/16th bit for now)
 
 // bridge responses
@@ -301,6 +301,8 @@ void DaliComm::reset(DaliCommandStatusCB aStatusCB)
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
   sendBridgeCommand(CMD_CODE_RESET, 0, 0, NULL);
+  // make sure bus overload protection is active, autoreset enabled, reset to operating
+  sendBridgeCommand(CMD_CODE_OVLRESET, 0, 0, NULL);
   // set DALI signal edge adjustments (available from fim_dali v3 onwards)
   sendBridgeCommand(CMD_CODE_EDGEADJ, sendEdgeAdj, samplePointAdj, NULL);
   // terminate any special commands on the DALI bus
