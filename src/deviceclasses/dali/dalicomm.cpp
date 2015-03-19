@@ -89,6 +89,7 @@ bool DaliComm::isBusy()
 // bridge commands
 // - one byte commands 0..7
 #define CMD_CODE_RESET 0  // reset
+#define CMD_CODE_VERSION 1 // get version
 
 // - three byte commands 8..n
 #define CMD_CODE_SEND16 0x10 // send 16-bit DALI sequence, return RESP_ACK when done
