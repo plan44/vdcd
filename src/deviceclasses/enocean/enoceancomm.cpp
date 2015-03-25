@@ -868,7 +868,7 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 
 #pragma mark - EnOcean communication handler
 
-// pseudo baudrate for dali bridge must be 9600bd
+// baudrate for ESP3 on TCM310
 #define ENOCEAN_ESP3_BAUDRATE 57600
 
 #define ENOCEAN_ESP3_ALIVECHECK_INTERVAL (30*Second)
