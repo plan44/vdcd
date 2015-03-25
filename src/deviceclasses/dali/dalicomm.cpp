@@ -161,7 +161,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
 {
   if (expectedBridgeResponses>0) expectedBridgeResponses--;
   if (expectedBridgeResponses<BUFFERED_BRIDGE_RESPONSES_LOW) {
-    responsesInSequence = true; // allow buffered sends without waiting for answers
+    responsesInSequence = false; // allow buffered sends without waiting for answers
   }
   SerialOperationReceivePtr ropP = boost::dynamic_pointer_cast<SerialOperationReceive>(aOperation);
   if (ropP) {
