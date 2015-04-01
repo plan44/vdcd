@@ -117,7 +117,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       // - Input0: 0: Window closed (Handle down position), 1: Window open (all other handle positions)
       EnoceanRpsWindowHandleHandlerPtr newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
       BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+      bb->setHardwareInputConfig(binInpType_windowOpen, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
       bb->setHardwareName("Window open");
       newHandler->isTiltedStatus = false;
@@ -126,7 +126,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       // - Input1: 0: Window fully open (Handle horizontal left or right), 1: Window tilted (Handle up position)
       newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
       bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
-      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+      bb->setHardwareInputConfig(binInpType_windowTilted, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
       bb->setHardwareName("Window tilted");
       newHandler->isTiltedStatus = true;
