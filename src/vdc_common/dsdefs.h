@@ -351,8 +351,11 @@ typedef enum {
   binInpType_wind, ///< wind
   binInpType_rain, ///< rain
   binInpType_sun, ///< solar radiation
-  binInpType_thermostat, ///< thermostat
+  binInpType_thermostat, ///< thermostat (temperature below user-adjusted threshold)
   binInpType_lowBattery, ///< device has low battery
+  binInpType_windowOpen, ///< window is open
+  binInpType_doorOpen, ///< door is open
+  binInpType_windowTilted, ///< window is tilted instead of fully opened
 } DsBinaryInputType;
 
 
