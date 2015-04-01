@@ -211,13 +211,15 @@ static const char *modelFeatureNames[numModelFeatures] = {
   "leddark",
   "transt",
   "outmode",
+  "outmodeswitch",
   "outvalue8",
   "pushbutton",
   "pushbdevice",
+  "pushbsensor",
   "pushbarea",
   "pushbadvanced",
   "pushbcombined",
-  "modelFeature_shadeprops",
+  "shadeprops",
   "shadeposition",
   "motiontimefins",
   "optypeconfig",
@@ -235,6 +237,10 @@ static const char *modelFeatureNames[numModelFeatures] = {
   "heatingprops",
   "pwmvalue",
   "valvetype",
+  "extradimmer",
+  "umvrelay",
+  "blinkconfig",
+  "umroutmode"
 };
 
 

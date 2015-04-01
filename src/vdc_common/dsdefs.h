@@ -357,37 +357,44 @@ typedef enum {
 
 
 /// model features (column from dSS visibility Matrix)
+/// Full documentation see: http://redmine.digitalstrom.org/projects/dss/wiki/Model_Features
 typedef enum {
-  modelFeature_dontcare,
-  modelFeature_blink,
-  modelFeature_ledauto,
-  modelFeature_leddark,
-  modelFeature_transt,
-  modelFeature_outmode,
-  modelFeature_outvalue8,
-  modelFeature_pushbutton,
-  modelFeature_pushbdevice,
-  modelFeature_pushbarea,
-  modelFeature_pushbadvanced,
-  modelFeature_pushbcombined,
-  modelFeature_modelFeature_shadeprops,
-  modelFeature_shadeposition,
-  modelFeature_motiontimefins,
-  modelFeature_optypeconfig,
-  modelFeature_shadebladeang,
-  modelFeature_highlevel,
-  modelFeature_consumption,
-  modelFeature_jokerconfig,
-  modelFeature_akmsensor,
-  modelFeature_akminput,
-  modelFeature_akmdelay,
-  modelFeature_twowayconfig,
-  modelFeature_outputchannels,
-  modelFeature_heatinggroup,
-  modelFeature_heatingoutmode,
-  modelFeature_heatingprops,
-  modelFeature_pwmvalue,
-  modelFeature_valvetype,
+  modelFeature_dontcare, ///< Show "Retain output when calling scene X" check box in scene properties device configuration.
+  modelFeature_blink, ///< Show "Blink when calling scene X" check box in scene properties device configuration.
+  modelFeature_ledauto, ///< Radiogroup "LED mode" in advanced scene properties device configuration supports "auto" mode
+  modelFeature_leddark, ///< Radiogroup "LED mode" in advanced scene properties device configuration supports "dark" mode.
+  modelFeature_transt, ///< Show "Transition time" radio group in advanced scene properties device configuration dialog.
+  modelFeature_outmode, ///< Show "Output mode" radio group in device properties dialog with "switched", "dimmed" and "disabled" selections. The "switched" parameter for this configuration has a value of 16.
+  modelFeature_outmodeswitch, ///< Show "Output mode" radio group in device properties dialog with only "switched" and "disabled" selections. The "switched" parameter for this configuration has a value of 35.
+  modelFeature_outvalue8, ///< Enables UI slider for 8-bit output value (basically, see details in Wiki)
+  modelFeature_pushbutton, ///< Show push button settings in "Device properties" dialog. Also check if multi-button settings for device pairing must be shown (depends on various other parameters).
+  modelFeature_pushbdevice, ///< This flag influences the contents of the "Push-button" drop down list, it makes sure that a "device pushbutton" entry is present.
+  modelFeature_pushbsensor, ///< This flag influences the contents of the "Push-button" drop down list, it makes sure that a "sensor" entry is present.
+  modelFeature_pushbarea, ///< This flag influences the contents of the "Push-button" drop down list, it makes sure that a "Area-pushbutton" entry is present. It also enables the area selection drop down.
+  modelFeature_pushbadvanced, ///< Enables the advanced push button configuration in the "Device Properties" dialog.
+  modelFeature_pushbcombined, ///< Enabled is for combined up/down buttons (basically, see details in Wiki)
+  modelFeature_shadeprops, ///< Enables the "Shade Device Properties" dialog for the given device in the "Hardware" tab.
+  modelFeature_shadeposition, ///< When set, the device values are assumed to have a 16bit resolution, also some labels will show "Position" instead of "Value" (basically, see details in Wiki)
+  modelFeature_motiontimefins, ///< Shows "Turn time blades" and "Calibrate turn times" options in the "Device Properties shade" dialog.
+  modelFeature_optypeconfig, ///< Show "Operation Type" settings in the "Device Properties" dialog.
+  modelFeature_shadebladeang, ///< Show "Set Blade Angle" option in the "Device Settings" dialog.
+  modelFeature_highlevel, ///< This flag influences the contents of the "Push-button" dropdown list, it makes sure that a "App button" entry is present.
+  modelFeature_consumption, ///< Enables the "Configure Consumption Event" dialog for the given device in the "Hardware" tab.
+  modelFeature_jokerconfig, ///< Show "Joker" configuration settings in "Device Properties" dialog.
+  modelFeature_akmsensor, ///< Show "Sensor function" settings in "Device Properties" dialog.
+  modelFeature_akminput, ///< Show AKM "Input" settings in "Device Properties" dialog.
+  modelFeature_akmdelay, ///< Show AKM "Delay" settings in "Device Properties" dialog.
+  modelFeature_twowayconfig, ///< Shows the "Button function" settings in "Device Properties" dialog, depends on "pushbutton" parameter.
+  modelFeature_outputchannels, ///< Display "Hue" and "Saturation" setting in the "Device Settings" dialog.
+  modelFeature_heatinggroup, ///< Shows "Heating group" settings in "Device Properties" dialog.
+  modelFeature_heatingoutmode, ///< Enables the "Output mode" radio group in "Device Properties" dialog and influences its contents. The presented options will be: "switched" (65), "pulse width modulation (PWM)" (64) and "disabled" (0).
+  modelFeature_heatingprops, ///< Enables the "Device Properties climate" dialog for the given device in the "Hardware" tab.
+  modelFeature_pwmvalue, ///< Read out and display "Operation mode" in the "Device Settings" dialog.
+  modelFeature_valvetype, ///< Shows "Attached terminal device" settings in "Device Properties" dialog.
+  modelFeature_extradimmer, ///< Enables the "Output mode" radio group in "Device Properties" dialog and influences its contents. The presented options will be: "switched" (16), "dimmed 0-10V", "dimmed 1-10V" and "disabled".
+  modelFeature_umvrelay, ///< Shows "Relay Function" settings in "Device Properties" dialog.
+  modelFeature_blinkconfig, ///< Shows "Blink behavior for output on scene calls" settings in the advanced "Device Properties" dialog.
+  modelFeature_umroutmode, ///< Enables the "Output mode" radio group in "Device Properties" dialog and influences its contents. The presented options will be: "single switched" (35) for all dSUIDs and "combined switched" (43), "combined two stage switched" (34), "combined three stage switched" (38) and "disabled" (0).
   numModelFeatures
 } DsModelFeatures;
 
