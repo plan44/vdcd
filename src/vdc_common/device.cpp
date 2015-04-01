@@ -254,30 +254,35 @@ bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
   // now check for device level features
   switch (aFeatureIndex) {
     case modelFeature_dontcare:
-      // Assumption: all devices with scene table have this
+      // Generic: all devices with scene table have the ability to set scene's don't care flag
       return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings)!=NULL;
     case modelFeature_blink:
       // Assumption: all devices with an output have this, except heating
       return output && primaryGroup!=group_blue_heating;
     case modelFeature_ledauto:
-      // TODO: check this, assuming no virtual device has a LED at all
-      return false;
     case modelFeature_leddark:
-      // TODO: check this, assuming no virtual device has a LED at all
+      // Virtual devices do not have the standard dS LED at all
       return false;
     case modelFeature_outmode:
-      // Assuming light, access and alarm output devices have an output mode
-      return (output && (primaryGroup==group_yellow_light || primaryGroup==group_green_access || primaryGroup==group_red_security));
+      // Assumption: All devices with an output that is gradual (not only switched) should have this
+      return (output && output->getOutputFunction()!=outputFunction_switch);
+    case modelFeature_outmodeswitch:
+      // Assumption: All devices with a switch-only output (not dimmable) should have this
+      return (output && output->getOutputFunction()==outputFunction_switch);
     case modelFeature_outvalue8:
-      // TODO: this is a tough one, no idea how to derive this. As light is most important, and always has outvalue8 set, return it for now for all outputs
-      return output!=NULL;
+      // Assumption: All normal 8-bit outputs should have this. Exception so far are shade outputs
+      return (output && !output->isMember(group_grey_shadow));
+    case modelFeature_shadeposition:
+      // Assumption: Shade outputs should be 16bit resolution and be labelled "Position", not "Value"
+      return (output && output->isMember(group_grey_shadow));
     case modelFeature_pushbutton:
     case modelFeature_pushbarea:
     case modelFeature_pushbadvanced:
+    case modelFeature_pushbsensor:
       // Assumption: any device with a buttonInputBehaviour has these props
       return buttons.size()>0;
     case modelFeature_pushbdevice:
-      // Assumption: no device has a local button
+      // Assumption: virtual devices don't have a local button
       return false;
     case modelFeature_pushbcombined:
     case modelFeature_twowayconfig:
@@ -300,6 +305,11 @@ bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
       }
       // no inputs or all inputs have predefined functionality
       return false;
+    case modelFeature_akminput:
+    case modelFeature_akmdelay:
+      // TODO: once binaryInputs support the AKM binary input settings (polarity, delays), this should be enabled
+      //   for configurable inputs (most likely those that already have modelFeature_akmsensor)
+      return false; // %%% for now
     default:
       return false; // not known
   }
