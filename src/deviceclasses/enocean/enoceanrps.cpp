@@ -84,7 +84,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
       downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
       downBhvr->setGroup(group_yellow_light); // pre-configure for light
-      downBhvr->setHardwareName("Down key");
+      downBhvr->setHardwareName("down key");
       downHandler->behaviour = downBhvr;
       newDev->addChannelHandler(downHandler);
       // - create button input for up key
@@ -94,7 +94,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
       upBhvr->setGroup(group_yellow_light); // pre-configure for light
       upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
-      upBhvr->setHardwareName("Up key");
+      upBhvr->setHardwareName("up key");
       upHandler->behaviour = upBhvr;
       newDev->addChannelHandler(upHandler);
     }
@@ -119,7 +119,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_windowOpen, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
-      bb->setHardwareName("Window open");
+      bb->setHardwareName("window open");
       newHandler->isTiltedStatus = false;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
@@ -128,7 +128,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_windowTilted, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
-      bb->setHardwareName("Window tilted");
+      bb->setHardwareName("window tilted");
       newHandler->isTiltedStatus = true;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
@@ -159,6 +159,33 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       newDev->addChannelHandler(newHandler);
     }
   }
+  else if (aEEProfile==0xF60501) {
+    // F6-05-01 - Liquid Leakage Detector
+    if (aSubDeviceIndex<1) {
+      // create EnoceanRPSDevice device
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      // standard device settings without scene table
+      newDev->installSettings();
+      // assign channel and address
+      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+      // assign EPP information
+      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+      newDev->setFunctionDesc("leakage detector");
+      // leakage detectors can be used for anything
+      newDev->setPrimaryGroup(group_black_joker);
+      // Current simple dS mapping: one binary input for leakage status
+      EnoceanRpsLeakageDetectorHandlerPtr newHandler;
+      BinaryInputBehaviourPtr bb;
+      // - 1: Leakage: 0: no leakage
+      newHandler = EnoceanRpsLeakageDetectorHandlerPtr(new EnoceanRpsLeakageDetectorHandler(*newDev.get()));
+      bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never); // generic because dS does not have a binary sensor function for leakage yet
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("leakage detector");
+      newHandler->behaviour = bb;
+      newDev->addChannelHandler(newHandler);
+    }
+  }
   else if (aEEProfile==0xF605C0) {
     // F6-05-xx - EEP for "detectors"
     // F6-05-C0 - custom pseudo-EEP for not yet defined smoke alarm profile (Eltako FRW and alphaEOS GUARD)
@@ -182,7 +209,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_smoke, usage_room, true, Never);
       bb->setGroup(group_black_joker); // joker by default
-      bb->setHardwareName("Smoke alarm");
+      bb->setHardwareName("smoke alarm");
       newHandler->behaviour = bb;
       newHandler->isBatteryStatus = false;
       newDev->addChannelHandler(newHandler);
@@ -191,7 +218,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_lowBattery, usage_room, true, Never);
       bb->setGroup(group_black_joker); // joker by default
-      bb->setHardwareName("Low Battery");
+      bb->setHardwareName("low battery");
       newHandler->behaviour = bb;
       newHandler->isBatteryStatus = true;
       newDev->addChannelHandler(newHandler);
@@ -378,7 +405,7 @@ string EnoceanRpsCardKeyHandler::shortDesc()
 #pragma mark - Smoke Detector
 
 EnoceanRpsSmokeDetectorHandler::EnoceanRpsSmokeDetectorHandler(EnoceanDevice &aDevice) :
-inherited(aDevice)
+  inherited(aDevice)
 {
 }
 
@@ -419,6 +446,38 @@ string EnoceanRpsSmokeDetectorHandler::shortDesc()
 }
 
 
+#pragma mark - Liquid Leakage Detector
+
+EnoceanRpsLeakageDetectorHandler::EnoceanRpsLeakageDetectorHandler(EnoceanDevice &aDevice) :
+  inherited(aDevice)
+{
+}
+
+
+
+// F6-05-01
+//                          DATA 	STATUS
+//  Water detected          11		30 (NU + T21 both set)
+
+
+// device specific radio packet handling
+void EnoceanRpsLeakageDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+{
+  // extract payload data
+  uint8_t data = aEsp3PacketPtr->radioUserData()[0];
+  BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
+  // smoke alarm status
+  bool leakage = data==0x11;
+  LOG(LOG_INFO,"Enocean Liquid Leakage Detector %08X reports state: %s\n", device.getAddress(), leakage ? "LEAKAGE" : "no leakage");
+  bb->updateInputState(leakage);
+}
+
+
+string EnoceanRpsLeakageDetectorHandler::shortDesc()
+{
+  return "Leakage Detector";
+}
+
 
 
 
@@ -431,12 +490,14 @@ bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
   if (
     (getEEProfile() & eep_ignore_type_mask)==0xF60200 || // dual rocker
     getEEProfile()==0xF60401 || getEEProfile()==0xF60402 || // key card switch
-    getEEProfile()==0xF605C0 // smoke detector Eltako FRW or alphaEOS GUARD
+    getEEProfile()==0xF605C0 || // smoke detector Eltako FRW or alphaEOS GUARD
+    getEEProfile()==0xF605C0 // liquid leakage detector
   ) {
-    // two-way rocker, key card switch, smoke detector
+    // two-way rocker, key card switch, smoke detector, liquid leakage detector
     aApiObjectValue->add(string_format("%d",0xF602FF), aApiObjectValue->newString("dual rocker switch"));
     aApiObjectValue->add(string_format("%d",0xF60401), aApiObjectValue->newString("key card activated switch"));
     aApiObjectValue->add(string_format("%d",0xF60402), aApiObjectValue->newString("key card activated switch ERP2"));
+    aApiObjectValue->add(string_format("%d",0xF60501), aApiObjectValue->newString("Liquid Leakage detector"));
     aApiObjectValue->add(string_format("%d",0xF605C0), aApiObjectValue->newString("Smoke detector FRW/GUARD"));
     return true;
   }
@@ -447,7 +508,7 @@ bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
 {
   // check if changeable profile code
-  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402 || aProfile==0xF605C0) {
+  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402 || aProfile==0xF605C0 || aProfile==0xF60501) {
     if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
     // change profile now
     switchToProfile(aProfile);

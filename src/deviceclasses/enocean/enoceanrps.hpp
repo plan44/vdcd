@@ -116,8 +116,6 @@ namespace p44 {
     /// @return textual description of object
     virtual string shortDesc();
 
-  private:
-
   };
   typedef boost::intrusive_ptr<EnoceanRpsWindowHandleHandler> EnoceanRpsWindowHandleHandlerPtr;
 
@@ -139,8 +137,6 @@ namespace p44 {
     /// short (text without LFs!) description of object, mainly for referencing it in log messages
     /// @return textual description of object
     virtual string shortDesc();
-
-  private:
 
   };
   typedef boost::intrusive_ptr<EnoceanRpsCardKeyHandler> EnoceanRpsCardKeyHandlerPtr;
@@ -166,10 +162,29 @@ namespace p44 {
     /// @return textual description of object
     virtual string shortDesc();
 
-  private:
-
   };
   typedef boost::intrusive_ptr<EnoceanRpsSmokeDetectorHandler> EnoceanRpsSmokeDetectorHandlerPtr;
+
+
+  /// single EnOcean liquid leakage detector handler
+  class EnoceanRpsLeakageDetectorHandler : public EnoceanRpsHandler
+  {
+    typedef EnoceanRpsHandler inherited;
+    friend class EnoceanRpsHandler;
+
+    /// private constructor, create new channels using factory static method
+    EnoceanRpsLeakageDetectorHandler(EnoceanDevice &aDevice);
+
+    /// handle radio packet related to this channel
+    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
+    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+  };
+  typedef boost::intrusive_ptr<EnoceanRpsLeakageDetectorHandler> EnoceanRpsLeakageDetectorHandlerPtr;
 
 
 
