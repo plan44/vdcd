@@ -641,7 +641,7 @@ string DaliDimmerDevice::hardwareGUID()
 
 string DaliDimmerDevice::hardwareModelGUID()
 {
-  if (brightnessDimmer->deviceInfo.oem_gtin==0)
+  if (brightnessDimmer->deviceInfo.gtin==0)
     return ""; // none
   // return as GS1 element strings with Application Identifier 01=GTIN
   return string_format("gs1:(01)%llu", brightnessDimmer->deviceInfo.gtin);
@@ -903,7 +903,7 @@ string DaliRGBWDevice::hardwareGUID()
 string DaliRGBWDevice::hardwareModelGUID()
 {
   DaliBusDevicePtr dimmer = firstBusDevice();
-  if (!dimmer || dimmer->deviceInfo.oem_gtin==0)
+  if (!dimmer || dimmer->deviceInfo.gtin==0)
     return ""; // none
   // return as GS1 element strings with Application Identifier 01=GTIN
   return string_format("gs1:(01)%llu", dimmer->deviceInfo.gtin);
