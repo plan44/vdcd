@@ -483,23 +483,33 @@ string EnoceanRpsLeakageDetectorHandler::shortDesc()
 
 #pragma mark - EnoceanRPSDevice
 
+typedef struct {
+  EnoceanProfile eep;
+  const char *description;
+} profileVariantEntry;
+
+static const int numRPSprofileVariants = 5;
+static const profileVariantEntry RPSprofileVariants[numRPSprofileVariants] = {
+  { 0xF602FF, "dual rocker switch" },
+  { 0xF60401, "key card activated switch" },
+  { 0xF60402, "key card activated switch ERP2" },
+  { 0xF60501, "Liquid Leakage detector" },
+  { 0xF605C0, "Smoke detector FRW/GUARD" }
+};
+
 
 bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 {
-  // F6-02-xx, F6-04-01, F6-04-02, F6-05-C0 are interchangeable
-  if (
-    (getEEProfile() & eep_ignore_type_mask)==0xF60200 || // dual rocker
-    getEEProfile()==0xF60401 || getEEProfile()==0xF60402 || // key card switch
-    getEEProfile()==0xF605C0 || // smoke detector Eltako FRW or alphaEOS GUARD
-    getEEProfile()==0xF605C0 // liquid leakage detector
-  ) {
-    // two-way rocker, key card switch, smoke detector, liquid leakage detector
-    aApiObjectValue->add(string_format("%d",0xF602FF), aApiObjectValue->newString("dual rocker switch"));
-    aApiObjectValue->add(string_format("%d",0xF60401), aApiObjectValue->newString("key card activated switch"));
-    aApiObjectValue->add(string_format("%d",0xF60402), aApiObjectValue->newString("key card activated switch ERP2"));
-    aApiObjectValue->add(string_format("%d",0xF60501), aApiObjectValue->newString("Liquid Leakage detector"));
-    aApiObjectValue->add(string_format("%d",0xF605C0), aApiObjectValue->newString("Smoke detector FRW/GUARD"));
-    return true;
+  // check if current profile is one of the interchangeable ones
+  for (int i=0; i<numRPSprofileVariants; i++) {
+    if (getEEProfile()==RPSprofileVariants[i].eep) {
+      // create string
+      for (int j=0; j<numRPSprofileVariants; j++) {
+        aApiObjectValue->add(string_format("%d",RPSprofileVariants[j].eep), aApiObjectValue->newString(RPSprofileVariants[j].description));
+      }
+      // there are variants
+      return true;
+    }
   }
   return false; // no variants
 }
@@ -508,11 +518,14 @@ bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
 {
   // check if changeable profile code
-  if (aProfile==0xF602FF || aProfile==0xF60401 || aProfile==0xF60402 || aProfile==0xF605C0 || aProfile==0xF60501) {
-    if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
-    // change profile now
-    switchToProfile(aProfile);
-    return true;
+  for (int i=0; i<numRPSprofileVariants; i++) {
+    if (aProfile==RPSprofileVariants[i].eep) {
+      // is one of the interchangeable ones
+      if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
+      // change profile now
+      switchToProfile(aProfile);
+      return true;
+    }
   }
   return false; // invalid profile
 }
