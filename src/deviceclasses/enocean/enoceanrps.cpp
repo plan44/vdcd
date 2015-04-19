@@ -135,7 +135,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
     }
   }
   else if (functionProfile==0xF60400) {
-    // F6-04-01 and F6-04-02 : key card activated switch = single device
+    // F6-04-01, F6-04-02, F6-04-C0 : key card activated switch = single device
+    // Note: F6-04-C0 is custom pseudo-EEP for not officially defined Eltako FKC/FKF card switches
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
       newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
@@ -149,14 +150,27 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       // key card switches can be used for anything
       newDev->setPrimaryGroup(group_black_joker);
       // Current simple dS mapping: one binary input
-      // - 1: card inserted, 0: card extracted
+      // - Input0: 1: card inserted, 0: card extracted
       EnoceanRpsCardKeyHandlerPtr newHandler = EnoceanRpsCardKeyHandlerPtr(new EnoceanRpsCardKeyHandler(*newDev.get()));
       BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
       bb->setHardwareName("card inserted");
+      newHandler->isServiceCardDetector = false;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
+      // FKC/FKF can distinguish guest and service cards and have a second input
+      if (aEEProfile==0xF604C0) {
+        // - Input1: 1: card is service card, 0: card is guest card
+        EnoceanRpsCardKeyHandlerPtr newHandler = EnoceanRpsCardKeyHandlerPtr(new EnoceanRpsCardKeyHandler(*newDev.get()));
+        BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+        bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+        bb->setGroup(group_black_joker); // joker by default
+        bb->setHardwareName("service card");
+        newHandler->isServiceCardDetector = true;
+        newHandler->behaviour = bb;
+        newDev->addChannelHandler(newHandler);
+      }
     }
   }
   else if (aEEProfile==0xF60501) {
@@ -368,30 +382,59 @@ EnoceanRpsCardKeyHandler::EnoceanRpsCardKeyHandler(EnoceanDevice &aDevice) :
 }
 
 
+// EEP F6-04-02, ERP1:
+//   inserted = status_NU and data = 0x70
+//   extracted = !status_NU and data = 0x00
 
+// EEP F6-04-02, ERP2:
+//   state of card is in bit 2
 
+// Eltako FKC and FKF (not documented in EEP):
+// - FKF just detects cards
+// - FKC can detect Guest (KCG) and service (KCS) cards
+//   data 0x10, status 0x30 = inserted KCS (Service Card)
+//   data 0x00, status 0x20 = extracted
+//   data 0x10, status 0x20 = inserted KCG (Guest Card)
+//   means:
+//   - state of card is in bit 4 (1=inserted)
+//   - type of card is status_NU (N=Service, U=Guest)
 
 // device specific radio packet handling
 void EnoceanRpsCardKeyHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   bool isInserted = false;
+  bool isServiceCard = false;
   // extract payload data
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
+  uint8_t status = aEsp3PacketPtr->radioStatus();
   if (device.getEEProfile()==0xF60402) {
     // Key Card Activated Switch ERP2
     // - just evaluate DB0.2 "State of card"
     isInserted = data & 0x04; // Bit2
   }
+  else if (device.getEEProfile()==0xF604C0) {
+    // FKC or FKF style switch (no official EEP for this)
+    isInserted = data & 0x10; // Bit4
+    if (isInserted && ((status & status_NU)!=0)) {
+      // Insertion with N-message (status=0x30) means service card
+      isServiceCard = true;
+    }
+  }
   else {
     // Asssume ERP1 Key Card Activated Switch
-    uint8_t status = aEsp3PacketPtr->radioStatus();
     isInserted = (status & status_NU)!=0 && data==0x70;
   }
   // report data for this binary input
   BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
   if (bb) {
-    LOG(LOG_INFO,"Enocean Key Card Switch %08X reports state: %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
-    bb->updateInputState(isInserted); // report the status
+    if (isServiceCardDetector) {
+      LOG(LOG_INFO,"Enocean Key Card Switch %08X reports: %s\n", device.getAddress(), isServiceCard ? "Service Card" : "Guest Card");
+      bb->updateInputState(isServiceCard); // report the card type
+    }
+    else {
+      LOG(LOG_INFO,"Enocean Key Card Switch %08X reports state: %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
+      bb->updateInputState(isInserted); // report the status
+    }
   }
 }
 
@@ -488,11 +531,12 @@ typedef struct {
   const char *description;
 } profileVariantEntry;
 
-static const int numRPSprofileVariants = 5;
+static const int numRPSprofileVariants = 6;
 static const profileVariantEntry RPSprofileVariants[numRPSprofileVariants] = {
   { 0xF602FF, "dual rocker switch" },
-  { 0xF60401, "key card activated switch" },
+  { 0xF60401, "key card activated switch ERP1" },
   { 0xF60402, "key card activated switch ERP2" },
+  { 0xF604C0, "key card switch FKC/FKF" },
   { 0xF60501, "Liquid Leakage detector" },
   { 0xF605C0, "Smoke detector FRW/GUARD" }
 };

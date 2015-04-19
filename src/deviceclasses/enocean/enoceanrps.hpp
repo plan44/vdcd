@@ -127,6 +127,8 @@ namespace p44 {
     typedef EnoceanRpsHandler inherited;
     friend class EnoceanRpsHandler;
 
+    bool isServiceCardDetector; ///< set if this represents the service card detector (otherwise, it's the card inserted status)
+
     /// private constructor, create new channels using factory static method
     EnoceanRpsCardKeyHandler(EnoceanDevice &aDevice);
 
