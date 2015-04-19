@@ -58,9 +58,11 @@ bool ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
   // now check for climate control behaviour level features
   switch (aFeatureIndex) {
     case modelFeature_heatinggroup:
-    case modelFeature_heatingoutmode:
-      // Assumption: virtual heating control devices (valves) do have group and mode setting (but not the more specific PWM and heating props)
+      // Assumption: virtual heating control devices (valves) do have group and mode setting...
       return true;
+    case modelFeature_heatingoutmode:
+      // ...but not the more specific PWM and heating props
+      return false;
     case modelFeature_valvetype:
       // for now, all climate control devices are heating valves
       return true;
