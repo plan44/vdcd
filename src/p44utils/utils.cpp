@@ -271,6 +271,24 @@ void p44::splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNum
 }
 
 
+int p44::gtinCheckDigit(uint64_t aGtin)
+{
+  // 64bit in decimal has max 20 digits (largest known to me GTIN-like number, the SSCC, has 17 digits)
+  // mod10 algorithm is:
+  // - sum of digits*3 at odd digit positions (least significant=rightmost=1=odd) + sum of digits at even positions.
+  // - check digit is the value to add to sum to get an even multiple of 10
+  int sum = 0;
+  int oldcheck = aGtin % 10; // current check digit as found in aGtin
+  for (int i=0; i<20; i++) {
+    aGtin /= 10;
+    int dig = aGtin % 10;
+    sum += ((i&1)==0 ? 3 : 1) * dig;
+  }
+  int newcheck = sum%10;
+  if (newcheck>0) newcheck = 10-newcheck; // difference to next multiple of 10 is checksum
+  return newcheck-oldcheck;
+}
+
 
 string p44::hexToBinaryString(const char *aHexString)
 {

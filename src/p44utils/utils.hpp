@@ -93,13 +93,21 @@ namespace p44 {
   /// @param aPasswd if not NULL, returns password, empty string if none
   void splitURL(const char *aURI, string *aProtocol, string *aHost, string *aDoc, string *aUser=NULL, string *aPasswd=NULL);
 
-
   /// split host specification into hostname and port
   /// @param aHostSpec a host specification in the host[:port] format
   /// @param aHostName if not NULL, returns the host name/IP address, empty string if none
   /// @param aPortNumber if not NULL, returns the port number. Is left untouched if no port number is specified
   ///   (such that variable passed can be initialized with the default port to use beforehand)
   void splitHost(const char *aHostSpec, string *aHostName, uint16_t *aPortNumber);
+
+  /// Verify or calculate GTIN check digit
+  /// @param aGtin full GTIN, including possibly inaccurate check digit
+  /// @return value to add to aGtin to make it a valid GTIN (-9..9)
+  /// @note
+  /// - if you want to check the GTIN, check for a result==0
+  /// - if you want to calculate the check digit, supply aGTIN with last digit 0
+  /// - if you want to make a GTIN valid, just add the result to aGtin
+  int gtinCheckDigit(uint64_t aGtin);
 
   /// hex string to binary string conversion
   /// @param aHexString string in hex notation
