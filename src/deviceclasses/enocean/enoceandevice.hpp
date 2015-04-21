@@ -143,7 +143,7 @@ namespace p44 {
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
-    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
+    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse if this is set, a teach-in response will be sent for profiles that need one
     ///   (This is set to false when re-creating logical devices from DB)
@@ -211,8 +211,12 @@ namespace p44 {
     /// @return EnOcean device ID/address
     EnoceanSubDevice getSubDevice();
 
+    /// @return step between dSUID subdevice indices
+    virtual uint8_t dsUIDIndexStep() { return 1; };
+
+
     /// set EEP information
-    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
+    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     virtual void setEEPInfo(EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer);
 
@@ -222,7 +226,7 @@ namespace p44 {
     void setFunctionDesc(string aString) { eeFunctionDesc = aString; };
 
 
-    /// @return RORG/FUNC/TYPE EEP profile number 
+    /// @return VARIANT/RORG/FUNC/TYPE EEP profile number with optional variant (MSB of 32bit value)
     EnoceanProfile getEEProfile();
 
     /// @return manufacturer code

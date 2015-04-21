@@ -154,7 +154,7 @@ void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncr
         }
         else {
           LOG(LOG_ERR,
-            "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%06X, manufacturer=%d",
+            "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%08X, manufacturer=%d",
             i->get<int>(0), i->get<int>(1), // address / subdevice
             i->get<int>(2), i->get<int>(3) // profile / manufacturer
           );

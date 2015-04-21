@@ -78,12 +78,15 @@ namespace p44 {
   const EepFunc eep_func_unknown = 0xFF;
   const EepType eep_type_unknown = 0xFF;
   const EnoceanProfile eep_profile_unknown = (rorg_invalid<<16) + (eep_func_unknown<<8) + eep_type_unknown;
-  const EnoceanProfile eep_ignore_type_mask = 0xFFFF00;
 
   // EEP access macros
   #define EEP_RORG(eep) ((RadioOrg)(((EnoceanProfile)eep>>16)&0xFF))
   #define EEP_FUNC(eep) ((EepFunc)(((EnoceanProfile)eep>>8)&0xFF))
   #define EEP_TYPE(eep) ((EepType)((EnoceanProfile)eep&0xFF))
+  #define EEP_UNTYPED(eep) (eep&0xFFFFFF00) // VARIANT/RORG/FUNC only
+  // - MSB of 32bit value can be used for profile variants (internal differentiation)
+  #define EEP_VARIANT(eep) ((EepType)(((EnoceanProfile)eep>>24)&0xFF)) // variant byte
+  #define EEP_PURE(eep) (eep&0xFFFFFF) // pure EEP, without variant byte
 
   // learn bit
   #define LRN_BIT_MASK 0x08 // Bit 3, Byte 0 (4th data byte)

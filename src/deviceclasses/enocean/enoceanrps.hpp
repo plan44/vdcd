@@ -46,7 +46,7 @@ namespace p44 {
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
     /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
-    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
+    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
@@ -196,10 +196,13 @@ namespace p44 {
   {
     typedef EnoceanDevice inherited;
 
+    uint8_t dsuidIndexStep; ///< the step between dSUID indices for subdevices
+
   public:
 
     /// constructor
-    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP);
+    /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
+    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -213,6 +216,9 @@ namespace p44 {
     /// @param aProfile must be an EEP profile code
     /// @return true if profile variant is valid and can be set
     virtual bool setProfileVariant(EnoceanProfile aProfile);
+
+    /// @return step between dSUID subdevice indices
+    virtual uint8_t dsUIDIndexStep() { return dsuidIndexStep; };
 
   };
 

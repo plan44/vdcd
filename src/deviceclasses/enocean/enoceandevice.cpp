@@ -117,7 +117,7 @@ void EnoceanDevice::deriveDsUid()
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
   string s = string_format("%08lX", getAddress()); // base address comes from
   dSUID.setNameInSpace(s, enOceanNamespace);
-  dSUID.setSubdeviceIndex(getSubDevice()*2); // historically space subdevices in double steps, to (theoretically) allow vdsm to split them (rocker switches) further. Kept this way to prevent existing dSUIDs to change
+  dSUID.setSubdeviceIndex(getSubDevice()*dsUIDIndexStep()); // historically space subdevices in double steps, to (theoretically) allow vdsm to split them (rocker switches) further. Kept this way to prevent existing dSUIDs to change
 }
 
 
@@ -129,7 +129,7 @@ string EnoceanDevice::hardwareGUID()
 
 string EnoceanDevice::hardwareModelGUID()
 {
-  return string_format("enoceaneep:%06lX", getEEProfile());
+  return string_format("enoceaneep:%06lX", EEP_PURE(getEEProfile()));
 }
 
 
@@ -306,13 +306,14 @@ string EnoceanDevice::description()
   string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
   const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   string_format_append(s,
-    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X\n",
     eeFunctionDesc.c_str(),
-    (eeProfile>>16) & 0xFF,
-    (eeProfile>>8) & 0xFF,
-    eeProfile & 0xFF,
+    EEP_RORG(eeProfile),
+    EEP_FUNC(eeProfile),
+    EEP_TYPE(eeProfile),
     mn ? mn : "<unknown>",
-    eeManufacturer
+    eeManufacturer,
+    EEP_VARIANT(eeProfile)
   );
   // show channels
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {

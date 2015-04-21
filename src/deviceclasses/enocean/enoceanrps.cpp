@@ -36,8 +36,9 @@ using namespace p44;
 
 #pragma mark - EnoceanRPSDevice
 
-EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
+EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
+  inherited(aClassContainerP),
+  dsuidIndexStep(aDsuidIndexStep)
 {
 }
 
@@ -58,45 +59,80 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   bool aNeedsTeachInResponse
 ) {
   EnoceanDevicePtr newDev; // none so far
-  EnoceanProfile functionProfile = aEEProfile & eep_ignore_type_mask;
-  if (functionProfile==0xF60200 || functionProfile==0xF60300) {
-    // F6-02-xx or F6-03-xx: 2 or 4 rocker switch = max 2 or 4 dsDevices
-    EnoceanSubDevice numSubDevices = functionProfile==0xF60300 ? 4 : 2;
-    if (aSubDeviceIndex<numSubDevices) {
-      // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
-      // standard device settings without scene table
-      newDev->installSettings();
-      // assign channel and address
-      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
-      // assign EPP information
-      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-      newDev->setFunctionDesc("rocker switch");
-      // set icon name: even-numbered subdevice is left, odd is right
-      newDev->setIconInfo(aSubDeviceIndex & 0x01 ? "enocean_br" : "enocean_bl", true);
-      // RPS switches can be used for anything
-      newDev->setPrimaryGroup(group_black_joker);
-      // Create two handlers, one for the up button, one for the down button
-      // - create button input for down key
-      EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-      downHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
-      downHandler->isRockerUp = false;
-      ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
-      downBhvr->setGroup(group_yellow_light); // pre-configure for light
-      downBhvr->setHardwareName("down key");
-      downHandler->behaviour = downBhvr;
-      newDev->addChannelHandler(downHandler);
-      // - create button input for up key
-      EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
-      upHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
-      upHandler->isRockerUp = true;
-      ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-      upBhvr->setGroup(group_yellow_light); // pre-configure for light
-      upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
-      upBhvr->setHardwareName("up key");
-      upHandler->behaviour = upBhvr;
-      newDev->addChannelHandler(upHandler);
+  EnoceanProfile functionProfile = EEP_UNTYPED(aEEProfile);
+  if (EEP_PURE(functionProfile)==0xF60200 || EEP_PURE(functionProfile)==0xF60300) {
+    // F6-02-xx or F6-03-xx: 2 or 4 rocker switch
+    // - we have the standard rocker variant (0) or the separate buttons variant (1)
+    if (EEP_VARIANT(aEEProfile)==1) {
+      // Custom variant: up and down are treated as separate buttons -> max 4 or 8 dsDevices
+      EnoceanSubDevice numSubDevices = functionProfile==0xF60300 ? 8 : 4;
+      if (aSubDeviceIndex<numSubDevices) {
+        // create EnoceanRPSDevice device
+        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+        // standard device settings without scene table
+        newDev->installSettings();
+        // assign channel and address
+        newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+        // assign EPP information
+        newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+        newDev->setFunctionDesc("button");
+        // set icon name: 4-rocker have a generic icon, 2-rocker have the 4btn icon in separated mode
+        newDev->setIconInfo(numSubDevices==8 ? "enocean_4rkr" : "enocean_4btn", true);
+        // RPS switches can be used for anything
+        newDev->setPrimaryGroup(group_black_joker);
+        // Create single handler, up button for even aSubDevice, down button for odd aSubDevice
+        bool isUp = (aSubDeviceIndex & 0x01)==0;
+        EnoceanRpsButtonHandlerPtr buttonHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+        buttonHandler->switchIndex = aSubDeviceIndex>>1; // each switch HALF has its own subdevice
+        buttonHandler->isRockerUp = isUp;
+        ButtonBehaviourPtr buttonBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+        buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isUp ? buttonElement_up : buttonElement_down, false, isUp ? 0 : 1);
+        buttonBhvr->setGroup(group_yellow_light); // pre-configure for light
+        buttonBhvr->setHardwareName(isUp ? "Up key" : "Down key");
+        buttonHandler->behaviour = buttonBhvr;
+        newDev->addChannelHandler(buttonHandler);
+      }
+    }
+    else {
+      // Standard: Up+Down together form a  2-way rocker -> max 2 or 4 dsDevices
+      EnoceanSubDevice numSubDevices = functionProfile==0xF60300 ? 4 : 2;
+      if (aSubDeviceIndex<numSubDevices) {
+        // create EnoceanRPSDevice device
+        // - 2-way rocker switches use indices 0,2,4,6,... to leave room for separate button mode between
+        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP, 2));
+        // standard device settings without scene table
+        newDev->installSettings();
+        // assign channel and address
+        newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+        // assign EPP information
+        newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+        newDev->setFunctionDesc("rocker switch");
+        // set icon name: generic 4-rocker or for 2-rocker: even-numbered subdevice is left, odd is right
+        newDev->setIconInfo(numSubDevices==4 ? "enocean_4rkr" : (aSubDeviceIndex & 0x01 ? "enocean_br" : "enocean_bl"), true);
+        // RPS switches can be used for anything
+        newDev->setPrimaryGroup(group_black_joker);
+        // Create two handlers, one for the up button, one for the down button
+        // - create button input for down key
+        EnoceanRpsButtonHandlerPtr downHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+        downHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
+        downHandler->isRockerUp = false;
+        ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+        downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
+        downBhvr->setGroup(group_yellow_light); // pre-configure for light
+        downBhvr->setHardwareName("down key");
+        downHandler->behaviour = downBhvr;
+        newDev->addChannelHandler(downHandler);
+        // - create button input for up key
+        EnoceanRpsButtonHandlerPtr upHandler = EnoceanRpsButtonHandlerPtr(new EnoceanRpsButtonHandler(*newDev.get()));
+        upHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
+        upHandler->isRockerUp = true;
+        ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
+        upBhvr->setGroup(group_yellow_light); // pre-configure for light
+        upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
+        upBhvr->setHardwareName("up key");
+        upHandler->behaviour = upBhvr;
+        newDev->addChannelHandler(upHandler);
+      }
     }
   }
   else if (functionProfile==0xF61000) {
@@ -531,14 +567,15 @@ typedef struct {
   const char *description;
 } profileVariantEntry;
 
-static const int numRPSprofileVariants = 6;
+static const int numRPSprofileVariants = 7;
 static const profileVariantEntry RPSprofileVariants[numRPSprofileVariants] = {
-  { 0xF602FF, "dual rocker switch" },
-  { 0xF60401, "key card activated switch ERP1" },
-  { 0xF60402, "key card activated switch ERP2" },
-  { 0xF604C0, "key card switch FKC/FKF" },
-  { 0xF60501, "Liquid Leakage detector" },
-  { 0xF605C0, "Smoke detector FRW/GUARD" }
+  { 0x00F602FF, "dual rocker switch (as 2-way rockers)" },
+  { 0x01F602FF, "dual rocker switch (as 4 separate buttons)" },
+  { 0x00F60401, "key card activated switch ERP1" },
+  { 0x00F60402, "key card activated switch ERP2" },
+  { 0x00F604C0, "key card switch FKC/FKF" },
+  { 0x00F60501, "Liquid Leakage detector" },
+  { 0x00F605C0, "Smoke detector FRW/GUARD" }
 };
 
 
