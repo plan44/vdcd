@@ -86,7 +86,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
         buttonHandler->switchIndex = aSubDeviceIndex>>1; // each switch HALF has its own subdevice
         buttonHandler->isRockerUp = isUp;
         ButtonBehaviourPtr buttonBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-        buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isUp ? buttonElement_up : buttonElement_down, false, isUp ? 0 : 1, true); // fixed mode
+        buttonBhvr->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, true); // fixed mode
         buttonBhvr->setGroup(group_yellow_light); // pre-configure for light
         buttonBhvr->setHardwareName(isUp ? "Up key" : "Down key");
         buttonHandler->behaviour = buttonBhvr;

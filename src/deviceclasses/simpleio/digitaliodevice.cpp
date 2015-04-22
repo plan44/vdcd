@@ -66,7 +66,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _1, _2), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false); // mode not restricted
+    b->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, false); // mode not restricted
     addBehaviour(b);
   }
   else if (digitalIoType==digitalio_input) {
