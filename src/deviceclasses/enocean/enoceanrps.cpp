@@ -86,7 +86,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
         buttonHandler->switchIndex = aSubDeviceIndex>>1; // each switch HALF has its own subdevice
         buttonHandler->isRockerUp = isUp;
         ButtonBehaviourPtr buttonBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-        buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isUp ? buttonElement_up : buttonElement_down, false, isUp ? 0 : 1);
+        buttonBhvr->setHardwareButtonConfig(0, buttonType_2way, isUp ? buttonElement_up : buttonElement_down, false, isUp ? 0 : 1, true); // fixed mode
         buttonBhvr->setGroup(group_yellow_light); // pre-configure for light
         buttonBhvr->setHardwareName(isUp ? "Up key" : "Down key");
         buttonHandler->behaviour = buttonBhvr;
@@ -117,7 +117,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
         downHandler->switchIndex = aSubDeviceIndex; // each switch gets its own subdevice
         downHandler->isRockerUp = false;
         ButtonBehaviourPtr downBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
-        downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1); // counterpart up-button has index 1
+        downBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1, true); // counterpart up-button has index 1, fixed mode
         downBhvr->setGroup(group_yellow_light); // pre-configure for light
         downBhvr->setHardwareName("down key");
         downHandler->behaviour = downBhvr;
@@ -128,7 +128,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
         upHandler->isRockerUp = true;
         ButtonBehaviourPtr upBhvr = ButtonBehaviourPtr(new ButtonBehaviour(*newDev.get()));
         upBhvr->setGroup(group_yellow_light); // pre-configure for light
-        upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0); // counterpart down-button has index 0
+        upBhvr->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0, true); // counterpart down-button has index 0, fixed mode
         upBhvr->setHardwareName("up key");
         upHandler->behaviour = upBhvr;
         newDev->addChannelHandler(upHandler);

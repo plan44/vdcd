@@ -70,7 +70,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
+    b->setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false); // mode not restricted
     b->setHardwareName(string_format("console key '%c'",name[0]));
     addBehaviour(b);
   }

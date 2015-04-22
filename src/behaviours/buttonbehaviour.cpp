@@ -38,6 +38,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   // persistent settings
   buttonGroup(group_yellow_light),
   buttonMode(buttonMode_inactive), // none by default, hardware should set a default matching the actual HW capabilities
+  fixedButtonMode(buttonMode_inactive), // by default, mode can be set. Hardware may fix the possible mode
   buttonChannel(channeltype_default), // by default, buttons act on default channel
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
@@ -48,13 +49,13 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   callsPresent(false)
 {
   // set default hrdware configuration
-  setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0);
+  setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false);
   // reset the button state machine
   resetStateMachine();
 }
 
 
-void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex)
+void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex, bool aButtonModeFixed)
 {
   buttonID = aButtonID;
   buttonType = aType;
@@ -72,6 +73,10 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
     else if (buttonElementID==buttonElement_down) {
       buttonMode = (DsButtonMode)((int)buttonMode_rockerDown_pairWith0+aCounterPartIndex);
     }
+  }
+  if (aButtonModeFixed) {
+    // limit settings to this mode
+    fixedButtonMode = buttonMode;
   }
 }
 
@@ -586,10 +591,16 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           buttonGroup = (DsGroup)aPropValue->int32Value();
           markDirty();
           return true;
-        case mode_key+settings_key_offset:
-          buttonMode = (DsButtonMode)aPropValue->int32Value();
+        case mode_key+settings_key_offset: {
+          DsButtonMode m = (DsButtonMode)aPropValue->int32Value();
+          if (m!=buttonMode_inactive && fixedButtonMode!=buttonMode_inactive) {
+            // only one particular mode (aside from inactive) is allowed.
+            m = fixedButtonMode;
+          }
+          buttonMode = m;
           markDirty();
           return true;
+        }
         case function_key+settings_key_offset:
           buttonFunc = (DsButtonFunc)aPropValue->int32Value();
           markDirty();

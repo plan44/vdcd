@@ -50,6 +50,7 @@ namespace p44 {
     int buttonID; ///< the ID grouping all inputs of a hardware button (which can have multiple elements)
     DsButtonType buttonType; ///< type of button
     DsButtonElement buttonElementID; ///< identifies element of a multi-input button hardware-button
+    DsButtonMode fixedButtonMode; ///< if not buttonMode_inactive, then this is the only mode that can be set
     /// @}
 
     /// @name persistent settings
@@ -82,9 +83,10 @@ namespace p44 {
     /// @param aElement the element of the physical button this input represents (like: up or down for a 2-way rocker)
     /// @param aSupportsLocalKeyMode true if this button can be local key
     /// @param aCounterPartIndex for 2-way buttons, this identifies the index of the counterpart input (needed for dS 1.0 LTMODE compatibility only)
+    /// @param aButtonModeFixed if set, buttonMode can only be switched between hardware-derived default mode and disabled
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex);
+    void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex, bool aButtonModeFixed);
 
     /// set group
     virtual void setGroup(DsGroup aGroup) { buttonGroup = aGroup; };
