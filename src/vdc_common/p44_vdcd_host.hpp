@@ -88,6 +88,7 @@ namespace p44 {
     friend class P44JsonApiRequest;
 
     long learnIdentifyTicket;
+    JsonCommPtr learnIdentifyRequest;
 
   public:
 

@@ -408,6 +408,7 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       }
       else {
         // start learning
+        learnIdentifyRequest = aJsonComm; // remember so we can cancel it when we receive a separate cancel request
         startLearning(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, _1, _2), disableProximity);
         learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::learnHandler, this, aJsonComm, false, ErrorPtr(new P44VdcError(408, "learn timeout"))), seconds*Second);
       }
@@ -420,9 +421,11 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       if (seconds==0) {
         // end reporting user activity
         setUserActionMonitor(NULL);
+        identifyHandler(aJsonComm, DevicePtr());
       }
       else {
         // wait for next user activity
+        learnIdentifyRequest = aJsonComm; // remember so we can cancel it when we receive a separate cancel request
         setUserActionMonitor(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, _1));
         learnIdentifyTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44VdcHost::identifyHandler, this, aJsonComm, DevicePtr()), seconds*Second);
       }
@@ -451,6 +454,10 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
 void P44VdcHost::learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
+  if (learnIdentifyRequest) {
+    learnIdentifyRequest->closeConnection();
+    learnIdentifyRequest.reset();
+  }
   stopLearning();
   sendCfgApiResponse(aJsonComm, JsonObject::newBool(aLearnIn), aError);
 }
@@ -466,6 +473,10 @@ void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
   }
   else {
     sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr(new P44VdcError(408, "identify timeout")));
+    if (learnIdentifyRequest) {
+      learnIdentifyRequest->closeConnection();
+      learnIdentifyRequest.reset();
+    }
     setUserActionMonitor(NULL);
   }
 }
