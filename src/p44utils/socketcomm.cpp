@@ -74,6 +74,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
   int one = 1;
   int socketFD = -1;
 
+  maxServerConnections = aMaxConnections;
   memset((char *) &sin, 0, sizeof(sin));
   if (protocolFamily==AF_INET) {
     sin.sin_family = (sa_family_t)protocolFamily;
