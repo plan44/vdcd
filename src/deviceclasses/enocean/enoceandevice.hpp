@@ -84,6 +84,12 @@ namespace p44 {
   };
 
 
+  /// profile variant entry
+  typedef struct {
+    int profileGroup; // zero to terminate list or group number (interchangeable profiles must have same group number)
+    EnoceanProfile eep;
+    const char *description;
+  } profileVariantEntry;
 
   typedef vector<EnoceanChannelHandlerPtr> EnoceanChannelHandlerVector;
 
@@ -257,11 +263,11 @@ namespace p44 {
     /// get profile variants this device can have
     /// @param aApiObjectValue must be an object typed API value, will receive profile variants as EEP/description key/values
     /// @return true if device has variants
-    virtual bool getProfileVariants(ApiValuePtr aApiObjectValue) { return false; /* none in base class */ };
+    bool getProfileVariants(ApiValuePtr aApiObjectValue);
 
     /// @param aProfile must be an EEP profile code
     /// @return true if profile variant is valid and can be set
-    virtual bool setProfileVariant(EnoceanProfile aProfile) { return false; /* profile not changeable in base class */ };
+    bool setProfileVariant(EnoceanProfile aProfile);
 
 
     /// @name identification of the addressable entity
@@ -300,8 +306,14 @@ namespace p44 {
     /// derive dSUID from hardware address
     void deriveDsUid();
 
-    /// switch EEP profile
+    /// switch EEP profile (or interpretation VARIANT thereof)
+    /// @param aProfile enocean profile to switch this device to
+    /// @note aProfile is not checked for being suitable for this type of device, this is done in setProfileVariant()
     void switchToProfile(EnoceanProfile aProfile);
+
+    /// get table of profile variants
+    /// @return NULL or pointer to a list of profile variants
+    virtual const profileVariantEntry *profileVariantsTable() { return NULL; /* none in base class */ };
 
   private:
 

@@ -208,14 +208,9 @@ namespace p44 {
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "enocean_rps"; };
 
-    /// get profile variants this device can have
-    /// @param aApiObjectValue must be an object typed API value, will receive profile variants as EEP/description key/values
-    /// @return true if device has variants
-    virtual bool getProfileVariants(ApiValuePtr aApiObjectValue);
-
-    /// @param aProfile must be an EEP profile code
-    /// @return true if profile variant is valid and can be set
-    virtual bool setProfileVariant(EnoceanProfile aProfile);
+    /// get table of profile variants
+    /// @return NULL or pointer to a list of profile variants
+    virtual const profileVariantEntry *profileVariantsTable();
 
     /// @return step between dSUID subdevice indices
     virtual uint8_t dsUIDIndexStep() { return dsuidIndexStep; };

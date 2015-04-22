@@ -172,18 +172,6 @@ void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResul
 }
 
 
-void EnoceanDevice::switchToProfile(EnoceanProfile aProfile)
-{
-  // make sure object is retained locally
-  EnoceanDevicePtr keepMeAlive(this); // make sure this object lives until routine terminates
-  // have devices related to current profile deleted, including settings
-  // Note: this removes myself from container, and deletes the config (which is valid for the previous profile, i.e. a different type of device)
-  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true);
-  // - create new ones, with same address and manufacturer, but new profile
-  EnoceanDevice::createDevicesFromEEP(&getEnoceanDeviceContainer(), getAddress(), aProfile, getEEManufacturer());
-}
-
-
 
 void EnoceanDevice::addChannelHandler(EnoceanChannelHandlerPtr aChannelHandler)
 {
@@ -321,6 +309,75 @@ string EnoceanDevice::description()
   }
   return s;
 }
+
+
+#pragma mark - profile variants
+
+
+
+bool EnoceanDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
+{
+  // check if current profile is one of the interchangeable ones
+  const profileVariantEntry *currentVariant = profileVariantsTable();
+  while (currentVariant && currentVariant->profileGroup!=0) {
+    // look for current EEP in the list of variants
+    if (getEEProfile()==currentVariant->eep) {
+      // create string from all other variants (same profileGroup), if any
+      bool anyVariants = false;
+      const profileVariantEntry *variant = profileVariantsTable();
+      while (variant->profileGroup!=0) {
+        if (variant->profileGroup==currentVariant->profileGroup) {
+          if (variant->eep!=getEEProfile()) anyVariants = true; // another variant than just myself
+          aApiObjectValue->add(string_format("%d",variant->eep), aApiObjectValue->newString(variant->description));
+        }
+        variant++;
+      }
+      // there are variants
+      return anyVariants;
+    }
+    currentVariant++;
+  }
+  return false; // no variants
+}
+
+
+bool EnoceanDevice::setProfileVariant(EnoceanProfile aProfile)
+{
+  // verify if changeable profile code requested
+  // - check for already having that profile
+  if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
+  // - find my profileGroup
+  const profileVariantEntry *currentVariant = profileVariantsTable();
+  while (currentVariant && currentVariant->profileGroup!=0) {
+    if (getEEProfile()==currentVariant->eep) {
+      // this is my profile group, now check if requested profile is in my profile group as well
+      const profileVariantEntry *variant = profileVariantsTable();
+      while (variant && variant->profileGroup!=0) {
+        if (variant->profileGroup==currentVariant->profileGroup && variant->eep==aProfile) {
+          // requested profile is in my group, change now
+          switchToProfile(aProfile); // will delete this device, so return immediately afterwards
+          return true; // changed profile
+        }
+        variant++;
+      }
+    }
+    currentVariant++;
+  }
+  return false; // invalid profile
+}
+
+
+void EnoceanDevice::switchToProfile(EnoceanProfile aProfile)
+{
+  // make sure object is retained locally
+  EnoceanDevicePtr keepMeAlive(this); // make sure this object lives until routine terminates
+  // have devices related to current profile deleted, including settings
+  // Note: this removes myself from container, and deletes the config (which is valid for the previous profile, i.e. a different type of device)
+  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true);
+  // - create new ones, with same address and manufacturer, but new profile
+  EnoceanDevice::createDevicesFromEEP(&getEnoceanDeviceContainer(), getAddress(), aProfile, getEEManufacturer());
+}
+
 
 
 #pragma mark - property access

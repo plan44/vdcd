@@ -560,53 +560,28 @@ string EnoceanRpsLeakageDetectorHandler::shortDesc()
 
 
 
-#pragma mark - EnoceanRPSDevice
+#pragma mark - EnoceanRPSDevice profile variants
 
-typedef struct {
-  EnoceanProfile eep;
-  const char *description;
-} profileVariantEntry;
 
-static const int numRPSprofileVariants = 7;
-static const profileVariantEntry RPSprofileVariants[numRPSprofileVariants] = {
-  { 0x00F602FF, "dual rocker switch (as 2-way rockers)" },
-  { 0x01F602FF, "dual rocker switch (as 4 separate buttons)" },
-  { 0x00F60401, "key card activated switch ERP1" },
-  { 0x00F60402, "key card activated switch ERP2" },
-  { 0x00F604C0, "key card switch FKC/FKF" },
-  { 0x00F60501, "Liquid Leakage detector" },
-  { 0x00F605C0, "Smoke detector FRW/GUARD" }
+static const profileVariantEntry RPSprofileVariants[] = {
+  // dual rocker RPS button alternatives
+  { 1, 0x00F602FF, "dual rocker switch (as 2-way rockers)" },
+  { 1, 0x01F602FF, "dual rocker switch (as 4 separate buttons)" },
+  { 1, 0x00F60401, "key card activated switch ERP1" },
+  { 1, 0x00F60402, "key card activated switch ERP2" },
+  { 1, 0x00F604C0, "key card activated switch FKC/FKF" },
+  { 1, 0x00F60501, "Liquid Leakage detector" },
+  { 1, 0x00F605C0, "Smoke detector FRW/GUARD" },
+  // quad rocker RPS button alternatives
+  { 2, 0x00F603FF, "quad rocker switch (as 2-way rockers)" },
+  { 2, 0x01F603FF, "quad rocker switch (as 8 separate buttons)" },
+  { 0, 0, NULL } // terminator
 };
 
 
-bool EnoceanRPSDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
+const profileVariantEntry *EnoceanRPSDevice::profileVariantsTable()
 {
-  // check if current profile is one of the interchangeable ones
-  for (int i=0; i<numRPSprofileVariants; i++) {
-    if (getEEProfile()==RPSprofileVariants[i].eep) {
-      // create string
-      for (int j=0; j<numRPSprofileVariants; j++) {
-        aApiObjectValue->add(string_format("%d",RPSprofileVariants[j].eep), aApiObjectValue->newString(RPSprofileVariants[j].description));
-      }
-      // there are variants
-      return true;
-    }
-  }
-  return false; // no variants
+  return RPSprofileVariants;
 }
 
 
-bool EnoceanRPSDevice::setProfileVariant(EnoceanProfile aProfile)
-{
-  // check if changeable profile code
-  for (int i=0; i<numRPSprofileVariants; i++) {
-    if (aProfile==RPSprofileVariants[i].eep) {
-      // is one of the interchangeable ones
-      if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
-      // change profile now
-      switchToProfile(aProfile);
-      return true;
-    }
-  }
-  return false; // invalid profile
-}
