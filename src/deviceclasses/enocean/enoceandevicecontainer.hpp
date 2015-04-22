@@ -101,9 +101,6 @@ namespace p44 {
     // the Enocean communication object
     EnoceanComm enoceanComm;
 
-    // dS-specific flag that can be cleared to suppress including sensors on heating valves (A5-20-01)
-    bool heatingValveSensorsEnabled;
-
     virtual const char *deviceClassIdentifier() const;
 
     /// perform self test

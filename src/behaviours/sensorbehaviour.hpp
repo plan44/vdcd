@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#include <math.h>
+
 using namespace std;
 
 namespace p44 {

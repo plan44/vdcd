@@ -90,7 +90,8 @@ EnoceanDevicePtr Enocean4bsHandler::newDevice(
 ) {
   EnoceanDevicePtr newDev; // none so far
   // check for specialized handlers for certain profiles first
-  if (aEEProfile==0xA52001) {
+  if (EEP_PURE(aEEProfile)==0xA52001) {
+    // Note: Profile has variants (with and without temperature sensor)
     // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
     newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
@@ -283,7 +284,9 @@ static const char *occupText = "Occupancy";
 
 static const char *pirText = "PIR";
 
-static const char *unityUnit = "1";
+static const char *unityUnit = "units"; // undefined unit, but not just 0/1 (binary)
+
+static const char *binaryUnit = ""; // binary, only 0 or 1
 
 static const char *setPointText = "Set Point";
 
@@ -337,18 +340,18 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
 
   // A5-07-xx: Occupancy Sensor
   // - two slightly different occupancy sensors
-  { 0x07, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(1,7), DB(1,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
-  { 0x07, 0x02, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x07, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(1,7), DB(1,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
+  { 0x07, 0x02, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
   // - occupancy sensor with illumination sensor
-  { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
   { 0x07, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
 
   // A5-08-01: Light, Temperature and Occupancy sensor
   // - e.g. Eltako FBH
   { 0x08, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0,  510, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
   { 0x08, 0x01, 0, group_black_joker,  group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   51, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
-  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  pirText, unityUnit },
-  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, unityUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  pirText, binaryUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
 
   // A5-10-03: Room Panel with Temperature Sensor and Set Point Control
   // - e.g. Eltako FTR78S
@@ -359,14 +362,14 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   // - e.g. Eltako FTR55D
   { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
   { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
-  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
+  { 0x10, 0x06, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, binaryUnit },
 
   // A5-10-11: Room Panel with Temperature Sensor, Set Point Control, Humidity
   // - e.g. Thermokon Thanos
   { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
   { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, humText,  humUnit },
   { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
-  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, unityUnit },
+  { 0x10, 0x11, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, binaryUnit },
 
   // A5-12-01: Energy meter
   // - e.g. Eltako FWZ12-16A
@@ -557,7 +560,18 @@ string Enocean4bsSensorHandler::shortDesc()
 
 string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSensorDescriptor)
 {
-  return string_format("%s, %0.3f..%0.3f %s", aSensorDescriptor.typeText, aSensorDescriptor.min, aSensorDescriptor.max, aSensorDescriptor.unitText);
+  const char *unitText = aSensorDescriptor.unitText;
+  if (unitText==binaryUnit) {
+    // binary input
+    return string_format("%s", aSensorDescriptor.typeText);
+  }
+  else {
+    // sensor with a value
+    int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
+    double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
+    int fracDigits = (int)(-log(resolution)/log(10)+0.99);
+    return string_format("%s, %0.*f..%0.*f %s", aSensorDescriptor.typeText, fracDigits, aSensorDescriptor.min, fracDigits, aSensorDescriptor.max, unitText);
+  }
 }
 
 
@@ -587,7 +601,7 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   static const p44::Enocean4BSSensorDescriptor tempSensor =
     { 0x20, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room, 0, 40, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText,      tempUnit };
   static const p44::Enocean4BSSensorDescriptor lowBatInput =
-    { 0x20, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_lowBattery,  usage_room, 1,  0, DB(2,4), DB(2,4), 100, 40*60, &stdInputHandler,  "Low Battery", unityUnit };
+    { 0x20, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_lowBattery,  usage_room, 1,  0, DB(2,4), DB(2,4), 100, 40*60, &stdInputHandler,  "Low Battery", binaryUnit };
   // create device
   EnoceanDevicePtr newDev; // none so far
   if (aSubDeviceIndex<1) {
@@ -611,8 +625,8 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
     newHandler->behaviour = ob;
     newDev->addChannelHandler(newHandler);
-    if (aClassContainerP->heatingValveSensorsEnabled) {
-      // valve sensors enabled - add built-in temp sensor
+    if (EEP_VARIANT(aEEProfile)==1) {
+      // profile variant with valve sensor enabled - add built-in temp sensor
       Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
     }
     // report low bat status as a binary input
@@ -747,9 +761,9 @@ static const p44::Enocean4BSSensorDescriptor A513outdoorTemp =
 static const p44::Enocean4BSSensorDescriptor A513windSpeed =
   { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_wind_speed, usage_outdoors, 0, 70, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, "wind speed", "m/s" };
 static const p44::Enocean4BSSensorDescriptor A513dayIndicator =
-  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_none,  usage_outdoors, 1,  0, DB(0,2), DB(0,2), 100, 40*60, &stdInputHandler,  "Day indicator", unityUnit };
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_none,  usage_outdoors, 1,  0, DB(0,2), DB(0,2), 100, 40*60, &stdInputHandler,  "Day indicator", binaryUnit };
 static const p44::Enocean4BSSensorDescriptor A513rainIndicator =
-  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_rain,  usage_outdoors, 0,  1, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  "Rain indicator", unityUnit };
+  { 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_rain,  usage_outdoors, 0,  1, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  "Rain indicator", binaryUnit };
 // - A5-13-02 telegram
 static const p44::Enocean4BSSensorDescriptor A513sunWest =
   { 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, "Sun west", illumUnit };
@@ -858,6 +872,23 @@ string EnoceanA5130XHandler::shortDesc()
   return string_format("Dawn/Temp/Wind/Rain/Sun outdoor sensor");
 }
 
+
+
+#pragma mark - Enocean4BSDevice profile variants
+
+
+static const profileVariantEntry RPSprofileVariants[] = {
+  // dual rocker RPS button alternatives
+  { 1, 0x00A52001, "heating valve" },
+  { 1, 0x01A52001, "heating valve (with temperature sensor)" },
+  { 0, 0, NULL } // terminator
+};
+
+
+const profileVariantEntry *Enocean4BSDevice::profileVariantsTable()
+{
+  return RPSprofileVariants;
+}
 
 
 

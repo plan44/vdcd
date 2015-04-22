@@ -87,6 +87,10 @@ namespace p44 {
     /// @note will be called from newDevice() when created device needs a teach-in response
     virtual void sendTeachInResponse();
 
+    /// get table of profile variants
+    /// @return NULL or pointer to a list of profile variants
+    virtual const profileVariantEntry *profileVariantsTable();
+
   };
 
 
