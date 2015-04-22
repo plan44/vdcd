@@ -418,6 +418,10 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
   // get the fields
   buttonGroup = (DsGroup)aRow->get<int>(aIndex++);
   buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
+  if (buttonMode!=buttonMode_inactive && fixedButtonMode!=buttonMode_inactive && buttonMode!=fixedButtonMode) {
+    // force mode according to fixedButtonMode, even if settings (from older versions) say something different
+    buttonMode = fixedButtonMode;
+  }
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   uint64_t flags = aRow->get<int>(aIndex++);
   buttonChannel = (DsChannelType)aRow->get<int>(aIndex++);
