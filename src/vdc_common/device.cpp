@@ -1526,6 +1526,7 @@ PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStart
       // within range, create descriptor
       DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
       if (aParentDescriptor->hasObjectKey(device_channels_key)) {
+        // is a channel
         if (numericName) {
           // query specified a channel number -> return same number in result (to return "0" when default channel "0" was explicitly queried)
           descP->propertyName = aPropMatch; // query = name of object
@@ -1539,7 +1540,7 @@ PropertyDescriptorPtr Device::getDescriptorByName(string aPropMatch, int &aStart
         }
       }
       else {
-        // by index
+        // is a scene, name by index
         descP->propertyName = string_format("%d", aStartIndex);
       }
       descP->propertyType = aParentDescriptor->type();

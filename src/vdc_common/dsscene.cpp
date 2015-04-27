@@ -84,18 +84,25 @@ protected:
       bool numericName = getNextPropIndex(aPropMatch, aStartIndex);
       if (numericName) {
         // specific channel addressed by ID, look up index for it
-        DsChannelType ct = aStartIndex;
+        DsChannelType ct = (DsChannelType)aStartIndex;
         aStartIndex = PROPINDEX_NONE; // default to not found
         ChannelBehaviourPtr cb = scene.getDevice().getChannelByType(ct);
-        if (cb)
+        if (cb) {
           aStartIndex = (int)cb->getChannelIndex(); // found, return index
+        }
       }
       int n = numProps(aDomain, aParentDescriptor);
       if (aStartIndex!=PROPINDEX_NONE && aStartIndex<n) {
         // within range, create descriptor
         DynamicPropertyDescriptor *descP = new DynamicPropertyDescriptor(aParentDescriptor);
-        // name by channel
-        descP->propertyName = string_format("%d", scene.getDevice().getChannelByIndex(aStartIndex)->getChannelType());
+        if (numericName) {
+          // query specified a channel number -> return same number in result (to return "0" when default channel "0" was explicitly queried)
+          descP->propertyName = aPropMatch; // query = name of object
+        }
+        else {
+          // wildcard, name by channel type
+          descP->propertyName = string_format("%d", scene.getDevice().getChannelByIndex(aStartIndex)->getChannelType());
+        }
         descP->propertyType = aParentDescriptor->type();
         descP->propertyFieldKey = aStartIndex;
         descP->propertyObjectKey = OKEY(scenevalue_key);
