@@ -1031,8 +1031,13 @@ private:
         bankChecksum += (*aBank0Data)[i];
       }
       // check plausibility of GTIN/Version/SN data
+      // Know bad signatures we must catch:
+      // - Meanwell:
+      //   all 01
+      // - linealight.com/i-LÈD/eral LED-FGI332:
+      //   71 01 01 FF 02 FF FF FF 01 4B 00 00 FF FF (6*FF, 3 of them consecutive, unfortunately gtin checkdigit by accident ok)
       uint8_t refByte = 0;
-      uint8_t numSame = 0;
+      uint8_t numSame = 1; // we always have one "consecutive" number of bytes
       uint8_t numFFs = 0;
       uint8_t maxSame = 0;
       uint8_t sameByte = 0;
@@ -1050,7 +1055,7 @@ private:
         }
         else {
           refByte = b;
-          numSame = 0;
+          numSame = 1; // first byte in a possible row of "consecutive" ones = the reference byte
         }
       }
       if (maxSame>=10 || (numFFs>=6 && maxSame>=3)) {
