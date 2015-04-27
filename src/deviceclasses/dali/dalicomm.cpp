@@ -1061,8 +1061,7 @@ private:
       if (maxSame>=10 || (numFFs>=6 && maxSame>=3)) {
         // this is tuned heuristics: >=6 FFs total plus >=3 consecutive equal non-zeros are considered suspect (because linealight.com/i-LÈD/eral LED-FGI332 has that)
         LOG(LOG_ERR, "DALI shortaddress %d Bank 0 has %d consecutive bytes of 0x%02X and %d bytes of 0xFF  - indicates invalid GTIN/Serial data -> ignoring\n", busAddress, maxSame, sameByte, numFFs);
-        deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // no valid device info
-        return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadDeviceInfo,string_format("bad repetitive DALI memory bank 0 contents at shortAddress %d", busAddress))));
+        deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // consider invalid
       }
       // GTIN: bytes 0x03..0x08, MSB first
       deviceInfo->gtin = 0;
@@ -1241,6 +1240,11 @@ private:
   void complete(ErrorPtr aError)
   {
     daliComm.endProcedure();
+    // clean device info in case it has been detected invalid by now
+    if (deviceInfo->devInfStatus==DaliDeviceInfo::devinf_none) {
+      deviceInfo->clear(); // clear everything except shortaddress
+    }
+    // report
     callback(deviceInfo, aError);
     // done, delete myself
     delete this;
@@ -1260,6 +1264,14 @@ void DaliComm::daliReadDeviceInfo(DaliDeviceInfoCB aResultCB, DaliAddress aAddre
 
 DaliDeviceInfo::DaliDeviceInfo()
 {
+  clear();
+  shortAddress = DaliBroadcast; // undefined short address
+}
+
+
+void DaliDeviceInfo::clear()
+{
+  // clear everything except short address
   gtin = 0;
   fw_version_major = 0;
   fw_version_minor = 0;

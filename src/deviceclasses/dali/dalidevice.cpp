@@ -64,6 +64,13 @@ void DaliBusDevice::setDeviceInfo(DaliDeviceInfo aDeviceInfo)
 }
 
 
+void DaliBusDevice::clearDeviceInfo()
+{
+  deviceInfo.clear();
+  deriveDsUid();
+}
+
+
 void DaliBusDevice::deriveDsUid()
 {
   if (isDummy) return;
@@ -632,9 +639,10 @@ void DaliDimmerDevice::deriveDsUid()
 
 string DaliDimmerDevice::hardwareGUID()
 {
-  if (brightnessDimmer->deviceInfo.gtin==0)
+  if (brightnessDimmer->deviceInfo.devInfStatus==DaliDeviceInfo::devinf_none)
     return ""; // none
   // return as GS1 element strings
+  // Note: GTIN/Serial will be reported even if it could not be used for deriving dSUID (e.g. devinf_maybe/devinf_notForID cases)
   return string_format("gs1:(01)%llu(21)%llu", brightnessDimmer->deviceInfo.gtin, brightnessDimmer->deviceInfo.serialNo);
 }
 

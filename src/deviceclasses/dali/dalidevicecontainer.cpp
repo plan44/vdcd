@@ -157,6 +157,21 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
     while (aBusDevices->size()>0) {
       // get first remaining
       DaliBusDevicePtr busDevice = aBusDevices->front();
+      // duplicate dSUID check
+      bool anyDuplicates = false;
+      for (DaliBusDeviceList::iterator refpos = ++aBusDevices->begin(); refpos!=aBusDevices->end(); ++refpos) {
+        if (busDevice->dSUID==(*refpos)->dSUID) {
+          // duplicate dSUID, indicates DALI devices with invalid device info that slipped all heuristics
+          LOG(LOG_ERR,"Bus devices #%d and #%d have same dSUID -> assuming invalid device info, reverting both to short address based dSUID\n", busDevice->deviceInfo.shortAddress, (*refpos)->deviceInfo.shortAddress);
+          // - clear all device info except short address and revert to short address derived dSUID
+          (*refpos)->clearDeviceInfo();
+          anyDuplicates = true; // at least one found
+        }
+      }
+      if (anyDuplicates) {
+        // consider my own info invalid as well
+        busDevice->clearDeviceInfo();
+      }
       // check if this device is part of a DALI group
       sqlite3pp::query qry(db);
       string sql = string_format("SELECT groupNo FROM compositeDevices WHERE dimmerUID = '%s' AND dimmerType='GRP'", busDevice->dSUID.getString().c_str());

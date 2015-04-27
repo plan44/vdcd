@@ -78,7 +78,11 @@ namespace p44 {
 
     DaliBusDevice(DaliDeviceContainer &aDaliDeviceContainer);
 
+    /// use passed device info and derive dSUID from it
     void setDeviceInfo(DaliDeviceInfo aDeviceInfo);
+
+    /// clear all device info except short address and revert to short address derived dSUID
+    void clearDeviceInfo();
 
     /// derive the dSUID from collected device info
     virtual void deriveDsUid();

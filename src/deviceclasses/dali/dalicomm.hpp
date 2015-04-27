@@ -91,7 +91,9 @@ namespace p44 {
     } DaliDevInfStatus;
 
     DaliDeviceInfo();
-    // short address
+    /// clear everything except short address
+    void clear();
+    /// short address
     DaliAddress shortAddress;
     // DALI device information
     long long gtin; /// < 48 bit global trade identification number (GTIN / EAN)
