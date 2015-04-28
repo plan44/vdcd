@@ -434,6 +434,97 @@ DaliAddress DaliComm::addressFromDaliResponse(uint8_t aResponse)
 }
 
 
+#pragma mark - DALI bus data R/W test
+
+class DaliBusDataTester : public P44Obj
+{
+  DaliComm &daliComm;
+  StatusCB callback;
+  DaliAddress busAddress;
+  int numCycles;
+  int cycle;
+  uint8_t dtrValue;
+  int numErrors;
+public:
+  static void daliBusTestData(DaliComm &aDaliComm, StatusCB aResultCB, DaliAddress aAddress, uint8_t aNumCycles)
+  {
+    // create new instance, deletes itself when finished
+    new DaliBusDataTester(aDaliComm, aResultCB, aAddress, aNumCycles);
+  };
+private:
+  DaliBusDataTester(DaliComm &aDaliComm, StatusCB aResultCB, DaliAddress aAddress, uint8_t aNumCycles) :
+  daliComm(aDaliComm),
+  callback(aResultCB),
+  busAddress(aAddress),
+  numCycles(aNumCycles)
+  {
+    daliComm.startProcedure();
+    LOG(LOG_DEBUG, "DALI bus address %d - doing %d R/W tests to DTR...\n", busAddress, aNumCycles);
+    // start with 0x55 pattern
+    dtrValue = 0;
+    numErrors = 0;
+    cycle = 0;
+    testNextByte();
+  };
+
+  // handle scan result
+  void handleResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+  {
+    if (!Error::isOK(aError)) {
+      numErrors++;
+      LOG(LOG_DEBUG,"- written 0x%02X, got error %s\n", dtrValue, aError->description().c_str());
+    }
+    else {
+      if(!aNoOrTimeout) {
+        // byte received
+        if (aResponse!=dtrValue) {
+          numErrors++;
+          LOG(LOG_DEBUG,"- written 0x%02X, read back 0x%02X -> error\n", dtrValue, aResponse);
+        }
+      }
+      else {
+        numErrors++;
+        LOG(LOG_DEBUG,"- written 0x%02X, got no answer (timeout) -> error\n", dtrValue);
+      }
+    }
+    // prepare next test value
+    dtrValue += 0x55; // gives 0x00, 0x55, 0xAA, 0xFF, 0x54... sequence (all values tested after 256 cycles)
+    cycle++;
+    if (cycle<numCycles) {
+      // test next
+      testNextByte();
+      return;
+    }
+    // all cycles done, return result
+    daliComm.endProcedure();
+    if (numErrors>0) {
+      LOG(LOG_ERR, "Unreliable data access for DALI bus address %d - %d of %d R/W tests have failed!\n", busAddress, numErrors, numCycles);
+      if (callback) callback(ErrorPtr(new DaliCommError(DaliCommErrorDataUnreliable, string_format("DALI R/W tests: %d of %d failed", numErrors, numCycles))));
+    }
+    else {
+      // everything is fine
+      LOG(LOG_DEBUG, "DALI bus address %d - all %d test cycles OK\n", busAddress, numCycles);
+      if (callback) callback(ErrorPtr());
+    }
+    // done, delete myself
+    delete this;
+  };
+
+
+  void testNextByte()
+  {
+    daliComm.daliSend(DALICMD_SET_DTR, dtrValue);
+    daliComm.daliSendQuery(busAddress, DALICMD_QUERY_CONTENT_DTR, boost::bind(&DaliBusDataTester::handleResponse, this, _1, _2, _3));
+  }
+};
+
+
+void DaliComm::daliBusTestData(StatusCB aResultCB, DaliAddress aAddress, uint8_t aNumCycles)
+{
+  if (isBusy()) { aResultCB(DaliComm::busyError()); return; }
+  DaliBusDataTester::daliBusTestData(*this, aResultCB, aAddress, aNumCycles);
+}
+
 
 
 #pragma mark - DALI bus scanning
@@ -498,7 +589,7 @@ private:
     }
     // start the scan
     shortAddress = 0;
-    queryNext(dqs_controlgear);
+    nextQuery(dqs_controlgear);
   };
 
 
@@ -526,27 +617,46 @@ private:
     if (aQueryState==dqs_random_l || aNoOrTimeout) {
       // collision already detected, or last byte of existing device checked, or timeout -> query complete for this short address
       if (isYes) {
-        activeDevicesPtr->push_back(shortAddress);
-        LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
+        // do a data reliability test now (quick 3 byte 0,0x55,0xAA only unless loglevel>=6)
+        DaliBusDataTester::daliBusTestData(daliComm, boost::bind(&DaliBusScanner::nextDevice ,this, true, _1), shortAddress, LOGLEVEL>=LOG_INFO ? 9 : 3);
+        return;
       }
-      shortAddress++;
-      if (shortAddress<DALI_MAXDEVICES && !aError) {
-        // more devices to scan
-        queryNext(dqs_controlgear);
-      }
-      else {
-        return completed(aError);
-      }
+      // none found here, just test next
+      nextDevice(false, ErrorPtr());
     }
     else {
       // more to check from same device
-      queryNext((DeviceQueryState)((int)aQueryState+1));
+      nextQuery((DeviceQueryState)((int)aQueryState+1));
     }
   };
 
 
+  void nextDevice(bool aDeviceAtThisAddress, ErrorPtr aError)
+  {
+    if (aDeviceAtThisAddress) {
+      if (Error::isOK(aError)) {
+        // this short address has a device which has passed the test
+        activeDevicesPtr->push_back(shortAddress);
+        LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
+      }
+      else {
+        LOG(LOG_ERR, "Detected DALI device at short address %d, but it FAILED R/W TEST: %s -> ignoring\n", shortAddress, aError->description().c_str());
+      }
+    }
+    // check if more short addresses to test
+    shortAddress++;
+    if (shortAddress<DALI_MAXDEVICES) {
+      // more devices to scan
+      nextQuery(dqs_controlgear);
+    }
+    else {
+      return completed(ErrorPtr());
+    }
+  }
+
+
   // query next device
-  void queryNext(DeviceQueryState aQueryState)
+  void nextQuery(DeviceQueryState aQueryState)
   {
     uint8_t q;
     switch (aQueryState) {
@@ -984,8 +1094,7 @@ void DaliComm::daliReadMemory(DaliReadMemoryCB aResultCB, DaliAddress aAddress, 
 }
 
 
-
-// read device info of a DALI device
+#pragma mark - DALI device info reading
 
 class DaliDeviceInfoReader : public P44Obj
 {
@@ -1033,7 +1142,7 @@ private:
       // check plausibility of GTIN/Version/SN data
       // Know bad signatures we must catch:
       // - Meanwell:
-      //   all 01
+      //   all 01 or 05
       // - linealight.com/i-LÈD/eral LED-FGI332:
       //   71 01 01 FF 02 FF FF FF 01 4B 00 00 FF FF (6*FF, 3 of them consecutive, unfortunately gtin checkdigit by accident ok)
       uint8_t refByte = 0;

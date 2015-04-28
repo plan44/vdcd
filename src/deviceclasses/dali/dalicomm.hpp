@@ -55,7 +55,8 @@ namespace p44 {
     DaliCommErrorNeedFullScan,
     DaliCommErrorDeviceSearch,
     DaliCommErrorSetShortAddress,
-    DaliCommErrorBusOverload
+    DaliCommErrorBusOverload,
+    DaliCommErrorDataUnreliable
   } DaliCommErrors;
 
   class DaliCommError : public Error
@@ -271,6 +272,14 @@ namespace p44 {
     /// @param aFullScanOnlyIfNeeded
     /// @note detects short address conflicts and devices without short address, assigns new short addresses as needed
     void daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded);
+
+
+    /// Test the reliability of writing and reading back data from a specific device
+    /// @param aResultCB callback receiving ok or error
+    /// @param aAddress short address of device to test
+    /// @param aNumCycles number of R/W cycles to perform (on DTR of the device)
+    /// @note does not check running procedure, so make sure no other procedure is running before calling this
+    void daliBusTestData(StatusCB aResultCB, DaliAddress aAddress, uint8_t aNumCycles);
 
 
     typedef boost::shared_ptr<std::vector<uint8_t> > MemoryVectorPtr;
