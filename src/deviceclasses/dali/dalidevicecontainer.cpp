@@ -352,116 +352,235 @@ void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, D
 }
 
 
-#pragma mark - composite device creation
-
+#pragma mark - DALI specific methods
 
 ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-groupDevices") {
     // create a composite device out of existing single-channel ones
-    ApiValuePtr components;
-    long long collectionID = -1;
-    int groupNo = -1;
-    DeviceVector groupedDevices;
-    respErr = checkParam(aParams, "members", components);
-    if (Error::isOK(respErr)) {
-      if (components->isType(apivalue_object)) {
-        components->resetKeyIteration();
-        string dimmerType;
-        ApiValuePtr o;
-        while (components->nextKeyValue(dimmerType, o)) {
-          DsUid memberUID;
-          memberUID.setAsBinary(o->binaryValue());
-          bool deviceFound = false;
-          // search for this device
-          for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
-            // only non-composite DALI devices can be grouped at all
-            DaliDevicePtr dev = boost::dynamic_pointer_cast<DaliDevice>(*pos);
-            if (dev && dev->daliTechnicalType()!=dalidevice_composite && dev->getDsUid() == memberUID) {
-              // found this device
-              // - check type of grouping
-              if (dimmerType[0]=='D') {
-                // only not-yet grouped dimmers can be added to group
-                if (dev->daliTechnicalType()==dalidevice_single) {
-                  deviceFound = true;
-                  // determine free group No
-                  if (groupNo<0) {
-                    uint16_t groupMask=0;
-                    sqlite3pp::query qry(db);
-                    if (qry.prepare("SELECT DISTINCT groupNo FROM compositeDevices WHERE dimmerType='GRP'")==SQLITE_OK) {
-                      for (sqlite3pp::query::iterator i = qry.begin(); i!=qry.end(); ++i) {
-                        // this is a DALI group in use
-                        groupMask |= (1<<(i->get<int>(0)));
-                      }
-                    }
-                    for (groupNo=0; groupNo<16; ++groupNo) {
-                      if ((groupMask & (1<<groupNo))==0) {
-                        // group number is free - use it
-                        break;
-                      }
-                    }
-                    if (groupNo>=16) {
-                      // no more unused DALI groups, cannot group at all
-                      respErr = ErrorPtr(new WebError(500, "16 groups already exist, cannot create additional group"));
-                      goto error;
-                    }
-                  }
-                  // - create DB entry for DALI group member
-                  db.executef(
-                    "INSERT OR REPLACE INTO compositeDevices (dimmerUID, dimmerType, groupNo) VALUES ('%s','GRP',%d)",
-                    memberUID.getString().c_str(),
-                    groupNo
-                  );
-                }
-              }
-              else {
-                deviceFound = true;
-                // - create DB entry for member of composite device
-                db.executef(
-                  "INSERT OR REPLACE INTO compositeDevices (dimmerUID, dimmerType, collectionID) VALUES ('%s','%s',%lld)",
-                  memberUID.getString().c_str(),
-                  dimmerType.c_str(),
-                  collectionID
-                );
-                if (collectionID<0) {
-                  // use rowid of just inserted item as collectionID
-                  collectionID = db.last_insert_rowid();
-                  // - update already inserted first record
-                  db.executef(
-                    "UPDATE compositeDevices SET collectionID=%lld WHERE ROWID=%lld",
-                    collectionID,
-                    collectionID
-                  );
-                }
-              }
-              // remember
-              groupedDevices.push_back(dev);
-              // done
-              break;
-            }
-          }
-          if (!deviceFound) {
-            respErr = ErrorPtr(new WebError(404, "some devices of the group could not be found"));
-            break;
-          }
-        }
-      error:
-        if (Error::isOK(respErr) && groupedDevices.size()>0) {
-          // all components inserted into DB
-          // - remove individual devices that will become part of a DALI group or composite device now
-          for (DeviceVector::iterator pos = groupedDevices.begin(); pos!=groupedDevices.end(); ++pos) {
-            (*pos)->hasVanished(false); // vanish, but keep settings
-          }
-          // - re-collect devices to find groups and composites now, but only after a second, starting from main loop, not from here
-          StatusCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
-          MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false, false), 1*Second);
-        }
-      }
-    }
+    respErr = groupDevices(aRequest, aParams);
+  }
+  else if (aMethod=="x-p44-daliScan") {
+    // diagnostics: scan the entire DALI bus
+    respErr = daliScan(aRequest, aParams);
+  }
+  else if (aMethod=="x-p44-daliCmd") {
+    // diagnostics: direct DALI commands
+    respErr = daliCmd(aRequest, aParams);
   }
   else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
+#pragma mark - DALI bus diagnostics
+
+
+// scan bus, return status string
+
+ErrorPtr DaliDeviceContainer::daliScan(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  StringPtr result(new string);
+  daliScanNext(aRequest, 0, result);
+  return ErrorPtr(); // no result yet, but later when scan is done
+}
+
+
+void DaliDeviceContainer::daliScanNext(VdcApiRequestPtr aRequest, DaliAddress aShortAddress, StringPtr aResult)
+{
+  if (aShortAddress<64) {
+    // scan next
+    daliComm->daliSendQuery(
+      aShortAddress, DALICMD_QUERY_CONTROL_GEAR,
+      boost::bind(&DaliDeviceContainer::handleDaliScanResult, this, aRequest, aShortAddress, aResult, _1, _2, _3)
+    );
+  }
+  else {
+    // done
+    ApiValuePtr answer = aRequest->newApiValue();
+    answer->setType(apivalue_object);
+    answer->add("busState", answer->newString(*aResult));
+    aRequest->sendResult(answer);
+  }
+}
+
+
+void DaliDeviceContainer::handleDaliScanResult(VdcApiRequestPtr aRequest, DaliAddress aShortAddress, StringPtr aResult, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+{
+  char statusChar = '.'; // default to "nothing here"
+  // plain FF without error is valid device
+  if (Error::isOK(aError)) {
+    if (!aNoOrTimeout) {
+      // data received
+      if (aResponse==0xFF)
+        statusChar = '*'; // ok device
+      else
+        statusChar = 'C'; // possibly conflict
+    }
+  }
+  else if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorDALIFrame)) {
+    statusChar = 'C'; // possibly conflict
+  }
+  else {
+    statusChar = 'E'; // real error
+  }
+  // add to result
+  *aResult += statusChar;
+  // check next
+  daliScanNext(aRequest, ++aShortAddress, aResult);
+}
+
+
+
+// send single device, group or broadcast commands to bus
+
+ErrorPtr DaliDeviceContainer::daliCmd(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  string cmd;
+  ApiValuePtr addr;
+  respErr = checkParam(aParams, "addr", addr);
+  if (Error::isOK(respErr)) {
+    DaliAddress shortAddress = addr->int8Value();
+    respErr = checkStringParam(aParams, "cmd", cmd);
+    if (Error::isOK(respErr)) {
+      // command
+      if (cmd=="max") {
+        daliComm->daliSendDirectPower(shortAddress, 0xFE);
+      }
+      else if (cmd=="min") {
+        daliComm->daliSendDirectPower(shortAddress, 0x01);
+      }
+      else if (cmd=="off") {
+        daliComm->daliSendDirectPower(shortAddress, 0x00);
+      }
+      else if (cmd=="pulse") {
+        daliComm->daliSendDirectPower(shortAddress, 0xFE);
+        daliComm->daliSendDirectPower(shortAddress, 0x01, NULL, 500*MilliSecond);
+      }
+      else {
+        respErr = ErrorPtr(new WebError(500, "unknown cmd"));
+      }
+      if (Error::isOK(respErr)) {
+        // send ok
+        aRequest->sendResult(ApiValuePtr());
+      }
+    }
+  }
+  // done
+  return respErr;
+}
+
+
+
+#pragma mark - composite device creation
+
+
+ErrorPtr DaliDeviceContainer::groupDevices(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  // create a composite device out of existing single-channel ones
+  ErrorPtr respErr;
+  ApiValuePtr components;
+  long long collectionID = -1;
+  int groupNo = -1;
+  DeviceVector groupedDevices;
+  respErr = checkParam(aParams, "members", components);
+  if (Error::isOK(respErr)) {
+    if (components->isType(apivalue_object)) {
+      components->resetKeyIteration();
+      string dimmerType;
+      ApiValuePtr o;
+      while (components->nextKeyValue(dimmerType, o)) {
+        DsUid memberUID;
+        memberUID.setAsBinary(o->binaryValue());
+        bool deviceFound = false;
+        // search for this device
+        for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
+          // only non-composite DALI devices can be grouped at all
+          DaliDevicePtr dev = boost::dynamic_pointer_cast<DaliDevice>(*pos);
+          if (dev && dev->daliTechnicalType()!=dalidevice_composite && dev->getDsUid() == memberUID) {
+            // found this device
+            // - check type of grouping
+            if (dimmerType[0]=='D') {
+              // only not-yet grouped dimmers can be added to group
+              if (dev->daliTechnicalType()==dalidevice_single) {
+                deviceFound = true;
+                // determine free group No
+                if (groupNo<0) {
+                  uint16_t groupMask=0;
+                  sqlite3pp::query qry(db);
+                  if (qry.prepare("SELECT DISTINCT groupNo FROM compositeDevices WHERE dimmerType='GRP'")==SQLITE_OK) {
+                    for (sqlite3pp::query::iterator i = qry.begin(); i!=qry.end(); ++i) {
+                      // this is a DALI group in use
+                      groupMask |= (1<<(i->get<int>(0)));
+                    }
+                  }
+                  for (groupNo=0; groupNo<16; ++groupNo) {
+                    if ((groupMask & (1<<groupNo))==0) {
+                      // group number is free - use it
+                      break;
+                    }
+                  }
+                  if (groupNo>=16) {
+                    // no more unused DALI groups, cannot group at all
+                    respErr = ErrorPtr(new WebError(500, "16 groups already exist, cannot create additional group"));
+                    goto error;
+                  }
+                }
+                // - create DB entry for DALI group member
+                db.executef(
+                  "INSERT OR REPLACE INTO compositeDevices (dimmerUID, dimmerType, groupNo) VALUES ('%s','GRP',%d)",
+                  memberUID.getString().c_str(),
+                  groupNo
+                );
+              }
+            }
+            else {
+              deviceFound = true;
+              // - create DB entry for member of composite device
+              db.executef(
+                "INSERT OR REPLACE INTO compositeDevices (dimmerUID, dimmerType, collectionID) VALUES ('%s','%s',%lld)",
+                memberUID.getString().c_str(),
+                dimmerType.c_str(),
+                collectionID
+              );
+              if (collectionID<0) {
+                // use rowid of just inserted item as collectionID
+                collectionID = db.last_insert_rowid();
+                // - update already inserted first record
+                db.executef(
+                  "UPDATE compositeDevices SET collectionID=%lld WHERE ROWID=%lld",
+                  collectionID,
+                  collectionID
+                );
+              }
+            }
+            // remember
+            groupedDevices.push_back(dev);
+            // done
+            break;
+          }
+        }
+        if (!deviceFound) {
+          respErr = ErrorPtr(new WebError(404, "some devices of the group could not be found"));
+          break;
+        }
+      }
+    error:
+      if (Error::isOK(respErr) && groupedDevices.size()>0) {
+        // all components inserted into DB
+        // - remove individual devices that will become part of a DALI group or composite device now
+        for (DeviceVector::iterator pos = groupedDevices.begin(); pos!=groupedDevices.end(); ++pos) {
+          (*pos)->hasVanished(false); // vanish, but keep settings
+        }
+        // - re-collect devices to find groups and composites now, but only after a second, starting from main loop, not from here
+        StatusCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false, false), 1*Second);
+      }
+    }
   }
   return respErr;
 }

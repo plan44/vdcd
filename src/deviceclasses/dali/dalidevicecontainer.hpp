@@ -107,6 +107,14 @@ namespace p44 {
     void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, StatusCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
     void groupCollected(VdcApiRequestPtr aRequest);
 
+    ErrorPtr groupDevices(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
+    ErrorPtr daliScan(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
+    ErrorPtr daliCmd(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
+
+    typedef boost::shared_ptr<std::string> StringPtr;
+    void daliScanNext(VdcApiRequestPtr aRequest, DaliAddress aShortAddress, StringPtr aResult);
+    void handleDaliScanResult(VdcApiRequestPtr aRequest, DaliAddress aShortAddress, StringPtr aResult, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+
     void testScanDone(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
     void testRW(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);
     void testRWResponse(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
