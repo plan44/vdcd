@@ -96,13 +96,13 @@ namespace p44 {
     /// initialize device for first use
     /// @param aCompletedCB will be called when initialisation is complete
     /// @param aUsedGroupsMask groups that are in use. Single devices should not be in any of these groups
-    virtual void initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask);
+    virtual void initialize(StatusCB aCompletedCB, uint16_t aUsedGroupsMask);
 
     /// update parameters from device to local vars
-    void updateParams(CompletedCB aCompletedCB);
+    void updateParams(StatusCB aCompletedCB);
 
     /// update status information from device
-    void updateStatus(CompletedCB aCompletedCB);
+    void updateStatus(StatusCB aCompletedCB);
 
 
     /// convert dS brightness value to DALI arc power
@@ -146,14 +146,14 @@ namespace p44 {
 
     void queryGroup0to7Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
     void queryGroup8to15Response(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress, uint16_t aGroupBitMask, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
-    void groupMembershipResponse(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError);
+    void groupMembershipResponse(StatusCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError);
 
-    void queryActualLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
-    void queryMinLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void queryActualLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void queryMinLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
     void dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicroSeconds aCycleStartTime);
 
-    void queryStatusResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void queryStatusResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
   };
 
@@ -174,7 +174,7 @@ namespace p44 {
     /// initialize device for first use
     /// @param aCompletedCB will be called when initialisation is complete
     /// @param aUsedGroupsMask groups that are in use. grouped devices should not be in any of these groups except their own group
-    virtual void initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask);
+    virtual void initialize(StatusCB aCompletedCB, uint16_t aUsedGroupsMask);
 
     /// creates a dimmer group, addressed via a group address rather than single bus address
     /// @note initially, the group is empty. addDaliBusDevice must be used to add devices
@@ -204,8 +204,8 @@ namespace p44 {
 
   private:
 
-    void initNextGroupMember(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember);
-    void groupMembershipResponse(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError);
+    void initNextGroupMember(StatusCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember);
+    void groupMembershipResponse(StatusCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError);
 
 
   };
@@ -272,7 +272,7 @@ namespace p44 {
     /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
     /// @note this is called before interaction with dS system starts (usually just after collecting devices)
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// check presence of this addressable
     /// @param aPresenceResultHandler will be called to report presence status
@@ -293,7 +293,7 @@ namespace p44 {
     /// @param aCompletedCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// start or stop dimming (optimized DALI version)
     /// @param aChannel the channelType to start or stop dimming for
@@ -344,7 +344,7 @@ namespace p44 {
 
   private:
 
-    void brightnessDimmerSynced(CompletedCB aCompletedCB, bool aFactoryReset, ErrorPtr aError);
+    void brightnessDimmerSynced(StatusCB aCompletedCB, bool aFactoryReset, ErrorPtr aError);
     void checkPresenceResponse(PresenceCB aPresenceResultHandler);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
 
@@ -397,7 +397,7 @@ namespace p44 {
     /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
     /// @note this is called before interaction with dS system starts (usually just after collecting devices)
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// add a dimmer
     /// @param aDimmerBusDevice the DALI dimmer to add
@@ -425,7 +425,7 @@ namespace p44 {
     /// @param aCompletedCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// @}
 
@@ -468,7 +468,7 @@ namespace p44 {
 
   private:
 
-    void updateNextDimmer(CompletedCB aCompletedCB, bool aFactoryReset, DimmerIndex aDimmerIndex, ErrorPtr aError);
+    void updateNextDimmer(StatusCB aCompletedCB, bool aFactoryReset, DimmerIndex aDimmerIndex, ErrorPtr aError);
     DaliBusDevicePtr firstBusDevice();
 
     void checkPresenceResponse(PresenceCB aPresenceResultHandler, DaliBusDevicePtr aDimmer);

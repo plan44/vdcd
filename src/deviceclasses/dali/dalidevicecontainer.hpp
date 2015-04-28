@@ -59,7 +59,7 @@ namespace p44 {
   public:
     DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
-		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     // the DALI communication object
     DaliCommPtr daliComm;
@@ -68,14 +68,14 @@ namespace p44 {
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
-    virtual void selfTest(CompletedCB aCompletedCB);
+    virtual void selfTest(StatusCB aCompletedCB);
 
     /// get supported rescan modes for this device class
     /// @return a combination of rescanmode_xxx bits
     virtual int getRescanModes() const;
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// vdc level methods (p44 specific, JSON only, for configuring multichannel RGB(W) devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
@@ -100,16 +100,16 @@ namespace p44 {
 
   private:
 
-    void deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError);
-    void queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError);
-    void initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, CompletedCB aCompletedCB, ErrorPtr aError);
-    void createDsDevices(DaliBusDeviceListPtr aDimmerDevices, CompletedCB aCompletedCB);
-    void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
+    void deviceListReceived(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError);
+    void queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, StatusCB aCompletedCB, ErrorPtr aError);
+    void initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, StatusCB aCompletedCB, ErrorPtr aError);
+    void createDsDevices(DaliBusDeviceListPtr aDimmerDevices, StatusCB aCompletedCB);
+    void deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, StatusCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError);
     void groupCollected(VdcApiRequestPtr aRequest);
 
-    void testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
-    void testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);
-    void testRWResponse(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
+    void testScanDone(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError);
+    void testRW(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte);
+    void testRWResponse(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError);
 
   };
 

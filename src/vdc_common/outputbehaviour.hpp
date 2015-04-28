@@ -144,7 +144,7 @@ namespace p44 {
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
     /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
-    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
+    virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
@@ -156,7 +156,7 @@ namespace p44 {
     /// @param aFromDevice true to request real values read back from device hardware (if possible), false to
     ///   just capture the currently cached channel values
     /// @param aDoneCB will be called when capture is complete
-    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
+    virtual void captureScene(DsScenePtr aScene, bool aFromDevice, SimpleCB aDoneCB);
 
     /// switch on at minimum brightness if not already on (needed for callSceneMin), only relevant for lights
     /// @param aScene the scene to take all other channel values from, except brightness which is set to light's minDim
@@ -230,7 +230,7 @@ namespace p44 {
 
   private:
 
-    void channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB);
+    void channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, SimpleCB aDoneCB);
 
   };
   

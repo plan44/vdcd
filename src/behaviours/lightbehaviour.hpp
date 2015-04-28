@@ -114,7 +114,7 @@ namespace p44 {
     /// @name internal volatile state
     /// @{
     long blinkTicket; ///< when blinking
-    DoneCB blinkDoneHandler; ///< called when blinking done
+    SimpleCB blinkDoneHandler; ///< called when blinking done
     LightScenePtr blinkRestoreScene; ///< scene to restore
     long fadeDownTicket; ///< for slow fading operations
     bool hardwareHasSetMinDim; ///< if set, hardware has set minDim (prevents loading from DB)
@@ -190,7 +190,7 @@ namespace p44 {
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
     /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
-    virtual void performSceneActions(DsScenePtr aScene, DoneCB aDoneCB);
+    virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB);
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
@@ -221,7 +221,7 @@ namespace p44 {
     /// @param aDoneCB will be called when scene actions have completed
     /// @param aBlinkPeriod how fast the blinking should be
     /// @param aOnRatioPercent how many percents of aBlinkPeriod the indicator should be on
-    void blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
+    void blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, SimpleCB aDoneCB, MLMicroSeconds aBlinkPeriod = 600*MilliSecond, int aOnRatioPercent = 50);
 
     /// stop blinking immediately
     virtual void stopBlink();

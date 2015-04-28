@@ -104,7 +104,7 @@ namespace p44 {
     /// @param aButton button for interacting with tests
     /// @param aRedLED red LED output
     /// @param aRedLED green LED output
-    void selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
+    void selfTest(StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED);
 
     /// @return URL for Web-UI (for access from local LAN)
     virtual string webuiURLString();

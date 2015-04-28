@@ -50,7 +50,7 @@ namespace p44 {
     string hueModel;
 
     // applyChannel repetition management
-    CompletedCB pendingApplyCB;
+    StatusCB pendingApplyCB;
     bool applyInProgress;
     bool repeatApplyAtEnd;
 
@@ -81,7 +81,7 @@ namespace p44 {
     /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
     /// @note this is called before interaction with dS system starts (usually just after collecting devices)
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// check presence of this addressable
     /// @param aPresenceResultHandler will be called to report presence status
@@ -102,14 +102,14 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
     /// @param aDoneCB will be called when values are updated with actual hardware values
     /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
     /// @note implementation must use channel's syncChannelValue() method
-    virtual void syncChannelValues(DoneCB aDoneCB);
+    virtual void syncChannelValues(SimpleCB aDoneCB);
 
     /// @}
 
@@ -144,11 +144,11 @@ namespace p44 {
 
   private:
 
-    void deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+    void deviceStateReceived(StatusCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
     void disconnectableHandler(bool aForgetParams, DisconnectCB aDisconnectResultHandler, bool aPresent);
-    void channelValuesSent(LightBehaviourPtr aColorLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError);
-    void channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+    void channelValuesSent(LightBehaviourPtr aColorLightBehaviour, SimpleCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
   };
   

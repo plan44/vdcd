@@ -106,14 +106,14 @@ void DeviceClassContainer::addClassToDeviceContainer()
 
 
 
-void DeviceClassContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void DeviceClassContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // done
 	aCompletedCB(ErrorPtr()); // default to error-free initialisation
 }
 
 
-void DeviceClassContainer::selfTest(CompletedCB aCompletedCB)
+void DeviceClassContainer::selfTest(StatusCB aCompletedCB)
 {
   // by default, assume everything ok
   aCompletedCB(ErrorPtr());

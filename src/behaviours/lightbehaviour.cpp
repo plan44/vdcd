@@ -261,7 +261,7 @@ void LightBehaviour::onAtMinBrightness(DsScenePtr aScene)
 }
 
 
-void LightBehaviour::performSceneActions(DsScenePtr aScene, DoneCB aDoneCB)
+void LightBehaviour::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
 {
   // we can only handle light scenes
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
@@ -333,7 +333,7 @@ Brightness LightBehaviour::PWMToBrightness(double aPWM, double aMaxPWM)
 #pragma mark - blinking
 
 
-void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, DoneCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
+void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, SimpleCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
 {
   // save current state in temp scene
   blinkDoneHandler = aDoneCB;
@@ -383,7 +383,7 @@ void LightBehaviour::blinkHandler(MLMicroSeconds aEndTime, bool aState, MLMicroS
     }
     // done, call end handler if any
     if (blinkDoneHandler) {
-      DoneCB h = blinkDoneHandler;
+      SimpleCB h = blinkDoneHandler;
       blinkDoneHandler = NULL;
       h();
     }

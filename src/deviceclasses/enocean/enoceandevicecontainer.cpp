@@ -106,7 +106,7 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void EnoceanDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void EnoceanDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
@@ -127,7 +127,7 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 
 
 
-void EnoceanDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // install standard packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
@@ -315,7 +315,7 @@ void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisablePro
 
 #pragma mark - Self test
 
-void EnoceanDeviceContainer::selfTest(CompletedCB aCompletedCB)
+void EnoceanDeviceContainer::selfTest(StatusCB aCompletedCB)
 {
   // install test packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _1, _2));
@@ -324,7 +324,7 @@ void EnoceanDeviceContainer::selfTest(CompletedCB aCompletedCB)
 }
 
 
-void EnoceanDeviceContainer::handleTestRadioPacket(CompletedCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   // ignore packets with error
   if (Error::isOK(aError)) {

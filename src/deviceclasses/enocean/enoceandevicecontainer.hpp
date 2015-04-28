@@ -96,7 +96,7 @@ namespace p44 {
 
     EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 		
-		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     // the Enocean communication object
     EnoceanComm enoceanComm;
@@ -105,10 +105,10 @@ namespace p44 {
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
-    virtual void selfTest(CompletedCB aCompletedCB);
+    virtual void selfTest(StatusCB aCompletedCB);
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
     ///   the devices are not disconnected (=unlearned) by this.
@@ -161,7 +161,7 @@ namespace p44 {
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
-    void handleTestRadioPacket(CompletedCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void handleTestRadioPacket(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
 
   };
 

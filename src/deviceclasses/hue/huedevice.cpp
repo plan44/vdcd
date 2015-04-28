@@ -126,7 +126,7 @@ void HueDevice::setName(const string &aName)
 
 
 
-void HueDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+void HueDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // query light attributes and state
   string url = string_format("/lights/%s", lightID.c_str());
@@ -135,7 +135,7 @@ void HueDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
 
 
 // TODO: once hue bridge 1.3 is common, this information could be read from the collection result
-void HueDevice::deviceStateReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
+void HueDevice::deviceStateReceived(StatusCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aDeviceInfo) {
     JsonObjectPtr o;
@@ -246,7 +246,7 @@ void HueDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDisconne
 
 
 
-void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void HueDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   // Update of light state needed
   LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
@@ -357,7 +357,7 @@ void HueDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 
 
 
-void HueDevice::channelValuesSent(LightBehaviourPtr aLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError)
+void HueDevice::channelValuesSent(LightBehaviourPtr aLightBehaviour, SimpleCB aDoneCB, JsonObjectPtr aResult, ErrorPtr aError)
 {
   // synchronize actual channel values as hue delivers them back
   if (aResult) {
@@ -408,7 +408,7 @@ void HueDevice::channelValuesSent(LightBehaviourPtr aLightBehaviour, DoneCB aDon
 
 
 
-void HueDevice::syncChannelValues(DoneCB aDoneCB)
+void HueDevice::syncChannelValues(SimpleCB aDoneCB)
 {
   // query light attributes and state
   string url = string_format("/lights/%s", lightID.c_str());
@@ -417,7 +417,7 @@ void HueDevice::syncChannelValues(DoneCB aDoneCB)
 
 
 
-void HueDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
+void HueDevice::channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aDeviceInfo, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // assign the channel values

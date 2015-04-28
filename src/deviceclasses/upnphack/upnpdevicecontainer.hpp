@@ -25,7 +25,7 @@ namespace p44 {
 
     virtual const char *deviceClassIdentifier() const;
 
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
@@ -34,7 +34,7 @@ namespace p44 {
   private:
     SsdpSearchPtr m_dmr_search;
 
-    void collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
+    void collectHandler(StatusCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError);
   };
 
 } // namespace p44

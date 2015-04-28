@@ -780,7 +780,7 @@ void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
       // start ticking
       isDimming = true;
       // wait for all apply operations to really complete before starting to dim
-      DoneCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()+10*MilliSecond);
+      SimpleCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()+10*MilliSecond);
       waitForApplyComplete(boost::bind(&Device::requestApplyingChannels, this, dd, false));
     }
   }
@@ -818,7 +818,7 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
 #define SERIALIZER_WATCHDOG 1
 #define SERIALIZER_WATCHDOG_TIMEOUT (20*Second)
 
-void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming)
+void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming)
 {
   FOCUSLOG("requestApplyingChannels entered in device %s\n", shortDesc().c_str());
   // Caller wants current channel values applied to hardware
@@ -831,7 +831,7 @@ void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDim
     // case a) confirm previous request because superseded
     if (appliedOrSupersededCB) {
       FOCUSLOG("- confirming previous (superseded) apply request\n");
-      DoneCB cb = appliedOrSupersededCB;
+      SimpleCB cb = appliedOrSupersededCB;
       appliedOrSupersededCB = aAppliedOrSupersededCB; // in case current callback should request another change, callback is already installed
       cb(); // call back now, values have been superseded
       FOCUSLOG("- previous (superseded) apply request confirmed\n");
@@ -867,7 +867,7 @@ void Device::requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDim
 }
 
 
-void Device::waitForApplyComplete(DoneCB aApplyCompleteCB)
+void Device::waitForApplyComplete(SimpleCB aApplyCompleteCB)
 {
   if (!applyInProgress) {
     // not applying anything, immediately call back
@@ -889,7 +889,7 @@ void Device::waitForApplyComplete(DoneCB aApplyCompleteCB)
 }
 
 
-void Device::forkDoneCB(DoneCB aOriginalCB, DoneCB aNewCallback)
+void Device::forkDoneCB(SimpleCB aOriginalCB, SimpleCB aNewCallback)
 {
   FOCUSLOG("forkDoneCB:\n");
   FOCUSLOG("- calling original callback\n");
@@ -953,7 +953,7 @@ void Device::applyingChannelsComplete()
     // apply complete and no final re-apply pending
     // - confirm because finally applied
     FOCUSLOG("- applyingChannelsComplete - really completed, now checking callbacks\n");
-    DoneCB cb;
+    SimpleCB cb;
     if (appliedOrSupersededCB) {
       FOCUSLOG("- confirming apply (really) finalized\n");
       cb = appliedOrSupersededCB;
@@ -978,7 +978,7 @@ void Device::applyingChannelsComplete()
 ///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
 /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
 ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
-void Device::requestUpdatingChannels(DoneCB aUpdatedOrCachedCB)
+void Device::requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB)
 {
   FOCUSLOG("requestUpdatingChannels entered in device %s\n", shortDesc().c_str());
   // Caller wants current values from hardware
@@ -990,7 +990,7 @@ void Device::requestUpdatingChannels(DoneCB aUpdatedOrCachedCB)
     // case a) serialize updates: terminate previous callback with stale values and install new one
     if (updatedOrCachedCB) {
       FOCUSLOG("- confirming channels updated for PREVIOUS request with stale values (as asked again)\n");
-      DoneCB cb = updatedOrCachedCB;
+      SimpleCB cb = updatedOrCachedCB;
       updatedOrCachedCB = aUpdatedOrCachedCB; // install new
       cb(); // execute old
       FOCUSLOG("- confirmed channels updated for PREVIOUS request with stale values (as asked again)\n");
@@ -1038,7 +1038,7 @@ void Device::updatingChannelsComplete()
     updateInProgress = false;
     if (updatedOrCachedCB) {
       FOCUSLOG("- confirming channels updated from hardware (= calling callback now)\n");
-      DoneCB cb = updatedOrCachedCB;
+      SimpleCB cb = updatedOrCachedCB;
       updatedOrCachedCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, cached values are either updated from hardware or superseded by pending updates TO hardware
       FOCUSLOG("- confirmed channels updated from hardware (= callback has possibly launched apply already and returned now)\n");

@@ -75,11 +75,11 @@ namespace p44 {
   public:
     OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
-    void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+    void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     virtual const char *deviceClassIdentifier() const;
 
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.

@@ -233,7 +233,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
 
 
 
-void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+void SparkIoDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // get vdsd API version
   if (!sparkApiCall(boost::bind(&SparkIoDevice::apiVersionReceived, this, aCompletedCB, aFactoryReset, _1, _2), "version")) {
@@ -243,7 +243,7 @@ void SparkIoDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryRese
 }
 
 
-void SparkIoDevice::apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::apiVersionReceived(StatusCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aJsonResponse) {
     if (apiVersion==0) {
@@ -289,7 +289,7 @@ void SparkIoDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, Jso
 
 
 
-void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   SparkLightBehaviourPtr sl = boost::dynamic_pointer_cast<SparkLightBehaviour>(output);
   if (sl) {
@@ -340,7 +340,7 @@ void SparkIoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
 }
 
 
-void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, SimpleCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     aSparkLightBehaviour->appliedColorValues();
@@ -354,7 +354,7 @@ void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviou
 
 
 
-void SparkIoDevice::syncChannelValues(DoneCB aDoneCB)
+void SparkIoDevice::syncChannelValues(SimpleCB aDoneCB)
 {
   // query light attributes and state
   sparkApiCall(boost::bind(&SparkIoDevice::channelValuesReceived, this, aDoneCB, _1, _2), "state");
@@ -362,7 +362,7 @@ void SparkIoDevice::syncChannelValues(DoneCB aDoneCB)
 
 
 
-void SparkIoDevice::channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+void SparkIoDevice::channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aJsonResponse) {
     JsonObjectPtr o = aJsonResponse->get("return_value");

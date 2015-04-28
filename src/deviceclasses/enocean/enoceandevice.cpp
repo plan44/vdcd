@@ -236,7 +236,7 @@ void EnoceanDevice::sendOutgoingUpdate()
 }
 
 
-void EnoceanDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void EnoceanDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   // trigger updating all device outputs
   for (int i=0; i<numChannels(); i++) {

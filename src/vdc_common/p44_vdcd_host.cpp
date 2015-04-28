@@ -75,7 +75,7 @@ ApiValuePtr P44JsonApiRequest::newApiValue()
 
 class SelfTestRunner
 {
-  CompletedCB completedCB;
+  StatusCB completedCB;
   ContainerMap::iterator nextContainer;
   DeviceContainer &deviceContainer;
   ButtonInputPtr button;
@@ -84,13 +84,13 @@ class SelfTestRunner
   long errorReportTicket;
   ErrorPtr globalError;
 public:
-  static void initialize(DeviceContainer &aDeviceContainer, CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
+  static void initialize(DeviceContainer &aDeviceContainer, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
   {
     // create new instance, deletes itself when finished
     new SelfTestRunner(aDeviceContainer, aCompletedCB, aButton, aRedLED, aGreenLED);
   };
 private:
-  SelfTestRunner(DeviceContainer &aDeviceContainer, CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED) :
+  SelfTestRunner(DeviceContainer &aDeviceContainer, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED) :
   completedCB(aCompletedCB),
   deviceContainer(aDeviceContainer),
   button(aButton),
@@ -179,7 +179,7 @@ private:
 };
 
 
-void P44VdcHost::selfTest(CompletedCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
+void P44VdcHost::selfTest(StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
 {
   SelfTestRunner::initialize(*this, aCompletedCB, aButton, aRedLED, aGreenLED);
 }

@@ -179,7 +179,7 @@ namespace p44 {
     /// @param aDoneCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// factory: create appropriate logical devices for a given EEP
     /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in

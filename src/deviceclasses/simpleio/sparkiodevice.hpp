@@ -184,7 +184,7 @@ namespace p44 {
     /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
     /// @note this is called before interaction with dS system starts (usually just after collecting devices)
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset);
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// check presence of this addressable
     /// @param aPresenceResultHandler will be called to report presence status
@@ -197,14 +197,14 @@ namespace p44 {
     /// @param aDoneCB if not NULL, must be called when values are applied
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming);
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
     /// @param aDoneCB will be called when values are updated with actual hardware values
     /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
     /// @note implementation must use channel's syncChannelValue() method
-    virtual void syncChannelValues(DoneCB aDoneCB);
+    virtual void syncChannelValues(SimpleCB aDoneCB);
 
     /// @}
 
@@ -231,11 +231,11 @@ namespace p44 {
 
     bool sparkApiCall(JsonWebClientCB aResponseCB, string aArgs);
 
-    void apiVersionReceived(CompletedCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void apiVersionReceived(StatusCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
     void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
 
-    void channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
-    void channelValuesReceived(DoneCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviour, SimpleCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
   };
   

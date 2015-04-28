@@ -182,7 +182,7 @@ void OlaDevice::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
 
 #define TRANSITION_STEP_TIME (10*MilliSecond)
 
-void OlaDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void OlaDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   MLMicroSeconds transitionTime = 0;
   // abort previous transition

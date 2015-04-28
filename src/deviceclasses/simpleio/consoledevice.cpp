@@ -213,7 +213,7 @@ void ConsoleDevice::sensorValueHandler(double aValue, MLMicroSeconds aTimeStamp)
 
 
 
-void ConsoleDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void ConsoleDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   // generic device, show changed channels
   for (int i = 0; i<numChannels(); i++) {

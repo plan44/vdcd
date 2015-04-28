@@ -45,12 +45,6 @@ namespace p44 {
   typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
   typedef boost::intrusive_ptr<Device> DevicePtr;
 
-  /// generic callback for signalling something done
-  typedef boost::function<void ()> DoneCB;
-
-  /// generic callback for signalling completion (with success/error reporting)
-  typedef boost::function<void (ErrorPtr aError)> CompletedCB;
-
   /// Callback for learn events
   /// @param aLearnIn true if new device learned in, false if device learned out
   /// @param aError error occurred during learn-in
@@ -121,7 +115,7 @@ namespace p44 {
     DeviceUserActionCB deviceUserActionHandler;
 
     // activity monitor
-    DoneCB activityHandler;
+    SimpleCB activityHandler;
 
     // mainloop statistics
     int mainloopStatsInterval; ///< 0=none, N=every PERIODIC_TASK_INTERVAL*N seconds
@@ -193,14 +187,14 @@ namespace p44 {
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
-    void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+    void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// start running normally
     void startRunning();
 
     /// activity monitor
     /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.
-    void setActivityMonitor(DoneCB aActivityCB);
+    void setActivityMonitor(SimpleCB aActivityCB);
 
     /// activity monitor
     /// @param aUserActionCB will be called when the user has performed an action (usually: button press) in a device
@@ -221,7 +215,7 @@ namespace p44 {
     ///   re-scanning for devices, which means devices will have default settings after collecting.
     ///   Note that this is mutually exclusive with aIncremental (incremental scan does not remove any devices,
     ///   and thus cannot remove any settings, either)
-    void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// Put device class controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs
@@ -401,7 +395,7 @@ namespace p44 {
     void periodicTask(MLMicroSeconds aCycleStartTime);
 
     // getting MAC
-    void getMyMac(CompletedCB aCompletedCB, bool aFactoryReset);
+    void getMyMac(StatusCB aCompletedCB, bool aFactoryReset);
 
   };
 

@@ -177,18 +177,18 @@ const char *DeviceContainer::getPersistentDataDir()
 
 class DeviceClassInitializer
 {
-  CompletedCB callback;
+  StatusCB callback;
   ContainerMap::iterator nextContainer;
   DeviceContainer &deviceContainer;
   bool factoryReset;
 public:
-  static void initialize(DeviceContainer &aDeviceContainer, CompletedCB aCallback, bool aFactoryReset)
+  static void initialize(DeviceContainer &aDeviceContainer, StatusCB aCallback, bool aFactoryReset)
   {
     // create new instance, deletes itself when finished
     new DeviceClassInitializer(aDeviceContainer, aCallback, aFactoryReset);
   };
 private:
-  DeviceClassInitializer(DeviceContainer &aDeviceContainer, CompletedCB aCallback, bool aFactoryReset) :
+  DeviceClassInitializer(DeviceContainer &aDeviceContainer, StatusCB aCallback, bool aFactoryReset) :
 		callback(aCallback),
 		deviceContainer(aDeviceContainer),
     factoryReset(aFactoryReset)
@@ -247,7 +247,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void DeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
   LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
@@ -281,7 +281,7 @@ namespace p44 {
 /// collects and initializes all devices
 class DeviceClassCollector
 {
-  CompletedCB callback;
+  StatusCB callback;
   bool exhaustive;
   bool incremental;
   bool clear;
@@ -289,13 +289,13 @@ class DeviceClassCollector
   DeviceContainer *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
-  static void collectDevices(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings)
+  static void collectDevices(DeviceContainer *aDeviceContainerP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings)
   {
     // create new instance, deletes itself when finished
     new DeviceClassCollector(aDeviceContainerP, aCallback, aIncremental, aExhaustive, aClearSettings);
   };
 private:
-  DeviceClassCollector(DeviceContainer *aDeviceContainerP, CompletedCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings) :
+  DeviceClassCollector(DeviceContainer *aDeviceContainerP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings) :
     callback(aCallback),
     deviceContainerP(aDeviceContainerP),
     incremental(aIncremental),
@@ -372,7 +372,7 @@ private:
 
 
 
-void DeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void DeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   if (!collecting) {
     collecting = true;
@@ -498,7 +498,7 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 #pragma mark - activity monitoring
 
 
-void DeviceContainer::setActivityMonitor(DoneCB aActivityCB)
+void DeviceContainer::setActivityMonitor(SimpleCB aActivityCB)
 {
   activityHandler = aActivityCB;
 }

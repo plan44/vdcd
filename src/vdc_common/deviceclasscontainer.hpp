@@ -94,7 +94,7 @@ namespace p44 {
 		/// @param aCompletedCB will be called when initialisation is complete
 		///   callback will return an error if initialisation has failed and the device class is not functional
 		/// @param aFactoryReset if set, also perform factory reset for data persisted for this device class
-    virtual void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+    virtual void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 		
     /// @name persistence
     /// @{
@@ -176,14 +176,14 @@ namespace p44 {
     ///   re-scanning for devices, which means devices will have default settings after collecting.
     ///   Note that this is mutually exclusive with aIncremental (incremental scan does not remove any devices,
     ///   and thus cannot remove any settings, either)
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings) = 0;
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings) = 0;
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
     /// @note self will be called *instead* of collectDevices() but might need to do some form of
     ///   collecting devices to perform the test. It might do that by calling collectDevices(), but
     ///   must make sure NOT to modify or generate any persistent data for the class.
-    virtual void selfTest(CompletedCB aCompletedCB);
+    virtual void selfTest(StatusCB aCompletedCB);
 
     /// Forget all previously collected devices
     /// @param aForget if set, all parameters stored for the device (if any) will be deleted.

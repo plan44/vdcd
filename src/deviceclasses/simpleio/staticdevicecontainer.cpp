@@ -98,7 +98,7 @@ StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMa
 }
 
 
-void StaticDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void StaticDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   string databaseName = getPersistentDataDir();
   string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
@@ -147,7 +147,7 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void StaticDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void StaticDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {

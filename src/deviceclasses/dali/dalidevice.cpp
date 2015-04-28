@@ -167,7 +167,7 @@ void DaliBusDevice::queryGroup8to15Response(DaliGroupsCB aDaliGroupsCB, DaliAddr
 
 
 
-void DaliBusDevice::initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask)
+void DaliBusDevice::initialize(StatusCB aCompletedCB, uint16_t aUsedGroupsMask)
 {
   // make sure device is in none of the used groups
   if (aUsedGroupsMask==0) {
@@ -180,7 +180,7 @@ void DaliBusDevice::initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMas
 }
 
 
-void DaliBusDevice::groupMembershipResponse(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError)
+void DaliBusDevice::groupMembershipResponse(StatusCB aCompletedCB, uint16_t aUsedGroupsMask, DaliAddress aShortAddress, uint16_t aGroups, ErrorPtr aError)
 {
   // remove groups that are in use on the bus
   if (Error::isOK(aError)) {
@@ -197,7 +197,7 @@ void DaliBusDevice::groupMembershipResponse(CompletedCB aCompletedCB, uint16_t a
 
 
 
-void DaliBusDevice::updateParams(CompletedCB aCompletedCB)
+void DaliBusDevice::updateParams(StatusCB aCompletedCB)
 {
   if (isDummy) aCompletedCB(ErrorPtr());
   // query actual arc power level
@@ -209,7 +209,7 @@ void DaliBusDevice::updateParams(CompletedCB aCompletedCB)
 }
 
 
-void DaliBusDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+void DaliBusDevice::queryActualLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   currentBrightness = 0; // default to 0
   if (Error::isOK(aError) && !aNoOrTimeout) {
@@ -227,7 +227,7 @@ void DaliBusDevice::queryActualLevelResponse(CompletedCB aCompletedCB, bool aNoO
 }
 
 
-void DaliBusDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+void DaliBusDevice::queryMinLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   minBrightness = 0; // default to 0
   if (Error::isOK(aError) && !aNoOrTimeout) {
@@ -241,7 +241,7 @@ void DaliBusDevice::queryMinLevelResponse(CompletedCB aCompletedCB, bool aNoOrTi
 }
 
 
-void DaliBusDevice::updateStatus(CompletedCB aCompletedCB)
+void DaliBusDevice::updateStatus(StatusCB aCompletedCB)
 {
   if (isDummy) aCompletedCB(ErrorPtr());
   // query the device for status
@@ -253,7 +253,7 @@ void DaliBusDevice::updateStatus(CompletedCB aCompletedCB)
 }
 
 
-void DaliBusDevice::queryStatusResponse(CompletedCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+void DaliBusDevice::queryStatusResponse(StatusCB aCompletedCB, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && !aNoOrTimeout) {
     isPresent = true; // answering a query means presence
@@ -396,14 +396,14 @@ void DaliBusDeviceGroup::addDaliBusDevice(DaliBusDevicePtr aDaliBusDevice)
 }
 
 
-void DaliBusDeviceGroup::initialize(CompletedCB aCompletedCB, uint16_t aUsedGroupsMask)
+void DaliBusDeviceGroup::initialize(StatusCB aCompletedCB, uint16_t aUsedGroupsMask)
 {
   DaliComm::ShortAddressList::iterator pos = groupMembers.begin();
   initNextGroupMember(aCompletedCB, pos);
 }
 
 
-void DaliBusDeviceGroup::initNextGroupMember(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember)
+void DaliBusDeviceGroup::initNextGroupMember(StatusCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember)
 {
   if (aNextMember!=groupMembers.end()) {
     // another member, query group membership, then adjust if needed
@@ -419,7 +419,7 @@ void DaliBusDeviceGroup::initNextGroupMember(CompletedCB aCompletedCB, DaliComm:
   }
 }
 
-void DaliBusDeviceGroup::groupMembershipResponse(CompletedCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError)
+void DaliBusDeviceGroup::groupMembershipResponse(StatusCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember, uint16_t aGroups, ErrorPtr aError)
 {
   uint8_t groupNo = deviceInfo.shortAddress & DaliGroupMask;
   // make sure device is member of the group
@@ -539,14 +539,14 @@ string DaliDimmerDevice::getExtraInfo()
 }
 
 
-void DaliDimmerDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+void DaliDimmerDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // - sync cached channel values from actual device
   brightnessDimmer->updateParams(boost::bind(&DaliDimmerDevice::brightnessDimmerSynced, this, aCompletedCB, aFactoryReset, _1));
 }
 
 
-void DaliDimmerDevice::brightnessDimmerSynced(CompletedCB aCompletedCB, bool aFactoryReset, ErrorPtr aError)
+void DaliDimmerDevice::brightnessDimmerSynced(StatusCB aCompletedCB, bool aFactoryReset, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // save brightness now
@@ -601,7 +601,7 @@ void DaliDimmerDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aD
 }
 
 
-void DaliDimmerDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void DaliDimmerDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (lightBehaviour && lightBehaviour->brightnessNeedsApplying()) {
@@ -739,14 +739,14 @@ bool DaliRGBWDevice::addDimmer(DaliBusDevicePtr aDimmerBusDevice, string aDimmer
 
 
 
-void DaliRGBWDevice::initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset)
+void DaliRGBWDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // - sync cached channel values from actual devices
   updateNextDimmer(aCompletedCB, aFactoryReset, dimmer_red, ErrorPtr());
 }
 
 
-void DaliRGBWDevice::updateNextDimmer(CompletedCB aCompletedCB, bool aFactoryReset, DimmerIndex aDimmerIndex, ErrorPtr aError)
+void DaliRGBWDevice::updateNextDimmer(StatusCB aCompletedCB, bool aFactoryReset, DimmerIndex aDimmerIndex, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
     LOG(LOG_ERR, "DaliRGBWDevice: error getting state/params from dimmer#%d: %s\n", aDimmerIndex-1, aError->description().c_str());
@@ -831,7 +831,7 @@ void DaliRGBWDevice::disconnectableHandler(bool aForgetParams, DisconnectCB aDis
 }
 
 
-void DaliRGBWDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void DaliRGBWDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   RGBColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<RGBColorLightBehaviour>(output);
   if (cl) {

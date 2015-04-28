@@ -86,11 +86,11 @@ namespace p44 {
     bool isDimming; ///< if set, dimming is in progress
 
     // hardware access serializer/pacer
-    DoneCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending
-    DoneCB applyCompleteCB; ///< will be called when apply is complete (set by waitForApplyComplete())
+    SimpleCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending
+    SimpleCB applyCompleteCB; ///< will be called when apply is complete (set by waitForApplyComplete())
     bool applyInProgress; ///< set when applying values is in progress
     int missedApplyAttempts; ///< number of apply attempts that could not be executed. If>0, completing next apply will trigger a re-apply to finalize values
-    DoneCB updatedOrCachedCB; ///< will be called when current values are either read from hardware, or new values have been requested for applying
+    SimpleCB updatedOrCachedCB; ///< will be called when current values are either read from hardware, or new values have been requested for applying
     bool updateInProgress; ///< set when updating channel values from hardware is in progress
     long serializerWatchdogTicket; ///< watchdog terminating non-responding hardware requests
 
@@ -262,18 +262,18 @@ namespace p44 {
     ///   such that aAppliedOrSupersededCB of the previous request is always called BEFORE initiating subsequent
     ///   channel updates in the hardware. It also may discard requests (but still calling aAppliedOrSupersededCB) to
     ///   avoid stacking up delayed requests.
-    void requestApplyingChannels(DoneCB aAppliedOrSupersededCB, bool aForDimming);
+    void requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming);
 
     /// request callback when apply is really complete (all pending applies done)
     /// @param aApplyCompleteCB will called when values are applied and no other change is pending
-    void waitForApplyComplete(DoneCB aApplyCompleteCB);
+    void waitForApplyComplete(SimpleCB aApplyCompleteCB);
 
     /// request that channel values are updated by reading them back from the device's hardware
     /// @param aUpdatedOrCachedCB will be called when values are updated with actual hardware values
     ///   or pending values are in process to be applied to the hardware and thus these cached values can be considered current.
     /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
-    void requestUpdatingChannels(DoneCB aUpdatedOrCachedCB);
+    void requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB);
 
     /// start or stop dimming channel of this device. Usually implemented in device specific manner in subclasses.
     /// @param aChannel the channelType to start or stop dimming for
@@ -363,7 +363,7 @@ namespace p44 {
     /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
     /// @note this is called before interaction with dS system starts
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
-    virtual void initializeDevice(CompletedCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
     /// apply all pending channel value updates to the device's hardware
     /// @param aDoneCB will called when values are actually applied, or hardware reports an error/timeout
@@ -376,14 +376,14 @@ namespace p44 {
     ///   because channel values might change again before a delayed apply mechanism calls aDoneCB.
     /// @note this method will NOT be called again until aCompletedCB is called, even if that takes a long time.
     ///   Device::requestApplyingChannels() provides an implementation that serializes calls to applyChannelValues and syncChannelValues
-    virtual void applyChannelValues(DoneCB aDoneCB, bool aForDimming) { if (aDoneCB) aDoneCB(); /* just call completed in base class */ };
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming) { if (aDoneCB) aDoneCB(); /* just call completed in base class */ };
 
     /// synchronize channel values by reading them back from the device's hardware (if possible)
     /// @param aDoneCB will be called when values are updated with actual hardware values
     /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
     ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
     /// @note implementation must use channel's syncChannelValue() method
-    virtual void syncChannelValues(DoneCB aDoneCB) { if (aDoneCB) aDoneCB(); /* assume caches up-to-date */ };
+    virtual void syncChannelValues(SimpleCB aDoneCB) { if (aDoneCB) aDoneCB(); /* assume caches up-to-date */ };
     
     /// @}
 
@@ -422,7 +422,7 @@ namespace p44 {
     void updatingChannelsComplete();
     void serializerWatchdog();
     bool checkForReapply();
-    void forkDoneCB(DoneCB aOriginalCB, DoneCB aNewCallback);
+    void forkDoneCB(SimpleCB aOriginalCB, SimpleCB aNewCallback);
 
   };
 

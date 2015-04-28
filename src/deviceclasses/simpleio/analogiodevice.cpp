@@ -122,7 +122,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
 
 #define TRANSITION_STEP_TIME (10*MilliSecond)
 
-void AnalogIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void AnalogIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   MLMicroSeconds transitionTime = 0;
   // abort previous transition

@@ -82,7 +82,7 @@ string HuePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void HueDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void HueDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
@@ -102,7 +102,7 @@ int HueDeviceContainer::getRescanModes() const
 }
 
 
-void HueDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void HueDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   collectedHandler = aCompletedCB;
   if (!aIncremental) {

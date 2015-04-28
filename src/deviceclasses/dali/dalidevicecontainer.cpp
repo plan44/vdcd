@@ -89,7 +89,7 @@ string DaliPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void DaliDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void DaliDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
@@ -110,7 +110,7 @@ int DaliDeviceContainer::getRescanModes() const
 }
 
 
-void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void DaliDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   if (!aIncremental) {
     removeDevices(aClearSettings);
@@ -120,7 +120,7 @@ void DaliDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncreme
 }
 
 
-void DaliDeviceContainer::deviceListReceived(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
+void DaliDeviceContainer::deviceListReceived(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
 {
   // check if any devices
   if (aError || aDeviceListPtr->size()==0)
@@ -142,7 +142,7 @@ void DaliDeviceContainer::deviceListReceived(CompletedCB aCompletedCB, DaliComm:
 }
 
 
-void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, ErrorPtr aError)
+void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, StatusCB aCompletedCB, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (aNextDev != aBusDevices->end()) {
@@ -235,7 +235,7 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
 }
 
 
-void DaliDeviceContainer::initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, CompletedCB aCompletedCB, ErrorPtr aError)
+void DaliDeviceContainer::initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, StatusCB aCompletedCB, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
     LOG(LOG_ERR, "Error initializing dimmer: %s\n", aError->description().c_str());
@@ -253,7 +253,7 @@ void DaliDeviceContainer::initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevic
 
 
 
-void DaliDeviceContainer::createDsDevices(DaliBusDeviceListPtr aDimmerDevices, CompletedCB aCompletedCB)
+void DaliDeviceContainer::createDsDevices(DaliBusDeviceListPtr aDimmerDevices, StatusCB aCompletedCB)
 {
   // - look up multi-channel composite devices
   //   If none of the devices are found on the bus, the entire composite device is considered missing
@@ -329,7 +329,7 @@ void DaliDeviceContainer::createDsDevices(DaliBusDeviceListPtr aDimmerDevices, C
 }
 
 
-void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, CompletedCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
+void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, DaliBusDeviceList::iterator aNextDev, StatusCB aCompletedCB, DaliComm::DaliDeviceInfoPtr aDaliDeviceInfoPtr, ErrorPtr aError)
 {
   bool missingData = aError && aError->isError(DaliCommError::domain(), DaliCommErrorMissingData);
   bool badData =
@@ -454,7 +454,7 @@ ErrorPtr DaliDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const stri
             (*pos)->hasVanished(false); // vanish, but keep settings
           }
           // - re-collect devices to find groups and composites now, but only after a second, starting from main loop, not from here
-          CompletedCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
+          StatusCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
           MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false, false), 1*Second);
         }
       }
@@ -503,7 +503,7 @@ ErrorPtr DaliDeviceContainer::ungroupDevice(DaliDevicePtr aDevice, VdcApiRequest
   // - delete the previously grouped dS device
   aDevice->hasVanished(true); // delete parameters
   // - re-collect devices to find groups and composites now, but only after a second, starting from main loop, not from here
-  CompletedCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
+  StatusCB cb = boost::bind(&DaliDeviceContainer::groupCollected, this, aRequest);
   MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliDeviceContainer::collectDevices, this, cb, false, false, false), 1*Second);
   return respErr;
 }
@@ -521,14 +521,14 @@ void DaliDeviceContainer::groupCollected(VdcApiRequestPtr aRequest)
 
 #pragma mark - Self test
 
-void DaliDeviceContainer::selfTest(CompletedCB aCompletedCB)
+void DaliDeviceContainer::selfTest(StatusCB aCompletedCB)
 {
   // do bus short address scan
   daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _1, _2));
 }
 
 
-void DaliDeviceContainer::testScanDone(CompletedCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
+void DaliDeviceContainer::testScanDone(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aShortAddressListPtr && aShortAddressListPtr->size()>0) {
     // found at least one device, do a R/W test using the DTR
@@ -546,7 +546,7 @@ void DaliDeviceContainer::testScanDone(CompletedCB aCompletedCB, DaliComm::Short
 }
 
 
-void DaliDeviceContainer::testRW(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte)
+void DaliDeviceContainer::testRW(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte)
 {
   // set DTR
   daliComm->daliSend(DALICMD_SET_DTR, aTestByte);
@@ -555,7 +555,7 @@ void DaliDeviceContainer::testRW(CompletedCB aCompletedCB, DaliAddress aShortAdd
 }
 
 
-void DaliDeviceContainer::testRWResponse(CompletedCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
+void DaliDeviceContainer::testRWResponse(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && !aNoOrTimeout && aResponse==aTestByte) {
     LOG(LOG_NOTICE,"  - sent 0x%02X, received 0x%02X\n",aTestByte, aResponse, aNoOrTimeout);

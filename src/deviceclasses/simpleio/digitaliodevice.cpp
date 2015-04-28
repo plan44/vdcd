@@ -129,7 +129,7 @@ void DigitalIODevice::inputHandler(bool aNewState, MLMicroSeconds aTimestamp)
 
 
 
-void DigitalIODevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
   if (lightBehaviour) {

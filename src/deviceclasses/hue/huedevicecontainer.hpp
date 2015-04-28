@@ -56,7 +56,7 @@ namespace p44 {
 
     HuePersistence db;
 
-    CompletedCB collectedHandler;
+    StatusCB collectedHandler;
 
     /// @name persistent parameters
     /// @{
@@ -72,7 +72,7 @@ namespace p44 {
 
     HueComm hueComm;
 
-		void initialize(CompletedCB aCompletedCB, bool aFactoryReset);
+		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     virtual const char *deviceClassIdentifier() const;
 
@@ -81,7 +81,7 @@ namespace p44 {
     virtual int getRescanModes() const;
 
     /// collect and add devices to the container
-    virtual void collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode

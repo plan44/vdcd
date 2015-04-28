@@ -179,7 +179,7 @@ bool OutputBehaviour::applyScene(DsScenePtr aScene)
 
 
 // capture scene
-void OutputBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
+void OutputBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, SimpleCB aDoneCB)
 {
   if (aFromDevice) {
     // make sure channel values are updated
@@ -193,7 +193,7 @@ void OutputBehaviour::captureScene(DsScenePtr aScene, bool aFromDevice, DoneCB a
 
 
 
-void OutputBehaviour::channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, DoneCB aDoneCB)
+void OutputBehaviour::channelValuesCaptured(DsScenePtr aScene, bool aFromDevice, SimpleCB aDoneCB)
 {
   // just save the current channel values to the scene
   saveChannelsToScene(aScene);

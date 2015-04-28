@@ -71,7 +71,7 @@ OlaDeviceContainer::OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
 #define DMX512_RETRY_INTERVAL (15*Second)
 #define DMX512_UNIVERSE 42
 
-void OlaDeviceContainer::initialize(CompletedCB aCompletedCB, bool aFactoryReset)
+void OlaDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   ErrorPtr err;
   // initialize database
@@ -160,7 +160,7 @@ OlaDevicePtr OlaDeviceContainer::addOlaDevice(string aDeviceType, string aDevice
 
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
-void OlaDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void OlaDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {

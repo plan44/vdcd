@@ -23,7 +23,7 @@ const char *UpnpDeviceContainer::deviceClassIdentifier() const
   return "UPnP_Device_Container";
 }
 
-void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError)
+void UpnpDeviceContainer::collectHandler(StatusCB aCompletedCB, SsdpSearchPtr aSsdpSearch, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // found a result (not just timeout)
@@ -45,7 +45,7 @@ void UpnpDeviceContainer::collectHandler(CompletedCB aCompletedCB, SsdpSearchPtr
 #define COLLECTING_TIME (15*Second)
 
 /// collect devices for this device class
-void UpnpDeviceContainer::collectDevices(CompletedCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void UpnpDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting Demo devices makes no sense, they are statically created at startup
   if (!aIncremental) {

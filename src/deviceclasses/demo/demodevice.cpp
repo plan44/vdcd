@@ -49,7 +49,7 @@ DemoDevice::DemoDevice(DemoDeviceContainer *aClassContainerP) :
 
 
 
-void DemoDevice::applyChannelValues(DoneCB aDoneCB, bool aForDimming)
+void DemoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   // light device
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
