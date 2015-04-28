@@ -166,7 +166,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
   SerialOperationReceivePtr ropP = boost::dynamic_pointer_cast<SerialOperationReceive>(aOperation);
   if (ropP) {
     // get received data
-    if (!aError && ropP->getDataSize()>=2) {
+    if (Error::isOK(aError) && ropP->getDataSize()>=2) {
       uint8_t resp1 = ropP->getDataP()[0];
       uint8_t resp2 = ropP->getDataP()[1];
       FOCUSLOG("DALI bridge response: %s (%02X %02X) - %d pending responses\n", bridgeResponseText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
@@ -175,7 +175,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
     }
     else {
       // error
-      if (!aError)
+      if (Error::isOK(aError))
         aError = ErrorPtr(new DaliCommError(DaliCommErrorMissingData));
       if (aBridgeResultHandler)
         aBridgeResultHandler(0, 0, aError);
@@ -597,7 +597,7 @@ private:
   void handleScanResponse(DeviceQueryState aQueryState, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
     bool isYes = false;
-    if (aError && aError->isError(DaliCommError::domain(), DaliCommErrorDALIFrame)) {
+    if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorDALIFrame)) {
       // framing error, indicates that we might have duplicates
       LOG(LOG_INFO, "Detected framing error for %d-th response from short address %d - probably short address collision\n", (int)aQueryState, shortAddress);
       probablyCollision = true;
@@ -605,7 +605,7 @@ private:
       aError.reset(); // do not count as error aborting the search
       aQueryState=dqs_random_l; // one error is enough, no need to check other bytes
     }
-    else if (!aError && !aNoOrTimeout) {
+    else if (Error::isOK(aError) && !aNoOrTimeout) {
       // no error, no timeout
       isYes = true;
       if (aQueryState==dqs_controlgear && aResponse!=DALIANSWER_YES) {
@@ -1057,7 +1057,7 @@ private:
   // handle scan result
   void handleResponse(bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
   {
-    if (!aError && !aNoOrTimeout) {
+    if (Error::isOK(aError) && !aNoOrTimeout) {
       // byte received, append to vector
       memory->push_back(aResponse);
       if (--bytesToRead>0) {

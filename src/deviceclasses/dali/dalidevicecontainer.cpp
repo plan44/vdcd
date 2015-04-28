@@ -335,7 +335,7 @@ void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, D
   bool badData =
     aError &&
     (aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum) || aError->isError(DaliCommError::domain(), DaliCommErrorBadDeviceInfo));
-  if (!aError || missingData || badData) {
+  if (Error::isOK(aError) || missingData || badData) {
     // no error, or error but due to missing or bad data -> device exists
     if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
     if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have valid device info\n",aDaliDeviceInfoPtr->shortAddress); }
