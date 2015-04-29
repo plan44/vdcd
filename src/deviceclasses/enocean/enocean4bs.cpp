@@ -289,7 +289,7 @@ static const char *unityUnit = "units"; // undefined unit, but not just 0/1 (bin
 static const char *binaryUnit = ""; // binary, only 0 or 1
 
 static const char *setPointText = "Set Point";
-
+static const char *fanSpeedText = "Fan Speed";
 static const char *dayNightText = "Day/Night";
 
 
@@ -353,7 +353,15 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  pirText, binaryUnit },
   { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
 
-  // A5-10-03: Room Panel with Temperature Sensor and Set Point Control
+  // A5-10-02: Room Control Panel with Temperature Sensor, Set Point, Fan Speed and Day/Night Control
+  // Note: fan speed negative range denotes "automatic" (210..255 -> -0.215311..-0)
+  // - e.g. Thermokon Thanos
+  { 0x10, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
+  { 0x10, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0x10, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_fan_speed,   usage_room,  -0.215311,    1, DB(3,7), DB(3,0), 100, 40*60, &invSensorHandler, fanSpeedText, unityUnit },
+  { 0x10, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_none,        usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  dayNightText, binaryUnit },
+
+  // A5-10-03: Room Control Panel with Temperature Sensor and Set Point Control
   // - e.g. Eltako FTR78S
   { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
   { 0x10, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
