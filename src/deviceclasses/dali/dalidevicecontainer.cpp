@@ -459,7 +459,7 @@ ErrorPtr DaliDeviceContainer::daliCmd(VdcApiRequestPtr aRequest, ApiValuePtr aPa
       }
       else if (cmd=="pulse") {
         daliComm->daliSendDirectPower(shortAddress, 0xFE);
-        daliComm->daliSendDirectPower(shortAddress, 0x01, NULL, 500*MilliSecond);
+        daliComm->daliSendDirectPower(shortAddress, 0x01, NULL, 1200*MilliSecond);
       }
       else {
         respErr = ErrorPtr(new WebError(500, "unknown cmd"));
