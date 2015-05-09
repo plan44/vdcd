@@ -23,6 +23,7 @@
 #include "mainloop.hpp"
 
 #include <sys/stat.h> // for umask
+#include <sys/signal.h>
 
 using namespace p44;
 
@@ -44,10 +45,22 @@ Application::Application(MainLoop &aMainLoop) :
 }
 
 
+void Application::signal_handler(int aSignal)
+{
+  if (sharedApplicationP) {
+    sharedApplicationP->signalOccurred(SIGHUP);
+  }
+}
+
+
 Application::Application() :
   mainLoop(MainLoop::currentMainLoop())
 {
   sharedApplicationP = this;
+  // register signal handlers
+  signal(SIGHUP, signal_handler);
+  signal(SIGINT, signal_handler);
+  signal(SIGTERM, signal_handler);
 }
 
 Application::~Application()
@@ -64,7 +77,21 @@ int Application::main(int argc, char **argv)
 
 void Application::initialize()
 {
-	// NOP
+  // NOP in base class
+}
+
+
+void Application::cleanup(int aExitCode)
+{
+  // NOP in base class
+}
+
+
+void Application::signalOccurred(int aSignal)
+{
+  // default action is terminating the program
+  LOG(LOG_ERR, "Terminating because signal %d occurred\n", aSignal);
+  mainLoop.terminate(EXIT_FAILURE);
 }
 
 
@@ -73,7 +100,11 @@ int Application::run()
 	// schedule the initialize() method as first mainloop method
 	mainLoop.executeOnce(boost::bind(&Application::initialize, this));
 	// run the mainloop
-	return mainLoop.run();
+	int exitCode = mainLoop.run();
+  // clean up
+  cleanup(exitCode);
+  // done
+  return exitCode;
 }
 
 
@@ -81,6 +112,19 @@ void Application::terminateApp(int aExitCode)
 {
   // have mainloop terminate with given exit code and exit run()
   mainLoop.terminate(aExitCode);
+}
+
+
+
+void Application::terminateApp(ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    mainLoop.terminate(EXIT_SUCCESS);
+  }
+  else {
+    LOG(LOG_ERR, "Terminating because of error: %s\n", aError->description().c_str());
+    mainLoop.terminate(EXIT_FAILURE);
+  }
 }
 
 

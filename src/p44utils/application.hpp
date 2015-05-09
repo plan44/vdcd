@@ -32,7 +32,10 @@ namespace p44 {
 
   class Application : public P44Obj
   {
+    typedef P44Obj inherited;
+
     MainLoop &mainLoop;
+
   public:
     /// constructors
     Application(MainLoop &aMainLoop);
@@ -47,11 +50,16 @@ namespace p44 {
     virtual int main(int argc, char **argv);
 
     /// get shared instance (singleton)
-    Application *sharedApplication();
+    static Application *sharedApplication();
 
     /// terminate app
     /// @param aExitCode the exit code to return to the parent
     void terminateApp(int aExitCode);
+
+    /// terminate app
+    /// @param aError if NULL or ErrorOK, app will terminate with EXIT_SUCCESS
+    ///   otherwise, app will log aError's description at LOG_ERR level and then terminate with EXIT_FAILURE
+    void terminateApp(ErrorPtr aError);
 
   protected:
 
@@ -63,6 +71,17 @@ namespace p44 {
 
     /// scheduled to run when mainloop has started
     virtual void initialize();
+
+    /// called when mainloop terminates
+    virtual void cleanup(int aExitCode);
+
+    /// called when a signal occurs
+    /// @note only SIGHUP,SIGINT,SIGKILL and SIGTERM are handled here
+    virtual void signalOccurred(int aSignal);
+
+  private:
+    static void signal_handler(int aSignal);
+
   };
 
 
