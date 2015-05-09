@@ -162,3 +162,29 @@ ErrorPtr SysError::err(int aErrNo, const char *aContextMessage)
 #pragma mark - web error
 
 
+ErrorPtr WebError::err(uint16_t aHTTPError, std::string aErrorMessage)
+{
+  if (aHTTPError==0)
+    return ErrorPtr(); // empty, no error
+  return ErrorPtr(new WebError(aHTTPError, aErrorMessage));
+}
+
+
+#pragma mark - text error
+
+
+ErrorPtr TextError::err(const char *aFormat, ...)
+{
+  va_list args;
+
+  va_start(args, aFormat);
+  // now make the string
+  string s;
+  string_format_v(s, true, aFormat, args);
+  va_end(args);
+  return ErrorPtr(new TextError(s));
+}
+
+
+
+

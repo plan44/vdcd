@@ -34,6 +34,7 @@ namespace p44 {
 
   typedef enum {
     ErrorOK,
+    ErrorNotOK
   } CommonErrors;
 
 
@@ -63,7 +64,7 @@ namespace p44 {
 
     /// get error domain
     /// @return the explicitly set error message, empty string if none is set.
-    /// @note use description() to get a text at least howing the error domain and code if no message is set
+    /// @note use description() to get a text at least showing the error domain and code if no message is set
     virtual const char *getErrorMessage() const;
 
     /// get error domain
@@ -122,7 +123,24 @@ namespace p44 {
     static const char *domain() { return "WebError"; }
     virtual const char *getErrorDomain() const { return WebError::domain(); };
     WebError(uint16_t aHTTPError) : Error(ErrorCode(aHTTPError)) {};
-    WebError(uint16_t aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+    WebError(uint16_t aHTTPError, std::string aErrorMessage) : Error(ErrorCode(aHTTPError), aErrorMessage) {};
+
+    /// factory function to create a ErrorPtr either containing NULL (if aErrNo indicates OK)
+    /// or a SysError (if aErrNo indicates error)
+    static ErrorPtr err(uint16_t aHTTPError, std::string aErrorMessage);
+  };
+
+
+  /// Text message based error
+  class TextError : public Error
+  {
+  public:
+    static const char *domain() { return "TextError"; }
+    virtual const char *getErrorDomain() const { return TextError::domain(); };
+    TextError(std::string aErrorMessage) : Error(ErrorNotOK, aErrorMessage) {};
+
+    /// factory method to create string error fprint style
+    static ErrorPtr err(const char *aFormat, ...);
   };
 
 
