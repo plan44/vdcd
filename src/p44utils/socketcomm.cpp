@@ -71,7 +71,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 
   struct servent *pse;
   struct sockaddr_in sin;
-  int proto;
+  int proto = IPPROTO_IP;
   int one = 1;
   int socketFD = -1;
 
@@ -475,7 +475,7 @@ void SocketComm::closeConnection()
   if (connectionOpen && !isClosing) {
     isClosing = true; // prevent doing it more than once due to handlers called
     // report to handler
-    LOG(LOG_NOTICE, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    LOG(LOG_DEBUG, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
     if (connectionStatusHandler) {
       // connection ok
       ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
