@@ -30,9 +30,6 @@
 #include <json/json.h>
 #endif
 
-#include <boost/intrusive_ptr.hpp>
-
-
 
 using namespace std;
 
@@ -158,6 +155,12 @@ namespace p44 {
 
     /// create new object from text
     static JsonObjectPtr objFromText(const char *aJsonText, ssize_t aMaxChars = -1);
+
+    /// create new object from text file
+    static JsonObjectPtr objFromFile(const char *aJsonFilePath);
+
+    /// save object to text file
+    ErrorPtr saveToFile(const char *aJsonFilePath);
 
     /// create new array object
     static JsonObjectPtr newArray();

@@ -27,6 +27,8 @@
 #include <json/json_object_private.h> // needed for _ref_count
 #endif
 
+#include <sys/stat.h> // for fstat
+
 using namespace p44;
 
 
@@ -54,6 +56,52 @@ JsonObject::~JsonObject()
     json_object_put(json_obj);
     json_obj = NULL;
   }
+}
+
+
+#pragma mark - read and write from files
+
+
+#define MAX_JSON_FILE_SIZE 200000
+
+// factory method, create JSON object from file
+JsonObjectPtr JsonObject::objFromFile(const char *aJsonFilePath)
+{
+  // read file into string
+  int fd = open(aJsonFilePath, O_RDONLY);
+  if (fd>=0) {
+    // opened, now read
+    struct stat fs;
+    fstat(fd, &fs);
+    if (fs.st_size<MAX_JSON_FILE_SIZE) {
+      char *jsontext = new char[fs.st_size];
+      read(fd, jsontext, fs.st_size);
+      JsonObjectPtr json = JsonObject::objFromText(jsontext,fs.st_size);
+      delete jsontext;
+      return json;
+    }
+  }
+  // could not open
+  return JsonObjectPtr(); // nothing read
+}
+
+
+ErrorPtr JsonObject::saveToFile(const char *aJsonFilePath)
+{
+  int fd = open(aJsonFilePath, O_WRONLY|O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR);
+  if (fd<0) {
+    return SysError::errNo("Cannot open file to save JSON: ");
+  }
+  else {
+    const char *jsontext = json_c_str();
+    if (write(fd, jsontext, strlen(jsontext))<0) {
+      close(fd);
+      return SysError::errNo("Error writing JSON: ");
+    }
+    // success
+    close(fd);
+  }
+  return ErrorPtr();
 }
 
 
