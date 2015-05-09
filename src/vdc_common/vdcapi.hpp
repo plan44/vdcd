@@ -143,6 +143,10 @@ namespace p44 {
     /// stop API server, close all connections
     void stop();
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { apiConnectionStatusHandler = NULL; inherited::clearCallbacks(); }
+
   protected:
 
     /// create API connection of correct type for this API server

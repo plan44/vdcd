@@ -38,6 +38,13 @@ void VdcApiServer::start()
 }
 
 
+void VdcApiServer::stop()
+{
+  closeConnection();
+  clearCallbacks();
+}
+
+
 void VdcApiServer::setConnectionStatusHandler(VdcApiConnectionCB aConnectionCB)
 {
   apiConnectionStatusHandler = aConnectionCB;
@@ -49,6 +56,7 @@ SocketCommPtr VdcApiServer::serverConnectionHandler(SocketCommPtr aServerSocketC
   // create new connection
   VdcApiConnectionPtr apiConnection = newConnection();
   SocketCommPtr socketComm = apiConnection->socketConnection();
+  socketComm->setClearHandlersAtClose(); // to make sure retain cycles are broken
   socketComm->relatedObject = apiConnection; // bind object to connection
   socketComm->setConnectionStatusHandler(boost::bind(&VdcApiServer::connectionStatusHandler, this, _1, _2));
   // return the socketComm object which handles this connection
@@ -86,6 +94,7 @@ void VdcApiConnection::closeConnection()
 {
   if (socketConnection()) {
     socketConnection()->closeConnection();
+    socketConnection()->clearCallbacks();
   }
 }
 

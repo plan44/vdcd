@@ -124,6 +124,9 @@ namespace p44 {
     /// @param aFd optional; fd to switch to non-blocking, defaults to this FdConn's fd set with setFd()
     void makeNonBlocking(int aFd = -1);
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { receiveHandler = NULL; transmitHandler = NULL; }
 
   protected:
     /// this is intended to be overridden in subclases, and is called when
@@ -138,6 +141,8 @@ namespace p44 {
 
   class FdStringCollector : public FdComm
   {
+    typedef FdComm inherited;
+
     bool ended; ///< set when FD returns error or HUP
     FdCommCB endedCallback; ///< called when collecting ends (after setup by collectToEnd())
 
@@ -149,6 +154,10 @@ namespace p44 {
 
     /// collect until file descriptor does not provide any more data
     void collectToEnd(FdCommCB aEndedCallback);
+
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { endedCallback = NULL; inherited::clearCallbacks(); }
 
   protected:
 

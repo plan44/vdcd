@@ -32,6 +32,7 @@ SocketComm::SocketComm(MainLoop &aMainLoop) :
   isConnecting(false),
   isClosing(false),
   serving(false),
+  clearHandlersAtClose(false),
   addressInfoList(NULL),
   currentAddressInfo(NULL),
   currentSockAddrP(NULL),
@@ -498,7 +499,9 @@ void SocketComm::internalCloseConnection()
     serving = false;
     // - close all child connections (closing will remove them from the list)
     while (clientConnections.size()>0) {
-      (*clientConnections.begin())->closeConnection();
+      SocketCommPtr conn = *clientConnections.begin();
+      conn->closeConnection();
+      conn->clearCallbacks(); // clear callbacks to break possible retain cycles
     }
   }
   else if (connectionOpen || isConnecting) {
@@ -523,6 +526,10 @@ void SocketComm::internalCloseConnection()
   if (currentSockAddrP) {
     free(currentSockAddrP);
     currentSockAddrP = NULL;
+  }
+  // now clear handlers if requested
+  if (clearHandlersAtClose) {
+    clearCallbacks();
   }
   isClosing = false;
 }

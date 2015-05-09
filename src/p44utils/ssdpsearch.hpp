@@ -89,10 +89,12 @@ namespace p44 {
     /// @param aTargetMustMatch if set, only direct responses to our search are returned
     void startSearchForTarget(SsdpSearchCB aSearchResultHandler, const char *aSearchTarget, bool aSingleTarget, bool aTargetMustMatch);
 
-
     /// stop SSDP search - result handler
     void stopSearch();
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { searchResultHandler = NULL; inherited::clearCallbacks(); }
 
   private:
     void gotData(ErrorPtr aError);

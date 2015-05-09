@@ -74,6 +74,10 @@ namespace p44 {
     /// request closing connection after last message has been sent
     void closeAfterSend();
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { jsonMessageHandler = NULL; inherited::clearCallbacks(); }
+
 
   private:
     void gotData(ErrorPtr aError);

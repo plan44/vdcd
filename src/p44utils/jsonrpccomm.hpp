@@ -125,6 +125,9 @@ namespace p44 {
     /// @result empty or Error object in case of error sending error response
     ErrorPtr sendError(const char *aJsonRpcId, ErrorPtr aErrorToSend);
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { jsonRequestHandler = NULL; inherited::clearCallbacks(); }
 
   private:
     void gotJson(ErrorPtr aError, JsonObjectPtr aJsonObject);

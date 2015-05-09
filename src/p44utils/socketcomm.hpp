@@ -96,6 +96,7 @@ namespace p44 {
     bool isClosing; ///< in progress of closing connection
     bool connectionOpen; ///< regular data connection is open
     bool serving; ///< is serving socket
+    bool clearHandlersAtClose; ///< when socket closes, all handlers are cleared (to break retain cycles)
     SocketCommCB connectionStatusHandler;
     // server connection internals
     int maxServerConnections;
@@ -178,6 +179,14 @@ namespace p44 {
     /// @note for UDP, the host/port specified in setConnectionParams() will be used to send datagrams to
     virtual size_t transmitBytes(size_t aNumBytes, const uint8_t *aBytes, ErrorPtr &aError);
 
+    /// clear all callbacks
+    /// @note this is important because handlers might cause retain cycles when they have smart ptr arguments
+    virtual void clearCallbacks() { connectionStatusHandler = NULL; serverConnectionHandler = NULL; inherited::clearCallbacks(); }
+
+    /// make sure handlers are cleared as soon as connection closes
+    /// @note this is for connections that only live by themselves and should deallocate when they close. As handlers might hold
+    ///   smart pointers to the connection, it is essential the handlers are cleared
+    void setClearHandlersAtClose() { clearHandlersAtClose = true; }
 
   private:
     void freeAddressInfo();
