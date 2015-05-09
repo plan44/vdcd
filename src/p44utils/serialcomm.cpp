@@ -210,6 +210,23 @@ bool SerialComm::connectionIsOpen()
 }
 
 
+#pragma mark - handshake signal control
+
+void SerialComm::setDTR(bool aActive)
+{
+  if (!connectionIsOpen()) return; // ignore
+  int iFlags = TIOCM_DTR;
+  ioctl(connectionFd, aActive ? TIOCMBIS : TIOCMBIC, &iFlags);
+}
+
+
+void SerialComm::setRTS(bool aActive)
+{
+  if (!connectionIsOpen()) return; // ignore
+  int iFlags = TIOCM_RTS;
+  ioctl(connectionFd, aActive ? TIOCMBIS : TIOCMBIC, &iFlags);
+}
+
 
 #pragma mark - handling data exception
 

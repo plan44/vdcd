@@ -117,6 +117,15 @@ namespace p44 {
     /// check if connection is currently open
     bool connectionIsOpen();
 
+    /// control DTR
+    /// @param aActive if set DTR will set active, otherwise DTR will be made inactive
+    void setDTR(bool aActive);
+
+    /// control RTS
+    /// @param aActive if set RTS will set active, otherwise DTR will be made inactive
+    void setRTS(bool aActive);
+
+
   protected:
 
     /// This is called when
