@@ -71,6 +71,15 @@ void EnoceanRemoteControlDevice::sendSwitchBeaconRelease()
 }
 
 
+void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
+{
+  int offs = getAddress() & 0x7F;
+  if (offs<aUsedOffsetsMap.size()) {
+    aUsedOffsetsMap[offs]='1';
+  }
+}
+
+
 // insert into knowndevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) values (0xFFDC0D00, 0, 0xFFF6FF, 0xFFFF);
 // insert into knowndevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) values (4292611328, 0, 16774911, 65535);
 

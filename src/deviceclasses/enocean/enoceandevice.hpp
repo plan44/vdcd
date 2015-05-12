@@ -266,6 +266,9 @@ namespace p44 {
     /// @note will be called via UI for devices that need to be learned into remote actors
     virtual void sendTeachInBeacon() { /* NOP in base class */ };
 
+    /// mark base offsets in use by this device
+    /// @param aUsedOffsetsMap must be passed a string with 128 chars of '0' or '1'.
+    virtual void markUsedBaseOffsets(string &aUsedOffsetsMap) { /* NOP in base class */ };
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

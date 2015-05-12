@@ -237,15 +237,82 @@ void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddre
 }
 
 
+#pragma mark - EnOcean specific methods
+
+
+ErrorPtr EnoceanDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  if (aMethod=="x-p44-addProfile") {
+    // create a composite device out of existing single-channel ones
+    respErr = addProfile(aRequest, aParams);
+  }
+  else {
+    respErr = inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+  return respErr;
+}
+
+
+
+ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  // add an EnOcean profile
+  ErrorPtr respErr;
+  ApiValuePtr o;
+  respErr = checkParam(aParams, "eep", o); // EEP with variant in MSB
+  if (Error::isOK(respErr)) {
+    EnoceanProfile eep = o->uint32Value();
+    respErr = checkParam(aParams, "address", o);
+    if (Error::isOK(respErr)) {
+      // remote device address
+      // if 0xFF800000..0xFF80007F : bit0..6 = ID base offset to ID base of modem
+      // if 0xFF8000FF : automatically take next unused ID base offset
+      EnoceanAddress addr = o->uint32Value();
+      if ((addr & 0xFFFFFF00)==0xFF800000) {
+        // relative to ID base
+        // - get map of already used offsets
+        string usedOffsetMap;
+        usedOffsetMap.assign(128,'0');
+        for (EnoceanDeviceMap::iterator pos = enoceanDevices.begin(); pos!=enoceanDevices.end(); ++pos) {
+          pos->second->markUsedBaseOffsets(usedOffsetMap);
+        }
+        addr &= 0xFF; // extract offset
+        if (addr==0xFF) {
+          // auto-determine offset
+          for (addr=0; addr<128; addr++) {
+            if (usedOffsetMap[addr]=='0') break; // free offset here
+          }
+          if (addr>128) {
+            respErr = ErrorPtr(new WebError(400, "no more free base ID offsets"));
+          }
+        }
+        else {
+          if (usedOffsetMap[addr]!='0') {
+            respErr = ErrorPtr(new WebError(400, "invalid or already used base ID offset specifier"));
+          }
+        }
+        // add-in my own ID base
+        addr += enoceanComm.idBase();
+      }
+      // now create device(s)
+      if (Error::isOK(respErr)) {
+        // create devices as if this was a learn-in
+        if (EnoceanDevice::createDevicesFromEEP(this, addr, eep, manufacturer_unknown)<1) {
+          respErr = ErrorPtr(new WebError(400, "Unknown EEP specification, no device(s) created"));
+        }
+      }
+    }
+  }
+  return respErr;
+}
+
+
+
+
+
 #pragma mark - learn and unlearn devices
 
-
-//#ifdef DEBUG
-//#define MIN_LEARN_DBM -255 // any signal strength
-//#warning "DEBUG Learning with weak signal enabled!"
-//#else
-//#define MIN_LEARN_DBM -50 // within approx one meter of the TCM310 (experimental luz v1 patched bridge)
-//#endif
 
 #define MIN_LEARN_DBM -50 
 // -50 = for experimental luz v1 patched bridge: within approx one meter of the TCM310
