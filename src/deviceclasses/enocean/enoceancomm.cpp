@@ -274,6 +274,31 @@ void Esp3Packet::finalize()
 
 
 
+
+#pragma mark - common commands
+
+
+ErrorPtr Esp3Packet::responseStatus()
+{
+  if (packetType()!=pt_response || dataLength()<1) {
+    return ErrorPtr(new EnoceanCommError(EnoceanCommErrorWrongPacket));
+  }
+  else {
+    // is response, check
+    uint8_t respCode = data()[0];
+    EnoceanCommErrors errorCode;
+    switch (respCode) {
+      case RET_OK: return (ErrorPtr()); // is ok
+      case RET_NOT_SUPPORTED: errorCode = EnoceanCommErrorUnsupported; break;
+      case RET_WRONG_PARAM: errorCode = EnoceanCommErrorBadParam; break;
+      case RET_OPERATION_DENIED: errorCode = EnoceanCommErrorDenied; break;
+      default: errorCode = EnoceanCommErrorCmdError; break;
+    }
+    return ErrorPtr(new EnoceanCommError(errorCode));
+  }
+}
+
+
 #pragma mark - radio telegram specifics
 
 
@@ -676,6 +701,24 @@ void Esp3Packet::set4BSTeachInEEP(EnoceanProfile aEEProfile)
 }
 
 
+#pragma mark - packet Factory methods
+
+
+Esp3PacketPtr Esp3Packet::newCommonCommand(uint8_t aCommand, uint8_t aNumParamBytes, uint8_t *aParamBytesP)
+{
+  // send a EPS3 command to the modem to check if it is alive
+  Esp3PacketPtr cmdPacket = Esp3PacketPtr(new Esp3Packet);
+  cmdPacket->setPacketType(pt_common_cmd);
+  // command data is command byte plus params (if any)
+  cmdPacket->setDataLength(1+aNumParamBytes); // command code + parameters
+  // set the command
+  cmdPacket->data()[0] = aCommand;
+  for (int i=0; i<aNumParamBytes; i++) {
+    cmdPacket->data()[i] = aParamBytesP[i];
+  }
+  return cmdPacket;
+}
+
 
 
 #pragma mark - Description
@@ -876,21 +919,25 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 #define ENOCEAN_ESP3_ALIVECHECK_INTERVAL (30*Second)
 #define ENOCEAN_ESP3_ALIVECHECK_TIMEOUT (3*Second)
 
+#define ENOCEAN_ESP3_COMMAND_TIMEOUT (3*Second)
 
 
 EnoceanComm::EnoceanComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
   aliveCheckTicket(0),
-  aliveTimeoutTicket(0),
+  cmdTimeoutTicket(0),
   apiVersion(0),
   appVersion(0),
-  myAddress(0)
+  myAddress(0),
+  myIdBase(0)
 {
 }
 
 
 EnoceanComm::~EnoceanComm()
 {
+  MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(cmdTimeoutTicket);
 }
 
 
@@ -908,8 +955,41 @@ void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16
 }
 
 
-void EnoceanComm::startWatchDog()
+void EnoceanComm::initialize(StatusCB aCompletedCB)
 {
+  // get version
+  sendCommand(Esp3Packet::newCommonCommand(CO_RD_VERSION), boost::bind(&EnoceanComm::versionReceived, this, aCompletedCB, _1, _2));
+}
+
+
+void EnoceanComm::versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+{
+  // extract versions
+  if (Error::isOK(aError)) {
+    uint8_t *d = aEsp3PacketPtr->data();
+    appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
+    apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
+    myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
+    FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+  }
+  else {
+    // early abort due to error querying version
+    if (aCompletedCB) aCompletedCB(aError);
+  }
+  // query base ID
+  sendCommand(Esp3Packet::newCommonCommand(CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, _1, _2));
+}
+
+
+void EnoceanComm::idbaseReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    uint8_t *d = aEsp3PacketPtr->data();
+    myIdBase = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
+    FOCUSLOG("Received CO_RD_IDBASE  answer: idBase=0x%08X\n", myIdBase);
+  }
+  // completed
+  if (aCompletedCB) aCompletedCB(aError);
   // schedule first alive check quickly
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 2*Second);
 }
@@ -926,34 +1006,33 @@ void EnoceanComm::aliveCheck()
   checkPacket->setDataLength(1); // CO_RD_VERSION has no parameters
   // set the command
   checkPacket->data()[0] = CO_RD_VERSION;
-  // send packet
-  sendPacket(checkPacket);
-  // schedule a response timeout.
-  // Note: for now, reception of any packet counts as successful alive check, actual response is not yet checked
-  aliveTimeoutTicket= MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheckTimeout, this), ENOCEAN_ESP3_ALIVECHECK_TIMEOUT);
-  // also schedule the next alive check
-  aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), ENOCEAN_ESP3_ALIVECHECK_INTERVAL);
+  // issue command
+  sendCommand(checkPacket, boost::bind(&EnoceanComm::aliveCheckResponse, this, _1, _2));
 }
 
 
-void EnoceanComm::aliveCheckOK()
+void EnoceanComm::aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
-  // cancel timeout (watchdog)
-  MainLoop::currentMainLoop().cancelExecutionTicket(aliveTimeoutTicket);
-}
-
-
-void EnoceanComm::aliveCheckTimeout()
-{
-  // alive check failed, try to recover EnOcean interface
-  LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module\n");
-  // - cancel alive checks for now
-  MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
-  // - close the connection
-  serialComm->closeConnection();
-  // - do a hardware reset of the module if possible
-  if (enoceanResetPin) enoceanResetPin->set(true); // reset
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 2*Second);
+  if (!Error::isOK(aError)) {
+    // alive check failed, try to recover EnOcean interface
+    LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module\n");
+    // - cancel alive checks for now
+    MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
+    // - close the connection
+    serialComm->closeConnection();
+    // - do a hardware reset of the module if possible
+    if (enoceanResetPin) enoceanResetPin->set(true); // reset
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::resetDone, this), 2*Second);
+  }
+  else {
+    // response received, should be answer to CO_RD_VERSION
+    // check for version
+    if (aEsp3PacketPtr->dataLength()!=33) {
+      FOCUSLOG("Alive check received packet after sending CO_RD_VERSION, but hat wrong data length (%d instead of 33)\n", aEsp3PacketPtr->dataLength());
+    }
+    // also schedule the next alive check
+    aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), ENOCEAN_ESP3_ALIVECHECK_INTERVAL);
+  }
 }
 
 
@@ -975,7 +1054,7 @@ void EnoceanComm::reopenConnection()
 }
 
 
-void EnoceanComm::setRadioPacketHandler(RadioPacketCB aRadioPacketCB)
+void EnoceanComm::setRadioPacketHandler(ESPPacketCB aRadioPacketCB)
 {
   radioPacketHandler = aRadioPacketCB;
 }
@@ -1013,8 +1092,6 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 
 void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
 {
-  // for now: any packet reception counts as successful alive check
-  aliveCheckOK();
   // dispatch the packet
   PacketType pt = aPacket->packetType();
   if (pt==pt_radio) {
@@ -1025,16 +1102,27 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
     }
   }
   else if (pt==pt_response) {
-    // TODO: %%% have queue check for operations awaiting a response command
-    // check for version
-    if (aPacket->dataLength()==33) {
-      // %%% for now, the only pt_response is that related to CO_RD_VERSION sent by watchdog
-      // - extract versions
-      uint8_t *d = aPacket->data();
-      appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
-      apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
-      myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
-      FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+    // This is a command response
+    // - stop timeout
+    MainLoop::currentMainLoop().cancelExecutionTicket(cmdTimeoutTicket);
+    // - this is a command response
+    if (cmdQueue.empty() || cmdQueue.front().commandPacket) {
+      // received unexpected answer
+      LOG(LOG_WARNING,"Received unexpected ESP3 response packet of length %d\n", aPacket->dataLength());
+    }
+    else {
+      // must be response to first entry in queue
+      // - deliver to waiting callback, if any
+      ESPPacketCB callback = cmdQueue.front().responseCB;
+      // - remove waiting marker from queue
+      cmdQueue.pop_front();
+      // - now call handler
+      if (callback) {
+        // pass packet and response status
+        callback(aPacket, aPacket->responseStatus());
+      }
+      // check if more commands in queue to be sent
+      checkCmdQueue();
     }
   }
   else {
@@ -1064,6 +1152,54 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
   }
 }
 
+
+
+void EnoceanComm::sendCommand(Esp3PacketPtr aCommandPacket, ESPPacketCB aResponsePacketCB)
+{
+  // queue command
+  EnoceanCmd cmd;
+  cmd.commandPacket = aCommandPacket;
+  cmd.responseCB = aResponsePacketCB;
+  cmdQueue.push_back(cmd);
+  checkCmdQueue();
+}
+
+
+void EnoceanComm::checkCmdQueue()
+{
+  if (cmdQueue.empty()) return; // queue empty
+  EnoceanCmd cmd = cmdQueue.front();
+  if (cmd.commandPacket) {
+    // front is command to be sent -> send it
+    sendPacket(cmd.commandPacket);
+    // remove original entry, put waiting-for-response marker there instead
+    cmd.commandPacket.reset(); // clear out, marks this entry for "waiting for response"
+    cmdQueue.pop_front();
+    cmdQueue.push_front(cmd);
+    // schedule timeout
+    cmdTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::cmdTimeout, this), ENOCEAN_ESP3_COMMAND_TIMEOUT);
+  }
+}
+
+
+void EnoceanComm::cmdTimeout()
+{
+  // currently waiting command has timed out
+  if (cmdQueue.empty()) return; // queue empty -> NOP (should not happen, no timeout should be running when queue is empty!)
+  EnoceanCmd cmd = cmdQueue.front();
+  // Note: commandPacket should always be NULL here (because we are waiting for a response)
+  if (!cmd.commandPacket) {
+    // done with this command
+    // - remove from queue
+    cmdQueue.pop_front();
+    // - now call handler with error
+    if (cmd.responseCB) {
+      cmd.responseCB(Esp3PacketPtr(), ErrorPtr(new EnoceanCommError(EnoceanCommErrorCmdTimeout)));
+    }
+  }
+  // check if more commands in queue to be sent
+  checkCmdQueue();
+}
 
 
 

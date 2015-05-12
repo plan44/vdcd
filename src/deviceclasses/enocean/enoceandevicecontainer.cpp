@@ -111,7 +111,14 @@ void EnoceanDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRese
 	string databaseName = getPersistentDataDir();
 	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
   ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), ENOCEAN_SCHEMA_VERSION, ENOCEAN_SCHEMA_MIN_VERSION, aFactoryReset);
-	aCompletedCB(error); // return status of DB init
+  if (!Error::isOK(error)) {
+    // failed DB, no point in starting communication
+    aCompletedCB(error); // return status of DB init
+  }
+  else {
+    // start communication
+    enoceanComm.initialize(aCompletedCB);
+  }
 }
 
 
@@ -131,8 +138,6 @@ void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncreme
 {
   // install standard packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
-  // start EnOcean module operation watchdog
-  enoceanComm.startWatchDog();
   // incrementally collecting EnOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
@@ -320,7 +325,7 @@ void EnoceanDeviceContainer::selfTest(StatusCB aCompletedCB)
   // install test packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _1, _2));
   // start watchdog
-  enoceanComm.startWatchDog();
+  enoceanComm.initialize(NULL);
 }
 
 
@@ -332,7 +337,10 @@ void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3Pa
       // uninstall handler
       enoceanComm.setRadioPacketHandler(NULL);
       // seen both watchdog response (modem works) and independent RPS telegram (RF is ok)
-      LOG(LOG_NOTICE, "- enocean modem info: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", enoceanComm.modemAppVersion(), enoceanComm.modemApiVersion(), enoceanComm.modemAddress());
+      LOG(LOG_NOTICE,
+        "- enocean modem info: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X, idBase=0x%08X\n",
+        enoceanComm.modemAppVersion(), enoceanComm.modemApiVersion(), enoceanComm.modemAddress(), enoceanComm.idBase()
+      );
       aCompletedCB(ErrorPtr());
       // done
       return;

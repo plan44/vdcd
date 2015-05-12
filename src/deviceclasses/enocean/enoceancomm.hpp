@@ -31,6 +31,27 @@ using namespace std;
 
 namespace p44 {
 
+  // Errors
+  typedef enum {
+    EnoceanCommErrorOK,
+    EnoceanCommErrorCmdTimeout,
+    EnoceanCommErrorWrongPacket,
+    EnoceanCommErrorCmdError,
+    EnoceanCommErrorUnsupported,
+    EnoceanCommErrorBadParam,
+    EnoceanCommErrorDenied
+  } EnoceanCommErrors;
+
+  class EnoceanCommError : public Error
+  {
+  public:
+    static const char *domain() { return "EnoceanComm"; }
+    virtual const char *getErrorDomain() const { return EnoceanCommError::domain(); };
+    EnoceanCommError(EnoceanCommErrors aError) : Error(ErrorCode(aError)) {};
+    EnoceanCommError(EnoceanCommErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+  };
+
+
   typedef enum {
     pt_radio = 0x01, // Radio telegram
     pt_response = 0x02, // Response to any packet
@@ -114,6 +135,13 @@ namespace p44 {
   #define CO_RD_MEM_ADDRESS 0x14 // Feedback about the used address and length of the config area and the Smart Ack Table
   #define CO_RD_SECURITY 0x15 // Read security information (level, keys)
   #define CO_WR_SECURITY 0x16 // Write security information (level, keys)
+
+  // common response codes
+  #define RET_OK 0x00 // OK
+  #define RET_ERROR 0x01 // error occurred
+  #define RET_NOT_SUPPORTED 0x02 // not supported command
+  #define RET_WRONG_PARAM 0x03 // wrong/invalid parameter for this command
+  #define RET_OPERATION_DENIED 0x04 // denied (e.g. memory access)
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;
@@ -232,6 +260,15 @@ namespace p44 {
     /// @}
 
 
+    /// @name common commands
+    /// @{
+
+    /// @return status of common command
+    ErrorPtr responseStatus();
+
+    /// @}
+
+
 
     /// @name access to generic radio telegram fields
     /// @{
@@ -322,6 +359,14 @@ namespace p44 {
     /// @param aEEProfile the EEP to represent in the 4BS telegram
     void set4BSTeachInEEP(EnoceanProfile aEEProfile);
 
+    /// @}
+
+
+    /// @name Packet factory methods
+    /// @{
+
+    /// @return radioUserData()[0..3] as 32bit value
+    static Esp3PacketPtr newCommonCommand(uint8_t aCommand, uint8_t aNumParamBytes=0, uint8_t *aParamBytesP=NULL);
 
     /// @}
 
@@ -332,7 +377,15 @@ namespace p44 {
   };
 
 
-  typedef boost::function<void (Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> RadioPacketCB;
+
+  typedef boost::function<void (Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)> ESPPacketCB;
+
+  typedef struct {
+    Esp3PacketPtr commandPacket; ///< packet to send. If empty, this means we are waiting for the response
+    ESPPacketCB responseCB; ///< callback to call when response arrives
+  } EnoceanCmd;
+
+  typedef std::list<EnoceanCmd> EnoceanCmdList;
 
   typedef boost::intrusive_ptr<EnoceanComm> EnoceanCommPtr;
 	// Enocean communication
@@ -341,16 +394,21 @@ namespace p44 {
 		typedef SerialOperationQueue inherited;
 		
 		Esp3PacketPtr currentIncomingPacket;
-    RadioPacketCB radioPacketHandler;
+    ESPPacketCB radioPacketHandler;
 
     DigitalIoPtr enoceanResetPin;
     long aliveCheckTicket;
-    long aliveTimeoutTicket;
 
+    // Enocean module identification and version
     uint32_t appVersion;
     uint32_t apiVersion;
-    EnoceanAddress myAddress;
-		
+    EnoceanAddress myAddress; ///< real EnOcean module address
+    EnoceanAddress myIdBase; ///< base address for creating other sender addresses than my own module address (e.g. to simulate switches to control actors)
+
+    // Command queue
+    EnoceanCmdList cmdQueue; ///< commands awaiting send or receive
+    long cmdTimeoutTicket; ///< timeout for waiting for command response
+
 	public:
 		
 		EnoceanComm(MainLoop &aMainLoop);
@@ -363,7 +421,7 @@ namespace p44 {
     void setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName);
 
     /// start the EnOcean modem watchdog (regular version commands, hard reset if no answer in time)
-    void startWatchDog();
+    void initialize(StatusCB aCompletedCB);
 
     /// get modem application version
     /// @return modem application version in 0xmmbbaaBB (mm=main version, bb=beta/minor, aa=alpha/revision, BB=build)
@@ -377,6 +435,9 @@ namespace p44 {
     /// @return modem enocean address
     EnoceanAddress modemAddress() { return myAddress; }
 
+    /// get modem Enocean chip ID (enocean address)
+    /// @return modem ID base address
+    EnoceanAddress idBase() { return myIdBase; }
 
     /// derived implementation: deliver bytes to the ESP3 parser
     /// @param aNumBytes number of bytes ready for accepting
@@ -384,12 +445,17 @@ namespace p44 {
     /// @return number of bytes parser could accept (normally, all)
     virtual size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
 
-    /// set callback to handle received radio packets 
-    void setRadioPacketHandler(RadioPacketCB aRadioPacketCB);
+    /// set callback to handle received radio packets
+    /// @param aRadioPacketCB callback to deliver radio packets to
+    void setRadioPacketHandler(ESPPacketCB aRadioPacketCB);
 
     /// send a packet
     /// @param aPacket a Esp4Packet which must be ready for being finalize()d
     void sendPacket(Esp3PacketPtr aPacket);
+
+    /// send a command and await response
+    /// @param aResponsePacketCB callback to deliver command response to
+    void sendCommand(Esp3PacketPtr aCommandPacket, ESPPacketCB aResponsePacketCB);
 
     /// manufacturer name lookup
     /// @param aManufacturerCode EEP manufacturer code
@@ -404,11 +470,17 @@ namespace p44 {
 
   private:
 
+    void versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void idbaseReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+
     void aliveCheck();
-    void aliveCheckTimeout();
-    void aliveCheckOK();
+    void aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+
     void resetDone();
     void reopenConnection();
+
+    void checkCmdQueue();
+    void cmdTimeout();
 
 	};
 
