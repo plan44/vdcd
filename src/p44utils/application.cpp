@@ -116,7 +116,7 @@ void Application::terminateApp(int aExitCode)
 
 
 
-void Application::terminateApp(ErrorPtr aError)
+void Application::terminateAppWith(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     mainLoop.terminate(EXIT_SUCCESS);

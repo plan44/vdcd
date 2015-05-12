@@ -59,7 +59,7 @@ namespace p44 {
     /// terminate app
     /// @param aError if NULL or ErrorOK, app will terminate with EXIT_SUCCESS
     ///   otherwise, app will log aError's description at LOG_ERR level and then terminate with EXIT_FAILURE
-    void terminateApp(ErrorPtr aError);
+    void terminateAppWith(ErrorPtr aError);
 
   protected:
 
