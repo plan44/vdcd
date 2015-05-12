@@ -306,9 +306,12 @@ namespace p44 {
     /// @return sender's address
     EnoceanAddress radioSender();
 
+    /// @param aStatus radio status to set
+    void setRadioStatus(uint8_t aStatus);
+
     /// @param radio sender's address to set
-    /// @note EnOcean modules will normally insert their native address here,
-    ///   so usually there's no point in setting this
+    /// @note EnOcean modules will insert their native address here,
+    ///   unless one of the IDs derived from the module's ID base is used
     void setRadioSender(EnoceanAddress aEnoceanAddress);
 
     /// @return the number of radio user data bytes
@@ -344,6 +347,7 @@ namespace p44 {
     EnoceanManufacturer eepManufacturer();
 
     /// @}
+
 
 
     /// @name 4BS four byte data packet communication

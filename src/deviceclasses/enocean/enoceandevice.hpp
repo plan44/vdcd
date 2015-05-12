@@ -71,8 +71,13 @@ namespace p44 {
     /// collect data for outgoing message from this channel
     /// @param aEsp3PacketPtr must be set to a suitable packet if it is empty, or packet data must be augmented with
     ///   channel's data when packet already exists
-    /// @note non-outputs will do nothing in this method
+    /// @note non-outputs and outputs that directly send actions via issueDirectChannelActions() will usually do nothing in this method
     virtual void collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr) { /* NOP */ };
+
+    /// send out actions directly needed to propagate channel value to this device.
+    /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
+    /// @note non-outputs and outputs that collect data with collectOutgoingMessageData() will usually do nothing in this method
+    virtual void issueDirectChannelActions() { /* NOP */ };
 
     /// check if channel is alive (for regularily sending sensors: has received life sign within timeout window)
     virtual bool isAlive() { return true; } // assume alive by default
@@ -210,6 +215,7 @@ namespace p44 {
 
     /// get the enocean address identifying the hardware that contains this logical device
     /// @return EnOcean device ID/address
+    /// Note: for some actors, this might also be the sender address (in id base range of the modem module)
     EnoceanAddress getAddress();
 
     /// get the enocean subdevice number that identifies this logical device among other logical devices in the same
@@ -255,6 +261,11 @@ namespace p44 {
     /// device specific teach in response
     /// @note will be called from newDevice() when created device needs a teach-in response
     virtual void sendTeachInResponse() { /* NOP in base class */ };
+
+    /// device specific teach in beacon
+    /// @note will be called via UI for devices that need to be learned into remote actors
+    virtual void sendTeachInBeacon() { /* NOP in base class */ };
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

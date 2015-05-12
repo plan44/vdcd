@@ -293,6 +293,11 @@ namespace p44 {
     /// @note base class delegates this to the output behaviour (if any)
     virtual void identifyToUser();
 
+    /// send a signal needed for some devices to get learned into other devices
+    /// @return true if device can send a teach-in signal
+    virtual bool sendTeachInSignal() { return false; /* base class does not have this */ };
+
+
     /// check if device can be disconnected by software (i.e. Web-UI)
     /// @return true if device might be disconnectable by the user via software (i.e. web UI)
     /// @note devices returning true here might still refuse disconnection on a case by case basis when

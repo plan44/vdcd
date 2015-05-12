@@ -450,6 +450,16 @@ void Esp3Packet::setRadioSender(EnoceanAddress aEnoceanAddress)
 }
 
 
+void Esp3Packet::setRadioStatus(uint8_t aStatus)
+{
+  size_t l = radioUserDataLength(); // returns 0 for non-radio packets
+  if (l>0) {
+    uint8_t *d = data()+1+l+4; // skip RORG, userdata and sender address to reach status
+    d[0] = aStatus;
+  }
+}
+
+
 
 
 void Esp3Packet::initForRorg(RadioOrg aRadioOrg, size_t aVLDsize)
@@ -975,6 +985,7 @@ void EnoceanComm::versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3Pack
   else {
     // early abort due to error querying version
     if (aCompletedCB) aCompletedCB(aError);
+    return; // done
   }
   // query base ID
   sendCommand(Esp3Packet::newCommonCommand(CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, _1, _2));

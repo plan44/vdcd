@@ -376,6 +376,15 @@ ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, 
       respErr = ErrorPtr(new WebError(403, "device cannot be removed with this method"));
     }
   }
+  else if (aMethod=="x-p44-teachInSignal") {
+    if (sendTeachInSignal()) {
+      // confirm first, because device will get deleted in the process
+      aRequest->sendResult(ApiValuePtr());
+    }
+    else {
+      respErr = ErrorPtr(new WebError(400, "device cannot send teach in signals"));
+    }
+  }
   else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
   }

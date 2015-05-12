@@ -31,6 +31,7 @@
 #include "enocean1bs.hpp"
 #include "enocean4bs.hpp"
 //#include "enoceanVld.hpp"
+#include "enoceanremotecontrol.hpp"
 
 
 using namespace p44;
@@ -222,6 +223,10 @@ void EnoceanDevice::sendOutgoingUpdate()
     // collect data from all channels to compose an outgoing message
     Esp3PacketPtr outgoingEsp3Packet;
     for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+      // channels may...
+      // - issue actions directly to the hardware (separate outgoing messages or sequences of messages
+      (*pos)->issueDirectChannelActions();
+      // - and/or collect data for a single outgoing packet carrying data for more than one channel
       (*pos)->collectOutgoingMessageData(outgoingEsp3Packet);
     }
     if (outgoingEsp3Packet) {
@@ -490,7 +495,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDevicePtr newDev;
   RadioOrg rorg = EEP_RORG(aEEProfile);
   // dispatch to factory according to RORG
-  switch (rorg) {
+  switch ((int)rorg) {
     case rorg_RPS:
       newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
@@ -503,6 +508,9 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 //    case rorg_VLD:
 //      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
 //      break;
+    // pseudo RORGs (internal encoding of non-standard devices)
+    case PSEUDO_RORG_REMOTECONTROL:
+      newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
     default:
       LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
       break;
