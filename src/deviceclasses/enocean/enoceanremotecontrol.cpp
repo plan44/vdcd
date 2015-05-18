@@ -159,7 +159,7 @@ void EnoceanSimpleBlindHandler::issueDirectChannelActions()
     // get the right channel
     ChannelBehaviourPtr ch = ob->getChannelByIndex(dsChannelIndex);
     // get value
-    bool blindUp = ch->getChannelValue()<0.5;
+    bool blindUp = ch->getChannelValue()>0.5;
     // simulate long press of my button
     Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
     packet->initForRorg(rorg_RPS);
