@@ -298,8 +298,15 @@ ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValueP
       // now create device(s)
       if (Error::isOK(respErr)) {
         // create devices as if this was a learn-in
-        if (EnoceanDevice::createDevicesFromEEP(this, addr, eep, manufacturer_unknown)<1) {
+        int newDevices = EnoceanDevice::createDevicesFromEEP(this, addr, eep, manufacturer_unknown);
+        if (newDevices<1) {
           respErr = ErrorPtr(new WebError(400, "Unknown EEP specification, no device(s) created"));
+        }
+        else {
+          ApiValuePtr r = aRequest->newApiValue();
+          r->setType(apivalue_object);
+          r->add("newDevices", r->newUint64(newDevices));
+          respErr = aRequest->sendResult(r);
         }
       }
     }
