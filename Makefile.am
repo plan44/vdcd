@@ -47,7 +47,7 @@ vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L$
 else
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 # vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
-vdcd_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -lcrypto -lz
+vdcd_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson -ldl -lcrypto -lz
 # build mongoose into vdcd, no library
 MONGOOSE_SRC = src/thirdparty/mongoose/mongoose.c src/thirdparty/mongoose/mongoose.h
 endif
@@ -202,6 +202,8 @@ vdcd_SOURCES = \
   src/deviceclasses/enocean/enoceancomm.hpp \
   src/deviceclasses/enocean/enoceandevice.cpp \
   src/deviceclasses/enocean/enoceandevice.hpp \
+  src/deviceclasses/enocean/enoceanremotecontrol.cpp \
+  src/deviceclasses/enocean/enoceanremotecontrol.hpp \
   src/deviceclasses/enocean/enoceanrps.cpp \
   src/deviceclasses/enocean/enoceanrps.hpp \
   src/deviceclasses/enocean/enocean4bs.cpp \
@@ -291,7 +293,7 @@ demovdc_CXXFLAGS = $(JSONC_CFLAGS) $(PTHREAD_CFLAGS) $(SQLITE3_CFLAGS) $(PROTOBU
 
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 #  demovdc_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
-demovdc_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson-c -ldl -lcrypto -lz
+demovdc_LDADD = $(PTHREAD_LIBS) -lprotobuf-c -lsqlite3 -ljson -ldl -lcrypto -lz
 
 nodist_demovdc_SOURCES = $(PROTOBUF_GENERATED)
 
@@ -403,7 +405,7 @@ jsonrpctool_CXXFLAGS = $(JSONC_LIBS) $(PTHREAD_CFLAGS)
 
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 #  jsonrpctool_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS)
-jsonrpctool_LDADD = $(PTHREAD_LIBS) -ljson-c
+jsonrpctool_LDADD = $(PTHREAD_LIBS) -ljson
 
 jsonrpctool_SOURCES = \
   src/p44utils/p44obj.cpp \
