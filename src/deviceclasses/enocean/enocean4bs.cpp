@@ -578,6 +578,7 @@ string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSe
     int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
     double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
     int fracDigits = (int)(-log(resolution)/log(10)+0.99);
+    if (fracDigits<0) fracDigits=0;
     return string_format("%s, %0.*f..%0.*f %s", aSensorDescriptor.typeText, fracDigits, aSensorDescriptor.min, fracDigits, aSensorDescriptor.max, unitText);
   }
 }
