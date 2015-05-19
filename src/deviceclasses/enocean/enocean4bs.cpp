@@ -282,7 +282,7 @@ static const char *illumUnit = "lx";
 
 static const char *occupText = "Occupancy";
 
-static const char *pirText = "PIR";
+static const char *motionText = "Motion";
 
 static const char *unityUnit = "units"; // undefined unit, but not just 0/1 (binary)
 
@@ -340,18 +340,18 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
 
   // A5-07-xx: Occupancy Sensor
   // - two slightly different occupancy sensors
-  { 0x07, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(1,7), DB(1,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
-  { 0x07, 0x02, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
+  { 0x07, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_binaryinput, binInpType_motion,      usage_room,          0,    1, DB(1,7), DB(1,7), 100, 40*60, &stdInputHandler,  motionText, binaryUnit },
+  { 0x07, 0x02, 0, group_black_joker,  group_black_joker,             behaviour_binaryinput, binInpType_motion,      usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  motionText, binaryUnit },
   // - occupancy sensor with illumination sensor
-  { 0x07, 0x03, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
+  { 0x07, 0x03, 0, group_black_joker,  group_black_joker,             behaviour_binaryinput, binInpType_motion,      usage_room,          0,    1, DB(0,7), DB(0,7), 100, 40*60, &stdInputHandler,  motionText, binaryUnit },
   { 0x07, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
 
   // A5-08-01: Light, Temperature and Occupancy sensor
   // - e.g. Eltako FBH
   { 0x08, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0,  510, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
   { 0x08, 0x01, 0, group_black_joker,  group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   51, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
-  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  pirText, binaryUnit },
-  { 0x08, 0x01, 0, group_black_joker,  group_green_access,            behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_binaryinput, binInpType_motion,      usage_room,          1,    0, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  motionText, binaryUnit },
+  { 0x08, 0x01, 0, group_black_joker,  group_black_joker,             behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
 
   // A5-10-02: Room Control Panel with Temperature Sensor, Set Point, Fan Speed and Day/Night Control
   // Note: fan speed negative range denotes "automatic" (210..255 -> -0.215311..-0)
