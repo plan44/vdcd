@@ -201,6 +201,7 @@ void CmdLineApp::setCommandDescriptors(const char *aSynopsis, const CmdLineOptio
 
 
 #define MAX_INDENT 40
+#define MAX_LINELEN 100
 
 void CmdLineApp::showUsage()
 {
@@ -242,6 +243,7 @@ void CmdLineApp::showUsage()
     fprintf(stderr, "Options:\n");
     optionDescP = optionDescriptors;
     while (optionDescP && (optionDescP->longOptionName!=NULL || optionDescP->shortOptionChar!='\x00')) {
+      //  fprintf(stderr, "\n");
       const char *desc = optionDescP->optionDescription;
       if (desc) {
         ssize_t remaining = indent;
@@ -284,20 +286,52 @@ void CmdLineApp::showUsage()
           while (remaining-- > 0) fprintf(stderr, " ");
         else
           fprintf(stderr, "  "); // just two spaces
-        // print option description, properly indented
+        // print option description, properly indented and word-wrapped
         if (desc) {
+          ssize_t ll = MAX_LINELEN-indent;
+          ssize_t listindent = 0;
           while (*desc) {
-            if (*desc=='\n') {
-              // next line
+            ssize_t l = 0;
+            ssize_t lastWs = -1;
+            // scan for list indent
+            if (*desc=='-') {
+              // next non-space is list indent
+              while (desc[++listindent]==' ');
+            }
+            // scan for end of text, last space or line end
+            const char *e = desc;
+            while (*e) {
+              if (*e==' ') lastWs = l;
+              else if (*e=='\n') {
+                // explicit line break
+                listindent = 0;
+                break;
+              }
+              // check line lenght
+              l++;
+              if (l>=ll) {
+                // line gets too long, break at previous space
+                if (lastWs>0) {
+                  // reposition end
+                  e = desc+lastWs;
+                }
+                break;
+              }
+              // next
+              e++;
+            }
+            // e now points to either LF, or breaking space, or NUL (end of text)
+            // - output chars between desc and e
+            while (desc<e) fprintf(stderr, "%c", *desc++);
+            // - if not end of text, insert line break and new indent
+            if (*desc) {
+              // there is a next line
               fprintf(stderr, "\n");
               // indent
-              remaining = indent;
+              remaining = indent+listindent;
               while (remaining-- > 0) fprintf(stderr, " ");
+              desc++; // skip the LF or space that caused the line end
             }
-            else {
-              fprintf(stderr, "%c", *desc);
-            }
-            desc++;
           }
         }
         // end of option, next line

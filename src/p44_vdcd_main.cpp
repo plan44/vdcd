@@ -259,7 +259,7 @@ public:
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
-      { 0,   "hueapiurl",     true,  "hue API url; use hue bridge API at specific location (disables UPnP/SSDP search)" },
+      { 0,   "hueapiurl",     true,  "hue API url;use hue bridge API at specific location (disables UPnP/SSDP search)" },
       #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
@@ -279,21 +279,21 @@ public:
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
-                                     "iospec is of form [bus.[device.]]pin:\n"
-                                     "- gpio.gpionumber : generic Linux GPIO\n"
-      #if !DISABLE_I2C
-                                     "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
-                                     "  (supported for DEVICE : TCA9555, PCF8574)"
-      #endif
+                                     "iospec is of form [bus.[device.]]pin:"
+                                     "\n- gpio.gpionumber : generic Linux GPIO"
+//      #if !DISABLE_I2C
+                                     "\n- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                     "(supported for DEVICE : TCA9555, PCF8574)"
+//      #endif
                                      },
       { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
-                                     "iospec is of form [bus.[device.]]pin:\n"
+                                     "iospec is of form [bus.[device.]]pin:"
       #if !DISABLE_I2C
-                                     "- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N\n"
-                                     "  (supported for DEVICE : PCA9685)"
+                                     "\n- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                     "(supported for DEVICE : PCA9685)"
       #endif
                                      },
-      { 'k', "consoleio",     true,  "name[:(dimmer|button|valve)];add static debug device which reads and writes console\n"
+      { 'k', "consoleio",     true,  "name[:(dimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
