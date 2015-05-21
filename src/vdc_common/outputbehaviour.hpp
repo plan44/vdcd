@@ -98,11 +98,19 @@ namespace p44 {
     /// Configure hardware parameters of the output
     void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
-    /// @return true if device is in local priority mode
+    /// @param aLocalPriority true to set local priority mode, false to clear it
     void setLocalPriority(bool aLocalPriority) { localPriority = aLocalPriority; };
 
     /// @return true if device is in local priority mode
     bool hasLocalPriority() { return localPriority; };
+
+    /// @return true if output is enabled
+    bool isEnabled() { return outputMode!=outputmode_disabled; };
+
+    /// set new output mode
+    /// @param aOutputMode, new output mode
+    /// @note a change in output mode might trigger (re-)applying channel values
+    virtual void setOutputMode(DsOutputMode aOutputMode);
 
     /// @return output functionality the hardware provides
     DsOutputFunction getOutputFunction() { return outputFunction; };

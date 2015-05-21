@@ -790,7 +790,7 @@ void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
       isDimming = true;
       // wait for all apply operations to really complete before starting to dim
       SimpleCB dd = boost::bind(&Device::dimDoneHandler, this, ch, increment, MainLoop::now()+10*MilliSecond);
-      waitForApplyComplete(boost::bind(&Device::requestApplyingChannels, this, dd, false));
+      waitForApplyComplete(boost::bind(&Device::requestApplyingChannels, this, dd, false, false));
     }
   }
 }
@@ -827,8 +827,14 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
 #define SERIALIZER_WATCHDOG 1
 #define SERIALIZER_WATCHDOG_TIMEOUT (20*Second)
 
-void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming)
+void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming, bool aModeChange)
 {
+  if (!aModeChange && output && !output->isEnabled()) {
+    // disabled output and not a mode change -> no operation
+    FOCUSLOG("requestApplyingChannels called with output disabled in device %s -> NOP\n", shortDesc().c_str());
+    // - just call back immediately
+    if (aAppliedOrSupersededCB) aAppliedOrSupersededCB();
+  }
   FOCUSLOG("requestApplyingChannels entered in device %s\n", shortDesc().c_str());
   // Caller wants current channel values applied to hardware
   // Three possible cases:
@@ -860,7 +866,7 @@ void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForD
     applyInProgress = true;
   }
   else {
-    // case c) applying is not currently in progress, start updating hardware now
+    // case c) applying is not currently in progress, can start updating hardware now
     FOCUSLOG("- ready, calling applyChannelValues() in device %s\n", shortDesc().c_str());
     #if SERIALIZER_WATCHDOG
     // - start watchdog

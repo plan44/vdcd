@@ -132,6 +132,21 @@ void OutputBehaviour::setGroupMembership(DsGroup aGroup, bool aIsMember)
 }
 
 
+void OutputBehaviour::setOutputMode(DsOutputMode aOutputMode)
+{
+  // base class marks all channels needing re-apply and triggers a apply if mode changes
+  if (outputMode!=aOutputMode) {
+    // mode has actually changed
+    outputMode = aOutputMode;
+    for (ChannelBehaviourVector::iterator pos=channels.begin(); pos!=channels.end(); ++pos) {
+      (*pos)->setNeedsApplying(0); // needs immediate re-apply
+    }
+    device.requestApplyingChannels(NULL, false, true); // apply, for mode change
+  }
+}
+
+
+
 #pragma mark - scene handling
 
 
@@ -447,7 +462,7 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case mode_key+settings_key_offset:
-          outputMode = (DsOutputMode)aPropValue->int32Value();
+          setOutputMode((DsOutputMode)aPropValue->int32Value());
           markDirty();
           return true;
         case pushChanges_key+settings_key_offset:

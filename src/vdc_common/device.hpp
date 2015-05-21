@@ -258,11 +258,13 @@ namespace p44 {
     ///   even newer values set requested to be applied.
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
+    /// @param aModeChange if set, channels will be applied in all cases, even if output mode is set to "disabled".
+    ///   This flag is set in calls when output mode has changed
     /// @note this internally calls applyChannelValues() to perform actual work, but serializes the behaviour towards the caller
     ///   such that aAppliedOrSupersededCB of the previous request is always called BEFORE initiating subsequent
     ///   channel updates in the hardware. It also may discard requests (but still calling aAppliedOrSupersededCB) to
     ///   avoid stacking up delayed requests.
-    void requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming);
+    void requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForDimming, bool aModeChange = false);
 
     /// request callback when apply is really complete (all pending applies done)
     /// @param aApplyCompleteCB will called when values are applied and no other change is pending
@@ -377,6 +379,7 @@ namespace p44 {
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
     ///   updating the device hardware, channelValueApplied() must be called on the channels that had isChannelUpdatePending().
+    ///   In addition, if the device output hardware has distinct disabled/enabled states, output->isEnabled() must be checked and applied.
     /// @note the implementation must capture the channel values to be applied before returning from this method call,
     ///   because channel values might change again before a delayed apply mechanism calls aDoneCB.
     /// @note this method will NOT be called again until aCompletedCB is called, even if that takes a long time.

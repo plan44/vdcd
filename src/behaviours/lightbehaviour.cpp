@@ -103,7 +103,11 @@ void LightBehaviour::initMinBrightness(Brightness aMin)
 
 Brightness LightBehaviour::brightnessForHardware()
 {
-  if (isDimmable()) {
+  if (!isEnabled()) {
+    // disabled lights are off
+    return 0;
+  }
+  else if (isDimmable()) {
     // dim output
     return brightness->getTransitionalValue();
   }
