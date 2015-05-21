@@ -71,6 +71,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, false); // mode not restricted
+    b->setGroup(group_yellow_light); // pre-configure for light
     b->setHardwareName(string_format("console key '%c'",name[0]));
     addBehaviour(b);
   }
