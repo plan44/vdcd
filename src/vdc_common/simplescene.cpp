@@ -258,7 +258,7 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 100, scene_effect_smooth, false, true  }, // +10 = 74 : Alarm1 - SIG_ALARM
   { 100, scene_effect_smooth, false, true  }, // +11 = 75 : Zone Active
   { 100, scene_effect_none,   true,  false }, // +12 = 76 : Fire
-  { 100, scene_effect_smooth, false, true  }, // +13 = 77 : Reserved
+  { 100, scene_effect_smooth, false, true  }, // +13 = 77 : Smoke
 
   // all other scenes equal or higher
   {   0, scene_effect_smooth, false, true  }, // 78..n : zero output, don't care, Reserved

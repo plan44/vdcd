@@ -96,9 +96,9 @@ typedef enum {
   ALARM1 = (START_APARTMENT_SCENES + 10),         ///< 74 - Alarm1
   ZONE_ACTIVE = (START_APARTMENT_SCENES + 11),    ///< 75 - Zone active
   FIRE = (START_APARTMENT_SCENES + 12),           ///< 76 - Fire
-  ///< 77 - reserved
-  ///< 78 - reserved
-  ///< 79 - reserved
+  SMOKE = (START_APARTMENT_SCENES + 13),          ///< 77 - Smoke
+  WATER = (START_APARTMENT_SCENES + 14),          ///< 78 - Water
+  GAS = (START_APARTMENT_SCENES + 15),            ///< 79 - Gas
   BELL2 = (START_APARTMENT_SCENES + 16),          ///< 80 - Bell2
   BELL3 = (START_APARTMENT_SCENES + 17),          ///< 81 - Bell3
   BELL4 = (START_APARTMENT_SCENES + 18),          ///< 82 - Bell4
