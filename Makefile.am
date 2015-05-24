@@ -36,6 +36,13 @@ else
 vdcd_DEBUG =
 endif
 
+if RASPBERRYPI
+vdcd_PLATFORM = -D RASPBERRYPI=1
+else
+vdcd_PLATFORM =
+endif
+
+
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
 
@@ -44,6 +51,26 @@ if RASPBERRYPI
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
 vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+# sources only supported on RPI
+LEDCHAIN_SRC = \
+  src/thirdparty/rpi_ws281x/clk.h \
+  src/thirdparty/rpi_ws281x/gpio.h \
+  src/thirdparty/rpi_ws281x/dma.h \
+  src/thirdparty/rpi_ws281x/dma.c \
+  src/thirdparty/rpi_ws281x/pwm.h \
+  src/thirdparty/rpi_ws281x/pwm.c \
+  src/thirdparty/rpi_ws281x/ws2811.h \
+  src/thirdparty/rpi_ws281x/ws2811.c \
+  src/deviceclasses/ledchain/ws281xcomm.hpp \
+  src/deviceclasses/ledchain/ws281xcomm.cpp \
+  src/deviceclasses/ledchain/ledchaindevice.hpp \
+  src/deviceclasses/ledchain/ledchaindevice.cpp \
+  src/deviceclasses/ledchain/ledchaindevicecontainer.hpp \
+  src/deviceclasses/ledchain/ledchaindevicecontainer.cpp
+LEDCHAIN_INCLUDES = \
+  -I ${srcdir}/src/deviceclasses/ledchain \
+  -I ${srcdir}/src/thirdparty/rpi_ws281x
+
 else
 # automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
 # vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
@@ -65,17 +92,20 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${vdcd_DEBUG} \
+  ${vdcd_PLATFORM} \
   -D DISABLE_OLA=1
 
 
 vdcd_SOURCES = \
   ${MONGOOSE_SRC} \
+  ${LEDCHAIN_SRC} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
@@ -251,12 +281,14 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
   -I ${srcdir}/src/deviceclasses/ola \
+  ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${vdcd_DEBUG} \
+  ${vdcd_PLATFORM} \
   -D DISABLE_OLA=0
 
 olavdcd_SOURCES = \

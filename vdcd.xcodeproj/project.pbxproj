@@ -130,6 +130,9 @@
 		ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
 		ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
+		ED911D2E1B11D97700B18624 /* ledchaindevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */; };
+		ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D291B11D97700B18624 /* ledchaindevice.cpp */; };
+		ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDADCADC1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
@@ -374,6 +377,12 @@
 		ED81338117C72F87003982CC /* sensorbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = sensorbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D271B11D97700B18624 /* ledchaindevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ledchaindevicecontainer.hpp; path = ledchain/ledchaindevicecontainer.hpp; sourceTree = "<group>"; };
+		ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ledchaindevicecontainer.cpp; path = ledchain/ledchaindevicecontainer.cpp; sourceTree = "<group>"; };
+		ED911D291B11D97700B18624 /* ledchaindevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ledchaindevice.cpp; path = ledchain/ledchaindevice.cpp; sourceTree = "<group>"; };
+		ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ledchaindevice.hpp; path = ledchain/ledchaindevice.hpp; sourceTree = "<group>"; };
+		ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ws281xcomm.cpp; path = ledchain/ws281xcomm.cpp; sourceTree = "<group>"; };
+		ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ws281xcomm.hpp; path = ledchain/ws281xcomm.hpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = apivalue.cpp; sourceTree = "<group>"; };
 		EDADCADA1846373300297214 /* apivalue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = apivalue.hpp; sourceTree = "<group>"; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ssdpsearch.cpp; sourceTree = "<group>"; };
@@ -564,6 +573,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				ED911D251B11D73A00B18624 /* ledchain */,
 				EDDDD54D1A125F8E007D2ABE /* ola */,
 				EDF62B43183A0EA50016BFDA /* upnphack */,
 				ED31268F1831865800FAF28B /* demo */,
@@ -775,6 +785,19 @@
 				ED5C8EB317CF393E002CC15F /* enoceantool.cpp */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		ED911D251B11D73A00B18624 /* ledchain */ = {
+			isa = PBXGroup;
+			children = (
+				ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */,
+				ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */,
+				ED911D291B11D97700B18624 /* ledchaindevice.cpp */,
+				ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */,
+				ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */,
+				ED911D271B11D97700B18624 /* ledchaindevicecontainer.hpp */,
+			);
+			name = ledchain;
 			sourceTree = "<group>";
 		};
 		EDDDD54D1A125F8E007D2ABE /* ola */ = {
@@ -1046,6 +1069,7 @@
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
 				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,
+				ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */,
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
 				EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
@@ -1055,6 +1079,7 @@
 				EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
+				ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
@@ -1088,6 +1113,7 @@
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
+				ED911D2E1B11D97700B18624 /* ledchaindevicecontainer.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
 				ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */,

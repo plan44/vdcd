@@ -184,7 +184,7 @@ ErrorPtr OlaDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const strin
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addDevice") {
-    // add a new static device
+    // add a new OLA device
     string deviceType;
     string deviceConfig;
     respErr = checkStringParam(aParams, "deviceType", deviceType);
@@ -192,7 +192,7 @@ ErrorPtr OlaDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const strin
       respErr = checkStringParam(aParams, "deviceConfig", deviceConfig);
       if (Error::isOK(respErr)) {
         // optional name
-        string name; // default to config
+        string name;
         checkStringParam(aParams, "name", name);
         // try to create device
         OlaDevicePtr dev = addOlaDevice(deviceType, deviceConfig);

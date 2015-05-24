@@ -20,9 +20,10 @@
 #if (defined(__APPLE__) || defined(DIGI_ESP)) && !defined(RASPBERRYPI)
   #define DISABLE_I2C 1
 #endif
-// - No OLA on DIGI_ESP
+// - No OLA or LED Chains on DIGI_ESP
 #if defined(DIGI_ESP)
   #define DISABLE_OLA 1
+  #define DISABLE_LEDCHAIN 1
 #endif
 
 

@@ -36,6 +36,10 @@
 #if !DISABLE_OLA
 #include "oladevicecontainer.hpp"
 #endif
+#if !DISABLE_LEDCHAIN
+#include "ledchaindevicecontainer.hpp"
+#endif
+
 
 #include "digitalio.hpp"
 
@@ -263,6 +267,9 @@ public:
       #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
+      #if !DISABLE_LEDCHAIN
+      { 0,   "ledchain",      true,  "numleds; enable support for LED chains forming one or multiple RGB lights" },
+      #endif
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -281,10 +288,10 @@ public:
                                      "Use ! for inverted polarity (default is noninverted input)\n"
                                      "iospec is of form [bus.[device.]]pin:"
                                      "\n- gpio.gpionumber : generic Linux GPIO"
-//      #if !DISABLE_I2C
+      #if !DISABLE_I2C
                                      "\n- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
                                      "(supported for DEVICE : TCA9555, PCF8574)"
-//      #endif
+      #endif
                                      },
       { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
                                      "iospec is of form [bus.[device.]]pin:"
@@ -473,6 +480,16 @@ public:
       if (getOption("ola")) {
         OlaDeviceContainerPtr olaDeviceContainer = OlaDeviceContainerPtr(new OlaDeviceContainer(1, p44VdcHost.get(), 5)); // Tag 5 = ola
         olaDeviceContainer->addClassToDeviceContainer();
+      }
+      #endif
+      #if !DISABLE_LEDCHAIN
+      // - Add Led chain support
+      int numleds;
+      if (getIntOption("ledchain", numleds)) {
+        if (numleds>0) {
+          LedChainDeviceContainerPtr ledChainDeviceContainer = LedChainDeviceContainerPtr(new LedChainDeviceContainer(1, numleds, p44VdcHost.get(), 6)); // Tag 6 = led chain
+          ledChainDeviceContainer->addClassToDeviceContainer();
+        }
       }
       #endif
       // - Add static devices if we explictly want it or have collected any config from the command line
