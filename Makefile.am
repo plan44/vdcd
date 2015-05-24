@@ -206,6 +206,8 @@ vdcd_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/shadowbehaviour.cpp \
+  src/behaviours/shadowbehaviour.hpp \
   src/behaviours/buttonbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
   src/behaviours/sensorbehaviour.hpp \
@@ -405,6 +407,8 @@ demovdc_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/shadowbehaviour.cpp \
+  src/behaviours/shadowbehaviour.hpp \
   src/behaviours/buttonbehaviour.cpp \
   src/behaviours/sensorbehaviour.hpp \
   src/behaviours/sensorbehaviour.cpp \
