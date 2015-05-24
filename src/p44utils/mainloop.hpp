@@ -130,6 +130,10 @@ namespace p44 {
   {
     friend class ChildThreadWrapper;
 
+    typedef std::list<SimpleCB> CleanupHandlersList;
+
+    CleanupHandlersList cleanupHandlers;
+
     typedef struct {
       void *subscriberP;
       IdleCB callback;
@@ -317,6 +321,12 @@ namespace p44 {
     /// terminate the mainloop
     /// @param aExitCode the code to return from run()
     void terminate(int aExitCode);
+
+    /// register a cleanup handler, which will be called when the main loop has terminated
+    /// @param aCleanupHandler the routine to be called
+    /// @note the code in cleanup handlers cannot use mailoop services any more, because at time of calling the
+    ///   mainloop has already terminated running
+    void registerCleanupHandler(SimpleCB aCleanupHandler);
 
     /// run the mainloop
     /// @return returns a exit code

@@ -364,6 +364,12 @@ void MainLoop::childAnswerCollected(ExecCB aCallback, FdStringCollectorPtr aAnsw
 
 
 
+void MainLoop::registerCleanupHandler(SimpleCB aCleanupHandler)
+{
+  cleanupHandlers.push_back(aCleanupHandler);
+}
+
+
 
 void MainLoop::terminate(int aExitCode)
 {
@@ -644,6 +650,11 @@ int MainLoop::run()
     statisticsCycles ++; // one cycle completed
     #endif
   } // not terminated
+  // run mainloop termination handlers
+  for (CleanupHandlersList::iterator pos = cleanupHandlers.begin(); pos!=cleanupHandlers.end(); ++pos) {
+    SimpleCB cb = *pos;
+    if (cb) cb();
+  }
 	return exitCode;
 }
 
