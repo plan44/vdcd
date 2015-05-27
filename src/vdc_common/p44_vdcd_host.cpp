@@ -403,9 +403,16 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       int seconds = 30; // default to 30
       if (o) seconds = o->int32Value();
       if (seconds==0) {
-        // end learning
+        // end learning prematurely
         stopLearning();
-        learnHandler(aJsonComm, false, ErrorPtr());
+        MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
+        // - close still running learn request
+        if (learnIdentifyRequest) {
+          learnIdentifyRequest->closeConnection();
+          learnIdentifyRequest.reset();
+        }
+        // - confirm abort with no result
+        sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr());
       }
       else {
         // start learning
@@ -422,7 +429,14 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
       if (seconds==0) {
         // end reporting user activity
         setUserActionMonitor(NULL);
-        identifyHandler(aJsonComm, DevicePtr());
+        MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
+        // - close still running identify request
+        if (learnIdentifyRequest) {
+          learnIdentifyRequest->closeConnection();
+          learnIdentifyRequest.reset();
+        }
+        // - confirm abort with no result
+        sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr());
       }
       else {
         // wait for next user activity
@@ -455,12 +469,9 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
 void P44VdcHost::learnHandler(JsonCommPtr aJsonComm, bool aLearnIn, ErrorPtr aError)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
-  if (learnIdentifyRequest) {
-    learnIdentifyRequest->closeConnection();
-    learnIdentifyRequest.reset();
-  }
   stopLearning();
   sendCfgApiResponse(aJsonComm, JsonObject::newBool(aLearnIn), aError);
+  learnIdentifyRequest.reset();
 }
 
 
@@ -474,12 +485,9 @@ void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
   }
   else {
     sendCfgApiResponse(aJsonComm, JsonObjectPtr(), ErrorPtr(new P44VdcError(408, "identify timeout")));
-    if (learnIdentifyRequest) {
-      learnIdentifyRequest->closeConnection();
-      learnIdentifyRequest.reset();
-    }
     setUserActionMonitor(NULL);
   }
+  learnIdentifyRequest.reset();
 }
 
 
