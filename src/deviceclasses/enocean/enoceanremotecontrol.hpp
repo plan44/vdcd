@@ -35,6 +35,7 @@ namespace p44 {
   #define PSEUDO_RORG_REMOTECONTROL 0xFF
   #define PSEUDO_FUNC_SWITCHCONTROL 0xF6
   #define PSEUDO_TYPE_SIMPLEBLIND 0xFF // simplistic Fully-Up/Fully-Down blind controller
+  #define PSEUDO_TYPE_BLIND 0xFE // time controlled blind with angle support
 
   /// remote control type device (using base id to communicate with actor)
   class EnoceanRemoteControlHandler : public EnoceanChannelHandler
@@ -80,7 +81,8 @@ namespace p44 {
 
     /// send out actions directly needed to propagate channel value to this device.
     /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
-    virtual void issueDirectChannelActions();
+    /// @param aDoneCB if not NULL, must be called when values are applied
+    virtual void issueDirectChannelActions(SimpleCB aDoneCB);
 
   protected:
 
@@ -95,10 +97,46 @@ namespace p44 {
 
   private:
 
-    void sendReleaseTelegram();
+    void sendReleaseTelegram(SimpleCB aDoneCB);
 
   };
   typedef boost::intrusive_ptr<EnoceanSimpleBlindHandler> EnoceanSimpleBlindHandlerPtr;
+
+
+
+  /// full blind controller with angle support
+  class EnoceanBlindHandler : public EnoceanRemoteControlHandler
+  {
+    typedef EnoceanRemoteControlHandler inherited;
+    friend class EnoceanRemoteControlHandler;
+
+    int movingDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
+    long commandTicket;
+    bool missedUpdate;
+
+    /// send out actions directly needed to propagate channel value to this device.
+    /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
+    /// @param aDoneCB if not NULL, must be called when values are applied
+    virtual void issueDirectChannelActions(SimpleCB aDoneCB);
+
+  protected:
+
+    /// private constructor, create new channels using factory static method
+    EnoceanBlindHandler(EnoceanDevice &aDevice);
+
+  public:
+
+    /// short (text without LFs!) description of object, mainly for referencing it in log messages
+    /// @return textual description of object
+    virtual string shortDesc();
+
+  private:
+
+    void sendReleaseTelegram(SimpleCB aDoneCB);
+    void buttonAction(bool aBlindUp, bool aPress);
+
+  };
+  typedef boost::intrusive_ptr<EnoceanBlindHandler> EnoceanBlindHandlerPtr;
 
 
 

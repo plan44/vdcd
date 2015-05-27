@@ -334,6 +334,11 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     LOG(LOG_INFO, "Radio packet error: %s\n", aError->description().c_str());
     return;
   }
+  // suppress radio packets send by one of my secondary IDs
+  if ((aEsp3PacketPtr->radioSender() & 0xFFFFFF80) == enoceanComm.idBase()) {
+    LOG(LOG_DEBUG, "Suppressed radio packet coming from one of my own base IDs: %0lX\n", aEsp3PacketPtr->radioSender());
+    return;
+  }
   // check learning mode
   if (learningMode) {
     // no learn/unlearn actions detected so far

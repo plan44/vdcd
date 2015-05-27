@@ -158,15 +158,23 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    MLMicroSeconds openTime;
-    MLMicroSeconds closeTime;
-    MLMicroSeconds angleOpenTime;
-    MLMicroSeconds angleCloseTime;
+    double openTime;
+    double closeTime;
+    double angleOpenTime;
+    double angleCloseTime;
     /// @}
 
 
     /// @name internal volatile state
     /// @{
+    MLMicroSeconds startedMoving; ///< if not Never, time when last moving command was issued
+    double startingPosition;
+    double startingAngle;
+    int movingDirection; ///< current direction: 0=stopped, -1=moving down, +1=moving up
+    bool movingAngle; ///< set when movement is for adjusting angle
+    long movingTicket;
+    bool updatingMovement;
+    bool needAnotherShortMove;
     /// @}
 
 
@@ -270,6 +278,14 @@ namespace p44 {
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
   private:
+
+    void updateMovement();
+    void beginMoving();
+    void endMoving();
+    void endedMoving();
+    void stopMovement();
+    double getPosition(bool aAlwaysCalculated);
+    double getAngle(bool aAlwaysCalculated);
 
   };
 
