@@ -104,8 +104,8 @@ namespace p44 {
 
     /// check for presence of model feature (flag in dSS visibility matrix)
     /// @param aFeatureIndex the feature to check for
-    /// @return true if this output behaviour has the feature (which means dSS Configurator must provide UI for it)
-    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex);
+    /// @return yes if this output behaviour has the feature, no if (explicitly) not, undefined if asked entity does not know
+    virtual Tristate hasModelFeature(DsModelFeatures aFeatureIndex);
 
     /// Process a named control value. The type, color and settings of the output determine if at all,
     /// and if, how the value affects the output

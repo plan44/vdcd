@@ -71,7 +71,7 @@ string Device::modelUID()
   if (output) s += output->behaviourTypeIdentifier();
   // model features
   for (int f=0; f<numModelFeatures; f++) {
-    s += hasModelFeature((DsModelFeatures)f) ? 'T' : 'F';
+    s += hasModelFeature((DsModelFeatures)f)==yes ? 'T' : 'F';
   }
   // now make UUIDv5 type dSUID out of it
   DsUid modelUID;
@@ -244,74 +244,59 @@ static const char *modelFeatureNames[numModelFeatures] = {
 };
 
 
-bool Device::hasModelFeature(DsModelFeatures aFeatureIndex)
+Tristate Device::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // ask output first, might have more specific info
   if (output) {
-    bool hasFeature = output->hasModelFeature(aFeatureIndex);
-    if (hasFeature) return true; // output has the feature, no need to check at device level
+    Tristate hasFeature = output->hasModelFeature(aFeatureIndex);
+    if (hasFeature!=undefined) return hasFeature; // output has a say about the feature, no need to check at device level
   }
   // now check for device level features
   switch (aFeatureIndex) {
     case modelFeature_dontcare:
       // Generic: all devices with scene table have the ability to set scene's don't care flag
-      return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings)!=NULL;
-    case modelFeature_blink:
-      // Assumption: all devices with an output have this, except heating
-      return output && primaryGroup!=group_blue_heating;
+      return boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings)!=NULL ? yes : no;
     case modelFeature_ledauto:
     case modelFeature_leddark:
       // Virtual devices do not have the standard dS LED at all
-      return false;
-    case modelFeature_outmode:
-      // Assumption: All devices with an output that is gradual (not only switched) should have this
-      return (output && output->getOutputFunction()!=outputFunction_switch);
-    case modelFeature_outmodeswitch:
-      // Assumption: All devices with a switch-only output (not dimmable) should have this
-      return (output && output->getOutputFunction()==outputFunction_switch);
-    case modelFeature_outvalue8:
-      // Assumption: All normal 8-bit outputs should have this. Exception so far are shade outputs
-      return (output && !output->isMember(group_grey_shadow));
-    case modelFeature_shadeposition:
-      // Assumption: Shade outputs should be 16bit resolution and be labelled "Position", not "Value"
-      return (output && output->isMember(group_grey_shadow));
+      return no;
     case modelFeature_pushbutton:
     case modelFeature_pushbarea:
     case modelFeature_pushbadvanced:
     case modelFeature_pushbsensor:
       // Assumption: any device with a buttonInputBehaviour has these props
-      return buttons.size()>0;
+      return buttons.size()>0 ? yes : no;
     case modelFeature_pushbdevice:
       // Assumption: virtual devices don't have a local button
-      return false;
+      return no;
     case modelFeature_pushbcombined:
     case modelFeature_twowayconfig:
       // Assumption: devices with more than single button input are combined up/down (or even 4-way and more) buttons, and need two-way config
-      return buttons.size()>1;
+      return buttons.size()>1 ? yes : no;
     case modelFeature_highlevel:
       // Assumption: only black joker devices can have a high-level (app) functionality
-      return primaryGroup==group_black_joker;
+      return primaryGroup==group_black_joker ? yes : no;
     case modelFeature_jokerconfig:
       // Assumption: black joker devices need joker config (setting color) only if there are buttons or an output.
       // Pure sensors or binary inputs don't need color config
-      return primaryGroup==group_black_joker && (output || buttons.size()>0);
+      return primaryGroup==group_black_joker && (output || buttons.size()>0) ? yes : no;
     case modelFeature_akmsensor:
       // Assumption: only devices with binaryinputs that do not have a predefined type need akmsensor
       for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) {
         BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(*pos);
         if (b && b->getHardwareInputType()==binInpType_none) {
-          return true; // input with no predefined functionality, need to be able to configure sensor
+          return yes; // input with no predefined functionality, need to be able to configure sensor
         }
       }
       // no inputs or all inputs have predefined functionality
-      return false;
+      return no;
     case modelFeature_akminput:
     case modelFeature_akmdelay:
       // TODO: once binaryInputs support the AKM binary input settings (polarity, delays), this should be enabled
       //   for configurable inputs (most likely those that already have modelFeature_akmsensor)
-      return false; // %%% for now
+      return no; // %%% for now
     default:
-      return false; // not known
+      return undefined; // not known
   }
 }
 
@@ -1662,7 +1647,7 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
   else if (aPropertyDescriptor->hasObjectKey(device_modelFeatures_key)) {
     // model features
     if (aMode==access_read) {
-      if (hasModelFeature((DsModelFeatures)aPropertyDescriptor->fieldKey())) {
+      if (hasModelFeature((DsModelFeatures)aPropertyDescriptor->fieldKey())==yes) {
         aPropValue->setBoolValue(true);
         return true;
       }

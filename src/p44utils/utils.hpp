@@ -30,6 +30,14 @@ using namespace std;
 
 namespace p44 {
 
+  /// tristate type
+  typedef enum {
+    yes = 1,
+    no = 0,
+    undefined = -1
+  } Tristate;
+
+
   /// printf-style format into std::string
   /// @param aFormat printf-style format string
   /// @return formatted string

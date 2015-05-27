@@ -178,13 +178,16 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
 }
 
 
-bool ShadowBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+Tristate ShadowBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // now check for light behaviour level features
   switch (aFeatureIndex) {
     case modelFeature_transt:
       // Assumption: all shadow output devices don't transition times
-      return false;
+      return no;
+    case modelFeature_shadeposition:
+      // Assumption: Shade outputs should be 16bit resolution and be labelled "Position", not "Value"
+      return yes;
     default:
       // not available at this level, ask base class
       return inherited::hasModelFeature(aFeatureIndex);

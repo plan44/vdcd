@@ -166,13 +166,13 @@ MovingLightBehaviour::MovingLightBehaviour(Device &aDevice) :
 }
 
 
-bool MovingLightBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+Tristate MovingLightBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // now check for light behaviour level features
   switch (aFeatureIndex) {
 //    case modelFeature_positionControls: //%%% does not exist yet...
 //      // Assumption: all moving light output devices need a UI for position
-//      return true;
+//      return yes;
     default:
       // not available at this level, ask base class
       return inherited::hasModelFeature(aFeatureIndex);

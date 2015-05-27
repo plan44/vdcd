@@ -44,6 +44,29 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
 }
 
 
+Tristate OutputBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+{
+  // now check for light behaviour level features
+  switch (aFeatureIndex) {
+    case modelFeature_outmode:
+      // Assumption: outputs that are gradual (not only switched) should have this
+      return getOutputFunction()!=outputFunction_switch ? yes : no;
+    case modelFeature_outmodeswitch:
+      // Assumption: All devices with a switch-only output (not dimmable) should have this
+      return getOutputFunction()==outputFunction_switch ? yes : no;
+    case modelFeature_outvalue8:
+      // Assumption: All normal 8-bit outputs should have this. Exception so far are shade outputs
+      return yes;
+    case modelFeature_blink:
+      // Assumption: devices with an output have this
+      return yes;
+    default:
+      // not available at output level
+      return undefined;
+  }
+}
+
+
 void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
 {
   outputFunction = aOutputFunction;

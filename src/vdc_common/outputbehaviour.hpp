@@ -133,8 +133,8 @@ namespace p44 {
 
     /// check for presence of model feature (flag in dSS visibility matrix)
     /// @param aFeatureIndex the feature to check for
-    /// @return true if this output behaviour has the feature (which means dSS Configurator must provide UI for it)
-    virtual bool hasModelFeature(DsModelFeatures aFeatureIndex) { return false; /* base class does not have any specific feature */ };
+    /// @return yes if this output behaviour has the feature, no if (explicitly) not, undefined if asked entity does not know
+    virtual Tristate hasModelFeature(DsModelFeatures aFeatureIndex);
 
     /// apply scene to output channels
     /// @param aScene the scene to apply to output channels

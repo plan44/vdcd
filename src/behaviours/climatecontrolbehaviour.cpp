@@ -53,19 +53,26 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
 }
 
 
-bool ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
+Tristate ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // now check for climate control behaviour level features
   switch (aFeatureIndex) {
+    case modelFeature_blink:
+      // heating outputs can't blink
+      return no;
     case modelFeature_heatinggroup:
       // Assumption: virtual heating control devices (valves) do have group and mode setting...
-      return true;
+      return yes;
     case modelFeature_heatingoutmode:
       // ...but not the more specific PWM and heating props
-      return false;
+      return no;
     case modelFeature_valvetype:
       // for now, all climate control devices are heating valves
-      return true;
+      return yes;
+    case modelFeature_outmodeswitch:
+    case modelFeature_outmode:
+      // suppress output mode settings
+      return no;
     default:
       // not available at this level, ask base class
       return inherited::hasModelFeature(aFeatureIndex);
