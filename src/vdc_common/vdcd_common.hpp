@@ -25,6 +25,9 @@
   #define DISABLE_OLA 1
   #define DISABLE_LEDCHAIN 1
 #endif
+#if !defined(RASPBERRYPI)
+  #define DISABLE_LEDCHAIN 1
+#endif
 
 
 #include "p44_common.hpp"
