@@ -25,6 +25,7 @@
 #include "analogiodevice.hpp"
 #include "consoledevice.hpp"
 #include "sparkiodevice.hpp"
+#include "elsnerp03weatherstation.hpp"
 
 using namespace p44;
 
@@ -133,6 +134,10 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
   else if (aDeviceType=="spark") {
     // spark core based device
     newDev = DevicePtr(new SparkIoDevice(this, aDeviceConfig));
+  }
+  else if (aDeviceType=="ElsnerP03") {
+    // spark core based device
+    newDev = DevicePtr(new ElsnerP03WeatherStation(this, aDeviceConfig));
   }
   // add to container if device was created
   if (newDev) {
