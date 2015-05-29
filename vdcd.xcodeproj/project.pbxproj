@@ -37,7 +37,6 @@
 		ED31269A18318CC100FAF28B /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED31269C18318CC100FAF28B /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
-		ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED312692183186C200FAF28B /* demodevicecontainer.cpp */; };
 		ED3126A018318CC100FAF28B /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED3126A218318CC100FAF28B /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED3126A318318CC100FAF28B /* devicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */; };
@@ -124,6 +123,8 @@
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
 		ED780C741A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
+		ED8038111B18645A0054E4B0 /* rs485weather.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED80380F1B18645A0054E4B0 /* rs485weather.cpp */; };
+		ED8038121B18817D0054E4B0 /* demodevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED312692183186C200FAF28B /* demodevicecontainer.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
 		ED81337917C6C765003982CC /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
@@ -367,6 +368,8 @@
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorlightbehaviour.cpp; sourceTree = "<group>"; };
 		ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = movinglightbehaviour.hpp; sourceTree = "<group>"; };
 		ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = movinglightbehaviour.cpp; sourceTree = "<group>"; };
+		ED80380F1B18645A0054E4B0 /* rs485weather.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rs485weather.cpp; sourceTree = "<group>"; };
+		ED8038101B18645A0054E4B0 /* rs485weather.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = rs485weather.hpp; sourceTree = "<group>"; };
 		ED81337117C644AE003982CC /* dsscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsscene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81337217C644AE003982CC /* dsscene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsscene.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED81337417C65F7E003982CC /* devicesettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = devicesettings.cpp; sourceTree = "<group>"; };
@@ -652,6 +655,8 @@
 				ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */,
 				EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */,
 				EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */,
+				ED80380F1B18645A0054E4B0 /* rs485weather.cpp */,
+				ED8038101B18645A0054E4B0 /* rs485weather.hpp */,
 			);
 			path = simpleio;
 			sourceTree = "<group>";
@@ -974,11 +979,11 @@
 				EDF62B49183A0ED20016BFDA /* upnpdevicecontainer.cpp in Sources */,
 				ED31269D18318CC100FAF28B /* dsscene.cpp in Sources */,
 				ED5133BE19F6A6B70027999E /* simplescene.cpp in Sources */,
-				ED31269E18318CC100FAF28B /* demodevicecontainer.cpp in Sources */,
 				ED3126A018318CC100FAF28B /* logger.cpp in Sources */,
 				ED3126A218318CC100FAF28B /* utils.cpp in Sources */,
 				ED3126A318318CC100FAF28B /* devicecontainer.cpp in Sources */,
 				ED3126A618318CC100FAF28B /* deviceclasscontainer.cpp in Sources */,
+				ED8038121B18817D0054E4B0 /* demodevicecontainer.cpp in Sources */,
 				ED3126A818318CC100FAF28B /* fdcomm.cpp in Sources */,
 				ED3126A918318CC100FAF28B /* outputbehaviour.cpp in Sources */,
 				ED3126AA18318CC100FAF28B /* propertycontainer.cpp in Sources */,
@@ -1118,6 +1123,7 @@
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
 				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
+				ED8038111B18645A0054E4B0 /* rs485weather.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
