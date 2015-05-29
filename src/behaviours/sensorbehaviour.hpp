@@ -77,7 +77,7 @@ namespace p44 {
     /// initialisation of hardware-specific constants for this sensor
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
-    void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval);
+    void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval, MLMicroSeconds aDefaultChangesOnlyInterval=0);
 
     /// set group
     virtual void setGroup(DsGroup aGroup) { sensorGroup = aGroup; };

@@ -39,7 +39,7 @@ SensorBehaviour::SensorBehaviour(Device &aDevice) :
 }
 
 
-void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval)
+void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval, MLMicroSeconds aDefaultChangesOnlyInterval)
 {
   sensorType = aType;
   sensorUsage = aUsage;
@@ -48,6 +48,8 @@ void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aU
   resolution = aResolution;
   updateInterval = aUpdateInterval;
   aliveSignInterval = aAliveSignInterval;
+  // default only, devices once created will have this as a persistent setting
+  changesOnlyInterval = aDefaultChangesOnlyInterval;
 }
 
 
