@@ -143,6 +143,14 @@ namespace p44 {
   } ShadowDeviceKind;
 
 
+  /// callback from ShadowBehaviour to device implementation to perform moving sequence
+  /// @param aDoneCB must be called when the movement change has been applied (as precisely as
+  ///   possible at the time when the movement change actually happens in the hardware).
+  /// @param aNewDirection: 0=stopp, -1=start moving down, +1=start moving up
+  /// @note implementation should NOT call channelValueApplied(), this is done by ShadowBehaviour when appropriate
+  typedef boost::function<void (SimpleCB aDoneCB, int aNewDirection)> MovementChangeCB;
+
+
   /// Implements the behaviour of a digitalSTROM Light device, such as maintaining the logical brightness,
   /// dimming and alert (blinking) functions.
   class ShadowBehaviour : public OutputBehaviour
@@ -153,6 +161,9 @@ namespace p44 {
     /// @name hardware derived parameters (constant during operation)
     /// @{
     ShadowDeviceKind shadowDeviceKind;
+    MLMicroSeconds minMoveTime;
+    MLMicroSeconds maxShortMoveTime;
+    MLMicroSeconds minLongMoveTime;
     /// @}
 
 
@@ -167,14 +178,26 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
-    MLMicroSeconds startedMoving; ///< if not Never, time when last moving command was issued
-    double startingPosition;
-    double startingAngle;
-    int movingDirection; ///< current direction: 0=stopped, -1=moving down, +1=moving up
-    bool movingAngle; ///< set when movement is for adjusting angle
+
+    enum {
+      blind_idle, ///< blind state machine is idle
+      blind_stopping, ///< stopping
+      blind_stopping_before_apply, ///< stopping before starting apply sequence
+      blind_positioning,
+      blind_stopping_before_turning, ///< stopping before adjusting angle
+      blind_turning,
+    } blindState; ///< current state
+    bool movingUp; ///< when in a moving state: set if moving up
+    bool dimming; ///< when
+
+    double targetPosition;
+    double targetAngle;
+    double referencePosition; ///< reference (starting) position during moves
+    double referenceAngle; ///< reference (starting) position during moves
+    MovementChangeCB movementCB; ///< routine to call to change movement
+    MLMicroSeconds referenceTime; ///< if not Never, time when last movement was started
     long movingTicket;
-    bool updatingMovement;
-    bool needAnotherShortMove;
+
     /// @}
 
 
@@ -194,11 +217,23 @@ namespace p44 {
 
     /// set kind (roller, jalousie, etc.) of shadow device
     /// @param aShadowDeviceKind kind of device
-    void setDeviceKind(ShadowDeviceKind aShadowDeviceKind) { shadowDeviceKind = aShadowDeviceKind; };
+    /// @param aMinMoveTime minimal movement time that can be applied
+    /// @param aMaxShortMoveTime maximum short movement time (in case where a certain on impulse length might trigger permanent moves)
+    /// @param aMinLongMoveTime minimum time for a long move (e.g. permanent move stoppable by another impulse)
+    void setDeviceParams(ShadowDeviceKind aShadowDeviceKind, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime=0, MLMicroSeconds aMinLongMoveTime=0);
 
-    /// returns the direction the blind should move right now
-    /// @return 0=stopped, -1=moving down, +1=moving up
-    int currentMovingDirection();
+    /// initiates a blind moving sequence
+    /// @param aMovementCB will be called (usually multiple times) to perform the needed movement sequence.
+    ///   See MovementChangeCB for details about this callback's implementation requirements
+    /// @param aApplyDoneCB will be called when ShadowBehaviour considers the new values applied (which does NOT
+    ///   necessarily mean movement has already stopped, but means that another apply sequence could be
+    ///   started.
+    /// @note this is usually called from a device's applyChannelValues()
+    void initiateBlindMovingSequence(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming);
+
+    /// update channel values with current state of blind movement
+    /// @note this is usually called from a device's syncChannelValues()
+    void syncBlindState();
 
     /// @}
 
@@ -279,13 +314,21 @@ namespace p44 {
 
   private:
 
-    void updateMovement();
-    void beginMoving();
-    void endMoving();
-    void endedMoving();
-    void stopMovement();
-    double getPosition(bool aAlwaysCalculated);
-    double getAngle(bool aAlwaysCalculated);
+    double getPosition();
+    double getAngle();
+    void stop(SimpleCB aApplyDoneCB);
+    void stopped(SimpleCB aApplyDoneCB);
+    void allDone(SimpleCB aApplyDoneCB);
+    void applyPosition(SimpleCB aApplyDoneCB);
+    void applyAngle(SimpleCB aApplyDoneCB);
+
+    void startMoving(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB);
+    void moveStarted(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB);
+    void endMove(MLMicroSeconds aRemainingMoveTime, SimpleCB aApplyDoneCB);
+    void movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aApplyDoneCB);
+
+    void startIdentify(ShadowScenePtr aRestoreScene);
+    void stopIdentify(ShadowScenePtr aRestoreScene);
 
   };
 

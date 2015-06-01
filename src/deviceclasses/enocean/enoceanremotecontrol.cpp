@@ -80,10 +80,19 @@ void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
 }
 
 
-// insert into knowndevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) values (0xFFDC0D00, 0, 0xFFF6FF, 0xFFFF);
-// insert into knowndevices (enoceanAddress, subdevice, eeProfile, eeManufacturer) values (4292611328, 0, 16774911, 65535);
-
 #pragma mark - EnoceanRemoteControlHandler
+
+
+// Blind controller
+// - hardware timing
+#define LONGPRESS_TIME (1*Second)
+#define SHORTPRESS_TIME (200*MilliSecond)
+#define PAUSE_TIME (300*MilliSecond)
+// - derived timing
+#define MIN_MOVE_TIME SHORTPRESS_TIME
+#define MAX_SHORT_MOVE_TIME (LONGPRESS_TIME/2)
+#define MIN_LONG_MOVE_TIME (LONGPRESS_TIME+SHORTPRESS_TIME)
+
 
 EnoceanRemoteControlHandler::EnoceanRemoteControlHandler(EnoceanDevice &aDevice) :
   inherited(aDevice)
@@ -103,35 +112,9 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
     // is a remote control device
     if (EEP_FUNC(aEEProfile)==PSEUDO_FUNC_SWITCHCONTROL && aSubDeviceIndex<1) {
       // device using F6 RPS messages to control actors
-      if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_SIMPLEBLIND) {
-        // simple blind controller
-        newDev = EnoceanDevicePtr(new EnoceanRemoteControlDevice(aClassContainerP));
-        // standard single-value scene table (SimpleScene)
-        newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
-        // assign channel and address
-        newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
-        // assign EPP information
-        newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-        // is shadow
-        newDev->setPrimaryGroup(group_grey_shadow);
-        // function
-        newDev->setFunctionDesc("simple blind control");
-        // is always updateable (no need to wait for incoming data)
-        newDev->setAlwaysUpdateable();
-        // - add generic output behaviour
-        OutputBehaviourPtr ob = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-        ob->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-        ob->setHardwareName("blind");
-        ob->setGroupMembership(group_grey_shadow, true); // put into shadow group by default
-        ob->addChannel(ChannelBehaviourPtr(new DigitalChannel(*ob)));
-        // - create PSEUDO_TYPE_SIMPLEBLIND specific handler for output
-        EnoceanSimpleBlindHandlerPtr newHandler = EnoceanSimpleBlindHandlerPtr(new EnoceanSimpleBlindHandler(*newDev.get()));
-        newHandler->behaviour = ob;
-        newDev->addChannelHandler(newHandler);
-      }
-      else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
-        // simple blind controller
-        newDev = EnoceanDevicePtr(new EnoceanRemoteControlDevice(aClassContainerP));
+      if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
+        // full-featured blind controller
+        newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aClassContainerP));
         // standard single-value scene table (SimpleScene)
         newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
         // assign channel and address
@@ -148,12 +131,11 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*newDev.get()));
         sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
         sb->setHardwareName("blind");
+        sb->setDeviceParams(shadowdevice_jalousie, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
         sb->position->syncChannelValue(100); // assume fully up at beginning
         sb->angle->syncChannelValue(100); // assume fully open at beginning
-        // - create PSEUDO_TYPE_SIMPLEBLIND specific handler for output
-        EnoceanBlindHandlerPtr newHandler = EnoceanBlindHandlerPtr(new EnoceanBlindHandler(*newDev.get()));
-        newHandler->behaviour = sb;
-        newDev->addChannelHandler(newHandler);
+        // does not need a channel handler at all, just add behaviour
+        newDev->addBehaviour(sb);
       }
     }
   }
@@ -163,123 +145,77 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
 }
 
 
-#pragma mark - simple all-up/all-down blind controller
-
-EnoceanSimpleBlindHandler::EnoceanSimpleBlindHandler(EnoceanDevice &aDevice) :
-  inherited(aDevice)
-{
-}
+#pragma mark - time controlled blind device
 
 
-string EnoceanSimpleBlindHandler::shortDesc()
-{
-  return "Simple Blind";
-}
-
-
-void EnoceanSimpleBlindHandler::issueDirectChannelActions(SimpleCB aDoneCB)
-{
-  // veeery simplistic behaviour: value>0.5 means: blind down, otherwise: blind up
-  OutputBehaviourPtr ob = boost::dynamic_pointer_cast<OutputBehaviour>(behaviour);
-  if (ob) {
-    // get the right channel
-    ChannelBehaviourPtr ch = ob->getChannelByIndex(dsChannelIndex);
-    // get value
-    bool blindUp = ch->getChannelValue()>0.5;
-    // simulate long press of my button
-    Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
-    packet->initForRorg(rorg_RPS);
-    packet->setRadioDestination(EnoceanBroadcast);
-    packet->radioUserData()[0] = blindUp ? 0x30 : 0x10; // pressing left button, up or down
-    packet->setRadioStatus(status_NU|status_T21); // pressed
-    packet->setRadioSender(device.getAddress()); // my own ID base derived address that is learned into this actor
-    device.getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanSimpleBlindHandler::sendReleaseTelegram, this, aDoneCB), 1*Second);
-  }
-}
-
-
-void EnoceanSimpleBlindHandler::sendReleaseTelegram(SimpleCB aDoneCB)
-{
-  Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
-  packet->initForRorg(rorg_RPS);
-  packet->setRadioDestination(EnoceanBroadcast);
-  packet->radioUserData()[0] = 0x00; // release
-  packet->setRadioStatus(status_T21); // released
-  packet->setRadioSender(device.getAddress()); // my own ID base derived address that is learned into this actor
-  device.getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
-  if (aDoneCB) aDoneCB();
-}
-
-
-#pragma mark - time controller blind handler
-
-
-EnoceanBlindHandler::EnoceanBlindHandler(EnoceanDevice &aDevice) :
-  inherited(aDevice),
+EnoceanBlindControlDevice::EnoceanBlindControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
+  inherited(aClassContainerP, aDsuidIndexStep),
   movingDirection(0),
   commandTicket(0),
   missedUpdate(false)
 {
-}
+};
 
 
-string EnoceanBlindHandler::shortDesc()
+
+void EnoceanBlindControlDevice::syncChannelValues(SimpleCB aDoneCB)
 {
-  return "Blind Control";
+  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
+  if (sb) {
+    sb->syncBlindState();
+  }
+  if (aDoneCB) aDoneCB();
 }
 
 
-#define LONGPRESS_TIME (1*Second)
-#define SHORTPRESS_TIME (200*MilliSecond)
 
-
-void EnoceanBlindHandler::issueDirectChannelActions(SimpleCB aDoneCB)
+void EnoceanBlindControlDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   // shadow behaviour
-  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(behaviour);
+  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
   if (sb) {
-    // ask shadow behaviour for current movement direction
-    // - 0=stopped, -1=moving down, +1=moving up
-    int newDirection = sb->currentMovingDirection();
-    FOCUSLOG("blind action requested: %d (current: %d)\n", newDirection, movingDirection);
-    if (newDirection!=movingDirection) {
-      int previousDirection = movingDirection;
-      movingDirection = newDirection;
-      // needs change
-      FOCUSLOG("- needs action:\n");
-      if (newDirection==0) {
-        // requesting stop:
-        if (commandTicket) {
-          // start button still pressed
-          // - cancel releasing it after logpress time
-          MainLoop::currentMainLoop().cancelExecutionTicket(commandTicket);
-          // - but release it right now
-          buttonAction(newDirection>0, false);
-          // - and exit normally (with callback executed)
-        }
-        else {
-          // issue short command in current moving direction - if already at end of move,
-          // this will not change anything, otherwise the movement will stop
-          // - press button
-          buttonAction(previousDirection>0, true);
-          commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindHandler::sendReleaseTelegram, this, aDoneCB), SHORTPRESS_TIME);
-          // callback only later when button is released
-          return;
-        }
+    // ask shadow behaviour to start movement sequence
+    sb->initiateBlindMovingSequence(boost::bind(&EnoceanBlindControlDevice::changeMovement, this, _1, _2), aDoneCB, aForDimming);
+  }
+}
+
+
+void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
+{
+  // - 0=stopped, -1=moving down, +1=moving up
+  FOCUSLOG("blind action requested: %d (current: %d)\n", aNewDirection, movingDirection);
+  if (aNewDirection!=movingDirection) {
+    int previousDirection = movingDirection;
+    movingDirection = aNewDirection;
+    // needs change
+    FOCUSLOG("- needs action:\n");
+    if (movingDirection==0) {
+      // requesting stop:
+      if (commandTicket) {
+        // start button still pressed
+        // - cancel releasing it after logpress time
+        MainLoop::currentMainLoop().cancelExecutionTicket(commandTicket);
+        // - but release it right now
+        buttonAction(previousDirection>0, false);
+        // - and exit normally to confirm done immediately
       }
       else {
-        // requesting start
+        // issue short command in current moving direction - if already at end of move,
+        // this will not change anything, otherwise the movement will stop
         // - press button
-        buttonAction(newDirection>0, true);
-        // - release latest after blind has entered permanent move mode (but maybe earlier)
-        commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindHandler::sendReleaseTelegram, this, SimpleCB()), LONGPRESS_TIME);
-        // - but consider done after shortest possible press (earlier)
-        //   Note: we will NOT get called again until aDoneCB has been called, so this holds off actions for at least SHORTPRESS_TIME
-        MainLoop::currentMainLoop().executeOnce(boost::bind(aDoneCB), SHORTPRESS_TIME);
+        buttonAction(previousDirection>0, true);
+        commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindControlDevice::sendReleaseTelegram, this, aDoneCB), SHORTPRESS_TIME);
         // callback only later when button is released
         return;
       }
+    }
+    else {
+      // requesting start
+      // - press button
+      buttonAction(movingDirection>0, true);
+      // - release latest after blind has entered permanent move mode (but maybe earlier)
+      commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindControlDevice::sendReleaseTelegram, this, SimpleCB()), LONGPRESS_TIME);
+      // - but as movement has actualy started, exit normally to confirm done immediately
     }
   }
   // normal exit, confirm it done
@@ -287,18 +223,20 @@ void EnoceanBlindHandler::issueDirectChannelActions(SimpleCB aDoneCB)
 }
 
 
-void EnoceanBlindHandler::sendReleaseTelegram(SimpleCB aDoneCB)
+void EnoceanBlindControlDevice::sendReleaseTelegram(SimpleCB aDoneCB)
 {
   commandTicket = 0;
   // just release
   buttonAction(false, false);
-  // callback if set
-  if (aDoneCB) aDoneCB();
+  // schedule callback if set
+  if (aDoneCB) {
+    MainLoop::currentMainLoop().executeOnce(boost::bind(aDoneCB), PAUSE_TIME);
+  }
 }
 
 
 
-void EnoceanBlindHandler::buttonAction(bool aBlindUp, bool aPress)
+void EnoceanBlindControlDevice::buttonAction(bool aBlindUp, bool aPress)
 {
   FOCUSLOG("- %s simulated blind %s button\n", aPress ? "PRESSING" : "RELEASING", aBlindUp ? "UP" : "DOWN");
   Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
@@ -312,8 +250,8 @@ void EnoceanBlindHandler::buttonAction(bool aBlindUp, bool aPress)
     packet->radioUserData()[0] = 0x00; // release
     packet->setRadioStatus(status_T21); // released
   }
-  packet->setRadioSender(device.getAddress()); // my own ID base derived address that is learned into this actor
-  device.getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
+  packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
+  getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
 }
 
 

@@ -145,6 +145,16 @@ namespace p44 {
     /// @return true if there's another step to take, false if end of transition already reached
     bool transitionStep(double aStepSize=0);
 
+    /// set transition progress
+    /// @param aProgress progress between 0 (just started) to 1 (completed).
+    void setTransitionProgress(double aProgress);
+
+    /// set transition progress from intermediate value (instead of 0..1 progress as with setTransitionProgress())
+    /// @param aCurrentValue value actually reached in transition right now, will update internal transition progress accordingly
+    /// @param aIsInitial if set, this is considered the start value of the transition
+    ///   (rather than as intermediate value between previously established start and target value)
+    void setTransitionValue(double aCurrentValue, bool aIsInitial);
+
     /// check if in transition
     /// @return true if transition not complete and getTransitionalValue() will return a intermediate value
     bool inTransition();

@@ -71,14 +71,9 @@ namespace p44 {
     /// collect data for outgoing message from this channel
     /// @param aEsp3PacketPtr must be set to a suitable packet if it is empty, or packet data must be augmented with
     ///   channel's data when packet already exists
-    /// @note non-outputs and outputs that directly send actions via issueDirectChannelActions() will usually do nothing in this method
+    /// @note non-outputs and outputs that directly control hardware via applyChannelValues() at device level
+    ///   will usually do nothing in this method
     virtual void collectOutgoingMessageData(Esp3PacketPtr &aEsp3PacketPtr) { /* NOP */ };
-
-    /// send out actions directly needed to propagate channel value to this device.
-    /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
-    /// @param aDoneCB if not NULL, must be called when values are applied
-    /// @note non-outputs and outputs that collect data with collectOutgoingMessageData() will usually do nothing in this method
-    virtual void issueDirectChannelActions(SimpleCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP */ };
 
     /// check if channel is alive (for regularily sending sensors: has received life sign within timeout window)
     virtual bool isAlive() { return true; } // assume alive by default
@@ -252,20 +247,16 @@ namespace p44 {
     /// signal that we need an outgoing packet at next possible occasion
     /// @note will cause output data from channel handlers to be collected
     /// @note can be called from channel handlers to trigger another update after the current one
-    void needOutgoingUpdate(SimpleCB aDoneCB);
+    void needOutgoingUpdate();
 
     /// send outgoing packet updating outputs and device settings
     /// @note do not call this directly, use needOutgoingUpdate() instead to make
     ///   sure outgoing package is sent at appropriate time for device (e.g. just after receiving for battery powered devices)
-    void sendOutgoingUpdate(SimpleCB aDoneCB);
+    void sendOutgoingUpdate();
 
     /// device specific teach in response
     /// @note will be called from newDevice() when created device needs a teach-in response
     virtual void sendTeachInResponse() { /* NOP in base class */ };
-
-    /// device specific teach in beacon
-    /// @note will be called via UI for devices that need to be learned into remote actors
-    virtual void sendTeachInBeacon() { /* NOP in base class */ };
 
     /// mark base offsets in use by this device
     /// @param aUsedOffsetsMap must be passed a string with 128 chars of '0' or '1'.
@@ -334,8 +325,6 @@ namespace p44 {
 
     /// get handler associated with a behaviour
     EnoceanChannelHandlerPtr channelForBehaviour(const DsBehaviour *aBehaviourP);
-    void channelValuesApplied(SimpleCB aDoneCB, bool aForDimming);
-    void nextChannelUpdate(EnoceanChannelHandlerVector::iterator aPos, SimpleCB aDoneCB, Esp3PacketPtr aOutgoingEsp3Packet);
 
   };
   

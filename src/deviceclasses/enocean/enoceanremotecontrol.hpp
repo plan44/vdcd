@@ -37,7 +37,7 @@ namespace p44 {
   #define PSEUDO_TYPE_SIMPLEBLIND 0xFF // simplistic Fully-Up/Fully-Down blind controller
   #define PSEUDO_TYPE_BLIND 0xFE // time controlled blind with angle support
 
-  /// remote control type device (using base id to communicate with actor)
+  /// remote control type channel (using base id to communicate with actor)
   class EnoceanRemoteControlHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;
@@ -73,79 +73,9 @@ namespace p44 {
 
 
 
-  /// simple all-up/all-down blind controller
-  class EnoceanSimpleBlindHandler : public EnoceanRemoteControlHandler
-  {
-    typedef EnoceanRemoteControlHandler inherited;
-    friend class EnoceanRemoteControlHandler;
-
-    /// send out actions directly needed to propagate channel value to this device.
-    /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
-    /// @param aDoneCB if not NULL, must be called when values are applied
-    virtual void issueDirectChannelActions(SimpleCB aDoneCB);
-
-  protected:
-
-    /// private constructor, create new channels using factory static method
-    EnoceanSimpleBlindHandler(EnoceanDevice &aDevice);
-
-  public:
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
-
-  private:
-
-    void sendReleaseTelegram(SimpleCB aDoneCB);
-
-  };
-  typedef boost::intrusive_ptr<EnoceanSimpleBlindHandler> EnoceanSimpleBlindHandlerPtr;
-
-
-
-  /// full blind controller with angle support
-  class EnoceanBlindHandler : public EnoceanRemoteControlHandler
-  {
-    typedef EnoceanRemoteControlHandler inherited;
-    friend class EnoceanRemoteControlHandler;
-
-    int movingDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
-    long commandTicket;
-    bool missedUpdate;
-
-    /// send out actions directly needed to propagate channel value to this device.
-    /// This is for devices which need a specific telegram or sequence of telegrams to update the channel value
-    /// @param aDoneCB if not NULL, must be called when values are applied
-    virtual void issueDirectChannelActions(SimpleCB aDoneCB);
-
-  protected:
-
-    /// private constructor, create new channels using factory static method
-    EnoceanBlindHandler(EnoceanDevice &aDevice);
-
-  public:
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
-
-  private:
-
-    void sendReleaseTelegram(SimpleCB aDoneCB);
-    void buttonAction(bool aBlindUp, bool aPress);
-
-  };
-  typedef boost::intrusive_ptr<EnoceanBlindHandler> EnoceanBlindHandlerPtr;
-
-
-
-
-
   class EnoceanRemoteControlDevice : public EnoceanDevice
   {
     typedef EnoceanDevice inherited;
-
 
   public:
 
@@ -170,6 +100,40 @@ namespace p44 {
     void sendSwitchBeaconRelease();
 
   };
+
+
+  class EnoceanBlindControlDevice : public EnoceanRemoteControlDevice
+  {
+    typedef EnoceanRemoteControlDevice inherited;
+
+    int movingDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
+    long commandTicket;
+    bool missedUpdate;
+
+  public:
+
+    /// constructor
+    /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
+    EnoceanBlindControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
+
+    /// device type identifier
+    /// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_blind"; };
+
+    /// sync channel values (with time-derived estimates of current blind position
+    virtual void syncChannelValues(SimpleCB aDoneCB);
+
+    /// apply channel values
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
+
+  private:
+
+    void changeMovement(SimpleCB aDoneCB, int aNewDirection);
+    void sendReleaseTelegram(SimpleCB aDoneCB);
+    void buttonAction(bool aBlindUp, bool aPress);
+
+  };
+
 
 
 

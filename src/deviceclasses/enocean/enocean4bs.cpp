@@ -718,7 +718,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
         data |= DBMASK(1,5); // service: open
         // next is closing
         serviceState = service_closevalve;
-        device.needOutgoingUpdate(NULL);
+        device.needOutgoingUpdate();
       }
       else if (serviceState==service_closevalve) {
         // trigger force fully closed
@@ -726,7 +726,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
         data |= DBMASK(1,4); // service: close
         // next is normal operation again
         serviceState = service_idle;
-        device.needOutgoingUpdate(NULL);
+        device.needOutgoingUpdate();
       }
     }
     else {

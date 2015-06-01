@@ -74,17 +74,43 @@ bool ChannelBehaviour::transitionStep(double aStepSize)
     return true; // in transition
   }
   if (inTransition()) {
-    transitionProgress += aStepSize;
-    if (transitionProgress>=1) {
-      // transition complete
-      transitionProgress=1;
-      previousChannelValue = cachedChannelValue; // end of transition reached, old previous value is no longer needed
-    }
+    setTransitionProgress(transitionProgress+aStepSize);
     return true; // still in transition (at least until this step is actually applied)
   }
   // no longer in transition
   return false;
 }
+
+
+void ChannelBehaviour::setTransitionProgress(double aProgress)
+{
+  if (aProgress<0) aProgress = 0;
+  // set
+  transitionProgress = aProgress;
+  if (transitionProgress>=1) {
+    // transition complete
+    transitionProgress=1;
+    previousChannelValue = cachedChannelValue; // end of transition reached, old previous value is no longer needed
+  }
+}
+
+
+
+void ChannelBehaviour::setTransitionValue(double aCurrentValue, bool aIsInitial)
+{
+  if (aIsInitial) {
+    // initial value of transition (rather than previously known cached one)
+    previousChannelValue = aCurrentValue;
+    transitionProgress = 0; // start of transition
+  }
+  else {
+    // intermediate value within transition
+    double d = cachedChannelValue-previousChannelValue;
+    setTransitionProgress(d==0 ? 1 : aCurrentValue/d-previousChannelValue);
+  }
+}
+
+
 
 
 bool ChannelBehaviour::inTransition()

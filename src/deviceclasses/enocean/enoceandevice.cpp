@@ -201,56 +201,38 @@ EnoceanChannelHandlerPtr EnoceanDevice::channelForBehaviour(const DsBehaviour *a
 
 
 
-void EnoceanDevice::needOutgoingUpdate(SimpleCB aDoneCB)
+void EnoceanDevice::needOutgoingUpdate()
 {
   // anyway, we need an update
   pendingDeviceUpdate = true;
   // send it right away when possible (line powered devices only)
   if (alwaysUpdateable) {
-    sendOutgoingUpdate(aDoneCB);
+    sendOutgoingUpdate();
   }
   else {
     LOG(LOG_NOTICE,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
-    if (aDoneCB) aDoneCB();
   }
 }
 
 
-void EnoceanDevice::sendOutgoingUpdate(SimpleCB aDoneCB)
+void EnoceanDevice::sendOutgoingUpdate()
 {
   if (pendingDeviceUpdate) {
     // clear flag now, so handlers can trigger yet another update in collectOutgoingMessageData() if needed (e.g. heating valve service sequence)
     pendingDeviceUpdate = false; // done
     // collect data from all channels to compose an outgoing message
     Esp3PacketPtr outgoingEsp3Packet;
-    EnoceanChannelHandlerVector::iterator pos = channels.begin();
-    nextChannelUpdate(pos, aDoneCB, outgoingEsp3Packet);
-  }
-  else {
-    if (aDoneCB) aDoneCB();
-  }
-}
-
-
-void EnoceanDevice::nextChannelUpdate(EnoceanChannelHandlerVector::iterator aPos, SimpleCB aDoneCB, Esp3PacketPtr aOutgoingEsp3Packet)
-{
-  if (aPos!=channels.end()) {
-    // - collect data for a single outgoing packet carrying data for more than one channel
-    (*aPos)->collectOutgoingMessageData(aOutgoingEsp3Packet);
-    // - and/or issue actions directly to the hardware (separate outgoing messages or sequences of messages
-    (*aPos)->issueDirectChannelActions(boost::bind(&EnoceanDevice::nextChannelUpdate, this, ++aPos, aDoneCB, aOutgoingEsp3Packet));
-  }
-  else {
-    if (aOutgoingEsp3Packet) {
-      // set destination
-      aOutgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
-      aOutgoingEsp3Packet->finalize();
-      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), aOutgoingEsp3Packet->description().c_str());
-      // send it
-      getEnoceanDeviceContainer().enoceanComm.sendPacket(aOutgoingEsp3Packet);
+    for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
+      (*pos)->collectOutgoingMessageData(outgoingEsp3Packet);
     }
-    // done now
-    if (aDoneCB) aDoneCB();
+    if (outgoingEsp3Packet) {
+      // set destination
+      outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
+      outgoingEsp3Packet->finalize();
+      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
+      // send it
+      getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
+    }
   }
 }
 
@@ -267,19 +249,10 @@ void EnoceanDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   }
   if (pendingDeviceUpdate) {
     // we need to apply data
-    needOutgoingUpdate(boost::bind(&EnoceanDevice::channelValuesApplied, this, aDoneCB, aForDimming));
+    needOutgoingUpdate();
   }
-  else {
-    channelValuesApplied(aDoneCB, aForDimming);
-  }
-}
-
-
-void EnoceanDevice::channelValuesApplied(SimpleCB aDoneCB, bool aForDimming)
-{
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
-
 
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
@@ -297,7 +270,7 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
     // send updates, if any
     pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
     LOG(LOG_NOTICE,"EnOcean device %s: pending output update is now sent to device\n", shortDesc().c_str());
-    sendOutgoingUpdate(NULL);
+    sendOutgoingUpdate();
   }
 }
 
