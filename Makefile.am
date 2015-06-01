@@ -224,6 +224,8 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
   src/deviceclasses/simpleio/sparkiodevice.hpp \
+  src/deviceclasses/simpleio/rs485weather.cpp \
+  src/deviceclasses/simpleio/rs485weather.hpp \
   src/deviceclasses/simpleio/digitaliodevice.cpp \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
   src/deviceclasses/simpleio/analogiodevice.cpp \
