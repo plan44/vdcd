@@ -69,10 +69,6 @@ Tristate ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
     case modelFeature_valvetype:
       // for now, all climate control devices are heating valves
       return yes;
-    case modelFeature_outmodeswitch:
-    case modelFeature_outmode:
-      // suppress output mode settings
-      return no;
     default:
       // not available at this level, ask base class
       return inherited::hasModelFeature(aFeatureIndex);

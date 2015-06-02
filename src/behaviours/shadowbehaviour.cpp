@@ -192,6 +192,9 @@ Tristate ShadowBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
     case modelFeature_transt:
       // Assumption: all shadow output devices don't transition times
       return no;
+    case modelFeature_outvalue8:
+      // Shade outputs are 16bit resolution and be labelled "Position", not "Value"
+      return no; // suppress general 8-bit outmode assumption
     case modelFeature_shadeposition:
       // Assumption: Shade outputs should be 16bit resolution and be labelled "Position", not "Value"
       return yes;

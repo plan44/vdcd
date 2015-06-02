@@ -212,6 +212,7 @@ static const char *modelFeatureNames[numModelFeatures] = {
   "transt",
   "outmode",
   "outmodeswitch",
+  "outmodegeneric",
   "outvalue8",
   "pushbutton",
   "pushbdevice",

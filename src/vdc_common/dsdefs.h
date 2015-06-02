@@ -271,6 +271,7 @@ typedef enum {
   outputmode_disabled, ///< disabled
   outputmode_binary, ///< binary ON/OFF mode
   outputmode_gradual, ///< gradual output value (dimmer, positional etc.)
+  outputmode_default = 0x7F, ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 
 /// output channel types
@@ -369,6 +370,7 @@ typedef enum {
   modelFeature_transt, ///< Show "Transition time" radio group in advanced scene properties device configuration dialog.
   modelFeature_outmode, ///< Show "Output mode" radio group in device properties dialog with "switched", "dimmed" and "disabled" selections. The "switched" parameter for this configuration has a value of 16.
   modelFeature_outmodeswitch, ///< Show "Output mode" radio group in device properties dialog with only "switched" and "disabled" selections. The "switched" parameter for this configuration has a value of 35.
+  modelFeature_outmodegeneric, ///< Show "Output mode" radio group in device properties dialog with only "enabled" and "disabled" selections.
   modelFeature_outvalue8, ///< Enables UI slider for 8-bit output value (basically, see details in Wiki)
   modelFeature_pushbutton, ///< Show push button settings in "Device properties" dialog. Also check if multi-button settings for device pairing must be shown (depends on various other parameters).
   modelFeature_pushbdevice, ///< This flag influences the contents of the "Push-button" drop down list, it makes sure that a "device pushbutton" entry is present.

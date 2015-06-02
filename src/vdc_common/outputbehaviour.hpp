@@ -51,7 +51,7 @@ namespace p44 {
 
     /// @name persistent settings
     /// @{
-    DsOutputMode outputMode; ///< the mode of the output
+    DsOutputMode outputMode; ///< the mode of the output. Can be outputmode_default to have device to use its preferred (or only possible) mode
     bool pushChanges; ///< if set, local changes to output will be pushed upstreams
     uint64_t outputGroups; ///< mask for group memberships (0..63)
     /// @}
@@ -108,7 +108,7 @@ namespace p44 {
     bool isEnabled() { return outputMode!=outputmode_disabled; };
 
     /// set new output mode
-    /// @param aOutputMode, new output mode
+    /// @param aOutputMode, new output mode (including outputmode_disabled, and outputmode_default to generically enable)
     /// @note a change in output mode might trigger (re-)applying channel values
     virtual void setOutputMode(DsOutputMode aOutputMode);
 

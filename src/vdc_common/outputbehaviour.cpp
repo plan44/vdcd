@@ -48,12 +48,10 @@ Tristate OutputBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // now check for light behaviour level features
   switch (aFeatureIndex) {
-    case modelFeature_outmode:
-      // Assumption: outputs that are gradual (not only switched) should have this
-      return getOutputFunction()!=outputFunction_switch ? yes : no;
-    case modelFeature_outmodeswitch:
-      // Assumption: All devices with a switch-only output (not dimmable) should have this
-      return getOutputFunction()==outputFunction_switch ? yes : no;
+    case modelFeature_outmodegeneric:
+      // At least, outputs can be made inactive or be activated generally
+      // Subclasses might suppress this and use another, more specific "outmodeXY" feature
+      return yes;
     case modelFeature_outvalue8:
       // Assumption: All normal 8-bit outputs should have this. Exception so far are shade outputs
       return yes;
@@ -79,7 +77,7 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
       outputMode = outputmode_binary;
       break;
     default:
-      // all others are assumed to be gradual (dimmer, ctdimmer, colordimmer etc.)
+      // all others, are assumed to be gradual (outputmode_default, dimmer, ctdimmer, colordimmer etc.)
       outputMode = outputmode_gradual;
       break;
   }

@@ -82,6 +82,15 @@ Tristate LightBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 {
   // now check for light behaviour level features
   switch (aFeatureIndex) {
+    case modelFeature_outmode:
+      // Lights that support dimming (not only switched) should have this
+      return getOutputFunction()!=outputFunction_switch ? yes : no;
+    case modelFeature_outmodeswitch:
+      // Lights with switch-only output (not dimmable) should have this
+      return getOutputFunction()==outputFunction_switch ? yes : no;
+    case modelFeature_outmodegeneric:
+      // suppress generic output mode, we have switched/dimmer selection
+      return no;
     case modelFeature_transt:
       // Assumption: all light output devices have transition times
       return yes;
