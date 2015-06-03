@@ -116,7 +116,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         // full-featured blind controller
         newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aClassContainerP));
         // standard single-value scene table (SimpleScene)
-        newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
+        newDev->installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*newDev)));
         // assign channel and address
         newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
         // assign EPP information
