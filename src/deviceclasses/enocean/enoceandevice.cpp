@@ -231,7 +231,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       outgoingEsp3Packet->finalize();
       LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
       // send it
-      getEnoceanDeviceContainer().enoceanComm.sendPacket(outgoingEsp3Packet);
+      getEnoceanDeviceContainer().enoceanComm.sendCommand(outgoingEsp3Packet, NULL);
     }
   }
 }

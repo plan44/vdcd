@@ -51,7 +51,7 @@ bool EnoceanRemoteControlDevice::sendTeachInSignal()
     packet->radioUserData()[0] = 0x30; // pressing left button, up
     packet->setRadioStatus(status_NU|status_T21); // pressed
     packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-    getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
+    getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
     MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanRemoteControlDevice::sendSwitchBeaconRelease, this), 300*MilliSecond);
     return true;
   }
@@ -67,7 +67,7 @@ void EnoceanRemoteControlDevice::sendSwitchBeaconRelease()
   packet->radioUserData()[0] = 0x00; // release
   packet->setRadioStatus(status_T21); // released
   packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-  getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
+  getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
 }
 
 
@@ -116,7 +116,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         // full-featured blind controller
         newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aClassContainerP));
         // standard single-value scene table (SimpleScene)
-        newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
+        newDev->installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*newDev)));
         // assign channel and address
         newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
         // assign EPP information
@@ -265,7 +265,7 @@ void EnoceanBlindControlDevice::buttonAction(bool aBlindUp, bool aPress)
     packet->setRadioStatus(status_T21); // released
   }
   packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-  getEnoceanDeviceContainer().enoceanComm.sendPacket(packet);
+  getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
 }
 
 

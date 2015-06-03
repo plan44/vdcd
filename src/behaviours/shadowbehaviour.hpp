@@ -323,6 +323,8 @@ namespace p44 {
 
     double getPosition();
     double getAngle();
+    void moveTimerStart();
+    void moveTimerStop();
     void stop(SimpleCB aApplyDoneCB);
     void stopped(SimpleCB aApplyDoneCB);
     void allDone(SimpleCB aApplyDoneCB);
