@@ -59,6 +59,10 @@ LEDCHAIN_SRC = \
   src/thirdparty/rpi_ws281x/dma.c \
   src/thirdparty/rpi_ws281x/pwm.h \
   src/thirdparty/rpi_ws281x/pwm.c \
+  src/thirdparty/rpi_ws281x/board_info.h \
+  src/thirdparty/rpi_ws281x/board_info.c \
+  src/thirdparty/rpi_ws281x/mailbox.h \
+  src/thirdparty/rpi_ws281x/mailbox.c \
   src/thirdparty/rpi_ws281x/ws2811.h \
   src/thirdparty/rpi_ws281x/ws2811.c \
   src/deviceclasses/ledchain/ws281xcomm.hpp \
