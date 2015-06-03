@@ -233,6 +233,17 @@ namespace p44 {
     /// @note only updates the scene if aScene is marked dirty
     void updateScene(DsScenePtr aScene);
 
+
+    /// start or stop dimming channel of this device.
+    /// @param aChannel the channelType to start or stop dimming for
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @param aArea the area (1..4, 0=room) to restrict dimming to. Can be -1 to override local priority
+    /// @param aAutoStopAfter max dimming time, dimming will stop when this time has passed
+    /// @note this method is internally used to implement vDC API dimChannel and dim-related scene calls, but
+    ///    it is exposed as directly controlling dimming might be useful for other purposes (e.g. identify)
+    void dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter);
+
+
     /// Process a named control value. The type, color and settings of the device determine if at all, and if, how
     /// the value affects physical outputs of the device
     /// @note this method must not directly update the hardware, but just prepare channel values such that these can
@@ -417,7 +428,6 @@ namespace p44 {
 
     DsGroupMask behaviourGroups();
 
-    void dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter);
     void dimAutostopHandler(DsChannelType aChannel);
     void dimHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNow);
     void dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLMicroSeconds aNextDimAt);

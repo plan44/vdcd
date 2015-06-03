@@ -185,7 +185,6 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
   movingTicket(0),
   blindState(blind_idle),
   movingUp(false),
-  dimming(false),
   referencePosition(100), // assume fully open, at top
   referenceAngle(100) // at top means that angle is open as well
 {
@@ -277,17 +276,18 @@ void ShadowBehaviour::syncBlindState()
 }
 
 
-void ShadowBehaviour::initiateBlindMovingSequence(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming)
+void ShadowBehaviour::applyBlindChannels(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming)
 {
   FOCUSLOG("Initiating blind moving sequence\n");
   movementCB = aMovementCB;
-  dimming = aForDimming;
   if (blindState!=blind_idle) {
     // not idle
-    if (dimming && blindState==blind_positioning) {
-      // dimming and in progress of positioning
+    if (aForDimming && blindState==blind_positioning) {
+      // dimming requested while in progress of positioning
       // -> don't stop, just re-calculate position and timing
-
+      blindState = blind_dimming;
+      stopped(aApplyDoneCB);
+      return;
     }
     // normal operation: stop first
     if (blindState==blind_stopping) {
@@ -307,13 +307,52 @@ void ShadowBehaviour::initiateBlindMovingSequence(MovementChangeCB aMovementCB, 
 }
 
 
+void ShadowBehaviour::dimBlind(MovementChangeCB aMovementCB, DsDimMode aDimMode)
+{
+  FOCUSLOG("dimBlind called for %s\n", aDimMode==dimmode_up ? "UP" : (aDimMode==dimmode_down ? "DOWN" : "STOP"));
+  if (aDimMode==dimmode_stop) {
+    // simply stop
+    movementCB = aMovementCB; // install new
+    stop(NULL);
+  }
+  else {
+    if (movementCB) {
+      // already running - just consider stopped to sample current positions
+      blindState = blind_idle;
+      stopped(NULL);
+    }
+    // install new callback (likely same as before, if any)
+    movementCB = aMovementCB;
+    // prepare moving
+    MLMicroSeconds stopIn;
+    if (aDimMode==dimmode_up) {
+      movingUp = true;
+      stopIn = openTime*Second*1.2; // max movement = fully up
+    }
+    else {
+      movingUp = false;
+      stopIn = closeTime*Second*1.2; // max movement = fully down
+    }
+    // start moving
+    blindState = blind_dimming;
+    startMoving(stopIn, NULL);
+  }
+}
+
+
+
+
 void ShadowBehaviour::stop(SimpleCB aApplyDoneCB)
 {
   if (movementCB) {
-    if (blindState==blind_positioning)
+    if (blindState==blind_positioning) {
+      // if stopping after positioning, we might need to apply the angle afterwards
       blindState = blind_stopping_before_turning;
-    else if (blindState!=blind_stopping_before_apply)
+    }
+    else if (blindState!=blind_stopping_before_apply) {
+      // normal stop, unless this is a stop caused by a request to apply new values afterwards
       blindState = blind_stopping;
+    }
     LOG(LOG_INFO,"Stopping all movement%s\n", blindState==blind_stopping_before_apply ? " before applying" : "");
     MainLoop::currentMainLoop().cancelExecutionTicket(movingTicket);
     movementCB(boost::bind(&ShadowBehaviour::stopped, this, aApplyDoneCB), 0);
@@ -338,7 +377,7 @@ void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
       // now idle
       blindState = blind_idle;
       // continue with positioning
-    case blind_positioning:
+    case blind_dimming:
       // just apply new position (dimming case, move still running)
       applyPosition(aApplyDoneCB);
       break;
@@ -363,7 +402,6 @@ void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
 void ShadowBehaviour::allDone(SimpleCB aApplyDoneCB)
 {
   movementCB = NULL;
-  dimming = false;
   blindState = blind_idle;
   LOG(LOG_INFO,"End of movement sequence, reached position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
   if (aApplyDoneCB) aApplyDoneCB();
@@ -441,7 +479,7 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
 void ShadowBehaviour::applyAngle(SimpleCB aApplyDoneCB)
 {
   // determine current angle (100 = fully open)
-  if (dimming || shadowDeviceKind!=shadowdevice_jalousie) {
+  if (shadowDeviceKind!=shadowdevice_jalousie) {
     // ignore angle, just consider done
     allDone(aApplyDoneCB);
   }
@@ -627,42 +665,21 @@ void ShadowBehaviour::stopActions()
 }
 
 
+#define IDENTITY_MOVE_TIME (Second*1.5)
 
 void ShadowBehaviour::identifyToUser()
 {
-  SceneDeviceSettingsPtr scenes = device.getScenes();
-  if (scenes) {
-    // device has scenes, get a default scene to capture current state
-    ShadowScenePtr restoreScene = boost::dynamic_pointer_cast<ShadowScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
-    captureScene(restoreScene, false, boost::bind(&ShadowBehaviour::startIdentify, this, restoreScene));
-  }
-  else {
-    // device has no scenes (some switch outputs don't have scenes)
-    startIdentify(ShadowScenePtr());
-  }
+  DsDimMode dimMode = position->getChannelValue()>50 ? dimmode_down : dimmode_up;
+  // move a little
+  device.dimChannelForArea(channeltype_default, dimMode, -1, IDENTITY_MOVE_TIME);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::reverseIdentify, this, dimMode==dimmode_up ? dimmode_down : dimmode_up), IDENTITY_MOVE_TIME*2);
 }
 
 
-void ShadowBehaviour::startIdentify(ShadowScenePtr aRestoreScene)
+void ShadowBehaviour::reverseIdentify(DsDimMode aDimMode)
 {
-  double pos = position->getChannelValue();
-  if (pos>50)
-    pos-=5;
-  else
-    pos+=5;
-  position->setChannelValue(pos);
-  device.requestApplyingChannels(boost::bind(&ShadowBehaviour::stopIdentify, this, aRestoreScene), true); // "dimming", i.e no angle adjustment
+  device.dimChannelForArea(channeltype_default, aDimMode, -1, IDENTITY_MOVE_TIME);
 }
-
-
-void ShadowBehaviour::stopIdentify(ShadowScenePtr aRestoreScene)
-{
-  // restore previous state
-  loadChannelsFromScene(aRestoreScene);
-  device.requestApplyingChannels(NULL, false); // apply to hardware including angle
-}
-
-
 
 
 #pragma mark - persistence implementation

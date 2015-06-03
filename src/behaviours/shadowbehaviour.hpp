@@ -186,9 +186,9 @@ namespace p44 {
       blind_positioning,
       blind_stopping_before_turning, ///< stopping before adjusting angle
       blind_turning,
+      blind_dimming, ///< free movement while dimming
     } blindState; ///< current state
     bool movingUp; ///< when in a moving state: set if moving up
-    bool dimming; ///< when
 
     double targetPosition;
     double targetAngle;
@@ -222,14 +222,21 @@ namespace p44 {
     /// @param aMinLongMoveTime minimum time for a long move (e.g. permanent move stoppable by another impulse)
     void setDeviceParams(ShadowDeviceKind aShadowDeviceKind, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime=0, MLMicroSeconds aMinLongMoveTime=0);
 
-    /// initiates a blind moving sequence
+    /// initiates a blind moving sequence to apply current channel values to hardware
     /// @param aMovementCB will be called (usually multiple times) to perform the needed movement sequence.
     ///   See MovementChangeCB for details about this callback's implementation requirements
     /// @param aApplyDoneCB will be called when ShadowBehaviour considers the new values applied (which does NOT
     ///   necessarily mean movement has already stopped, but means that another apply sequence could be
     ///   started.
     /// @note this is usually called from a device's applyChannelValues()
-    void initiateBlindMovingSequence(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming);
+    void applyBlindChannels(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming);
+
+    /// initiate dimming (includes stopping movements)
+    /// @param aMovementCB will be called (usually multiple times) to perform the needed movement sequence.
+    /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
+    /// @note this method is intended to be called from device implementations's dimChannel().
+    void dimBlind(MovementChangeCB aMovementCB, DsDimMode aDimMode);
+
 
     /// update channel values with current state of blind movement
     /// @note this is usually called from a device's syncChannelValues()
@@ -327,8 +334,7 @@ namespace p44 {
     void endMove(MLMicroSeconds aRemainingMoveTime, SimpleCB aApplyDoneCB);
     void movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aApplyDoneCB);
 
-    void startIdentify(ShadowScenePtr aRestoreScene);
-    void stopIdentify(ShadowScenePtr aRestoreScene);
+    void reverseIdentify(DsDimMode aDimMode);
 
   };
 

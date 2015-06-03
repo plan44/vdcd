@@ -652,7 +652,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
     return;
   }
   // check area if any
-  if (aArea!=0) {
+  if (aArea>0) {
     SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
     if (scenes) {
       // check area first
@@ -666,7 +666,8 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
   }
   else {
     // non-area dimming: suppress if device is in local priority
-    if (output->hasLocalPriority()) {
+    // Note: aArea can be set -1 to override local priority checking, for example when using method for identify purposes
+    if (aArea==0 && output->hasLocalPriority()) {
       LOG(LOG_DEBUG, "- Non-area dimming, localPriority set -> suppressed\n");
       return; // local priority active, suppress dimming
     }

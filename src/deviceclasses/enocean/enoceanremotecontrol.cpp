@@ -175,9 +175,23 @@ void EnoceanBlindControlDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDi
   ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
   if (sb) {
     // ask shadow behaviour to start movement sequence
-    sb->initiateBlindMovingSequence(boost::bind(&EnoceanBlindControlDevice::changeMovement, this, _1, _2), aDoneCB, aForDimming);
+    sb->applyBlindChannels(boost::bind(&EnoceanBlindControlDevice::changeMovement, this, _1, _2), aDoneCB, aForDimming);
   }
 }
+
+
+// optimized blinds dimming implementation
+void EnoceanBlindControlDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
+{
+  // start dimming
+  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
+  if (sb) {
+    // no channel check, there's only global dimming of the blind, no separate position/angle
+    sb->dimBlind(boost::bind(&EnoceanBlindControlDevice::changeMovement, this, _1, _2), aDimMode);
+  }
+}
+
+
 
 
 void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
