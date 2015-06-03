@@ -672,6 +672,10 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
       return; // local priority active, suppress dimming
     }
   }
+  // always give device chance to stop, even if no dimming is in progress
+  if (aDimMode==dimmode_stop) {
+    output->stopActions();
+  }
   // requested dimming this device, no area suppress active
   if (aDimMode!=currentDimMode || aChannel!=currentDimChannel) {
     // mode changes

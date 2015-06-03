@@ -157,7 +157,7 @@ namespace p44 {
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
     ///   cannot mess up things.
-    virtual void stopActions() { /* NOP */ };
+    virtual void stopActions() { /* NOP in base class */ };
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
