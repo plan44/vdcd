@@ -269,6 +269,20 @@ double ShadowBehaviour::getAngle()
 }
 
 
+void ShadowBehaviour::moveTimerStart()
+{
+  referenceTime = MainLoop::now();
+}
+
+
+void ShadowBehaviour::moveTimerStop()
+{
+  referencePosition = getPosition();
+  referenceAngle = getAngle();
+  referenceTime = Never;
+}
+
+
 void ShadowBehaviour::syncBlindState()
 {
   position->syncChannelValue(getPosition());
@@ -365,11 +379,10 @@ void ShadowBehaviour::stop(SimpleCB aApplyDoneCB)
 }
 
 
+
 void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
 {
-  referencePosition = getPosition();
-  referenceAngle = getAngle();
-  referenceTime = Never;
+  moveTimerStop();
   FOCUSLOG("- calculated current blind position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
   // next step depends on state
   switch (blindState) {
@@ -401,6 +414,7 @@ void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
 
 void ShadowBehaviour::allDone(SimpleCB aApplyDoneCB)
 {
+  moveTimerStop();
   movementCB = NULL;
   blindState = blind_idle;
   LOG(LOG_INFO,"End of movement sequence, reached position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
@@ -537,7 +551,7 @@ void ShadowBehaviour::startMoving(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB)
 void ShadowBehaviour::moveStarted(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB)
 {
   // started
-  referenceTime = MainLoop::now();
+  moveTimerStart();
   MLMicroSeconds remaining = aStopIn;
   if (maxShortMoveTime>0 && aStopIn<minLongMoveTime && aStopIn>maxShortMoveTime) {
     // need multiple shorter segments
@@ -589,9 +603,7 @@ void ShadowBehaviour::movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aAp
   // paused, restart afterwards
   FOCUSLOG("- move paused, waiting to start next segment\n");
   // must update reference values between segments as well, otherwise estimate will include pause
-  referencePosition = getPosition();
-  referenceAngle = getAngle();
-  referenceTime = Never;
+  moveTimerStop();
   // schedule next segment
   MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::startMoving, this, aRemainingMoveTime, aApplyDoneCB), INTER_SHORT_MOVE_DELAY);
 }

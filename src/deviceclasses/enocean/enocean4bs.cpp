@@ -71,7 +71,7 @@ void Enocean4BSDevice::sendTeachInResponse()
     responsePacket->setRadioDestination(getAddress());
     // now send
     LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X\n", EEP_PURE(getEEProfile()));
-    getEnoceanDeviceContainer().enoceanComm.sendPacket(responsePacket);
+    getEnoceanDeviceContainer().enoceanComm.sendCommand(responsePacket, NULL);
   }
 }
 
