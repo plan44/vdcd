@@ -32,7 +32,7 @@ using namespace p44;
 #define GPIO_PIN 18 // P1 Pin 12, GPIO 18 (PCM_CLK)
 #define GPIO_INVERT 0 // set to 1 if there is an inverting driver between GPIO 18 and the WS281x LEDs
 #define DMA 5 // don't change unless you know why
-
+#define MAX_BRIGHTNESS 255 // full brightness range
 #endif
 
 
@@ -61,11 +61,13 @@ WS281xComm::WS281xComm(uint16_t aNumLeds, uint16_t aLedsPerRow, bool aXReversed,
   ledstring.channel[0].gpionum = GPIO_PIN;
   ledstring.channel[0].count = numLeds;
   ledstring.channel[0].invert = GPIO_INVERT;
+  ledstring.channel[0].brightness = MAX_BRIGHTNESS;
   ledstring.channel[0].leds = NULL; // will be allocated by the library
   // channel 1 - unused
   ledstring.channel[1].gpionum = 0;
   ledstring.channel[1].count = 0;
   ledstring.channel[1].invert = 0;
+  ledstring.channel[1].brightness = MAX_BRIGHTNESS;
   ledstring.channel[1].leds = NULL; // will be allocated by the library
   #endif
   // make sure operation ends when mainloop terminates
