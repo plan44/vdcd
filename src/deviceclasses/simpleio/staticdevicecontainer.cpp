@@ -157,14 +157,18 @@ void StaticDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremen
     for (DeviceConfigMap::iterator pos = deviceConfigs.begin(); pos!=deviceConfigs.end(); ++pos) {
       // create device of appropriate class
       StaticDevicePtr dev = addStaticDevice(pos->first, pos->second);
-      dev->initializeName(pos->second); // for command line devices, use config as name
+      if (dev) {
+        dev->initializeName(pos->second); // for command line devices, use config as name
+      }
     }
     // then add those from the DB
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT devicetype, deviceconfig, rowid FROM devConfigs")==SQLITE_OK) {
       for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-        StaticDevicePtr dev =addStaticDevice(i->get<string>(0), i->get<string>(1));
-        dev->staticDeviceRowID = i->get<int>(2);
+        StaticDevicePtr dev = addStaticDevice(i->get<string>(0), i->get<string>(1));
+        if (dev) {
+          dev->staticDeviceRowID = i->get<int>(2);
+        }
       }
     }
   }
