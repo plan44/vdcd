@@ -350,7 +350,6 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
       LOG(LOG_NOTICE, "Received EnOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
-      ErrorPtr learnStatus;
       if (learnIn) {
         // new device learned in, add logical devices for it
         int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr->radioSender(), aEsp3PacketPtr->eepProfile(), aEsp3PacketPtr->eepManufacturer());
@@ -375,9 +374,9 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // not learning mode, dispatch packet to all devices known for that address
     for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
       if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false) && aEsp3PacketPtr->eepRorg()!=rorg_RPS) {
-        // learning packet in non-learn mode -> report as non-regular user action, may be attempt to identify a device
-        // Note: RPS devices are excluded because for these all telegrams are regular regular user actions. signalDeviceUserAction() will be called
-        //   from button
+        // learning packet in non-learn mode -> report as non-regular user action, might be attempt to identify a device
+        // Note: RPS devices are excluded because for these all telegrams are regular user actions.
+        // signalDeviceUserAction() will be called from button and binary input behaviours
         if (getDeviceContainer().signalDeviceUserAction(*(pos->second), false)) {
           // consumed for device identification purposes, suppress further processing
           break;
