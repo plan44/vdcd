@@ -537,6 +537,7 @@ class DaliBusScanner : public P44Obj
   DaliComm::DaliBusScanCB callback;
   DaliAddress shortAddress;
   DaliComm::ShortAddressListPtr activeDevicesPtr;
+  DaliComm::ShortAddressListPtr unreliableDevicesPtr;
   bool probablyCollision;
   bool unconfiguredDevices;
 public:
@@ -551,7 +552,8 @@ private:
     daliComm(aDaliComm),
     probablyCollision(false),
     unconfiguredDevices(false),
-    activeDevicesPtr(new std::list<DaliAddress>)
+    activeDevicesPtr(new DaliComm::ShortAddressList),
+    unreliableDevicesPtr(new DaliComm::ShortAddressList)
   {
     daliComm.startProcedure();
     LOG(LOG_INFO, "DaliComm: starting quick bus scan (short address poll)\n");
@@ -640,6 +642,7 @@ private:
         LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
       }
       else {
+        unreliableDevicesPtr->push_back(shortAddress);
         LOG(LOG_ERR, "Detected DALI device at short address %d, but it FAILED R/W TEST: %s -> ignoring\n", shortAddress, aError->description().c_str());
       }
     }
@@ -680,7 +683,7 @@ private:
       aError = ErrorPtr(new DaliCommError(DaliCommErrorNeedFullScan,"Need full bus scan"));
     }
     daliComm.endProcedure();
-    callback(activeDevicesPtr, aError);
+    callback(activeDevicesPtr, unreliableDevicesPtr, aError);
     // done, delete myself
     delete this;
   }
@@ -690,7 +693,7 @@ private:
 
 void DaliComm::daliBusScan(DaliBusScanCB aResultCB)
 {
-  if (isBusy()) { aResultCB(ShortAddressListPtr(), DaliComm::busyError()); return; }
+  if (isBusy()) { aResultCB(ShortAddressListPtr(), ShortAddressListPtr(), DaliComm::busyError()); return; }
   DaliBusScanner::scanBus(*this, aResultCB);
 }
 
@@ -721,6 +724,7 @@ class DaliFullBusScanner : public P44Obj
   bool setLMH;
   DaliComm::ShortAddressListPtr foundDevicesPtr;
   DaliComm::ShortAddressListPtr usedShortAddrsPtr;
+  DaliComm::ShortAddressListPtr conflictedShortAddrsPtr;
   DaliAddress newAddress;
 public:
   static void fullBusScan(DaliComm &aDaliComm, DaliComm::DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
@@ -744,11 +748,11 @@ private:
   void startScan()
   {
     // first scan for used short addresses
-    DaliBusScanner::scanBus(daliComm,boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _1, _2));
+    DaliBusScanner::scanBus(daliComm,boost::bind(&DaliFullBusScanner::shortAddrListReceived, this, _1, _2, _3));
   }
 
 
-  void shortAddrListReceived(DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
+  void shortAddrListReceived(DaliComm::ShortAddressListPtr aShortAddressListPtr, DaliComm::ShortAddressListPtr aUnreliableShortAddressListPtr, ErrorPtr aError)
   {
     bool fullScanNeeded = aError && aError->isError(DaliCommError::domain(), DaliCommErrorNeedFullScan);
     if (aError && !fullScanNeeded)
@@ -761,6 +765,7 @@ private:
     }
     // save the short address list
     usedShortAddrsPtr = aShortAddressListPtr;
+    conflictedShortAddrsPtr = aUnreliableShortAddressListPtr;
     LOG(LOG_NOTICE, "DaliComm: starting full bus scan (random address binary search)\n");
     // Terminate any special modes first
     daliComm.daliSend(DALICMD_TERMINATE, 0x00);
@@ -791,7 +796,7 @@ private:
     DaliAddress newAddr = DALI_MAXDEVICES;
     while (newAddr>0) {
       newAddr--;
-      if (!isShortAddressInList(newAddr,usedShortAddrsPtr)) {
+      if (!isShortAddressInList(newAddr,usedShortAddrsPtr) && !isShortAddressInList(newAddr, conflictedShortAddrsPtr)) {
         // this one is free, use it
         usedShortAddrsPtr->push_back(newAddr);
         return newAddr;
@@ -1005,7 +1010,7 @@ private:
     daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // callback
     daliComm.endProcedure();
-    callback(foundDevicesPtr, aError);
+    callback(foundDevicesPtr, DaliComm::ShortAddressListPtr(), aError);
     // done, delete myself
     delete this;
   }
@@ -1014,7 +1019,7 @@ private:
 
 void DaliComm::daliFullBusScan(DaliBusScanCB aResultCB, bool aFullScanOnlyIfNeeded)
 {
-  if (isBusy()) { aResultCB(ShortAddressListPtr(), DaliComm::busyError()); return; }
+  if (isBusy()) { aResultCB(ShortAddressListPtr(), ShortAddressListPtr(), DaliComm::busyError()); return; }
   DaliFullBusScanner::fullBusScan(*this, aResultCB, aFullScanOnlyIfNeeded);
 }
 

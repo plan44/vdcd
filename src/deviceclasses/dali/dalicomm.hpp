@@ -261,7 +261,7 @@ namespace p44 {
     typedef std::list<DaliAddress> ShortAddressList;
     typedef boost::shared_ptr<ShortAddressList> ShortAddressListPtr;
     /// callback function for daliScanBus
-    typedef boost::function<void (ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
+    typedef boost::function<void (ShortAddressListPtr aShortAddressListPtr, ShortAddressListPtr aUnreliableShortAddressListPtr, ErrorPtr aError)> DaliBusScanCB;
 
     /// Scan the bus for active devices (short address)
     /// @param aResultCB callback receiving a list<int> of available short addresses on the bus

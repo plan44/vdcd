@@ -116,11 +116,11 @@ void DaliDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrementa
     removeDevices(aClearSettings);
   }
   // start collecting, allow quick scan when not exhaustively collecting (will still use full scan when bus collisions are detected)
-  daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2), !aExhaustive);
+  daliComm->daliFullBusScan(boost::bind(&DaliDeviceContainer::deviceListReceived, this, aCompletedCB, _1, _2, _3), !aExhaustive);
 }
 
 
-void DaliDeviceContainer::deviceListReceived(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, ErrorPtr aError)
+void DaliDeviceContainer::deviceListReceived(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aDeviceListPtr, DaliComm::ShortAddressListPtr aUnreliableDeviceListPtr, ErrorPtr aError)
 {
   // check if any devices
   if (aError || aDeviceListPtr->size()==0)
@@ -643,11 +643,11 @@ void DaliDeviceContainer::groupCollected(VdcApiRequestPtr aRequest)
 void DaliDeviceContainer::selfTest(StatusCB aCompletedCB)
 {
   // do bus short address scan
-  daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _1, _2));
+  daliComm->daliBusScan(boost::bind(&DaliDeviceContainer::testScanDone, this, aCompletedCB, _1, _2, _3));
 }
 
 
-void DaliDeviceContainer::testScanDone(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, ErrorPtr aError)
+void DaliDeviceContainer::testScanDone(StatusCB aCompletedCB, DaliComm::ShortAddressListPtr aShortAddressListPtr, DaliComm::ShortAddressListPtr aUnreliableShortAddressListPtr, ErrorPtr aError)
 {
   if (Error::isOK(aError) && aShortAddressListPtr && aShortAddressListPtr->size()>0) {
     // found at least one device, do a R/W test using the DTR
