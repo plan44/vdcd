@@ -14,12 +14,11 @@ vdcd however is not limited to that - is based on a generic C++ framework design
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
-<p>If you like this, please don't forget to flattr it :-)</p>
+If you like this, please don't forget to flattr it :-)
 
-<ul>
-<li>See <a target="_blank" href="https://github.com/plan44/vdcd">github project</a> to get the latest version of the software</li>
-<li>See <a target="_blank" href="http://www.digitalstrom.com">digitalstrom.com</a> and <a target="_blank" href="http://www.digitalstrom.org">digitalstrom.org</a> for more about digitalSTROM</li>
-</ul>
+- Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
+- See [github project](https://github.com/plan44/vdcd) to get the latest version of the software
+- See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
 
 License
 -------
