@@ -455,10 +455,10 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler, bool aDisableProximit
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
+  LOG(LOG_NOTICE,"=== start learning%s\n", aDisableProximityCheck ? " with proximity check disabled" : "");
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     pos->second->setLearnMode(true, aDisableProximityCheck);
   }
-  LOG(LOG_NOTICE,"=== started learning%s\n", aDisableProximityCheck ? " with proximity check disabled" : "");
 }
 
 

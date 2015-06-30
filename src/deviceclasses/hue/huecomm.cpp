@@ -19,6 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 7
+
+
 #include "huecomm.hpp"
 
 using namespace p44;
@@ -237,7 +245,7 @@ public:
       // we have a pre-known base URL for the hue API, use this without any find operation
       hueComm.baseURL = hueComm.fixedBaseURL; // use it
       hueComm.apiReady = true; // can use API now
-      DBGLOG(LOG_DEBUG, "Using fixed API URL to access hue Bridge %s: %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
+      FOCUSLOG("Using fixed API URL to access hue Bridge %s: %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
       callback(ErrorPtr()); // success
     }
   };
@@ -274,7 +282,7 @@ public:
       }
     }
     else {
-      DBGLOG(LOG_DEBUG, "discovery ended, error = %s (usually: timeout)\n", aError->description().c_str());
+      FOCUSLOG("discovery ended, error = %s (usually: timeout)\n", aError->description().c_str());
       aSsdpSearch->stopSearch();
       // now process the results
       currentBridgeCandidate = bridgeCandiates.begin();
@@ -316,8 +324,8 @@ public:
   {
     if (Error::isOK(aError)) {
       // show
-      //DBGLOG(LOG_DEBUG, "Received bridge description:\n%s\n", aResponse.c_str());
-      DBGLOG(LOG_DEBUG, "Received service description XML\n");
+      //FOCUSLOG("Received bridge description:\n%s\n", aResponse.c_str());
+      FOCUSLOG("Received service description XML\n");
       // TODO: this is poor man's XML scanning, use some real XML parser eventually
       // do some basic checking for model
       size_t i = aResponse.find("<manufacturer>Royal Philips Electronics</manufacturer>");
@@ -341,14 +349,14 @@ public:
                 // that's my known hue bridge, save the URL and report success
                 hueComm.baseURL = url; // save it
                 hueComm.apiReady = true; // can use API now
-                DBGLOG(LOG_DEBUG, "pre-known hue Bridge %s found at %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
+                FOCUSLOG("pre-known hue Bridge %s found at %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
                 callback(ErrorPtr()); // success
                 keepAlive.reset(); // will delete object if nobody else keeps it
                 return; // done
               }
               else {
                 // that's a hue bridge, remember it for trying to authorize
-                DBGLOG(LOG_DEBUG, "- Seems to be a hue bridge at %s\n", url.c_str());
+                FOCUSLOG("- Seems to be a hue bridge at %s\n", url.c_str());
                 authCandidates[currentBridgeCandidate->first] = url;
               }
             }
@@ -357,7 +365,7 @@ public:
       }
     }
     else {
-      DBGLOG(LOG_DEBUG, "Error accessing bridge description: %s\n", aError->description().c_str());
+      FOCUSLOG("Error accessing bridge description: %s\n", aError->description().c_str());
     }
     // try next
     ++currentBridgeCandidate;
@@ -376,7 +384,7 @@ public:
   {
     if (currentAuthCandidate!=authCandidates.end() && hueComm.findInProgress) {
       // try to authorize
-      DBGLOG(LOG_DEBUG, "Auth candidate: uuid=%s, baseURL=%s -> try creating user\n", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
+      FOCUSLOG("Auth candidate: uuid=%s, baseURL=%s -> try creating user\n", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
       JsonObjectPtr request = JsonObject::newObj();
       request->add("username", JsonObject::newString(userName));
       request->add("devicetype", JsonObject::newString(deviceType));
@@ -405,7 +413,7 @@ public:
   void handleCreateUserAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
-      DBGLOG(LOG_DEBUG, "Received success answer:\n%s\n", aJsonResponse->json_c_str());
+      FOCUSLOG("Received success answer:\n%s\n", aJsonResponse->json_c_str());
       JsonObjectPtr s = HueComm::getSuccessItem(aJsonResponse);
       // apparently successful, extract user name
       if (s) {
@@ -415,7 +423,7 @@ public:
           hueComm.uuid = currentAuthCandidate->first;
           hueComm.baseURL = currentAuthCandidate->second;
           hueComm.apiReady = true; // can use API now
-          DBGLOG(LOG_DEBUG, "hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
+          FOCUSLOG("hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
           // successfully registered with hue bridge, let caller know
           callback(ErrorPtr());
           // done!
