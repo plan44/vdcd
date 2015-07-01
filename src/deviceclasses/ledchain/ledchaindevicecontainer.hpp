@@ -61,6 +61,7 @@ namespace p44 {
     LedChainDevicePersistence db;
 
     int numLedsInChain;
+    uint8_t maxOutValue;
     WS281xCommPtr ws281xcomm;
 
     typedef std::list<LedChainDevicePtr> LedChainDeviceList;
@@ -81,6 +82,11 @@ namespace p44 {
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     void removeDevice(DevicePtr aDevice, bool aForget);
+
+    /// set max output value to send to WS2812 LEDs. This is like a global brightness limit, to prevent LED chain
+    /// power supply overload
+    /// @param aMaxOutValue max output value, 0..255.
+    void setMaxOutValue(uint8_t aMaxOutValue) { maxOutValue = aMaxOutValue; };
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.

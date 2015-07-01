@@ -65,7 +65,8 @@ LedChainDeviceContainer::LedChainDeviceContainer(int aInstanceNumber, int aNumLe
   numLedsInChain(aNumLedsInChain),
   renderStart(0),
   renderEnd(0),
-  renderTicket(0)
+  renderTicket(0),
+  maxOutValue(128)
 {
 }
 
@@ -85,43 +86,6 @@ void LedChainDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRes
   // done
   aCompletedCB(ErrorPtr());
 }
-
-
-//// Input a value 0 to 255 to get a color value.
-//// The colours are a transition r - g - b - back to r.
-//static void wheel(uint8_t WheelPos, uint8_t &red, uint8_t &green, uint8_t &blue)
-//{
-//  if(WheelPos < 85) {
-//    red = WheelPos * 3;
-//    green = 255 - WheelPos * 3;
-//    blue = 0;
-//  } else if(WheelPos < 170) {
-//    WheelPos -= 85;
-//    red = 255 - WheelPos * 3;
-//    green = 0;
-//    blue = WheelPos * 3;
-//  } else {
-//    WheelPos -= 170;
-//    red = 0;
-//    green = WheelPos * 3;
-//    blue = 255 - WheelPos * 3;
-//  }
-//}
-//
-//
-//static int cnt=0;
-//
-//void LedChainDeviceContainer::render()
-//{
-//  cnt++;
-//  uint8_t r,g,b;
-//  for(int i=0; i<ws281xcomm->getNumLeds(); i++) {
-//    wheel(((i * 256 / ws281xcomm->getNumLeds()) + cnt) & 255, r, g, b);
-//    ws281xcomm->setColorDimmed(i, r, g, b, 128); // only half brightness for full area color
-//  }
-//  ws281xcomm->show();
-//  MainLoop::currentMainLoop().executeOnce(boost::bind(&LedChainDeviceContainer::render, this), 200*MilliSecond);
-//}
 
 
 #define MIN_RENDER_INTERVAL (5*MilliSecond)
@@ -170,7 +134,7 @@ void LedChainDeviceContainer::render()
         increase(bv, opacity*b);
       }
     }
-    ws281xcomm->setColorDimmed(i, rv, gv, bv, 128); // only half brightness for full area color
+    ws281xcomm->setColorDimmed(i, rv, gv, bv, maxOutValue); // only half brightness for full area color
   }
   // transfer to hardware
   ws281xcomm->show();

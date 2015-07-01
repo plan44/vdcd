@@ -268,7 +268,8 @@ public:
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
       #if !DISABLE_LEDCHAIN
-      { 0,   "ledchain",      true,  "numleds; enable support for LED chains forming one or multiple RGB lights" },
+      { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
+      { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
@@ -489,6 +490,10 @@ public:
         if (numleds>0) {
           LedChainDeviceContainerPtr ledChainDeviceContainer = LedChainDeviceContainerPtr(new LedChainDeviceContainer(1, numleds, p44VdcHost.get(), 6)); // Tag 6 = led chain
           ledChainDeviceContainer->addClassToDeviceContainer();
+          int maxOutValue;
+          if (getIntOption("ledchainmax", maxOutValue)) {
+            ledChainDeviceContainer->setMaxOutValue(maxOutValue);
+          }
         }
       }
       #endif
