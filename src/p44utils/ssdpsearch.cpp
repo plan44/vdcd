@@ -19,6 +19,13 @@
 //  along with p44utils. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 7
+
 #include "ssdpsearch.hpp"
 
 using namespace p44;
@@ -87,9 +94,9 @@ void SsdpSearch::startSearchForTarget(SsdpSearchCB aSearchResultHandler, const c
 
 void SsdpSearch::socketStatusHandler(ErrorPtr aError)
 {
-  LOG(LOG_DEBUG, "SSDP socket status: %s\n", aError ? aError->description().c_str() : "<no error>");
+  FOCUSLOG("SSDP socket status: %s\n", aError ? aError->description().c_str() : "<no error>");
   if (Error::isOK(aError)) {
-    LOG(LOG_DEBUG, "### sending UDP M-SEARCH\n");
+    FOCUSLOG("### sending UDP M-SEARCH\n");
     // unregister socket status handler (or we'll get called when connection closes)
     setConnectionStatusHandler(NULL);
     // send search request
@@ -151,6 +158,7 @@ void SsdpSearch::gotData(ErrorPtr aError)
   if (Error::isOK(receiveString(response))) {
     // extract uuid and location
     const char *p = response.c_str();
+    FOCUSLOG("### received UDP answer: %s\n", p);
     string line;
     bool locFound = false;
     bool uuidFound = false;
@@ -162,7 +170,7 @@ void SsdpSearch::gotData(ErrorPtr aError)
         if (key=="LOCATION") {
           locationURL = value;
           locFound = true;
-          //LOG(LOG_NOTICE,"Location: %s\n", locationURL.c_str());
+          FOCUSLOG("Location: %s\n", locationURL.c_str());
         }
         else if (key=="ST") {
           if (targetMustMatch) {
@@ -176,7 +184,7 @@ void SsdpSearch::gotData(ErrorPtr aError)
           stFound = true;
         }
         else if (key=="USN") {
-          //LOG(LOG_NOTICE,"USN: %s\n", value.c_str());
+          FOCUSLOG("USN: %s\n", value.c_str());
           // extract the UUID
           string k,v;
           if (keyAndValue(value, k, v)) {
@@ -199,22 +207,22 @@ void SsdpSearch::gotData(ErrorPtr aError)
         else if (key=="SERVER") {
           server = value;
           serverFound = true;
-          //LOG(LOG_NOTICE,"SERVER: %s\n", server.c_str());
+          FOCUSLOG("SERVER: %s\n", server.c_str());
         }
       }
     }
-    if (searchResultHandler) {
-      if (locFound && uuidFound && serverFound && stFound) {
-        // complete response -> call back
-        if (singleTargetSearch) {
-          stopSearch();
-        }
+    if (locFound && uuidFound && serverFound && stFound) {
+      // complete response -> call back
+      if (singleTargetSearch) {
+        stopSearch();
+      }
+      if (searchResultHandler) {
         searchResultHandler(this, ErrorPtr());
       }
-      else {
-        // invalid answer
-        searchResultHandler(this, ErrorPtr(new SsdpError(SsdpErrorInvalidAnswer, "incomplete SSDP search response")));
-      }
+    }
+    else {
+      // invalid answer, just ignore it
+      FOCUSLOG("Received invalid SEARCH response (or unrelated SSDP packet) -> ignored\n");
     }
   }
   else {
