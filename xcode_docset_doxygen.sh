@@ -4,7 +4,7 @@
 #  vdcd
 #
 #  Created by Lukas Zeller on 19.04.13.
-#  Copyright (c) 2013-2014 plan44.ch. All rights reserved.
+#  Copyright (c) 2013-2015 plan44.ch. All rights reserved.
 
 # Build the doxygen documentation for the project and load the docset into Xcode.
 
