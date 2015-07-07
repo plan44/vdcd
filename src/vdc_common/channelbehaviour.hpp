@@ -221,6 +221,24 @@ namespace p44 {
   typedef vector<ChannelBehaviourPtr> ChannelBehaviourVector;
 
 
+  /// string value channel
+  class StringValueChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+  public:
+    #error extend ChannelBehaviour to allow string values?
+    StringValueChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /*  */ };
+    virtual DsChannelType getChannelType() { return channeltype_default; }; ///< no real dS channel type
+    virtual const char *getName() { return "switch"; };
+    virtual double getMin() { return 0; }; // compatible with brightness: 0 to 100%
+    virtual double getMax() { return 100; };
+  };
+  typedef boost::intrusive_ptr<StringValueChannel> StringValueChannelPtr;
+  
+
+
+
 
   /// digital switch channel
   class DigitalChannel : public ChannelBehaviour

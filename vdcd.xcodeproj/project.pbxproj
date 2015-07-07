@@ -71,6 +71,7 @@
 		ED3126D918318CC100FAF28B /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDBC78541818227000A3E46C /* libcrypto.dylib */; };
 		ED3126DA18318CC100FAF28B /* libmongoose.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED07E25917D786A000889CC3 /* libmongoose.dylib */; };
 		ED3126DB18318CC100FAF28B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED5AF914174182E700689E4B /* libsqlite3.dylib */; };
+		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
 		ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
 		ED36999E178DA01E00376405 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
@@ -301,6 +302,8 @@
 		ED312693183186C200FAF28B /* demodevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = demodevicecontainer.hpp; path = demo/demodevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED31269618318CB100FAF28B /* demo_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = demo_main.cpp; sourceTree = "<group>"; };
 		ED3126E118318CC100FAF28B /* demovdc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = demovdc; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = audiobehaviour.hpp; sourceTree = "<group>"; };
+		ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiobehaviour.cpp; sourceTree = "<group>"; };
 		ED369996178D5BD600376405 /* digitalio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitalio.cpp; sourceTree = "<group>"; };
 		ED369997178D5BE300376405 /* digitalio.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitalio.hpp; sourceTree = "<group>"; };
 		ED369998178D6A2C00376405 /* iopin.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iopin.cpp; sourceTree = "<group>"; };
@@ -573,6 +576,8 @@
 				ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */,
 				ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */,
 				ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */,
+				ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */,
+				ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */,
 				EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */,
 				EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */,
 			);
@@ -1092,6 +1097,7 @@
 				EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
+				ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */,
 				ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
