@@ -213,7 +213,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
       opP->setInitiationDelay(aWithDelay);
     }
     else {
-      // non-elayed sends may be sent before answer of previous commands have arrived as long as Rx buf in bridge does not overflow
+      // non-delayed sends may be sent before answer of previous commands have arrived as long as Rx buf in bridge does not overflow
       if (expectedBridgeResponses>BUFFERED_BRIDGE_RESPONSES_HIGH) {
         responsesInSequence = true; // prevent further sends without answers
       }
@@ -587,6 +587,7 @@ private:
   {
     if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
       // we have devices without short addresses
+      LOG(LOG_NOTICE, "Detected devices without short address on the bus (-> will trigger full scan later)\n");
       unconfiguredDevices = true;
     }
     // start the scan
@@ -601,7 +602,7 @@ private:
     bool isYes = false;
     if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorDALIFrame)) {
       // framing error, indicates that we might have duplicates
-      LOG(LOG_INFO, "Detected framing error for %d-th response from short address %d - probably short address collision\n", (int)aQueryState, shortAddress);
+      LOG(LOG_NOTICE, "Detected framing error for %d-th response from short address %d - probably short address collision\n", (int)aQueryState, shortAddress);
       probablyCollision = true;
       isYes = true; // still count as YES
       aError.reset(); // do not count as error aborting the search
@@ -612,7 +613,7 @@ private:
       isYes = true;
       if (aQueryState==dqs_controlgear && aResponse!=DALIANSWER_YES) {
         // not entirely correct answer, also indicates collision
-        LOG(LOG_INFO, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
+        LOG(LOG_NOTICE, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
         probablyCollision = true;
       }
     }
