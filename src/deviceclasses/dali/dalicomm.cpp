@@ -111,8 +111,10 @@ bool DaliComm::isBusy()
 #define ACK_OVERLOAD 0x33 // bus overload (max current for longer period = possibly shortened)
 #define ACK_INVALIDCMD 0x39 // invalid command
 
-#define BUFFERED_BRIDGE_RESPONSES_HIGH 35 // Rx buf in bridge is 80 bytes = 40 answers, only use 35 to make sure
-#define BUFFERED_BRIDGE_RESPONSES_LOW 5 // low watermark to restart sending
+//#define BUFFERED_BRIDGE_RESPONSES_HIGH 35 // Rx buf in bridge is 80 bytes = 40 answers, only use 35 to make sure
+//#define BUFFERED_BRIDGE_RESPONSES_LOW 5 // low watermark to restart sending
+#define BUFFERED_BRIDGE_RESPONSES_HIGH 5 // Conservative to prevent lockup
+#define BUFFERED_BRIDGE_RESPONSES_LOW 2 // low watermark to restart sending
 
 
 static const char *bridgeCmdName(uint8_t aBridgeCmd)
@@ -161,7 +163,7 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
 {
   if (expectedBridgeResponses>0) expectedBridgeResponses--;
   if (expectedBridgeResponses<BUFFERED_BRIDGE_RESPONSES_LOW) {
-    responsesInSequence = false; // allow buffered sends without waiting for answers
+    responsesInSequence = false; // allow buffered sends without waiting for answers again
   }
   SerialOperationReceivePtr ropP = boost::dynamic_pointer_cast<SerialOperationReceive>(aOperation);
   if (ropP) {

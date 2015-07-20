@@ -243,7 +243,10 @@ void DaliBusDevice::queryMinLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeo
 
 void DaliBusDevice::updateStatus(StatusCB aCompletedCB)
 {
-  if (isDummy) aCompletedCB(ErrorPtr());
+  if (isDummy) {
+    if (aCompletedCB) aCompletedCB(ErrorPtr());
+    return;
+  }
   // query the device for status
   daliDeviceContainer.daliComm->daliSendQuery(
     addressForQuery(),
@@ -265,7 +268,7 @@ void DaliBusDevice::queryStatusResponse(StatusCB aCompletedCB, bool aNoOrTimeout
     isPresent = false; // no correct status -> not present
   }
   // done updating status
-  aCompletedCB(aError);
+  if (aCompletedCB) aCompletedCB(aError);
 }
 
 
