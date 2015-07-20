@@ -236,7 +236,7 @@ void P44VdcHost::configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError,
   // - "uri" selects one of possibly multiple APIs
   if (Error::isOK(aError)) {
     // not JSON level error, try to process
-    LOG(LOG_DEBUG,"Config API request: %s\n", aJsonObject->c_strValue());
+    LOG(LOG_INFO,"cfg -> vdcd (JSON) request received: %s\n", aJsonObject->c_strValue());
     // find out which one is our actual JSON request
     // - try POST data first
     JsonObjectPtr request = aJsonObject->get("data");
