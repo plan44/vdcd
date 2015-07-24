@@ -207,10 +207,12 @@ public:
           redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
+          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!\n");
           greenLED->steadyOff();
           redLED->steadyOn();
           break;
         case status_fatalerror:
+          LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!\n");
           greenLED->steadyOff();
           redLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
@@ -632,7 +634,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOn();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 0), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, EXIT_SUCCESS), 500*MilliSecond);
         return true;
       }
     }
@@ -697,7 +699,10 @@ public:
     else if (!Error::isOK(aError)) {
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
-      // TODO: what should happen next? Wait for restart?
+      // exit in 15 seconds
+      LOG(LOG_ALERT,"****** Fatal error - vdc host initialisation failed: %s\n", aError->description().c_str());
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
+      return;
     }
     else {
       // Initialized ok and not testing

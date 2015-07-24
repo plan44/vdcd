@@ -194,11 +194,11 @@ private:
     factoryReset(aFactoryReset)
   {
     nextContainer = deviceContainer.deviceClassContainers.begin();
-    queryNextContainer(ErrorPtr());
+    initNextContainer(ErrorPtr());
   }
 
 
-  void queryNextContainer(ErrorPtr aError)
+  void initNextContainer(ErrorPtr aError)
   {
     if ((!aError || factoryReset) && nextContainer!=deviceContainer.deviceClassContainers.end())
       nextContainer->second->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
@@ -210,7 +210,7 @@ private:
   {
     // check next
     ++nextContainer;
-    queryNextContainer(aError);
+    initNextContainer(aError);
   }
 
   void completed(ErrorPtr aError)
