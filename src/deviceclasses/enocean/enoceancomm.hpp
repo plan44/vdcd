@@ -453,6 +453,9 @@ namespace p44 {
     /// @param aRadioPacketCB callback to deliver radio packets to
     void setRadioPacketHandler(ESPPacketCB aRadioPacketCB);
 
+    /// send flush, i.e. a row of zeroes to re-sync EnOcean modem
+    void flushLine();
+
     /// send a packet
     /// @param aPacket a Esp4Packet which must be ready for being finalize()d
     void sendPacket(Esp3PacketPtr aPacket);
@@ -474,8 +477,10 @@ namespace p44 {
 
   private:
 
-    void versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
-    void idbaseReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void initializeInternal(StatusCB aCompletedCB, int aRetriesLeft);
+    void initError(StatusCB aCompletedCB, int aRetriesLeft, ErrorPtr aError);
+    void versionReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void idbaseReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
 
     void aliveCheck();
     void aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);

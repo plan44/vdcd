@@ -931,6 +931,10 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 
 #define ENOCEAN_ESP3_COMMAND_TIMEOUT (3*Second)
 
+#define ENOCEAN_INIT_RETRIES 5
+#define ENOCEAN_INIT_RETRY_INTERVAL (5*Second)
+
+
 
 EnoceanComm::EnoceanComm(MainLoop &aMainLoop) :
 	inherited(aMainLoop),
@@ -967,12 +971,43 @@ void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16
 
 void EnoceanComm::initialize(StatusCB aCompletedCB)
 {
-  // get version
-  sendCommand(Esp3Packet::newCommonCommand(CO_RD_VERSION), boost::bind(&EnoceanComm::versionReceived, this, aCompletedCB, _1, _2));
+  // start initializing
+  initializeInternal(aCompletedCB, ENOCEAN_INIT_RETRIES);
 }
 
 
-void EnoceanComm::versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanComm::initializeInternal(StatusCB aCompletedCB, int aRetriesLeft)
+{
+  // get version
+  serialComm->requestConnection();
+  sendCommand(Esp3Packet::newCommonCommand(CO_RD_VERSION), boost::bind(&EnoceanComm::versionReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
+}
+
+
+void EnoceanComm::initError(StatusCB aCompletedCB, int aRetriesLeft, ErrorPtr aError)
+{
+  // error querying version
+  aRetriesLeft--;
+  if (aRetriesLeft>=0) {
+    LOG(LOG_WARNING, "EnoceanComm: Initialisation: command failed: %s -> retrying again\n", aError->description().c_str());
+    // flush the line on the first half of attempts
+    if (aRetriesLeft>ENOCEAN_INIT_RETRIES/2) {
+      flushLine();
+    }
+    serialComm->closeConnection();
+    // retry initializing later
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::initializeInternal, this, aCompletedCB, aRetriesLeft), ENOCEAN_INIT_RETRY_INTERVAL);
+  }
+  else {
+    // no more retries, just return
+    LOG(LOG_ERR, "EnoceanComm: Initialisation: %d attempts failed to send commands -> initialisation failed\n", ENOCEAN_INIT_RETRIES, aError->description().c_str());
+    if (aCompletedCB) aCompletedCB(aError);
+  }
+  return; // done
+}
+
+
+void EnoceanComm::versionReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   // extract versions
   if (Error::isOK(aError)) {
@@ -983,23 +1018,26 @@ void EnoceanComm::versionReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3Pack
     FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
   }
   else {
-    // early abort due to error querying version
-    if (aCompletedCB) aCompletedCB(aError);
-    return; // done
+    initError(aCompletedCB, aRetriesLeft, aError);
+    return;
   }
   // query base ID
-  sendCommand(Esp3Packet::newCommonCommand(CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, _1, _2));
+  sendCommand(Esp3Packet::newCommonCommand(CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
 }
 
 
-void EnoceanComm::idbaseReceived(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanComm::idbaseReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     uint8_t *d = aEsp3PacketPtr->data();
     myIdBase = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
     FOCUSLOG("Received CO_RD_IDBASE  answer: idBase=0x%08X\n", myIdBase);
   }
-  // completed
+  else {
+    initError(aCompletedCB, aRetriesLeft, aError);
+    return;
+  }
+  // completed successfully
   if (aCompletedCB) aCompletedCB(aError);
   // schedule first alive check quickly
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 2*Second);
@@ -1138,6 +1176,18 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
   }
   else {
     // TODO: %%% handle other packet types
+  }
+}
+
+
+void EnoceanComm::flushLine()
+{
+  ErrorPtr err;
+  uint8_t zeroes[42];
+  memset(zeroes, 0, sizeof(zeroes));
+  serialComm->transmitBytes(sizeof(zeroes), zeroes, err);
+  if (!Error::isOK(err)) {
+    LOG(LOG_ERR, "EnoceanComm: flushLine: error sending flush bytes\n", err->description().c_str());
   }
 }
 
