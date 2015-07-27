@@ -1278,8 +1278,8 @@ void Device::outputSceneValueSaved(DsScenePtr aScene)
   if (area) {
     // detail check - set don't care when saving Area On-Scene
     if (sceneNo==mainSceneForArea(area)) {
-      // saving Main ON scene - set dontCare flag when brightness is zero, otherwise clear dontCare
-      ChannelBehaviourPtr ch = output->getChannelByType(channeltype_brightness);
+      // saving Main ON scene - set dontCare flag when main/default channel is zero, otherwise clear dontCare
+      ChannelBehaviourPtr ch = output->getChannelByType(channeltype_default);
       if (ch) {
         bool mustBeDontCare = ch->getChannelValue()==0;
         // update this main scene's dontCare
