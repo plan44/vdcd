@@ -26,15 +26,15 @@
 typedef enum {
   START_ZONE_SCENES = 0,  ///< first zone scene
   T0_S0 = 0,              ///< main off scene
-  T1_S0 = 1,              ///< area 1 off scene
-  T2_S0 = 2,              ///< area 2 off scene
-  T3_S0 = 3,              ///< area 3 off scene
-  T4_S0 = 4,              ///< area 4 off scene
+  T1_S0 = 1,              ///< area 1 off scene / audio: reserved
+  T2_S0 = 2,              ///< area 2 off scene / audio: reserved
+  T3_S0 = 3,              ///< area 3 off scene / audio: reserved
+  T4_S0 = 4,              ///< area 4 off scene / audio: reserved
   T0_S1 = 5,              ///< main on scene
-  T1_S1 = 6,              ///< area 1 on scene
-  T2_S1 = 7,              ///< area 2 on scene
-  T3_S1 = 8,              ///< area 3 on scene
-  T4_S1 = 9,              ///< area 4 on scene
+  T1_S1 = 6,              ///< area 1 on scene / audio: reserved
+  T2_S1 = 7,              ///< area 2 on scene / audio: Repeat Off
+  T3_S1 = 8,              ///< area 3 on scene / audio: Repeat 1
+  T4_S1 = 9,              ///< area 4 on scene / audio: Repeat All
   T1234_CONT = 10,        ///< area 1-4 increment/decrement continue
   DEC_S = 11,             ///< decrement value
   INC_S = 12,             ///< increment value
@@ -67,20 +67,20 @@ typedef enum {
   T4E_S1 = 39,            ///< area 4 extended on scene
   AUTO_OFF = 40,          ///< slow motion off (1 minute down to 0)
   ///< 41 - reserved
-  T1_DEC = 42,            ///< area 1 decrement value
-  T1_INC = 43,            ///< area 1 increment value
-  T2_DEC = 44,            ///< area 2 decrement value
-  T2_INC = 45,            ///< area 2 increment value
-  T3_DEC = 46,            ///< area 3 decrement value
-  T3_INC = 47,            ///< area 3 increment value
-  T4_DEC = 48,            ///< area 4 decrement value
-  T4_INC = 49,            ///< area 4 increment value
+  T1_DEC = 42,            ///< area 1 decrement value / audio: Previous Title
+  T1_INC = 43,            ///< area 1 increment value / audio: Next Title
+  T2_DEC = 44,            ///< area 2 decrement value / audio: Previous Channel
+  T2_INC = 45,            ///< area 2 increment value / audio: Next Channel
+  T3_DEC = 46,            ///< area 3 decrement value / audio: Mute
+  T3_INC = 47,            ///< area 3 increment value / audio: Unmute
+  T4_DEC = 48,            ///< area 4 decrement value / audio: Play
+  T4_INC = 49,            ///< area 4 increment value / audio: Pause
   LOCAL_OFF = 50,         ///< local button off scene
   LOCAL_ON = 51,          ///< local button on scene
-  T1_STOP_S = 52,         ///< area 1 stop
-  T2_STOP_S = 53,         ///< area 2 stop
-  T3_STOP_S = 54,         ///< area 3 stop
-  T4_STOP_S = 55,         ///< area 4 stop
+  T1_STOP_S = 52,         ///< area 1 stop / audio: Shuffle Off
+  T2_STOP_S = 53,         ///< area 2 stop / audio: Shuffle On
+  T3_STOP_S = 54,         ///< area 3 stop / audio: Resume Off
+  T4_STOP_S = 55,         ///< area 4 stop / audio: Resume On
   ///< 56..63 - reserved
   START_APARTMENT_SCENES = 64,                    ///< 64 - first apartment scene
   AUTO_STANDBY = (START_APARTMENT_SCENES + 0),    ///< 64 - auto-standby scene
@@ -326,6 +326,10 @@ typedef enum {
   sensorType_current, ///< Electric current in A
   sensorType_energy, ///< Energy in kWh
   sensorType_consumption, ///< Electric Consumption in VA
+  sensorType_air_pressure, ///< Air pressure in hPa
+  sensorType_wind_direction, ///< Wind direction in degrees
+  sensorType_sound_volume, ///< Sound pressure level in dB
+  sensorType_precipitation, ///< Precipitation in mm/m2
 } DsSensorType;
 
 
@@ -351,12 +355,15 @@ typedef enum {
   binInpType_smoke, ///< smoke
   binInpType_wind, ///< wind
   binInpType_rain, ///< rain
-  binInpType_sun, ///< solar radiation
+  binInpType_sun, ///< solar radiation (sun light above threshold)
   binInpType_thermostat, ///< thermostat (temperature below user-adjusted threshold)
   binInpType_lowBattery, ///< device has low battery
   binInpType_windowOpen, ///< window is open
   binInpType_doorOpen, ///< door is open
   binInpType_windowTilted, ///< window is tilted instead of fully opened
+  binInpType_garageDoorOpen, ///< garage door is open
+  binInpType_sunProtection, ///< protect against too much sunlight
+  binInpType_frost, ///< frost detector
 } DsBinaryInputType;
 
 
