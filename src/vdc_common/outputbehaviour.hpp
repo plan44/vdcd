@@ -139,7 +139,8 @@ namespace p44 {
     /// apply scene to output channels
     /// @param aScene the scene to apply to output channels
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
-    ///   false if scene cannot yet be applied to hardware, and will be performed later
+    ///   false if scene cannot be applied to hardware (not yet, or maybe not at all); applying to hardware, if
+    ///   needed at all, will be triggered otherwise.
     /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
     ///   a one-step scene value change.
     ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects

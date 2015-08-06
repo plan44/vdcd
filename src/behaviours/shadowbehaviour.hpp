@@ -119,8 +119,7 @@ namespace p44 {
 
 
 
-  /// the persistent parameters of a light scene device (including scene table)
-  /// @note subclasses can implement more parameters, like for example ColorLightDeviceSettings for color lights.
+  /// the persistent parameters of a shadow scene device (including scene table)
   class ShadowDeviceSettings : public SceneDeviceSettings
   {
     typedef SceneDeviceSettings inherited;

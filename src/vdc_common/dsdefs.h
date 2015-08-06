@@ -55,8 +55,11 @@ typedef enum {
   T3_S3 = 27,             ///< area 3 scene 3
   T3_S4 = 28,             ///< area 3 scene 4
   T4_S2 = 29,             ///< area 4 scene 2
+  CLIMATE_WINTER = 29,    ///< climate control: to summer mode
   T4_S3 = 30,             ///< area 4 scene 3
+  CLIMATE_SUMMER = 30,    ///< climate control: to summer mode
   T4_S4 = 31,             ///< area 4 scene 4
+  CLIMATE_VALVE_PROPHYLAXIS = 31, ///< climate control: valve prophylaxis
   T1E_S0 = 32,            ///< area 1 extended off scene
   T1E_S1 = 33,            ///< area 1 extended on scene
   T2E_S0 = 34,            ///< area 2 extended off scene
@@ -67,20 +70,32 @@ typedef enum {
   T4E_S1 = 39,            ///< area 4 extended on scene
   AUTO_OFF = 40,          ///< slow motion off (1 minute down to 0)
   ///< 41 - reserved
-  T1_DEC = 42,            ///< area 1 decrement value / audio: Previous Title
-  T1_INC = 43,            ///< area 1 increment value / audio: Next Title
-  T2_DEC = 44,            ///< area 2 decrement value / audio: Previous Channel
-  T2_INC = 45,            ///< area 2 increment value / audio: Next Channel
-  T3_DEC = 46,            ///< area 3 decrement value / audio: Mute
-  T3_INC = 47,            ///< area 3 increment value / audio: Unmute
-  T4_DEC = 48,            ///< area 4 decrement value / audio: Play
-  T4_INC = 49,            ///< area 4 increment value / audio: Pause
+  T1_DEC = 42,            ///< area 1 decrement value
+  AUDIO_PREV_TITLE = 42,  ///< audio: Previous Title
+  T1_INC = 43,            ///< area 1 increment value
+  AUDIO_NEXT_TITLE = 43,  ///< audio: Next Title
+  T2_DEC = 44,            ///< area 2 decrement value
+  AUDIO_PREV_CHANNEL = 44,///< audio: Previous Channel
+  T2_INC = 45,            ///< area 2 increment value
+  AUDIO_NEXT_CHANNEL = 45,///< audio: Next Channel
+  T3_DEC = 46,            ///< area 3 decrement value
+  AUDIO_MUTE = 46,        ///< audio: Mute
+  T3_INC = 47,            ///< area 3 increment value
+  AUDIO_UNMUTE = 47,      ///< audio: Unmute
+  T4_DEC = 48,            ///< area 4 decrement value
+  AUDIO_PLAY = 48,        ///< audio: Play
+  T4_INC = 49,            ///< area 4 increment value
+  AUDIO_PAUSE = 49,       ///< audio: Pause
   LOCAL_OFF = 50,         ///< local button off scene
   LOCAL_ON = 51,          ///< local button on scene
-  T1_STOP_S = 52,         ///< area 1 stop / audio: Shuffle Off
-  T2_STOP_S = 53,         ///< area 2 stop / audio: Shuffle On
-  T3_STOP_S = 54,         ///< area 3 stop / audio: Resume Off
-  T4_STOP_S = 55,         ///< area 4 stop / audio: Resume On
+  T1_STOP_S = 52,         ///< area 1 stop
+  AUDIO_SHUFFLE_OFF = 52, ///< audio: Shuffle Off
+  T2_STOP_S = 53,         ///< area 2 stop
+  AUDIO_SHUFFLE_ON = 53,  ///< audio: Shuffle On
+  T3_STOP_S = 54,         ///< area 3 stop
+  AUDIO_RESUME_OFF = 54,  ///< audio: Resume Off
+  T4_STOP_S = 55,         ///< area 4 stop
+  AUDIO_RESUME_ON = 55,   ///< audio: Resume On
   ///< 56..63 - reserved
   START_APARTMENT_SCENES = 64,                    ///< 64 - first apartment scene
   AUTO_STANDBY = (START_APARTMENT_SCENES + 0),    ///< 64 - auto-standby scene
@@ -111,8 +126,9 @@ typedef enum {
   NO_RAIN = (START_APARTMENT_SCENES + 25),        ///< 89 - No Rain
   HAIL = (START_APARTMENT_SCENES + 26),           ///< 90 - Hail
   NO_HAIL = (START_APARTMENT_SCENES + 27),        ///< 91 - No Hail
-
+  MAX_SCENE_NO                                    ///< currently last known scene number
 } DsSceneNumber;
+
 
 /// Scene Effects (transition and alerting)
 typedef enum {
@@ -289,6 +305,7 @@ typedef enum {
   channeltype_permeability = 10, ///< permeability
   channeltype_custom_first = 192, ///< first device-specific channel
   channeltype_custom_last = 239, ///< first device-specific channel
+  channeltype_p44_audio_volume = channeltype_custom_first+0, ///< p44-specific channel type for audio volume until dS specifies one
   numChannelTypes = 240 // 0..239 are channel types
 } DsChannelTypeEnum;
 typedef uint8_t DsChannelType;

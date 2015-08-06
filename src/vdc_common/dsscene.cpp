@@ -174,6 +174,8 @@ DsScene::DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
   inheritedParams(aSceneDeviceSettings.paramStore),
   sceneDeviceSettings(aSceneDeviceSettings),
   sceneNo(aSceneNo),
+  sceneArea(0), // not area scene by default
+  sceneCmd(scene_cmd_invoke), // simple invoke command by default
   globalSceneFlags(0)
 {
   sceneChannels = SceneChannelsPtr(new SceneChannels(*this));

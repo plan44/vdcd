@@ -24,6 +24,58 @@
 using namespace p44;
 
 
+#pragma mark - ClimateControlScene
+
+
+ClimateControlScene::ClimateControlScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+  inherited(aSceneDeviceSettings, aSceneNo)
+{
+}
+
+
+void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special climate behaviour scene commands
+  switch (aSceneNo) {
+    case CLIMATE_WINTER:
+      sceneCmd = scene_cmd_heating_winter_mode;
+      break;
+    case CLIMATE_SUMMER:
+      sceneCmd = scene_cmd_heating_summer_mode;
+      break;
+    case CLIMATE_VALVE_PROPHYLAXIS:
+      sceneCmd = scene_cmd_heating_valve_prophylaxis;
+      break;
+    default:
+      break;
+  }
+}
+
+
+#pragma mark - ShadowDeviceSettings with default shadow scenes factory
+
+
+ClimateDeviceSettings::ClimateDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+}
+
+
+DsScenePtr ClimateDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+{
+  ClimateControlScenePtr climateControlScene = ClimateControlScenePtr(new ClimateControlScene(*this, aSceneNo));
+  climateControlScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return climateControlScene;
+}
+
+
+
+#pragma mark - ClimateControlBehaviour
+
+
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice),
   summerMode(false), // assume valve active
@@ -77,28 +129,27 @@ Tristate ClimateControlBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 
 
 // apply scene
-// - special climate scenes:
-//   29 Activate control
-//   30 De-activate output
-//   31 Execute valve prophylaxis: Valve will be closed and opened to prevent calcification i.e. removal of calcium deposit
+// - execute special climate commands
 bool ClimateControlBehaviour::applyScene(DsScenePtr aScene)
 {
   // check the special hardwired scenes
   if (isMember(group_roomtemperature_control)) {
-    SceneNo sceneNo = aScene->sceneNo;
-    switch (sceneNo) {
-      case 29:
+    SceneCmd sceneCmd = aScene->sceneCmd;
+    switch (sceneCmd) {
+      case scene_cmd_heating_winter_mode:
         // switch to winter mode
         summerMode = false;
         return true;
-      case 30:
+      case scene_cmd_heating_summer_mode:
         // switch to summer mode
         summerMode = true;
         return true;
-      case 31:
+      case scene_cmd_heating_valve_prophylaxis:
         // valve prophylaxis
         runProphylaxis = true;
         return true;
+      default:
+        break;
     }
   }
   // other type of scene, let base class handle it

@@ -553,64 +553,6 @@ void Device::hasVanished(bool aForgetParams)
 }
 
 
-// returns 0 for non-area scenes, area number for area scenes
-static int areaFromScene(SceneNo aSceneNo)
-{
-  int area = 0;
-  switch(aSceneNo) {
-    case T1_S0:
-    case T1_S1:
-    case T1_S2:
-    case T1_S3:
-    case T1_S4:
-    case T1_INC:
-    case T1_DEC:
-    case T1_STOP_S:
-    case T1E_S0:
-    case T1E_S1:
-      area = 1;
-      break;
-    case T2_S0:
-    case T2_S1:
-    case T2_S2:
-    case T2_S3:
-    case T2_S4:
-    case T2_INC:
-    case T2_DEC:
-    case T2_STOP_S:
-    case T2E_S0:
-    case T2E_S1:
-      area = 2;
-      break;
-    case T3_S0:
-    case T3_S1:
-    case T3_S2:
-    case T3_S3:
-    case T3_S4:
-    case T3_INC:
-    case T3_DEC:
-    case T3_STOP_S:
-    case T3E_S0:
-    case T3E_S1:
-      area = 3;
-      break;
-    case T4_S0:
-    case T4_S1:
-    case T4_S2:
-    case T4_S3:
-    case T4_S4:
-    case T4_INC:
-    case T4_DEC:
-    case T4_STOP_S:
-    case T4E_S0:
-    case T4E_S1:
-      area = 4;
-      break;
-  }
-  return area;
-}
-
-
 static SceneNo mainSceneForArea(int aArea)
 {
   switch (aArea) {
@@ -708,39 +650,6 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
       MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, aAutoStopAfter);
     }
   }
-}
-
-
-
-// returns main dim scene INC_S/DEC_S/STOP_S for any type of dim scene
-// returns 0 for non-dim scenes
-static SceneNo mainDimScene(SceneNo aSceneNo)
-{
-  SceneNo dimScene = 0;
-  switch (aSceneNo) {
-    case INC_S:
-    case T1_INC:
-    case T2_INC:
-    case T3_INC:
-    case T4_INC:
-      dimScene = INC_S;
-      break;
-    case DEC_S:
-    case T1_DEC:
-    case T2_DEC:
-    case T3_DEC:
-    case T4_DEC:
-      dimScene = DEC_S;
-      break;
-    case STOP_S:
-    case T1_STOP_S:
-    case T2_STOP_S:
-    case T3_STOP_S:
-    case T4_STOP_S:
-      dimScene = STOP_S;
-      break;
-  }
-  return dimScene;
 }
 
 
@@ -1066,31 +975,32 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
   // see if we have a scene table at all
   SceneDeviceSettingsPtr scenes = getScenes();
   if (scenes) {
-    DsScenePtr scene;
-    // check special scene numbers first
-    SceneNo dimSceneNo = 0;
-    if (aSceneNo==T1234_CONT) {
+    DsScenePtr scene = scenes->getScene(aSceneNo);
+    SceneCmd cmd = scene->sceneCmd;
+    SceneArea area = scene->sceneArea;
+    // check special scene commands first
+    if (cmd==scene_cmd_area_continue) {
       // area dimming continuation
       // - reschedule dimmer timeout (=keep dimming)
       MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
       // - otherwise: NOP
       return;
     }
-    // see if it is a dim scene and normalize to INC_S/DEC_S/STOP_S
-    dimSceneNo = mainDimScene(aSceneNo);
-    if (dimSceneNo!=0) {
-      // Start/Stop legacy dimming via INC_S/DEC_S/STOP_S
-      dimChannelForArea(
-        channeltype_default,
-        dimSceneNo==STOP_S ? dimmode_stop : (dimSceneNo==INC_S ? dimmode_up : dimmode_down),
-        areaFromScene(aSceneNo),
-        LEGACY_DIM_STEP_TIMEOUT
-      );
+    // first check legacy (inc/dec scene) dimming
+    if (cmd==scene_cmd_increment) {
+      dimChannelForArea(channeltype_default, dimmode_up, area, LEGACY_DIM_STEP_TIMEOUT);
       return;
     }
+    else if (cmd==scene_cmd_decrement) {
+      dimChannelForArea(channeltype_default, dimmode_down, area, LEGACY_DIM_STEP_TIMEOUT);
+      return;
+    }
+    else if (cmd==scene_cmd_stop) {
+      dimChannelForArea(channeltype_default, dimmode_stop, area, 0);
+      return;
+    }
+    // we get here only if callScene is not legacy dimming
     LOG(LOG_NOTICE, "CallScene(%d) (non-dimming!) in device %s:\n", aSceneNo, shortDesc().c_str());
-    // check for area
-    int area = areaFromScene(aSceneNo);
     // make sure dimming stops for any non-dimming scene call
     if (currentDimMode!=dimmode_stop) {
       // any non-dimming scene call stops dimming
@@ -1099,60 +1009,55 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     }
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
     if (area) {
-      LOG(LOG_DEBUG, "- callScene(%d): is area #%d scene\n", aSceneNo, area);
+      LOG(LOG_INFO, "- callScene(%d): is area #%d scene\n", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
-      scene = scenes->getScene(mainSceneForArea(area));
-      if (scene->isDontCare()) {
-        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress\n", mainSceneForArea(area));
+      DsScenePtr areamainscene = scenes->getScene(mainSceneForArea(area));
+      if (areamainscene->isDontCare()) {
+        LOG(LOG_INFO, "- area main scene(%d) is dontCare -> suppress\n", areamainscene->sceneNo);
         return; // not in this area, suppress callScene entirely
       }
-      // call applies, if it is area off it resets localPriority
-      if (aSceneNo>=T1_S0 && aSceneNo<=T4_S0) {
+      // call applies, if it is a off scene, it resets localPriority
+      if (scene->sceneCmd==scene_cmd_off) {
         // area is switched off -> end local priority
-        LOG(LOG_DEBUG, "- is area off scene -> ends localPriority now\n");
+        LOG(LOG_INFO, "- is area off scene -> ends localPriority now\n");
         output->setLocalPriority(false);
       }
     }
-    // not dimming, use scene as passed
-    scene = scenes->getScene(aSceneNo);
-    if (scene) {
-      LOG(LOG_DEBUG, "- effective normalized scene to apply to output is %d, dontCare=%d\n", scene->sceneNo, scene->isSceneValueFlagSet(0, valueflags_dontCare));
-      if (!scene->isDontCare()) {
-        // Scene found and dontCare not set, check details
-        // - check local priority
-        if (!area && output->hasLocalPriority()) {
-          // non-area scene call, but device is in local priority and scene does not ignore local priority
-          if (!aForce && !scene->ignoresLocalPriority()) {
-            // not forced nor localpriority ignored, localpriority prevents applying non-area scene
-            LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
-            return; // suppress scene call entirely
-          }
-          else {
-            // forced or scene ignores local priority, scene is applied anyway, and also clears localPriority
-            output->setLocalPriority(false);
-          }
+    if (!scene->isDontCare()) {
+      // Scene found and dontCare not set, check details
+      // - check and update local priority
+      if (!area && output->hasLocalPriority()) {
+        // non-area scene call, but device is in local priority
+        if (!aForce && !scene->ignoresLocalPriority()) {
+          // not forced nor localpriority ignored, localpriority prevents applying non-area scene
+          LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
+          return; // suppress scene call entirely
         }
-        // - make sure we have the lastState pseudo-scene for undo
-        if (!previousState)
-          previousState = scenes->newDefaultScene(aSceneNo);
-        else
-          previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
-        // - now apply to output
-        if (output) {
-          // Non-dimming scene: have output save its current state into the previousState pseudo scene
-          // Note: the actual updating might happen later (when the hardware responds) but
-          //   implementations must make sure access to the hardware is serialized such that
-          //   the values are captured before values from applyScene() below are applied.
-          output->captureScene(previousState, true, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
-        } // if output
-      } // not dontCare
-      else {
-        // do other scene actions now, as dontCare prevented applying scene above
-        if (output) {
-          output->performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
-        } // if output
+        else {
+          // forced or scene ignores local priority, scene is applied anyway, and also clears localPriority
+          output->setLocalPriority(false);
+        }
       }
-    } // scene found
+      // - make sure we have the lastState pseudo-scene for undo
+      if (!previousState)
+        previousState = scenes->newDefaultScene(aSceneNo);
+      else
+        previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
+      // - now capture current values and then apply to output
+      if (output) {
+        // Non-dimming scene: have output save its current state into the previousState pseudo scene
+        // Note: the actual updating might happen later (when the hardware responds) but
+        //   implementations must make sure access to the hardware is serialized such that
+        //   the values are captured before values from applyScene() below are applied.
+        output->captureScene(previousState, true, boost::bind(&Device::outputUndoStateSaved,this,output,scene)); // apply only after capture is complete
+      } // if output
+    } // not dontCare
+    else {
+      // do other scene actions now, as dontCare prevented applying scene above
+      if (output) {
+        output->performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
+      } // if output
+    }
   } // device with scenes
 }
 
@@ -1167,6 +1072,10 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
     if (output->applyScene(aScene)) {
       // now apply values to hardware
       requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+    }
+    else {
+      // no apply to hardware needed, directly proceed to actions
+      sceneValuesApplied(aScene);
     }
   }
 }
@@ -1274,7 +1183,7 @@ void Device::outputSceneValueSaved(DsScenePtr aScene)
 {
   // Check special area scene case: dontCare need to be updated depending on brightness (if zero, set don't care)
   SceneNo sceneNo = aScene->sceneNo;
-  int area = areaFromScene(sceneNo);
+  int area = aScene->sceneArea;
   if (area) {
     // detail check - set don't care when saving Area On-Scene
     if (sceneNo==mainSceneForArea(area)) {

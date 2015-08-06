@@ -115,7 +115,7 @@ void ShadowScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex,
 
 
 
-#pragma mark - default color scene
+#pragma mark - default shadow scene
 
 void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
@@ -621,7 +621,7 @@ bool ShadowBehaviour::applyScene(DsScenePtr aScene)
     // any scene call cancels actions (and fade down)
     stopActions();
   } // if shadowScene
-  // other type of scene, let base class handle it
+  // otherwise, let base class handle it
   return inherited::applyScene(aScene);
 }
 

@@ -47,6 +47,41 @@ namespace p44 {
 
 
 
+  /// A climate scene
+  class ClimateControlScene : public SimpleScene
+  {
+    typedef SimpleScene inherited;
+
+  public:
+    ClimateControlScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+
+  };
+  typedef boost::intrusive_ptr<ClimateControlScene> ClimateControlScenePtr;
+
+
+
+  /// the persistent parameters of a climate scene device (including scene table)
+  class ClimateDeviceSettings : public SceneDeviceSettings
+  {
+    typedef SceneDeviceSettings inherited;
+
+  public:
+    ClimateDeviceSettings(Device &aDevice);
+
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+    
+  };
+
+
+
+
   /// Implements the behaviour of climate control outputs, in particular evaluating
   /// control values with processControlValue()
   class ClimateControlBehaviour : public OutputBehaviour

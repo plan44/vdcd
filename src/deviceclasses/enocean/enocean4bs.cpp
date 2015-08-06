@@ -616,8 +616,8 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   if (aSubDeviceIndex<1) {
     // only one device
     newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
-    // valve needs standard single-value scene table (SimpleScene)
-    newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
+    // valve needs climate control scene table (ClimateControlScene)
+    newDev->installSettings(DeviceSettingsPtr(new ClimateDeviceSettings(*newDev)));
     // assign channel and address
     newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
     // assign EPP information

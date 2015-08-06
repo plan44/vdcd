@@ -32,11 +32,47 @@ using namespace std;
 
 namespace p44 {
 
-  #define MAX_SCENE_NO 79 // TODO: this is an arbitrary number so far, to limit the array property. Get a real number for it
-
+  /// scene number
   typedef uint8_t SceneNo;
 
-  // per scene value flags as represented in sceneValueFlags
+  /// area this scene applies to (usually derives from SceneNo, 0 if scene is not an area scene)
+  typedef uint8_t SceneArea;
+
+  /// scene commands
+  typedef enum {
+    scene_cmd_none, ///< no command, reserved scene
+    scene_cmd_invoke, ///< standard scene invoke behaviour, i.e. load channel values, apply effects if any
+    scene_cmd_off, ///< standard off behaviour (usually equivalent to invoke, but might have slightly different semantics in certain behaviours)
+    scene_cmd_min, ///< standard min behaviour (usually equivalent to invoke, but might have slightly different semantics in certain behaviours)
+    scene_cmd_max, ///< standard max behaviour (usually equivalent to invoke, but might have slightly different semantics in certain behaviours)
+    scene_cmd_increment, ///< increment, dim up
+    scene_cmd_decrement, ///< decrement, dim down
+    scene_cmd_area_continue, ///< special case: continue last area increment/decrement
+    scene_cmd_stop, ///< stop
+    scene_cmd_slow_off, ///< slow motion off
+    scene_cmd_audio_repeat_off, ///< audio: repeat off
+    scene_cmd_audio_repeat_1, ///< audio: repeat 1
+    scene_cmd_audio_repeat_all, ///< audio: repeat all
+    scene_cmd_audio_previous_title, ///< audio: Previous Title
+    scene_cmd_audio_next_title, ///< audio: Next Title
+    scene_cmd_audio_previous_channel, ///< audio: Previous Channel
+    scene_cmd_audio_next_channel, ///< audio: Next Channel
+    scene_cmd_audio_mute, ///< audio: Mute
+    scene_cmd_audio_unmute, ///< audio: Unmute
+    scene_cmd_audio_play, ///< audio: Play
+    scene_cmd_audio_pause, ///< audio: Pause
+    scene_cmd_audio_shuffle_off, ///< audio: Shuffle Off
+    scene_cmd_audio_shuffle_on, ///< audio: Shuffle On
+    scene_cmd_audio_resume_off, ///< audio: Resume Off
+    scene_cmd_audio_resume_on, ///< audio: Resume On
+    scene_cmd_heating_summer_mode, ///< heating: Switch to summer mode
+    scene_cmd_heating_winter_mode, ///< heating: Switch to winter mode
+    scene_cmd_heating_valve_prophylaxis, ///< heating: Valve prophylaxis
+  } SceneCmd;
+  
+
+
+  /// per scene value flags as represented in sceneValueFlags
   enum {
     valueflags_dontCare = 0x0001, ///< if set, value of this channel/output will not be recalled with scene
   };
@@ -81,6 +117,8 @@ namespace p44 {
     /// @{
 
     SceneNo sceneNo; ///< scene number
+    SceneCmd sceneCmd; ///< scene command
+    SceneArea sceneArea; ///< scene area, 0 if none
 
     /// @}
 

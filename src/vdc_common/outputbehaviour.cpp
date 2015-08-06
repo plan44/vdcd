@@ -206,10 +206,24 @@ void OutputBehaviour::saveChannelsToScene(DsScenePtr aScene)
 
 bool OutputBehaviour::applyScene(DsScenePtr aScene)
 {
-  // apply stored scene value(s) to channels
-  loadChannelsFromScene(aScene);
-  LOG(LOG_INFO,"- Scene(%d): new channel value(s) loaded from scene, ready to apply\n", aScene->sceneNo);
-  return true;
+  // scenes with invoke functionality will apply channel values by default
+  SceneCmd cmd = aScene->sceneCmd;
+  if (
+    cmd==scene_cmd_invoke ||
+    cmd==scene_cmd_off ||
+    cmd==scene_cmd_min ||
+    cmd==scene_cmd_max
+  ) {
+    // apply stored scene value(s) to channels
+    loadChannelsFromScene(aScene);
+    LOG(LOG_INFO,"- Scene(%d): new channel value(s) loaded from scene, ready to apply\n", aScene->sceneNo);
+    return true;
+  }
+  else {
+    // no channel changes
+    LOG(LOG_INFO,"- Scene(%d): no invoke/off/min/max (but cmd=%d) -> no channels loaded\n", aScene->sceneCmd, aScene->sceneNo);
+    return false;
+  }
 }
 
 
