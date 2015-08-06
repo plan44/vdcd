@@ -303,7 +303,7 @@ public:
                                      "(supported for DEVICE : PCA9685)"
       #endif
                                      },
-      { 'k', "consoleio",     true,  "name[:(dimmer|button|valve)];add static debug device which reads and writes console "
+      { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
