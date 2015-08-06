@@ -363,12 +363,17 @@ ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, 
     }
   }
   else if (aMethod=="x-p44-teachInSignal") {
-    if (sendTeachInSignal()) {
-      // confirm first, because device will get deleted in the process
+    uint8_t variant = 0;
+    ApiValuePtr o = aParams->get("variant");
+    if (o) {
+      variant = o->uint8Value();
+    }
+    if (teachInSignal(variant)) {
+      // confirm
       aRequest->sendResult(ApiValuePtr());
     }
     else {
-      respErr = ErrorPtr(new WebError(400, "device cannot send teach in signals"));
+      respErr = ErrorPtr(new WebError(400, "device cannot send teach in signal of requested variant"));
     }
   }
   else {
@@ -1292,6 +1297,7 @@ enum {
   progMode_key,
   deviceType_key,
   softwareRemovable_key,
+  teachinSignals_key,
   // output
   output_description_key, // output is not array!
   output_settings_key, // output is not array!
@@ -1367,6 +1373,7 @@ PropertyDescriptorPtr Device::getDescriptorByIndex(int aPropIndex, int aDomain, 
     { "progMode", apivalue_bool, progMode_key, OKEY(device_key) },
     { "x-p44-deviceType", apivalue_string, deviceType_key, OKEY(device_key) },
     { "x-p44-softwareRemovable", apivalue_bool, softwareRemovable_key, OKEY(device_key) },
+    { "x-p44-teachInSignals", apivalue_int64, teachinSignals_key, OKEY(device_key) },
     // the behaviour arrays
     // Note: the prefixes for xxxDescriptions, xxxSettings and xxxStates must match
     //   getTypeName() of the behaviours.
@@ -1541,6 +1548,9 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
           return true;
         case softwareRemovable_key:
           aPropValue->setBoolValue(isSoftwareDisconnectable()); return true;
+          return true;
+        case teachinSignals_key:
+          aPropValue->setInt8Value(teachInSignal(-1)); return true; // query number of teach-in signals
           return true;
       }
     }

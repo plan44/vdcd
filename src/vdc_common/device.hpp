@@ -306,9 +306,11 @@ namespace p44 {
     /// @note base class delegates this to the output behaviour (if any)
     virtual void identifyToUser();
 
-    /// send a signal needed for some devices to get learned into other devices
-    /// @return true if device can send a teach-in signal
-    virtual bool sendTeachInSignal() { return false; /* base class does not have this */ };
+    /// send a signal needed for some devices to get learned into other devices, or query availability of teach-in signals
+    /// @param aVariant -1 to just get number of available teach-in variants. 0..n to send teach-in signal;
+    ///   some devices may have different teach-in signals (like: one for ON, one for OFF).
+    /// @return number of teach-in signal variants the device can send
+    virtual uint8_t teachInSignal(int8_t aVariant) { return 0; /* has no teach-in signals */ };
 
 
     /// check if device can be disconnected by software (i.e. Web-UI)
