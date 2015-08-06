@@ -91,7 +91,6 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-    l->setGroupMembership(group_yellow_light, true); // put into light group by default
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
