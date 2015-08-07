@@ -215,6 +215,12 @@ void PersistentParams::markDirty()
 }
 
 
+void PersistentParams::markClean()
+{
+  dirty = false;
+}
+
+
 
 /// bind values to passed statement
 void PersistentParams::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)

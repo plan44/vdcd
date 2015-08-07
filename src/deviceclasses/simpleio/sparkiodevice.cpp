@@ -124,6 +124,7 @@ void SparkLightScene::setDefaultSceneValues(SceneNo aSceneNo)
   inherited::setDefaultSceneValues(aSceneNo);
   // default to mode 3 = RGB lamp
   extendedState = 3; // mode 3 = lamp
+  markClean(); // default values are always clean
 }
 
 

@@ -231,7 +231,7 @@ namespace p44 {
     /// store updated version of a scene for this device
     /// @param aScene the updated scene object that should be stored
     /// @note only updates the scene if aScene is marked dirty
-    void updateScene(DsScenePtr aScene);
+    void updateSceneIfDirty(DsScenePtr aScene);
 
 
     /// start or stop dimming channel of this device.

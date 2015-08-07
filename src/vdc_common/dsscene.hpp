@@ -264,6 +264,7 @@ namespace p44 {
     /// @param aSceneNo the scene to save modified settings for.
     /// @note call updateScene only if scene values are changed from defaults, because
     ///   updating a scene creates DB records and needs more run-time memory.
+    /// @note always updates the scene and causes write to DB even if scene was not marked dirty already
     void updateScene(DsScenePtr aScene);
 
     /// reset scene to default values

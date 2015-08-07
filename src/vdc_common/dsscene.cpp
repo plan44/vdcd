@@ -479,7 +479,7 @@ void SceneDeviceSettings::updateScene(DsScenePtr aScene)
   }
   // anyway, mark scene dirty
   aScene->markDirty();
-  // as we need the ROWID of the lightsettings as parentID, make sure we get saved if we don't have one
+  // as we need the ROWID of the settings as parentID, make sure we get saved if we don't have one
   if (rowid==0) markDirty();
 }
 

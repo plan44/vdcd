@@ -128,6 +128,7 @@ void MovingLightScene::setDefaultSceneValues(SceneNo aSceneNo)
     setSceneValueFlags(movingLightBehaviour->horizontalPosition->getChannelIndex(), valueflags_dontCare, true);
     setSceneValueFlags(movingLightBehaviour->verticalPosition->getChannelIndex(), valueflags_dontCare, true);
   }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
 }
 
 

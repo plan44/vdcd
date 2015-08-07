@@ -161,6 +161,7 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
       XOrHueOrCt = 370; // = 1E6/370 = 2700k = warm white
       YOrSat = 0;
   }
+  markClean(); // default values are always clean
 }
 
 

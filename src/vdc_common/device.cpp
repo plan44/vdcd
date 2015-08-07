@@ -1204,17 +1204,17 @@ void Device::outputSceneValueSaved(DsScenePtr aScene)
         if (offScene) {
           offScene->setDontCare(mustBeDontCare);
           // update scene in scene table and DB if dirty
-          updateScene(offScene);
+          updateSceneIfDirty(offScene);
         }
       }
     }
   }
   // update scene in scene table and DB if dirty
-  updateScene(aScene);
+  updateSceneIfDirty(aScene);
 }
 
 
-void Device::updateScene(DsScenePtr aScene)
+void Device::updateSceneIfDirty(DsScenePtr aScene)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes && aScene->isDirty()) {

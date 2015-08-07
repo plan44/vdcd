@@ -51,6 +51,7 @@ void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
     default:
       break;
   }
+  markClean(); // default values are always clean
 }
 
 
