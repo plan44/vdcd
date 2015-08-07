@@ -47,7 +47,10 @@ double ColorChannel::getChannelValueCalculated()
 
 
 ColorLightScene::ColorLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
-  inherited(aSceneDeviceSettings, aSceneNo)
+  inherited(aSceneDeviceSettings, aSceneNo),
+  colorMode(colorLightModeNone),
+  XOrHueOrCt(0),
+  YOrSat(0)
 {
 }
 

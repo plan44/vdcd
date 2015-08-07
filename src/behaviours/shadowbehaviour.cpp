@@ -36,7 +36,8 @@ using namespace p44;
 
 
 ShadowScene::ShadowScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
-  inherited(aSceneDeviceSettings, aSceneNo)
+  inherited(aSceneDeviceSettings, aSceneNo),
+  angle(0)
 {
 }
 
@@ -122,7 +123,6 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
   // set the common simple scene defaults
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special shadow behaviour
-  // Note: the specs docs state that preset 2 has
   switch (aSceneNo) {
     case SIG_PANIC:
     case SMOKE:
@@ -139,6 +139,13 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
       value = 100;
       break;
   }
+  // by default, angle is 0 and don'tCare
+  angle = 0;
+  ShadowBehaviourPtr shadowBehaviour = boost::dynamic_pointer_cast<ShadowBehaviour>(getOutputBehaviour());
+  if (shadowBehaviour) {
+    setSceneValueFlags(shadowBehaviour->angle->getChannelIndex(), valueflags_dontCare, true);
+  }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
 }
 
 

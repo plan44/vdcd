@@ -29,7 +29,9 @@ using namespace p44;
 
 
 MovingLightScene::MovingLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
-  inherited(aSceneDeviceSettings, aSceneNo)
+  inherited(aSceneDeviceSettings, aSceneNo),
+  hPos(0),
+  vPos(0)
 {
 }
 
