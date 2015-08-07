@@ -326,7 +326,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
       { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
       { "zoneID", apivalue_uint64, defaultzone_key, OKEY(deviceclass_key) },
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
-      { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) },
+      { "x-p44-devices", apivalue_object+propflag_container+propflag_nowildcard, devices_key, OKEY(device_container_key) },
       { "x-p44-deviceClass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
       { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) },
       { "x-p44-rescanModes", apivalue_uint64, rescanModes_key, OKEY(deviceclass_key) }
