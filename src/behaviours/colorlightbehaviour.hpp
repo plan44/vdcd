@@ -197,6 +197,7 @@ namespace p44 {
   class ColorLightBehaviour : public LightBehaviour
   {
     typedef LightBehaviour inherited;
+    friend class ColorLightScene;
 
   public:
 
@@ -271,6 +272,10 @@ namespace p44 {
     ///   is implemented in the specific behaviours according to the scene layout for that behaviour.
     /// @note call markDirty on aScene in case it is changed (otherwise captured values will not be saved)
     virtual void saveChannelsToScene(DsScenePtr aScene);
+
+
+    /// utility function, adjusts channel-level dontCare flags to current color mode
+    void adjustChannelDontCareToColorMode(ColorLightScenePtr aColorLightScene);
 
   };
 
