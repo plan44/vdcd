@@ -390,6 +390,15 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
 
 
 
+// helper to make sure handler and its parameter always match
+static void handle4BSBitField(const Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
+{
+  if (aSensorDescriptor.bitFieldHandler) {
+    aSensorDescriptor.bitFieldHandler(aSensorDescriptor, aBehaviour, aForSend, a4BSdata);
+  }
+}
+
+
 
 Enocean4bsSensorHandler::Enocean4bsSensorHandler(EnoceanDevice &aDevice) :
   inherited(aDevice),
@@ -553,7 +562,7 @@ void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         // create 32bit data word
         uint32_t data = aEsp3PacketPtr->get4BSdata();
         // call bit field handler, will pass result to behaviour
-        sensorChannelDescriptorP->bitFieldHandler(*sensorChannelDescriptorP, behaviour, false, data);
+        handle4BSBitField(*sensorChannelDescriptorP, behaviour, false, data);
       }
     }
   }
@@ -582,7 +591,6 @@ string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSe
     return string_format("%s, %0.*f..%0.*f %s", aSensorDescriptor.typeText, fracDigits, aSensorDescriptor.min, fracDigits, aSensorDescriptor.max, unitText);
   }
 }
-
 
 
 
@@ -854,17 +862,17 @@ void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       switch (identifier) {
         case 1:
           // A5-13-01
-          A513dawnSensor.bitFieldHandler(A513dawnSensor, behaviour, false, data);
-          A513dawnSensor.bitFieldHandler(A513outdoorTemp, outdoorTemp, false, data);
-          A513dawnSensor.bitFieldHandler(A513windSpeed, windSpeed, false, data);
-          A513dawnSensor.bitFieldHandler(A513dayIndicator, dayIndicator, false, data);
-          A513dawnSensor.bitFieldHandler(A513rainIndicator, rainIndicator, false, data);
+          handle4BSBitField(A513dawnSensor, behaviour, false, data);
+          handle4BSBitField(A513outdoorTemp, outdoorTemp, false, data);
+          handle4BSBitField(A513windSpeed, windSpeed, false, data);
+          handle4BSBitField(A513dayIndicator, dayIndicator, false, data);
+          handle4BSBitField(A513rainIndicator, rainIndicator, false, data);
           break;
         case 2:
           // A5-13-02
-          A513sunWest.bitFieldHandler(A513sunWest, sunWest, false, data);
-          A513sunSouth.bitFieldHandler(A513sunSouth, sunSouth, false, data);
-          A513sunEast.bitFieldHandler(A513sunEast, sunEast, false, data);
+          handle4BSBitField(A513sunWest, sunWest, false, data);
+          handle4BSBitField(A513sunSouth, sunSouth, false, data);
+          handle4BSBitField(A513sunEast, sunEast, false, data);
           break;
         default:
           // A5-13-03..06 are not supported

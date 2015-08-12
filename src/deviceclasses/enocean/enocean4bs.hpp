@@ -161,7 +161,6 @@ namespace p44 {
   typedef boost::intrusive_ptr<Enocean4bsSensorHandler> Enocean4bsSensorHandlerPtr;
 
 
-
   /// heating valve handler
   class EnoceanA52001Handler : public Enocean4bsHandler
   {
