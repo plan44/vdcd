@@ -20,6 +20,9 @@
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
+		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
+		ED1C3DE21B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
+		ED1C3DF11B7E1C5100779DA8 /* libavahi-core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */; };
 		ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F82F6184E40FD00339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
@@ -217,6 +220,20 @@
 			remoteGlobalIDString = ED36996C178C1A8200376405;
 			remoteInfo = mongoose;
 		};
+		ED1C3DE91B7E1BF400779DA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = ED07E28717E09E8900889CC3;
+			remoteInfo = "avahi-core";
+		};
+		ED1C3DEB1B7E1BF400779DA8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = ED07E36617E0AB0800889CC3;
+			remoteInfo = "p44dsb-publish";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -278,12 +295,15 @@
 		ED07E26517DB204200889CC3 /* huecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = huecomm.hpp; sourceTree = "<group>"; };
 		ED0DE308184E385A001ADB5E /* messages.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = messages.proto; sourceTree = "<group>"; };
 		ED0DE309184E385A001ADB5E /* vdcapi.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vdcapi.proto; sourceTree = "<group>"; };
-		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; };
+		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = discovery.cpp; sourceTree = "<group>"; };
+		ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = discovery.hpp; sourceTree = "<group>"; };
+		ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "avahi-core.xcodeproj"; path = "../avahi44/avahi-core.xcodeproj"; sourceTree = "<group>"; };
 		ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorutils.cpp; sourceTree = "<group>"; };
 		ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = colorutils.hpp; sourceTree = "<group>"; };
 		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
@@ -473,6 +493,7 @@
 			files = (
 				EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */,
 				ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */,
+				ED1C3DF11B7E1C5100779DA8 /* libavahi-core.dylib in Frameworks */,
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -503,6 +524,15 @@
 				ED1F82FA184E43B600339A22 /* gen */,
 			);
 			path = pbuf;
+			sourceTree = "<group>";
+		};
+		ED1C3DE51B7E1BF400779DA8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */,
+				ED1C3DEC1B7E1BF400779DA8 /* p44dsb-publish */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
@@ -542,6 +572,8 @@
 				ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */,
 				ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */,
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
+				ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */,
+				ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */,
 				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
 				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 			);
@@ -762,6 +794,7 @@
 			isa = PBXGroup;
 			children = (
 				ED07E25417D786A000889CC3 /* mongoose.xcodeproj */,
+				ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
@@ -944,6 +977,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = ED1C3DE51B7E1BF400779DA8 /* Products */;
+					ProjectRef = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
+				},
+				{
 					ProductGroup = ED07E25517D786A000889CC3 /* Products */;
 					ProjectRef = ED07E25417D786A000889CC3 /* mongoose.xcodeproj */;
 				},
@@ -965,6 +1002,20 @@
 			fileType = "compiled.mach-o.dylib";
 			path = libmongoose.dylib;
 			remoteRef = ED07E25817D786A000889CC3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = "libavahi-core.dylib";
+			remoteRef = ED1C3DE91B7E1BF400779DA8 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		ED1C3DEC1B7E1BF400779DA8 /* p44dsb-publish */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = "p44dsb-publish";
+			remoteRef = ED1C3DEB1B7E1BF400779DA8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -992,6 +1043,7 @@
 				ED1F830718508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
 				ED3126AE18318CC100FAF28B /* climatecontrolbehaviour.cpp in Sources */,
 				ED3126AF18318CC100FAF28B /* devicesettings.cpp in Sources */,
+				ED1C3DE21B7E19FB00779DA8 /* discovery.cpp in Sources */,
 				ED3126B118318CC100FAF28B /* dsuid.cpp in Sources */,
 				ED3126B218318CC100FAF28B /* jsonrpccomm.cpp in Sources */,
 				ED3126B318318CC100FAF28B /* fnv.cpp in Sources */,
@@ -1057,6 +1109,7 @@
 			files = (
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
 				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
+				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
@@ -1175,7 +1228,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
-					/usr/local/include,
+					"$(PROJECT_DIR)/../avahi44",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1193,7 +1246,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
-					/usr/local/include,
+					"$(PROJECT_DIR)/../avahi44",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1317,6 +1370,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"$(PROJECT_DIR)/../avahi44",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1337,6 +1391,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
+					"$(PROJECT_DIR)/../avahi44",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",

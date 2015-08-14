@@ -188,7 +188,10 @@ void P44VdcHost::selfTest(StatusCB aCompletedCB, ButtonInputPtr aButton, Indicat
 
 string P44VdcHost::webuiURLString()
 {
-  return "http://" + ipv4AddressString() + ":80";
+  if (webUiPort)
+    return string_format("http://%s:%d", ipv4AddressString().c_str(), webUiPort);
+  else
+    return ""; // none
 }
 
 
@@ -197,7 +200,8 @@ string P44VdcHost::webuiURLString()
 
 
 P44VdcHost::P44VdcHost() :
-  learnIdentifyTicket(0)
+  learnIdentifyTicket(0),
+  webUiPort(0)
 {
   configApiServer = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
 }

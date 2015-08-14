@@ -96,8 +96,9 @@ namespace p44 {
     string iconDir; ///< the directory where to load icons from
     string persistentDataDir; ///< the directory for the vdcd to store SQLite DBs and possibly other persistent data
 
-    string productName; ///< the name of the vdcd product as a a whole
+    string productName; ///< the name of the vdcd product (model name) as a a whole
     string productVersion; ///< the version string of the vdcd product as a a whole
+    string deviceHardwareId; ///< the device hardware id (such as a serial number) of the vdcd product as a a whole
 
     bool collecting;
     long announcementTicket;
@@ -144,14 +145,17 @@ namespace p44 {
     /// @param new name of this instance of the vdc host
     virtual void setName(const string &aName);
 
-    /// set the name of the vdcd product as a a whole
+    /// set the human readable name of the vdcd product as a a whole
     /// @param aProductName product (model) name
     void setProductName(const string &aProductName) { productName = aProductName; }
 
-    /// set the the version string of the vdcd product as a a whole
+    /// set the the human readable version string of the vdcd product as a a whole
     /// @param aProductVersion product version string
     void setProductVersion(const string &aProductVersion) { productVersion = aProductVersion; }
 
+    /// set the the human readable hardware id (such as a serial number) of the vdcd product as a a whole
+    /// @param aDeviceHardwareId device serial number or similar id
+    void setDeviceHardwareId(const string &aDeviceHardwareId) { deviceHardwareId = aDeviceHardwareId; }
 
     /// Set how dSUIDs are generated
     /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container
@@ -324,6 +328,9 @@ namespace p44 {
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId() { return "vendorname:plan44.ch"; };
+
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    string getDeviceHardwareId() { return deviceHardwareId; };
 
     /// @}
 
