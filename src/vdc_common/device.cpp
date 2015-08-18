@@ -92,7 +92,7 @@ Device::~Device()
 
 void Device::setName(const string &aName)
 {
-  if (aName!=getName()) {
+  if (aName!=getAssignedName()) {
     // has changed
     inherited::setName(aName);
     // make sure it will be saved

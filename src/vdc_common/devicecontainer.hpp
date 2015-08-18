@@ -77,9 +77,10 @@ namespace p44 {
   /// - is the connection point to a vDSM
   /// - contains one or multiple device class containers
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
-  class DeviceContainer : public DsAddressable
+  class DeviceContainer : public DsAddressable, public PersistentParams
   {
     typedef DsAddressable inherited;
+    typedef PersistentParams inheritedParams;
 
     friend class DeviceClassCollector;
     friend class DeviceClassInitializer;
@@ -139,6 +140,9 @@ namespace p44 {
     /// active session
     VdcApiConnectionPtr getSessionConnection() { return activeSessionConnection; };
 
+    /// set user assignable name
+    /// @param new name of this instance of the vdc host
+    virtual void setName(const string &aName);
 
     /// set the name of the vdcd product as a a whole
     /// @param aProductName product (model) name
@@ -324,6 +328,23 @@ namespace p44 {
     /// @}
 
 
+    /// @name vdc host level property persistence
+    /// @{
+
+    /// load parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    ErrorPtr load();
+
+    /// save unsaved parameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    ErrorPtr save();
+
+    /// forget any parameters stored in persistent DB
+    ErrorPtr forget();
+    
+    /// @}
+
+
   protected:
 
     /// add a device class container
@@ -354,6 +375,13 @@ namespace p44 {
     virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
     // method and notification dispatching
     ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);

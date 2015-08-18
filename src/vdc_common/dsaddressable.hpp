@@ -73,7 +73,11 @@ namespace p44 {
 
     /// get user assigned name of the addressable
     /// @return name string
-    string getName() { return name; };
+    virtual string getAssignedName() { return name; };
+
+    /// @return name string
+    /// @note derived classes might provide a default name if no actual name is set
+    virtual string getName() { return getAssignedName(); };
 
     /// set user assignable name
     /// @param new name of the addressable entity

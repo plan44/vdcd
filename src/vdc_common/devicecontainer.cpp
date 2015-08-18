@@ -60,6 +60,7 @@ using namespace p44;
 #define DEFAULT_PRODUCT_NAME "plan44.ch vdcd"
 
 DeviceContainer::DeviceContainer() :
+  inheritedParams(dsParamStore),
   mac(0),
   externalDsuid(false),
   DsAddressable(this),
@@ -78,6 +79,17 @@ DeviceContainer::DeviceContainer() :
   // obtain MAC address
   mac = macAddress();
   deriveDsUid(); // make sure we have a vdc host dSUID FROM THE BEGINNING. Usually, setIdMode derives it again, but just in case...
+}
+
+
+void DeviceContainer::setName(const string &aName)
+{
+  if (aName!=getAssignedName()) {
+    // has changed
+    inherited::setName(aName);
+    // make sure it will be saved
+    markDirty();
+  }
 }
 
 
@@ -249,6 +261,12 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
+  // initialize dsParamsDB database
+	string databaseName = getPersistentDataDir();
+	string_format_append(databaseName, "DsParams.sqlite3");
+  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
+  // load the vdc host settings
+  load();
   // Log start message
   LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
   // start the API server
@@ -256,11 +274,6 @@ void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
     vdcApiServer->start();
   }
-  // initialize dsParamsDB database
-	string databaseName = getPersistentDataDir();
-	string_format_append(databaseName, "DsParams.sqlite3");
-  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
-
   // start initialisation of class containers
   DeviceClassInitializer::initialize(*this, aCompletedCB, aFactoryReset);
 }
@@ -564,6 +577,8 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       // check again for devices that need to be announced
       startAnnouncing();
       // do a save run as well
+      // - myself
+      save();
       // - device containers
       for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
         pos->second->save();
@@ -1207,6 +1222,84 @@ bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 }
 
 
+#pragma mark - persistent vdc host level parameters
+
+ErrorPtr DeviceContainer::load()
+{
+  ErrorPtr err;
+  // load the vdc host settings
+  err = loadFromStore(entityType()); // is a singleton, identify by type
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc host: %s", err->description().c_str());
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceContainer::save()
+{
+  ErrorPtr err;
+  // save the vdc settings
+  err = saveToStore(entityType(), false); // is a singleton, identify by type, single instance
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceContainer::forget()
+{
+  // delete the vdc settings
+  deleteFromStore();
+  return ErrorPtr();
+}
+
+
+#pragma mark - persistence implementation
+
+// SQLIte3 table name to store these parameters to
+const char *DeviceContainer::tableName()
+{
+  return "VdcHostSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 1;
+
+size_t DeviceContainer::numFieldDefs()
+{
+  return inheritedParams::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "vdcHostName", SQLITE_TEXT },
+  };
+  if (aIndex<inheritedParams::numFieldDefs())
+    return inheritedParams::getFieldDef(aIndex);
+  aIndex -= inheritedParams::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void DeviceContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // get the field value
+  setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
+}
+
+
+// bind values to passed statement
+void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, getAssignedName().c_str());
+}
 
 
 

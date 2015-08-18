@@ -76,6 +76,18 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--productname P44-DSB-Mac"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--auxvdsmdsuid 198C033E330755E78015F97AD093DD1C00 --noauto --hostname p44-dsb-mac --deviceid 007"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--auxvdsmrunning"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--sqlitedir /tmp/vdcd"
             isEnabled = "YES">
          </CommandLineArgument>

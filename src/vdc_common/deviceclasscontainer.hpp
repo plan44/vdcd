@@ -140,6 +140,10 @@ namespace p44 {
     /// @return if true, this device class should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return false; }
 
+    /// get user assigned name of the device class container, or if there is none, a synthesized default name
+    /// @return name string
+    virtual string getName();
+
     /// set user assignable name
     /// @param new name of the addressable entity
     virtual void setName(const string &aName);
