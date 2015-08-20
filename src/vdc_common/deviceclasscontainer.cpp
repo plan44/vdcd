@@ -173,6 +173,12 @@ bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const ch
 }
 
 
+string DeviceClassContainer::vendorName()
+{
+  // default to same vendor as vdc host (device container)
+  return deviceContainerP->vendorName();
+}
+
 
 
 // add a device

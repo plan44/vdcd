@@ -89,6 +89,12 @@ Device::~Device()
 }
 
 
+string Device::vendorName()
+{
+  // default to same vendor as class container
+  return classContainerP->vendorName();
+}
+
 
 void Device::setName(const string &aName)
 {

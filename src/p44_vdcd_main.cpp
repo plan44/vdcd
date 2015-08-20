@@ -278,11 +278,11 @@ public:
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
+      { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
       { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
-      { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
       { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
       { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
       { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
@@ -442,6 +442,10 @@ public:
       // - set product name and version
       if (getStringOption("productversion", s)) {
         p44VdcHost->setProductVersion(s);
+      }
+      // - set product name and version
+      if (getStringOption("deviceid", s)) {
+        p44VdcHost->setDeviceHardwareId(s);
       }
 
       // - set custom announce pause

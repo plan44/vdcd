@@ -118,6 +118,10 @@ namespace p44 {
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vdSD"; }
 
+    /// @return Vendor name for display purposes
+    /// @note if not empty, value will be used by vendorId() default implementation to create vendorname:xxx URN schema id
+    virtual string vendorName();
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned

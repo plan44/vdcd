@@ -327,7 +327,8 @@ namespace p44 {
     virtual string oemGUID() { return ""; }
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
-    virtual string vendorId() { return "vendorname:plan44.ch"; };
+    /// @note class containers and devices will inherit this (vdc host's) vendor name if not overridden
+    virtual string vendorName() { return "plan44.ch"; };
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     string getDeviceHardwareId() { return deviceHardwareId; };

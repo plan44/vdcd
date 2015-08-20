@@ -219,12 +219,15 @@ namespace p44 {
     virtual string oemGUID() { return ""; };
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
-    /// @note vendor ID can be simply the name of the vendor in clear text, or possibly a platform-specific, numeric identifier
-    ///   that can be used to look up the vendor in the specific platform context (such as EnOcean)
     /// Already defined schemas for vendorId are
     /// - enoceanvendor:VVV[:nnn] = 3 hex digits enOcean vendor ID, optionally followed by vendor name (if known)
     /// - vendorname:nnnnn = vendor name in plain text
-    virtual string vendorId() { return ""; };
+    /// @note default implementation uses vendorName() (if not empty) to create vendorname:xxx URN schema id
+    virtual string vendorId();
+
+    /// @return Vendor name for display purposes
+    /// @note if not empty, value will be used by vendorId() default implementation to create vendorname:xxx URN schema id
+    virtual string vendorName() { return ""; };
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)

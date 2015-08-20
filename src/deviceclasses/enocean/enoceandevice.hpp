@@ -291,6 +291,9 @@ namespace p44 {
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId();
 
+    /// @return Vendor name if known
+    virtual string vendorName();
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned

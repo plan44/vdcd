@@ -458,6 +458,16 @@ bool DsAddressable::getDeviceIcon(string &aIcon, bool aWithData, const char *aRe
 }
 
 
+string DsAddressable::vendorId()
+{
+  // by default, use vendorname: URN schema
+  if (!vendorName().empty())
+    return string_format("vendorname:%s", vendorName().c_str());
+  else
+    return "";
+}
+
+
 
 
 #pragma mark - description/shortDesc

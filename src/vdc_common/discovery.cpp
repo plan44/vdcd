@@ -82,8 +82,10 @@ void DiscoveryManager::avahi_log(AvahiLogLevel level, const char *txt)
 string DiscoveryManager::publishedName()
 {
   // derive the descriptive name
-  // - descriptive name: Model name + optional custom name + optional serial
-  string n = deviceContainer->modelName();
+  // - descriptive name: vendor name + Model name + optional custom name + optional serial
+  string n = deviceContainer->vendorName();
+  if (!n.empty()) n+=" ";
+  n += deviceContainer->modelName();
   if (!deviceContainer->getName().empty()) {
     // append custom name
     string_format_append(n, " \"%s\"", deviceContainer->getName().c_str());

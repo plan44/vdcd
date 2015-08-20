@@ -148,6 +148,14 @@ string EnoceanDevice::vendorId()
 }
 
 
+string EnoceanDevice::vendorName()
+{
+  const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
+  return mn ? ":" : "";
+}
+
+
+
 bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   bool iconFound = false;
