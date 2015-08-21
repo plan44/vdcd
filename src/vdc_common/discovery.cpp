@@ -560,6 +560,7 @@ void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfInd
         // Note: local vdsm record (my own) is ignored
         if (strcmp(type, VDSM_SERVICE_TYPE)==0 && (flags & AVAHI_LOOKUP_RESULT_LOCAL)==0) {
           // new vdsm found. Only for vdsms, we need to resolve to get the TXT records in order to see if we've found a master vdsm
+          LOG(LOG_NOTICE, "discovery: vdsm '%s' has appeared\n", name);
           // Note: the returned resolver object can be ignored, it is freed in the callback
           //   if the server terminates before the callback has been executes, the server deletes the resolver.
           if (!(avahi_s_service_resolver_new(server, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, (AvahiLookupFlags)0, resolve_callback, this))) {
@@ -572,7 +573,7 @@ void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfInd
         LOG(LOG_DEBUG, "avahi: BROWSER_REMOVE: service '%s' of type '%s' in domain '%s'\n", name, type, domain);
         if (strcmp(type, VDSM_SERVICE_TYPE)==0) {
           // a vdsm has disappeared
-          LOG(LOG_NOTICE, "discovery: vdsm '%s' has disappeared\n", name);
+          LOG(LOG_NOTICE, "discovery: vdsm '%s' no longer online\n", name);
           // we have lost a vdsm, we need to rescan in a while (unless another master appears in the meantime)
           dmState = dm_lost_vdsm;
           MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
@@ -635,7 +636,7 @@ void DiscoveryManager::avahi_resolve_callback(AvahiSServiceResolver *r, AvahiIfI
         // is indeed a vdsm
         if (avahi_string_list_find(txt, VDSM_ROLE_MASTER)) {
           // there IS a master vdsm
-          LOG(LOG_INFO, "discovery: detected presence of master vdsm '%s' at %s\n", name, addrtxt);
+          LOG(LOG_NOTICE, "discovery: detected presence of master vdsm '%s' at %s\n", name, addrtxt);
           dmState = dm_detected_master;
           evaluateState();
         }
