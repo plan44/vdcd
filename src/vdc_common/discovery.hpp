@@ -51,11 +51,11 @@ namespace p44 {
   {
     typedef P44Obj inherited;
 
-    AvahiServer *server = NULL;
-    AvahiSEntryGroup *entryGroup = NULL;
-    AvahiSimplePoll *simple_poll = NULL;
-    AvahiSServiceBrowser *serviceBrowser = NULL;
-    AvahiSServiceBrowser *debugServiceBrowser = NULL;
+    AvahiServer *server;
+    AvahiSEntryGroup *entryGroup;
+    AvahiSimplePoll *simple_poll;
+    AvahiSServiceBrowser *serviceBrowser;
+    AvahiSServiceBrowser *debugServiceBrowser;
 
     // publishing information
     // - common for all services
@@ -130,7 +130,7 @@ namespace p44 {
     static void resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
     void avahi_resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags);
   };
-  
+
   typedef boost::intrusive_ptr<DiscoveryManager> DiscoveryManagerPtr;
 
 
