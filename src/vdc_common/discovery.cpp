@@ -246,15 +246,16 @@ void DiscoveryManager::startServer()
 }
 
 
-void DiscoveryManager::startBrowsingVdms()
+void DiscoveryManager::startBrowsingVdms(AvahiServer *aServer)
 {
+  // Note: may NOT use global "server" var, because this can be called from within server callback, which might be called before avahi_server_new() returns
   // stop previous, if any
   if (serviceBrowser) {
     avahi_s_service_browser_free(serviceBrowser);
   }
-  serviceBrowser = avahi_s_service_browser_new(server, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, VDSM_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
+  serviceBrowser = avahi_s_service_browser_new(aServer, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, VDSM_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
   if (!serviceBrowser) {
-    LOG(LOG_ERR, "Failed to create service browser for vdsms: %s\n", avahi_strerror(avahi_server_errno(server)));
+    LOG(LOG_ERR, "Failed to create service browser for vdsms: %s\n", avahi_strerror(avahi_server_errno(aServer)));
   }
   if (auxVdsmDsUid && !auxVdsmRunning) {
     // if no auxiliary vdsm is running now, schedule a check to detect if we've found no master vdsms (otherwise, only FINDING a master is relevant)
@@ -262,15 +263,15 @@ void DiscoveryManager::startBrowsingVdms()
   }
   // schedule a rescan now and then
   MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
-  rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this), VDSM_RESCAN_DELAY);
+  rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this, aServer), VDSM_RESCAN_DELAY);
 }
 
 
-void DiscoveryManager::rescanVdsms()
+void DiscoveryManager::rescanVdsms(AvahiServer *aServer)
 {
   FOCUSLOG("rescanVdsms: restart browsing for vdsms now\n");
   // - restart browsing
-  startBrowsingVdms();
+  startBrowsingVdms(aServer);
   // - schedule an evaluation in a while
   MainLoop::currentMainLoop().cancelExecutionTicket(evaluateTicket);
   evaluateTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::evaluateState, this), RESCAN_EVALUATION_DELAY);
@@ -502,7 +503,7 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGro
       if (auxVdsmDsUid) {
         // We have an auxiliary vdsm we need to monitor
         // - create browser to look out for master vdsms
-        startBrowsingVdms();
+        startBrowsingVdms(s);
       }
       break;
     }
@@ -534,7 +535,8 @@ void DiscoveryManager::browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex int
 
 void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags)
 {
-  /* Called whenever a new services becomes available on the LAN or is removed from the LAN */
+  // Called whenever a new services becomes available on the LAN or is removed from the LAN
+  // - may use global "server" var, because browsers are no set up within server callbacks, but only afterwards, when "server" is defined
   if (b==debugServiceBrowser) {
     // debug (show http services)
     switch (event) {
@@ -577,7 +579,7 @@ void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfInd
           // we have lost a vdsm, we need to rescan in a while (unless another master appears in the meantime)
           dmState = dm_lost_vdsm;
           MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
-          rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this), VDSM_LOST_RESCAN_DELAY);
+          rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this, server), VDSM_LOST_RESCAN_DELAY);
         }
         break;
       case AVAHI_BROWSER_ALL_FOR_NOW:

@@ -114,8 +114,8 @@ namespace p44 {
     void startServer();
     void stopServer();
     void restartServer();
-    void startBrowsingVdms();
-    void rescanVdsms();
+    void startBrowsingVdms(AvahiServer *aServer);
+    void rescanVdsms(AvahiServer *aServer);
     void evaluateState();
 
     static void avahi_log(AvahiLogLevel level, const char *txt);
