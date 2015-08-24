@@ -22,7 +22,6 @@
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
 		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
 		ED1C3DE21B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
-		ED1C3DF11B7E1C5100779DA8 /* libavahi-core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */; };
 		ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F0B9F1954C10700876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F82F6184E40FD00339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
@@ -141,6 +140,7 @@
 		ED911D3F1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDADCADC1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
+		EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
@@ -220,14 +220,14 @@
 			remoteGlobalIDString = ED36996C178C1A8200376405;
 			remoteInfo = mongoose;
 		};
-		ED1C3DE91B7E1BF400779DA8 /* PBXContainerItemProxy */ = {
+		EDAEE43F1B8B144F0035F8ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = ED07E28717E09E8900889CC3;
 			remoteInfo = "avahi-core";
 		};
-		ED1C3DEB1B7E1BF400779DA8 /* PBXContainerItemProxy */ = {
+		EDAEE4411B8B144F0035F8ED /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
 			proxyType = 2;
@@ -303,7 +303,7 @@
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = discovery.cpp; sourceTree = "<group>"; };
 		ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = discovery.hpp; sourceTree = "<group>"; };
-		ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "avahi-core.xcodeproj"; path = "../avahi44/avahi-core.xcodeproj"; sourceTree = "<group>"; };
+		ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "avahi-core.xcodeproj"; path = "../libavahi-core/avahi-core.xcodeproj"; sourceTree = "<group>"; };
 		ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = colorutils.cpp; sourceTree = "<group>"; };
 		ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = colorutils.hpp; sourceTree = "<group>"; };
 		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
@@ -493,7 +493,7 @@
 			files = (
 				EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */,
 				ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */,
-				ED1C3DF11B7E1C5100779DA8 /* libavahi-core.dylib in Frameworks */,
+				EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */,
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -524,15 +524,6 @@
 				ED1F82FA184E43B600339A22 /* gen */,
 			);
 			path = pbuf;
-			sourceTree = "<group>";
-		};
-		ED1C3DE51B7E1BF400779DA8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */,
-				ED1C3DEC1B7E1BF400779DA8 /* p44dsb-publish */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
@@ -844,6 +835,15 @@
 			name = ledchain;
 			sourceTree = "<group>";
 		};
+		EDAEE43B1B8B144F0035F8ED /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */,
+				EDAEE4421B8B144F0035F8ED /* p44dsb-publish */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		EDDDD54D1A125F8E007D2ABE /* ola */ = {
 			isa = PBXGroup;
 			children = (
@@ -977,7 +977,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = ED1C3DE51B7E1BF400779DA8 /* Products */;
+					ProductGroup = EDAEE43B1B8B144F0035F8ED /* Products */;
 					ProjectRef = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
 				},
 				{
@@ -1004,18 +1004,18 @@
 			remoteRef = ED07E25817D786A000889CC3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		ED1C3DEA1B7E1BF400779DA8 /* libavahi-core.dylib */ = {
+		EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
 			path = "libavahi-core.dylib";
-			remoteRef = ED1C3DE91B7E1BF400779DA8 /* PBXContainerItemProxy */;
+			remoteRef = EDAEE43F1B8B144F0035F8ED /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		ED1C3DEC1B7E1BF400779DA8 /* p44dsb-publish */ = {
+		EDAEE4421B8B144F0035F8ED /* p44dsb-publish */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";
 			path = "p44dsb-publish";
-			remoteRef = ED1C3DEB1B7E1BF400779DA8 /* PBXContainerItemProxy */;
+			remoteRef = EDAEE4411B8B144F0035F8ED /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -1370,7 +1370,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
-					"$(PROJECT_DIR)/../avahi44",
+					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1391,7 +1391,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
-					"$(PROJECT_DIR)/../avahi44",
+					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
