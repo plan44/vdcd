@@ -55,8 +55,11 @@ using namespace p44;
 
 
 DiscoveryManager::DiscoveryManager() :
-  server(NULL),
   simple_poll(NULL),
+  server(NULL),
+  serviceBrowser(NULL),
+  entryGroup(NULL),
+  debugServiceBrowser(NULL),
   auxVdsmRunning(false),
   noAuto(false),
   publishWebPort(0),
