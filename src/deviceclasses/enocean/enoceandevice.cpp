@@ -515,6 +515,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
     // pseudo RORGs (internal encoding of non-standard devices)
     case PSEUDO_RORG_REMOTECONTROL:
       newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      break;
     default:
       LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
       break;
