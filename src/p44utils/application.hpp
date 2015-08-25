@@ -24,6 +24,8 @@
 
 #include "p44_common.hpp"
 
+#include <signal.h>
+
 using namespace std;
 
 namespace p44 {
@@ -77,10 +79,12 @@ namespace p44 {
 
     /// called when a signal occurs
     /// @note only SIGHUP,SIGINT,SIGKILL and SIGTERM are handled here
-    virtual void signalOccurred(int aSignal);
+    virtual void signalOccurred(int aSignal, siginfo_t *aSiginfo);
 
   private:
-    static void signal_handler(int aSignal);
+
+    void handleSignal(int aSignal);
+    static void sigaction_handler(int aSignal, siginfo_t *aSiginfo, void *aUap);
 
   };
 

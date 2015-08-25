@@ -45,11 +45,23 @@ Application::Application(MainLoop &aMainLoop) :
 }
 
 
-void Application::signal_handler(int aSignal)
+void Application::sigaction_handler(int aSignal, siginfo_t *aSiginfo, void *aUap)
 {
   if (sharedApplicationP) {
-    sharedApplicationP->signalOccurred(SIGHUP);
+    sharedApplicationP->signalOccurred(SIGHUP, aSiginfo);
   }
+}
+
+
+
+void Application::handleSignal(int aSignal)
+{
+  struct sigaction act;
+
+  memset(&act, 0, sizeof(act));
+  act.sa_sigaction = Application::sigaction_handler;
+  act.sa_flags = SA_SIGINFO;
+  int ret = sigaction (aSignal, &act, NULL);
 }
 
 
@@ -58,10 +70,11 @@ Application::Application() :
 {
   sharedApplicationP = this;
   // register signal handlers
-  signal(SIGHUP, signal_handler);
-  signal(SIGINT, signal_handler);
-  signal(SIGTERM, signal_handler);
+  handleSignal(SIGHUP);
+  handleSignal(SIGINT);
+  handleSignal(SIGTERM);
 }
+
 
 Application::~Application()
 {
@@ -87,10 +100,10 @@ void Application::cleanup(int aExitCode)
 }
 
 
-void Application::signalOccurred(int aSignal)
+void Application::signalOccurred(int aSignal, siginfo_t *aSiginfo)
 {
   // default action is terminating the program
-  LOG(LOG_ERR, "Terminating because signal %d occurred\n", aSignal);
+  LOG(LOG_ERR, "Terminating because pid %d sent signal %d\n", aSiginfo->si_pid, aSignal);
   mainLoop.terminate(EXIT_FAILURE);
 }
 
