@@ -48,7 +48,7 @@ Application::Application(MainLoop &aMainLoop) :
 void Application::sigaction_handler(int aSignal, siginfo_t *aSiginfo, void *aUap)
 {
   if (sharedApplicationP) {
-    sharedApplicationP->signalOccurred(SIGHUP, aSiginfo);
+    sharedApplicationP->signalOccurred(aSignal, aSiginfo);
   }
 }
 
