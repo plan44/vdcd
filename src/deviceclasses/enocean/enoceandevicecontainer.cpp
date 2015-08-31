@@ -56,8 +56,9 @@ bool EnoceanDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const 
 // Version history
 //  1..3 : development versions
 //  4 : first actually used schema
+//  5 : subdevice indices of 2-way enocean buttons must be adjusted (now 2-spaced to leave room for single button mode)
 #define ENOCEAN_SCHEMA_MIN_VERSION 4 // minimally supported version, anything older will be deleted
-#define ENOCEAN_SCHEMA_VERSION 4 // current version
+#define ENOCEAN_SCHEMA_VERSION 5 // current version
 
 string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 {
@@ -79,28 +80,13 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
     // reached final version in one step
     aToVersion = ENOCEAN_SCHEMA_VERSION;
   }
-  else if (aFromVersion==1) {
-    // V1->V2: eeProfile, eeManufacturer added
+  else if (aFromVersion==4) {
+    // V4->V5: subdevice indices of 2-way enocean buttons must be adjusted (now 2-spaced to leave room for single button mode)
+    // - affected profiles = 00-F6-02-FF and 00-F6-03-FF
     sql =
-      "ALTER TABLE knownDevices ADD eeProfile INTEGER;"
-      "ALTER TABLE knownDevices ADD eeManufacturer INTEGER;";
-    // reached version 2
-    aToVersion = 2;
-  }
-  else if (aFromVersion==2) {
-    // V2->V3: channel added
-    sql =
-      "ALTER TABLE knownDevices ADD channel INTEGER;";
-    // reached version 3
-    aToVersion = 3;
-  }
-  else if (aFromVersion==3) {
-    // V3->V4: added subdevice (channel gets obsolete but SQLite cannot delete columns, so
-    // leave it here. It's ok as the vDCd is not yet in real field use.
-    sql =
-    "ALTER TABLE knownDevices ADD subdevice INTEGER;";
-    // reached version 4
-    aToVersion = 4;
+      "UPDATE knownDevices SET subdevice = 2*subdevice WHERE eeProfile=16122623 OR eeProfile=16122879;";
+    // reached version 5
+    aToVersion = 5;
   }
   return sql;
 }
@@ -146,9 +132,10 @@ void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncreme
     sqlite3pp::query qry(db);
     if (qry.prepare("SELECT enoceanAddress, subdevice, eeProfile, eeManufacturer FROM knownDevices")==SQLITE_OK) {
       for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
+        EnoceanSubDevice subDeviceIndex = i->get<int>(1);
         EnoceanDevicePtr newdev = EnoceanDevice::newDevice(
           this,
-          i->get<int>(0), i->get<int>(1), // address / subdeviceIndex
+          i->get<int>(0), subDeviceIndex, // address / subdeviceIndex
           i->get<int>(2), i->get<int>(3), // profile / manufacturer
           false // don't send teach-in responses
         );
@@ -159,7 +146,7 @@ void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncreme
         else {
           LOG(LOG_ERR,
             "EnOcean device could not be created for addr=%08X, subdevice=%d, profile=%08X, manufacturer=%d",
-            i->get<int>(0), i->get<int>(1), // address / subdevice
+            i->get<int>(0), subDeviceIndex, // address / subdevice
             i->get<int>(2), i->get<int>(3) // profile / manufacturer
           );
         }
@@ -221,14 +208,18 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 }
 
 
-void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams)
+void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams, EnoceanSubDevice aFromIndex, EnoceanSubDevice aNumIndices)
 {
   // remove all logical devices with same physical EnOcean address
   typedef list<EnoceanDevicePtr> TbdList;
   TbdList toBeDeleted;
   // collect those we need to remove
   for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEnoceanAddress); pos!=enoceanDevices.upper_bound(aEnoceanAddress); ++pos) {
-    toBeDeleted.push_back(pos->second);
+    // check subdevice index
+    EnoceanSubDevice i = pos->second->getSubDevice();
+    if (i>=aFromIndex && ((aNumIndices==0) || (i<aFromIndex+aNumIndices))) {
+      toBeDeleted.push_back(pos->second);
+    }
   }
   // now call vanish (which will in turn remove devices from the container's list
   for (TbdList::iterator pos = toBeDeleted.begin(); pos!=toBeDeleted.end(); ++pos) {

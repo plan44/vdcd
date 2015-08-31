@@ -37,7 +37,7 @@ Enocean1bsHandler::Enocean1bsHandler(EnoceanDevice &aDevice) :
 EnoceanDevicePtr Enocean1bsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -69,6 +69,8 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
       newHandler->behaviour = bb;
       // add channel to device
       newDev->addChannelHandler(newHandler);
+      // count it
+      aSubDeviceIndex++;
     }
   }
   // return device (or empty if none created)

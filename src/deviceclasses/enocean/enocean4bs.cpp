@@ -84,7 +84,7 @@ void Enocean4BSDevice::sendTeachInResponse()
 EnoceanDevicePtr Enocean4bsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -427,7 +427,7 @@ bool Enocean4bsSensorHandler::isAlive()
 EnoceanDevicePtr Enocean4bsSensorHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -466,6 +466,8 @@ EnoceanDevicePtr Enocean4bsSensorHandler::newDevice(
       newDev->setEEPInfo(aEEProfile, aEEManufacturer);
       // first descriptor defines device primary color
       newDev->setPrimaryGroup(subdeviceDescP->primaryGroup);
+      // count it
+      aSubDeviceIndex++;
     }
     // now add the channel
     addSensorChannel(newDev, *subdeviceDescP, firstDescriptorForDevice);
@@ -608,7 +610,7 @@ EnoceanA52001Handler::EnoceanA52001Handler(EnoceanDevice &aDevice) :
 EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -653,6 +655,8 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
       newDev->sendTeachInResponse();
     }
     newDev->setUpdateAtEveryReceive();
+    // count it
+    aSubDeviceIndex++;
   }
   // return device (or empty if none created)
   return newDev;
@@ -799,7 +803,7 @@ EnoceanA5130XHandler::EnoceanA5130XHandler(EnoceanDevice &aDevice) :
 EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -842,6 +846,8 @@ EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
     newDev->addBehaviour(newHandler->sunSouth);
     newHandler->sunEast = Enocean4bsSensorHandler::newSensorBehaviour(A513sunEast, newDev);
     newDev->addBehaviour(newHandler->sunEast);
+    // count it
+    aSubDeviceIndex++;
   }
   // return device (or empty if none created)
   return newDev;
@@ -894,15 +900,15 @@ string EnoceanA5130XHandler::shortDesc()
 #pragma mark - Enocean4BSDevice profile variants
 
 
-static const profileVariantEntry RPSprofileVariants[] = {
+static const ProfileVariantEntry RPSprofileVariants[] = {
   // dual rocker RPS button alternatives
-  { 1, 0x00A52001, "heating valve" },
-  { 1, 0x01A52001, "heating valve (with temperature sensor)" },
-  { 0, 0, NULL } // terminator
+  { 1, 0x00A52001, 0, "heating valve" },
+  { 1, 0x01A52001, 0, "heating valve (with temperature sensor)" },
+  { 0, 0, 0, NULL } // terminator
 };
 
 
-const profileVariantEntry *Enocean4BSDevice::profileVariantsTable()
+const ProfileVariantEntry *Enocean4BSDevice::profileVariantsTable()
 {
   return RPSprofileVariants;
 }

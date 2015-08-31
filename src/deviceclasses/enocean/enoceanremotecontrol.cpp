@@ -124,7 +124,7 @@ EnoceanRemoteControlHandler::EnoceanRemoteControlHandler(EnoceanDevice &aDevice)
 EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aNeedsTeachInResponse
 ) {
@@ -155,6 +155,8 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(o);
+        // count it
+        aSubDeviceIndex++;
       }
       else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_SWITCHED_LIGHT) {
         // simple on/off relay device
@@ -176,6 +178,8 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(l);
+        // count it
+        aSubDeviceIndex++;
       }
       else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
         // full-featured blind controller
@@ -201,6 +205,8 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         sb->angle->syncChannelValue(100); // assume fully open at beginning
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(sb);
+        // count it
+        aSubDeviceIndex++;
       }
     }
   }
