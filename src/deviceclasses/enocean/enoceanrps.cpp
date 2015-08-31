@@ -578,7 +578,7 @@ string EnoceanRpsLeakageDetectorHandler::shortDesc()
 static const ProfileVariantEntry RPSprofileVariants[] = {
   // dual rocker RPS button alternatives
   { 1, 0x00F602FF, 2, "dual rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
-  { 1, 0x01F602FF, 2, "dual rocker switch (as 4 separate buttons)" },
+  { 1, 0x01F602FF, 2, "dual rocker switch (up and down as separate buttons)" },
   { 1, 0x00F60401, 0, "key card activated switch ERP1" },
   { 1, 0x00F60402, 0, "key card activated switch ERP2" },
   { 1, 0x00F604C0, 0, "key card activated switch FKC/FKF" },
@@ -586,7 +586,7 @@ static const ProfileVariantEntry RPSprofileVariants[] = {
   { 1, 0x00F605C0, 0, "Smoke detector FRW/GUARD" },
   // quad rocker RPS button alternatives
   { 2, 0x00F603FF, 2, "quad rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
-  { 2, 0x01F603FF, 2, "quad rocker switch (as 8 separate buttons)" },
+  { 2, 0x01F603FF, 2, "quad rocker switch (up and down as separate buttons)" },
   { 0, 0, 0, NULL } // terminator
 };
 
