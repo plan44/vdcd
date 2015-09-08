@@ -74,11 +74,13 @@ void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, 
   // determine default output mode
   switch (outputFunction) {
     case outputFunction_switch:
+      // switch is always binary output mode
       outputMode = outputmode_binary;
       break;
     default:
-      // all others, are assumed to be gradual (outputmode_default, dimmer, ctdimmer, colordimmer etc.)
-      outputMode = outputmode_gradual;
+      // for all others, use "default" ("generic" in dSS) to use the device's default mode.
+      // For most cases, this is is same as "gradual"
+      outputMode = outputmode_default;
       break;
   }
 }
