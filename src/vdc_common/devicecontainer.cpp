@@ -143,7 +143,7 @@ void DeviceContainer::setIdMode(DsUidPtr aExternalDsUid)
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
-  deviceClassContainers[aDeviceClassContainerPtr->getApiDsUid()] = aDeviceClassContainerPtr;
+  deviceClassContainers[aDeviceClassContainerPtr->getDsUid()] = aDeviceClassContainerPtr;
 }
 
 
@@ -328,7 +328,7 @@ private:
         "=== collecting devices from vdc %s #%d with dSUID = %s\n",
         vdc->deviceClassIdentifier(),
         vdc->getInstanceNumber(),
-        vdc->getApiDsUid().getString().c_str() // as seen in the API
+        vdc->getDsUid().getString().c_str()
       );
       nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive, clear);
     }
@@ -417,13 +417,13 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   if (!aDevice)
     return false; // no device, nothing added
   // check if device with same dSUID already exists
-  DsDeviceMap::iterator pos = dSDevices.find(aDevice->getApiDsUid());
+  DsDeviceMap::iterator pos = dSDevices.find(aDevice->getDsUid());
   if (pos!=dSDevices.end()) {
     LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->shortDesc().c_str());
     return false; // duplicate dSUID, not added
   }
   // set for given dSUID in the container-wide map of devices
-  dSDevices[aDevice->getApiDsUid()] = aDevice;
+  dSDevices[aDevice->getDsUid()] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s (not yet initialized)\n",aDevice->shortDesc().c_str());
   // load the device's persistent params
   aDevice->load();
@@ -457,7 +457,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     aDevice->save();
   }
   // remove from container-wide map of devices
-  dSDevices.erase(aDevice->getApiDsUid());
+  dSDevices.erase(aDevice->getDsUid());
   LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
 }
 
@@ -847,7 +847,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           // - create answer
           ApiValuePtr result = activeSessionConnection->newApiValue();
           result->setType(apivalue_object);
-          result->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
+          result->add("dSUID", aParams->newBinary(getDsUid().getBinary()));
           aRequest->sendResult(result);
           // - trigger announcing devices
           startAnnouncing();
@@ -916,7 +916,7 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
     return DsAddressablePtr(this);
   }
   // not special query, not empty dSUID
-  if (aDsUid==getApiDsUid()) {
+  if (aDsUid==getDsUid()) {
     // my own dSUID: vdc-host is addressed
     return DsAddressablePtr(this);
   }
@@ -1052,7 +1052,7 @@ void DeviceContainer::announceNext()
       // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      params->add("dSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
+      params->add("dSUID", params->newBinary(vdc->getDsUid().getBinary()));
       if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send vdc announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
         vdc->announcing = Never; // not registering
@@ -1081,7 +1081,7 @@ void DeviceContainer::announceNext()
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
       // include link to vdc for device announcements
-      params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
+      params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getDsUid().getBinary()));
       if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send device announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering

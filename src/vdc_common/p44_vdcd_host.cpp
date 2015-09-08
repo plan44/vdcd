@@ -483,7 +483,7 @@ void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(learnIdentifyTicket);
   if (aDevice) {
-    sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->getApiDsUid().getString()), ErrorPtr());
+    sendCfgApiResponse(aJsonComm, JsonObject::newString(aDevice->getDsUid().getString()), ErrorPtr());
     // end monitor mode
     setUserActionMonitor(NULL);
   }

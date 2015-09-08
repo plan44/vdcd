@@ -55,14 +55,6 @@ string DsAddressable::modelVersion()
 }
 
 
-
-const DsUid &DsAddressable::getApiDsUid()
-{
-  return dSUID;
-}
-
-
-
 void DsAddressable::setName(const string &aName)
 {
   // TODO: for now dsm API truncates names to 20 bytes. Therefore,
@@ -231,7 +223,7 @@ bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApi
       aParams = api->newApiValue();
       aParams->setType(apivalue_object);
     }
-    aParams->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
+    aParams->add("dSUID", aParams->newBinary(getDsUid().getBinary()));
     return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
   }
   return false; // no connection

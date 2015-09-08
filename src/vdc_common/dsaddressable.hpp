@@ -62,9 +62,6 @@ namespace p44 {
     DsAddressable(DeviceContainer *aDeviceContainerP);
     virtual ~DsAddressable();
 
-    /// the dSUID exposed in the VDC API (might be pseudoclassic during beta)
-    virtual const DsUid &getApiDsUid();
-
     /// the real (always modern, 34 hex) dSUID
     const DsUid &getDsUid() { return dSUID; };
 
