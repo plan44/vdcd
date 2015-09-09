@@ -43,7 +43,7 @@ using namespace p44;
 #define VDSM_ROLE_AUXILIARY "auxiliary"
 #define VDSM_ROLE_COLLECTING "collecting"
 #define VDSM_ROLE_COLLECTABLE "collectable"
-#define VDSM_ROLE_NOAUTO "noauto"
+#define VDSM_VDC_ROLE_NOAUTO "noauto"
 
 #define STARTUP_RETRY_DELAY (30*Second) // how long to wait before retrying to start avahi server when failed because of missing network
 #define SERVER_RESTART_DELAY (5*Minute) // how long to wait before restarting the server (after a problem that caused calling restartServer())
@@ -447,7 +447,7 @@ void DiscoveryManager::create_services(AvahiServer *aAvahiServer)
       txt_dsuid.c_str(), // TXT record for the auxiliary vdsm's dSUID
       VDSM_ROLE_COLLECTABLE, // TXT record signalling this vdsm may be collected by ds485p
       VDSM_ROLE_AUXILIARY, // TXT record signalling this vdsm is auxiliary
-      noAuto ? VDSM_ROLE_NOAUTO : NULL, // noauto flag or early TXT terminator
+      noAuto ? VDSM_VDC_ROLE_NOAUTO : NULL, // noauto flag or early TXT terminator
       NULL // TXT record terminator
     ))<0) {
       LOG(LOG_ERR, "avahi: failed to add _ds-vdsm._tcp service: %s\n", avahi_strerror(avahiErr));
@@ -458,6 +458,7 @@ void DiscoveryManager::create_services(AvahiServer *aAvahiServer)
     // The auxiliary vdsm is NOT running or not present at all, advertise the vdc host (vdcd) to the network
     int vdcPort = 0;
     sscanf(deviceContainer->vdcApiServer->getPort(), "%d", &vdcPort);
+    string txt_dsuid = string_format("dSUID=%s", deviceContainer->getDsUid().getString().c_str());
     if ((avahiErr = avahi_server_add_service(
       aAvahiServer,
       entryGroup,
@@ -468,7 +469,8 @@ void DiscoveryManager::create_services(AvahiServer *aAvahiServer)
       NULL, // no domain
       NULL, // no host
       vdcPort, // the vdc API host port
-      noAuto ? VDSM_ROLE_NOAUTO : NULL, // noauto flag or early TXT terminator
+      txt_dsuid.c_str(), // TXT record for the vdc host's dSUID
+      noAuto ? VDSM_VDC_ROLE_NOAUTO : NULL, // noauto flag or early TXT terminator
       NULL // TXT record terminator
     ))<0) {
       LOG(LOG_ERR, "avahi: failed to add _ds-vdc._tcp service: %s\n", avahi_strerror(avahiErr));
