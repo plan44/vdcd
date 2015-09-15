@@ -46,7 +46,9 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
@@ -54,7 +56,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aSendTeachInResponse
     );
@@ -89,7 +91,7 @@ namespace p44 {
 
     /// get table of profile variants
     /// @return NULL or pointer to a list of profile variants
-    virtual const profileVariantEntry *profileVariantsTable();
+    virtual const ProfileVariantEntry *profileVariantsTable();
 
   };
 
@@ -113,7 +115,9 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
@@ -121,7 +125,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aNeedsTeachInResponse
     );
@@ -161,7 +165,6 @@ namespace p44 {
   typedef boost::intrusive_ptr<Enocean4bsSensorHandler> Enocean4bsSensorHandlerPtr;
 
 
-
   /// heating valve handler
   class EnoceanA52001Handler : public Enocean4bsHandler
   {
@@ -182,7 +185,9 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
@@ -190,7 +195,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aSendTeachInResponse
     );
@@ -234,7 +239,9 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
@@ -242,7 +249,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aSendTeachInResponse
     );

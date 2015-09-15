@@ -118,6 +118,10 @@ namespace p44 {
     /// @return the entity type (one of dSD|vdSD|vDC|dSM|vdSM|dSS|*)
     virtual const char *entityType() { return "vdSD"; }
 
+    /// @return Vendor name for display purposes
+    /// @note if not empty, value will be used by vendorId() default implementation to create vendorname:xxx URN schema id
+    virtual string vendorName();
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
@@ -231,7 +235,7 @@ namespace p44 {
     /// store updated version of a scene for this device
     /// @param aScene the updated scene object that should be stored
     /// @note only updates the scene if aScene is marked dirty
-    void updateScene(DsScenePtr aScene);
+    void updateSceneIfDirty(DsScenePtr aScene);
 
 
     /// start or stop dimming channel of this device.
@@ -306,9 +310,11 @@ namespace p44 {
     /// @note base class delegates this to the output behaviour (if any)
     virtual void identifyToUser();
 
-    /// send a signal needed for some devices to get learned into other devices
-    /// @return true if device can send a teach-in signal
-    virtual bool sendTeachInSignal() { return false; /* base class does not have this */ };
+    /// send a signal needed for some devices to get learned into other devices, or query availability of teach-in signals
+    /// @param aVariant -1 to just get number of available teach-in variants. 0..n to send teach-in signal;
+    ///   some devices may have different teach-in signals (like: one for ON, one for OFF).
+    /// @return number of teach-in signal variants the device can send
+    virtual uint8_t teachInSignal(int8_t aVariant) { return 0; /* has no teach-in signals */ };
 
 
     /// check if device can be disconnected by software (i.e. Web-UI)

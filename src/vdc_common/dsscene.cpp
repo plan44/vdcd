@@ -339,7 +339,7 @@ void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool a
     uint32_t flagmask = globalflags_valueDontCare0<<aOutputIndex;
     uint32_t newFlags;
     if (aSet)
-      newFlags = globalSceneFlags | (aFlagMask & valueflags_dontCare) ? flagmask : 0;
+      newFlags = globalSceneFlags | ((aFlagMask & valueflags_dontCare) ? flagmask : 0);
     else
       newFlags = globalSceneFlags & ~((aFlagMask & valueflags_dontCare) ? flagmask : 0);
     if (newFlags!=globalSceneFlags) {
@@ -354,7 +354,7 @@ void DsScene::setSceneValueFlags(size_t aOutputIndex, uint32_t aFlagMask, bool a
 // utility function to check scene value flag
 bool DsScene::isSceneValueFlagSet(size_t aOutputIndex, uint32_t aFlagMask)
 {
-  // only don't care of output 0
+  // only dontCare flag exists per value in base class
   return sceneValueFlags(aOutputIndex) & aFlagMask;
 }
 
@@ -479,7 +479,7 @@ void SceneDeviceSettings::updateScene(DsScenePtr aScene)
   }
   // anyway, mark scene dirty
   aScene->markDirty();
-  // as we need the ROWID of the lightsettings as parentID, make sure we get saved if we don't have one
+  // as we need the ROWID of the settings as parentID, make sure we get saved if we don't have one
   if (rowid==0) markDirty();
 }
 

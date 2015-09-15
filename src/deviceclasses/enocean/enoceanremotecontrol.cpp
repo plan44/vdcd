@@ -29,11 +29,15 @@
 #include "enoceanremotecontrol.hpp"
 
 #include "shadowbehaviour.hpp"
+#include "lightbehaviour.hpp"
 #include "enoceandevicecontainer.hpp"
 
 using namespace p44;
 
 #pragma mark - EnoceanRemoteControlDevice
+
+#define TEACH_IN_TIME (300*MilliSecond) // how long the teach-in simulated button press should last
+
 
 EnoceanRemoteControlDevice::EnoceanRemoteControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
   inherited(aClassContainerP)
@@ -41,31 +45,44 @@ EnoceanRemoteControlDevice::EnoceanRemoteControlDevice(EnoceanDeviceContainer *a
 }
 
 
-bool EnoceanRemoteControlDevice::sendTeachInSignal()
+uint8_t EnoceanRemoteControlDevice::teachInSignal(int8_t aVariant)
 {
-  if (EEP_FUNC(getEEProfile())==PSEUDO_FUNC_SWITCHCONTROL) {
-    // issue simulated left up switch press
-    Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
-    packet->initForRorg(rorg_RPS);
-    packet->setRadioDestination(EnoceanBroadcast);
-    packet->radioUserData()[0] = 0x30; // pressing left button, up
-    packet->setRadioStatus(status_NU|status_T21); // pressed
-    packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-    getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanRemoteControlDevice::sendSwitchBeaconRelease, this), 300*MilliSecond);
-    return true;
+  if (EEP_FUNC(getEEProfile())==PSEUDO_FUNC_SWITCHCONTROL && aVariant<4) {
+    // issue simulated buttom press - variant: 0=left button up, 1=left button down, 2=right button up, 3=right button down
+    if (aVariant<0) return 4; // only query: we have 4 teach-in variants
+    bool right = aVariant & 0x2;
+    bool up = !(aVariant & 0x1);
+    buttonAction(right, up, true); // press
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanRemoteControlDevice::sendSwitchBeaconRelease, this, right, up), TEACH_IN_TIME);
+    return 4;
   }
-  return inherited::sendTeachInSignal();
+  return inherited::teachInSignal(aVariant);
 }
 
 
-void EnoceanRemoteControlDevice::sendSwitchBeaconRelease()
+void EnoceanRemoteControlDevice::sendSwitchBeaconRelease(bool aRight, bool aUp)
 {
+  buttonAction(aRight, aUp, false); // release
+}
+
+
+void EnoceanRemoteControlDevice::buttonAction(bool aRight, bool aUp, bool aPress)
+{
+  FOCUSLOG("- %s simulated %s %s button\n", aPress ? "PRESSING" : "RELEASING", aRight ? "RIGHT" : "LEFT", aUp ? "UP" : "DOWN");
   Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
   packet->initForRorg(rorg_RPS);
   packet->setRadioDestination(EnoceanBroadcast);
-  packet->radioUserData()[0] = 0x00; // release
-  packet->setRadioStatus(status_T21); // released
+  if (aPress) {
+    uint8_t d = 0x10; // energy bow: pressed
+    if (aUp) d |= 0x20; // "up"
+    if (aRight) d |= 0x40; // B = right button
+    packet->radioUserData()[0] = d;
+    packet->setRadioStatus(status_NU|status_T21); // pressed
+  }
+  else {
+    packet->radioUserData()[0] = 0x00; // release
+    packet->setRadioStatus(status_T21); // released
+  }
   packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
   getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
 }
@@ -82,6 +99,9 @@ void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
 
 #pragma mark - EnoceanRemoteControlHandler
 
+// Simple on/off controller
+#define BUTTON_PRESS_TIME (200*MilliSecond) // how long the simulated button press should last
+#define BUTTON_PRESS_PAUSE_TIME (300*MilliSecond) // how long the pause between simulated button actions should last
 
 // Blind controller
 // - hardware timing
@@ -94,6 +114,7 @@ void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
 #define MIN_LONG_MOVE_TIME (LONGPRESS_TIME+SHORTPRESS_TIME)
 
 
+
 EnoceanRemoteControlHandler::EnoceanRemoteControlHandler(EnoceanDevice &aDevice) :
   inherited(aDevice)
 {
@@ -103,7 +124,7 @@ EnoceanRemoteControlHandler::EnoceanRemoteControlHandler(EnoceanDevice &aDevice)
 EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aNeedsTeachInResponse
 ) {
@@ -112,10 +133,58 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
     // is a remote control device
     if (EEP_FUNC(aEEProfile)==PSEUDO_FUNC_SWITCHCONTROL && aSubDeviceIndex<1) {
       // device using F6 RPS messages to control actors
-      if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
+      if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_ON_OFF) {
+        // simple on/off relay device
+        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aClassContainerP));
+        // standard single-value scene table (SimpleScene)
+        newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
+        // assign channel and address
+        newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+        // assign EPP information
+        newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+        // is joker
+        newDev->setPrimaryGroup(group_black_joker);
+        // function
+        newDev->setFunctionDesc("on/off relay");
+        // is always updateable (no need to wait for incoming data)
+        newDev->setAlwaysUpdateable();
+        // - add standard output behaviour
+        OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
+        o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        o->setGroupMembership(group_black_joker, true); // put into joker group by default
+        o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
+        // does not need a channel handler at all, just add behaviour
+        newDev->addBehaviour(o);
+        // count it
+        aSubDeviceIndex++;
+      }
+      else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_SWITCHED_LIGHT) {
+        // simple on/off relay device
+        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aClassContainerP));
+        // light device scene
+        newDev->installSettings(DeviceSettingsPtr(new LightDeviceSettings(*newDev)));
+        // assign channel and address
+        newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
+        // assign EPP information
+        newDev->setEEPInfo(aEEProfile, aEEManufacturer);
+        // is light
+        newDev->setPrimaryGroup(group_yellow_light);
+        // function
+        newDev->setFunctionDesc("on/off light");
+        // is always updateable (no need to wait for incoming data)
+        newDev->setAlwaysUpdateable();
+        // - add standard output behaviour
+        LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*newDev.get()));
+        l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        // does not need a channel handler at all, just add behaviour
+        newDev->addBehaviour(l);
+        // count it
+        aSubDeviceIndex++;
+      }
+      else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
         // full-featured blind controller
         newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aClassContainerP));
-        // standard single-value scene table (SimpleScene)
+        // standard single-value scene table (SimpleScene) with Shadow defaults
         newDev->installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*newDev)));
         // assign channel and address
         newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
@@ -136,6 +205,8 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         sb->angle->syncChannelValue(100); // assume fully open at beginning
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(sb);
+        // count it
+        aSubDeviceIndex++;
       }
     }
   }
@@ -143,6 +214,44 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
   // return device (or empty if none created)
   return newDev;
 }
+
+
+#pragma mark - relay device
+
+
+EnoceanRelayControlDevice::EnoceanRelayControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
+  inherited(aClassContainerP, aDsuidIndexStep)
+{
+}
+
+
+
+void EnoceanRelayControlDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
+{
+  // standard output behaviour
+  if (output) {
+    ChannelBehaviourPtr ch = output->getChannelByType(channeltype_default);
+    if (ch->needsApplying()) {
+      bool up = ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2;
+      buttonAction(false, up, true);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanRelayControlDevice::sendReleaseTelegram, this, aDoneCB, up), BUTTON_PRESS_TIME);
+      ch->channelValueApplied();
+    }
+  }
+}
+
+
+void EnoceanRelayControlDevice::sendReleaseTelegram(SimpleCB aDoneCB, bool aUp)
+{
+  commandTicket = 0;
+  // just release
+  buttonAction(false, aUp, false);
+  // schedule callback if set
+  if (aDoneCB) {
+    MainLoop::currentMainLoop().executeOnce(boost::bind(aDoneCB), BUTTON_PRESS_PAUSE_TIME);
+  }
+}
+
 
 
 #pragma mark - time controlled blind device
@@ -210,14 +319,14 @@ void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirecti
         // - cancel releasing it after logpress time
         MainLoop::currentMainLoop().cancelExecutionTicket(commandTicket);
         // - but release it right now
-        buttonAction(previousDirection>0, false);
+        buttonAction(false, previousDirection>0, false);
         // - and exit normally to confirm done immediately
       }
       else {
         // issue short command in current moving direction - if already at end of move,
         // this will not change anything, otherwise the movement will stop
         // - press button
-        buttonAction(previousDirection>0, true);
+        buttonAction(false, previousDirection>0, true);
         commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindControlDevice::sendReleaseTelegram, this, aDoneCB), SHORTPRESS_TIME);
         // callback only later when button is released
         return;
@@ -226,7 +335,7 @@ void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirecti
     else {
       // requesting start
       // - press button
-      buttonAction(movingDirection>0, true);
+      buttonAction(false, movingDirection>0, true);
       // - release latest after blind has entered permanent move mode (but maybe earlier)
       commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanBlindControlDevice::sendReleaseTelegram, this, SimpleCB()), LONGPRESS_TIME);
       // - but as movement has actualy started, exit normally to confirm done immediately
@@ -241,34 +350,12 @@ void EnoceanBlindControlDevice::sendReleaseTelegram(SimpleCB aDoneCB)
 {
   commandTicket = 0;
   // just release
-  buttonAction(false, false);
+  buttonAction(false, false, false);
   // schedule callback if set
   if (aDoneCB) {
     MainLoop::currentMainLoop().executeOnce(boost::bind(aDoneCB), PAUSE_TIME);
   }
 }
-
-
-
-void EnoceanBlindControlDevice::buttonAction(bool aBlindUp, bool aPress)
-{
-  FOCUSLOG("- %s simulated blind %s button\n", aPress ? "PRESSING" : "RELEASING", aBlindUp ? "UP" : "DOWN");
-  Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
-  packet->initForRorg(rorg_RPS);
-  packet->setRadioDestination(EnoceanBroadcast);
-  if (aPress) {
-    packet->radioUserData()[0] = aBlindUp ? 0x30 : 0x10; // pressing left button, up or down
-    packet->setRadioStatus(status_NU|status_T21); // pressed
-  }
-  else {
-    packet->radioUserData()[0] = 0x00; // release
-    packet->setRadioStatus(status_T21); // released
-  }
-  packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-  getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
-}
-
-
 
 
 

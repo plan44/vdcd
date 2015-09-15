@@ -77,9 +77,10 @@ namespace p44 {
   /// - is the connection point to a vDSM
   /// - contains one or multiple device class containers
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
-  class DeviceContainer : public DsAddressable
+  class DeviceContainer : public DsAddressable, public PersistentParams
   {
     typedef DsAddressable inherited;
+    typedef PersistentParams inheritedParams;
 
     friend class DeviceClassCollector;
     friend class DeviceClassInitializer;
@@ -95,8 +96,9 @@ namespace p44 {
     string iconDir; ///< the directory where to load icons from
     string persistentDataDir; ///< the directory for the vdcd to store SQLite DBs and possibly other persistent data
 
-    string productName; ///< the name of the vdcd product as a a whole
+    string productName; ///< the name of the vdcd product (model name) as a a whole
     string productVersion; ///< the version string of the vdcd product as a a whole
+    string deviceHardwareId; ///< the device hardware id (such as a serial number) of the vdcd product as a a whole
 
     bool collecting;
     long announcementTicket;
@@ -139,15 +141,21 @@ namespace p44 {
     /// active session
     VdcApiConnectionPtr getSessionConnection() { return activeSessionConnection; };
 
+    /// set user assignable name
+    /// @param new name of this instance of the vdc host
+    virtual void setName(const string &aName);
 
-    /// set the name of the vdcd product as a a whole
+    /// set the human readable name of the vdcd product as a a whole
     /// @param aProductName product (model) name
     void setProductName(const string &aProductName) { productName = aProductName; }
 
-    /// set the the version string of the vdcd product as a a whole
+    /// set the the human readable version string of the vdcd product as a a whole
     /// @param aProductVersion product version string
     void setProductVersion(const string &aProductVersion) { productVersion = aProductVersion; }
 
+    /// set the the human readable hardware id (such as a serial number) of the vdcd product as a a whole
+    /// @param aDeviceHardwareId device serial number or similar id
+    void setDeviceHardwareId(const string &aDeviceHardwareId) { deviceHardwareId = aDeviceHardwareId; }
 
     /// Set how dSUIDs are generated
     /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container
@@ -319,8 +327,29 @@ namespace p44 {
     virtual string oemGUID() { return ""; }
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
-    virtual string vendorId() { return "vendorname:plan44.ch"; };
+    /// @note class containers and devices will inherit this (vdc host's) vendor name if not overridden
+    virtual string vendorName() { return "plan44.ch"; };
 
+    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
+    string getDeviceHardwareId() { return deviceHardwareId; };
+
+    /// @}
+
+
+    /// @name vdc host level property persistence
+    /// @{
+
+    /// load parameters from persistent DB
+    /// @note this is usually called from the device container when device is added (detected)
+    ErrorPtr load();
+
+    /// save unsaved parameters to persistent DB
+    /// @note this is usually called from the device container in regular intervals
+    ErrorPtr save();
+
+    /// forget any parameters stored in persistent DB
+    ErrorPtr forget();
+    
     /// @}
 
 
@@ -354,6 +383,13 @@ namespace p44 {
     virtual PropertyDescriptorPtr getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyContainerPtr getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain);
     virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 
     // method and notification dispatching
     ErrorPtr handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams);

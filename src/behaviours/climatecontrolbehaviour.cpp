@@ -51,6 +51,7 @@ void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
     default:
       break;
   }
+  markClean(); // default values are always clean
 }
 
 
@@ -94,7 +95,7 @@ ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
 void ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
 {
   if (aName=="heatingLevel") {
-    if (isMember(group_roomtemperature_control) && outputMode!=outputmode_disabled) {
+    if (isMember(group_roomtemperature_control) && isEnabled()) {
       // apply positive values to (default) valve output, clip to 100 max
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {

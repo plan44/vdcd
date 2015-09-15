@@ -47,7 +47,10 @@ double ColorChannel::getChannelValueCalculated()
 
 
 ColorLightScene::ColorLightScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
-  inherited(aSceneDeviceSettings, aSceneNo)
+  inherited(aSceneDeviceSettings, aSceneNo),
+  colorMode(colorLightModeNone),
+  XOrHueOrCt(0),
+  YOrSat(0)
 {
 }
 
@@ -161,6 +164,11 @@ void ColorLightScene::setDefaultSceneValues(SceneNo aSceneNo)
       XOrHueOrCt = 370; // = 1E6/370 = 2700k = warm white
       YOrSat = 0;
   }
+  ColorLightBehaviourPtr cb = boost::dynamic_pointer_cast<ColorLightBehaviour>(getOutputBehaviour());
+  if (cb) {
+    cb->adjustChannelDontCareToColorMode(ColorLightScenePtr(this));
+  }
+  markClean(); // default values are always clean
 }
 
 
@@ -272,52 +280,76 @@ void ColorLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
     // save the values and adjust don't cares according to color mode
     switch (colorMode) {
       case colorLightModeHueSaturation: {
-        // don't care unused ones
-        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
-        // assign the used values
         colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, hue->getChannelValue());
-        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, false);
         colorLightScene->setRepVar(colorLightScene->YOrSat, saturation->getChannelValue());
-        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       case colorLightModeXY: {
-        // don't care unused ones
-        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
-        // assign the used values
         colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, cieX->getChannelValue());
-        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, false);
         colorLightScene->setRepVar(colorLightScene->YOrSat, cieY->getChannelValue());
-        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       case colorLightModeCt: {
-        // don't care unused ones
-        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
-        // assign the used values
         colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, ct->getChannelValue());
-        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, false);
         break;
       }
       default: {
-        // all color related information is dontCare
-        colorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
-        colorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
         break;
       }
     }
+    // adjust value dontCare flags
+    adjustChannelDontCareToColorMode(colorLightScene);
   }
 }
+
+
+void ColorLightBehaviour::adjustChannelDontCareToColorMode(ColorLightScenePtr aColorLightScene)
+{
+  // save the values and adjust don't cares according to color mode
+  switch (aColorLightScene->colorMode) {
+    case colorLightModeHueSaturation: {
+      // don't care unused ones
+      aColorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+      // enable the used values
+      aColorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, false);
+      aColorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, false);
+      break;
+    }
+    case colorLightModeXY: {
+      // don't care unused ones
+      aColorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+      // enable the used values
+      aColorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, false);
+      aColorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, false);
+      break;
+    }
+    case colorLightModeCt: {
+      // don't care unused ones
+      aColorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+      // enable the used values
+      aColorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, false);
+      break;
+    }
+    default: {
+      // all color related information is dontCare
+      aColorLightScene->setSceneValueFlags(hue->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(saturation->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(cieX->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(cieY->getChannelIndex(), valueflags_dontCare, true);
+      aColorLightScene->setSceneValueFlags(ct->getChannelIndex(), valueflags_dontCare, true);
+      break;
+    }
+  }
+}
+
+
 
 
 #pragma mark - color services for implementing color lights

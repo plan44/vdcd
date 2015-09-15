@@ -123,7 +123,6 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, false, -1);
-    l->setGroupMembership(group_yellow_light, true); // put into light group by default
     addBehaviour(l);
   }
   else if (olaType==ola_fullcolordimmer) {

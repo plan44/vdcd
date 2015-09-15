@@ -140,6 +140,10 @@ namespace p44 {
     /// @return if true, this device class should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return false; }
 
+    /// get user assigned name of the device class container, or if there is none, a synthesized default name
+    /// @return name string
+    virtual string getName();
+
     /// set user assignable name
     /// @param new name of the addressable entity
     virtual void setName(const string &aName);
@@ -267,8 +271,9 @@ namespace p44 {
     /// @return OEM GUID in URN format to identify hardware as uniquely as possible
     virtual string oemGUID() { return ""; }
 
-    /// @return Vendor ID in URN format to identify vendor as uniquely as possible
-    virtual string vendorId() { return "vendorname:plan44.ch"; };
+    /// @return Vendor name for display purposes
+    /// @note if not empty, value will be used by vendorId() default implementation to create vendorname:xxx URN schema id
+    virtual string vendorName();
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)

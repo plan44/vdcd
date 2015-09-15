@@ -60,6 +60,7 @@ using namespace p44;
 #define DEFAULT_PRODUCT_NAME "plan44.ch vdcd"
 
 DeviceContainer::DeviceContainer() :
+  inheritedParams(dsParamStore),
   mac(0),
   externalDsuid(false),
   DsAddressable(this),
@@ -78,6 +79,17 @@ DeviceContainer::DeviceContainer() :
   // obtain MAC address
   mac = macAddress();
   deriveDsUid(); // make sure we have a vdc host dSUID FROM THE BEGINNING. Usually, setIdMode derives it again, but just in case...
+}
+
+
+void DeviceContainer::setName(const string &aName)
+{
+  if (aName!=getAssignedName()) {
+    // has changed
+    inherited::setName(aName);
+    // make sure it will be saved
+    markDirty();
+  }
 }
 
 
@@ -131,7 +143,7 @@ void DeviceContainer::setIdMode(DsUidPtr aExternalDsUid)
 
 void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
 {
-  deviceClassContainers[aDeviceClassContainerPtr->getApiDsUid()] = aDeviceClassContainerPtr;
+  deviceClassContainers[aDeviceClassContainerPtr->getDsUid()] = aDeviceClassContainerPtr;
 }
 
 
@@ -249,6 +261,12 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
+  // initialize dsParamsDB database
+	string databaseName = getPersistentDataDir();
+	string_format_append(databaseName, "DsParams.sqlite3");
+  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
+  // load the vdc host settings
+  load();
   // Log start message
   LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
   // start the API server
@@ -256,11 +274,6 @@ void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
     vdcApiServer->start();
   }
-  // initialize dsParamsDB database
-	string databaseName = getPersistentDataDir();
-	string_format_append(databaseName, "DsParams.sqlite3");
-  ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
-
   // start initialisation of class containers
   DeviceClassInitializer::initialize(*this, aCompletedCB, aFactoryReset);
 }
@@ -315,7 +328,7 @@ private:
         "=== collecting devices from vdc %s #%d with dSUID = %s\n",
         vdc->deviceClassIdentifier(),
         vdc->getInstanceNumber(),
-        vdc->getApiDsUid().getString().c_str() // as seen in the API
+        vdc->getDsUid().getString().c_str()
       );
       nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive, clear);
     }
@@ -404,13 +417,13 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   if (!aDevice)
     return false; // no device, nothing added
   // check if device with same dSUID already exists
-  DsDeviceMap::iterator pos = dSDevices.find(aDevice->getApiDsUid());
+  DsDeviceMap::iterator pos = dSDevices.find(aDevice->getDsUid());
   if (pos!=dSDevices.end()) {
     LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->shortDesc().c_str());
     return false; // duplicate dSUID, not added
   }
   // set for given dSUID in the container-wide map of devices
-  dSDevices[aDevice->getApiDsUid()] = aDevice;
+  dSDevices[aDevice->getDsUid()] = aDevice;
   LOG(LOG_NOTICE,"--- added device: %s (not yet initialized)\n",aDevice->shortDesc().c_str());
   // load the device's persistent params
   aDevice->load();
@@ -444,7 +457,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
     aDevice->save();
   }
   // remove from container-wide map of devices
-  dSDevices.erase(aDevice->getApiDsUid());
+  dSDevices.erase(aDevice->getDsUid());
   LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
 }
 
@@ -564,6 +577,8 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       // check again for devices that need to be announced
       startAnnouncing();
       // do a save run as well
+      // - myself
+      save();
       // - device containers
       for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
         pos->second->save();
@@ -832,7 +847,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
           // - create answer
           ApiValuePtr result = activeSessionConnection->newApiValue();
           result->setType(apivalue_object);
-          result->add("dSUID", aParams->newBinary(getApiDsUid().getBinary()));
+          result->add("dSUID", aParams->newBinary(getDsUid().getBinary()));
           aRequest->sendResult(result);
           // - trigger announcing devices
           startAnnouncing();
@@ -901,7 +916,7 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
     return DsAddressablePtr(this);
   }
   // not special query, not empty dSUID
-  if (aDsUid==getApiDsUid()) {
+  if (aDsUid==getDsUid()) {
     // my own dSUID: vdc-host is addressed
     return DsAddressablePtr(this);
   }
@@ -1037,7 +1052,7 @@ void DeviceContainer::announceNext()
       // call announcevdc method (need to construct here, because dSUID must be sent as vdcdSUID)
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
-      params->add("dSUID", params->newBinary(vdc->getApiDsUid().getBinary()));
+      params->add("dSUID", params->newBinary(vdc->getDsUid().getBinary()));
       if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send vdc announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
         vdc->announcing = Never; // not registering
@@ -1066,7 +1081,7 @@ void DeviceContainer::announceNext()
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
       // include link to vdc for device announcements
-      params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getApiDsUid().getBinary()));
+      params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getDsUid().getBinary()));
       if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send device announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
@@ -1207,6 +1222,84 @@ bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 }
 
 
+#pragma mark - persistent vdc host level parameters
+
+ErrorPtr DeviceContainer::load()
+{
+  ErrorPtr err;
+  // load the vdc host settings
+  err = loadFromStore(entityType()); // is a singleton, identify by type
+  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc host: %s", err->description().c_str());
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceContainer::save()
+{
+  ErrorPtr err;
+  // save the vdc settings
+  err = saveToStore(entityType(), false); // is a singleton, identify by type, single instance
+  return ErrorPtr();
+}
+
+
+ErrorPtr DeviceContainer::forget()
+{
+  // delete the vdc settings
+  deleteFromStore();
+  return ErrorPtr();
+}
+
+
+#pragma mark - persistence implementation
+
+// SQLIte3 table name to store these parameters to
+const char *DeviceContainer::tableName()
+{
+  return "VdcHostSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 1;
+
+size_t DeviceContainer::numFieldDefs()
+{
+  return inheritedParams::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "vdcHostName", SQLITE_TEXT },
+  };
+  if (aIndex<inheritedParams::numFieldDefs())
+    return inheritedParams::getFieldDef(aIndex);
+  aIndex -= inheritedParams::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void DeviceContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // get the field value
+  setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
+}
+
+
+// bind values to passed statement
+void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, getAssignedName().c_str());
+}
 
 
 

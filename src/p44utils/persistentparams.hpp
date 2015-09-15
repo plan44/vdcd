@@ -133,6 +133,11 @@ namespace p44 {
     /// @param aParentIdentifier identifies the parent of this parameter set (a string (G)UID or the ROWID of a parent parameter set)
     sqlite3pp::query *newLoadAllQuery(const char *aParentIdentifier);
 
+  protected:
+
+    /// mark the parameter set clean (e.g. after setting default values that must not be saved, but which trigger dirty flag)
+    virtual void markClean();
+
 
   private:
     /// check and update schema to hold the parameters

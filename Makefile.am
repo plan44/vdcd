@@ -50,7 +50,7 @@ if RASPBERRYPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lavahi-core -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
 # sources only supported on RPI
 LEDCHAIN_SRC = \
   src/thirdparty/rpi_ws281x/clk.h \
@@ -96,6 +96,7 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
@@ -202,6 +203,8 @@ vdcd_SOURCES = \
   src/vdc_common/deviceclasscontainer.hpp \
   src/vdc_common/devicecontainer.cpp \
   src/vdc_common/devicecontainer.hpp \
+  src/vdc_common/discovery.cpp \
+  src/vdc_common/discovery.hpp \
   src/vdc_common/p44_vdcd_host.cpp \
   src/vdc_common/p44_vdcd_host.hpp \
   src/vdc_common/dsdefs.h \
@@ -289,6 +292,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
   -I ${srcdir}/src/deviceclasses/ola \
+  -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \

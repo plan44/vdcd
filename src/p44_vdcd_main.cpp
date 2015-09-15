@@ -39,6 +39,9 @@
 #if !DISABLE_LEDCHAIN
 #include "ledchaindevicecontainer.hpp"
 #endif
+#if !DISABLE_DISCOVERY
+#include "discovery.hpp"
+#endif
 
 
 #include "digitalio.hpp"
@@ -52,10 +55,21 @@
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
 
+#define DEFAULT_DS485_AUXVDSMPORT 8441
+
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
 
 #define MAINLOOP_CYCLE_TIME_uS 33333 // 33mS
+
+
+#define P44_EXIT_LOCALMODE 2 // request daemon restart in "local mode"
+#define P44_EXIT_FIRMWAREUPDATE 3 // request check for new firmware, installation if available, platform restart
+#define P44_EXIT_FACTORYRESET 42 // request a factory reset and platform restart
+#define P44_EXIT_START_AUXVDSM 4 // exit, start auxiliary vdsm, and restart daemon
+#define P44_EXIT_STOP_AUXVDSM 5 // exit, stop auxiliary vdsm, and restart daemon
+
+
 
 using namespace p44;
 
@@ -105,6 +119,12 @@ class P44Vdcd : public CmdLineApp
 
   // learning
   long learningTimerTicket;
+
+  // discovery
+  #if !DISABLE_DISCOVERY
+  DiscoveryManagerPtr discoveryManager;
+  #endif
+
 
 public:
 
@@ -254,10 +274,21 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
-      { 0  , "dsuid",         true,  "dsuid;set dsuid for this vDC host (usually UUIDv1 generated on the host)" },
+      { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
+      { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
+      #if !DISABLE_DISCOVERY
+      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
+      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
+      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
+      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
+      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
+      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
+      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
+      #endif
+      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
@@ -341,6 +372,10 @@ public:
     int startupDelay = 0; // no delay
     getIntOption("startupdelay", startupDelay);
 
+    // web ui
+    int webUiPort = 0;
+    getIntOption("webuiport", webUiPort);
+    p44VdcHost->webUiPort = webUiPort;
 
     // before starting anything, delay
     if (startupDelay>0) {
@@ -408,6 +443,10 @@ public:
       if (getStringOption("productversion", s)) {
         p44VdcHost->setProductVersion(s);
       }
+      // - set product name and version
+      if (getStringOption("deviceid", s)) {
+        p44VdcHost->setDeviceHardwareId(s);
+      }
 
       // - set custom announce pause
       int announcePause;
@@ -424,18 +463,18 @@ public:
       // - set API
       int protobufapi = DEFAULT_USE_PROTOBUF_API;
       getIntOption("protobufapi", protobufapi);
-      const char *vdsmport;
+      const char *vdcapiservice;
       if (protobufapi) {
         p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
-        vdsmport = (char *) DEFAULT_PBUF_VDSMSERVICE;
+        vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
       }
       else {
         p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
-        vdsmport = (char *) DEFAULT_JSON_VDSMSERVICE;
+        vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
       }
       // set up server for vdSM to connect to
-      getStringOption("vdsmport", vdsmport);
-      p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdsmport, SOCK_STREAM, AF_INET);
+      getStringOption("vdsmport", vdcapiservice);
+      p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
       p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
 
 
@@ -572,14 +611,14 @@ public:
       if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Very long button press detected -> clean exit(2) in 2 seconds\n");
+        LOG(LOG_WARNING,"Very long button press detected -> clean exit(%d) in 2 seconds\n", P44_EXIT_LOCALMODE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 2), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
         return true;
       }
     }
@@ -588,11 +627,11 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
-        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(3) in 500 mS\n");
+        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS\n", P44_EXIT_FIRMWAREUPDATE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 3), 500*MilliSecond);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
@@ -619,12 +658,12 @@ public:
       // released
       if (factoryResetWait && aTimeSincePreviousChange>20*Second) {
         // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
-        LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(-42) in 2 seconds\n");
+        LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds\n", P44_EXIT_FACTORYRESET);
         // indicate red "error/danger" state
         redLED->steadyOn();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, 42), 2*Second);
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FACTORYRESET), 2*Second);
         return true;
       }
       else {
@@ -706,6 +745,12 @@ public:
     }
     else {
       // Initialized ok and not testing
+      #if !DISABLE_DISCOVERY
+      // - initialize discovery
+      if (!getOption("nodiscovery")) {
+        initDiscovery();
+      }
+      #endif
       // - start running normally
       p44VdcHost->startRunning();
       // - collect devices
@@ -739,7 +784,70 @@ public:
       setAppStatus(status_error);
   }
 
+
+
+  #if !DISABLE_DISCOVERY
+
+  void initDiscovery()
+  {
+    discoveryManager = DiscoveryManagerPtr(new DiscoveryManager);
+    // get discovery params
+    // - host name
+    string s;
+    string hostname;
+    if (!getStringOption("hostname", hostname)) {
+      // none specified, create default
+      hostname = string_format("plan44-vdcd-%s", p44VdcHost->getDsUid().getString().c_str());
+    }
+    // - optional auxiliary vdsm
+    DsUidPtr auxVdsmDsuid;
+    int auxVdsmPort = 0;
+    if (getStringOption("auxvdsmdsuid", s)) {
+      auxVdsmDsuid = DsUidPtr(new DsUid(s));
+      auxVdsmPort = DEFAULT_DS485_AUXVDSMPORT;
+      getIntOption("auxvdsmport", auxVdsmPort);
+    }
+    int sshPort = 0;
+    getIntOption("sshport", sshPort);
+    // start discovery manager
+    ErrorPtr err = discoveryManager->start(
+      p44VdcHost,
+      hostname.c_str(),
+      getOption("noauto"),
+      p44VdcHost->webUiPort,
+      sshPort,
+      auxVdsmDsuid,
+      auxVdsmPort,
+      getOption("auxvdsmrunning"),
+      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1)
+    );
+    if (!Error::isOK(err)) {
+      LOG(LOG_ERR,"**** Cannot start discovery manager: %s\n", err->description().c_str());
+    }
+  }
+
+
+  void discoveryStatusHandler(bool aAuxVdsmShouldRun)
+  {
+    if (aAuxVdsmShouldRun) {
+      LOG(LOG_WARNING,"***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds\n", P44_EXIT_START_AUXVDSM);
+    }
+    else {
+      LOG(LOG_WARNING,"***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds\n", P44_EXIT_STOP_AUXVDSM);
+    }
+    // needs to switch vdsms, means device is busy
+    setAppStatus(status_busy);
+    // give mainloop some time to close down API connections
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, aAuxVdsmShouldRun ? P44_EXIT_START_AUXVDSM : P44_EXIT_STOP_AUXVDSM), 1*Second);
+  }
+
+  #endif // discovery enabled
+
+
 };
+
+
+
 
 
 int main(int argc, char **argv)

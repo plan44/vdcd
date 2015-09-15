@@ -325,28 +325,29 @@ typedef enum {
 
 /// sensor types (vdc API) - see "ds-basics" for dS sensor types
 typedef enum {
-  sensorType_none,
-  sensorType_temperature, ///< temperature in degrees celsius
-  sensorType_humidity, ///< relative humidity in %
-  sensorType_illumination, ///< illumination in lux
-  sensorType_supplyVoltage, ///< supply voltage level in Volts
-  sensorType_gas_CO, ///< CO concentration in ppm
-  sensorType_gas_radon, ///< Radon activity in Bq/m3
-  sensorType_gas_type, ///< gas type sensor
-  sensorType_dust_PM10, ///< particles <10µm in μg/m3
-  sensorType_dust_PM2_5, ///< particles <2.5µm in μg/m3
-  sensorType_dust_PM1, ///< particles <1µm in μg/m3
-  sensorType_set_point, ///< room operating panel set point, 0..1
-  sensorType_fan_speed, ///< fan speed, 0..1 (0=off, <0=auto)
-  sensorType_wind_speed, ///< wind speed in m/s
-  sensorType_power, ///< Power in W
-  sensorType_current, ///< Electric current in A
-  sensorType_energy, ///< Energy in kWh
-  sensorType_consumption, ///< Electric Consumption in VA
-  sensorType_air_pressure, ///< Air pressure in hPa
-  sensorType_wind_direction, ///< Wind direction in degrees
-  sensorType_sound_volume, ///< Sound pressure level in dB
-  sensorType_precipitation, ///< Precipitation in mm/m2
+  sensorType_none = 0,
+  sensorType_temperature = 1, ///< temperature in degrees celsius
+  sensorType_humidity = 2, ///< relative humidity in %
+  sensorType_illumination = 3, ///< illumination in lux
+  sensorType_supplyVoltage = 4, ///< supply voltage level in Volts
+  sensorType_gas_CO = 5, ///< CO (carbon monoxide) concentration in ppm
+  sensorType_gas_radon = 6, ///< Radon activity in Bq/m3
+  sensorType_gas_type = 7, ///< gas type sensor
+  sensorType_dust_PM10 = 8, ///< particles <10µm in μg/m3
+  sensorType_dust_PM2_5 = 9, ///< particles <2.5µm in μg/m3
+  sensorType_dust_PM1 = 10, ///< particles <1µm in μg/m3
+  sensorType_set_point = 11, ///< room operating panel set point, 0..1
+  sensorType_fan_speed = 12, ///< fan speed, 0..1 (0=off, <0=auto)
+  sensorType_wind_speed = 13, ///< wind speed in m/s
+  sensorType_power = 14, ///< Power in W
+  sensorType_current = 15, ///< Electric current in A
+  sensorType_energy = 16, ///< Energy in kWh
+  sensorType_consumption = 17, ///< Electric Consumption in VA
+  sensorType_air_pressure = 18, ///< Air pressure in hPa
+  sensorType_wind_direction = 19, ///< Wind direction in degrees
+  sensorType_sound_volume = 20, ///< Sound pressure level in dB
+  sensorType_precipitation = 21, ///< Precipitation in mm/m2
+  sensorType_gas_CO2 = 22, ///< CO2 (carbon dioxide) concentration in ppm
 } DsSensorType;
 
 

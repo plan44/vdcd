@@ -87,10 +87,11 @@ namespace p44 {
 
   /// profile variant entry
   typedef struct {
-    int profileGroup; // zero to terminate list or group number (interchangeable profiles must have same group number)
-    EnoceanProfile eep;
-    const char *description;
-  } profileVariantEntry;
+    int profileGroup; ///< zero to terminate list or group number (interchangeable profiles must have same group number)
+    EnoceanProfile eep; ///< the EEP
+    EnoceanSubDevice subDeviceIndices; ///< number of subdevice indices this profile affects, 0 = all
+    const char *description; ///< description of profile variant for UI
+  } ProfileVariantEntry;
 
   typedef vector<EnoceanChannelHandlerPtr> EnoceanChannelHandlerVector;
 
@@ -150,6 +151,8 @@ namespace p44 {
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse if this is set, a teach-in response will be sent for profiles that need one
@@ -157,7 +160,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aSendTeachInResponse
     );
@@ -188,7 +191,12 @@ namespace p44 {
     /// @param aProfile the EPP
     /// @param aManufacturer the manufacturer code
     /// @return number of devices created
-    static int createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer);
+    static int createDevicesFromEEP(
+      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanAddress aAddress,
+      EnoceanProfile aProfile,
+      EnoceanManufacturer aManufacturer
+    );
     
 
     /// set the enocean address identifying the device
@@ -218,10 +226,6 @@ namespace p44 {
     ///   physical EnOcean device (having the same EnOcean deviceID/address)
     /// @return EnOcean device ID/address
     EnoceanSubDevice getSubDevice();
-
-    /// @return step between dSUID subdevice indices
-    virtual uint8_t dsUIDIndexStep() { return 1; };
-
 
     /// set EEP information
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
@@ -291,6 +295,9 @@ namespace p44 {
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     virtual string vendorId();
 
+    /// @return Vendor name if known
+    virtual string vendorName();
+
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
     /// - if aWithData is set, binary PNG icon data for given resolution prefix is returned
@@ -315,11 +322,11 @@ namespace p44 {
     /// switch EEP profile (or interpretation VARIANT thereof)
     /// @param aProfile enocean profile to switch this device to
     /// @note aProfile is not checked for being suitable for this type of device, this is done in setProfileVariant()
-    void switchToProfile(EnoceanProfile aProfile);
+    void switchProfiles(const ProfileVariantEntry &aFromVariant, const ProfileVariantEntry &aToVariant);
 
     /// get table of profile variants
     /// @return NULL or pointer to a list of profile variants
-    virtual const profileVariantEntry *profileVariantsTable() { return NULL; /* none in base class */ };
+    virtual const ProfileVariantEntry *profileVariantsTable() { return NULL; /* none in base class */ };
 
   private:
 

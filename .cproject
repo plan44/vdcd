@@ -51,6 +51,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core}&quot;"/>
 <listOptionValue builtIn="false" value="../src/behaviours"/>
 <listOptionValue builtIn="false" value="../src/vdc_common"/>
 <listOptionValue builtIn="false" value="../src/thirdparty"/>
@@ -74,6 +75,7 @@
 <tool id="com.digi.lxnetes.managedbuild.cpp.linker.debug.1643172921" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.managedbuild.cpp.linker.debug">
 <option id="gnu.cpp.link.option.libs.436267425" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="avahi-core"/>
 <listOptionValue builtIn="false" value="protobuf-c"/>
 <listOptionValue builtIn="false" value="crypto"/>
 <listOptionValue builtIn="false" value="ssl"/>
@@ -82,6 +84,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.1280385530" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>
@@ -1084,6 +1087,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44utils"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core}&quot;"/>
 <listOptionValue builtIn="false" value="../src/behaviours"/>
 <listOptionValue builtIn="false" value="../src/vdc_common"/>
 <listOptionValue builtIn="false" value="../src/thirdparty"/>
@@ -1106,6 +1110,7 @@
 <tool id="com.digi.lxnetes.mangedbuild.cpp.linker.release.956388161" name="GCC C++ Cross-Linker" superClass="com.digi.lxnetes.mangedbuild.cpp.linker.release">
 <option id="gnu.cpp.link.option.libs.47163167" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="sqlite3"/>
+<listOptionValue builtIn="false" value="avahi-core"/>
 <listOptionValue builtIn="false" value="protobuf-c"/>
 <listOptionValue builtIn="false" value="crypto"/>
 <listOptionValue builtIn="false" value="ssl"/>
@@ -1114,6 +1119,7 @@
 </option>
 <option id="gnu.cpp.link.option.paths.471327307" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/json-c/Release}&quot;"/>
+<listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/sqlite3/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose/Release}&quot;"/>
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/protobuf-c/Release}&quot;"/>

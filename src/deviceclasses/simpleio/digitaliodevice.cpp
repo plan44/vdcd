@@ -91,7 +91,6 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
-    l->setGroupMembership(group_yellow_light, true); // put into light group by default
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
@@ -143,7 +142,10 @@ void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   else if (output) {
     // simple switch output, activates at 50% of possible output range
     ChannelBehaviourPtr ch = output->getChannelByIndex(0);
-    indicatorOutput->set(ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2);
+    if (ch->needsApplying()) {
+      indicatorOutput->set(ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2);
+      ch->channelValueApplied();
+    }
   }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }

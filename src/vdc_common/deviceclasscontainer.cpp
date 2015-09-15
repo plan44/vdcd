@@ -49,9 +49,24 @@ string DeviceClassContainer::modelUID()
 }
 
 
+string DeviceClassContainer::getName()
+{
+  if (inherited::getName().empty()) {
+    // no name set for this vdc
+    // - check if vdc host has a name
+    if (!getDeviceContainer().getName().empty()) {
+      // there is a custom name set for the entire vdc host, use it as base for default names
+      return string_format("%s %s", getDeviceContainer().getName().c_str(), vdcModelSuffix().c_str());
+    }
+  }
+  // just use assigned name
+  return inherited::getName();
+}
+
+
 void DeviceClassContainer::setName(const string &aName)
 {
-  if (aName!=getName()) {
+  if (aName!=getAssignedName()) {
     // has changed
     inherited::setName(aName);
     // make sure it will be saved
@@ -157,6 +172,12 @@ bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const ch
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
 }
 
+
+string DeviceClassContainer::vendorName()
+{
+  // default to same vendor as vdc host (device container)
+  return deviceContainerP->vendorName();
+}
 
 
 
@@ -326,7 +347,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
       { "configURL", apivalue_string, webui_url_key, OKEY(deviceclass_key) },
       { "zoneID", apivalue_uint64, defaultzone_key, OKEY(deviceclass_key) },
       { "capabilities", apivalue_object+propflag_container, capabilities_key, OKEY(capabilities_container_key) },
-      { "x-p44-devices", apivalue_object+propflag_container, devices_key, OKEY(device_container_key) },
+      { "x-p44-devices", apivalue_object+propflag_container+propflag_nowildcard, devices_key, OKEY(device_container_key) },
       { "x-p44-deviceClass", apivalue_string, deviceclassidentifier_key, OKEY(deviceclass_key) },
       { "x-p44-instanceNo", apivalue_uint64, instancenumber_key, OKEY(deviceclass_key) },
       { "x-p44-rescanModes", apivalue_uint64, rescanModes_key, OKEY(deviceclass_key) }
@@ -440,7 +461,7 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, vdcFlags);
-  aStatement.bind(aIndex++, getName().c_str());
+  aStatement.bind(aIndex++, getAssignedName().c_str());
   aStatement.bind(aIndex++, defaultZoneID);
 }
 

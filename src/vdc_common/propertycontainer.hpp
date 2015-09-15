@@ -52,8 +52,9 @@ namespace p44 {
   } PropertyAccessMode;
 
   typedef enum {
-    proptype_mask = 0x7F,
-    propflag_container = 0x80
+    proptype_mask = 0x3F,
+    propflag_container = 0x80, ///< is a container
+    propflag_nowildcard = 0x40 ///< don't recurse into this container when addressed via wildcard
   } PropertyFlags;
 
 
@@ -77,6 +78,8 @@ namespace p44 {
     virtual intptr_t objectKey() const = 0;
     /// is array container
     virtual bool isArrayContainer() const = 0;
+    /// will be shown in wildcard queries
+    virtual bool isWildcardAddressable() const { return true; };
     /// checks
     bool hasObjectKey(char &aMemAddrObjectKey) { return (objectKey()==(intptr_t)&aMemAddrObjectKey); };
     bool hasObjectKey(intptr_t aIntObjectKey) { return (objectKey()==aIntObjectKey); };
@@ -102,6 +105,7 @@ namespace p44 {
     virtual size_t fieldKey() const { return descP->fieldKey; }
     virtual intptr_t objectKey() const { return descP->objectKey; }
     virtual bool isArrayContainer() const { return descP->propertyType & propflag_container; };
+    virtual bool isWildcardAddressable() const { return (descP->propertyType & propflag_nowildcard)==0; };
   };
 
 

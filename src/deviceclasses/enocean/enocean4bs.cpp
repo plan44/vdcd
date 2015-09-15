@@ -84,7 +84,7 @@ void Enocean4BSDevice::sendTeachInResponse()
 EnoceanDevicePtr Enocean4bsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -390,6 +390,15 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
 
 
 
+// helper to make sure handler and its parameter always match
+static void handle4BSBitField(const Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
+{
+  if (aSensorDescriptor.bitFieldHandler) {
+    aSensorDescriptor.bitFieldHandler(aSensorDescriptor, aBehaviour, aForSend, a4BSdata);
+  }
+}
+
+
 
 Enocean4bsSensorHandler::Enocean4bsSensorHandler(EnoceanDevice &aDevice) :
   inherited(aDevice),
@@ -418,7 +427,7 @@ bool Enocean4bsSensorHandler::isAlive()
 EnoceanDevicePtr Enocean4bsSensorHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -457,6 +466,8 @@ EnoceanDevicePtr Enocean4bsSensorHandler::newDevice(
       newDev->setEEPInfo(aEEProfile, aEEManufacturer);
       // first descriptor defines device primary color
       newDev->setPrimaryGroup(subdeviceDescP->primaryGroup);
+      // count it
+      aSubDeviceIndex++;
     }
     // now add the channel
     addSensorChannel(newDev, *subdeviceDescP, firstDescriptorForDevice);
@@ -553,7 +564,7 @@ void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
         // create 32bit data word
         uint32_t data = aEsp3PacketPtr->get4BSdata();
         // call bit field handler, will pass result to behaviour
-        sensorChannelDescriptorP->bitFieldHandler(*sensorChannelDescriptorP, behaviour, false, data);
+        handle4BSBitField(*sensorChannelDescriptorP, behaviour, false, data);
       }
     }
   }
@@ -585,7 +596,6 @@ string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSe
 
 
 
-
 #pragma mark - EnoceanA52001Handler
 
 
@@ -600,7 +610,7 @@ EnoceanA52001Handler::EnoceanA52001Handler(EnoceanDevice &aDevice) :
 EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -645,6 +655,8 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
       newDev->sendTeachInResponse();
     }
     newDev->setUpdateAtEveryReceive();
+    // count it
+    aSubDeviceIndex++;
   }
   // return device (or empty if none created)
   return newDev;
@@ -791,7 +803,7 @@ EnoceanA5130XHandler::EnoceanA5130XHandler(EnoceanDevice &aDevice) :
 EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -834,6 +846,8 @@ EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
     newDev->addBehaviour(newHandler->sunSouth);
     newHandler->sunEast = Enocean4bsSensorHandler::newSensorBehaviour(A513sunEast, newDev);
     newDev->addBehaviour(newHandler->sunEast);
+    // count it
+    aSubDeviceIndex++;
   }
   // return device (or empty if none created)
   return newDev;
@@ -854,17 +868,17 @@ void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       switch (identifier) {
         case 1:
           // A5-13-01
-          A513dawnSensor.bitFieldHandler(A513dawnSensor, behaviour, false, data);
-          A513dawnSensor.bitFieldHandler(A513outdoorTemp, outdoorTemp, false, data);
-          A513dawnSensor.bitFieldHandler(A513windSpeed, windSpeed, false, data);
-          A513dawnSensor.bitFieldHandler(A513dayIndicator, dayIndicator, false, data);
-          A513dawnSensor.bitFieldHandler(A513rainIndicator, rainIndicator, false, data);
+          handle4BSBitField(A513dawnSensor, behaviour, false, data);
+          handle4BSBitField(A513outdoorTemp, outdoorTemp, false, data);
+          handle4BSBitField(A513windSpeed, windSpeed, false, data);
+          handle4BSBitField(A513dayIndicator, dayIndicator, false, data);
+          handle4BSBitField(A513rainIndicator, rainIndicator, false, data);
           break;
         case 2:
           // A5-13-02
-          A513sunWest.bitFieldHandler(A513sunWest, sunWest, false, data);
-          A513sunSouth.bitFieldHandler(A513sunSouth, sunSouth, false, data);
-          A513sunEast.bitFieldHandler(A513sunEast, sunEast, false, data);
+          handle4BSBitField(A513sunWest, sunWest, false, data);
+          handle4BSBitField(A513sunSouth, sunSouth, false, data);
+          handle4BSBitField(A513sunEast, sunEast, false, data);
           break;
         default:
           // A5-13-03..06 are not supported
@@ -886,15 +900,15 @@ string EnoceanA5130XHandler::shortDesc()
 #pragma mark - Enocean4BSDevice profile variants
 
 
-static const profileVariantEntry RPSprofileVariants[] = {
+static const ProfileVariantEntry RPSprofileVariants[] = {
   // dual rocker RPS button alternatives
-  { 1, 0x00A52001, "heating valve" },
-  { 1, 0x01A52001, "heating valve (with temperature sensor)" },
-  { 0, 0, NULL } // terminator
+  { 1, 0x00A52001, 0, "heating valve" },
+  { 1, 0x01A52001, 0, "heating valve (with temperature sensor)" },
+  { 0, 0, 0, NULL } // terminator
 };
 
 
-const profileVariantEntry *Enocean4BSDevice::profileVariantsTable()
+const ProfileVariantEntry *Enocean4BSDevice::profileVariantsTable()
 {
   return RPSprofileVariants;
 }

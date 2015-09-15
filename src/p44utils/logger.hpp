@@ -59,8 +59,8 @@
 #define FOCUSLOG(...) LOG(FOCUSLOGLEVEL,##__VA_ARGS__)
 #define FOCUSLOGGING 1
 #define FOCUSLOGENABLED globalLogger.logEnabled(FOCUSLOGLEVEL)
-#if !(defined(DEBUG) || ALWAYS_DEBUG)
-#warning "**** FOCUSLOGLEVEL enabled in non-DEBUG build ****"
+#if !(defined(DEBUG) || ALWAYS_DEBUG || FOCUSLOGLEVEL>=7)
+#warning "**** FOCUSLOGLEVEL<7 enabled in non-DEBUG build ****"
 #endif
 #else
 #define FOCUSLOGGING 0

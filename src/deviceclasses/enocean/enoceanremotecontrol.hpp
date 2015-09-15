@@ -36,6 +36,8 @@ namespace p44 {
   #define PSEUDO_FUNC_SWITCHCONTROL 0xF6
   #define PSEUDO_TYPE_SIMPLEBLIND 0xFF // simplistic Fully-Up/Fully-Down blind controller
   #define PSEUDO_TYPE_BLIND 0xFE // time controlled blind with angle support
+  #define PSEUDO_TYPE_ON_OFF 0xFD // simple relay switched on by key up and switched off by key down
+  #define PSEUDO_TYPE_SWITCHED_LIGHT 0xFC // switched light (with full light behaviour)
 
   /// remote control type channel (using base id to communicate with actor)
   class EnoceanRemoteControlHandler : public EnoceanChannelHandler
@@ -51,7 +53,9 @@ namespace p44 {
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number to create (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
     /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
@@ -59,7 +63,7 @@ namespace p44 {
     static EnoceanDevicePtr newDevice(
       EnoceanDeviceContainer *aClassContainerP,
       EnoceanAddress aAddress,
-      EnoceanSubDevice aSubDeviceIndex,
+      EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
       bool aNeedsTeachInResponse
     );
@@ -87,19 +91,59 @@ namespace p44 {
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "enocean_remotecontrol"; };
 
-    /// device specific teach in signal
+    /// @param aVariant -1 to just get number of available teach-in variants. 0..n to send teach-in signal;
+    ///   some devices may have different teach-in signals (like: one for ON, one for OFF).
+    /// @return number of teach-in signal variants the device can send
     /// @note will be called via UI for devices that need to be learned into remote actors
-    virtual bool sendTeachInSignal();
+    virtual uint8_t teachInSignal(int8_t aVariant);
 
     /// mark base offsets in use by this device
     /// @param aUsedOffsetsMap must be passed a string with 128 chars of '0' or '1'.
     virtual void markUsedBaseOffsets(string &aUsedOffsetsMap);
 
+  protected:
+
+    /// utility function to send button action telegrams
+    /// @param aRight: right (B) button instead of left (A) button
+    /// @param aUp: up instead of down button
+    /// @param aPress: pressing button instead of releasing it
+    void buttonAction(bool aRight, bool aUp, bool aPress);
+
   private:
 
-    void sendSwitchBeaconRelease();
+    void sendSwitchBeaconRelease(bool aRight, bool aUp);
 
   };
+
+
+  class EnoceanRelayControlDevice : public EnoceanRemoteControlDevice
+  {
+    typedef EnoceanRemoteControlDevice inherited;
+
+    int movingDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
+    long commandTicket;
+    bool missedUpdate;
+
+  public:
+
+    /// constructor
+    /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
+    EnoceanRelayControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
+
+    /// device type identifier
+    /// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_relay"; };
+
+    /// apply channel values
+    virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
+
+  private:
+
+    void sendReleaseTelegram(SimpleCB aDoneCB, bool aUp);
+
+  };
+
+
 
 
   class EnoceanBlindControlDevice : public EnoceanRemoteControlDevice
@@ -133,7 +177,6 @@ namespace p44 {
 
     void changeMovement(SimpleCB aDoneCB, int aNewDirection);
     void sendReleaseTelegram(SimpleCB aDoneCB);
-    void buttonAction(bool aBlindUp, bool aPress);
 
   };
 

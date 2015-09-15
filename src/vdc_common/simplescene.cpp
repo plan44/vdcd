@@ -283,6 +283,7 @@ void SimpleScene::setDefaultSceneValues(SceneNo aSceneNo)
   // - simple scene specifics
   value = p.value;
   effect = p.effect;
+  markClean(); // default values are always clean (but setIgnoreLocalPriority sets dirty)
 }
 
 

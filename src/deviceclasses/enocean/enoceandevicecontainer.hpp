@@ -147,7 +147,9 @@ namespace p44 {
     /// @param aEnoceanAddress address for which to disconnect and forget all physical devices
     /// @param aForgetParams if set, associated dS level configuration will be cleared such that
     ///   after reconnect the device will appear with default config
-    void unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams);
+    /// @param aFromIndex starting subdevice index, defaults to 0
+    /// @param aNumIndices how many subdevice index positions (0 = all)
+    void unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams, EnoceanSubDevice aFromIndex=0, EnoceanSubDevice aNumIndices=0);
 
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode

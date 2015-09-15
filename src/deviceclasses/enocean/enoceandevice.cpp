@@ -118,7 +118,7 @@ void EnoceanDevice::deriveDsUid()
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
   string s = string_format("%08lX", getAddress()); // base address comes from
   dSUID.setNameInSpace(s, enOceanNamespace);
-  dSUID.setSubdeviceIndex(getSubDevice()*dsUIDIndexStep()); // historically space subdevices in double steps, to (theoretically) allow vdsm to split them (rocker switches) further. Kept this way to prevent existing dSUIDs to change
+  dSUID.setSubdeviceIndex(getSubDevice());
 }
 
 
@@ -146,6 +146,14 @@ string EnoceanDevice::vendorId()
   const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   return string_format("enoceanvendor:%03X%s%s", eeManufacturer, mn ? ":" : "", mn ? mn : "");
 }
+
+
+string EnoceanDevice::vendorName()
+{
+  const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
+  return mn ? ":" : "";
+}
+
 
 
 bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
@@ -319,13 +327,13 @@ string EnoceanDevice::description()
 bool EnoceanDevice::getProfileVariants(ApiValuePtr aApiObjectValue)
 {
   // check if current profile is one of the interchangeable ones
-  const profileVariantEntry *currentVariant = profileVariantsTable();
+  const ProfileVariantEntry *currentVariant = profileVariantsTable();
   while (currentVariant && currentVariant->profileGroup!=0) {
     // look for current EEP in the list of variants
     if (getEEProfile()==currentVariant->eep) {
       // create string from all other variants (same profileGroup), if any
       bool anyVariants = false;
-      const profileVariantEntry *variant = profileVariantsTable();
+      const ProfileVariantEntry *variant = profileVariantsTable();
       while (variant->profileGroup!=0) {
         if (variant->profileGroup==currentVariant->profileGroup) {
           if (variant->eep!=getEEProfile()) anyVariants = true; // another variant than just myself
@@ -348,15 +356,15 @@ bool EnoceanDevice::setProfileVariant(EnoceanProfile aProfile)
   // - check for already having that profile
   if (aProfile==getEEProfile()) return true; // we already have that profile -> NOP
   // - find my profileGroup
-  const profileVariantEntry *currentVariant = profileVariantsTable();
+  const ProfileVariantEntry *currentVariant = profileVariantsTable();
   while (currentVariant && currentVariant->profileGroup!=0) {
     if (getEEProfile()==currentVariant->eep) {
       // this is my profile group, now check if requested profile is in my profile group as well
-      const profileVariantEntry *variant = profileVariantsTable();
+      const ProfileVariantEntry *variant = profileVariantsTable();
       while (variant && variant->profileGroup!=0) {
         if (variant->profileGroup==currentVariant->profileGroup && variant->eep==aProfile) {
           // requested profile is in my group, change now
-          switchToProfile(aProfile); // will delete this device, so return immediately afterwards
+          switchProfiles(*currentVariant, *variant); // will delete this device, so return immediately afterwards
           return true; // changed profile
         }
         variant++;
@@ -368,15 +376,43 @@ bool EnoceanDevice::setProfileVariant(EnoceanProfile aProfile)
 }
 
 
-void EnoceanDevice::switchToProfile(EnoceanProfile aProfile)
+void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, const ProfileVariantEntry &aToVariant)
 {
   // make sure object is retained locally
   EnoceanDevicePtr keepMeAlive(this); // make sure this object lives until routine terminates
+  // determine range of subdevices affected by this profile switch
+  // - larger of both counts, 0 means all indices affected
+  EnoceanSubDevice rangesize = 0;
+  EnoceanSubDevice rangestart = 0;
+  if (aFromVariant.subDeviceIndices!=0 && aToVariant.subDeviceIndices==aFromVariant.subDeviceIndices) {
+    // old and new profile affects same subrange of all subdevice -> we can switch these subdevices only -> restrict range
+    rangesize = aToVariant.subDeviceIndices;
+    // subDeviceIndices range is required to start at an even multiple of rangesize
+    rangestart = getSubDevice()/rangesize*rangesize;
+  }
   // have devices related to current profile deleted, including settings
   // Note: this removes myself from container, and deletes the config (which is valid for the previous profile, i.e. a different type of device)
-  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true);
+  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true, rangestart, rangesize);
   // - create new ones, with same address and manufacturer, but new profile
-  EnoceanDevice::createDevicesFromEEP(&getEnoceanDeviceContainer(), getAddress(), aProfile, getEEManufacturer());
+  EnoceanSubDevice subDeviceIndex = rangestart;
+  while (rangesize==0 || subDeviceIndex<rangestart+rangesize) {
+    // create devices until done
+    EnoceanDevicePtr newDev = newDevice(
+      &getEnoceanDeviceContainer(),
+      getAddress(), // same address as current device
+      subDeviceIndex, // index to create a device for
+      aToVariant.eep, // the new EEP variant
+      getEEManufacturer(),
+      subDeviceIndex==0 // allow sending teach-in response for first subdevice only
+    );
+    if (!newDev) {
+      // could not create a device for subDeviceIndex
+      break; // -> done
+    }
+    // - add it to the container
+    getEnoceanDeviceContainer().addAndRemeberDevice(newDev);
+    // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
+  }
 }
 
 
@@ -484,7 +520,7 @@ bool EnoceanDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 EnoceanDevicePtr EnoceanDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice aSubDeviceIndex,
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
@@ -507,6 +543,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
     // pseudo RORGs (internal encoding of non-standard devices)
     case PSEUDO_RORG_REMOTECONTROL:
       newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      break;
     default:
       LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
       break;
@@ -518,7 +555,8 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 
 int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer)
 {
-  EnoceanSubDevice subDeviceIndex = 0; // start at
+  EnoceanSubDevice subDeviceIndex = 0; // start at index zero
+  int numDevices = 0; // number of devices
   while (true) {
     // create devices until done
     EnoceanDevicePtr newDev = newDevice(
@@ -533,12 +571,12 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
       break; // -> done
     }
     // created device
+    numDevices++;
     // - add it to the container
     aClassContainerP->addAndRemeberDevice(newDev);
-    // - count it
-    subDeviceIndex++;
+    // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
   // return number of devices created
-  return subDeviceIndex;
+  return numDevices;
 }
 

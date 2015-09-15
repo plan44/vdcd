@@ -88,7 +88,8 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
             if (queryValue->isType(apivalue_object)) {
               subQuery = queryValue; // query specifies next level, just use it
             }
-            else if (queryName!="*") {
+            else if (queryName!="*" && (!wildcard || propDesc->isWildcardAddressable())) {
+              // don't recurse deeper when query name is "*" or property is not wildcard-adressable
               // special case is "*" as leaf in query - only recurse if it is not present
               // - autocreate subquery
               subQuery = queryValue->newValue(apivalue_object);

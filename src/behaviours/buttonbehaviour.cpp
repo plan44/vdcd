@@ -84,7 +84,7 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
-  LOG(LOG_NOTICE,"Button %s in device %s was %s\n", hardwareName.c_str(), device.shortDesc().c_str(), aPressed ? "pressed" : "released");
+  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s was %s\n", index, hardwareName.c_str(), device.shortDesc().c_str(), aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
   checkStateMachine(true, MainLoop::now());
 }
@@ -328,7 +328,7 @@ DsButtonElement ButtonBehaviour::localFunctionElement()
 
 void ButtonBehaviour::localSwitchOutput()
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Local switch\n");
+  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s: Local switch\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
 //  if (isTwoWay()) {
 //    // on or off depending on which side of the two-way switch was clicked
 //    outputOn = secondKey;
@@ -347,7 +347,7 @@ void ButtonBehaviour::localSwitchOutput()
 
 void ButtonBehaviour::localDim()
 {
-  LOG(LOG_NOTICE,"ButtonBehaviour: Local dim\n");
+  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s: Local dim\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
   // TODO: actually dim output in direction as indicated by dimmingUp
 }
 
@@ -361,7 +361,10 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
   // button press is considered a (regular!) user action, have it checked globally first
   if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
     // button press not consumed on global level, forward to upstream dS
-    LOG(LOG_NOTICE,"ButtonBehaviour: Pushing value = %d, clickType %d\n", buttonPressed, aClickType);
+    LOG(LOG_NOTICE,
+      "Button[%d] '%s' in device %s pushes value = %d, clickType %d\n",
+      index, hardwareName.c_str(),  device.shortDesc().c_str(), buttonPressed, aClickType
+    );
     // issue a state property push
     pushBehaviourState();
     // also let device container know for local click handling
