@@ -221,24 +221,25 @@ namespace p44 {
   typedef vector<ChannelBehaviourPtr> ChannelBehaviourVector;
 
 
-  /// string value channel
-  class StringValueChannel : public ChannelBehaviour
+  /// index value channel
+  class IndexChannel : public ChannelBehaviour
   {
     typedef ChannelBehaviour inherited;
 
+    uint32_t numIndices; ///< number of valid indices (indices are 0..numIndices-1)
+
   public:
-    #error extend ChannelBehaviour to allow string values?
-    StringValueChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; /*  */ };
+    IndexChannel(OutputBehaviour &aOutput) : inherited(aOutput) { resolution = 1; numIndices = 0; };
     virtual DsChannelType getChannelType() { return channeltype_default; }; ///< no real dS channel type
-    virtual const char *getName() { return "switch"; };
-    virtual double getMin() { return 0; }; // compatible with brightness: 0 to 100%
-    virtual double getMax() { return 100; };
+    virtual const char *getName() { return "string"; };
+    virtual double getMin() { return 0; }; // 0..numIndices-1
+    virtual double getMax() { return numIndices>0 ? numIndices-1 : 0; };
+
+    void setNumIndices(uint32_t aNumIndices) { numIndices = aNumIndices; };
+
   };
-  typedef boost::intrusive_ptr<StringValueChannel> StringValueChannelPtr;
+  typedef boost::intrusive_ptr<IndexChannel> IndexChannelPtr;
   
-
-
-
 
   /// digital switch channel
   class DigitalChannel : public ChannelBehaviour
@@ -253,49 +254,6 @@ namespace p44 {
     virtual double getMax() { return 100; };
   };
   typedef boost::intrusive_ptr<DigitalChannel> DigitalChannelPtr;
-
-
-  /// custom channel with instance variables defining the properties
-  class CustomChannel : public ChannelBehaviour
-  {
-    typedef ChannelBehaviour inherited;
-
-    DsChannelType channelType;
-    string name;
-    double min;
-    double max;
-    double resolution;
-    double dimPerMS;
-    double minDim;
-
-  public:
-    CustomChannel(
-      OutputBehaviour &aOutput,
-      DsChannelType aChannelType,
-      const char *aName,
-      double aMin,
-      double aMax,
-      double aResolution,
-      double aDimPerMS,
-      double aMinDim
-    ) :
-      inherited(aOutput),
-      channelType(aChannelType),
-      name(aName),
-      min(aMin),
-      max(aMax),
-      dimPerMS(aDimPerMS),
-      minDim(aMinDim)
-    {};
-
-    virtual DsChannelType getChannelType() { return channelType; };
-    virtual const char *getName() { return name.c_str(); };
-    virtual double getMin() { return min; };
-    virtual double getMax() { return max; };
-    virtual double getDimPerMS() { return dimPerMS; };
-    virtual double getMinDim() { return minDim; };
-  };
-
 
 
 } // namespace p44

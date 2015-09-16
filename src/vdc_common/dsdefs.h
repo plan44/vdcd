@@ -33,8 +33,11 @@ typedef enum {
   T0_S1 = 5,              ///< main on scene
   T1_S1 = 6,              ///< area 1 on scene / audio: reserved
   T2_S1 = 7,              ///< area 2 on scene / audio: Repeat Off
+  AUDIO_REPEAT_OFF = 7,   ///< audio: Repeat off
   T3_S1 = 8,              ///< area 3 on scene / audio: Repeat 1
+  AUDIO_REPEAT_1 = 8,     ///< audio: Repeat 1
   T4_S1 = 9,              ///< area 4 on scene / audio: Repeat All
+  AUDIO_REPEAT_ALL = 9,   ///< audio: Repeat all
   T1234_CONT = 10,        ///< area 1-4 increment/decrement continue
   DEC_S = 11,             ///< decrement value
   INC_S = 12,             ///< increment value
@@ -290,6 +293,16 @@ typedef enum {
   outputmode_default = 0x7F, ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 
+
+/// audio power states
+typedef enum {
+  dsAudioPower_deep_off = 0,
+  dsAudioPower_power_save = 1,
+  dsAudioPower_on = 2,
+  numDsAudioPowerStates
+} DsAudioPowerState;
+
+
 /// output channel types
 typedef enum {
   channeltype_default = 0, ///< default channel (main output value, e.g. brightness for lights)
@@ -306,6 +319,8 @@ typedef enum {
   channeltype_custom_first = 192, ///< first device-specific channel
   channeltype_custom_last = 239, ///< first device-specific channel
   channeltype_p44_audio_volume = channeltype_custom_first+0, ///< p44-specific channel type for audio volume until dS specifies one
+  channeltype_p44_audio_power_state = channeltype_custom_first+1, ///< p44-specific channel type for audio power state until dS specifies one
+  channeltype_p44_audio_content_source = channeltype_custom_first+2, ///< p44-specific channel type for audio content source until dS specifies one
   numChannelTypes = 240 // 0..239 are channel types
 } DsChannelTypeEnum;
 typedef uint8_t DsChannelType;

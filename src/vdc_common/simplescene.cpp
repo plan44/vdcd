@@ -157,7 +157,7 @@ typedef struct {
   SceneArea sceneArea; ///< area this scene applies to (default is 0 = not an area scene)
 } DefaultSceneParams;
 
-#define NUMDEFAULTSCENES 78 ///< Number of default scenes
+#define NUMDEFAULTSCENES 80 ///< Number of default scenes
 
 // General rules
 
@@ -260,7 +260,9 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   { 100, scene_effect_smooth, false, true , scene_cmd_invoke,        0 }, // +10 = 74 : Alarm1 - SIG_ALARM
   { 100, scene_effect_smooth, false, true , scene_cmd_invoke,        0 }, // +11 = 75 : Zone Active
   { 100, scene_effect_none,   true,  false, scene_cmd_invoke,        0 }, // +12 = 76 : Fire
-  { 100, scene_effect_smooth, false, true , scene_cmd_invoke,        0 }, // +13 = 77 : Smoke
+  { 100, scene_effect_none,   false, true , scene_cmd_invoke,        0 }, // +13 = 77 : Smoke
+  { 100, scene_effect_none,   false, true , scene_cmd_invoke,        0 }, // +14 = 78 : Water
+  { 100, scene_effect_none,   false, true , scene_cmd_invoke,        0 }, // +15 = 79 : Gas
 
   // all other scenes equal or higher
   {   0, scene_effect_smooth, false, true, scene_cmd_invoke, 0  }, // 78..n : zero output, don't care, standard invoke

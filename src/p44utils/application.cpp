@@ -61,7 +61,7 @@ void Application::handleSignal(int aSignal)
   memset(&act, 0, sizeof(act));
   act.sa_sigaction = Application::sigaction_handler;
   act.sa_flags = SA_SIGINFO;
-  int ret = sigaction (aSignal, &act, NULL);
+  sigaction (aSignal, &act, NULL);
 }
 
 

@@ -33,45 +33,71 @@ namespace p44 {
   typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
   typedef double Brightness;
 
+  /// Audio volume channel, 0..100%
   class AudioVolumeChannel : public ChannelBehaviour
   {
     typedef ChannelBehaviour inherited;
-    double minDim;
 
   public:
     AudioVolumeChannel(OutputBehaviour &aOutput) : inherited(aOutput)
     {
       resolution = 0.1; // arbitrary, 1:1000 seems ok
-      minDim = getMin()+1; // min valume level defaults to one unit above zero (1%)
     };
-
-    void setDimMin(double aMinDim) { minDim = aMinDim; };
 
     virtual DsChannelType getChannelType() { return channeltype_p44_audio_volume; }; ///< the dS channel type
     virtual const char *getName() { return "volume"; };
     virtual double getMin() { return 0; }; // dS brightness goes from 0 to 100%
     virtual double getMax() { return 100; };
-    virtual double getDimPerMS() { return 100/FULL_SCALE_DIM_TIME_MS; }; // assuming 7 seconds full range dimming
-    virtual double getMinDim() { return minDim; };
 
   };
   typedef boost::intrusive_ptr<AudioVolumeChannel> AudioVolumeChannelPtr;
 
 
+  /// Audio power state channel
+  class AudioPowerStateChannel : public IndexChannel
+  {
+    typedef IndexChannel inherited;
 
-  /// A concrete class implementing the Scene object for a audio device, having a volume channel plus a string (e.g. for calling a specific song/sound effect)
+  public:
+    AudioPowerStateChannel(OutputBehaviour &aOutput) : inherited(aOutput) { setNumIndices(numDsAudioPowerStates); }; ///< see DsAudioPowerState enum
+
+    virtual DsChannelType getChannelType() { return channeltype_p44_audio_power_state; }; ///< the dS channel type
+    virtual const char *getName() { return "powerstate"; };
+
+  };
+  typedef boost::intrusive_ptr<AudioPowerStateChannel> AudioPowerStateChannelPtr;
+
+
+  /// Audio content source channel
+  class AudioContentSourceChannel : public IndexChannel
+  {
+    typedef IndexChannel inherited;
+
+  public:
+    AudioContentSourceChannel(OutputBehaviour &aOutput) : inherited(aOutput) {};
+
+    virtual DsChannelType getChannelType() { return channeltype_p44_audio_content_source; }; ///< the dS channel type
+    virtual const char *getName() { return "contentsource"; };
+
+  };
+  typedef boost::intrusive_ptr<AudioContentSourceChannel> AudioContentSourceChannelPtr;
+
+
+
+  /// A concrete class implementing the Scene object for a audio device, having a volume channel plus a index value (for specific song/sound effects)
   /// @note subclasses can implement more parameters
   class AudioScene : public SimpleScene
   {
     typedef SimpleScene inherited;
 
   public:
-    AudioScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) : inherited(aSceneDeviceSettings, aSceneNo) {}; ///< constructor, sets values according to dS specs' default values
+    AudioScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo);
 
     /// @name audio scene specific values
     /// @{
 
-    string audioAssetName; ///< the name of an audio asset, such as a song/sound effect file name
+    uint32_t contentSource; ///< the index of a content source, e.g. a song/sound effect from a list
+    DsAudioPowerState powerState; ///< the power state of the audio device
 
     /// @}
 
@@ -82,9 +108,6 @@ namespace p44 {
     // scene values implementation
     virtual double sceneValue(size_t aChannelIndex);
     virtual void setSceneValue(size_t aChannelIndex, double aValue);
-    // string values
-    virtual string sceneStringValue(size_t aChannelIndex);
-    virtual void setSceneValue(size_t aChannelIndex, string aValue);
 
   protected:
 
@@ -147,7 +170,10 @@ namespace p44 {
 
     /// the volume channel
     AudioVolumeChannelPtr volume;
-
+    /// the power state channel
+    AudioPowerStateChannelPtr powerState;
+    /// the content source channel
+    AudioContentSourceChannelPtr contentSource;
 
     /// @name interaction with digitalSTROM system
     /// @{

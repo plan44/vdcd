@@ -154,7 +154,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
   if (lightScene) {
     // any scene call cancels actions (and fade down)
     stopActions();
-    SceneNo sceneCmd = lightScene->sceneCmd;
+    SceneCmd sceneCmd = lightScene->sceneCmd;
     // now check for special hard-wired scenes
     if (sceneCmd==scene_cmd_slow_off) {
       // slow fade down
