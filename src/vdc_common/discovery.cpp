@@ -98,7 +98,7 @@ string DiscoveryManager::publishedName()
     // use dSUID if no other ID is specified
     s = deviceContainer->getDsUid().getString();
   }
-  string_format_append(n, " (%s)", s.c_str());
+  string_format_append(n, " %s", s.c_str());
   return n;
 }
 
