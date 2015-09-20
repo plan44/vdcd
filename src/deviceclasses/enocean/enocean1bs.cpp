@@ -28,8 +28,9 @@
 using namespace p44;
 
 
-Enocean1bsHandler::Enocean1bsHandler(EnoceanDevice &aDevice) :
-  EnoceanChannelHandler(aDevice)
+Enocean1bsHandler::Enocean1bsHandler(EnoceanDevice &aDevice, bool aActiveState) :
+  EnoceanChannelHandler(aDevice),
+  activeState(aActiveState)
 {
 }
 
@@ -45,11 +46,12 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
   EepType type = EEP_TYPE(aEEProfile);
   EnoceanDevicePtr newDev; // none so far
   // At this time, only the "single input contact" profile is defined in EEP: D5-00-01
+  // Note: two variants exist, one with inverted contact signal (e.g. for window contacts)
   if (func==0x00 && type==0x01) {
     // single input contact, always consists of a single device
     if (aSubDeviceIndex<1) {
       // create device
-      newDev = EnoceanDevicePtr(new EnoceanDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new Enocean1BSDevice(aClassContainerP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address
@@ -59,8 +61,8 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
       newDev->setFunctionDesc("single contact");
       // joker by default, we don't know what kind of contact this is
       newDev->setPrimaryGroup(group_black_joker);
-      // create channel handler
-      Enocean1bsHandlerPtr newHandler = Enocean1bsHandlerPtr(new Enocean1bsHandler(*newDev.get()));
+      // create channel handler, EEP variant 1 means inverted state interpretation
+      Enocean1bsHandlerPtr newHandler = Enocean1bsHandlerPtr(new Enocean1bsHandler(*newDev.get(), !(EEP_VARIANT(aEEProfile)==1)));
       // create the behaviour
       BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Minute);
@@ -89,7 +91,7 @@ void Enocean1bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       // report contact state to binaryInputBehaviour
       BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
       if (bb) {
-        bb->updateInputState(data & 0x01); // Bit 0 is the contact
+        bb->updateInputState(((data & 0x01)!=0) == activeState); // Bit 0 is the contact, report straight or inverted depending on activeState
       }
     }
   }
@@ -100,3 +102,27 @@ string Enocean1bsHandler::shortDesc()
 {
   return "Single Contact";
 }
+
+
+#pragma mark - Enocean1BSDevice with profile variants
+
+
+Enocean1BSDevice::Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP) :
+  inherited(aClassContainerP)
+{
+}
+
+
+static const ProfileVariantEntry E1BSprofileVariants[] = {
+  // single contact alternatives
+  { 1, 0x00D50001, 0, "single contact" },
+  { 1, 0x01D50001, 0, "single contact (inverted, e.g. for window contact)" },
+  { 0, 0, 0, NULL } // terminator
+};
+
+
+const ProfileVariantEntry *Enocean1BSDevice::profileVariantsTable()
+{
+  return E1BSprofileVariants;
+}
+
