@@ -21,7 +21,17 @@
 
 #include "dsuid.hpp"
 
+#ifdef __APPLE__
+// OpenSSL is deprecated since 10.7 and not available in OSX 10.10 and later any more: using CommonCrypto instead
+#include <CommonCrypto/CommonDigest.h>
+#define SHA_DIGEST_LENGTH CC_SHA1_DIGEST_LENGTH
+#define SHA_CTX CC_SHA1_CTX
+#define SHA1_Init CC_SHA1_Init
+#define SHA1_Update CC_SHA1_Update
+#define SHA1_Final CC_SHA1_Final
+#else
 #include <openssl/sha.h>
+#endif
 
 #include "fnv.hpp"
 
