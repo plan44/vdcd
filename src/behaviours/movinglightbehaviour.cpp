@@ -55,8 +55,8 @@ void MovingLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_position_h : hPos = aValue;
-    case channeltype_position_v : vPos = aValue;
+    case channeltype_position_h : setPVar(hPos, aValue);
+    case channeltype_position_v : setPVar(vPos, aValue);
     default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
@@ -209,9 +209,9 @@ void MovingLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   if (movingLightScene) {
     // when saved, position values are no longer dontcare
     movingLightScene->setSceneValueFlags(horizontalPosition->getChannelIndex(), valueflags_dontCare, false);
-    movingLightScene->setRepVar(movingLightScene->hPos, horizontalPosition->getChannelValue());
+    movingLightScene->setPVar(movingLightScene->hPos, horizontalPosition->getChannelValue());
     movingLightScene->setSceneValueFlags(verticalPosition->getChannelIndex(), valueflags_dontCare, false);
-    movingLightScene->setRepVar(movingLightScene->vPos, verticalPosition->getChannelValue());
+    movingLightScene->setPVar(movingLightScene->vPos, verticalPosition->getChannelValue());
   }
 }
 

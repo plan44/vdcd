@@ -165,6 +165,7 @@ void OutputBehaviour::setOutputMode(DsOutputMode aOutputMode)
       (*pos)->setNeedsApplying(0); // needs immediate re-apply
     }
     device.requestApplyingChannels(NULL, false, true); // apply, for mode change
+    markDirty();
   }
 }
 
@@ -194,11 +195,7 @@ void OutputBehaviour::saveChannelsToScene(DsScenePtr aScene)
     ChannelBehaviourPtr ch = getChannelByIndex(0);
     if (ch) {
       double newval = ch->getChannelValue();
-      double oldval = aScene->sceneValue(0);
-      if (newval!=oldval) {
-        aScene->setSceneValue(0, newval);
-        markDirty();
-      }
+      aScene->setSceneValue(0, newval);
     }
     aScene->setSceneValueFlags(0, valueflags_dontCare, false);
   }
@@ -500,16 +497,13 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         // Settings properties
         case mode_key+settings_key_offset:
           setOutputMode((DsOutputMode)aPropValue->int32Value());
-          markDirty();
           return true;
         case pushChanges_key+settings_key_offset:
-          pushChanges = aPropValue->boolValue();
-          markDirty();
+          setPVar(pushChanges, aPropValue->boolValue());
           return true;
         // State properties
         case localPriority_key+states_key_offset:
-          localPriority = aPropValue->boolValue();
-          markDirty();
+          setPVar(localPriority, aPropValue->boolValue());
           return true;
       }
     }

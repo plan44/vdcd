@@ -40,6 +40,7 @@ namespace p44 {
   };
 
 
+
   /// @note this class does NOT derive from P44Obj, so it can be added as "interface" using multiple-inheritance
   class PersistentParams
   {
@@ -113,6 +114,18 @@ namespace p44 {
 
     /// @return true if needs to be saved
     bool isDirty() { return dirty; }
+
+    /// set a variable representing a persistent value and mark PersistentParams object dirty if value has changed
+    /// @param aTargetValue the variable to update
+    /// @param aNewValue the new value
+    /// @note marks PersistentParams dirty if variable is actually changed
+    template<typename T> void setPVar(T &aTargetValue, T aNewValue)
+    {
+      if (aTargetValue!=aNewValue) {
+        aTargetValue = aNewValue;
+        markDirty();
+      }
+    };
 
 
     /// get parameter set from persistent storage

@@ -280,16 +280,13 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          sensorGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
+          setPVar(sensorGroup, (DsGroup)aPropValue->int32Value());
           return true;
         case minPushInterval_key+settings_key_offset:
-          minPushInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(minPushInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
         case changesOnlyInterval_key+settings_key_offset:
-          changesOnlyInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(changesOnlyInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
       }
     }

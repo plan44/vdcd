@@ -216,7 +216,7 @@ void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // save brightness channel from scene
-    lightScene->setRepVar(lightScene->value, brightness->getChannelValue());
+    lightScene->setPVar(lightScene->value, brightness->getChannelValue());
     lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
   }
   else {
@@ -586,26 +586,24 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
-          onThreshold = aPropValue->doubleValue();
-          markDirty();
+          setPVar(onThreshold, aPropValue->doubleValue());
           return true;
         case minBrightness_key+settings_key_offset:
           brightness->setDimMin(aPropValue->doubleValue());
-          markDirty();
+          if (!hardwareHasSetMinDim) markDirty();
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          setPVar(dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)], (DimmingTime)aPropValue->int32Value());
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          setPVar(dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)], (DimmingTime)aPropValue->int32Value());
           return true;
         case dimCurveExp_key+settings_key_offset:
-          dimCurveExp = aPropValue->doubleValue();
-          markDirty();
+          setPVar(dimCurveExp, aPropValue->doubleValue());
           return true;
       }
     }

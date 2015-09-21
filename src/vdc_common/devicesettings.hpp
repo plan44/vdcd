@@ -50,7 +50,7 @@ namespace p44 {
 
     /// generic device flag word, can be used by subclasses to map flags onto at loadFromRow() and bindToStatement()
     int deviceFlags;
-    /// global dS zone ID
+    /// global dS zone ID, zero if no zone assigned
     int zoneID;
 
   public:

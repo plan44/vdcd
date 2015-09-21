@@ -390,8 +390,7 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
       // write
       switch (aPropertyDescriptor->fieldKey()) {
         case defaultzone_key:
-          defaultZoneID = aPropValue->int32Value();
-          markDirty();
+          setPVar(defaultZoneID, aPropValue->int32Value());
           return true;
       }
     }

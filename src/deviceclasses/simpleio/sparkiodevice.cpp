@@ -58,7 +58,7 @@ void SparkLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_sparkmode: extendedState = aValue; break;
+    case channeltype_sparkmode: setPVar(extendedState, (uint32_t)aValue); break;
     default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
@@ -162,7 +162,7 @@ void SparkLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   // now save color specific scene information
   SparkLightScenePtr sparkLightScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
   if (sparkLightScene) {
-    sparkLightScene->setRepVar(sparkLightScene->extendedState, (uint32_t)sparkmode->getChannelValue());
+    sparkLightScene->setPVar(sparkLightScene->extendedState, (uint32_t)sparkmode->getChannelValue());
     sparkLightScene->setSceneValueFlags(sparkmode->getChannelIndex(), valueflags_dontCare, false);
   }
 }

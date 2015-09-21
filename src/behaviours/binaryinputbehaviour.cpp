@@ -267,20 +267,16 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          binInputGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
+          setPVar(binInputGroup, (DsGroup)aPropValue->int32Value());
           return true;
         case minPushInterval_key+settings_key_offset:
-          minPushInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(minPushInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
         case changesOnlyInterval_key+settings_key_offset:
-          changesOnlyInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(changesOnlyInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
         case configuredInputType_key+settings_key_offset: // aka "sensorFunction"
-          configuredInputType = (DsBinaryInputType)aPropValue->int32Value();
-          markDirty();
+          setPVar(configuredInputType, (DsBinaryInputType)aPropValue->int32Value());
           return true;
       }
     }

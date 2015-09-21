@@ -151,11 +151,9 @@ protected:
         switch (aPropertyDescriptor->fieldKey()) {
           case value_key:
             scene.setSceneValue(outputIndex, aPropValue->doubleValue());
-            scene.markDirty();
             return true;
           case dontCare_key:
             scene.setSceneValueFlags(outputIndex, valueflags_dontCare, aPropValue->boolValue());
-            scene.markDirty();
             return true;
         }
       }

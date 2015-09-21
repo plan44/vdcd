@@ -59,7 +59,7 @@ void ShadowScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   if (cb->getChannelType()==channeltype_position_angle) {
-    angle = aValue;
+    setPVar(angle, aValue);
     return;
   }
   inherited::setSceneValue(aChannelIndex, aValue);
@@ -654,9 +654,9 @@ void ShadowBehaviour::saveChannelsToScene(DsScenePtr aScene)
   ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
   if (shadowScene) {
     // save position and angle to scene
-    shadowScene->setRepVar(shadowScene->value, position->getChannelValue());
+    shadowScene->setPVar(shadowScene->value, position->getChannelValue());
     shadowScene->setSceneValueFlags(position->getChannelIndex(), valueflags_dontCare, false);
-    shadowScene->setRepVar(shadowScene->angle, angle->getChannelValue());
+    shadowScene->setPVar(shadowScene->angle, angle->getChannelValue());
     shadowScene->setSceneValueFlags(angle->getChannelIndex(), valueflags_dontCare, false);
   }
   else {
@@ -814,10 +814,10 @@ bool ShadowBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
-        case openTime_key+settings_key_offset: openTime = aPropValue->doubleValue(); markDirty(); return true;
-        case closeTime_key+settings_key_offset: closeTime = aPropValue->doubleValue(); markDirty(); return true;
-        case angleOpenTime_key+settings_key_offset: angleOpenTime = aPropValue->doubleValue(); markDirty(); return true;
-        case angleCloseTime_key+settings_key_offset: angleCloseTime = aPropValue->doubleValue(); markDirty(); return true;
+        case openTime_key+settings_key_offset: setPVar(openTime, aPropValue->doubleValue()); return true;
+        case closeTime_key+settings_key_offset: setPVar(closeTime, aPropValue->doubleValue()); return true;
+        case angleOpenTime_key+settings_key_offset: setPVar(angleOpenTime, aPropValue->doubleValue()); return true;
+        case angleCloseTime_key+settings_key_offset: setPVar(angleCloseTime, aPropValue->doubleValue()); return true;
       }
     }
   }

@@ -34,7 +34,7 @@ double SimpleScene::sceneValue(size_t aOutputIndex)
 void SimpleScene::setSceneValue(size_t aOutputIndex, double aValue)
 {
   if (aOutputIndex==0) {
-    value = aValue;
+    setPVar(value, aValue);
   }
 }
 
@@ -136,8 +136,7 @@ bool SimpleScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, 
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         case effect_key:
-          effect = (DsSceneEffect)aPropValue->uint8Value();
-          markDirty();
+          setPVar(effect, (DsSceneEffect)aPropValue->uint8Value());
           return true;
       }
     }

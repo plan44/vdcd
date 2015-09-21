@@ -595,8 +595,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          buttonGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonGroup, (DsGroup)aPropValue->int32Value());
           return true;
         case mode_key+settings_key_offset: {
           DsButtonMode m = (DsButtonMode)aPropValue->int32Value();
@@ -604,25 +603,20 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
             // only one particular mode (aside from inactive) is allowed.
             m = fixedButtonMode;
           }
-          buttonMode = m;
-          markDirty();
+          setPVar(buttonMode, m);
           return true;
         }
         case function_key+settings_key_offset:
-          buttonFunc = (DsButtonFunc)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonFunc, (DsButtonFunc)aPropValue->int32Value());
           return true;
         case channel_key+settings_key_offset:
-          buttonChannel = (DsChannelType)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonChannel, (DsChannelType)aPropValue->int32Value());
           return true;
         case setsLocalPriority_key+settings_key_offset:
-          setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
-          markDirty();
+          setPVar(setsLocalPriority, aPropValue->boolValue());
           return true;
         case callsPresent_key+settings_key_offset:
-          callsPresent = (DsButtonMode)aPropValue->boolValue();
-          markDirty();
+          setPVar(callsPresent, aPropValue->boolValue());
           return true;
       }
     }

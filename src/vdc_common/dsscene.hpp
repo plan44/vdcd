@@ -164,18 +164,6 @@ namespace p44 {
     /// @note marks scene dirty if flags are actually changed
     virtual void setSceneValueFlags(size_t aChannelIndex, uint32_t aFlagMask, bool aSet);
 
-    /// set a variable representing a scene value and mark scene dirty if value changes
-    /// @param aTargetValue the variable to update
-    /// @param aNewValue the new value
-    /// @note marks scene dirty if variable is actually changed
-    template<typename T> void setRepVar(T &aTargetValue, T aNewValue)
-    {
-      if (aTargetValue!=aNewValue) {
-        aTargetValue = aNewValue;
-        markDirty();
-      }
-    };
-
     /// get scene value
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @return the scene value
@@ -184,6 +172,7 @@ namespace p44 {
     /// modify scene value
     /// @param aChannelIndex the channel index (0=primary channel, 1..n other channels)
     /// @param aValue the new scene value
+    /// @note marks scene dirty if value is actually changed
     virtual void setSceneValue(size_t aChannelIndex, double aValue) = 0;
 
     /// utility: check a scene value flag

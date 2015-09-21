@@ -1565,8 +1565,7 @@ bool Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, Prope
       switch (aPropertyDescriptor->fieldKey()) {
         case zoneID_key:
           if (deviceSettings) {
-            deviceSettings->zoneID = aPropValue->int32Value();
-            deviceSettings->markDirty();
+            deviceSettings->setPVar(deviceSettings->zoneID, aPropValue->int32Value());
           }
           return true;
         case progMode_key:
