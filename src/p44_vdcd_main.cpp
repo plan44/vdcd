@@ -46,6 +46,9 @@
 #if !DISABLE_STATIC
 #include "staticdevicecontainer.hpp"
 #endif
+#if !DISABLE_EXTERNAL
+#include "externaldevicecontainer.hpp"
+#endif
 
 #if !DISABLE_DISCOVERY
 #include "discovery.hpp"
@@ -310,6 +313,10 @@ public:
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
+      #if !DISABLE_EXTERNAL
+      { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
+      { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
+      #endif
       #if !DISABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
@@ -563,6 +570,14 @@ public:
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
+      }
+      #endif
+      #if !DISABLE_EXTERNAL
+      // - Add support for external devices connecting via socket
+      const char *extdevname = getOption("externaldevices");
+      if (extdevname) {
+        ExternalDeviceContainerPtr externalDeviceContainer = ExternalDeviceContainerPtr(new ExternalDeviceContainer(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
+        externalDeviceContainer->addClassToDeviceContainer();
       }
       #endif
       // install activity monitor

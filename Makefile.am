@@ -239,6 +239,8 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/analogiodevice.hpp \
   src/deviceclasses/simpleio/staticdevicecontainer.cpp \
   src/deviceclasses/simpleio/staticdevicecontainer.hpp \
+  src/deviceclasses/external/externaldevicecontainer.cpp \
+  src/deviceclasses/external/externaldevicecontainer.hpp \
   src/deviceclasses/enocean/enoceancomm.cpp \
   src/deviceclasses/enocean/enoceancomm.hpp \
   src/deviceclasses/enocean/enoceandevice.cpp \
