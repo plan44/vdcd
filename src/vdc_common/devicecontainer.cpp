@@ -42,13 +42,11 @@
 
 using namespace p44;
 
-
-// how long vDC waits after receiving ok from one announce until it fires the next
-//#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
-#define DEFAULT_ANNOUNCE_PAUSE (10*MilliSecond)
-
 // how often to write mainloop statistics into log output
 #define DEFAULT_MAINLOOP_STATS_INTERVAL (60) // every 5 min (with periodic activity every 5 seconds: 60*5 = 300 = 5min)
+
+// how long vDC waits after receiving ok from one announce until it fires the next
+#define ANNOUNCE_PAUSE (10*MilliSecond)
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define ANNOUNCE_TIMEOUT (30*Second)
@@ -73,7 +71,6 @@ DeviceContainer::DeviceContainer() :
   localDimDirection(0), // undefined
   mainloopStatsInterval(DEFAULT_MAINLOOP_STATS_INTERVAL),
   mainLoopStatsCounter(0),
-  announcePause(DEFAULT_ANNOUNCE_PAUSE),
   productName(DEFAULT_PRODUCT_NAME)
 {
   // obtain MAC address
@@ -1109,7 +1106,7 @@ void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcAp
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), announcePause);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
 }
 
 

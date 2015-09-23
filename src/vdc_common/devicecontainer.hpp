@@ -105,7 +105,6 @@ namespace p44 {
     long periodicTaskTicket;
     MLMicroSeconds lastActivity;
     MLMicroSeconds lastPeriodicRun;
-    MLMicroSeconds announcePause;
 
     int8_t localDimDirection;
 
@@ -174,15 +173,9 @@ namespace p44 {
     /// @return the path to the icon dir, always with a trailing path separator, ready to append subpaths and filenames
     const char *getIconDir();
 
-    /// Set pause between announces
-    /// @param aAnnouncePause how long to wait between device announcements
-    void setAnnouncePause(MLMicroSeconds aAnnouncePause) { announcePause = aAnnouncePause; };
-
-
     /// Set how often mainloop statistics are printed out log (LOG_INFO)
     /// @param aInterval 0=none, N=every PERIODIC_TASK_INTERVAL*N seconds
     void setMainloopStatsInterval(int aInterval) { mainloopStatsInterval = aInterval; };
-
 
     /// @return MAC address as 12 char hex string (6 bytes)
     string macAddressString();
