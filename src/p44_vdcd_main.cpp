@@ -28,21 +28,28 @@
 #include "pbufvdcapi.hpp"
 
 // device classes to be used
+#if !DISABLE_DALI
 #include "dalidevicecontainer.hpp"
-#include "huedevicecontainer.hpp"
+#endif
+#if !DISABLE_ENOCEAN
 #include "enoceandevicecontainer.hpp"
-#include "staticdevicecontainer.hpp"
-
+#endif
+#if !DISABLE_HUE
+#include "huedevicecontainer.hpp"
+#endif
 #if !DISABLE_OLA
 #include "oladevicecontainer.hpp"
 #endif
 #if !DISABLE_LEDCHAIN
 #include "ledchaindevicecontainer.hpp"
 #endif
+#if !DISABLE_STATIC
+#include "staticdevicecontainer.hpp"
+#endif
+
 #if !DISABLE_DISCOVERY
 #include "discovery.hpp"
 #endif
-
 
 #include "digitalio.hpp"
 
@@ -98,8 +105,10 @@ class P44Vdcd : public CmdLineApp
     tempstatus_failure,  // failure/learn-out indication (red blinking)
   } TempStatus;
 
+  #if !DISABLE_STATIC
   // command line defined devices
   DeviceConfigMap staticDeviceConfigs;
+  #endif
 
   // App status
   bool factoryResetWait;
@@ -247,6 +256,7 @@ public:
 
 
 
+  #if !DISABLE_STATIC
   virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
   {
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
@@ -266,6 +276,7 @@ public:
     }
     return true;
   }
+  #endif
 
 
   virtual int main(int argc, char **argv)
@@ -273,30 +284,25 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
-      #if !DISABLE_DISCOVERY
-      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
-      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
-      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
-      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
-      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
-      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
-      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
-      #endif
-      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      #if !DISABLE_DALI
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
       { 0  , "dalirxadj",     true,  "adjustment;DALI signal adjustment for receiving" },
+      #endif
+      #if !DISABLE_ENOCEAN
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
+      #endif
+      #if !DISABLE_HUE
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 0,   "hueapiurl",     true,  "hue API url;use hue bridge API at specific location (disables UPnP/SSDP search)" },
+      #endif
       #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
@@ -304,18 +310,8 @@ public:
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
+      #if !DISABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
-      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
-      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
-      { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
-      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
-      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
-      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
-      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
-      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
-      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
-      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
@@ -335,6 +331,30 @@ public:
                                      },
       { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
+      #endif // !DISABLE_STATIC
+      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
+      #if !DISABLE_DISCOVERY
+      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
+      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
+      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
+      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
+      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
+      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
+      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
+      #endif
+      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
+      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
+      { 'w', "startupdelay",  true,  "seconds;delay startup" },
+      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
+      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
+      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
+      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
+      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
+      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
+      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
+      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
+
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
@@ -347,7 +367,7 @@ public:
     setCommandDescriptors(usageText, options);
     parseCommandLine(argc, argv);
 
-    if ((numOptions()<1 && staticDeviceConfigs.size()==0) || numArguments()>0) {
+    if ((numOptions()<1) || numArguments()>0) {
       // show usage
       showUsage();
       terminateApp(EXIT_SUCCESS);
@@ -481,6 +501,7 @@ public:
 
       // Create static container structure
       // - Add DALI devices class if DALI bridge serialport/host is specified
+      #if !DISABLE_DALI
       const char *daliname = getOption("dali");
       if (daliname) {
         int sec = 0;
@@ -492,6 +513,8 @@ public:
         if (getIntOption("dalirxadj", adj)) daliDeviceContainer->daliComm->setDaliSampleAdj(adj);
         daliDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
+      #if !DISABLE_ENOCEAN
       // - Add EnOcean devices class if EnOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       const char *enoceanresetpin = getOption("enoceanreset");
@@ -501,6 +524,8 @@ public:
         // add
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
+      #if !DISABLE_HUE
       // - Add hue support
       if (getOption("huelights")) {
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
@@ -510,6 +535,7 @@ public:
         }
         hueDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
       #if !DISABLE_OLA
       // - Add OLA support
       if (getOption("ola")) {
@@ -531,13 +557,14 @@ public:
         }
       }
       #endif
+      #if !DISABLE_STATIC
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
-
+      #endif
       // install activity monitor
       p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
     }
