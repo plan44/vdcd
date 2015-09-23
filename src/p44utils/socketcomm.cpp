@@ -51,11 +51,11 @@ SocketComm::~SocketComm()
 }
 
 
-void SocketComm::setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType, int aProtocolFamily, int aProtocol)
+void SocketComm::setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPortOrSocket, int aSocketType, int aProtocolFamily, int aProtocol)
 {
   closeConnection();
   hostNameOrAddress = nonNullCStr(aHostNameOrAddress);
-  serviceOrPortNo = nonNullCStr(aServiceOrPort);
+  serviceOrPortOrSocket = nonNullCStr(aServiceOrPortOrSocket);
   protocolFamily = aProtocolFamily;
   socketType = aSocketType;
   protocol = aProtocol;
@@ -69,28 +69,43 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
 {
   ErrorPtr err;
 
-  struct servent *pse;
-  struct sockaddr_in sin;
+  struct sockaddr *saP = NULL;
+  socklen_t saLen = 0;
   int proto = IPPROTO_IP;
   int one = 1;
   int socketFD = -1;
 
   maxServerConnections = aMaxConnections;
-  memset((char *) &sin, 0, sizeof(sin));
-  if (protocolFamily==AF_INET) {
-    sin.sin_family = (sa_family_t)protocolFamily;
-    // set listening socket address
-    if (nonLocal)
-      sin.sin_addr.s_addr = htonl(INADDR_ANY);
+  // check for protocolfamily auto-choice
+  if (protocolFamily==PF_UNSPEC) {
+    // not specified, choose default
+    if (serviceOrPortOrSocket.size()>1 && serviceOrPortOrSocket[0]=='/')
+      protocolFamily = PF_LOCAL; // absolute paths are considered local sockets
     else
-      sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      protocolFamily = PF_INET; // otherwise, default to IPv4 for now
+  }
+  // now start server
+  if (protocolFamily==PF_INET) {
+    // IPv4 socket
+    struct servent *pse;
+    // - create suitable socket address
+    struct sockaddr_in *sinP = new struct sockaddr_in;
+    saLen = sizeof(struct sockaddr_in);
+    saP = (struct sockaddr *)sinP;
+    memset((char *)saP, 0, saLen);
+    // - set listening socket address
+    sinP->sin_family = (sa_family_t)protocolFamily;
+    if (nonLocal)
+      sinP->sin_addr.s_addr = htonl(INADDR_ANY);
+    else
+      sinP->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     // get service / port
-    if ((pse = getservbyname(serviceOrPortNo.c_str(), NULL)) != NULL)
-      sin.sin_port = htons(ntohs((in_port_t)pse->s_port));
-    else if ((sin.sin_port = htons((in_port_t)atoi(serviceOrPortNo.c_str()))) == 0) {
+    if ((pse = getservbyname(serviceOrPortOrSocket.c_str(), NULL)) != NULL)
+      sinP->sin_port = htons(ntohs((in_port_t)pse->s_port));
+    else if ((sinP->sin_port = htons((in_port_t)atoi(serviceOrPortOrSocket.c_str()))) == 0) {
       err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve,"Unknown service/port name"));
     }
-    // protocol derived from socket type
+    // - protocol derived from socket type
     if (protocol==0) {
       // determine protocol automatically from socket type
       if (socketType==SOCK_STREAM)
@@ -101,13 +116,27 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
     else
       proto = protocol;
   }
+  else if (protocolFamily==PF_LOCAL) {
+    // Local (UNIX) socket
+    // - create suitable socket address
+    struct sockaddr_un *sunP = new struct sockaddr_un;
+    saLen = sizeof(struct sockaddr_un);
+    saP = (struct sockaddr *)sunP;
+    memset((char *)saP, 0, saLen);
+    // - set socket address
+    sunP->sun_family = (sa_family_t)protocolFamily;
+    strncpy(sunP->sun_path, serviceOrPortOrSocket.c_str(), sizeof (sunP->sun_path));
+    sunP->sun_path[sizeof (sunP->sun_path) - 1] = '\0'; // emergency terminator
+    // - protocol for local socket is not specific
+    proto = 0;
+  }
   else {
-    // TODO: implement other portocol families, in particular AF_INET6
+    // TODO: implement other portocol families, in particular PF_INET6
     err = ErrorPtr(new SocketCommError(SocketCommErrorUnsupported,"Unsupported protocol family"));
   }
   // now create and configure socket
   if (Error::isOK(err)) {
-    socketFD = socket(PF_INET, socketType, proto);
+    socketFD = socket(protocolFamily, socketType, proto);
     if (socketFD<0) {
       err = SysError::errNo("Cannot create server socket: ");
     }
@@ -118,8 +147,8 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
       }
       else {
         // options ok, bind to address
-        if (::bind(socketFD, (struct sockaddr *) &sin, (int)sizeof(sin)) < 0) {
-          err = SysError::errNo("Cannot bind to port (server already running?): ");
+        if (::bind(socketFD, saP, saLen) < 0) {
+          err = SysError::errNo("Cannot bind socket (server already running?): ");
         }
       }
     }
@@ -127,7 +156,7 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
   // listen
   if (Error::isOK(err)) {
     if (socketType==SOCK_STREAM && listen(socketFD, maxServerConnections) < 0) {
-      err = SysError::errNo("Cannot listen on port: ");
+      err = SysError::errNo("Cannot listen on socket: ");
     }
     else {
       // listen ok or not needed, make non-blocking
@@ -144,7 +173,9 @@ ErrorPtr SocketComm::startServer(ServerConnectionCB aServerConnectionHandler, in
       );
     }
   }
-
+  if (saP) {
+    delete saP; saP = NULL;
+  }
   return err;
 }
 
@@ -162,15 +193,22 @@ bool SocketComm::connectionAcceptHandler(MLMicroSeconds aCycleStartTime, int aFd
     if (clientFD>0) {
       // get address and port of incoming connection
       char hbuf[NI_MAXHOST], sbuf[NI_MAXSERV];
-      int s = getnameinfo(
-        &fsin, fsinlen,
-        hbuf, sizeof hbuf,
-        sbuf, sizeof sbuf,
-        NI_NUMERICHOST | NI_NUMERICSERV
-      );
-      if (s!=0) {
-        strcpy(hbuf,"<unknown>");
-        strcpy(sbuf,"<unknown>");
+      if (protocolFamily==PF_LOCAL) {
+        // no real address and port
+        strcpy(hbuf,"local");
+        strcpy(sbuf,"local_socket");
+      }
+      else {
+        int s = getnameinfo(
+          &fsin, fsinlen,
+          hbuf, sizeof hbuf,
+          sbuf, sizeof sbuf,
+          NI_NUMERICHOST | NI_NUMERICSERV
+        );
+        if (s!=0) {
+          strcpy(hbuf,"<unknown>");
+          strcpy(sbuf,"<unknown>");
+        }
       }
       // actually accepted
       // - call handler to create child connection
@@ -181,10 +219,10 @@ bool SocketComm::connectionAcceptHandler(MLMicroSeconds aCycleStartTime, int aFd
       if (clientComm) {
         // - set host/port
         clientComm->hostNameOrAddress = hbuf;
-        clientComm->serviceOrPortNo = sbuf;
+        clientComm->serviceOrPortOrSocket = sbuf;
         // - remember
         clientConnections.push_back(clientComm);
-        LOG(LOG_DEBUG, "New client connection accepted from %s:%s (now %d connections)\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), clientConnections.size());
+        LOG(LOG_DEBUG, "New client connection accepted from %s:%s (now %d connections)\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), clientConnections.size());
         // - pass connection to child
         clientComm->passClientConnection(clientFD, this);
       }
@@ -260,29 +298,50 @@ ErrorPtr SocketComm::initiateConnection()
 
   if (!connectionOpen && !isConnecting && !serverConnection) {
     freeAddressInfo();
-    if (hostNameOrAddress.empty()) {
-      err = ErrorPtr(new SocketCommError(SocketCommErrorNoParams,"Missing connection parameters"));
-      goto done;
+    if (protocolFamily==PF_LOCAL) {
+      // local socket -> just connect, no lists to try
+      LOG(LOG_DEBUG, "Initiating local socket %s connection\n", serviceOrPortOrSocket.c_str());
+      hostNameOrAddress = "local"; // set it for log display
+      // synthesize address info for unix socket, because standard UN*X getaddrinfo() call usually does not handle PF_LOCAL
+      addressInfoList = new struct addrinfo;
+      memset(addressInfoList, 0, sizeof(addrinfo));
+      addressInfoList->ai_family = protocolFamily;
+      addressInfoList->ai_socktype = socketType;
+      addressInfoList->ai_protocol = protocol;
+      struct sockaddr_un *sunP = new struct sockaddr_un;
+      addressInfoList->ai_addr = (struct sockaddr *)sunP;
+      addressInfoList->ai_addrlen = sizeof(struct sockaddr_un);
+      memset((char *)sunP, 0, addressInfoList->ai_addrlen);
+      sunP->sun_family = (sa_family_t)protocolFamily;
+      strncpy(sunP->sun_path, serviceOrPortOrSocket.c_str(), sizeof (sunP->sun_path));
+      sunP->sun_path[sizeof (sunP->sun_path) - 1] = '\0'; // emergency terminator
     }
-    // try to resolve host name
-    struct addrinfo hint;
-    memset(&hint, 0, sizeof(addrinfo));
-    hint.ai_flags = 0; // no flags
-    hint.ai_family = protocolFamily;
-    hint.ai_socktype = socketType;
-    hint.ai_protocol = protocol;
-    res = getaddrinfo(hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), &hint, &addressInfoList);
-    if (res!=0) {
-      // error
-      err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
-      DBGLOG(LOG_DEBUG, "SocketComm: getaddrinfo failed: %s\n", err->description().c_str());
-      goto done;
+    else {
+      // assume internet connection -> get list of possible addresses and try them
+      if (hostNameOrAddress.empty()) {
+        err = ErrorPtr(new SocketCommError(SocketCommErrorNoParams,"Missing connection parameters"));
+        goto done;
+      }
+      // try to resolve host name
+      struct addrinfo hint;
+      memset(&hint, 0, sizeof(addrinfo));
+      hint.ai_flags = 0; // no flags
+      hint.ai_family = protocolFamily;
+      hint.ai_socktype = socketType;
+      hint.ai_protocol = protocol;
+      res = getaddrinfo(hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), &hint, &addressInfoList);
+      if (res!=0) {
+        // error
+        err = ErrorPtr(new SocketCommError(SocketCommErrorCannotResolve, string_format("getaddrinfo error %d: %s", res, gai_strerror(res))));
+        DBGLOG(LOG_DEBUG, "SocketComm: getaddrinfo failed: %s\n", err->description().c_str());
+        goto done;
+      }
     }
     // now try all addresses in the list
     // - init iterator pointer
     currentAddressInfo = addressInfoList;
     // - try connecting first address
-    LOG(LOG_DEBUG, "Initiating connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    LOG(LOG_DEBUG, "Initiating connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str());
     err = connectNextAddress();
   }
 done:
@@ -356,7 +415,7 @@ ErrorPtr SocketComm::connectNextAddress()
   if (!startedConnecting) {
     // exhausted addresses without starting to connect
     if (!err) err = ErrorPtr(new SocketCommError(SocketCommErrorNoConnection, "No connection could be established"));
-    LOG(LOG_DEBUG, "Cannot initiate connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+    LOG(LOG_DEBUG, "Cannot initiate connection to %s:%s\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), err->description().c_str());
   }
   else {
     if (!connectionLess) {
@@ -433,7 +492,7 @@ bool SocketComm::connectionMonitorHandler(MLMicroSeconds aCycleStartTime, int aF
     isConnecting = false;
     currentAddressInfo = NULL; // no more addresses to check
     freeAddressInfo();
-    LOG(LOG_DEBUG, "Connection to %s:%s established\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    LOG(LOG_DEBUG, "Connection to %s:%s established\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str());
     // call handler if defined
     if (connectionStatusHandler) {
       // connection ok
@@ -449,7 +508,7 @@ bool SocketComm::connectionMonitorHandler(MLMicroSeconds aCycleStartTime, int aF
     err = connectNextAddress();
     if (err) {
       // no next attempt started, report error
-      LOG(LOG_WARNING, "Connection to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      LOG(LOG_WARNING, "Connection to %s:%s failed: %s\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), err->description().c_str());
       if (connectionStatusHandler) {
         connectionStatusHandler(this, err);
       }
@@ -475,7 +534,7 @@ void SocketComm::closeConnection()
   if (connectionOpen && !isClosing) {
     isClosing = true; // prevent doing it more than once due to handlers called
     // report to handler
-    LOG(LOG_DEBUG, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str());
+    LOG(LOG_DEBUG, "Connection with %s:%s explicitly closing\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str());
     if (connectionStatusHandler) {
       // connection ok
       ErrorPtr err = ErrorPtr(new SocketCommError(SocketCommErrorClosed, "Connection closed"));
@@ -591,7 +650,7 @@ void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
       ErrorPtr err = socketError(aFd);
       if (Error::isOK(err))
         err = ErrorPtr(new SocketCommError(SocketCommErrorHungUp,"Connection closed (POLLIN but no data -> interpreted as HUP)"));
-      DBGLOG(LOG_DEBUG, "Connection to %s:%s has POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      DBGLOG(LOG_DEBUG, "Connection to %s:%s has POLLIN but no data; error: %s\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), err->description().c_str());
       // - report
       if (connectionStatusHandler) {
         // report reason for closing
@@ -601,7 +660,7 @@ void SocketComm::dataExceptionHandler(int aFd, int aPollFlags)
     else if (aPollFlags & POLLERR) {
       // error
       ErrorPtr err = socketError(aFd);
-      LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortNo.c_str(), err->description().c_str());
+      LOG(LOG_WARNING, "Connection to %s:%s reported error: %s\n", hostNameOrAddress.c_str(), serviceOrPortOrSocket.c_str(), err->description().c_str());
       // - report
       if (connectionStatusHandler) {
         // report reason for closing

@@ -28,6 +28,7 @@
 
 // unix I/O and network
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -79,7 +80,7 @@ namespace p44 {
 
     // connection parameter
     string hostNameOrAddress;
-    string serviceOrPortNo;
+    string serviceOrPortOrSocket;
     int protocolFamily;
     int socketType;
     int protocol;
@@ -110,19 +111,19 @@ namespace p44 {
 
     /// Set parameters for connection (client and server)
     /// @param aHostNameOrAddress host name/address (1.2.3.4 or xxx.yy) - client only
-    /// @param aServiceOrPort port number or service name
+    /// @param aServiceOrPortOrSocket port number, service name or absolute local socket path
     /// @param aSocketType defaults to SOCK_STREAM (TCP)
-    /// @param aProtocolFamily defaults to AF_UNSPEC (means that address family is derived from host name lookup)
+    /// @param aProtocolFamily defaults to PF_UNSPEC (means that address family is derived from host name lookup for clients, or )
     /// @param aProtocol defaults to 0
-    void setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPort, int aSocketType = SOCK_STREAM, int aProtocolFamily = AF_UNSPEC, int aProtocol = 0);
+    void setConnectionParams(const char* aHostNameOrAddress, const char* aServiceOrPortOrSocket, int aSocketType = SOCK_STREAM, int aProtocolFamily = PF_UNSPEC, int aProtocol = 0);
 
     /// get host name we are connected to (useful for server to query connecting client's address)
     /// @return name or IP address of host (for server: actually connected, for client: as set with setConnectionParams())
     const char *getHost() { return hostNameOrAddress.c_str(); };
 
-    /// get port or service name
-    /// @return port (for server: actually connected, for client: as set with setConnectionParams())
-    const char *getPort() { return serviceOrPortNo.c_str(); };
+    /// get port, service name or socket path
+    /// @return port/service/path (for server: actually connected, for client: as set with setConnectionParams())
+    const char *getPort() { return serviceOrPortOrSocket.c_str(); };
 
     /// Set if server may accept non-local connections
     /// @param aAllow if set, server accepts non-local connections
