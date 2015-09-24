@@ -87,10 +87,11 @@ namespace p44 {
 
   /// extract key and value from "KEY: VALUE" type header string
   /// @param aInput the contents of the line to extract key/value from
-  /// @param aKey the key (everything before the first colon, stripped from surrounding whitespace)
-  /// @param aValue the value (everything after the first non-whitespace after the first colon)
+  /// @param aKey the key (everything before the first aSeparator, stripped from surrounding whitespace)
+  /// @param aValue the value (everything after the first non-whitespace after the first aSeparator)
+  /// @param aSeparator the separating character, defaults to colon ':'
   /// @return true if key/value could be extracted
-  bool keyAndValue(const string &aInput, string &aKey, string &aValue);
+  bool keyAndValue(const string &aInput, string &aKey, string &aValue, char aSeparator=':');
 
   /// split URL into its parts
   /// @param aURI a URI in the [protocol:][//][user[:password]@]host[/doc] format
