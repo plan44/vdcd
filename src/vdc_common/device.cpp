@@ -830,6 +830,7 @@ void Device::serializerWatchdog()
 {
   #if SERIALIZER_WATCHDOG
   FOCUSLOG("##### Serializer watchdog ticket #%ld expired\n", serializerWatchdogTicket);
+  serializerWatchdogTicket = 0;
   if (applyInProgress) {
     LOG(LOG_WARNING, "##### Serializer watchdog force-ends apply with %d missed attempts in device %s\n", missedApplyAttempts, shortDesc().c_str());
     missedApplyAttempts = 0;
@@ -870,9 +871,9 @@ void Device::applyingChannelsComplete()
   #if SERIALIZER_WATCHDOG
   if (serializerWatchdogTicket) {
     FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - apply complete\n", serializerWatchdogTicket);
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
   }
   #endif
-  MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
   applyInProgress = false;
   // if more apply request have happened in the meantime, we need to reapply now
   if (!checkForReapply()) {
@@ -957,6 +958,7 @@ void Device::updatingChannelsComplete()
   #if SERIALIZER_WATCHDOG
   if (serializerWatchdogTicket) {
     FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - update complete\n", serializerWatchdogTicket);
+    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
   }
   #endif
   if (updateInProgress) {
