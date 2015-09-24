@@ -45,7 +45,15 @@ JsonComm::~JsonComm()
 
 void JsonComm::setMessageHandler(JSonMessageCB aJsonMessageHandler)
 {
+  rawMessageHandler = NULL;
   jsonMessageHandler = aJsonMessageHandler;
+}
+
+
+void JsonComm::setRawMessageHandler(TextLineCB aRawMessageHandler)
+{
+  jsonMessageHandler = NULL;
+  rawMessageHandler = aRawMessageHandler;
 }
 
 
@@ -81,35 +89,48 @@ void JsonComm::gotData(ErrorPtr aError)
             }
             eom++;
           }
-          // create tokener to parse message, if none found already
-          if (!tokener) {
-            tokener = json_tokener_new();
+          if (rawMessageHandler) {
+            // just append to line buffer
+            if (eom>0 && !ignoreUntilNextEOM) {
+              // append data to text line buffer
+              textLine.append((const char *)buf+bom, eom-bom);
+              if (messageComplete)
+                rawMessageHandler(ErrorPtr(),textLine);
+              // begin next line
+              textLine.clear();
+            }
           }
-          if (eom>0 && !ignoreUntilNextEOM) {
-            // feed data to tokener
-            struct json_object *o = json_tokener_parse_ex(tokener, (const char *)buf+bom, (int)(eom-bom));
-            if (o==NULL) {
-              // error (or incomplete JSON, which is fine)
-              JsonErrors err = json_tokener_get_error(tokener);
-              if (err!=json_tokener_continue) {
-                // real error
-                if (jsonMessageHandler) {
-                  jsonMessageHandler(ErrorPtr(new JsonError(err)), JsonObjectPtr());
+          else {
+            // create JSON tokener to parse message, if none found already
+            if (!tokener) {
+              tokener = json_tokener_new();
+            }
+            if (eom>0 && !ignoreUntilNextEOM) {
+              // feed data to tokener
+              struct json_object *o = json_tokener_parse_ex(tokener, (const char *)buf+bom, (int)(eom-bom));
+              if (o==NULL) {
+                // error (or incomplete JSON, which is fine)
+                JsonErrors err = json_tokener_get_error(tokener);
+                if (err!=json_tokener_continue) {
+                  // real error
+                  if (jsonMessageHandler) {
+                    jsonMessageHandler(ErrorPtr(new JsonError(err)), JsonObjectPtr());
+                  }
+                  // reset the parser
+                  ignoreUntilNextEOM = true;
+                  json_tokener_reset(tokener);
                 }
-                // reset the parser
+              }
+              else {
+                // got JSON object
+                JsonObjectPtr message = JsonObject::newObj(o);
+                if (jsonMessageHandler) {
+                  // pass json_object into handler, will consume it
+                  jsonMessageHandler(ErrorPtr(), message);
+                }
                 ignoreUntilNextEOM = true;
                 json_tokener_reset(tokener);
               }
-            }
-            else {
-              // got JSON object
-              JsonObjectPtr message = JsonObject::newObj(o);
-              if (jsonMessageHandler) {
-                // pass json_object into handler, will consume it
-                jsonMessageHandler(ErrorPtr(), message);
-              }
-              ignoreUntilNextEOM = true;
-              json_tokener_reset(tokener);
             }
           }
           // now check for having reached the end of the message in this data chunk
@@ -130,6 +151,9 @@ void JsonComm::gotData(ErrorPtr aError)
     // error occurred, report
     if (jsonMessageHandler) {
       jsonMessageHandler(aError, JsonObjectPtr());
+    }
+    else if (rawMessageHandler) {
+      rawMessageHandler(aError, "");
     }
     ignoreUntilNextEOM = false;
     if (tokener) json_tokener_reset(tokener);

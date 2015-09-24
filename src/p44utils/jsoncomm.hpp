@@ -35,6 +35,10 @@ namespace p44 {
   /// generic callback for delivering a received JSON object or an error occurred when receiving JSON
   typedef boost::function<void (ErrorPtr aError, JsonObjectPtr aJsonObject)> JSonMessageCB;
 
+  /// generic callback for delivering a received Text line
+  typedef boost::function<void (ErrorPtr aError, string aTextLine)> TextLineCB;
+
+
   typedef boost::intrusive_ptr<JsonComm> JsonCommPtr;
   /// A class providing low level access to the DALI bus
   class JsonComm : public SocketComm
@@ -42,6 +46,10 @@ namespace p44 {
     typedef SocketComm inherited;
 
     JSonMessageCB jsonMessageHandler;
+    TextLineCB rawMessageHandler;
+
+    // Raw message receiving
+    string textLine;
 
     // JSON parsing
     struct json_tokener* tokener;
@@ -58,7 +66,14 @@ namespace p44 {
 
     /// install callback for received JSON messages
     /// @param aJsonMessageHandler will be called when a JSON message has been received
+    /// @note setting the JSON message handler will disable raw message processing
     void setMessageHandler(JSonMessageCB aJsonMessageHandler);
+
+    /// install callback for received raw messages (single line)
+    /// @param aRawMessageHandler will be called when a complete text line has been received
+    /// @note setting the raw message handler will disable JSON message processing
+    void setRawMessageHandler(TextLineCB aRawMessageHandler);
+
 
     /// send a JSON message
     /// @param aJsonObject the JSON that is to be sent
@@ -66,7 +81,7 @@ namespace p44 {
     ErrorPtr sendMessage(JsonObjectPtr aJsonObject);
 
 
-    /// send a JSON message
+    /// send raw text
     /// @param aRawBytes bytes to be sent
     /// @result empty or Error object in case of error sending raw data
     ErrorPtr sendRaw(string &aRawBytes);
