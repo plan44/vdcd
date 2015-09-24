@@ -111,6 +111,12 @@ bool Error::isError(ErrorPtr aError, const char *aDomain, ErrorCode aErrorCode)
 }
 
 
+ErrorPtr Error::ok()
+{
+  return ErrorPtr(new Error(0));
+}
+
+
 #pragma mark - system error
 
 

@@ -89,6 +89,10 @@ namespace p44 {
     /// @param a ErrorPtr smart pointer
     /// @return true if OK
     static bool isOK(ErrorPtr aError);
+
+    /// factory function to create a explicit OK error (object with ErrorCode==0)
+    static ErrorPtr ok();
+
   };
 
 
