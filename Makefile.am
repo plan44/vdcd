@@ -93,6 +93,7 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/vdc_common \
   -I ${srcdir}/src/behaviours \
   -I ${srcdir}/src/deviceclasses/simpleio \
+  -I ${srcdir}/src/deviceclasses/external \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
@@ -290,6 +291,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/vdc_common \
   -I ${srcdir}/src/behaviours \
   -I ${srcdir}/src/deviceclasses/simpleio \
+  -I ${srcdir}/src/deviceclasses/external \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
