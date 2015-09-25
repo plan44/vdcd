@@ -480,6 +480,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     //   UUIDv5 with name = classcontainerinstanceid::uniqueid
     string s = classContainerP->deviceClassContainerInstanceIdentifier();
     s += ':';
+    s += o->stringValue();
     dSUID.setNameInSpace(s, vdcNamespace);
   }
   // Output
