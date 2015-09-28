@@ -35,10 +35,11 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   // persistent settings
   outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
   pushChanges(false), // do not push changes
-  outputGroups(1<<group_variable), // all devices are in group 0 by default
   // volatile state
   localPriority(false) // no local priority
 {
+  // set default group membership (which is group_variable)
+  resetGroupMembership();
   // set default hardware default configuration
   setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
 }
@@ -148,11 +149,16 @@ void OutputBehaviour::setGroupMembership(DsGroup aGroup, bool aIsMember)
     // not explicitly member
     newGroups &= ~(0x1ll<<aGroup);
   }
-  if (newGroups!=outputGroups) {
-    outputGroups = newGroups;
-    markDirty();
-  }
+  setPVar(outputGroups, newGroups);
 }
+
+
+void OutputBehaviour::resetGroupMembership()
+{
+  // group_variable must always be set
+  setPVar(outputGroups, (DsGroupMask)(1<<group_variable));
+}
+
 
 
 void OutputBehaviour::setOutputMode(DsOutputMode aOutputMode)

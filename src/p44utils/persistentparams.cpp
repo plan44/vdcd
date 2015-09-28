@@ -196,9 +196,9 @@ ErrorPtr PersistentParams::loadFromStore(const char *aParentIdentifier)
       // got record
       int index = 0;
       uint64_t flags; // storage to distribute flags over hierarchy
-      loadFromRow(row, index, &flags); // might set dirty when assigning properties...
-      dirty = false; // ...so: just loaded: make clean
+      loadFromRow(row, index, &flags); // might set dirty when assigning properties
     }
+    dirty = false; // after loading: considered clean, even if nothing actually loaded (as dirty flag was possibly set during device instantiation)
     delete queryP; queryP = NULL;
   }
   if (Error::isOK(err)) {

@@ -131,6 +131,9 @@ namespace p44 {
     /// @param aIsMember true to make device member of this group
     void setGroupMembership(DsGroup aGroup, bool aIsMember);
 
+    /// remove all group memberships
+    void resetGroupMembership();
+
     /// check for presence of model feature (flag in dSS visibility matrix)
     /// @param aFeatureIndex the feature to check for
     /// @return yes if this output behaviour has the feature, no if (explicitly) not, undefined if asked entity does not know
