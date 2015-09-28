@@ -485,9 +485,9 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
   }
   // Output
   // - get group (overridden for some output types)
-  primaryGroup = group_black_joker; // default to joker
+  primaryGroup = group_variable; // none set so far
   if (aInitParams->get("group", o)) {
-    primaryGroup = (DsGroup)o->int32Value();
+    primaryGroup = (DsGroup)o->int32Value(); // custom primary group
   }
   // - get output type
   string outputType;
@@ -501,7 +501,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
   }
   // - create appropriate output behaviour
   if (outputType=="light") {
-    primaryGroup = group_yellow_light;
+    if (primaryGroup==group_variable) primaryGroup = group_yellow_light;
     // - use light settings, which include a scene table
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
@@ -511,7 +511,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     addBehaviour(l);
   }
   else if (outputType=="colorlight") {
-    primaryGroup = group_yellow_light;
+    if (primaryGroup==group_variable) primaryGroup = group_yellow_light;
     // - use color light settings, which include a color scene table
     installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
     // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
@@ -520,7 +520,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     addBehaviour(l);
   }
   else if (outputType=="movinglight") {
-    primaryGroup = group_yellow_light;
+    if (primaryGroup==group_variable) primaryGroup = group_yellow_light;
     // - use moving light settings, which include a color+position scene table
     installSettings(DeviceSettingsPtr(new MovingLightDeviceSettings(*this)));
     // - add moving color light behaviour
@@ -529,7 +529,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     addBehaviour(ml);
   }
   else if (outputType=="heatingvalve") {
-    primaryGroup = group_blue_heating;
+    if (primaryGroup==group_variable) primaryGroup = group_blue_heating;
     // - standard device settings with scene table
     installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // - create climate control outout
@@ -540,7 +540,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     addBehaviour(cb);
   }
   else if (outputType=="shadow") {
-    primaryGroup = group_grey_shadow;
+    if (primaryGroup==group_variable) primaryGroup = group_grey_shadow;
     // - use shadow scene settings
     installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*this)));
     // - add shadow behaviour
@@ -553,6 +553,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     addBehaviour(sb);
   }
   else if (outputType=="basic") {
+    if (primaryGroup==group_variable) primaryGroup = group_black_joker;
     // - use simple scene settings
     installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // - add generic output behaviour
@@ -567,6 +568,17 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     // no output, just install minimal settings without scenes
     installSettings();
   }
+  // set primary group to black if group is not yet defined so far
+  if (primaryGroup==group_variable) primaryGroup = group_black_joker;
+  // check for groups definition, will override anything set so far
+  if (aInitParams->get("groups", o) && output) {
+    output->resetGroupMembership(); // clear all
+    for (int i=0; i<o->arrayLength(); i++) {
+      JsonObjectPtr o2 = o->arrayGet(i);
+      DsGroup g = (DsGroup)o2->int32Value();
+      output->setGroupMembership(g, true);
+    }
+  }
   // check for buttons
   if (aInitParams->get("buttons", o)) {
     for (int i=0; i<o->arrayLength(); i++) {
@@ -576,16 +588,18 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       int buttonId = 0;
       DsButtonType buttonType = buttonType_single;
       DsButtonElement buttonElement = buttonElement_center;
+      DsGroup group = primaryGroup; // default group is same as primary
       string buttonName;
       // - optional params
       if (o2->get("id", o3)) buttonId = o3->int32Value();
       if (o2->get("buttontype", o3)) buttonType = (DsButtonType)o3->int32Value();
       if (o2->get("element", o3)) buttonElement = (DsButtonElement)o3->int32Value();
+      if (o2->get("group", o3)) group = (DsGroup)o3->int32Value();
       if (o2->get("hardwarename", o3)) buttonName = o3->stringValue(); else buttonName = string_format("button_id%d_el%d", buttonId, buttonElement);
       // - create behaviour
       ButtonBehaviourPtr bb = ButtonBehaviourPtr(new ButtonBehaviour(*this));
       bb->setHardwareButtonConfig(buttonId, buttonType, buttonElement, false, buttonElement_down ? 1 : 0, true); // fixed mode
-      bb->setGroup(primaryGroup); // same as primary group
+      bb->setGroup(group);
       bb->setHardwareName(buttonName);
       addBehaviour(bb);
     }
@@ -598,17 +612,19 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       // set defaults
       DsBinaryInputType inputType = binInpType_none;
       DsUsageHint usage = usage_undefined;
+      DsGroup group = primaryGroup; // default group is same as primary
       MLMicroSeconds updateInterval = Never; // unknown
       string inputName;
       // - optional params
       if (o2->get("inputtype", o3)) inputType = (DsBinaryInputType)o3->int32Value();
       if (o2->get("usage", o3)) usage = (DsUsageHint)o3->int32Value();
+      if (o2->get("group", o3)) group = (DsGroup)o3->int32Value();
       if (o2->get("updateinterval", o3)) updateInterval = o3->doubleValue()*Second;
       if (o2->get("hardwarename", o3)) inputName = o3->stringValue(); else inputName = string_format("input_ty%d", inputType);
       // - create behaviour
       BinaryInputBehaviourPtr ib = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
       ib->setHardwareInputConfig(inputType, usage, true, updateInterval);
-      ib->setGroup(primaryGroup); // same as device
+      ib->setGroup(group);
       ib->setHardwareName(inputName);
       addBehaviour(ib);
     }
@@ -621,6 +637,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       // set defaults
       DsSensorType sensorType = sensorType_none;
       DsUsageHint usage = usage_undefined;
+      DsGroup group = primaryGroup; // default group is same as primary
       double min = 0;
       double max = 100;
       double resolution = 1;
@@ -629,6 +646,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       // - optional params
       if (o2->get("sensortype", o3)) sensorType = (DsSensorType)o3->int32Value();
       if (o2->get("usage", o3)) usage = (DsUsageHint)o3->int32Value();
+      if (o2->get("group", o3)) group = (DsGroup)o3->int32Value();
       if (o2->get("updateinterval", o3)) updateInterval = o3->doubleValue()*Second;
       if (o2->get("hardwarename", o3)) sensorName = o3->stringValue(); else sensorName = string_format("sensor_ty%d", sensorType);
       if (o2->get("min", o3)) min = o3->doubleValue();
@@ -637,7 +655,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       // - create behaviour
       SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*this));
       sb->setHardwareSensorConfig(sensorType, usage, min, max, resolution, updateInterval, 5*Minute, 5*Minute);
-      sb->setGroup(primaryGroup);
+      sb->setGroup(group);
       sb->setHardwareName(sensorName);
       addBehaviour(sb);
     }
