@@ -421,6 +421,7 @@ void ExternalDevice::changeChannelMovement(size_t aChannelIndex, SimpleCB aDoneC
   else {
     JsonObjectPtr message = JsonObject::newObj();
     message->add("message", JsonObject::newString("move"));
+    message->add("index", JsonObject::newInt32((int)aChannelIndex));
     message->add("direction", JsonObject::newInt32(aNewDirection));
     sendDeviceApiJsonMessage(message);
   }
@@ -499,6 +500,11 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
   if (aInitParams->get("hardwarename", o)) {
     hardwareName = o->stringValue();
   }
+  // - basic output behaviour
+  DsOutputFunction outputFunction = outputFunction_dimmer; // dimmable by default
+  if (aInitParams->get("dimmable", o)) {
+    if (!o->boolValue()) outputFunction = outputFunction_switch;
+  }
   // - create appropriate output behaviour
   if (outputType=="light") {
     if (primaryGroup==group_variable) primaryGroup = group_yellow_light;
@@ -506,7 +512,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction, usage_undefined, false, -1);
     l->setHardwareName(hardwareName);
     addBehaviour(l);
   }
@@ -659,6 +665,10 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       sb->setHardwareName(sensorName);
       addBehaviour(sb);
     }
+  }
+  // check for default name
+  if (aInitParams->get("name", o)) {
+    initializeName(o->stringValue());
   }
   // switch message decoder if we have simpletext
   if (simpletext) {
