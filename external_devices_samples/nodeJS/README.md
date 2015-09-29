@@ -19,7 +19,8 @@ On Mac OS X, if you have brew, you can install it with
 
 Once nodeJS is installed, you can run the sample with
 
-	node externalDevice.js 
+	nodejs externalDevice.js # on debian
+	node externalDevice.js # on OS X
 	
 (assuming you have a vdcd with external device API enabled running on the same computer)
 	
