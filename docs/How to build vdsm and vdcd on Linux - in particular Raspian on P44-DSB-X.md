@@ -1,4 +1,4 @@
-# How to build vdcd and vdsm
+# How to build vdcd (and vdsm if needed)
 
 (in particular: on RaspberryPi with plain Raspian or Minibian based P44-DSB-X, or on a vanilla Ubuntu desktop)
 
@@ -60,7 +60,7 @@ To put all projects into, we create a *ds* subdirectory and set the *$DSROOT* sh
 
 ### install libraries needed for vdcd only
 
-	$SUPER apt-get install libboost-dev libi2c-dev libssl-dev
+	$SUPER apt-get install libboost-dev libi2c-dev libssl-dev libavahi-core-dev
 	
 ### Checkout vdcd sources
 
@@ -101,9 +101,9 @@ Should output the usage text explaining the command line options.
 
 - You **don't need to build** a vdsm (which has lots of dependencies) if you base your experiments on the P44-DSB-X image, which has a vdsm already running.
 
-- You will **not need your own vdsm** (nor will the P44-DSB-X need it any more) in the mid term future, because the dSS will provide a running vdSM in a future release (you can already install a vdsm on today with *opkg* if your dSS is on the "testing" feed).
+- You will **not need your own vdsm** (nor will the P44-DSB-X need it any more) in the mid term future, because the dSS will provide a running so-called *master vdSM* in a future release (you can already install a vdsm on today with *opkg* if your dSS is on the "testing" feed). In fact, P44-DSB-X, starting with firmware version 1.5.0.5, will search the network for the presence of a *master vdSM*, and if one is found, it will automatically shut down the internal (so called *auxiliary*) vdSM. 
 
-But still, here are the instructions to do it:
+But still, here are the instructions how to compile a vdSM if you need to:
 
 ### install tools and libraries needed for vdsm only
 
@@ -186,14 +186,15 @@ But still, here are the instructions to do it:
 Should output the usage text explaining the vdsm command line options.
 
 
-## Run vdcd and vdsm for experimenting
+## Run vdcd (and vdsm if needed) for experimenting
 
 **Note:** on a P44-DSB-X, there's a vdcd and vdsm already running. To test the self-built versions, you need to shut down these first:
 
 	# to test your own vdcd:
 	sv stop vdcd
 	
-	# to test your own vdsm:
+	# to test your own vdsm (usually, you should be fine
+	# testing with the built-in vdsm or an external master vdSM
 	sv stop vdsm
 
 For running either vdsm or vdcd, we need a directory for persistent data (sqlite3 databases) storage:
@@ -209,6 +210,19 @@ Start a vdcd, with some command line options to create a console button and a co
 	~/ds/vdcd/vdcd --sqlitedir ~/ds/data --consoleio testbutton:button --consoleio testlamp:dimmer
 	
 If you want to explore the vdcd properties using JSON also enable the config api (with *--cfgapiport 8090*). On the P44-DSB-X, the mg44 webserver already handles forwarding http request to the socket based JSON API. On other platforms, see *json\_api\_forwarder* folder for a small PHP script for that task.
+
+#### vdcd external devices API
+
+vdcd supports "external devices", which are external scripts or programs that connect to the vdcd to instantiate devices, and communicated via the *plan44 vdcd external device API*. This API is a very easy to use API designed to simplify development of custom devices.
+
+To start vdcd with external devices support enabled (API at TCP port 8999), call vdcd as follows:
+
+    ~/ds/vdcd/vdcd --sqlitedir ~/ds/data --externaldevices 8999
+    
+To allow external device scripts/programs from other hosts than where vdcd runs (not recommended for security reasons in productive installations, but handy for development and testing), add the *--externalnonlocal* command line option.
+
+For more information about the external devices API, please consult the *plan44 vdcd external device API.pdf* document in the *docs* folder, and check out the sample scripts in the *external\_devices\_samples* folder.
+
 
 #### vdc API
 
