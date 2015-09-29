@@ -38,6 +38,7 @@ namespace p44 {
     string name;
     bool output;
     bool inverted;
+
   public:
     /// Create general purpose I/O
     /// @param aGpioName name of the IO; form is [/][bus.device.]pin, where optional leading slash inverts the polarity
@@ -79,6 +80,19 @@ namespace p44 {
     /// toggle state of output and return new state
     /// @return new state of output after toggling (for inputs, just returns state like isSet() does)
     bool toggle();
+
+    /// install state change detector
+    /// @param aInputChangedCB will be called when the input state changes. Passing NULL disables input state change reporting.
+    /// @param aDebounceTime after a reported state change, next input sampling will take place only after specified interval
+    /// @param aPollInterval if <0 (Infinite), the state change detector only works if the input pin supports state change
+    ///   detection without polling (e.g. with GPIO edge trigger). If aPollInterval is >=0, and the
+    ///   input pin does not support edge detection, the state detection will be implemented via polling
+    ///   on the current mainloop - if pollInterval==0 then polling will be done in a mainloop idle handler, otherwise in
+    ///   a timed handler according to the specified interval
+    /// @return true if input supports the type of state change detection requested
+    virtual bool setInputChangedHandler(InputChangedCB aInputChangedCB, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval);
+
+
   };
 	typedef boost::intrusive_ptr<DigitalIo> DigitalIoPtr;
 	
@@ -97,15 +111,16 @@ namespace p44 {
     typedef boost::function<void (bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)> ButtonHandlerCB;
 
   private:
-    bool lastState;
     MLMicroSeconds lastChangeTime;
     bool reportPressAndRelease;
     ButtonHandlerCB buttonHandler;
     MLMicroSeconds repeatActiveReport;
-    MLMicroSeconds lastActiveReport;
+    long activeReportTicket;
 
-    bool poll(MLMicroSeconds aTimestamp);
-    
+    void inputChanged(bool aNewState);
+    void repeatStateReport();
+
+
   public:
     /// Create pushbutton
     /// @param aGpioName name of the GPIO where the pushbutton is connected (can be prefixed with slash to invert again on top of aInverted)
@@ -120,7 +135,7 @@ namespace p44 {
     /// @param aButtonHandler handler for pushbutton events
     /// @param aPressAndRelease if set, both pressing and releasing button generates event.
     ///   Otherwise, only one event is issued per button press (on button release)
-    /// @param aRepeatActiveReport time after which a still pressed button is reported again
+    /// @param aRepeatActiveReport time after which a still pressed button is reported again (to detect long presses without extra timers)
     void setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAndRelease, MLMicroSeconds aRepeatActiveReport=p44::Never);
     
   };

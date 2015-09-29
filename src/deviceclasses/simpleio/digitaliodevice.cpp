@@ -27,6 +27,7 @@
 
 using namespace p44;
 
+#define INPUT_DEBOUNCE_TIME (10*MilliSecond)
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
@@ -75,8 +76,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Standard device settings without scene table
     installSettings();
     // Digital input as binary input (AKM, automation block type)
-    buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
-    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1, _2), true);
+    digitalInput = DigitalIoPtr(new DigitalIo(ioname.c_str(), inverted));
+    digitalInput->setInputChangedHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1), INPUT_DEBOUNCE_TIME, 0); // edge detection if possible, mainloop idle poll otherwise
     // - create one binary input
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
@@ -119,7 +120,7 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-void DigitalIODevice::inputHandler(bool aNewState, MLMicroSeconds aTimestamp)
+void DigitalIODevice::inputHandler(bool aNewState)
 {
   BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
   if (b) {

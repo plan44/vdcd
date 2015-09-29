@@ -32,18 +32,64 @@ namespace p44 {
 
   #pragma mark - digital pins
 
-  /// abstract wrapper class for digital I/O pin
+  /// callback for input pin state change reporting
+  /// @param aNewState the new state of the Input pin
+  typedef boost::function<void (bool aNewState)> InputChangedCB;
+
+  /// wrapper class for digital I/O pin
   class IOPin : public P44Obj
   {
+
+  protected:
+
+    InputChangedCB inputChangedCB;
+    bool currentState;
+    bool invertedReporting;
+    long pollTicket;
+    MLMicroSeconds pollInterval;
+
+    MLMicroSeconds debounceTime;
+    MLMicroSeconds lastReportedChange;
+    long debounceTicket;
+
+    /// this can be called by derived classes' input change detection or polling routine to report the current input state
+    /// Note: the current state does not necessarily need to be "new", inputHasChangedTo() prevents re-reporting the same state
+    void inputHasChangedTo(bool aCurrentState);
+
   public:
+
+    IOPin();
+    virtual ~IOPin();
 
     /// get state of pin
     /// @return current state (from actual GPIO pin for inputs, from last set state for outputs)
     virtual bool getState() = 0;
 
+    /// install state change detector
+    /// @param aInputChangedCB will be called when the input state changes. Passing NULL disables input state change reporting.
+    /// @param aInverted if set, the state will be reported inverted to what getState() would report. This is a shortcut
+    ///   for efficient implementation of higher level classes (which support inverting), to avoid two stage callbacks
+    /// @param aInitialState the initial state (of the pin) assumed present when callback is installed
+    /// @param aDebounceTime after a reported state change, next input sampling will take place only after specified interval
+    /// @param aPollInterval if <0 (Infinite), the state change detector only works if the input pin supports state change
+    ///   detection without polling (e.g. with GPIO edge trigger). If aPollInterval is >=0, and the
+    ///   input pin does not support edge detection, the state detection will be implemented via polling
+    ///   on the current mainloop - if pollInterval==0 then polling will be done in a mainloop idle handler, otherwise in
+    ///   a timed handler according to the specified interval
+    /// @return true if input supports the type of state change detection requested
+    virtual bool setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInverted, bool aInitialState, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval);
+
     /// set state of pin (NOP for inputs)
     /// @param aState new state to set output to
     virtual void setState(bool aState) = 0;
+
+  private:
+
+    void clearChangeHandling();
+    bool idlepoll();
+    void timedpoll();
+    void debounceSample();
+
   };
   typedef boost::intrusive_ptr<IOPin> IOPinPtr;
   
@@ -52,6 +98,8 @@ namespace p44 {
   /// simulated digital I/O pin
   class SimPin : public IOPin
   {
+    typedef IOPin inherited;
+
     ConsoleKeyPtr consoleKey;
     bool output;
     string name;
@@ -74,6 +122,8 @@ namespace p44 {
   /// missing (dummy) digital I/O pin
   class MissingPin : public IOPin
   {
+    typedef IOPin inherited;
+
     bool pinState;
 
   public:
@@ -93,6 +143,8 @@ namespace p44 {
   /// Digital System Command I/O pin
   class SysCommandPin : public IOPin
   {
+    typedef IOPin inherited;
+
     string onCommand;
     string offCommand;
     bool pinState;
@@ -144,6 +196,8 @@ namespace p44 {
   /// simulated I/O pin
   class AnalogSimPin : public AnalogIOPin
   {
+    typedef AnalogIOPin inherited;
+
     ConsoleKeyPtr consoleKey;
     bool output;
     string name;
@@ -166,6 +220,8 @@ namespace p44 {
   /// missing (dummy) I/O pin
   class AnalogMissingPin : public AnalogIOPin
   {
+    typedef AnalogIOPin inherited;
+
     double pinValue;
 
   public:
@@ -186,6 +242,8 @@ namespace p44 {
   /// Digital System Command I/O pin
   class AnalogSysCommandPin : public AnalogIOPin
   {
+    typedef AnalogIOPin inherited;
+
     string setCommand;
     double pinValue;
     int range;

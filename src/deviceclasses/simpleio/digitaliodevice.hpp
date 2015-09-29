@@ -48,6 +48,7 @@ namespace p44 {
 
 
 		ButtonInputPtr buttonInput;
+    DigitalIoPtr digitalInput;
     IndicatorOutputPtr indicatorOutput;
 
     DigitalIoType digitalIoType;
@@ -97,7 +98,7 @@ namespace p44 {
 	private:
 
     void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
-    void inputHandler(bool aNewState, MLMicroSeconds aTimestamp);
+    void inputHandler(bool aNewState);
 
   };
 

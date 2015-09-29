@@ -40,7 +40,7 @@
 using namespace p44;
 
 
-DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInitialState)
+DigitalIo::DigitalIo(const char* aName, bool aOutput, bool aInverted, bool aInitialState) 
 {
   // save params
   output = aOutput;
@@ -164,16 +164,21 @@ bool DigitalIo::toggle()
 }
 
 
+bool DigitalIo::setInputChangedHandler(InputChangedCB aInputChangedCB, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval)
+{
+  return ioPin->setInputChangedHandler(aInputChangedCB, inverted, ioPin->getState(), aDebounceTime, aPollInterval);
+}
+
+
 #pragma mark - Button input
 
+#define BUTTON_DEBOUNCE_TIME (5*MilliSecond)
 
 ButtonInput::ButtonInput(const char* aName, bool aInverted) :
   DigitalIo(aName, false, aInverted, false),
   repeatActiveReport(Never),
-  lastActiveReport(Never)
+  activeReportTicket(0)
 {
-  // save params
-  lastState = false; // assume inactive to start with
   lastChangeTime = MainLoop::now();
 }
 
@@ -190,41 +195,41 @@ void ButtonInput::setButtonHandler(ButtonHandlerCB aButtonHandler, bool aPressAn
   repeatActiveReport = aRepeatActiveReport;
   buttonHandler = aButtonHandler;
   if (buttonHandler) {
-    MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&ButtonInput::poll, this, _1));
+    // mainloop idle polling if input does not support edge detection
+    setInputChangedHandler(boost::bind(&ButtonInput::inputChanged, this, _1), BUTTON_DEBOUNCE_TIME, 0);
   }
   else {
     // unregister
-    MainLoop::currentMainLoop().unregisterIdleHandlers(this);
+    setInputChangedHandler(NULL, 0, 0);
+    MainLoop::currentMainLoop().cancelExecutionTicket(activeReportTicket);
   }
 }
 
 
-#define DEBOUNCE_TIME 1000 // 1mS
 
-bool ButtonInput::poll(MLMicroSeconds aTimestamp)
+void ButtonInput::inputChanged(bool aNewState)
 {
-  bool newState = isSet();
-  if (newState!=lastState && aTimestamp-lastChangeTime>DEBOUNCE_TIME) {
-    // report if needed
-    if (!newState || reportPressAndRelease) {
-      buttonHandler(newState, true, aTimestamp-lastChangeTime);
-    }
-    // consider this a state change
-    lastState = newState;
-    lastChangeTime = aTimestamp;
-    // active state reported now
-    if (newState) lastActiveReport = aTimestamp;
+  MLMicroSeconds now = MainLoop::now();
+  if (!aNewState || reportPressAndRelease) {
+    buttonHandler(aNewState, true, now-lastChangeTime);
+  }
+  // consider this a state change
+  lastChangeTime = now;
+  // active state reported now
+  if (aNewState && repeatActiveReport!=Never) {
+    activeReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ButtonInput::repeatStateReport, this), repeatActiveReport);
   }
   else {
-    // no state change
-    // - check if re-reporting pressed button state is required
-    if (newState && repeatActiveReport!=Never && aTimestamp-lastActiveReport>=repeatActiveReport) {
-      lastActiveReport = aTimestamp;
-      // re-report pressed state
-      buttonHandler(true, false, aTimestamp-lastChangeTime);
-    }
+    // no longer active, cancel repeating active state if any
+    MainLoop::currentMainLoop().cancelExecutionTicket(activeReportTicket);
   }
-  return true;
+}
+
+
+void ButtonInput::repeatStateReport()
+{
+  if (buttonHandler) buttonHandler(true, false, MainLoop::now()-lastChangeTime);
+  activeReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ButtonInput::repeatStateReport, this), repeatActiveReport);
 }
 
 

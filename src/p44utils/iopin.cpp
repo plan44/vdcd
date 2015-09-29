@@ -24,9 +24,106 @@
 using namespace p44;
 
 
-static char nextIoSimKey = 'a';
+#pragma mark - IOPin
+
+IOPin::IOPin() :
+  currentState(false),
+  invertedReporting(false),
+  pollTicket(0),
+  debounceTicket(0),
+  pollInterval(Never),
+  lastReportedChange(Never)
+{
+}
+
+
+IOPin::~IOPin()
+{
+  clearChangeHandling();
+}
+
+
+void IOPin::clearChangeHandling()
+{
+  inputChangedCB = NULL;
+  pollInterval = Never;
+  MainLoop::currentMainLoop().cancelExecutionTicket(pollTicket);
+  MainLoop::currentMainLoop().cancelExecutionTicket(debounceTicket);
+  MainLoop::currentMainLoop().unregisterIdleHandlers(this);
+}
+
+
+bool IOPin::setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInverted, bool aInitialState, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval)
+{
+  inputChangedCB = aInputChangedCB;
+  pollInterval = aPollInterval;
+  currentState = aInitialState;
+  invertedReporting = aInverted;
+  debounceTime = aDebounceTime;
+  if (aInputChangedCB==NULL) {
+    // disable polling
+    clearChangeHandling();
+  }
+  else {
+    if (aPollInterval<0)
+      return false; // cannot install non-polling input change handler
+    // install handler
+    if (aPollInterval==0) {
+      // idle handler polling requested
+      MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&IOPin::idlepoll, this));
+    }
+    else {
+      // run first poll
+      timedpoll();
+    }
+  }
+  return true; // successful
+}
+
+
+void IOPin::inputHasChangedTo(bool aNewState)
+{
+  if (aNewState!=currentState) {
+    MainLoop::currentMainLoop().cancelExecutionTicket(debounceTicket);
+    MLMicroSeconds now = MainLoop::now();
+    // optional debouncing
+    if (debounceTime>0 && lastReportedChange!=Never) {
+      // check for debounce time passed
+      if (lastReportedChange+debounceTime>now) {
+        // debounce time not yet over, schedule an extra re-sample later and suppress reporting for now
+        debounceTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&IOPin::idlepoll, this), now+debounceTime);
+        return;
+      }
+    }
+    // report change now
+    currentState = aNewState;
+    lastReportedChange = now;
+    if (inputChangedCB) inputChangedCB(currentState!=invertedReporting);
+  }
+}
+
+
+bool IOPin::idlepoll()
+{
+  inputHasChangedTo(getState());
+  return true; // all done for this mainloop cycle
+}
+
+
+
+void IOPin::timedpoll()
+{
+  inputHasChangedTo(getState());
+  // schedule next poll
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&IOPin::timedpoll, this), pollInterval);
+}
+
+
+
 
 #pragma mark - digital I/O simulation
+
+static char nextIoSimKey = 'a';
 
 SimPin::SimPin(const char *aName, bool aOutput, bool aInitialState) :
   name(aName),
