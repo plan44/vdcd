@@ -94,7 +94,7 @@ GpioPin::GpioPin(int aGpioNo, bool aOutput, bool aInitialState) :
 {
   int tempFd;
   string name;
-  string s = string_format("%d", aGpioNo);
+  string s = string_format("%d", gpioNo);
   // have the kernel export the pin
   name = string_format("%s/export",GPIO_SYS_CLASS_PATH);
   tempFd = open(name.c_str(), O_WRONLY);
@@ -102,7 +102,7 @@ GpioPin::GpioPin(int aGpioNo, bool aOutput, bool aInitialState) :
   write(tempFd, s.c_str(), s.length());
   close(tempFd);
   // save base path
-  string basePath = string_format("%s/gpio%d", GPIO_SYS_CLASS_PATH, aGpioNo);
+  string basePath = string_format("%s/gpio%d", GPIO_SYS_CLASS_PATH, gpioNo);
   // configure
   name = basePath + "/direction";
   tempFd = open(name.c_str(), O_RDWR);
@@ -130,6 +130,7 @@ GpioPin::GpioPin(int aGpioNo, bool aOutput, bool aInitialState) :
 GpioPin::~GpioPin()
 {
   if (gpioFD>0) {
+    MainLoop::currentMainLoop().unregisterPollHandler(gpioFD);
     close(gpioFD);
   }
 }
@@ -155,6 +156,46 @@ bool GpioPin::getState()
   }
   return false;
 }
+
+
+bool GpioPin::setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInverted, bool aInitialState, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval)
+{
+  if (aInputChangedCB==NULL) {
+    // release handler
+    MainLoop::currentMainLoop().unregisterPollHandler(gpioFD);
+    return inherited::setInputChangedHandler(aInputChangedCB, aInverted, aInitialState, aDebounceTime, aPollInterval);
+  }
+  // anyway, save parameters for base class
+  inputChangedCB = aInputChangedCB;
+  invertedReporting = aInverted;
+  currentState = aInitialState;
+  debounceTime = aDebounceTime;
+  // try to open "edge" to configure interrupt
+  string edgePath = string_format("%s/gpio%d/edge", GPIO_SYS_CLASS_PATH, gpioNo);
+  int edgeFd = open(edgePath.c_str(), O_RDWR);
+  if (edgeFd<0) {
+    LOG(LOG_DEBUG,"GPIO edge file does not exist -> GPIO %d has no edge interrupt capability\n", gpioNo);
+    // use poll-based input change detection
+    return inherited::setInputChangedHandler(aInputChangedCB, aInverted, aInitialState, aDebounceTime, aPollInterval);
+  }
+  // enable triggering on both edges
+  string s = "both";
+  write(edgeFd, s.c_str(), s.length());
+  close(edgeFd);
+  // establish a IO poll
+  MainLoop::currentMainLoop().registerPollHandler(gpioFD, POLL_IN, boost::bind(&GpioPin::stateChanged, this, _3));
+  return true;
+}
+
+
+
+bool GpioPin::stateChanged(int aPollFlags)
+{
+  LOG(LOG_DEBUG,"GPIO %d edge detected (poll() returned POLL_IN for value file\n", gpioNo);
+  inputHasChangedTo(getState());
+  return true; // handled
+}
+
 
 
 void GpioPin::setState(bool aState)

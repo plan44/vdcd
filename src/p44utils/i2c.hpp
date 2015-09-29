@@ -36,7 +36,9 @@ namespace p44 {
   class I2CDevice : public P44Obj
   {
     friend class I2CBus;
+
   protected:
+
     I2CBus *i2cbus;
     uint8_t deviceAddress;
 
@@ -159,7 +161,6 @@ namespace p44 {
   {
     typedef I2CDevice inherited;
 
-
   protected:
     uint32_t outputEnableMask; ///< bit set = pin is output
     uint32_t pinStateMask; ///< state of pins 0..31(max)
@@ -279,7 +280,6 @@ namespace p44 {
   {
     typedef I2CDevice inherited;
 
-
   public:
     /// create device
     /// @param aDeviceAddress slave address of the device
@@ -328,6 +328,8 @@ namespace p44 {
   /// wrapper class for analog I/O pin
   class AnalogI2CPin : public AnalogIOPin
   {
+    typedef AnalogIOPin inherited;
+
     I2CAnalogPortDevicePtr analogPortDevice;
     int pinNumber;
     bool output;

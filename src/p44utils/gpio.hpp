@@ -40,9 +40,12 @@ namespace p44 {
   /// generic Linux kernel SysFS support for LEDs (
   class GpioLedPin : public IOPin
   {
+    typedef IOPin inherited;
+
     int ledNo;
     int ledFD;
     bool ledState;
+
   public:
 
     /// Create general purpose I/O pin
@@ -65,10 +68,15 @@ namespace p44 {
   /// generic Linux kernel SysFS support for GPIOs (
   class GpioPin : public IOPin
   {
+    typedef IOPin inherited;
+
     bool pinState;
     bool output;
     int gpioNo;
     int gpioFD;
+
+    bool stateChanged(int aPollFlags);
+
   public:
 
     /// Create general purpose I/O pin
@@ -85,7 +93,21 @@ namespace p44 {
     /// set state of output (NOP for inputs)
     /// @param aState new state to set output to
     virtual void setState(bool aState);
-    
+
+    /// install state change detector
+    /// @param aInputChangedCB will be called when the input state changes. Passing NULL disables input state change reporting.
+    /// @param aInverted if set, the state will be reported inverted to what getState() would report. This is a shortcut
+    ///   for efficient implementation of higher level classes (which support inverting), to avoid two stage callbacks
+    /// @param aInitialState the initial state (of the pin) assumed present when callback is installed
+    /// @param aDebounceTime after a reported state change, next input sampling will take place only after specified interval
+    /// @param aPollInterval if <0 (Infinite), the state change detector only works if the input pin supports state change
+    ///   detection without polling (e.g. with GPIO edge trigger). If aPollInterval is >=0, and the
+    ///   input pin does not support edge detection, the state detection will be implemented via polling
+    ///   on the current mainloop - if pollInterval==0 then polling will be done in a mainloop idle handler, otherwise in
+    ///   a timed handler according to the specified interval
+    /// @return true if input supports the type of state change detection requested
+    virtual bool setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInverted, bool aInitialState, MLMicroSeconds aDebounceTime, MLMicroSeconds aPollInterval);
+
   };
 
 
@@ -94,10 +116,13 @@ namespace p44 {
   /// and SysFS from Userland (Digi ME 9210 LX)
   class GpioNS9XXXPin : public IOPin
   {
+    typedef IOPin inherited;
+
     int gpioFD;
     bool pinState;
     bool output;
     string name;
+
   public:
 
     /// Create general purpose I/O pin
