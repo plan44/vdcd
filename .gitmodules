@@ -1,0 +1,3 @@
+[submodule "src/p44utils"]
+	path = src/p44utils
+	url = git@github.com:plan44/p44utils.git
