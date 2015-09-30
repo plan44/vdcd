@@ -27,7 +27,7 @@
 
 using namespace p44;
 
-#define INPUT_DEBOUNCE_TIME (10*MilliSecond)
+#define INPUT_DEBOUNCE_TIME (25*MilliSecond)
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),

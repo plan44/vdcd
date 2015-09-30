@@ -183,7 +183,7 @@ bool GpioPin::setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInver
   write(edgeFd, s.c_str(), s.length());
   close(edgeFd);
   // establish a IO poll
-  MainLoop::currentMainLoop().registerPollHandler(gpioFD, POLL_IN, boost::bind(&GpioPin::stateChanged, this, _3));
+  MainLoop::currentMainLoop().registerPollHandler(gpioFD, POLLPRI, boost::bind(&GpioPin::stateChanged, this, _3));
   return true;
 }
 
@@ -191,8 +191,9 @@ bool GpioPin::setInputChangedHandler(InputChangedCB aInputChangedCB, bool aInver
 
 bool GpioPin::stateChanged(int aPollFlags)
 {
-  LOG(LOG_DEBUG,"GPIO %d edge detected (poll() returned POLL_IN for value file\n", gpioNo);
-  inputHasChangedTo(getState());
+  bool newState = getState();
+  //LOG(LOG_DEBUG,"GPIO %d edge detected (poll() returned POLLPRI for value file) : new state = %d\n", gpioNo, newState);
+  inputHasChangedTo(newState);
   return true; // handled
 }
 

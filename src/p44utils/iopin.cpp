@@ -90,17 +90,32 @@ void IOPin::inputHasChangedTo(bool aNewState)
     if (debounceTime>0 && lastReportedChange!=Never) {
       // check for debounce time passed
       if (lastReportedChange+debounceTime>now) {
+        LOG(LOG_DEBUG,"- debouncing holdoff, will resample after debouncing time\n");
         // debounce time not yet over, schedule an extra re-sample later and suppress reporting for now
-        debounceTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&IOPin::idlepoll, this), now+debounceTime);
+        debounceTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&IOPin::debounceSample, this), now+debounceTime);
         return;
       }
     }
     // report change now
+    LOG(LOG_DEBUG,"- state changed >=debouncing time after last change: new state = %d\n", aNewState);
     currentState = aNewState;
     lastReportedChange = now;
     if (inputChangedCB) inputChangedCB(currentState!=invertedReporting);
   }
 }
+
+
+void IOPin::debounceSample()
+{
+  bool newState = getState();
+  LOG(LOG_DEBUG,"- debouncing time over, resampled state = %d\n", newState);
+  if (newState!=currentState) {
+    currentState = newState;
+    lastReportedChange = MainLoop::now();
+    if (inputChangedCB) inputChangedCB(currentState!=invertedReporting);
+  }
+}
+
 
 
 bool IOPin::idlepoll()
