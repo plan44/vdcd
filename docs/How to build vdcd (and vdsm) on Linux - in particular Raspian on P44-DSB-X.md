@@ -65,13 +65,18 @@ To put all projects into, we create a *ds* subdirectory and set the *$DSROOT* sh
 ### Checkout vdcd sources
 
 	cd ${DSROOT}
-	git clone https://github.com/plan44/vdcd.git 
-
-Note: after cloning, *master* branch is checked out, which represents the production firmware vdcd as used in P44-DSB products.
-If you want the latest and greatest beta version features, check out the *luz* branch instead:
-
+	git clone https://github.com/plan44/vdcd.git
 	cd ${DSROOT}/vdcd
-	git checkout luz
+
+Note: after cloning, *master* branch is checked out, which represents a consistent state of currently tested development version (builds, runs).
+If you want the last beta release, check out *testing*, for the last production release *production*, and for my cutting edge work in progress (sometimes not fully functional), check out the *luz* branch instead:
+
+	git checkout testing
+	
+vdcd uses the [p44utils](https://github.com/plan44/vdcd) which are now located in a separate git repository. To get the matching version of p44utils:
+
+    git submodule init
+    git submodule update
 
 ### build vdcd
 

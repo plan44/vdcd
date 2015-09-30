@@ -19,7 +19,7 @@ For new hardware, only the actual access to the device's hardware needs to be im
 If you like this, please don't forget to flattr it :-)
 
 - Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
-- See [github project](https://github.com/plan44/vdcd) to get the latest version of the software
+- See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44utils submodule is also [on github](https://github.com/plan44/p44utils))
 - See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
 
 License
@@ -63,7 +63,7 @@ Getting Started
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
   - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E, P44-DSB-DEH)
 
-- check out the /docs folder: For building the vdcd, see *"How to build vdsm and vdcd on Linux - in particular Raspian on P44-DSB-X.md"* and *How to build and run vdcd on Mac OS X*. For documentation of the external device API, see the PDF document named *plan44 vdcd external device API.pdf*
+- check out the /docs folder: For building the vdcd, see *"How to build vdsm and vdcd on Linux - in particular Raspian on P44-DSB-X.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
 
 
 Supporting vdcd
