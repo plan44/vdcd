@@ -50,7 +50,7 @@ if RASPBERRYPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lavahi-core -lavahi-common  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
 # sources only supported on RPI
 LEDCHAIN_SRC = \
   src/thirdparty/rpi_ws281x/clk.h \
