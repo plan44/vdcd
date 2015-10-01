@@ -270,14 +270,45 @@ unsigned execute_qpu(int file_desc, unsigned num_qpus, unsigned control, unsigne
    return p[5];
 }
 
+
+static int kernel_info_initialised = 0;
+static int kernel_major = 0;
+static int kernel_minor = 0;
+
+static void kernel_info_init()
+{
+   FILE *fp;
+   char buf[64];
+   int maj,min;
+   if (!kernel_info_initialised) {
+      fp = fopen("/proc/sys/kernel/osrelease", "r");
+      if (!fp) {
+         printf("Unable to open /proc/sys/kernel/osrelease\n");
+      }
+      else {
+         if (fgets(buf, 64, fp)) {
+            // read kernel version
+            sscanf(buf,"%d.%d",&kernel_major,&kernel_minor);
+         }
+         close(fp);
+      }
+      kernel_info_initialised = 1;
+   }
+}
+
+
 int mbox_open(void) {
    int file_desc;
    char filename[64];
+   int devmaj;
 
+   // depending on kernel version device major number must be 100 or 249
+   kernel_info_init();
+   devmaj = (kernel_major>4) || ((kernel_major==4) && (kernel_minor>=1)) ? 249 : 100;
    // open a char device file used for communicating with kernel mbox driver
    sprintf(filename, "/dev/rpi-ws281x-mailbox-%d", getpid());
    unlink(filename);
-   if (mknod(filename, S_IFCHR|0600, makedev(100, 0)) < 0) {
+   if (mknod(filename, S_IFCHR|0600, makedev(devmaj, 0)) < 0) {
       printf("Failed to create mailbox device %s: %m\n", filename);
       return -1;
    }
