@@ -69,6 +69,7 @@ OlaDeviceContainer::OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
 
 #define DMX512_INTERFRAME_PAUSE (50*MilliSecond)
 #define DMX512_RETRY_INTERVAL (15*Second)
+#define OLA_SETUP_RETRY_INTERVAL (30*Second)
 #define DMX512_UNIVERSE 42
 
 void OlaDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
@@ -91,21 +92,29 @@ void OlaDeviceContainer::olaThreadRoutine(ChildThreadWrapper &aThread)
   // turn on OLA logging when loglevel is debugging, otherwise off
   ola::InitLogging(LOGENABLED(LOG_DEBUG) ? ola::OLA_LOG_WARN : ola::OLA_LOG_NONE, ola::OLA_LOG_STDERR);
   dmxBufferP = new ola::DmxBuffer;
-  olaClientP = new ola::client::StreamingClient((ola::client::StreamingClient::Options()));
+  ola::client::StreamingClient::Options options;
+  options.auto_start = false; // do not start olad from client
+  olaClientP = new ola::client::StreamingClient(options);
   if (olaClientP && dmxBufferP) {
     dmxBufferP->Blackout();
-    if (olaClientP->Setup()) {
-      while (true) {
-        pthread_mutex_lock(&olaBufferAccess);
-        bool ok = olaClientP->SendDMX(DMX512_UNIVERSE, *dmxBufferP, ola::client::StreamingClient::SendArgs());
-        pthread_mutex_unlock(&olaBufferAccess);
-        if (ok) {
-          // successful send
-          usleep(DMX512_INTERFRAME_PAUSE); // sleep a little between frames.
-        }
-        else {
-          // unsuccessful send, do not try too often
-          usleep(DMX512_RETRY_INTERVAL); // sleep longer between failed attempts
+    while (!aThread.shouldTerminate()) {
+      if (!olaClientP->Setup()) {
+        // cannot start yet, wait a little
+        usleep(OLA_SETUP_RETRY_INTERVAL);
+      }
+      else {
+        while (!aThread.shouldTerminate()) {
+          pthread_mutex_lock(&olaBufferAccess);
+          bool ok = olaClientP->SendDMX(DMX512_UNIVERSE, *dmxBufferP, ola::client::StreamingClient::SendArgs());
+          pthread_mutex_unlock(&olaBufferAccess);
+          if (ok) {
+            // successful send
+            usleep(DMX512_INTERFRAME_PAUSE); // sleep a little between frames.
+          }
+          else {
+            // unsuccessful send, do not try too often
+            usleep(DMX512_RETRY_INTERVAL); // sleep longer between failed attempts
+          }
         }
       }
     }
