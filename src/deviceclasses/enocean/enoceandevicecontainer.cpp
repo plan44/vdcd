@@ -339,7 +339,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // detect implicit (RPS) learn in only with sufficient radio strength (or explicit override of that check),
     // explicit ones are always recognized
     if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
-      LOG(LOG_NOTICE, "Received EnOcean learn packet while learn mode enabled: %s\n", aEsp3PacketPtr->description().c_str());
+      LOG(LOG_NOTICE, "Learn mode enabled: processing EnOcean learn packet: %s\n", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
       if (learnIn) {
         // new device learned in, add logical devices for it
@@ -360,9 +360,13 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       //   button is released or other repetition of radio packet)
       learningMode = false;
     } // learn action
+    else {
+      LOG(LOG_INFO, "Learn mode enabled: Received non-learn EnOcean packet -> ignored: %s\n", aEsp3PacketPtr->description().c_str());
+    }
   }
   else {
     // not learning mode, dispatch packet to all devices known for that address
+    bool reachedDevice = false;
     for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
       if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false) && aEsp3PacketPtr->eepRorg()!=rorg_RPS) {
         // learning packet in non-learn mode -> report as non-regular user action, might be attempt to identify a device
@@ -375,6 +379,10 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       }
       // handle regularily (might be RPS switch which does not have separate learn/action packets
       pos->second->handleRadioPacket(aEsp3PacketPtr);
+      reachedDevice = true;
+    }
+    if (!reachedDevice) {
+      LOG(LOG_INFO, "Received EnOcean packet not directed to any known device -> ignored: %s\n", aEsp3PacketPtr->description().c_str());
     }
   }
 }
