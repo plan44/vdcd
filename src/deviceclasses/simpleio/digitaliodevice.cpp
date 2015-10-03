@@ -161,6 +161,7 @@ void DigitalIODevice::deriveDsUid()
   s += ':';
   if (buttonInput) { s += ":"; s += buttonInput->getName(); }
   if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }
+  if (digitalInput) { s += ":"; s += digitalInput->getName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
@@ -180,7 +181,9 @@ string DigitalIODevice::modelName()
 string DigitalIODevice::getExtraInfo()
 {
   if (buttonInput)
-    return string_format("Input: %s\n", buttonInput->getName().c_str());
+    return string_format("Button: %s\n", buttonInput->getName().c_str());
+  else if (digitalInput)
+    return string_format("Input: %s\n", digitalInput->getName().c_str());
   else if (indicatorOutput)
     return string_format("Output: %s\n", indicatorOutput->getName().c_str());
   else
@@ -194,6 +197,8 @@ string DigitalIODevice::description()
   string s = inherited::description();
   if (buttonInput)
     string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName().c_str());
+  if (digitalInput)
+    string_format_append(s, "- Input at Digital IO '%s'\n", digitalInput->getName().c_str());
   if (indicatorOutput)
     string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName().c_str());
   return s;
