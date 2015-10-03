@@ -197,9 +197,9 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
 {
   // make it member of the light group
   setGroupMembership(group_grey_shadow, true);
-  // primary output controls brightness
+  // primary output controls position
   setHardwareName("position");
-  // add the channels (every shadow device has an angle so far)
+  // add the channels (every shadow device has an angle so far, but roller/sun blinds dont use it)
   position = ShadowPositionChannelPtr(new ShadowPositionChannel(*this));
   addChannel(position);
   angle = ShadowAngleChannelPtr(new ShadowAngleChannel(*this));

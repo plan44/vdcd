@@ -553,7 +553,15 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*this));
     sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
     sb->setHardwareName(hardwareName);
-    sb->setDeviceParams(shadowdevice_jalousie, 0, 0, 0); // no restrictions for move times so far
+    ShadowDeviceKind sk = shadowdevice_jalousie; // default to jalousie
+    if (aInitParams->get("type", o)) {
+      string k = o->stringValue();
+      if (k=="roller")
+        sk = shadowdevice_rollerblind;
+      else if (k=="sun")
+        sk = shadowdevice_sunblind;
+    }
+    sb->setDeviceParams(sk, 0, 0, 0); // no restrictions for move times
     sb->position->syncChannelValue(100); // assume fully up at beginning
     sb->angle->syncChannelValue(100); // assume fully open at beginning
     addBehaviour(sb);
