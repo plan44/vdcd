@@ -160,6 +160,10 @@ namespace p44 {
     ///   Will be appended to product name to create modelName() for vdcs
     virtual string vdcModelSuffix() { return "external"; }
 
+    /// External device container should not be announced when it has no devices
+    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    virtual bool invisibleWhenEmpty() { return true; }
+
     /// get supported rescan modes for this device class. This indicates (usually to a web-UI) which
     /// of the flags to collectDevices() make sense for this device class.
     /// @return a combination of rescanmode_xxx bits
