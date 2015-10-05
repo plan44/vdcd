@@ -337,6 +337,16 @@ ErrorPtr ExternalDevice::processInput(char aInputType, uint32_t aIndex, double a
       ChannelBehaviourPtr cb = getChannelByIndex(aIndex);
       if (cb) {
         cb->syncChannelValue(aValue, true);
+        // check for shadow end contact reporting
+        if (aIndex==0) {
+          ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
+          if (sb) {
+            if (aValue>=cb->getMax())
+              sb->endReached(true); // reached top
+            else if (aValue<=cb->getMin())
+              sb->endReached(false); // reached bottom
+          }
+        }
       }
       break;
     }
@@ -554,14 +564,18 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
     sb->setHardwareName(hardwareName);
     ShadowDeviceKind sk = shadowdevice_jalousie; // default to jalousie
-    if (aInitParams->get("type", o)) {
+    if (aInitParams->get("kind", o)) {
       string k = o->stringValue();
       if (k=="roller")
         sk = shadowdevice_rollerblind;
       else if (k=="sun")
         sk = shadowdevice_sunblind;
     }
-    sb->setDeviceParams(sk, 0, 0, 0); // no restrictions for move times
+    bool endContacts = false; // with no end contacts
+    if (aInitParams->get("endcontacts", o)) {
+      endContacts = o->boolValue();
+    }
+    sb->setDeviceParams(sk, endContacts, 0, 0, 0); // no restrictions for move times
     sb->position->syncChannelValue(100); // assume fully up at beginning
     sb->angle->syncChannelValue(100); // assume fully open at beginning
     addBehaviour(sb);
