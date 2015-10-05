@@ -200,7 +200,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*newDev.get()));
         sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
         sb->setHardwareName("blind");
-        sb->setDeviceParams(shadowdevice_jalousie, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
+        sb->setDeviceParams(shadowdevice_jalousie, false, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
         sb->position->syncChannelValue(100); // assume fully up at beginning
         sb->angle->syncChannelValue(100); // assume fully open at beginning
         // does not need a channel handler at all, just add behaviour

@@ -182,6 +182,7 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
   minMoveTime(200*MilliSecond),
   maxShortMoveTime(0),
   minLongMoveTime(0),
+  hasEndContacts(false),
   // persistent settings (defaults are MixWerk's)
   openTime(54),
   closeTime(51),
@@ -192,6 +193,8 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
   movingTicket(0),
   blindState(blind_idle),
   movingUp(false),
+  runIntoEnd(false),
+  updateMoveTimeAtEndReached(false),
   referencePosition(100), // assume fully open, at top
   referenceAngle(100) // at top means that angle is open as well
 {
@@ -207,9 +210,10 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
 }
 
 
-void ShadowBehaviour::setDeviceParams(ShadowDeviceKind aShadowDeviceKind, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime, MLMicroSeconds aMinLongMoveTime)
+void ShadowBehaviour::setDeviceParams(ShadowDeviceKind aShadowDeviceKind, bool aHasEndContacts, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime, MLMicroSeconds aMinLongMoveTime)
 {
   shadowDeviceKind = aShadowDeviceKind;
+  hasEndContacts = aHasEndContacts;
   minMoveTime = aMinMoveTime;
   maxShortMoveTime = aMaxShortMoveTime;
   minLongMoveTime = aMinLongMoveTime;
@@ -238,6 +242,7 @@ Tristate ShadowBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 
 
 #pragma mark - Blind Movement Sequencer
+
 
 
 double ShadowBehaviour::getPosition()
@@ -387,8 +392,48 @@ void ShadowBehaviour::stop(SimpleCB aApplyDoneCB)
 
 
 
+void ShadowBehaviour::endReached(bool aTop)
+{
+  // completely ignore if we don't have end contacts
+  if (hasEndContacts) {
+    LOG(LOG_INFO,"Device reports %s actually reached\n", aTop ? "top (fully rolled in)" : "bottom (fully extended)");
+    // cancel timeouts that might want to stop movement
+    MainLoop::currentMainLoop().cancelExecutionTicket(movingTicket);
+    // check for updating full range time
+    if (updateMoveTimeAtEndReached) {
+      // ran full range, update time
+      MLMicroSeconds fullRangeTime = MainLoop::now()-referenceTime;
+      LOG(LOG_INFO,"- is end of a full range movement : measured move time %.1f -> updating settings\n", (double)fullRangeTime/Second);
+      if (aTop) {
+        openTime = fullRangeTime; // update opening time
+      }
+      else {
+        closeTime = fullRangeTime; // update closing time
+      }
+    }
+    // update positions
+    referenceTime = Never; // prevent re-calculation of position and angle from timing
+    if (aTop) {
+      // at top
+      referencePosition = 100;
+      referenceAngle = 100;
+    }
+    else {
+      // at bottom
+      referencePosition = 0;
+      referenceAngle = 0;
+    }
+    // now report stopped
+    stopped(endContactMoveAppliedCB);
+  }
+}
+
+
+
+
 void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
 {
+  updateMoveTimeAtEndReached = false; // stopping cancels full range timing update (if stop is due to end contact, measurement will be already done now)
   moveTimerStop();
   FOCUSLOG("- calculated current blind position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
   // next step depends on state
@@ -442,14 +487,19 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
     // new position requested, calculate next move
     double dist = 0;
     MLMicroSeconds stopIn = 0;
+    runIntoEnd = false;
     // full up or down always schedule full way to synchronize
     if (targetPosition>=100) {
       // fully up, always do full cycle to synchronize position
       dist = 120; // 20% extra to fully run into end switch
+      runIntoEnd = true; // if we have end switches, let them stop the movement
+      if (referencePosition<=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else if (targetPosition<=0) {
       // fully down, always do full cycle to synchronize position
       dist = -120; // 20% extra to fully run into end switch
+      runIntoEnd = true; // if we have end switches, let them stop the movement
+      if (referencePosition>=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else {
       // somewhere in between, actually estimate distance
@@ -559,34 +609,41 @@ void ShadowBehaviour::moveStarted(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB)
 {
   // started
   moveTimerStart();
-  MLMicroSeconds remaining = aStopIn;
-  if (maxShortMoveTime>0 && aStopIn<minLongMoveTime && aStopIn>maxShortMoveTime) {
-    // need multiple shorter segments
-    if (remaining<2*minLongMoveTime && remaining>2*minMoveTime) {
-      // evenly divide
-      remaining /= 2;
-      aStopIn = remaining;
-    }
-    else {
-      // reduce by max short time move and carry over rest
-      aStopIn = maxShortMoveTime;
-      remaining-=aStopIn;
-    }
-    FOCUSLOG("- must restrict to %.3f Seconds now (%.3f later) to prevent starting continuous blind movement\n", (double)aStopIn/Second, (double)remaining/Second);
+  // schedule stop if not moving into end positions (and end contacts are available)
+  if (hasEndContacts && runIntoEnd) {
+    FOCUSLOG("- move started, let movement run into end contacts\n");
   }
   else {
-    remaining = 0;
+    // calculate stop time and set timer
+    MLMicroSeconds remaining = aStopIn;
+    if (maxShortMoveTime>0 && aStopIn<minLongMoveTime && aStopIn>maxShortMoveTime) {
+      // need multiple shorter segments
+      if (remaining<2*minLongMoveTime && remaining>2*minMoveTime) {
+        // evenly divide
+        remaining /= 2;
+        aStopIn = remaining;
+      }
+      else {
+        // reduce by max short time move and carry over rest
+        aStopIn = maxShortMoveTime;
+        remaining-=aStopIn;
+      }
+      FOCUSLOG("- must restrict to %.3f Seconds now (%.3f later) to prevent starting continuous blind movement\n", (double)aStopIn/Second, (double)remaining/Second);
+    }
+    else {
+      remaining = 0;
+    }
+    if (aStopIn>MIN_INTERRUPTABLE_MOVE_TIME) {
+      // this is a long move, allow interrupting it
+      // - which means that we confirm applied now
+      FOCUSLOG("- is long move, should be interruptable -> confirming applied now\n");
+      if (aApplyDoneCB) aApplyDoneCB();
+      // - and prevent calling back again later
+      aApplyDoneCB = NULL;
+    }
+    FOCUSLOG("- move started, scheduling stop in %.3f Seconds\n", (double)aStopIn/Second);
+    movingTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::endMove, this, remaining, aApplyDoneCB), aStopIn);
   }
-  if (aStopIn>MIN_INTERRUPTABLE_MOVE_TIME) {
-    // this is a long move, allow interrupting it
-    // - which means that we confirm applied now
-    FOCUSLOG("- is long move, should be interruptable -> confirming applied now\n");
-    if (aApplyDoneCB) aApplyDoneCB();
-    // - and prevent calling back again later
-    aApplyDoneCB = NULL;
-  }
-  FOCUSLOG("- move started, scheduling stop in %.3f Seconds\n", (double)aStopIn/Second);
-  movingTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::endMove, this, remaining, aApplyDoneCB), aStopIn);
 }
 
 

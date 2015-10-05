@@ -163,6 +163,7 @@ namespace p44 {
     MLMicroSeconds minMoveTime;
     MLMicroSeconds maxShortMoveTime;
     MLMicroSeconds minLongMoveTime;
+    bool hasEndContacts;
     /// @}
 
 
@@ -192,10 +193,13 @@ namespace p44 {
     double targetPosition;
     double targetAngle;
     double referencePosition; ///< reference (starting) position during moves
-    double referenceAngle; ///< reference (starting) position during moves
+    double referenceAngle; ///< reference (starting) angle during moves
     MovementChangeCB movementCB; ///< routine to call to change movement
     MLMicroSeconds referenceTime; ///< if not Never, time when last movement was started
     long movingTicket;
+    bool runIntoEnd; ///< if set, move is expected to run into end contact, so no timer will be set up
+    bool updateMoveTimeAtEndReached; ///< if set (only makes sense with hasEndContacts), difference between reference time and now will update open or close time
+    SimpleCB endContactMoveAppliedCB; ///< callback to trigger when end contacts stop movement
 
     /// @}
 
@@ -216,10 +220,11 @@ namespace p44 {
 
     /// set kind (roller, jalousie, etc.) of shadow device
     /// @param aShadowDeviceKind kind of device
+    /// @param aHasEndContacts if set, device has end contacts and should let behaviour know when top or bottom end is reached using endReached()
     /// @param aMinMoveTime minimal movement time that can be applied
     /// @param aMaxShortMoveTime maximum short movement time (in case where a certain on impulse length might trigger permanent moves)
     /// @param aMinLongMoveTime minimum time for a long move (e.g. permanent move stoppable by another impulse)
-    void setDeviceParams(ShadowDeviceKind aShadowDeviceKind, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime=0, MLMicroSeconds aMinLongMoveTime=0);
+    void setDeviceParams(ShadowDeviceKind aShadowDeviceKind, bool aHasEndContacts, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime=0, MLMicroSeconds aMinLongMoveTime=0);
 
     /// initiates a blind moving sequence to apply current channel values to hardware
     /// @param aMovementCB will be called (usually multiple times) to perform the needed movement sequence.
@@ -236,6 +241,9 @@ namespace p44 {
     /// @note this method is intended to be called from device implementations's dimChannel().
     void dimBlind(MovementChangeCB aMovementCB, DsDimMode aDimMode);
 
+    /// device should call this to signal that an end has been reached (end contact got active)
+    /// @param aTop if set, the top end (fully rolled in) has been reached, otherwise the bottom end (fully rolled out)
+    void endReached(bool aTop);
 
     /// update channel values with current state of blind movement
     /// @note this is usually called from a device's syncChannelValues()
