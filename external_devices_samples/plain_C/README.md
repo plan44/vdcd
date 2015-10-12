@@ -16,7 +16,7 @@ and then run it with
 	
 If you are on Mac OS X and have XCode installed, you can also open the *externalButton.xcodeproj* to build and run the sample in XCode.
 	
-Note: the program does not restart the connection when it is closes (due to error or vdcd being restarted). So, for permanent operation, the script should be put under control of a daemon supervisor such as *runit* or *launchd* to make sure the script is restarted automatically.
+Note: the program does not restart the connection when it is closes (due to error or vdcd being restarted). So, for permanent operation, the program should be put under control of a daemon supervisor such as *runit* or *launchd* to make sure the program is restarted automatically.
 
 ### More information 
 
