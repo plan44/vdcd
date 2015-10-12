@@ -373,16 +373,16 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           aPropValue->setStringValue(webuiURLString());
           return true;
         case defaultzone_key:
-          aPropValue->setInt32Value(defaultZoneID);
+          aPropValue->setUint16Value(defaultZoneID);
           return true;
         case deviceclassidentifier_key:
           aPropValue->setStringValue(deviceClassIdentifier());
           return true;
         case instancenumber_key:
-          aPropValue->setInt32Value(getInstanceNumber());
+          aPropValue->setUint32Value(getInstanceNumber());
           return true;
         case rescanModes_key:
-          aPropValue->setInt32Value(getRescanModes());
+          aPropValue->setUint32Value(getRescanModes());
           return true;
       }
     }
