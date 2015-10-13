@@ -45,6 +45,7 @@ using namespace p44;
 #define VDSM_ROLE_COLLECTABLE "collectable"
 #define VDSM_VDC_ROLE_NOAUTO "noauto"
 
+#define INITIAL_STARTUP_DELAY (15*Second) // how long to wait before trying to start avahi server for the first time
 #define STARTUP_RETRY_DELAY (30*Second) // how long to wait before retrying to start avahi server when failed because of missing network
 #define SERVER_RESTART_DELAY (5*Minute) // how long to wait before restarting the server (after a problem that caused calling restartServer())
 #define VDSM_RESCAN_DELAY (20*Minute) // how often to start a complete rescan anyway (even if no vdsm is lost)
@@ -155,7 +156,7 @@ ErrorPtr DiscoveryManager::start(
   MainLoop::currentMainLoop().registerIdleHandler(this, boost::bind(&DiscoveryManager::avahi_poll, this));
   if (Error::isOK(err)) {
     // prepare server config
-    startServer();
+    MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::startServer, this), INITIAL_STARTUP_DELAY);
   }
   return err;
 }
@@ -189,8 +190,8 @@ void DiscoveryManager::stopServer()
 
 void DiscoveryManager::restartServer()
 {
-  LOG(LOG_WARNING, "discovery: restarting avahi server in %\n");
   stopServer();
+  LOG(LOG_WARNING, "discovery: stopped avahi server - restarting in %d Seconds\n", SERVER_RESTART_DELAY/Minute);
   MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::startServer, this), SERVER_RESTART_DELAY);
 }
 
@@ -200,6 +201,7 @@ void DiscoveryManager::startServer()
 {
   // only start if not already started
   if (!server) {
+    LOG(LOG_NOTICE, "avahi: starting server\n");
     int avahiErr;
     AvahiServerConfig config;
     avahi_server_config_init(&config);
@@ -245,6 +247,9 @@ void DiscoveryManager::startServer()
         }
       }
     }
+  }
+  else {
+    LOG(LOG_WARNING, "avahi: startServer called while server already running\n");
   }
 }
 
@@ -365,9 +370,11 @@ void DiscoveryManager::avahi_server_callback(AvahiServer *s, AvahiServerState st
     }
     case AVAHI_SERVER_REGISTERING: {
       // drop service registration, will be recreated once server is running
+      LOG(LOG_NOTICE, "avahi: host records are being registered\n");
       if (entryGroup) {
-        avahi_s_entry_group_reset(entryGroup);
-        entryGroup = NULL;
+        AvahiSEntryGroup *eg = entryGroup;
+        entryGroup = NULL; // Null before, in case call below causes immediate second avahi_server_callback callback
+        avahi_s_entry_group_reset(eg);
       }
       break;
     }
