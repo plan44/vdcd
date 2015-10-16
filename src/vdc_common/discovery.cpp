@@ -45,7 +45,7 @@ using namespace p44;
 #define VDSM_ROLE_COLLECTABLE "collectable"
 #define VDSM_VDC_ROLE_NOAUTO "noauto"
 
-#define INITIAL_STARTUP_DELAY (15*Second) // how long to wait before trying to start avahi server for the first time
+#define INITIAL_STARTUP_DELAY (8*Second) // how long to wait before trying to start avahi server for the first time
 #define STARTUP_RETRY_DELAY (30*Second) // how long to wait before retrying to start avahi server when failed because of missing network
 #define SERVER_RESTART_DELAY (5*Minute) // how long to wait before restarting the server (after a problem that caused calling restartServer())
 #define VDSM_RESCAN_DELAY (20*Minute) // how often to start a complete rescan anyway (even if no vdsm is lost)
