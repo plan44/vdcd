@@ -268,7 +268,9 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
 
 void SimpleScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
-  // fetch from defaults
+  // basic initialisation
+  inherited::setDefaultSceneValues(aSceneNo);
+  // now set actual dS defaults from table
   if (aSceneNo>NUMDEFAULTSCENES)
     aSceneNo = NUMDEFAULTSCENES; // last entry in the table is the default for all higher scene numbers
   const DefaultSceneParams &p = defaultScenes[aSceneNo];

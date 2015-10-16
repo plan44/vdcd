@@ -190,6 +190,9 @@ namespace p44 {
     /// @return the output behaviour controlled by this scene
     OutputBehaviourPtr getOutputBehaviour();
 
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
 
   protected:
 

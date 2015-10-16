@@ -192,6 +192,16 @@ OutputBehaviourPtr DsScene::getOutputBehaviour()
 }
 
 
+void DsScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  sceneNo = aSceneNo; // usually already set, but still make sure
+  sceneCmd = scene_cmd_invoke; // assume invoke type
+  sceneArea = 0; // no area scene by default
+  markClean(); // default values are always clean
+}
+
+
+
 
 #pragma mark - scene persistence
 
@@ -255,17 +265,20 @@ enum {
 };
 
 
-/// load values from passed row
 void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
-  // get the fields
+  // get the scene number
   sceneNo = aRow->get<int>(aIndex++);
+  // as the scene is loaded into a object which did not yet have the correct scene number
+  // default values must be set again now that the sceneNo is known
+  // Note: this is important to make sure those field which are not stored have the correct scene related value (sceneCmd, sceneArea)
+  setDefaultSceneValues(sceneNo);
+  // then proceed with loading other fields
   globalSceneFlags = aRow->get<int>(aIndex++);
 }
 
 
-// bind values to passed statement
 void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
