@@ -129,6 +129,16 @@ ChannelBehaviourPtr OutputBehaviour::getChannelByType(DsChannelType aChannelType
 }
 
 
+DsChannelType OutputBehaviour::actualChannelType(DsChannelType aChannelType)
+{
+  if (aChannelType!=channeltype_default) return aChannelType;
+  // need to resolve
+  if (channels.size()>0) return channels[0]->getChannelType(); // resolved default channel
+  // no channel, return as-is
+  return aChannelType;
+}
+
+
 
 bool OutputBehaviour::isMember(DsGroup aGroup)
 {

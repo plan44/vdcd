@@ -89,6 +89,11 @@ namespace p44 {
     ///   add the behaviour specific channels.
     void addChannel(ChannelBehaviourPtr aChannel);
 
+    /// get the actual type of the channel (i.e. resolve channeltype_default)
+    /// @param aChannelType channel type, can be channeltype_default
+    /// @return resolved channel type, always != channeltype_default, except if output has no channels at all
+    DsChannelType actualChannelType(DsChannelType aChannelType);
+
     /// @}
 
 

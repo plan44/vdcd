@@ -599,8 +599,12 @@ static SceneNo offSceneForArea(int aArea)
 // Note: ensures dimming only continues for at most aAutoStopAfter
 void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
 {
+  // dimming is NOP in devices having no output
+  if (!output) return;
+  // make sure default channel type is resolve to actual type
+  aChannel = output->actualChannelType(aChannel);
   // check basic dimmability (e.g. avoid dimming brightness for lights that are off)
-  if (!output || (aDimMode!=dimmode_stop && !(output->canDim(aChannel)))) {
+  if (aDimMode!=dimmode_stop && !(output->canDim(aChannel))) {
     LOG(LOG_DEBUG, "- behaviour does not allow dimming channel type %d now (e.g. because light is off)\n", aChannel);
     return;
   }
