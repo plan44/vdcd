@@ -626,7 +626,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       if (o2->get("hardwarename", o3)) buttonName = o3->stringValue(); else buttonName = string_format("button_id%d_el%d", buttonId, buttonElement);
       // - create behaviour
       ButtonBehaviourPtr bb = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-      bb->setHardwareButtonConfig(buttonId, buttonType, buttonElement, false, buttonElement_down ? 1 : 0, true); // fixed mode
+      bb->setHardwareButtonConfig(buttonId, buttonType, buttonElement, false, buttonElement==buttonElement_down ? 1 : 0, true); // fixed mode
       bb->setGroup(group);
       bb->setHardwareName(buttonName);
       addBehaviour(bb);
