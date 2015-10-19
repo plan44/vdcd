@@ -329,8 +329,6 @@ Brightness DaliBusDevice::arcpowerToBrightness(int aArcpower)
 void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
 {
   if (isDummy) return;
-  // start dimming
-  FOCUSLOG("DALI dimmer %s\n", aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
   MainLoop::currentMainLoop().cancelExecutionTicket(dimRepeaterTicket); // stop any previous dimming activity
   // Use DALI UP/DOWN dimming commands
   if (aDimMode==dimmode_stop) {
@@ -622,11 +620,17 @@ void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode
 {
   // start dimming
   if (aChannelType==channeltype_brightness) {
+    // start dimming
+    LOG(LOG_INFO,
+      "dimChannel (DALI): channel brightness %s in device %s\n",
+      aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"),
+      shortDesc().c_str()
+    );
     ChannelBehaviourPtr ch = getChannelByType(aChannelType);
     brightnessDimmer->dim(aDimMode, ch->getDimPerMS());
   }
   else {
-    // not my channel, use standard implementation
+    // not my channel, use generic implementation
     inherited::dimChannel(aChannelType, aDimMode);
   }
 }

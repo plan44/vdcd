@@ -681,7 +681,11 @@ void Device::dimAutostopHandler(DsChannelType aChannel)
 // actual dimming implementation, usually overridden by subclasses to provide more optimized/precise dimming
 void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 {
-  LOG(LOG_INFO, "dimChannel: channel=%d %s\n", aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
+  LOG(LOG_INFO,
+    "dimChannel (generic): channel type %d %s in device %s\n",
+    aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"),
+    shortDesc().c_str()
+  );
   // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
   if (aDimMode==dimmode_stop) {
     // stop dimming
@@ -1052,10 +1056,15 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         }
       }
       // - make sure we have the lastState pseudo-scene for undo
-      if (!previousState)
-        previousState = scenes->newDefaultScene(aSceneNo);
-      else
-        previousState->sceneNo = aSceneNo; // we remember the scene for which these are undo values in sceneNo of the pseudo scene
+      if (!previousState) {
+        previousState = scenes->newDefaultScene(T0_S1); // use main ON as template
+        // to make sure: the "previous" pseudo-screne must always be "invoke" type (restoring output values)
+        previousState->sceneCmd = scene_cmd_invoke;
+        previousState->sceneArea = 0; // no area
+      }
+      // we remember the scene for which these are undo values in sceneNo of the pseudo scene
+      // (but without actually re-configuring the scene according to that number!)
+      previousState->sceneNo = aSceneNo;
       // - now capture current values and then apply to output
       if (output) {
         // Non-dimming scene: have output save its current state into the previousState pseudo scene
