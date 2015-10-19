@@ -622,8 +622,9 @@ void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode
   if (aChannelType==channeltype_brightness) {
     // start dimming
     LOG(LOG_INFO,
-      "dimChannel (DALI): channel brightness %s in device %s\n",
-      aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"),
+      "dimChannel (DALI): channel type %d (brightness) %s in device %s\n",
+      aChannelType,
+      aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"),
       shortDesc().c_str()
     );
     ChannelBehaviourPtr ch = getChannelByType(aChannelType);
