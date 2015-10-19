@@ -41,12 +41,15 @@ void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
   switch (aSceneNo) {
     case CLIMATE_WINTER:
       sceneCmd = scene_cmd_heating_winter_mode;
+      sceneArea = 0; // not an area scene any more
       break;
     case CLIMATE_SUMMER:
       sceneCmd = scene_cmd_heating_summer_mode;
+      sceneArea = 0; // not an area scene any more
       break;
     case CLIMATE_VALVE_PROPHYLAXIS:
       sceneCmd = scene_cmd_heating_valve_prophylaxis;
+      sceneArea = 0; // not an area scene any more
       break;
     default:
       break;
