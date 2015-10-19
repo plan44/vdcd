@@ -48,6 +48,8 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   dimTimeoutTicket(0),
   currentDimMode(dimmode_stop),
   currentDimChannel(channeltype_default),
+  areaDimmed(0),
+  areaDimMode(dimmode_stop),
   classContainerP(aClassContainerP),
   DsAddressable(&aClassContainerP->getDeviceContainer()),
   primaryGroup(group_black_joker),
@@ -391,7 +393,7 @@ ErrorPtr Device::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, 
 
 
 #define MOC_DIM_STEP_TIMEOUT (5*Second)
-#define LEGACY_DIM_STEP_TIMEOUT (400*MilliSecond)
+#define LEGACY_DIM_STEP_TIMEOUT (500*MilliSecond) // should be 400, but give it extra 100 because of delays in getting next dim call, especially for area scenes
 
 
 void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
@@ -660,6 +662,9 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
     dimChannel(aChannel, aDimMode);
     currentDimMode = aDimMode;
     currentDimChannel = aChannel;
+    // save for possibly needed restart of area dimming
+    areaDimmed = aArea;
+    areaDimMode = aDimMode;
   }
   else {
     // same dim mode, just retrigger if dimming right now
@@ -675,6 +680,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
 void Device::dimAutostopHandler(DsChannelType aChannel)
 {
   // timeout: stop dimming immediately
+  dimTimeoutTicket = 0;
   dimChannel(aChannel, dimmode_stop);
   currentDimMode = dimmode_stop; // stopped now
 }
@@ -1004,8 +1010,15 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
     // check special scene commands first
     if (cmd==scene_cmd_area_continue) {
       // area dimming continuation
-      // - reschedule dimmer timeout (=keep dimming)
-      MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
+      if (dimTimeoutTicket) {
+        // timer still running (continue received in time) -> reschedule dimmer timeout to keep dimming
+        MainLoop::currentMainLoop().rescheduleExecutionTicket(dimTimeoutTicket, LEGACY_DIM_STEP_TIMEOUT);
+      }
+      else if (areaDimmed!=0 && areaDimMode!=dimmode_stop) {
+        // continue received too late, already stopped -> restart dimming
+        LOG(LOG_DEBUG, "Area scene dimming continue received too late in %s -> restarting dimming, will not be smooth\n", shortDesc().c_str());
+        dimChannelForArea(channeltype_default, areaDimMode, areaDimmed, LEGACY_DIM_STEP_TIMEOUT);
+      }
       // - otherwise: NOP
       return;
     }

@@ -266,7 +266,7 @@ void LightBehaviour::onAtMinBrightness(DsScenePtr aScene)
     LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
     if (lightScene && lightScene->sceneValue(brightness->getChannelIndex())>0) {
       // - load scene values for channels
-      loadChannelsFromScene(lightScene);
+      loadChannelsFromScene(lightScene); // Note: causes log message because channel is set to new value
       // - override brightness with minDim
       brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, true));
     }
