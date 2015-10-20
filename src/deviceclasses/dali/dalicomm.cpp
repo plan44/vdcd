@@ -120,34 +120,30 @@ bool DaliComm::isBusy()
 static const char *bridgeCmdName(uint8_t aBridgeCmd)
 {
   switch (aBridgeCmd) {
-    case CMD_CODE_RESET: return "RESETBRIDGE";
-    case CMD_CODE_SEND16: return "SEND16";
-    case CMD_CODE_2SEND16: return "DOUBLESEND16";
-    case CMD_CODE_SEND16_REC8: return "SEND16_REC8";
-    case CMD_CODE_OVLRESET: return "OVLRESET";
-    case CMD_CODE_EDGEADJ: return "EDGEADJ";
+    case CMD_CODE_RESET:       return "RESETBRIDGE    ";
+    case CMD_CODE_SEND16:      return "SEND16         ";
+    case CMD_CODE_2SEND16:     return "DOUBLESEND16   ";
+    case CMD_CODE_SEND16_REC8: return "SEND16_REC8    ";
+    case CMD_CODE_OVLRESET:    return "OVLRESET       ";
+    case CMD_CODE_EDGEADJ:     return "EDGEADJ        ";
     default: return "???";
   }
 }
 
 
-static const char *bridgeResponseText(uint8_t aResp1, uint8_t aResp2)
+static const char *bridgeAckText(uint8_t aResp1, uint8_t aResp2)
 {
   if (aResp1==RESP_CODE_ACK) {
     switch (aResp2) {
-      case ACK_OK: return "OK";
-      case ACK_TIMEOUT: return "TIMEOUT";
-      case ACK_FRAME_ERR: return "FRAME_ERROR";
-      case ACK_OVERLOAD: return "BUS_OVERLOAD";
+      case ACK_OK:         return "OK             ";
+      case ACK_TIMEOUT:    return "TIMEOUT        ";
+      case ACK_FRAME_ERR:  return "FRAME_ERROR    ";
+      case ACK_OVERLOAD:   return "BUS_OVERLOAD   ";
       case ACK_INVALIDCMD: return "INVALID_COMMAND";
-      default: return "UNKNOWN ACK CODE";
+      default:             return "UNKNOWN_ACKCODE";
     }
   }
-  else {
-    static char msg[20];
-    sprintf(msg, "DATA = %02X", aResp2);
-    return msg;
-  }
+  return "NOT_ACK_CODE   ";
 }
 
 
@@ -171,7 +167,12 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
     if (Error::isOK(aError) && ropP->getDataSize()>=2) {
       uint8_t resp1 = ropP->getDataP()[0];
       uint8_t resp2 = ropP->getDataP()[1];
-      FOCUSLOG("DALI bridge response: %s (%02X %02X) - %d pending responses\n", bridgeResponseText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
+      if (resp1==RESP_CODE_DATA) {
+        FOCUSLOG("DALI bridge response: DATA            (%02X)      %02X    - %d pending responses\n", resp1, resp2, expectedBridgeResponses);
+      }
+      else {
+        FOCUSLOG("DALI bridge response: %s (%02X %02X)         - %d pending responses\n", bridgeAckText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
+      }
       if (aBridgeResultHandler)
         aBridgeResultHandler(resp1, resp2, aError);
     }
@@ -188,7 +189,6 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
 
 void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, DaliBridgeResultCB aResultCB, int aWithDelay)
 {
-  FOCUSLOG("DALI bridge command:  %s (%02X)  %02X %02X (%d pending responses)\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses);
   // reset connection closing timeout
   MainLoop::currentMainLoop().cancelExecutionTicket(connectionTimeoutTicket);
   if (closeAfterIdleTime!=Never) {
@@ -213,6 +213,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     if (aWithDelay>0) {
       // delayed sends must always be in sequence
       opP->setInitiationDelay(aWithDelay);
+      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - to be sent in %d µS after no response pending\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, aWithDelay);
     }
     else {
       // non-delayed sends may be sent before answer of previous commands have arrived as long as Rx buf in bridge does not overflow
@@ -220,6 +221,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
         responsesInSequence = true; // prevent further sends without answers
       }
       opP->answersInSequence = responsesInSequence;
+      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - %s\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, responsesInSequence ? "sent when no more responses pending" : "sent as soon as possible");
     }
     opP->receiveTimeoout = 20*Second; // large timeout, because it can really take time until all expected answers are received
     SerialOperationPtr op(opP);
