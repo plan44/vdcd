@@ -698,6 +698,9 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
   }
   // device configured, add it now
   configured = getExternalDeviceContainer().addDevice(DevicePtr(this));
+  if (!configured) {
+    return TextError::err("device could not be added (duplicate uniqueid could be a reason, see vdcd log)");
+  }
   // explicit ok
   return Error::ok();
 }
