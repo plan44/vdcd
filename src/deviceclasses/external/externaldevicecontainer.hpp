@@ -34,19 +34,27 @@ using namespace std;
 
 namespace p44 {
 
+  class ExternalDeviceConnector;
   class ExternalDeviceContainer;
   class ExternalDevice;
 
+
+  typedef boost::intrusive_ptr<ExternalDeviceConnector> ExternalDeviceConnectorPtr;
 
   typedef boost::intrusive_ptr<ExternalDevice> ExternalDevicePtr;
   class ExternalDevice : public Device
   {
     typedef Device inherited;
     friend class ExternalDeviceContainer;
+    friend class ExternalDeviceConnector;
 
-    JsonCommPtr deviceConnection;
+    ExternalDeviceConnectorPtr deviceConnector;
+    string tag; ///< the tag to address the device within the devices on the same connection
+
+    string iconBaseName; ///< the base icon name
+    string modelNameString; ///< the string to be returned by modelName()
+
     bool configured; ///< set when device is configured (init message received and device added to vdc)
-    bool simpletext; ///< if set, device communication uses very simple text messages rather than JSON
     bool useMovement; ///< if set, device communication uses MV/move command for dimming and shadow device operation
     bool querySync; ///< if set, device is asked for synchronizing actual values of channels when needed (e.g. before saveScene)
 
@@ -54,7 +62,7 @@ namespace p44 {
 
   public:
 
-    ExternalDevice(DeviceClassContainer *aClassContainerP, JsonCommPtr aDeviceConnection);
+    ExternalDevice(DeviceClassContainer *aClassContainerP, ExternalDeviceConnectorPtr aDeviceConnector, string aTag);
     virtual ~ExternalDevice();
 
     ExternalDeviceContainer &getExternalDeviceContainer();
@@ -64,7 +72,7 @@ namespace p44 {
     virtual const char *deviceTypeIdentifier() { return "external"; };
 
     /// @return human readable model name/short description
-    virtual string modelName() { return "external device"; }
+    virtual string modelName();
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
@@ -107,23 +115,33 @@ namespace p44 {
     ///   class makes sure these cases (which may occur at the vDC API level) are not passed on to dimChannel()
     virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
 
+    /// disconnect device. If presence is represented by data stored in the vDC rather than
+    /// detection of real physical presence on a bus, this call must clear the data that marks
+    /// the device as connected to this vDC (such as a learned-in EnOcean button).
+    /// For devices where the vDC can be *absolutely certain* that they are still connected
+    /// to the vDC AND cannot possibly be connected to another vDC as well, this call should
+    /// return false.
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    /// @note at the time aDisconnectResultHandler is called, the only owner left for the device object might be the
+    ///   aDevice argument to the DisconnectCB handler.
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
+
 
   private:
 
-    void closeConnection();
-
-    void handleDeviceConnectionStatus(ErrorPtr aError);
-    void handleDeviceApiJsonMessage(ErrorPtr aError, JsonObjectPtr aMessage);
-    void handleDeviceApiSimpleMessage(ErrorPtr aError, string aMessage);
+    void handleDeviceApiJsonMessage(JsonObjectPtr aMessage);
+    void handleDeviceApiSimpleMessage(string aMessage);
     void sendDeviceApiJsonMessage(JsonObjectPtr aMessage);
     void sendDeviceApiSimpleMessage(string aMessage);
     void sendDeviceApiStatusMessage(ErrorPtr aError);
 
+    ErrorPtr configureDevice(JsonObjectPtr aInitParams);
     ErrorPtr processJsonMessage(string aMessageType, JsonObjectPtr aMessage);
     ErrorPtr processSimpleMessage(string aMessageType, string aValue);
-    ErrorPtr configureDevice(JsonObjectPtr aInitParams);
     ErrorPtr processInputJson(char aInputType, JsonObjectPtr aParams);
-
     ErrorPtr processInput(char aInputType, uint32_t aIndex, double aValue);
 
     void changeChannelMovement(size_t aChannelIndex, SimpleCB aDoneCB, int aNewDirection);
@@ -131,6 +149,42 @@ namespace p44 {
 
   };
 
+
+  typedef map<string,ExternalDevicePtr> ExternalDevicesMap;
+
+  class ExternalDeviceConnector : public P44Obj
+  {
+    friend class ExternalDevice;
+
+    ExternalDeviceContainer &externalDeviceContainer;
+
+    bool simpletext; ///< if set, device communication uses very simple text messages rather than JSON
+
+    JsonCommPtr deviceConnection;
+    ExternalDevicesMap externalDevices;
+
+  public:
+
+    ExternalDeviceConnector(ExternalDeviceContainer &aExternalDeviceContainer, JsonCommPtr aDeviceConnection);
+    virtual ~ExternalDeviceConnector();
+
+  private:
+
+    void removeDevice(ExternalDevicePtr aExtDev);
+    void closeConnection();
+    void handleDeviceConnectionStatus(ErrorPtr aError);
+    void handleDeviceApiJsonMessage(ErrorPtr aError, JsonObjectPtr aMessage);
+    ErrorPtr handleDeviceApiJsonSubMessage(JsonObjectPtr aMessage);
+    void handleDeviceApiSimpleMessage(ErrorPtr aError, string aMessage);
+
+    ExternalDevicePtr findDeviceByTag(string aTag);
+    void sendDeviceApiJsonMessage(JsonObjectPtr aMessage, const char *aTag = NULL);
+    void sendDeviceApiSimpleMessage(string aMessage, const char *aTag = NULL);
+    void sendDeviceApiStatusMessage(ErrorPtr aError, const char *aTag = NULL);
+
+  };
+  
+  
 
 
   typedef boost::intrusive_ptr<ExternalDeviceContainer> ExternalDeviceContainerPtr;
@@ -151,10 +205,6 @@ namespace p44 {
     /// collect devices from this device class
     /// @param aCompletedCB will be called when device scan for this device class has been completed
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
-
-    /// @param aForget if set, all parameters stored for the device (if any) will be deleted. Note however that
-    ///   the devices are not disconnected (=unlearned) by this.
-    virtual void removeDevices(bool aForget);
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
