@@ -913,9 +913,9 @@ ErrorPtr ExternalDeviceConnector::handleDeviceApiJsonSubMessage(JsonObjectPtr aM
     }
     else {
       // must be a message directed to an already existing device
-      ExternalDevicePtr dev = findDeviceByTag(tag);
-      if (dev) {
-        err = dev->processJsonMessage(o->stringValue(), aMessage);
+      extDev = findDeviceByTag(tag);
+      if (extDev) {
+        err = extDev->processJsonMessage(o->stringValue(), aMessage);
       }
     }
   }
