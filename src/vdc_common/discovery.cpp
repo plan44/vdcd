@@ -62,6 +62,7 @@ DiscoveryManager::DiscoveryManager() :
   entryGroup(NULL),
   debugServiceBrowser(NULL),
   auxVdsmRunning(false),
+  vdsmAuxiliary(true),
   noAuto(false),
   publishWebPort(0),
   publishSshPort(0),
@@ -131,7 +132,7 @@ ErrorPtr DiscoveryManager::start(
   DeviceContainerPtr aDeviceContainer,
   const char *aHostname, bool aNoAuto,
   int aWebPort, int aSshPort,
-  DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler
+  DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler, bool aNotAuxiliary
 ) {
   ErrorPtr err;
   // stop current operation
@@ -146,6 +147,7 @@ ErrorPtr DiscoveryManager::start(
   auxVdsmDsUid = aAuxVdsmDsUid;
   auxVdsmRunning = aAuxVdsmRunning;
   auxVdsmStatusHandler = aAuxVdsmStatusHandler;
+  vdsmAuxiliary = !aNotAuxiliary;
   // init state
   dmState = dm_starting; // starting
   // allocate the simple-poll object
@@ -295,9 +297,14 @@ void DiscoveryManager::evaluateState()
     if (auxVdsmRunning) {
       // we have a auxiliary vdsm running and must decide whether to shut it down now
       if (dmState==dm_detected_master) {
-        // there is indeed a master vdsm in the network, let it take over
-        LOG(LOG_WARNING, "***** Detected master vdsm -> shut down auxiliary vdsm\n");
-        if (auxVdsmStatusHandler) auxVdsmStatusHandler(false);
+        if (vdsmAuxiliary) {
+          // there is indeed a master vdsm in the network, let it take over
+          LOG(LOG_WARNING, "***** Detected master vdsm -> shut down auxiliary vdsm\n");
+          if (auxVdsmStatusHandler) auxVdsmStatusHandler(false);
+        }
+        else {
+          LOG(LOG_WARNING, "***** Detected master vdsm but this vdsm is not auxiliary -> no change\n");
+        }
       }
     }
     else {
@@ -305,7 +312,7 @@ void DiscoveryManager::evaluateState()
       // - only start auxiliary vdsm if our vdc API is not connected
       if (!deviceContainer->getSessionConnection()) {
         // no active session
-        if (dmState!=dm_detected_master) {
+        if (dmState!=dm_detected_master || !vdsmAuxiliary) {
           // and we haven't detected a master vdsm
           LOG(LOG_WARNING, "***** Detected no master vdsm, and vdc has no connection -> need auxiliary vdsm\n");
           if (auxVdsmStatusHandler) auxVdsmStatusHandler(true);
@@ -453,7 +460,7 @@ void DiscoveryManager::create_services(AvahiServer *aAvahiServer)
       auxVdsmPort, // auxiliary vdsm's ds485 port
       txt_dsuid.c_str(), // TXT record for the auxiliary vdsm's dSUID
       VDSM_ROLE_COLLECTABLE, // TXT record signalling this vdsm may be collected by ds485p
-      VDSM_ROLE_AUXILIARY, // TXT record signalling this vdsm is auxiliary
+      vdsmAuxiliary ? VDSM_ROLE_AUXILIARY : NULL, // TXT record signalling this vdsm is auxiliary
       noAuto ? VDSM_VDC_ROLE_NOAUTO : NULL, // noauto flag or early TXT terminator
       NULL // TXT record terminator
     ))<0) {

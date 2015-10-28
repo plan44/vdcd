@@ -347,6 +347,7 @@ public:
       { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
       { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
       { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
+      { 0  , "vdsmnotaux"    ,false, NULL /* can be set to make vdsm non-auxiliary */ },
       { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
       #endif
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
@@ -854,7 +855,8 @@ public:
       auxVdsmDsuid,
       auxVdsmPort,
       getOption("auxvdsmrunning"),
-      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1)
+      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
+      getOption("vdsmnotaux")
     );
     if (!Error::isOK(err)) {
       LOG(LOG_ERR,"**** Cannot start discovery manager: %s\n", err->description().c_str());

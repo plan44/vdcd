@@ -68,6 +68,7 @@ namespace p44 {
     DsUidPtr auxVdsmDsUid;
     int auxVdsmPort;
     bool auxVdsmRunning;
+    bool vdsmAuxiliary;
     AuxVdsmStatusHandler auxVdsmStatusHandler;
 
     // state
@@ -95,6 +96,7 @@ namespace p44 {
     /// @param aAuxVdsmPort port to connect the vdsm from ds485p
     /// @param aAuxVdsmRunning must be true if the auxiliary vdsm is running right now, false if not.
     /// @param aAuxVdsmStatusHandler will be called when discovery detects or looses master vdsm
+    /// @param aNotAuxiliary if set, vdsm will always run and will not include the "auxiliary" TXT record in the advertisement
     /// @return error in case discovery manager could not be started
     ErrorPtr start(
       DeviceContainerPtr aDeviceContainer,
@@ -102,7 +104,7 @@ namespace p44 {
       bool aNoAuto,
       int aWebPort,
       int aSshPort,
-      DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler
+      DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler, bool aNotAuxiliary
     );
 
     /// stop advertising and scanning
