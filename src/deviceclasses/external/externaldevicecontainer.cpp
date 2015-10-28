@@ -216,6 +216,16 @@ ErrorPtr ExternalDevice::processJsonMessage(string aMessageType, JsonObjectPtr a
       else if (aMessageType=="channel") {
         err = processInputJson('C', aMessage);
       }
+      else if (aMessageType=="log") {
+        // log something
+        int logLevel = LOG_NOTICE; // default to normally displayed (5)
+        JsonObjectPtr o = aMessage->get("level");
+        if (o) logLevel = o->int32Value();
+        o = aMessage->get("text");
+        if (o) {
+          LOG(logLevel,"External Device %s: %s\n", shortDesc().c_str(), o->c_strValue());
+        }
+      }
       else {
         err = TextError::err("Unknown message '%s'", aMessageType.c_str());
       }
@@ -241,13 +251,21 @@ ErrorPtr ExternalDevice::processSimpleMessage(string aMessageType, string aValue
     return ErrorPtr(); // no answer
   }
   else if (aMessageType.size()>0) {
-    // none of the other commands, try inputs
+    // none of the other commands, try inputs (or log)
     char iotype = aMessageType[0];
     int index = 0;
     if (sscanf(aMessageType.c_str()+1, "%d", &index)==1) {
-      double value = 0;
-      sscanf(aValue.c_str(), "%lf", &value);
-      return processInput(iotype, index, value);
+      if (iotype=='L') {
+        // log
+        LOG(index,"External Device %s: %s\n", shortDesc().c_str(), aValue.c_str());
+        return ErrorPtr(); // no answer
+      }
+      else {
+        // must be input
+        double value = 0;
+        sscanf(aValue.c_str(), "%lf", &value);
+        return processInput(iotype, index, value);
+      }
     }
   }
   return TextError::err("Unknown message '%s'", aMessageType.c_str());
@@ -272,7 +290,7 @@ ErrorPtr ExternalDevice::processInputJson(char aInputType, JsonObjectPtr aParams
 }
 
 
-#pragma mark - process input
+#pragma mark - process input (or log)
 
 ErrorPtr ExternalDevice::processInput(char aInputType, uint32_t aIndex, double aValue)
 {
