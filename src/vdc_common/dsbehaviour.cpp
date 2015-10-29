@@ -66,7 +66,7 @@ bool DsBehaviour::pushBehaviourState()
     ApiValuePtr query = api->newApiValue();
     query->setType(apivalue_object);
     ApiValuePtr subQuery = query->newValue(apivalue_object);
-    subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+    subQuery->add(string_format("%zu",index), subQuery->newValue(apivalue_null));
     query->add(string(getTypeName()).append("States"), subQuery);
     return device.pushProperty(query, VDC_API_DOMAIN);
   }
@@ -77,7 +77,7 @@ bool DsBehaviour::pushBehaviourState()
 
 string DsBehaviour::getDbKey()
 {
-  return string_format("%s_%d",device.dSUID.getString().c_str(),index);
+  return string_format("%s_%zu",device.dSUID.getString().c_str(),index);
 }
 
 

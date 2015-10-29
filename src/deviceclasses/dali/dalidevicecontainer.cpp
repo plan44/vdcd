@@ -677,7 +677,7 @@ void DaliDeviceContainer::testRW(StatusCB aCompletedCB, DaliAddress aShortAddr, 
 void DaliDeviceContainer::testRWResponse(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && !aNoOrTimeout && aResponse==aTestByte) {
-    LOG(LOG_NOTICE,"  - sent 0x%02X, received 0x%02X\n",aTestByte, aResponse, aNoOrTimeout);
+    LOG(LOG_NOTICE,"  - sent 0x%02X, received 0x%02X, noOrTimeout=%d\n",aTestByte, aResponse, aNoOrTimeout);
     // successfully read back same value from DTR as sent before
     // - check if more tests
     switch (aTestByte) {

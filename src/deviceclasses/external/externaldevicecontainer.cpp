@@ -378,7 +378,7 @@ void ExternalDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       if (cb->needsApplying()) {
         // send channel value message
         if (deviceConnector->simpletext) {
-          string m = string_format("C%d=%lf", i, cb->getChannelValue());
+          string m = string_format("C%zu=%lf", i, cb->getChannelValue());
           sendDeviceApiSimpleMessage(m);
         }
         else {
@@ -421,7 +421,7 @@ void ExternalDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 void ExternalDevice::changeChannelMovement(size_t aChannelIndex, SimpleCB aDoneCB, int aNewDirection)
 {
   if (deviceConnector->simpletext) {
-    string m = string_format("MV%d=%d", aChannelIndex, aNewDirection);
+    string m = string_format("MV%zu=%d", aChannelIndex, aNewDirection);
     sendDeviceApiSimpleMessage(m);
   }
   else {

@@ -116,7 +116,7 @@ void EnoceanDevice::deriveDsUid()
   // UUID in EnOcean name space
   //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
-  string s = string_format("%08lX", getAddress()); // base address comes from
+  string s = string_format("%08X", getAddress()); // base address comes from
   dSUID.setNameInSpace(s, enOceanNamespace);
   dSUID.setSubdeviceIndex(getSubDevice());
 }
@@ -124,13 +124,13 @@ void EnoceanDevice::deriveDsUid()
 
 string EnoceanDevice::hardwareGUID()
 {
-  return string_format("enoceanaddress:%08lX", getAddress());
+  return string_format("enoceanaddress:%08X", getAddress());
 }
 
 
 string EnoceanDevice::hardwareModelGUID()
 {
-  return string_format("enoceaneep:%06lX", EEP_PURE(getEEProfile()));
+  return string_format("enoceaneep:%06X", EEP_PURE(getEEProfile()));
 }
 
 
@@ -300,7 +300,7 @@ void EnoceanDevice::checkPresence(PresenceCB aPresenceResultHandler)
 string EnoceanDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
+  string_format_append(s, "- Enocean Address = 0x%08X, subDevice=%d\n", enoceanAddress, subDevice);
   const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   string_format_append(s,
     "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X\n",

@@ -814,7 +814,7 @@ public:
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
-      DBGLOG(LOG_INFO, p44VdcHost->description().c_str());
+      DBGLOG(LOG_INFO, "%s", p44VdcHost->description().c_str());
     }
     else
       setAppStatus(status_error);

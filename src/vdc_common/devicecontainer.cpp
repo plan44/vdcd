@@ -96,7 +96,7 @@ string DeviceContainer::macAddressString()
   string macStr;
   if (mac!=0) {
     for (int i=0; i<6; ++i) {
-      string_format_append(macStr, "%02X",(mac>>((5-i)*8)) & 0xFF);
+      string_format_append(macStr, "%02llX",(mac>>((5-i)*8)) & 0xFF);
     }
   }
   else {
@@ -1304,7 +1304,7 @@ void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 
 string DeviceContainer::description()
 {
-  string d = string_format("DeviceContainer with %d device classes:\n", deviceClassContainers.size());
+  string d = string_format("DeviceContainer with %lu device classes:\n", deviceClassContainers.size());
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
     d.append(pos->second->description());
   }

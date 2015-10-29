@@ -363,25 +363,25 @@ typedef enum {
 
 /// binary input types (sensor functions)
 typedef enum {
-  binInpType_none, ///< no system function
-  binInpType_presence, ///< Presence
-  binInpType_light, ///< Light
-  binInpType_presenceInDarkness, ///< Presence in darkness
-  binInpType_twilight, ///< twilight
-  binInpType_motion, ///< motion
-  binInpType_motionInDarkness, ///< motion in darkness
-  binInpType_smoke, ///< smoke
-  binInpType_wind, ///< wind
-  binInpType_rain, ///< rain
-  binInpType_sun, ///< solar radiation (sun light above threshold)
-  binInpType_thermostat, ///< thermostat (temperature below user-adjusted threshold)
-  binInpType_lowBattery, ///< device has low battery
-  binInpType_windowOpen, ///< window is open
-  binInpType_doorOpen, ///< door is open
-  binInpType_windowTilted, ///< window is tilted instead of fully opened
-  binInpType_garageDoorOpen, ///< garage door is open
-  binInpType_sunProtection, ///< protect against too much sunlight
-  binInpType_frost, ///< frost detector
+  binInpType_none = 0, ///< no system function
+  binInpType_presence = 1, ///< Presence
+  binInpType_light = 2, ///< Light
+  binInpType_presenceInDarkness = 3, ///< Presence in darkness
+  binInpType_twilight = 4, ///< twilight
+  binInpType_motion = 5, ///< motion
+  binInpType_motionInDarkness = 6, ///< motion in darkness
+  binInpType_smoke = 7, ///< smoke
+  binInpType_wind = 8, ///< wind
+  binInpType_rain = 9, ///< rain
+  binInpType_sun = 10, ///< solar radiation (sun light above threshold)
+  binInpType_thermostat = 11, ///< thermostat (temperature below user-adjusted threshold)
+  binInpType_lowBattery = 12, ///< device has low battery
+  binInpType_windowOpen = 13, ///< window is open
+  binInpType_doorOpen = 14, ///< door is open
+  binInpType_windowTilted = 15, ///< window is tilted instead of fully opened
+  binInpType_garageDoorOpen = 16, ///< garage door is open
+  binInpType_sunProtection = 17, ///< protect against too much sunlight
+  binInpType_frost = 18, ///< frost detector
 } DsBinaryInputType;
 
 

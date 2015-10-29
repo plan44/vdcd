@@ -506,7 +506,7 @@ ErrorPtr SceneDeviceSettings::loadChildren()
 {
   ErrorPtr err;
   // my own ROWID is the parent key for the children
-  string parentID = string_format("%d",rowid);
+  string parentID = string_format("%llu",rowid);
   // create a template
   DsScenePtr scene = newDefaultScene(0);
   // get the query
@@ -539,7 +539,7 @@ ErrorPtr SceneDeviceSettings::saveChildren()
   // Cannot save children before I have my own rowID
   if (rowid!=0) {
     // my own ROWID is the parent key for the children
-    string parentID = string_format("%d",rowid);
+    string parentID = string_format("%llu",rowid);
     // save all elements of the map (only dirty ones will be actually stored to DB
     for (DsSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
       err = pos->second->saveToStore(parentID.c_str(), true); // multiple children of same parent allowed

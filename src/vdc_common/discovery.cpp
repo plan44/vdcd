@@ -193,7 +193,7 @@ void DiscoveryManager::stopServer()
 void DiscoveryManager::restartServer()
 {
   stopServer();
-  LOG(LOG_WARNING, "discovery: stopped avahi server - restarting in %d Seconds\n", SERVER_RESTART_DELAY/Minute);
+  LOG(LOG_WARNING, "discovery: stopped avahi server - restarting in %lld Seconds\n", SERVER_RESTART_DELAY/Minute);
   MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::startServer, this), SERVER_RESTART_DELAY);
 }
 

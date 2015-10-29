@@ -1650,9 +1650,9 @@ ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr
 string Device::description()
 {
   string s = inherited::description(); // DsAdressable
-  if (buttons.size()>0) string_format_append(s, "- Buttons: %d\n", buttons.size());
-  if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %d\n", binaryInputs.size());
-  if (sensors.size()>0) string_format_append(s, "- Sensors: %d\n", sensors.size());
+  if (buttons.size()>0) string_format_append(s, "- Buttons: %lu\n", buttons.size());
+  if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %lu\n", binaryInputs.size());
+  if (sensors.size()>0) string_format_append(s, "- Sensors: %lu\n", sensors.size());
   if (numChannels()>0) string_format_append(s, "- Output Channels: %d\n", numChannels());
   return s;
 }

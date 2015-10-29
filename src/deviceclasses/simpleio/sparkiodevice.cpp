@@ -326,7 +326,7 @@ void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     }
     // set output value
     if (apiVersion==2) {
-      string args = string_format("state=%lu", stateWord);
+      string args = string_format("state=%u", stateWord);
       // posting might fail if done too early
       if (!sparkApiCall(boost::bind(&SparkIoDevice::channelValuesSent, this, sl, aDoneCB, _1, _2), args)) {
         // retry after a while

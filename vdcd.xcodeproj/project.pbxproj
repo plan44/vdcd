@@ -114,8 +114,8 @@
 		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
-		ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; settings = {ASSET_TAGS = (); }; };
-		ED5DA3EE1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; settings = {ASSET_TAGS = (); }; };
+		ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
+		ED5DA3EE1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
