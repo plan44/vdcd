@@ -525,15 +525,18 @@ RadioOrg Esp3Packet::eepRorg()
 // Status                D[0]
 // T21 NU    7   6   5   4   3   2   1   0    RORG FUNC TYPE   Desc          Notes
 // --- --   --- --- --- --- --- --- --- ---   ---- ---- ----   ------------- -------------------
-//  1   0    1   x   x   x   x   x   x   x    F6   10   00     Win Handle    SIGNATURE
+//  1   0    1   1   x   x   x   x   x   x    F6   10   00     Win Handle    SIGNATURE
 //
-//  1   x    0   x   x   x   x   x   x   x    F6   02   01/2   2-Rocker      SIGNATURE (not unique, overlaps with key card switch)
+//  x   x    0   1   0   0   1   1   x   x    F6   10   01     Win Hndl ERP2 SIGNATURE
+//
+//  1   x    0   x   x   x   0   x   x   x    F6   02   01/2   2-Rocker      SIGNATURE (not unique, overlaps with key card switch)
 //
 //  0   x    x   x   x   x   x   x   x   x    F6   03   01/2   4-Rocker      SIGNATURE
+//  0   x    0   1   0   0   1   1   x   x    F6   03   01/2   4-Rocker      overlap with WinHandle ERP2 when BI (first action) and DI (second action) released -> UNLIKELY
 //
 //
 //  1   x    0   x   x   x   0   0   0   0    F6   04   01     Key Card      no unqiue SIGNATURE (overlaps with 2-Rocker)
-//  1   x    x   0   0   0   0   x   0   0    F6   04   02     Key Card ERP2 no unqiue SIGNATURE (overlaps with 2-Rocker)
+//  x   x    x   0   0   0   0   x   0   0    F6   04   02     Key Card ERP2 no unqiue SIGNATURE (overlaps with 2-Rocker)
 //  1   x    0   0   0   x   0   0   0   0    F6   04   02     Key Card      **** Eltako FKC/FKF: not in EEP, different encoding 
 //
 //  1   x    0   0   x   x   0   0   0   0    F6   05   xx     Detectors     no unqiue SIGNATURE (overlaps with 2-Rocker) - e.g. alphaEOS GUARD
@@ -575,13 +578,19 @@ EnoceanProfile Esp3Packet::eepProfile()
       // RPS have no learn mode, EEP signature can be derived from bits (not completely, but usable approximation)
       uint8_t status = radioStatus();
       uint8_t data = radioUserData()[0];
-      if ((status & status_T21)!=0) {
+      // ERP2 does not have status_T21 nor status_NU fields, so first check the data-only defined ERP2 profiles
+      if ((data & 0xFC)==0x4C) {
+        // ERP2 Window handle
+        profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x10<<8) | (0x01); // FUNC = Window handle, TYPE = 1 (ERP2)
+      }
+      // now check status for ERP1
+      else if ((status & status_T21)!=0) {
         // Win handle or 2-Rocker (or key card, but we can't distinguish that, so we default to 2-Rocker)
         if ((data & 0x80)!=0 && (status & status_NU)==0) {
-          // Window handle
-          profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x10<<8) | (0x00); // FUNC = Window handle, TYPE = 0 (no others defined)
+          // ERP1 Window handle
+          profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x10<<8) | (0x00); // FUNC = Window handle, TYPE = 0 (ERP1)
         }
-        else if ((data & 0x80)==0) {
+        else if ((data & 0x88)==0) {
           // 2-Rocker (or key card, but we ignore that
           profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x02<<8) | (eep_func_unknown); // FUNC = 2-Rocker switch, type unknown (1 or 2 is possible)
         }
