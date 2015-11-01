@@ -704,18 +704,18 @@ void EnoceanA52001Handler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       }
       // show general status if not fully ok
       LOG(LOG_INFO,
-        "EnOcean valve %s status: Service %s, Energy input %s, Energy storage %scharged, Battery %s, Cover %s, Sensor %s, Detected window %s, Actuator %s\n",
+        "EnOcean valve '%s': Valve state: %d%% open, Service %s, Energy input %s, Energy storage %scharged, Battery %s, Cover %s, Sensor %s, Detected window %s, Actuator %s\n",
         shortDesc().c_str(),
+        (data>>DB(3,0)) & 0xFF, // get data from DB(3,0..7), range is 0..100% (NOT 0..255!)
         data & DBMASK(2,7) ? "ON" : "off",
         data & DBMASK(2,6) ? "enabled" : "disabled",
         data & DBMASK(2,5) ? "" : "NOT ",
         data & DBMASK(2,4) ? "ok" : "LOW",
-        data & DBMASK(2,3) ? "closed" : "OPEN",
+        data & DBMASK(2,3) ? "OPEN" : "closed",
         data & DBMASK(2,2) ? "FAILURE" : "ok",
-        data & DBMASK(2,2) ? "open" : "closed",
-        data & DBMASK(2,2) ? "OBSTRUCTED" : "ok"
+        data & DBMASK(2,1) ? "open" : "closed",
+        data & DBMASK(2,0) ? "OBSTRUCTED" : "ok"
       );
-
     }
   }
 }
@@ -766,8 +766,8 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       // - DB(1,0) left 0 = normal operation (not service)
       // - DB(1,1) left 0 = no inverted set value
       // - DB(1,2) left 0 = sending valve position
-      // - DB(3,7)..DB(3,0) is valve position 0..255
-      int32_t newValue = ch->getChannelValue()*255.0/100.0; // channel is 0..100 -> scale to 0..255
+      // - DB(3,7)..DB(3,0) is valve position 0..100% (0..255 is only for temperature set point mode!)
+      int32_t newValue = ch->getChannelValue(); // channel has 0..100 range -> correct for sending directly
       data |= newValue<<DB(3,0); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
       if (cb->isSummerMode()) {
