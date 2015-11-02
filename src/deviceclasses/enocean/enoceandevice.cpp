@@ -409,6 +409,9 @@ void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, cons
       // could not create a device for subDeviceIndex
       break; // -> done
     }
+    // - keep assigned name and zone for new device(s)
+    newDev->initializeName(getAssignedName());
+    if (newDev->deviceSettings && deviceSettings) newDev->deviceSettings->zoneID = deviceSettings->zoneID;
     // - add it to the container
     getEnoceanDeviceContainer().addAndRemeberDevice(newDev);
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
