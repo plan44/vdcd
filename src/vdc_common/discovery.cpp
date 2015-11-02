@@ -83,29 +83,6 @@ void DiscoveryManager::avahi_log(AvahiLogLevel level, const char *txt)
 }
 
 
-
-string DiscoveryManager::publishedName()
-{
-  // derive the descriptive name
-  // - descriptive name: vendor name + Model name + optional custom name + optional serial
-  string n = deviceContainer->vendorName();
-  if (!n.empty()) n+=" ";
-  n += deviceContainer->modelName();
-  if (!deviceContainer->getName().empty()) {
-    // append custom name
-    string_format_append(n, " \"%s\"", deviceContainer->getName().c_str());
-  }
-  string s = deviceContainer->getDeviceHardwareId();
-  if (s.empty()) {
-    // use dSUID if no other ID is specified
-    s = deviceContainer->getDsUid().getString();
-  }
-  string_format_append(n, " %s", s.c_str());
-  return n;
-}
-
-
-
 DiscoveryManager::~DiscoveryManager()
 {
   // full stop
@@ -173,7 +150,7 @@ void DiscoveryManager::stopServer()
   if (entryGroup) {
     avahi_s_entry_group_free(entryGroup);
     entryGroup = NULL;
-    LOG(LOG_NOTICE, "discovery: unpublished '%s'.\n", publishedName().c_str());
+    LOG(LOG_NOTICE, "discovery: unpublished '%s'.\n", deviceContainer->publishedDescription().c_str());
   }
   if (serviceBrowser) {
     avahi_s_service_browser_free(serviceBrowser);
@@ -397,7 +374,7 @@ void DiscoveryManager::avahi_server_callback(AvahiServer *s, AvahiServerState st
 
 void DiscoveryManager::create_services(AvahiServer *aAvahiServer)
 {
-  string descriptiveName = publishedName();
+  string descriptiveName = deviceContainer->publishedDescription();
   // create entry group if needed
   if (!entryGroup) {
     if (!(entryGroup = avahi_s_entry_group_new(aAvahiServer, entry_group_callback, this))) {
@@ -515,7 +492,7 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGro
   // entry group state has changed
   switch (state) {
     case AVAHI_ENTRY_GROUP_ESTABLISHED: {
-      LOG(LOG_NOTICE, "discovery: successfully published %s service '%s'.\n", auxVdsmRunning ? "vdSM" : "vDC", publishedName().c_str());
+      LOG(LOG_NOTICE, "discovery: successfully published %s service '%s'.\n", auxVdsmRunning ? "vdSM" : "vDC", deviceContainer->publishedDescription().c_str());
       if (dmState<dm_started)
         dmState = dm_started;
       // start scanning for master vdsms
@@ -529,7 +506,7 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGro
     case AVAHI_ENTRY_GROUP_COLLISION: {
       // service name collision detected
       // Note: we don't handle this as it can't really happen (publishedName contains the deviceId or the vdcHost dSUID which MUST be unique)
-      LOG(LOG_CRIT, "avahi: service name collision, '%s' is apparently not unique\n", publishedName().c_str());
+      LOG(LOG_CRIT, "avahi: service name collision, '%s' is apparently not unique\n", deviceContainer->publishedDescription().c_str());
       break;
     }
     case AVAHI_ENTRY_GROUP_FAILURE: {

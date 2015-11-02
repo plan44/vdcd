@@ -218,7 +218,7 @@ void EnoceanDevice::needOutgoingUpdate()
     sendOutgoingUpdate();
   }
   else {
-    LOG(LOG_NOTICE,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
+    ALOG(LOG_NOTICE,"flagged output update pending -> outgoing EnOcean package will be sent later\n");
   }
 }
 
@@ -237,7 +237,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       // set destination
       outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
       outgoingEsp3Packet->finalize();
-      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
+      ALOG(LOG_INFO, "sending outgoing EnOcean packet:\n%s", outgoingEsp3Packet->description().c_str());
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendCommand(outgoingEsp3Packet, NULL);
     }
@@ -265,7 +265,7 @@ void EnoceanDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  LOG(LOG_INFO, "EnOcean device %s: now starts processing packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
+  ALOG(LOG_INFO, "now starts processing EnOcean packet:\n%s", aEsp3PacketPtr->description().c_str());
   lastPacketTime = MainLoop::now();
   lastRSSI = aEsp3PacketPtr->radioDBm();
   lastRepeaterCount = aEsp3PacketPtr->radioRepeaterCount();
@@ -277,7 +277,7 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   if (pendingDeviceUpdate || updateAtEveryReceive) {
     // send updates, if any
     pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
-    LOG(LOG_NOTICE,"EnOcean device %s: pending output update is now sent to device\n", shortDesc().c_str());
+    ALOG(LOG_NOTICE,"pending output update is now sent to device\n");
     sendOutgoingUpdate();
   }
 }

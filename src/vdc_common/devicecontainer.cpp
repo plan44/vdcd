@@ -179,6 +179,26 @@ const char *DeviceContainer::getPersistentDataDir()
 
 
 
+string DeviceContainer::publishedDescription()
+{
+  // derive the descriptive name
+  // - descriptive name: vendor name + Model name + optional custom name + optional serial
+  string n = vendorName();
+  if (!n.empty()) n+=" ";
+  n += modelName();
+  if (!getName().empty()) {
+    // append custom name
+    string_format_append(n, " \"%s\"", getName().c_str());
+  }
+  string s = getDeviceHardwareId();
+  if (s.empty()) {
+    // use dSUID if no other ID is specified
+    s = getDsUid().getString();
+  }
+  string_format_append(n, " %s", s.c_str());
+  return n;
+}
+
 
 
 #pragma mark - initializisation of DB and containers
@@ -265,7 +285,13 @@ void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
   // load the vdc host settings
   load();
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
+  LOG(LOG_NOTICE,
+    "\n\n\n****** starting initialisation of vcd host '%s'\n       dSUID (%s) = %s, MAC: %s, IP = %s\n",
+    publishedDescription().c_str(),
+    externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(),
+    macAddressString().c_str(),
+    ipv4AddressString().c_str()
+  );
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -532,7 +558,7 @@ void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 
 bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 {
-  LOG(LOG_INFO,"--- device %s reports %s user action\n", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
+  LOG(LOG_INFO,"vdSD %s: reports %s user action\n", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
   if (deviceUserActionHandler) {
     deviceUserActionHandler(DevicePtr(&aDevice), aRegular);
     return true; // suppress normal action

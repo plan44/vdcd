@@ -310,7 +310,7 @@ void EnoceanRpsButtonHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // extract payload data
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
   uint8_t status = aEsp3PacketPtr->radioStatus();
-  LOG(LOG_INFO, "RPS message: data=0x%02X, status=0x%02X, processing in %s (switchIndex=%d, isRockerUp=%d)\n", data, status, device.shortDesc().c_str(), switchIndex, isRockerUp);
+  HLOG(LOG_INFO, "RPS message processing: data=0x%02X, status=0x%02X (switchIndex=%d, isRockerUp=%d)\n", data, status, switchIndex, isRockerUp);
   // decode
   if (status & status_NU) {
     // N-Message
@@ -359,7 +359,7 @@ void EnoceanRpsButtonHandler::setButtonState(bool aPressed)
     // real change, propagate to behaviour
     ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(behaviour);
     if (b) {
-      LOG(LOG_INFO,"Enocean Button %s - %08X, subDevice %d, channel %d: changed state to %s\n", b->getHardwareName().c_str(), device.getAddress(), device.getSubDevice(), channel, aPressed ? "PRESSED" : "RELEASED");
+      HLOG(LOG_INFO,"Enocean Button %s - %08X, subDevice %d, channel %d: changed state to %s\n", b->getHardwareName().c_str(), device.getAddress(), device.getSubDevice(), channel, aPressed ? "PRESSED" : "RELEASED");
       b->buttonAction(aPressed);
     }
     // update cached status

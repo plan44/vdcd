@@ -50,7 +50,7 @@ ExternalDevice::ExternalDevice(DeviceClassContainer *aClassContainerP, ExternalD
 
 ExternalDevice::~ExternalDevice()
 {
-  LOG(LOG_DEBUG,"external device %s -> destructed\n", shortDesc().c_str());
+  ALOG(LOG_DEBUG,"destructed\n");
 }
 
 

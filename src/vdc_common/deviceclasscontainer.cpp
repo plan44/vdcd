@@ -237,7 +237,7 @@ ErrorPtr DeviceClassContainer::load()
   ErrorPtr err;
   // load the vdc settings
   err = loadFromStore(dSUID.getString().c_str());
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc %s: %s", shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) ALOG(LOG_ERR,"Error loading settings: %s", err->description().c_str());
   return ErrorPtr();
 }
 

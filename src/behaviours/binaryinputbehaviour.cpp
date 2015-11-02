@@ -53,9 +53,9 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
-  LOG(LOG_NOTICE,
-    "BinaryInput[%zu] '%s' in device %s received new state = %d\n",
-    index, hardwareName.c_str(),  device.shortDesc().c_str(), aNewState
+  BLOG(LOG_NOTICE,
+    "BinaryInput[%zu] '%s' received new state = %d\n",
+    index, hardwareName.c_str(), aNewState
   );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();

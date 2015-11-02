@@ -621,11 +621,10 @@ void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode
   // start dimming
   if (aChannelType==channeltype_brightness) {
     // start dimming
-    LOG(LOG_INFO,
-      "dimChannel (DALI): channel type %d (brightness) %s in device %s\n",
+    ALOG(LOG_INFO,
+      "dimChannel (DALI): channel type %d (brightness) %s\n",
       aChannelType,
-      aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"),
-      shortDesc().c_str()
+      aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN")
     );
     ChannelBehaviourPtr ch = getChannelByType(aChannelType);
     brightnessDimmer->dim(aDimMode, ch->getDimPerMS());
@@ -854,21 +853,23 @@ void DaliRGBWDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       if (dimmers[dimmer_white]) {
         // RGBW
         cl->getRGBW(r, g, b, w, 100); // dali dimmers use abstracted 0..100% brightness as input
-        if (!aForDimming) LOG(LOG_INFO,
-          "DALI composite RGB device %s: R=%d, G=%d, B=%d, W=%d\n",
-          shortDesc().c_str(),
-          (int)r, (int)g, (int)b, (int)w
-        );
+        if (!aForDimming) {
+          ALOG(LOG_INFO,
+            "DALI composite RGB: R=%d, G=%d, B=%d, W=%d\n",
+            (int)r, (int)g, (int)b, (int)w
+          );
+        }
         dimmers[dimmer_white]->setTransitionTime(tt);
       }
       else {
         // RGB
         cl->getRGB(r, g, b, 100); // dali dimmers use abstracted 0..100% brightness as input
-        if (!aForDimming) LOG(LOG_INFO,
-          "DALI composite RGBW device %s: R=%d, G=%d, B=%d\n",
-          shortDesc().c_str(),
-          (int)r, (int)g, (int)b
-        );
+        if (!aForDimming) {
+          ALOG(LOG_INFO,
+            "DALI composite: R=%d, G=%d, B=%d\n",
+            (int)r, (int)g, (int)b
+          );
+        }
       }
       // set transition time for all dimmers to brightness transition time
       dimmers[dimmer_red]->setTransitionTime(tt);

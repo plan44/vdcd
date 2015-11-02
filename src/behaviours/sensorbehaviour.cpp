@@ -64,9 +64,9 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 
 void SensorBehaviour::updateSensorValue(double aValue)
 {
-  LOG(LOG_NOTICE,
-    "Sensor[%zu] '%s' in device %s reported new value %0.3f\n",
-    index, hardwareName.c_str(),  device.shortDesc().c_str(), aValue
+  BLOG(LOG_NOTICE,
+    "Sensor[%zu] '%s' reported new value %0.3f\n",
+    index, hardwareName.c_str(), aValue
   );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();

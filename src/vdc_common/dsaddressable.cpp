@@ -193,7 +193,7 @@ bool DsAddressable::pushProperty(ApiValuePtr aQuery, int aDomain)
   }
   else {
     // not announced, suppress pushProperty
-    LOG(LOG_WARNING, "pushProperty suppressed because %s %s is not yet announced\n", entityType(), shortDesc().c_str());
+    ALOG(LOG_WARNING, "pushProperty suppressed - is not yet announced\n");
   }
   return false;
 }
@@ -204,12 +204,12 @@ void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParam
 {
   if (aMethod=="ping") {
     // issue device ping (which will issue a pong when device is reachable)
-    LOG(LOG_INFO,"ping to %s %s -> checking presence...\n", entityType(), shortDesc().c_str());
+    ALOG(LOG_INFO,"ping -> checking presence...\n");
     checkPresence(boost::bind(&DsAddressable::presenceResultHandler, this, _1));
   }
   else {
     // unknown notification
-    LOG(LOG_WARNING, "unknown notification '%s' for %s %s\n", aMethod.c_str(), entityType(), shortDesc().c_str());
+    ALOG(LOG_WARNING, "unknown notification '%s'\n", aMethod.c_str());
   }
 }
 
@@ -235,11 +235,11 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
 {
   if (aIsPresent) {
     // send back Pong notification
-    LOG(LOG_INFO,"ping: %s %s is present -> sending pong\n", entityType(), shortDesc().c_str());
+    ALOG(LOG_INFO,"is present -> sending pong\n");
     sendRequest("pong", ApiValuePtr());
   }
   else {
-    LOG(LOG_NOTICE,"ping: %s %s is NOT present -> no Pong sent\n", entityType(), shortDesc().c_str());
+    ALOG(LOG_NOTICE,"is NOT present -> no Pong sent\n");
   }
 }
 
@@ -462,7 +462,20 @@ string DsAddressable::vendorId()
 
 
 
-#pragma mark - description/shortDesc
+#pragma mark - description/shortDesc/logging
+
+
+void DsAddressable::logAddressable(int aErrLevel, const char *aFmt, ... )
+{
+  va_list args;
+  va_start(args, aFmt);
+  // format the message
+  string message = string_format("%s %s: ", entityType(), shortDesc().c_str());
+  string_format_v(message, true, aFmt, args);
+  va_end(args);
+  globalLogger.logStr(aErrLevel, message);
+}
+
 
 string DsAddressable::shortDesc()
 {

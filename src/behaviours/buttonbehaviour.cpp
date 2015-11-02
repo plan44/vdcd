@@ -84,7 +84,7 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
-  LOG(LOG_NOTICE,"Button[%zu] '%s' in device %s was %s\n", index, hardwareName.c_str(), device.shortDesc().c_str(), aPressed ? "pressed" : "released");
+  BLOG(LOG_NOTICE,"Button[%zu] '%s' was %s\n", index, hardwareName.c_str(), aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
   checkStateMachine(true, MainLoop::now());
 }
@@ -328,7 +328,7 @@ DsButtonElement ButtonBehaviour::localFunctionElement()
 
 void ButtonBehaviour::localSwitchOutput()
 {
-  LOG(LOG_NOTICE,"Button[%zu] '%s' in device %s: Local switch\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
+  BLOG(LOG_NOTICE,"Button[%zu] '%s': Local switch\n", index, hardwareName.c_str());
 //  if (isTwoWay()) {
 //    // on or off depending on which side of the two-way switch was clicked
 //    outputOn = secondKey;
@@ -347,7 +347,7 @@ void ButtonBehaviour::localSwitchOutput()
 
 void ButtonBehaviour::localDim()
 {
-  LOG(LOG_NOTICE,"Button[%zu] '%s' in device %s: Local dim\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
+  BLOG(LOG_NOTICE,"Button[%zu] '%s': Local dim\n", index, hardwareName.c_str());
   // TODO: actually dim output in direction as indicated by dimmingUp
 }
 
@@ -361,9 +361,9 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
   // button press is considered a (regular!) user action, have it checked globally first
   if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
     // button press not consumed on global level, forward to upstream dS
-    LOG(LOG_NOTICE,
-      "Button[%zu] '%s' in device %s pushes value = %d, clickType %d\n",
-      index, hardwareName.c_str(),  device.shortDesc().c_str(), buttonPressed, aClickType
+    BLOG(LOG_NOTICE,
+      "Button[%zu] '%s' pushes value = %d, clickType %d\n",
+      index, hardwareName.c_str(), buttonPressed, aClickType
     );
     // issue a state property push
     pushBehaviourState();

@@ -326,6 +326,10 @@ namespace p44 {
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     string getDeviceHardwareId() { return deviceHardwareId; };
 
+    /// @return text describing the vdc host device, suitable for publishing via Avahi etc.
+    string publishedDescription();
+
+
     /// @}
 
 

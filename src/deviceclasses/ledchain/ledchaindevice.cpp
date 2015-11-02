@@ -153,11 +153,7 @@ void LedChainDevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
   getLedChainDeviceContainer().triggerRenderingRange(firstLED, numLEDs);
   // next step
   if (cl->colorTransitionStep(aStepSize)) {
-    LOG(LOG_DEBUG,
-      "Ledchain device %s: transitional values R=%d, G=%d, B=%d\n",
-      shortDesc().c_str(),
-      (int)r, (int)g, (int)b
-    );
+    ALOG(LOG_DEBUG, "LED chain transitional values R=%d, G=%d, B=%d\n", (int)r, (int)g, (int)b);
     // not yet complete, schedule next step
     transitionTicket = MainLoop::currentMainLoop().executeOnce(
       boost::bind(&LedChainDevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -165,11 +161,9 @@ void LedChainDevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     );
     return; // will be called later again
   }
-  if (!aForDimming) LOG(LOG_INFO,
-    "Ledchain device %s: final values R=%d, G=%d, B=%d\n",
-    shortDesc().c_str(),
-    (int)r, (int)g, (int)b
-  );
+  if (!aForDimming) {
+    ALOG(LOG_INFO, "LED chain final values R=%d, G=%d, B=%d\n", (int)r, (int)g, (int)b);
+  }
 }
 
 

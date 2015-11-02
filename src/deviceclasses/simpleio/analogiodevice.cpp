@@ -183,7 +183,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     analogIO->setValue(pwm);
     // next step
     if (l->brightnessTransitionStep(aStepSize)) {
-      LOG(LOG_DEBUG, "AnalogIO device %s: transitional PWM value: %.2f\n", shortDesc().c_str(), w);
+      ALOG(LOG_DEBUG, "AnalogIO transitional PWM value: %.2f\n", w);
       // not yet complete, schedule next step
       transitionTicket = MainLoop::currentMainLoop().executeOnce(
         boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -191,7 +191,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
       );
       return; // will be called later again
     }
-    if (!aForDimming) LOG(LOG_INFO, "AnalogIO device %s: final PWM value: %.2f\n", shortDesc().c_str(), w);
+    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final PWM value: %.2f\n", w);
   }
   else if (analogIOType==analogio_rgbdimmer) {
     // three channel RGB PWM dimmer
@@ -220,7 +220,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     analogIO3->setValue(pwm);
     // next step
     if (cl->colorTransitionStep(aStepSize)) {
-      LOG(LOG_DEBUG, "AnalogIO device %s: transitional RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", shortDesc().c_str(), r, g, b, w);
+      ALOG(LOG_DEBUG, "AnalogIO transitional RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", r, g, b, w);
       // not yet complete, schedule next step
       transitionTicket = MainLoop::currentMainLoop().executeOnce(
         boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -228,7 +228,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
       );
       return; // will be called later again
     }
-    if (!aForDimming) LOG(LOG_INFO, "AnalogIO device %s: final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", shortDesc().c_str(), r, g, b, w);
+    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", r, g, b, w);
   }
 }
 

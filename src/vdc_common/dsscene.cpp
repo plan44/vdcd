@@ -543,7 +543,7 @@ ErrorPtr SceneDeviceSettings::saveChildren()
     // save all elements of the map (only dirty ones will be actually stored to DB
     for (DsSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
       err = pos->second->saveToStore(parentID.c_str(), true); // multiple children of same parent allowed
-      if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving scene %d for device %s: %s", pos->second->sceneNo, device.shortDesc().c_str(), err->description().c_str());
+      if (!Error::isOK(err)) LOG(LOG_ERR,"vdSD %s: Error saving scene %d: %s", device.shortDesc().c_str(), pos->second->sceneNo, err->description().c_str());
     }
   }
   return err;

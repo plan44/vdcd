@@ -41,6 +41,15 @@ namespace p44 {
   typedef uint8_t EnoceanSubDevice;
 
 
+  // per-addressable logging macros
+  #define HLOG(lvl, ...) { if (LOGENABLED(lvl)) { device.logAddressable(lvl, ##__VA_ARGS__); } }
+  #if FOCUSLOGGING
+  #define HFOCUSLOG(...) { HLOG(FOCUSLOGLEVEL, ##__VA_ARGS__); }
+  #else
+  #define HFOCUSLOG(...)
+  #endif
+
+
   typedef boost::intrusive_ptr<EnoceanChannelHandler> EnoceanChannelHandlerPtr;
 
   /// single EnOcean device channel, abstract class

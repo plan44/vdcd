@@ -112,7 +112,6 @@ namespace p44 {
 
   private:
 
-    string publishedName();
     void startServer();
     void stopServer();
     void restartServer();

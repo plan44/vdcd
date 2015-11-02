@@ -84,7 +84,7 @@ string DsBehaviour::getDbKey()
 ErrorPtr DsBehaviour::load()
 {
   ErrorPtr err = loadFromStore(getDbKey().c_str());
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) BLOG(LOG_ERR,"Error loading behaviour %s: %s", shortDesc().c_str(), err->description().c_str());
   return err;
 }
 
@@ -92,7 +92,7 @@ ErrorPtr DsBehaviour::load()
 ErrorPtr DsBehaviour::save()
 {
   ErrorPtr err = saveToStore(getDbKey().c_str(), false); // only one record per dbkey (=per device+behaviourindex)
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) BLOG(LOG_ERR,"Error saving behaviour %s: %s", shortDesc().c_str(), err->description().c_str());
   return err;
 }
 

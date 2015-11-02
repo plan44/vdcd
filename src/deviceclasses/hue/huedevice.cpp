@@ -331,7 +331,7 @@ void HueDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     }
     // show what we are doing
     if (LOGENABLED(LOG_INFO) && (!aForDimming || LOGENABLED(LOG_DEBUG))) {
-      LOG(LOG_INFO, "hue device %s: sending new light state: light is %s, brightness=%0.0f, transition in %d mS\n", shortDesc().c_str(), lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
+      ALOG(LOG_INFO, "sending new light state: light is %s, brightness=%0.0f, transition in %d mS\n", lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
       if (cl) {
         switch (cl->colorMode) {
           case colorLightModeHueSaturation:
