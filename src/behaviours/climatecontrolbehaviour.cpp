@@ -192,7 +192,7 @@ string ClimateControlBehaviour::shortDesc()
 
 string ClimateControlBehaviour::description()
 {
-  string s = string_format("%s behaviour (in %smode)\n", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
+  string s = string_format("%s behaviour (in %smode)", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
   s.append(inherited::description());
   return s;
 }

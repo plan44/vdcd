@@ -77,7 +77,7 @@ LedChainDevice::LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16
     }
   }
   if (!configOK) {
-    LOG(LOG_ERR,"invalid LedChain device config: %s\n", aDeviceConfig.c_str());
+    LOG(LOG_ERR, "invalid LedChain device config: %s", aDeviceConfig.c_str());
   }
   // by default, act as black device so we can configure colors
   primaryGroup = group_black_joker;
@@ -153,7 +153,7 @@ void LedChainDevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
   getLedChainDeviceContainer().triggerRenderingRange(firstLED, numLEDs);
   // next step
   if (cl->colorTransitionStep(aStepSize)) {
-    ALOG(LOG_DEBUG, "LED chain transitional values R=%d, G=%d, B=%d\n", (int)r, (int)g, (int)b);
+    ALOG(LOG_DEBUG, "LED chain transitional values R=%d, G=%d, B=%d", (int)r, (int)g, (int)b);
     // not yet complete, schedule next step
     transitionTicket = MainLoop::currentMainLoop().executeOnce(
       boost::bind(&LedChainDevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -162,7 +162,7 @@ void LedChainDevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     return; // will be called later again
   }
   if (!aForDimming) {
-    ALOG(LOG_INFO, "LED chain final values R=%d, G=%d, B=%d\n", (int)r, (int)g, (int)b);
+    ALOG(LOG_INFO, "LED chain final values R=%d, G=%d, B=%d", (int)r, (int)g, (int)b);
   }
 }
 

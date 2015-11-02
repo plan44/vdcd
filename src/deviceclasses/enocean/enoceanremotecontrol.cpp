@@ -68,7 +68,7 @@ void EnoceanRemoteControlDevice::sendSwitchBeaconRelease(bool aRight, bool aUp)
 
 void EnoceanRemoteControlDevice::buttonAction(bool aRight, bool aUp, bool aPress)
 {
-  FOCUSLOG("- %s simulated %s %s button\n", aPress ? "PRESSING" : "RELEASING", aRight ? "RIGHT" : "LEFT", aUp ? "UP" : "DOWN");
+  FOCUSLOG("- %s simulated %s %s button", aPress ? "PRESSING" : "RELEASING", aRight ? "RIGHT" : "LEFT", aUp ? "UP" : "DOWN");
   Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
   packet->initForRorg(rorg_RPS);
   packet->setRadioDestination(EnoceanBroadcast);
@@ -306,12 +306,12 @@ void EnoceanBlindControlDevice::dimChannel(DsChannelType aChannelType, DsDimMode
 void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
 {
   // - 0=stopped, -1=moving down, +1=moving up
-  FOCUSLOG("blind action requested: %d (current: %d)\n", aNewDirection, movingDirection);
+  FOCUSLOG("blind action requested: %d (current: %d)", aNewDirection, movingDirection);
   if (aNewDirection!=movingDirection) {
     int previousDirection = movingDirection;
     movingDirection = aNewDirection;
     // needs change
-    FOCUSLOG("- needs action:\n");
+    FOCUSLOG("- needs action:");
     if (movingDirection==0) {
       // requesting stop:
       if (commandTicket) {

@@ -751,7 +751,7 @@ string Esp3Packet::description()
       // ESP3 radio packet
       string_format_append(t,
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08X, status=0x%02X\n"
-        "- subtelegrams=%d, destination=0x%08X, dBm=%d, repeated=%d, secLevel=%d\n",
+        "- subtelegrams=%d, destination=0x%08X, dBm=%d, repeated=%d, secLevel=%d",
         eepRorg(),
         radioSender(),
         radioStatus(),
@@ -765,7 +765,7 @@ string Esp3Packet::description()
       if (eepHasTeachInfo()) {
         const char *mn = EnoceanComm::manufacturerName(eepManufacturer());
         string_format_append(t,
-          "- Is Learn-In packet: EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)\n",
+          "\n- Is Learn-In packet: EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)",
           (eepProfile()>>16) & 0xFF,
           (eepProfile()>>8) & 0xFF,
           eepProfile() & 0xFF,
@@ -776,27 +776,25 @@ string Esp3Packet::description()
     }
     else if (packetType()==pt_response) {
       // non-radio ESP3 packet
-      string_format_append(t, "ESP3 response packet, return code = %d\n", data()[0]);
+      string_format_append(t, "\nESP3 response packet, return code = %d", data()[0]);
     }
     else if (packetType()==pt_common_cmd) {
       // non-radio ESP3 packet
-      string_format_append(t, "ESP3 common command (%d)\n", data()[0]);
+      string_format_append(t, "\nESP3 common command (%d)", data()[0]);
     }
     // raw data
-    string_format_append(t, "- %3zu data bytes: ", dataLength());
+    string_format_append(t, "\n- %3zu data bytes: ", dataLength());
     for (int i=0; i<dataLength(); i++)
       string_format_append(t, "%02X ", data()[i]);
-    t.append("\n");
     if (packetType()==pt_radio) {
-      string_format_append(t, "- %3zu opt  bytes: ", optDataLength());
+      string_format_append(t, "\n- %3zu opt  bytes: ", optDataLength());
       for (int i=0; i<optDataLength(); i++)
         string_format_append(t, "%02X ", optData()[i]);
-      t.append("\n");
     }
     return t;
   }
   else {
-    return string_format("Incomplete ESP3 packet in state = %d\n", (int)state);
+    return string_format("\nIncomplete ESP3 packet in state = %d", (int)state);
   }
 }
 
@@ -966,7 +964,7 @@ EnoceanComm::~EnoceanComm()
 
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName)
 {
-  LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s\n", aConnectionSpec);
+  LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s", aConnectionSpec);
   serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
   // create the EnOcean reset IO pin
   if (aEnoceanResetPinName) {
@@ -998,7 +996,7 @@ void EnoceanComm::initError(StatusCB aCompletedCB, int aRetriesLeft, ErrorPtr aE
   // error querying version
   aRetriesLeft--;
   if (aRetriesLeft>=0) {
-    LOG(LOG_WARNING, "EnoceanComm: Initialisation: command failed: %s -> retrying again\n", aError->description().c_str());
+    LOG(LOG_WARNING, "EnoceanComm: Initialisation: command failed: %s -> retrying again", aError->description().c_str());
     // flush the line on the first half of attempts
     if (aRetriesLeft>ENOCEAN_INIT_RETRIES/2) {
       flushLine();
@@ -1009,7 +1007,7 @@ void EnoceanComm::initError(StatusCB aCompletedCB, int aRetriesLeft, ErrorPtr aE
   }
   else {
     // no more retries, just return
-    LOG(LOG_ERR, "EnoceanComm: Initialisation: %d attempts failed to send commands -> initialisation failed\n", ENOCEAN_INIT_RETRIES);
+    LOG(LOG_ERR, "EnoceanComm: Initialisation: %d attempts failed to send commands -> initialisation failed", ENOCEAN_INIT_RETRIES);
     if (aCompletedCB) aCompletedCB(aError);
   }
   return; // done
@@ -1024,7 +1022,7 @@ void EnoceanComm::versionReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3P
     appVersion = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
     apiVersion = (d[5]<<24)+(d[6]<<16)+(d[7]<<8)+d[8];
     myAddress = (d[9]<<24)+(d[10]<<16)+(d[11]<<8)+d[12];
-    FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X\n", appVersion, apiVersion, myAddress);
+    FOCUSLOG("Received CO_RD_VERSION  answer: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X", appVersion, apiVersion, myAddress);
   }
   else {
     initError(aCompletedCB, aRetriesLeft, aError);
@@ -1040,7 +1038,7 @@ void EnoceanComm::idbaseReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3Pa
   if (Error::isOK(aError)) {
     uint8_t *d = aEsp3PacketPtr->data();
     myIdBase = (d[1]<<24)+(d[2]<<16)+(d[3]<<8)+d[4];
-    FOCUSLOG("Received CO_RD_IDBASE  answer: idBase=0x%08X\n", myIdBase);
+    FOCUSLOG("Received CO_RD_IDBASE  answer: idBase=0x%08X", myIdBase);
   }
   else {
     initError(aCompletedCB, aRetriesLeft, aError);
@@ -1056,7 +1054,7 @@ void EnoceanComm::idbaseReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3Pa
 
 void EnoceanComm::aliveCheck()
 {
-  FOCUSLOG("EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command\n");
+  FOCUSLOG("EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command");
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
   checkPacket->setPacketType(pt_common_cmd);
@@ -1073,7 +1071,7 @@ void EnoceanComm::aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aErr
 {
   if (!Error::isOK(aError)) {
     // alive check failed, try to recover EnOcean interface
-    LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module\n");
+    LOG(LOG_ERR, "EnoceanComm: alive check of EnOcean module failed -> restarting module");
     // - cancel alive checks for now
     MainLoop::currentMainLoop().cancelExecutionTicket(aliveCheckTicket);
     // - close the connection
@@ -1086,7 +1084,7 @@ void EnoceanComm::aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aErr
     // response received, should be answer to CO_RD_VERSION
     // check for version
     if (aEsp3PacketPtr->dataLength()!=33) {
-      FOCUSLOG("Alive check received packet after sending CO_RD_VERSION, but hat wrong data length (%zu instead of 33)\n", aEsp3PacketPtr->dataLength());
+      FOCUSLOG("Alive check received packet after sending CO_RD_VERSION, but hat wrong data length (%zu instead of 33)", aEsp3PacketPtr->dataLength());
     }
     // also schedule the next alive check
     aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), ENOCEAN_ESP3_ALIVECHECK_INTERVAL);
@@ -1096,7 +1094,7 @@ void EnoceanComm::aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aErr
 
 void EnoceanComm::resetDone()
 {
-  LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset\n");
+  LOG(LOG_NOTICE, "EnoceanComm: releasing enocean reset");
   if (enoceanResetPin) enoceanResetPin->set(false); // release reset
   // wait a little, then re-open connection
   MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::reopenConnection, this), 2*Second);
@@ -1105,7 +1103,7 @@ void EnoceanComm::resetDone()
 
 void EnoceanComm::reopenConnection()
 {
-  LOG(LOG_NOTICE, "EnoceanComm: re-opening connection\n");
+  LOG(LOG_NOTICE, "EnoceanComm: re-opening connection");
 	serialComm->requestConnection(); // re-open connection
   // restart alive checks, not too soon after reset
   aliveCheckTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanComm::aliveCheck, this), 10*Second);
@@ -1125,7 +1123,7 @@ size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
     for (size_t i = 0; i<aNumBytes; i++) {
       string_format_append(d, "%02X ", aBytes[i]);
     }
-    FOCUSLOG("%s\n",d.c_str());
+    FOCUSLOG("%s",d.c_str());
   }
 	size_t remainingBytes = aNumBytes;
 	while (remainingBytes>0) {
@@ -1166,7 +1164,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
     // - this is a command response
     if (cmdQueue.empty() || cmdQueue.front().commandPacket) {
       // received unexpected answer
-      LOG(LOG_WARNING,"Received unexpected ESP3 response packet of length %zu\n", aPacket->dataLength());
+      LOG(LOG_WARNING, "Received unexpected ESP3 response packet of length %zu", aPacket->dataLength());
     }
     else {
       // must be response to first entry in queue
@@ -1196,7 +1194,7 @@ void EnoceanComm::flushLine()
   memset(zeroes, 0, sizeof(zeroes));
   serialComm->transmitBytes(sizeof(zeroes), zeroes, err);
   if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "EnoceanComm: flushLine: error sending flush bytes\n");
+    LOG(LOG_ERR, "EnoceanComm: flushLine: error sending flush bytes");
   }
 }
 
@@ -1215,7 +1213,7 @@ void EnoceanComm::sendPacket(Esp3PacketPtr aPacket)
     serialComm->transmitBytes(aPacket->payloadSize, aPacket->payloadP, err);
   }
   if (!Error::isOK(err)) {
-    LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s\n", err->description().c_str());
+    LOG(LOG_ERR, "EnoceanComm: sendPacket: error sending packet over serial: %s", err->description().c_str());
   }
   else {
     FOCUSLOG("Sent EnOcean packet:\n%s", aPacket->description().c_str());

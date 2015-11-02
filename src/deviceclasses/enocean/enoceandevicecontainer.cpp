@@ -322,12 +322,12 @@ ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValueP
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (aError) {
-    LOG(LOG_INFO, "Radio packet error: %s\n", aError->description().c_str());
+    LOG(LOG_INFO, "Radio packet error: %s", aError->description().c_str());
     return;
   }
   // suppress radio packets send by one of my secondary IDs
   if ((aEsp3PacketPtr->radioSender() & 0xFFFFFF80) == enoceanComm.idBase()) {
-    LOG(LOG_DEBUG, "Suppressed radio packet coming from one of my own base IDs: %0X\n", aEsp3PacketPtr->radioSender());
+    LOG(LOG_DEBUG, "Suppressed radio packet coming from one of my own base IDs: %0X", aEsp3PacketPtr->radioSender());
     return;
   }
   // check learning mode
@@ -339,7 +339,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // detect implicit (RPS) learn in only with sufficient radio strength (or explicit override of that check),
     // explicit ones are always recognized
     if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
-      LOG(LOG_NOTICE, "Learn mode enabled: processing EnOcean learn packet: %s\n", aEsp3PacketPtr->description().c_str());
+      LOG(LOG_NOTICE, "Learn mode enabled: processing EnOcean learn packet: %s", aEsp3PacketPtr->description().c_str());
       // This is actually a valid learn action
       if (learnIn) {
         // new device learned in, add logical devices for it
@@ -361,7 +361,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       learningMode = false;
     } // learn action
     else {
-      LOG(LOG_INFO, "Learn mode enabled: Received non-learn EnOcean packet -> ignored: %s\n", aEsp3PacketPtr->description().c_str());
+      LOG(LOG_INFO, "Learn mode enabled: Received non-learn EnOcean packet -> ignored: %s", aEsp3PacketPtr->description().c_str());
     }
   }
   else {
@@ -382,7 +382,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
       reachedDevice = true;
     }
     if (!reachedDevice) {
-      LOG(LOG_INFO, "Received EnOcean packet not directed to any known device -> ignored: %s\n", aEsp3PacketPtr->description().c_str());
+      LOG(LOG_INFO, "Received EnOcean packet not directed to any known device -> ignored: %s", aEsp3PacketPtr->description().c_str());
     }
   }
 }
@@ -415,7 +415,7 @@ void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3Pa
       enoceanComm.setRadioPacketHandler(NULL);
       // seen both watchdog response (modem works) and independent RPS telegram (RF is ok)
       LOG(LOG_NOTICE,
-        "- enocean modem info: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X, idBase=0x%08X\n",
+        "- enocean modem info: appVersion=0x%08X, apiVersion=0x%08X, modemAddress=0x%08X, idBase=0x%08X",
         enoceanComm.modemAppVersion(), enoceanComm.modemApiVersion(), enoceanComm.modemAddress(), enoceanComm.idBase()
       );
       aCompletedCB(ErrorPtr());
@@ -424,7 +424,7 @@ void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3Pa
     }
   }
   // - still waiting
-  LOG(LOG_NOTICE, "- enocean test: still waiting for RPS telegram in learn distance\n");
+  LOG(LOG_NOTICE, "- enocean test: still waiting for RPS telegram in learn distance");
 }
 
 

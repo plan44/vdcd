@@ -54,7 +54,7 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
   BLOG(LOG_NOTICE,
-    "BinaryInput[%zu] '%s' received new state = %d\n",
+    "BinaryInput[%zu] '%s' received new state = %d",
     index, hardwareName.c_str(), aNewState
   );
   // always update age, even if value itself may not have changed
@@ -292,9 +292,9 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
 
 string BinaryInputBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- binary input type: %d, reportsChanges=%d, interval: %lld mS\n", hardwareInputType, reportsChanges, updateInterval/MilliSecond);
-  string_format_append(s, "- minimal interval between pushes: %lld mS\n", minPushInterval/MilliSecond);
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- binary input type: %d, reportsChanges=%d, interval: %lld mS", hardwareInputType, reportsChanges, updateInterval/MilliSecond);
+  string_format_append(s, "\n- minimal interval between pushes: %lld mS", minPushInterval/MilliSecond);
   s.append(inherited::description());
   return s;
 }

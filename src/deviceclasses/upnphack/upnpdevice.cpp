@@ -150,7 +150,7 @@ string UpnpDevice::modelName()
 string UpnpDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- UPnP device with description URL: %s and UUID: %s\n", descriptionURL.c_str(), upnpDeviceUUID.c_str());
+  string_format_append(s, "\n- UPnP device with description URL: %s and UUID: %s", descriptionURL.c_str(), upnpDeviceUUID.c_str());
   return s;
 }
 

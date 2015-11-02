@@ -162,7 +162,7 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
       for (DaliBusDeviceList::iterator refpos = ++aBusDevices->begin(); refpos!=aBusDevices->end(); ++refpos) {
         if (busDevice->dSUID==(*refpos)->dSUID) {
           // duplicate dSUID, indicates DALI devices with invalid device info that slipped all heuristics
-          LOG(LOG_ERR,"Bus devices #%d and #%d have same dSUID -> assuming invalid device info, reverting both to short address based dSUID\n", busDevice->deviceInfo.shortAddress, (*refpos)->deviceInfo.shortAddress);
+          LOG(LOG_ERR, "Bus devices #%d and #%d have same dSUID -> assuming invalid device info, reverting both to short address based dSUID", busDevice->deviceInfo.shortAddress, (*refpos)->deviceInfo.shortAddress);
           // - clear all device info except short address and revert to short address derived dSUID
           (*refpos)->clearDeviceInfo();
           anyDuplicates = true; // at least one found
@@ -203,7 +203,7 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
               // process dimmer
               if (!dimmer) {
                 // dimmer not found
-                LOG(LOG_WARNING, "Missing DALI dimmer %s for DALI group %d\n", dimmerUID.getString().c_str(), groupNo);
+                LOG(LOG_WARNING, "Missing DALI dimmer %s for DALI group %d", dimmerUID.getString().c_str(), groupNo);
                 // insert dummy instead
                 dimmer = DaliBusDevicePtr(new DaliBusDevice(*this));
                 dimmer->isDummy = true; // disable bus access
@@ -238,7 +238,7 @@ void DaliDeviceContainer::queryNextDev(DaliBusDeviceListPtr aBusDevices, DaliBus
 void DaliDeviceContainer::initializeNextDimmer(DaliBusDeviceListPtr aDimmerDevices, uint16_t aGroupsInUse, DaliBusDeviceList::iterator aNextDimmer, StatusCB aCompletedCB, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
-    LOG(LOG_ERR, "Error initializing dimmer: %s\n", aError->description().c_str());
+    LOG(LOG_ERR, "Error initializing dimmer: %s", aError->description().c_str());
   }
   if (aNextDimmer!=aDimmerDevices->end()) {
     // check next
@@ -294,7 +294,7 @@ void DaliDeviceContainer::createDsDevices(DaliBusDeviceListPtr aDimmerDevices, S
             // process dimmer
             if (!dimmer) {
               // dimmer not found
-              LOG(LOG_WARNING, "Missing DALI dimmer %s (type %s) for composite device\n", dimmerUID.getString().c_str(), dimmerType.c_str());
+              LOG(LOG_WARNING, "Missing DALI dimmer %s (type %s) for composite device", dimmerUID.getString().c_str(), dimmerType.c_str());
               // insert dummy instead
               dimmer = DaliBusDevicePtr(new DaliBusDevice(*this));
               dimmer->isDummy = true; // disable bus access
@@ -337,13 +337,13 @@ void DaliDeviceContainer::deviceInfoReceived(DaliBusDeviceListPtr aBusDevices, D
     (aError->isError(DaliCommError::domain(), DaliCommErrorBadChecksum) || aError->isError(DaliCommError::domain(), DaliCommErrorBadDeviceInfo));
   if (Error::isOK(aError) || missingData || badData) {
     // no error, or error but due to missing or bad data -> device exists
-    if (missingData) { LOG(LOG_INFO,"Device at shortAddress %d does not have device info\n",aDaliDeviceInfoPtr->shortAddress); }
-    if (badData) { LOG(LOG_INFO,"Device at shortAddress %d does not have valid device info\n",aDaliDeviceInfoPtr->shortAddress); }
+    if (missingData) { LOG(LOG_INFO, "Device at shortAddress %d does not have device info",aDaliDeviceInfoPtr->shortAddress); }
+    if (badData) { LOG(LOG_INFO, "Device at shortAddress %d does not have valid device info",aDaliDeviceInfoPtr->shortAddress); }
     // update device info entry in dali bus device
     (*aNextDev)->setDeviceInfo(*aDaliDeviceInfoPtr);
   }
   else {
-    LOG(LOG_ERR,"Error reading device info: %s\n",aError->description().c_str());
+    LOG(LOG_ERR, "Error reading device info: %s",aError->description().c_str());
     return aCompletedCB(aError);
   }
   // check next
@@ -652,7 +652,7 @@ void DaliDeviceContainer::testScanDone(StatusCB aCompletedCB, DaliComm::ShortAdd
   if (Error::isOK(aError) && aShortAddressListPtr && aShortAddressListPtr->size()>0) {
     // found at least one device, do a R/W test using the DTR
     DaliAddress testAddr = aShortAddressListPtr->front();
-    LOG(LOG_NOTICE,"- DALI self test: switch all lights on, then do R/W tests with DTR of device short address %d\n",testAddr);
+    LOG(LOG_NOTICE, "- DALI self test: switch all lights on, then do R/W tests with DTR of device short address %d",testAddr);
     daliComm->daliSendDirectPower(DaliBroadcast, 0, NULL); // off
     daliComm->daliSendDirectPower(DaliBroadcast, 254, NULL, 2*Second); // max
     testRW(aCompletedCB, testAddr, 0x55); // use first found device
@@ -677,7 +677,7 @@ void DaliDeviceContainer::testRW(StatusCB aCompletedCB, DaliAddress aShortAddr, 
 void DaliDeviceContainer::testRWResponse(StatusCB aCompletedCB, DaliAddress aShortAddr, uint8_t aTestByte, bool aNoOrTimeout, uint8_t aResponse, ErrorPtr aError)
 {
   if (Error::isOK(aError) && !aNoOrTimeout && aResponse==aTestByte) {
-    LOG(LOG_NOTICE,"  - sent 0x%02X, received 0x%02X, noOrTimeout=%d\n",aTestByte, aResponse, aNoOrTimeout);
+    LOG(LOG_NOTICE, "  - sent 0x%02X, received 0x%02X, noOrTimeout=%d",aTestByte, aResponse, aNoOrTimeout);
     // successfully read back same value from DTR as sent before
     // - check if more tests
     switch (aTestByte) {
@@ -700,7 +700,7 @@ void DaliDeviceContainer::testRWResponse(StatusCB aCompletedCB, DaliAddress aSho
     // not ok
     if (Error::isOK(aError) && aNoOrTimeout) aError = ErrorPtr(new DaliCommError(DaliCommErrorMissingData));
     // report
-    LOG(LOG_ERR,"DALI self test error: sent 0x%02X, error: %s\n",aTestByte, aError->description().c_str());
+    LOG(LOG_ERR, "DALI self test error: sent 0x%02X, error: %s",aTestByte, aError->description().c_str());
     aCompletedCB(aError);
   }
 }

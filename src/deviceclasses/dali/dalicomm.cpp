@@ -168,10 +168,10 @@ void DaliComm::bridgeResponseHandler(DaliBridgeResultCB aBridgeResultHandler, Se
       uint8_t resp1 = ropP->getDataP()[0];
       uint8_t resp2 = ropP->getDataP()[1];
       if (resp1==RESP_CODE_DATA) {
-        FOCUSLOG("DALI bridge response: DATA            (%02X)      %02X    - %d pending responses\n", resp1, resp2, expectedBridgeResponses);
+        FOCUSLOG("DALI bridge response: DATA            (%02X)      %02X    - %d pending responses", resp1, resp2, expectedBridgeResponses);
       }
       else {
-        FOCUSLOG("DALI bridge response: %s (%02X %02X)         - %d pending responses\n", bridgeAckText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
+        FOCUSLOG("DALI bridge response: %s (%02X %02X)         - %d pending responses", bridgeAckText(resp1, resp2), resp1, resp2, expectedBridgeResponses);
       }
       if (aBridgeResultHandler)
         aBridgeResultHandler(resp1, resp2, aError);
@@ -213,7 +213,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
     if (aWithDelay>0) {
       // delayed sends must always be in sequence
       opP->setInitiationDelay(aWithDelay);
-      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - to be sent in %d µS after no response pending\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, aWithDelay);
+      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - to be sent in %d µS after no response pending", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, aWithDelay);
     }
     else {
       // non-delayed sends may be sent before answer of previous commands have arrived as long as Rx buf in bridge does not overflow
@@ -221,7 +221,7 @@ void DaliComm::sendBridgeCommand(uint8_t aCmd, uint8_t aDali1, uint8_t aDali2, D
         responsesInSequence = true; // prevent further sends without answers
       }
       opP->answersInSequence = responsesInSequence;
-      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - %s\n", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, responsesInSequence ? "sent when no more responses pending" : "sent as soon as possible");
+      FOCUSLOG("DALI bridge command:  %s (%02X)      %02X %02X - %d pending responses - %s", bridgeCmdName(aCmd), aCmd, aDali1, aDali2, expectedBridgeResponses, responsesInSequence ? "sent when no more responses pending" : "sent as soon as possible");
     }
     opP->receiveTimeoout = 20*Second; // large timeout, because it can really take time until all expected answers are received
     SerialOperationPtr op(opP);
@@ -463,7 +463,7 @@ private:
   numCycles(aNumCycles)
   {
     daliComm.startProcedure();
-    LOG(LOG_DEBUG, "DALI bus address %d - doing %d R/W tests to DTR...\n", busAddress, aNumCycles);
+    LOG(LOG_DEBUG, "DALI bus address %d - doing %d R/W tests to DTR...", busAddress, aNumCycles);
     // start with 0x55 pattern
     dtrValue = 0;
     numErrors = 0;
@@ -476,19 +476,19 @@ private:
   {
     if (!Error::isOK(aError)) {
       numErrors++;
-      LOG(LOG_DEBUG,"- written 0x%02X, got error %s\n", dtrValue, aError->description().c_str());
+      LOG(LOG_DEBUG, "- written 0x%02X, got error %s", dtrValue, aError->description().c_str());
     }
     else {
       if(!aNoOrTimeout) {
         // byte received
         if (aResponse!=dtrValue) {
           numErrors++;
-          LOG(LOG_DEBUG,"- written 0x%02X, read back 0x%02X -> error\n", dtrValue, aResponse);
+          LOG(LOG_DEBUG, "- written 0x%02X, read back 0x%02X -> error", dtrValue, aResponse);
         }
       }
       else {
         numErrors++;
-        LOG(LOG_DEBUG,"- written 0x%02X, got no answer (timeout) -> error\n", dtrValue);
+        LOG(LOG_DEBUG, "- written 0x%02X, got no answer (timeout) -> error", dtrValue);
       }
     }
     // prepare next test value
@@ -502,12 +502,12 @@ private:
     // all cycles done, return result
     daliComm.endProcedure();
     if (numErrors>0) {
-      LOG(LOG_ERR, "Unreliable data access for DALI bus address %d - %d of %d R/W tests have failed!\n", busAddress, numErrors, numCycles);
+      LOG(LOG_ERR, "Unreliable data access for DALI bus address %d - %d of %d R/W tests have failed!", busAddress, numErrors, numCycles);
       if (callback) callback(ErrorPtr(new DaliCommError(DaliCommErrorDataUnreliable, string_format("DALI R/W tests: %d of %d failed", numErrors, numCycles))));
     }
     else {
       // everything is fine
-      LOG(LOG_DEBUG, "DALI bus address %d - all %d test cycles OK\n", busAddress, numCycles);
+      LOG(LOG_DEBUG, "DALI bus address %d - all %d test cycles OK", busAddress, numCycles);
       if (callback) callback(ErrorPtr());
     }
     // done, delete myself
@@ -560,7 +560,7 @@ private:
     unreliableDevicesPtr(new DaliComm::ShortAddressList)
   {
     daliComm.startProcedure();
-    LOG(LOG_INFO, "DaliComm: starting quick bus scan (short address poll)\n");
+    LOG(LOG_INFO, "DaliComm: starting quick bus scan (short address poll)");
     // reset the bus first
     daliComm.reset(boost::bind(&DaliBusScanner::resetComplete, this, _1));
   }
@@ -569,8 +569,8 @@ private:
   {
     // check for overload condition
     if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorBusOverload)) {
-      LOG(LOG_ERR,"DALI bus has overload - possibly due to short circuit, defective ballasts or more than 64 devices connected\n");
-      LOG(LOG_ERR,"-> Please power down installation, check DALI bus and try again\n");
+      LOG(LOG_ERR, "DALI bus has overload - possibly due to short circuit, defective ballasts or more than 64 devices connected");
+      LOG(LOG_ERR, "-> Please power down installation, check DALI bus and try again");
     }
     if (aError)
       return completed(aError);
@@ -591,7 +591,7 @@ private:
   {
     if (DaliComm::isYes(aNoOrTimeout, aResponse, aError, true)) {
       // we have devices without short addresses
-      LOG(LOG_NOTICE, "Detected devices without short address on the bus (-> will trigger full scan later)\n");
+      LOG(LOG_NOTICE, "Detected devices without short address on the bus (-> will trigger full scan later)");
       unconfiguredDevices = true;
     }
     // start the scan
@@ -606,7 +606,7 @@ private:
     bool isYes = false;
     if (Error::isError(aError, DaliCommError::domain(), DaliCommErrorDALIFrame)) {
       // framing error, indicates that we might have duplicates
-      LOG(LOG_NOTICE, "Detected framing error for %d-th response from short address %d - probably short address collision\n", (int)aQueryState, shortAddress);
+      LOG(LOG_NOTICE, "Detected framing error for %d-th response from short address %d - probably short address collision", (int)aQueryState, shortAddress);
       probablyCollision = true;
       isYes = true; // still count as YES
       aError.reset(); // do not count as error aborting the search
@@ -617,7 +617,7 @@ private:
       isYes = true;
       if (aQueryState==dqs_controlgear && aResponse!=DALIANSWER_YES) {
         // not entirely correct answer, also indicates collision
-        LOG(LOG_NOTICE, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision\n", aResponse, shortAddress);
+        LOG(LOG_NOTICE, "Detected incorrect YES answer 0x%02X from short address %d - probably short address collision", aResponse, shortAddress);
         probablyCollision = true;
       }
     }
@@ -644,11 +644,11 @@ private:
       if (Error::isOK(aError)) {
         // this short address has a device which has passed the test
         activeDevicesPtr->push_back(shortAddress);
-        LOG(LOG_INFO, "- detected DALI device at short address %d\n", shortAddress);
+        LOG(LOG_INFO, "- detected DALI device at short address %d", shortAddress);
       }
       else {
         unreliableDevicesPtr->push_back(shortAddress);
-        LOG(LOG_ERR, "Detected DALI device at short address %d, but it FAILED R/W TEST: %s -> ignoring\n", shortAddress, aError->description().c_str());
+        LOG(LOG_ERR, "Detected DALI device at short address %d, but it FAILED R/W TEST: %s -> ignoring", shortAddress, aError->description().c_str());
       }
     }
     // check if more short addresses to test
@@ -683,7 +683,7 @@ private:
     // scan done or error, return list to callback
     if (probablyCollision || unconfiguredDevices) {
       if (!Error::isOK(aError)) {
-        LOG(LOG_WARNING, "Error (%s) in quick scan ignored because we need to do a full scan anyway\n", aError->description().c_str());
+        LOG(LOG_WARNING, "Error (%s) in quick scan ignored because we need to do a full scan anyway", aError->description().c_str());
       }
       aError = ErrorPtr(new DaliCommError(DaliCommErrorNeedFullScan,"Need full bus scan"));
     }
@@ -771,7 +771,7 @@ private:
     // save the short address list
     usedShortAddrsPtr = aShortAddressListPtr;
     conflictedShortAddrsPtr = aUnreliableShortAddressListPtr;
-    LOG(LOG_NOTICE, "DaliComm: starting full bus scan (random address binary search)\n");
+    LOG(LOG_NOTICE, "DaliComm: starting full bus scan (random address binary search)");
     // Terminate any special modes first
     daliComm.daliSend(DALICMD_TERMINATE, 0x00);
     // initialize entire system for random address selection process
@@ -857,22 +857,22 @@ private:
     // Anything received but timeout is considered a yes
     bool isYes = DaliComm::isYes(aNoOrTimeout, aResponse, aError, true);
     if (aError) {
-      LOG(LOG_ERR, "compare result error: %s -> aborted scan\n", aError->description().c_str());
+      LOG(LOG_ERR, "compare result error: %s -> aborted scan", aError->description().c_str());
       completed(aError); // other error, abort
       return;
     }
     compareRepeat++;
-    LOG(LOG_DEBUG, "DALICMD_COMPARE result #%d = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", compareRepeat, isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
+    LOG(LOG_DEBUG, "DALICMD_COMPARE result #%d = %s, search=0x%06X, searchMin=0x%06X, searchMax=0x%06X", compareRepeat, isYes ? "Yes" : "No ", searchAddr, searchMin, searchMax);
     // repeat to make sure
     if (!isYes && compareRepeat<=MAX_COMPARE_REPEATS) {
-      LOG(LOG_DEBUG, "- not trusting compare NO result yet, retrying...\n");
+      LOG(LOG_DEBUG, "- not trusting compare NO result yet, retrying...");
       compareNext();
       return;
     }
     // any ballast has smaller or equal random address?
     if (isYes) {
       if (compareRepeat>1) {
-        LOG(LOG_DEBUG, "- got a NO in first attempt but now a YES in %d attempt! -> unreliable answers\n", compareRepeat);
+        LOG(LOG_DEBUG, "- got a NO in first attempt but now a YES in %d attempt! -> unreliable answers", compareRepeat);
       }
       // yes, there is at least one, max address is what we searched so far
       searchMax = searchAddr;
@@ -881,14 +881,14 @@ private:
       // none at or below current search
       if (searchMin==0xFFFFFF) {
         // already at max possible -> no more devices found
-        LOG(LOG_INFO, "No more devices\n");
+        LOG(LOG_INFO, "No more devices");
         completed(ErrorPtr()); return;
       }
       searchMin = searchAddr+1; // new min
     }
     if (searchMin==searchMax && searchAddr==searchMin) {
       // found!
-      LOG(LOG_NOTICE, "- Found device at 0x%06X\n", searchAddr);
+      LOG(LOG_NOTICE, "- Found device at 0x%06X", searchAddr);
       // read current short address
       readShortAddrRepeat = 0;
       daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _1, _2, _3), READ_SHORT_ADDR_SEND_DELAY);
@@ -896,11 +896,11 @@ private:
     else {
       // not yet - continue
       searchAddr = searchMin + (searchMax-searchMin)/2;
-      LOG(LOG_DEBUG, "                            Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X\n", searchAddr, searchMin, searchMax);
+      LOG(LOG_DEBUG, "                            Next search=0x%06X, searchMin=0x%06X, searchMax=0x%06X", searchAddr, searchMin, searchMax);
       if (searchAddr>0xFFFFFF) {
-        LOG(LOG_WARNING, "- failed search\n");
+        LOG(LOG_WARNING, "- failed search");
         if (restarts<MAX_RESTARTS) {
-          LOG(LOG_NOTICE, "- restarting search at address of last found device + 1\n");
+          LOG(LOG_NOTICE, "- restarting search at address of last found device + 1");
           restarts++;
           newSearchUpFrom(lastSearchMin);
           return;
@@ -921,16 +921,16 @@ private:
       return completed(aError);
     if (aNoOrTimeout) {
       // should not happen, but just retry
-      LOG(LOG_WARNING, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr);
+      LOG(LOG_WARNING, "- Device at 0x%06X does not respond to DALICMD_QUERY_SHORT_ADDRESS", searchAddr);
       readShortAddrRepeat++;
       if (readShortAddrRepeat<=MAX_SHORTADDR_READ_REPEATS) {
         daliComm.daliSendAndReceive(DALICMD_QUERY_SHORT_ADDRESS, 0x00, boost::bind(&DaliFullBusScanner::handleShortAddressQuery, this, _1, _2, _3), READ_SHORT_ADDR_SEND_DELAY);
         return;
       }
       // should definitely not happen, probably bus error led to false device detection -> restart search after a while
-      LOG(LOG_WARNING, "- Device at 0x%06X did not respond to %d attempts of DALICMD_QUERY_SHORT_ADDRESS\n", searchAddr, MAX_SHORTADDR_READ_REPEATS+1);
+      LOG(LOG_WARNING, "- Device at 0x%06X did not respond to %d attempts of DALICMD_QUERY_SHORT_ADDRESS", searchAddr, MAX_SHORTADDR_READ_REPEATS+1);
       if (restarts<MAX_RESTARTS) {
-        LOG(LOG_NOTICE, "- restarting complete scan after a delay\n");
+        LOG(LOG_NOTICE, "- restarting complete scan after a delay");
         restarts++;
         MainLoop::currentMainLoop().executeOnce(boost::bind(&DaliFullBusScanner::startScan, this), RESCAN_RETRY_DELAY);
         return;
@@ -948,23 +948,23 @@ private:
         // device has no short address yet, assign one
         needsNewAddress = true;
         newAddress = newShortAddress();
-        LOG(LOG_NOTICE, "- Device at 0x%06X has NO short address -> assigning new short address = %d\n", searchAddr, newAddress);
+        LOG(LOG_NOTICE, "- Device at 0x%06X has NO short address -> assigning new short address = %d", searchAddr, newAddress);
       }
       else {
         shortAddress = DaliComm::addressFromDaliResponse(aResponse);
-        LOG(LOG_INFO, "- Device at 0x%06X has short address: %d\n", searchAddr, shortAddress);
+        LOG(LOG_INFO, "- Device at 0x%06X has short address: %d", searchAddr, shortAddress);
         // check for collisions
         if (isShortAddressInList(shortAddress, foundDevicesPtr)) {
           newAddress = newShortAddress();
           needsNewAddress = true;
-          LOG(LOG_NOTICE, "- Collision on short address %d -> assigning new short address = %d\n", shortAddress, newAddress);
+          LOG(LOG_NOTICE, "- Collision on short address %d -> assigning new short address = %d", shortAddress, newAddress);
         }
       }
       // check if we need to re-assign the short address
       if (needsNewAddress) {
         if (newAddress==DaliBroadcast) {
           // no more short addresses available
-          LOG(LOG_ERR, "Bus has too many devices, device 0x%06X cannot be assigned a short address and will not be usable\n", searchAddr);
+          LOG(LOG_ERR, "Bus has too many devices, device 0x%06X cannot be assigned a short address and will not be usable", searchAddr);
         }
         // new address must be assigned (or in case none is available, a possibly
         // existing short address will be removed by assigning DaliBroadcast==0xFF)
@@ -991,7 +991,7 @@ private:
     }
     else {
       // short address verification failed
-      LOG(LOG_ERR, "Error - could not assign new short address %d\n", newAddress);
+      LOG(LOG_ERR, "Error - could not assign new short address %d", newAddress);
       deviceFound(DaliBroadcast); // not really a usable device, but withdraw it and continue searching
     }
   }
@@ -1054,7 +1054,7 @@ private:
     memory(new MemoryVector)
   {
     daliComm.startProcedure();
-    LOG(LOG_INFO, "DALI bus address %d - reading %d bytes from bank %d at offset %d:\n", busAddress, aNumBytes, aBank, aOffset);
+    LOG(LOG_INFO, "DALI bus address %d - reading %d bytes from bank %d at offset %d:", busAddress, aNumBytes, aBank, aOffset);
     // set DTR1 = bank
     daliComm.daliSend(DALICMD_SET_DTR1, aBank);
     // set DTR = offset within bank
@@ -1082,7 +1082,7 @@ private:
       // dump data
       int o=0;
       for (MemoryVector::iterator pos = memory->begin(); pos!=memory->end(); ++pos, ++o) {
-        LOG(LOG_INFO, "- %03d/0x%02X : 0x%02X/%03d\n", o, o, *pos, *pos);
+        LOG(LOG_INFO, "- %03d/0x%02X : 0x%02X/%03d", o, o, *pos, *pos);
       }
     }
     callback(memory, aError);
@@ -1144,7 +1144,7 @@ private:
     if (aBank0Data->size()==DALIMEM_BANK0_MINBYTES) {
       deviceInfo->devInfStatus = DaliDeviceInfo::devinf_solid; // assume solid info present
       maxBank = (*aBank0Data)[2]; // this is the highest bank number implemented in this device
-      LOG(LOG_INFO, "- highest available DALI memory bank = %d\n", maxBank);
+      LOG(LOG_INFO, "- highest available DALI memory bank = %d", maxBank);
       // sum up starting with checksum itself, result must be 0x00 in the end
       for (int i=0x01; i<DALIMEM_BANK0_MINBYTES; i++) {
         bankChecksum += (*aBank0Data)[i];
@@ -1179,7 +1179,7 @@ private:
       }
       if (maxSame>=10 || (numFFs>=6 && maxSame>=3)) {
         // this is tuned heuristics: >=6 FFs total plus >=3 consecutive equal non-zeros are considered suspect (because linealight.com/i-LÈD/eral LED-FGI332 has that)
-        LOG(LOG_ERR, "DALI shortaddress %d Bank 0 has %d consecutive bytes of 0x%02X and %d bytes of 0xFF  - indicates invalid GTIN/Serial data -> ignoring\n", busAddress, maxSame, sameByte, numFFs);
+        LOG(LOG_ERR, "DALI shortaddress %d Bank 0 has %d consecutive bytes of 0x%02X and %d bytes of 0xFF  - indicates invalid GTIN/Serial data -> ignoring", busAddress, maxSame, sameByte, numFFs);
         deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // consider invalid
       }
       // GTIN: bytes 0x03..0x08, MSB first
@@ -1198,13 +1198,13 @@ private:
       // now some more plausibility checks at the GTIN/serial level
       if (deviceInfo->gtin==0 || gtinCheckDigit(deviceInfo->gtin)!=0) {
         // invalid GTIN
-        LOG(LOG_ERR, "DALI shortaddress %d has invalid GTIN=%lld/0x%llX -> ignoring\n", busAddress, deviceInfo->gtin, deviceInfo->gtin);
+        LOG(LOG_ERR, "DALI shortaddress %d has invalid GTIN=%lld/0x%llX -> ignoring", busAddress, deviceInfo->gtin, deviceInfo->gtin);
         deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // consider invalid
       }
       else if (deviceInfo->serialNo==0 || deviceInfo->serialNo==0xFFFFFFFF) {
         // all bits zero or all bits one is considered invalid serial,
         // as well as 2-byte and 3-byte all-one serials are
-        LOG(LOG_ERR, "DALI shortaddress %d has suspect S/N=%lld/0x%llX -> ignoring\n", busAddress, deviceInfo->serialNo, deviceInfo->serialNo);
+        LOG(LOG_ERR, "DALI shortaddress %d has suspect S/N=%lld/0x%llX -> ignoring", busAddress, deviceInfo->serialNo, deviceInfo->serialNo);
         deviceInfo->devInfStatus = DaliDeviceInfo::devinf_none; // consider invalid
       }
       // check for extra data device may have
@@ -1269,7 +1269,7 @@ private:
       deviceInfo->fw_version_minor = 0;
       deviceInfo->serialNo = 0;
       // - report error
-      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X\n", busAddress, bankChecksum);
+      LOG(LOG_ERR, "DALI shortaddress %d Bank 0 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X", busAddress, bankChecksum);
       return complete(ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memory bank 0 checksum at shortAddress %d", busAddress))));
     }
     if (maxBank>0) {
@@ -1348,7 +1348,7 @@ private:
         deviceInfo->oem_gtin = 0;
         deviceInfo->oem_serialNo = 0;
         // - report error
-        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X\n", busAddress, bankChecksum);
+        LOG(LOG_ERR, "DALI shortaddress %d Bank 1 checksum is wrong - should sum up to 0x00, actual sum is 0x%02X", busAddress, bankChecksum);
         aError = ErrorPtr(new DaliCommError(DaliCommErrorBadChecksum,string_format("bad DALI memory bank 1 checksum at shortAddress %d", busAddress)));
       }
     }
@@ -1403,13 +1403,13 @@ void DaliDeviceInfo::clear()
 
 string DaliDeviceInfo::description()
 {
-  string s = string_format("- DaliDeviceInfo for shortAddress %d\n", shortAddress);
-  string_format_append(s, "  - is %suniquely defining the device\n", devInfStatus==devinf_solid ? "" : "NOT ");
-  string_format_append(s, "  - GTIN       : %lld\n", gtin);
-  string_format_append(s, "  - Serial     : %lld\n", serialNo);
-  string_format_append(s, "  - OEM GTIN   : %lld\n", oem_gtin);
-  string_format_append(s, "  - OEM Serial : %lld\n", oem_serialNo);
-  string_format_append(s, "  - Firmware   : %d.%d\n", fw_version_major, fw_version_minor);
+  string s = string_format("- DaliDeviceInfo for shortAddress %d", shortAddress);
+  string_format_append(s, "\n  - is %suniquely defining the device", devInfStatus==devinf_solid ? "" : "NOT ");
+  string_format_append(s, "\n  - GTIN       : %lld", gtin);
+  string_format_append(s, "\n  - Serial     : %lld", serialNo);
+  string_format_append(s, "\n  - OEM GTIN   : %lld", oem_gtin);
+  string_format_append(s, "\n  - OEM Serial : %lld", oem_serialNo);
+  string_format_append(s, "\n  - Firmware   : %d.%d", fw_version_major, fw_version_minor);
   return s;
 }
 

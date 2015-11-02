@@ -70,7 +70,7 @@ void Enocean4BSDevice::sendTeachInResponse()
     // set destination
     responsePacket->setRadioDestination(getAddress());
     // now send
-    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X\n", EEP_PURE(getEEProfile()));
+    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", EEP_PURE(getEEProfile()));
     getEnoceanDeviceContainer().enoceanComm.sendCommand(responsePacket, NULL);
   }
 }
@@ -695,20 +695,18 @@ void EnoceanA52001Handler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
       // - check actuator obstructed
       uint32_t data = aEsp3PacketPtr->get4BSdata();
       if ((data & DBMASK(2,0))!=0) {
-        HLOG(LOG_ERR, "EnOcean valve error: actuator obstructed\n");
+        HLOG(LOG_ERR, "EnOcean valve error: actuator obstructed");
         behaviour->setHardwareError(hardwareError_overload);
       }
       else if ((data & DBMASK(2,4))==0 && (data & DBMASK(2,5))==0) {
-        HLOG(LOG_ERR, "EnOcean valve error: energy storage AND battery are low\n");
+        HLOG(LOG_ERR, "EnOcean valve error: energy storage AND battery are low");
         behaviour->setHardwareError(hardwareError_lowBattery);
       }
       // show general status
       HLOG(LOG_NOTICE,
-        "EnOcean valve actual set point: %d%% open\n",
-        (data>>DB(3,0)) & 0xFF // get data from DB(3,0..7), range is 0..100% (NOT 0..255!)
-      );
-      LOG(LOG_NOTICE,
-        "- Service %s, Energy input %s, Energy storage %scharged, Battery %s, Cover %s, Sensor %s, Detected window %s, Actuator %s\n",
+        "EnOcean valve actual set point: %d%% open\n"
+        "- Service %s, Energy input %s, Energy storage %scharged, Battery %s, Cover %s, Sensor %s, Detected window %s, Actuator %s",
+        (data>>DB(3,0)) & 0xFF, // get data from DB(3,0..7), range is 0..100% (NOT 0..255!)
         data & DBMASK(2,7) ? "ON" : "off",
         data & DBMASK(2,6) ? "enabled" : "disabled",
         data & DBMASK(2,5) ? "" : "NOT ",
@@ -748,7 +746,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       data |= DBMASK(1,0); // service on
       if (serviceState==service_openvalve) {
         // trigger force full open
-        LOG(LOG_NOTICE,"- EnOcean valve prophylaxis operation: fully opening valve\n");
+        LOG(LOG_NOTICE, "- EnOcean valve prophylaxis operation: fully opening valve");
         data |= DBMASK(1,5); // service: open
         // next is closing
         serviceState = service_closevalve;
@@ -756,7 +754,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       }
       else if (serviceState==service_closevalve) {
         // trigger force fully closed
-        LOG(LOG_NOTICE,"- EnOcean valve prophylaxis operation: fully closing valve\n");
+        LOG(LOG_NOTICE, "- EnOcean valve prophylaxis operation: fully closing valve");
         data |= DBMASK(1,4); // service: close
         // next is normal operation again
         serviceState = service_idle;
@@ -772,10 +770,10 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       int32_t newValue = ch->getChannelValue(); // channel has 0..100 range -> correct for sending directly
       data |= (newValue<<DB(3,0)); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
-      LOG(LOG_NOTICE, "- EnOcean valve, new set point: %d%% open\n", newValue);
+      LOG(LOG_NOTICE, "- EnOcean valve, new set point: %d%% open", newValue);
       if (cb->isSummerMode()) {
         data |= DBMASK(1,3);
-        LOG(LOG_NOTICE,"- valve is in SUMMER mode (slow updates)\n");
+        LOG(LOG_NOTICE, "- valve is in SUMMER mode (slow updates)");
       }
     }
     // save data

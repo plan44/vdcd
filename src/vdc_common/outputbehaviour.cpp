@@ -231,12 +231,12 @@ bool OutputBehaviour::applyScene(DsScenePtr aScene)
   ) {
     // apply stored scene value(s) to channels
     loadChannelsFromScene(aScene);
-    LOG(LOG_INFO,"- Scene(%d): new channel value(s) loaded from scene, ready to apply\n", aScene->sceneNo);
+    LOG(LOG_INFO, "- Scene(%d): new channel value(s) loaded from scene, ready to apply", aScene->sceneNo);
     return true;
   }
   else {
     // no channel changes
-    LOG(LOG_INFO,"- Scene(%d): no invoke/off/min/max (but cmd=%d) -> no channels loaded\n", aScene->sceneCmd, aScene->sceneNo);
+    LOG(LOG_INFO, "- Scene(%d): no invoke/off/min/max (but cmd=%d) -> no channels loaded", aScene->sceneCmd, aScene->sceneNo);
     return false;
   }
 }
@@ -535,8 +535,8 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 
 string OutputBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- hardware output function: %d (%s)\n", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- hardware output function: %d (%s)", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
   s.append(inherited::description());
   return s;
 }

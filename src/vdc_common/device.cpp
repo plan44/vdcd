@@ -202,11 +202,11 @@ void Device::addBehaviour(DsBehaviourPtr aBehaviour)
         break;
       }
       default:
-        LOG(LOG_ERR,"Device::addBehaviour: unknown behaviour type\n");
+        LOG(LOG_ERR, "Device::addBehaviour: unknown behaviour type");
     }
   }
   else {
-    LOG(LOG_ERR,"Device::addBehaviour: NULL behaviour passed\n");
+    LOG(LOG_ERR, "Device::addBehaviour: NULL behaviour passed");
   }
 }
 
@@ -328,7 +328,7 @@ bool Device::needsToApplyChannels()
     ChannelBehaviourPtr ch = getChannelByIndex(i, true);
     if (ch) {
       // at least this channel needs update
-      LOG(LOG_DEBUG,"needsToApplyChannels() returns true because of channel '%s'\n", ch->description().c_str());
+      LOG(LOG_DEBUG, "needsToApplyChannels() returns true because of channel '%s'", ch->description().c_str());
       return true;
     }
   }
@@ -413,7 +413,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       }
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "callScene error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "callScene error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="saveScene") {
@@ -425,7 +425,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       saveScene(sceneNo);
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "saveScene error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "saveScene error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="undoScene") {
@@ -437,7 +437,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       undoScene(sceneNo);
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "undoScene error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "undoScene error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="setLocalPriority") {
@@ -449,7 +449,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       setLocalPriority(sceneNo);
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "setLocalPriority error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "setLocalPriority error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="setControlValue") {
@@ -461,14 +461,14 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         // get value
         double value = o->doubleValue();
         // now process the value (updates channel values, but does not yet apply them)
-        ALOG(LOG_NOTICE, "processControlValue(%s, %f):\n", controlValueName.c_str(), value);
+        ALOG(LOG_NOTICE, "processControlValue(%s, %f):", controlValueName.c_str(), value);
         processControlValue(controlValueName, value);
         // apply the values
         requestApplyingChannels(NULL, false);
       }
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "setControlValue error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "setControlValue error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="callSceneMin") {
@@ -480,7 +480,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       callSceneMin(sceneNo);
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "callSceneMin error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="dimChannel") {
@@ -500,7 +500,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       }
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "callSceneMin error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "callSceneMin error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="setOutputChannelValue") {
@@ -531,12 +531,12 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
       }
     }
     if (!Error::isOK(err)) {
-      ALOG(LOG_WARNING, "setOutputChannelValue error: %s\n", err->description().c_str());
+      ALOG(LOG_WARNING, "setOutputChannelValue error: %s", err->description().c_str());
     }
   }
   else if (aMethod=="identify") {
     // identify to user
-    ALOG(LOG_NOTICE, "Identify\n");
+    ALOG(LOG_NOTICE, "Identify");
     identifyToUser();
   }
   else {
@@ -601,15 +601,15 @@ static SceneNo offSceneForArea(int aArea)
 // Note: ensures dimming only continues for at most aAutoStopAfter
 void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int aArea, MLMicroSeconds aAutoStopAfter)
 {
-  LOG(LOG_DEBUG, "dimChannelForArea: aChannel=%d, aDimMode=%d, aArea=%d\n", aChannel, aDimMode, aArea);
+  LOG(LOG_DEBUG, "dimChannelForArea: aChannel=%d, aDimMode=%d, aArea=%d", aChannel, aDimMode, aArea);
   // dimming is NOP in devices having no output
   if (!output) return;
   // make sure default channel type is resolve to actual type
   aChannel = output->actualChannelType(aChannel);
-  LOG(LOG_DEBUG, "- actual channel type = %d\n", aChannel);
+  LOG(LOG_DEBUG, "- actual channel type = %d", aChannel);
   // check basic dimmability (e.g. avoid dimming brightness for lights that are off)
   if (aDimMode!=dimmode_stop && !(output->canDim(aChannel))) {
-    LOG(LOG_DEBUG, "- behaviour does not allow dimming channel type %d now (e.g. because light is off)\n", aChannel);
+    LOG(LOG_DEBUG, "- behaviour does not allow dimming channel type %d now (e.g. because light is off)", aChannel);
     return;
   }
   // check area if any
@@ -620,7 +620,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
       SceneNo areaScene = mainSceneForArea(aArea);
       DsScenePtr scene = scenes->getScene(areaScene);
       if (scene->isDontCare()) {
-        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d\n", areaScene, aArea);
+        LOG(LOG_DEBUG, "- area main scene(%d) is dontCare -> suppress dimChannel for Area %d", areaScene, aArea);
         return; // not in this area, suppress dimming
       }
     }
@@ -629,7 +629,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
     // non-area dimming: suppress if device is in local priority
     // Note: aArea can be set -1 to override local priority checking, for example when using method for identify purposes
     if (aArea==0 && output->hasLocalPriority()) {
-      LOG(LOG_DEBUG, "- Non-area dimming, localPriority set -> suppressed\n");
+      LOG(LOG_DEBUG, "- Non-area dimming, localPriority set -> suppressed");
       return; // local priority active, suppress dimming
     }
   }
@@ -694,7 +694,7 @@ void Device::dimAutostopHandler(DsChannelType aChannel)
 void Device::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
 {
   ALOG(LOG_INFO,
-    "dimChannel (generic): channel type %d %s\n",
+    "dimChannel (generic): channel type %d %s",
     aChannelType, aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN")
   );
   // Simple base class implementation just increments/decrements channel values periodically (and skips steps when applying values is too slow)
@@ -737,7 +737,7 @@ void Device::dimDoneHandler(ChannelBehaviourPtr aChannel, double aIncrement, MLM
   MLMicroSeconds now = MainLoop::now();
   while (aNextDimAt<now) {
     // missed this step - simply increment channel and target time, but do not cause re-apply
-    LOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step\n", aChannel->getChannelType());
+    LOG(LOG_DEBUG, "dimChannel: applyChannelValues() was too slow while dimming channel=%d -> skipping next dim step", aChannel->getChannelType());
     aChannel->dimChannelValue(aIncrement, DIM_STEP_INTERVAL);
     aNextDimAt += DIM_STEP_INTERVAL;
   }
@@ -757,35 +757,35 @@ void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForD
 {
   if (!aModeChange && output && !output->isEnabled()) {
     // disabled output and not a mode change -> no operation
-    AFOCUSLOG("requestApplyingChannels called with output disabled -> NOP\n");
+    AFOCUSLOG("requestApplyingChannels called with output disabled -> NOP");
     // - just call back immediately
     if (aAppliedOrSupersededCB) aAppliedOrSupersededCB();
   }
-  AFOCUSLOG("requestApplyingChannels entered\n");
+  AFOCUSLOG("requestApplyingChannels entered");
   // Caller wants current channel values applied to hardware
   // Three possible cases:
   // a) hardware is busy applying new values already -> confirm previous request to apply as superseded
   // b) hardware is busy updating values -> wait until this is done
   // c) hardware is not busy -> start apply right now
   if (applyInProgress) {
-    FOCUSLOG("- requestApplyingChannels called while apply already running\n");
+    FOCUSLOG("- requestApplyingChannels called while apply already running");
     // case a) confirm previous request because superseded
     if (appliedOrSupersededCB) {
-      FOCUSLOG("- confirming previous (superseded) apply request\n");
+      FOCUSLOG("- confirming previous (superseded) apply request");
       SimpleCB cb = appliedOrSupersededCB;
       appliedOrSupersededCB = aAppliedOrSupersededCB; // in case current callback should request another change, callback is already installed
       cb(); // call back now, values have been superseded
-      FOCUSLOG("- previous (superseded) apply request confirmed\n");
+      FOCUSLOG("- previous (superseded) apply request confirmed");
     }
     else {
       appliedOrSupersededCB = aAppliedOrSupersededCB;
     }
     // - when previous request actually terminates, we need another update to make sure finally settled values are correct
     missedApplyAttempts++;
-    FOCUSLOG("- missed requestApplyingChannels requests now %d\n", missedApplyAttempts);
+    FOCUSLOG("- missed requestApplyingChannels requests now %d", missedApplyAttempts);
   }
   else if (updateInProgress) {
-    FOCUSLOG("- requestApplyingChannels called while update running -> postpone apply\n");
+    FOCUSLOG("- requestApplyingChannels called while update running -> postpone apply");
     // case b) cannot execute until update finishes
     missedApplyAttempts++;
     appliedOrSupersededCB = aAppliedOrSupersededCB;
@@ -793,12 +793,12 @@ void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForD
   }
   else {
     // case c) applying is not currently in progress, can start updating hardware now
-    AFOCUSLOG("ready, calling applyChannelValues()\n");
+    AFOCUSLOG("ready, calling applyChannelValues()");
     #if SERIALIZER_WATCHDOG
     // - start watchdog
     MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
     serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), 10*Second); // new
-    FOCUSLOG("+++++ Serializer watchdog started for apply with ticket #%ld\n", serializerWatchdogTicket);
+    FOCUSLOG("+++++ Serializer watchdog started for apply with ticket #%ld", serializerWatchdogTicket);
     #endif
     // - start applying
     appliedOrSupersededCB = aAppliedOrSupersededCB;
@@ -812,18 +812,18 @@ void Device::waitForApplyComplete(SimpleCB aApplyCompleteCB)
 {
   if (!applyInProgress) {
     // not applying anything, immediately call back
-    FOCUSLOG("- waitForApplyComplete() called while no apply in progress -> immediately call back\n");
+    FOCUSLOG("- waitForApplyComplete() called while no apply in progress -> immediately call back");
     aApplyCompleteCB();
   }
   else {
     // apply in progress, save callback, will be called once apply is complete
     if (applyCompleteCB) {
       // already regeistered, chain it
-      FOCUSLOG("- waitForApplyComplete() called while apply in progress and another callback already set -> install callback fork\n");
+      FOCUSLOG("- waitForApplyComplete() called while apply in progress and another callback already set -> install callback fork");
       applyCompleteCB = boost::bind(&Device::forkDoneCB, this, applyCompleteCB, aApplyCompleteCB);
     }
     else {
-      FOCUSLOG("- waitForApplyComplete() called while apply in progress and no callback already set -> install callback\n");
+      FOCUSLOG("- waitForApplyComplete() called while apply in progress and no callback already set -> install callback");
       applyCompleteCB = aApplyCompleteCB;
     }
   }
@@ -832,10 +832,10 @@ void Device::waitForApplyComplete(SimpleCB aApplyCompleteCB)
 
 void Device::forkDoneCB(SimpleCB aOriginalCB, SimpleCB aNewCallback)
 {
-  FOCUSLOG("forkDoneCB:\n");
-  FOCUSLOG("- calling original callback\n");
+  FOCUSLOG("forkDoneCB:");
+  FOCUSLOG("- calling original callback");
   aOriginalCB();
-  FOCUSLOG("- calling new callback\n");
+  FOCUSLOG("- calling new callback");
   aNewCallback();
 }
 
@@ -844,18 +844,18 @@ void Device::forkDoneCB(SimpleCB aOriginalCB, SimpleCB aNewCallback)
 void Device::serializerWatchdog()
 {
   #if SERIALIZER_WATCHDOG
-  FOCUSLOG("##### Serializer watchdog ticket #%ld expired\n", serializerWatchdogTicket);
+  FOCUSLOG("##### Serializer watchdog ticket #%ld expired", serializerWatchdogTicket);
   serializerWatchdogTicket = 0;
   if (applyInProgress) {
-    ALOG(LOG_WARNING, "##### Serializer watchdog force-ends apply with %d missed attempts\n", missedApplyAttempts);
+    ALOG(LOG_WARNING, "##### Serializer watchdog force-ends apply with %d missed attempts", missedApplyAttempts);
     missedApplyAttempts = 0;
     applyingChannelsComplete();
-    FOCUSLOG("##### Force-ending apply complete\n");
+    FOCUSLOG("##### Force-ending apply complete");
   }
   if (updateInProgress) {
-    ALOG(LOG_WARNING, "##### Serializer watchdog force-ends update\n");
+    ALOG(LOG_WARNING, "##### Serializer watchdog force-ends update");
     updatingChannelsComplete();
-    FOCUSLOG("##### Force-ending complete\n");
+    FOCUSLOG("##### Force-ending complete");
   }
   #endif
 }
@@ -863,11 +863,11 @@ void Device::serializerWatchdog()
 
 bool Device::checkForReapply()
 {
-  ALOG(LOG_DEBUG, "checkForReapply - missed %d apply attempts in between\n", missedApplyAttempts);
+  ALOG(LOG_DEBUG, "checkForReapply - missed %d apply attempts in between", missedApplyAttempts);
   if (missedApplyAttempts>0) {
     // request applying again to make sure final values are applied
     // - re-use callback of most recent requestApplyingChannels(), will be called once this attempt has completed (or superseded again)
-    FOCUSLOG("- checkForReapply now requesting final channel apply\n");
+    FOCUSLOG("- checkForReapply now requesting final channel apply");
     missedApplyAttempts = 0; // clear missed
     applyInProgress = false; // must be cleared for requestApplyingChannels() to actually do something
     requestApplyingChannels(appliedOrSupersededCB, false); // final apply after missing other apply commands may not optimize for dimming
@@ -882,10 +882,10 @@ bool Device::checkForReapply()
 // hardware has completed applying values
 void Device::applyingChannelsComplete()
 {
-  AFOCUSLOG("applyingChannelsComplete entered\n");
+  AFOCUSLOG("applyingChannelsComplete entered");
   #if SERIALIZER_WATCHDOG
   if (serializerWatchdogTicket) {
-    FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - apply complete\n", serializerWatchdogTicket);
+    FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - apply complete", serializerWatchdogTicket);
     MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
   }
   #endif
@@ -894,22 +894,22 @@ void Device::applyingChannelsComplete()
   if (!checkForReapply()) {
     // apply complete and no final re-apply pending
     // - confirm because finally applied
-    FOCUSLOG("- applyingChannelsComplete - really completed, now checking callbacks\n");
+    FOCUSLOG("- applyingChannelsComplete - really completed, now checking callbacks");
     SimpleCB cb;
     if (appliedOrSupersededCB) {
-      FOCUSLOG("- confirming apply (really) finalized\n");
+      FOCUSLOG("- confirming apply (really) finalized");
       cb = appliedOrSupersededCB;
       appliedOrSupersededCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, values have been superseded
     }
     // check for independent operation waiting for apply complete
     if (applyCompleteCB) {
-      FOCUSLOG("- confirming apply (really) finalized to waitForApplyComplete() client\n");
+      FOCUSLOG("- confirming apply (really) finalized to waitForApplyComplete() client");
       cb = applyCompleteCB;
       applyCompleteCB = NULL;
       cb();
     }
-    FOCUSLOG("- confirmed apply (really) finalized\n");
+    FOCUSLOG("- confirmed apply (really) finalized");
   }
 }
 
@@ -922,7 +922,7 @@ void Device::applyingChannelsComplete()
 ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
 void Device::requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB)
 {
-  AFOCUSLOG("requestUpdatingChannels entered\n");
+  AFOCUSLOG("requestUpdatingChannels entered");
   // Caller wants current values from hardware
   // Three possible cases:
   // a) hardware is busy updating values already -> serve previous callback (with stale values) and install new callback
@@ -931,11 +931,11 @@ void Device::requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB)
   if (updateInProgress) {
     // case a) serialize updates: terminate previous callback with stale values and install new one
     if (updatedOrCachedCB) {
-      FOCUSLOG("- confirming channels updated for PREVIOUS request with stale values (as asked again)\n");
+      FOCUSLOG("- confirming channels updated for PREVIOUS request with stale values (as asked again)");
       SimpleCB cb = updatedOrCachedCB;
       updatedOrCachedCB = aUpdatedOrCachedCB; // install new
       cb(); // execute old
-      FOCUSLOG("- confirmed channels updated for PREVIOUS request with stale values (as asked again)\n");
+      FOCUSLOG("- confirmed channels updated for PREVIOUS request with stale values (as asked again)");
     }
     else {
       updatedOrCachedCB = aUpdatedOrCachedCB; // install new
@@ -946,21 +946,21 @@ void Device::requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB)
     // case b) no update pending, but applying values right now: return current values as hardware values are in
     //   process of being overwritten by those
     if (aUpdatedOrCachedCB) {
-      FOCUSLOG("- confirming channels already up-to-date (as HW update is in progress)\n");
+      FOCUSLOG("- confirming channels already up-to-date (as HW update is in progress)");
       aUpdatedOrCachedCB(); // execute old
-      FOCUSLOG("- confirmed channels already up-to-date (as HW update is in progress)\n");
+      FOCUSLOG("- confirmed channels already up-to-date (as HW update is in progress)");
     }
   }
   else {
     // case c) hardware is not busy, start reading back current values
-    AFOCUSLOG("requestUpdatingChannels: hardware ready, calling syncChannelValues()\n");
+    AFOCUSLOG("requestUpdatingChannels: hardware ready, calling syncChannelValues()");
     updatedOrCachedCB = aUpdatedOrCachedCB; // install new callback
     updateInProgress = true;
     #if SERIALIZER_WATCHDOG
     // - start watchdog
     MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
     serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), SERIALIZER_WATCHDOG_TIMEOUT);
-    FOCUSLOG("+++++ Serializer watchdog started for update with ticket #%ld\n", serializerWatchdogTicket);
+    FOCUSLOG("+++++ Serializer watchdog started for update with ticket #%ld", serializerWatchdogTicket);
     #endif
     // - trigger querying hardware
     syncChannelValues(boost::bind(&Device::updatingChannelsComplete, this));
@@ -972,23 +972,23 @@ void Device::updatingChannelsComplete()
 {
   #if SERIALIZER_WATCHDOG
   if (serializerWatchdogTicket) {
-    FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - update complete\n", serializerWatchdogTicket);
+    FOCUSLOG("----- Serializer watchdog ticket #%ld cancelled - update complete", serializerWatchdogTicket);
     MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel watchdog
   }
   #endif
   if (updateInProgress) {
-    AFOCUSLOG("endUpdatingChannels (while actually waiting for these updates!)\n");
+    AFOCUSLOG("endUpdatingChannels (while actually waiting for these updates!)");
     updateInProgress = false;
     if (updatedOrCachedCB) {
-      FOCUSLOG("- confirming channels updated from hardware (= calling callback now)\n");
+      FOCUSLOG("- confirming channels updated from hardware (= calling callback now)");
       SimpleCB cb = updatedOrCachedCB;
       updatedOrCachedCB = NULL; // ready for possibly taking new callback in case current callback should request another change
       cb(); // call back now, cached values are either updated from hardware or superseded by pending updates TO hardware
-      FOCUSLOG("- confirmed channels updated from hardware (= callback has possibly launched apply already and returned now)\n");
+      FOCUSLOG("- confirmed channels updated from hardware (= callback has possibly launched apply already and returned now)");
     }
   }
   else {
-    AFOCUSLOG("UNEXPECTED endUpdatingChannels -> discarded\n");
+    AFOCUSLOG("UNEXPECTED endUpdatingChannels -> discarded");
   }
   // if we have got apply requests in the meantime, we need to do a reapply now
   checkForReapply();
@@ -1015,7 +1015,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       }
       else if (areaDimmed!=0 && areaDimMode!=dimmode_stop) {
         // continue received too late, already stopped -> restart dimming
-        ALOG(LOG_DEBUG, "Area scene dimming continue received too late -> restarting dimming, will not be smooth\n");
+        ALOG(LOG_DEBUG, "Area scene dimming continue received too late -> restarting dimming, will not be smooth");
         dimChannelForArea(channeltype_default, areaDimMode, areaDimmed, LEGACY_DIM_STEP_TIMEOUT);
       }
       // - otherwise: NOP
@@ -1035,26 +1035,26 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       return;
     }
     // we get here only if callScene is not legacy dimming
-    ALOG(LOG_NOTICE, "CallScene(%d) (non-dimming!):\n", aSceneNo);
+    ALOG(LOG_NOTICE, "CallScene(%d) (non-dimming!):", aSceneNo);
     // make sure dimming stops for any non-dimming scene call
     if (currentDimMode!=dimmode_stop) {
       // any non-dimming scene call stops dimming
-      LOG(LOG_NOTICE, "- interrupts dimming in progress\n");
+      LOG(LOG_NOTICE, "- interrupts dimming in progress");
       dimChannelForArea(currentDimChannel, dimmode_stop, area, 0);
     }
     // filter area scene calls via area main scene's (area x on, Tx_S1) dontCare flag
     if (area) {
-      LOG(LOG_INFO, "- callScene(%d): is area #%d scene\n", aSceneNo, area);
+      LOG(LOG_INFO, "- callScene(%d): is area #%d scene", aSceneNo, area);
       // check if device is in area (criteria used is dontCare flag OF THE AREA ON SCENE (other don't care flags are irrelevant!)
       DsScenePtr areamainscene = scenes->getScene(mainSceneForArea(area));
       if (areamainscene->isDontCare()) {
-        LOG(LOG_INFO, "- area main scene(%d) is dontCare -> suppress\n", areamainscene->sceneNo);
+        LOG(LOG_INFO, "- area main scene(%d) is dontCare -> suppress", areamainscene->sceneNo);
         return; // not in this area, suppress callScene entirely
       }
       // call applies, if it is a off scene, it resets localPriority
       if (scene->sceneCmd==scene_cmd_off) {
         // area is switched off -> end local priority
-        LOG(LOG_INFO, "- is area off scene -> ends localPriority now\n");
+        LOG(LOG_INFO, "- is area off scene -> ends localPriority now");
         output->setLocalPriority(false);
       }
     }
@@ -1065,7 +1065,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
         // non-area scene call, but device is in local priority
         if (!aForce && !scene->ignoresLocalPriority()) {
           // not forced nor localpriority ignored, localpriority prevents applying non-area scene
-          LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed\n");
+          LOG(LOG_DEBUG, "- Non-area scene, localPriority set, scene does not ignore local prio and not forced -> suppressed");
           return; // suppress scene call entirely
         }
         else {
@@ -1131,7 +1131,7 @@ void Device::sceneValuesApplied(DsScenePtr aScene)
 void Device::sceneActionsComplete(DsScenePtr aScene)
 {
   // now perform scene special actions such as blinking
-  LOG(LOG_DEBUG, "- scene actions for scene %d complete\n", aScene->sceneNo);
+  LOG(LOG_DEBUG, "- scene actions for scene %d complete", aScene->sceneNo);
 }
 
 
@@ -1139,7 +1139,7 @@ void Device::sceneActionsComplete(DsScenePtr aScene)
 
 void Device::undoScene(SceneNo aSceneNo)
 {
-  ALOG(LOG_NOTICE, "UndoScene(%d):\n", aSceneNo);
+  ALOG(LOG_NOTICE, "UndoScene(%d):", aSceneNo);
   if (previousState && previousState->sceneNo==aSceneNo) {
     // there is an undo pseudo scene we can apply
     // scene found, now apply it to the output (if any)
@@ -1157,11 +1157,11 @@ void Device::setLocalPriority(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    ALOG(LOG_NOTICE, "SetLocalPriority(%d):\n", aSceneNo);
+    ALOG(LOG_NOTICE, "SetLocalPriority(%d):", aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->isDontCare()) {
-      LOG(LOG_DEBUG, "- setLocalPriority(%d): localPriority set\n", aSceneNo);
+      LOG(LOG_DEBUG, "- setLocalPriority(%d): localPriority set", aSceneNo);
       output->setLocalPriority(true);
     }
   }
@@ -1172,7 +1172,7 @@ void Device::callSceneMin(SceneNo aSceneNo)
 {
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
-    ALOG(LOG_NOTICE, "CallSceneMin(%d):\n", aSceneNo);
+    ALOG(LOG_NOTICE, "CallSceneMin(%d):", aSceneNo);
     // we have a device-wide scene table, get the scene object
     DsScenePtr scene = scenes->getScene(aSceneNo);
     if (scene && !scene->isDontCare()) {
@@ -1194,7 +1194,7 @@ void Device::identifyToUser()
     output->identifyToUser(); // pass on to behaviour by default
   }
   else {
-    LOG(LOG_INFO,"***** device 'identify' called (for device with no real identify implementation) *****\n");
+    LOG(LOG_INFO, "***** device 'identify' called (for device with no real identify implementation) *****");
   }
 }
 
@@ -1203,7 +1203,7 @@ void Device::identifyToUser()
 void Device::saveScene(SceneNo aSceneNo)
 {
   // see if we have a scene table at all
-  ALOG(LOG_NOTICE, "SaveScene(%d)\n", aSceneNo);
+  ALOG(LOG_NOTICE, "SaveScene(%d)", aSceneNo);
   SceneDeviceSettingsPtr scenes = boost::dynamic_pointer_cast<SceneDeviceSettings>(deviceSettings);
   if (scenes) {
     // we have a device-wide scene table, get the scene object
@@ -1279,7 +1279,7 @@ ErrorPtr Device::load()
   // if we don't have device settings at this point (created by subclass)
   // create standard base class settings.
   if (!deviceSettings) {
-    ALOG(LOG_ERR, "***** no settings at load() time! -> probably misconfigured\n");
+    ALOG(LOG_ERR, "***** no settings at load() time! -> probably misconfigured");
     return ErrorPtr(new WebError(500,"missing settings"));
   }
   // load the device settings
@@ -1649,9 +1649,9 @@ ErrorPtr Device::writtenProperty(PropertyAccessMode aMode, PropertyDescriptorPtr
 string Device::description()
 {
   string s = inherited::description(); // DsAdressable
-  if (buttons.size()>0) string_format_append(s, "- Buttons: %lu\n", buttons.size());
-  if (binaryInputs.size()>0) string_format_append(s, "- Binary Inputs: %lu\n", binaryInputs.size());
-  if (sensors.size()>0) string_format_append(s, "- Sensors: %lu\n", sensors.size());
-  if (numChannels()>0) string_format_append(s, "- Output Channels: %d\n", numChannels());
+  if (buttons.size()>0) string_format_append(s, "\n- Buttons: %lu", buttons.size());
+  if (binaryInputs.size()>0) string_format_append(s, "\n- Binary Inputs: %lu", binaryInputs.size());
+  if (sensors.size()>0) string_format_append(s, "\n- Sensors: %lu", sensors.size());
+  if (numChannels()>0) string_format_append(s, "\n- Output Channels: %d", numChannels());
   return s;
 }

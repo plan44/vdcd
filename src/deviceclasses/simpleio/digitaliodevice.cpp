@@ -54,7 +54,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
       digitalIoType = digitalio_relay;
     }
     else {
-      LOG(LOG_ERR,"unknown digital IO type: %s\n", mode.c_str());
+      LOG(LOG_ERR, "unknown digital IO type: %s", mode.c_str());
     }
   }
   // basically act as black device so we can configure colors
@@ -196,10 +196,10 @@ string DigitalIODevice::description()
 {
   string s = inherited::description();
   if (buttonInput)
-    string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName().c_str());
+    string_format_append(s, "\n- Button at Digital IO '%s'", buttonInput->getName().c_str());
   if (digitalInput)
-    string_format_append(s, "- Input at Digital IO '%s'\n", digitalInput->getName().c_str());
+    string_format_append(s, "\n- Input at Digital IO '%s'", digitalInput->getName().c_str());
   if (indicatorOutput)
-    string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName().c_str());
+    string_format_append(s, "\n- Switch output at Digital IO '%s'", indicatorOutput->getName().c_str());
   return s;
 }

@@ -331,20 +331,20 @@ void HueDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     }
     // show what we are doing
     if (LOGENABLED(LOG_INFO) && (!aForDimming || LOGENABLED(LOG_DEBUG))) {
-      ALOG(LOG_INFO, "sending new light state: light is %s, brightness=%0.0f, transition in %d mS\n", lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
+      ALOG(LOG_INFO, "sending new light state: light is %s, brightness=%0.0f, transition in %d mS", lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
       if (cl) {
         switch (cl->colorMode) {
           case colorLightModeHueSaturation:
-            LOG(LOG_INFO, "- color mode HSV: hue=%0.0f, saturation=%0.0f\n", cl->hue->getChannelValue(), cl->saturation->getChannelValue());
+            LOG(LOG_INFO, "- color mode HSV: hue=%0.0f, saturation=%0.0f", cl->hue->getChannelValue(), cl->saturation->getChannelValue());
             break;
           case colorLightModeXY:
-            LOG(LOG_INFO, "- color mode xyV: x=%0.3f, y=%0.3f\n", cl->cieX->getChannelValue(), cl->cieY->getChannelValue());
+            LOG(LOG_INFO, "- color mode xyV: x=%0.3f, y=%0.3f", cl->cieX->getChannelValue(), cl->cieY->getChannelValue());
             break;
           case colorLightModeCt:
-            LOG(LOG_INFO, "- color mode color temperature: mired=%0.0f\n", cl->ct->getChannelValue());
+            LOG(LOG_INFO, "- color mode color temperature: mired=%0.0f", cl->ct->getChannelValue());
             break;
           default:
-            LOG(LOG_INFO, "- NO color\n");
+            LOG(LOG_INFO, "- NO color");
             break;
         }
       }
@@ -506,5 +506,6 @@ void HueDevice::deriveDsUid()
 string HueDevice::description()
 {
   string s = inherited::description();
+  string_format_append(s, "\n- hue unique ID: %s", uniqueID.c_str());
   return s;
 }

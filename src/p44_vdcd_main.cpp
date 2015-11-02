@@ -239,12 +239,12 @@ public:
           redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
-          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!\n");
+          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!");
           greenLED->steadyOff();
           redLED->steadyOn();
           break;
         case status_fatalerror:
-          LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!\n");
+          LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!");
           greenLED->steadyOff();
           redLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
@@ -406,7 +406,7 @@ public:
 
     // before starting anything, delay
     if (startupDelay>0) {
-      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
+      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)", startupDelay);
       sleep(startupDelay);
     }
 
@@ -610,7 +610,7 @@ public:
       }
     }
     else {
-      LOG(LOG_ERR,"Learning error: %s\n", aError->description().c_str());
+      LOG(LOG_ERR, "Learning error: %s", aError->description().c_str());
     }
   }
 
@@ -630,7 +630,7 @@ public:
 
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d", aState, aHasChanged);
     // LED yellow as long as button pressed
     if (aHasChanged) {
       if (aState) indicateTempStatus(tempstatus_buttonpressed);
@@ -641,13 +641,13 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // visually acknowledge long keypress by turning LED red
         indicateTempStatus(tempstatus_buttonpressedlong);
-        LOG(LOG_WARNING,"Button held for >5 seconds now...\n");
+        LOG(LOG_WARNING, "Button held for >5 seconds now...");
       }
       // check for very long keypress
       if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Very long button press detected -> clean exit(%d) in 2 seconds\n", P44_EXIT_LOCALMODE);
+        LOG(LOG_WARNING, "Very long button press detected -> clean exit(%d) in 2 seconds", P44_EXIT_LOCALMODE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
@@ -663,7 +663,7 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
-        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS\n", P44_EXIT_FIRMWAREUPDATE);
+        LOG(LOG_WARNING, "Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS", P44_EXIT_FIRMWAREUPDATE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
@@ -689,12 +689,12 @@ public:
 
   virtual bool fromStartButtonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d", aState, aHasChanged);
     if (aHasChanged && aState==false) {
       // released
       if (factoryResetWait && aTimeSincePreviousChange>20*Second) {
         // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
-        LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds\n", P44_EXIT_FACTORYRESET);
+        LOG(LOG_WARNING, "Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds", P44_EXIT_FACTORYRESET);
         // indicate red "error/danger" state
         redLED->steadyOn();
         greenLED->steadyOff();
@@ -704,7 +704,7 @@ public:
       }
       else {
         // held in waiting-for-reset state less than 20 seconds or more than 30 seconds -> just restart
-        LOG(LOG_WARNING,"Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds\n");
+        LOG(LOG_WARNING, "Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds");
         // indicate yellow "busy" state
         redLED->steadyOn();
         greenLED->steadyOn();
@@ -775,7 +775,7 @@ public:
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
-      LOG(LOG_ALERT,"****** Fatal error - vdc host initialisation failed: %s\n", aError->description().c_str());
+      LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->description().c_str());
       MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
       return;
     }
@@ -859,7 +859,7 @@ public:
       getOption("vdsmnotaux")
     );
     if (!Error::isOK(err)) {
-      LOG(LOG_ERR,"**** Cannot start discovery manager: %s\n", err->description().c_str());
+      LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
     }
   }
 
@@ -867,10 +867,10 @@ public:
   void discoveryStatusHandler(bool aAuxVdsmShouldRun)
   {
     if (aAuxVdsmShouldRun) {
-      LOG(LOG_WARNING,"***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds\n", P44_EXIT_START_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds", P44_EXIT_START_AUXVDSM);
     }
     else {
-      LOG(LOG_WARNING,"***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds\n", P44_EXIT_STOP_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds", P44_EXIT_STOP_AUXVDSM);
     }
     // needs to switch vdsms, means device is busy
     setAppStatus(status_busy);

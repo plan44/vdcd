@@ -193,7 +193,7 @@ bool DsAddressable::pushProperty(ApiValuePtr aQuery, int aDomain)
   }
   else {
     // not announced, suppress pushProperty
-    ALOG(LOG_WARNING, "pushProperty suppressed - is not yet announced\n");
+    ALOG(LOG_WARNING, "pushProperty suppressed - is not yet announced");
   }
   return false;
 }
@@ -204,12 +204,12 @@ void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParam
 {
   if (aMethod=="ping") {
     // issue device ping (which will issue a pong when device is reachable)
-    ALOG(LOG_INFO,"ping -> checking presence...\n");
+    ALOG(LOG_INFO, "ping -> checking presence...");
     checkPresence(boost::bind(&DsAddressable::presenceResultHandler, this, _1));
   }
   else {
     // unknown notification
-    ALOG(LOG_WARNING, "unknown notification '%s'\n", aMethod.c_str());
+    ALOG(LOG_WARNING, "unknown notification '%s'", aMethod.c_str());
   }
 }
 
@@ -235,11 +235,11 @@ void DsAddressable::presenceResultHandler(bool aIsPresent)
 {
   if (aIsPresent) {
     // send back Pong notification
-    ALOG(LOG_INFO,"is present -> sending pong\n");
+    ALOG(LOG_INFO, "is present -> sending pong");
     sendRequest("pong", ApiValuePtr());
   }
   else {
-    ALOG(LOG_NOTICE,"is NOT present -> no Pong sent\n");
+    ALOG(LOG_NOTICE, "is NOT present -> no Pong sent");
   }
 }
 
@@ -350,7 +350,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 
 bool DsAddressable::getIcon(const char *aIconName, string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  DBGLOG(LOG_DEBUG,"Trying to load icon named '%s/%s' for dSUID %s\n", aResolutionPrefix, aIconName, dSUID.getString().c_str());
+  DBGLOG(LOG_DEBUG, "Trying to load icon named '%s/%s' for dSUID %s", aResolutionPrefix, aIconName, dSUID.getString().c_str());
   const char *iconDir = getDeviceContainer().getIconDir();
   if (iconDir && *iconDir) {
     string iconPath = string_format("%s%s/%s.png", iconDir, aResolutionPrefix, aIconName);
@@ -380,7 +380,7 @@ bool DsAddressable::getIcon(const char *aIconName, string &aIcon, bool aWithData
         aIcon.clear();
         return false;
       }
-      DBGLOG(LOG_DEBUG,"- successfully loaded icon named '%s'\n", aIconName);
+      DBGLOG(LOG_DEBUG, "- successfully loaded icon named '%s'", aIconName);
     }
     else {
       // just name
@@ -491,11 +491,6 @@ string DsAddressable::shortDesc()
 
 string DsAddressable::description()
 {
-  string s = string_format("%s %s", entityType(), shortDesc().c_str());
-  if (announced!=Never)
-    string_format_append(s, " - announced");
-  else
-    s.append(" - not yet announced");
-  s.append("\n");
+  string s = string_format("%s %s - %sannounced", entityType(), shortDesc().c_str(), announced==Never ? "NOT YET " : "");
   return s;
 }

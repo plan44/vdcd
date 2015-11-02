@@ -232,8 +232,8 @@ string DsBehaviour::shortDesc()
 
 string DsBehaviour::description()
 {
-  string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());
-  string_format_append(s, "- hardwareError: %d\n", hardwareError);
+  string s = string_format("\n- behaviour hardware name: '%s'", hardwareName.c_str());
+  string_format_append(s, "\n- hardwareError: %d\n", hardwareError);
   return s;
 }
 

@@ -65,7 +65,7 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 void SensorBehaviour::updateSensorValue(double aValue)
 {
   BLOG(LOG_NOTICE,
-    "Sensor[%zu] '%s' reported new value %0.3f\n",
+    "Sensor[%zu] '%s' reported new value %0.3f",
     index, hardwareName.c_str(), aValue
   );
   // always update age, even if value itself may not have changed
@@ -302,9 +302,9 @@ bool SensorBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 
 string SensorBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- sensor type: %d, min: %0.1f, max: %0.1f, resolution: %0.3f, interval: %lld mS\n", sensorType, min, max, resolution, updateInterval/MilliSecond);
-  string_format_append(s, "- minimal interval between pushes: %lld mS\n", minPushInterval/MilliSecond);
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- sensor type: %d, min: %0.1f, max: %0.1f, resolution: %0.3f, interval: %lld mS", sensorType, min, max, resolution, updateInterval/MilliSecond);
+  string_format_append(s, "\n- minimal interval between pushes: %lld mS", minPushInterval/MilliSecond);
   s.append(inherited::description());
   return s;
 }

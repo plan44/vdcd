@@ -218,7 +218,7 @@ void EnoceanDevice::needOutgoingUpdate()
     sendOutgoingUpdate();
   }
   else {
-    ALOG(LOG_NOTICE,"flagged output update pending -> outgoing EnOcean package will be sent later\n");
+    ALOG(LOG_NOTICE, "flagged output update pending -> outgoing EnOcean package will be sent later");
   }
 }
 
@@ -277,7 +277,7 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   if (pendingDeviceUpdate || updateAtEveryReceive) {
     // send updates, if any
     pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
-    ALOG(LOG_NOTICE,"pending output update is now sent to device\n");
+    ALOG(LOG_NOTICE, "pending output update is now sent to device");
     sendOutgoingUpdate();
   }
 }
@@ -300,10 +300,10 @@ void EnoceanDevice::checkPresence(PresenceCB aPresenceResultHandler)
 string EnoceanDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Enocean Address = 0x%08X, subDevice=%d\n", enoceanAddress, subDevice);
+  string_format_append(s, "\n- Enocean Address = 0x%08X, subDevice=%d", enoceanAddress, subDevice);
   const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   string_format_append(s,
-    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X\n",
+    "\n- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X",
     eeFunctionDesc.c_str(),
     EEP_RORG(eeProfile),
     EEP_FUNC(eeProfile),
@@ -314,7 +314,7 @@ string EnoceanDevice::description()
   );
   // show channels
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    string_format_append(s, "- EnOcean device channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
+    string_format_append(s, "\n- EnOcean device channel #%d: %s", (*pos)->channel, (*pos)->shortDesc().c_str());
   }
   return s;
 }
@@ -548,7 +548,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
       newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     default:
-      LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
+      LOG(LOG_WARNING, "EnoceanDevice::newDevice: unknown RORG = 0x%02X", rorg);
       break;
   }
   // return device (or empty if none created)

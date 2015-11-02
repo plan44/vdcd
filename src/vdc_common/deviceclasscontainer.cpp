@@ -469,7 +469,7 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
 
 string DeviceClassContainer::description()
 {
-  string d = string_format("%s #%d: %s (%ld devices)\n", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
+  string d = string_format("%s #%d: %s (%ld devices)", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
   return d;
 }
 

@@ -228,7 +228,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
   string data;
   HttpComm::appendFormValue(data, "access_token", sparkCoreToken);
   HttpComm::appendFormValue(data, "args", aArgs);
-  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
+  LOG(LOG_DEBUG, "sparkApiCall to %s - data = %s", url.c_str(), data.c_str());
   return sparkCloudComm.jsonReturningRequest(url.c_str(), aResponseCB, "POST", data);
 }
 
@@ -314,7 +314,7 @@ void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
         ((int)r << 16) |
         ((int)g << 8) |
         (int)b;
-      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d\n", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
     }
     else {
       // brightness only
@@ -322,7 +322,7 @@ void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       stateWord =
         (mode << 24) |
         ((int)br & 0xFF);
-      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d\n", mode, (int)br, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d", mode, (int)br, stateWord, stateWord);
     }
     // set output value
     if (apiVersion==2) {
@@ -347,7 +347,7 @@ void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviou
     aSparkLightBehaviour->appliedColorValues();
   }
   else {
-    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
+    LOG(LOG_DEBUG, "Spark API error: %s", aError->description().c_str());
   }
   // confirm done
   if (aDoneCB) aDoneCB();
@@ -406,6 +406,6 @@ void SparkIoDevice::deriveDsUid()
 string SparkIoDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- MessageTorch RGB light controlled via spark cloud API\n");
+  string_format_append(s, "\n- MessageTorch RGB light controlled via spark cloud API");
   return s;
 }

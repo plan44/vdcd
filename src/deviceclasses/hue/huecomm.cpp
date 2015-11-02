@@ -245,7 +245,7 @@ public:
       // we have a pre-known base URL for the hue API, use this without any find operation
       hueComm.baseURL = hueComm.fixedBaseURL; // use it
       hueComm.apiReady = true; // can use API now
-      FOCUSLOG("Using fixed API URL to access hue Bridge %s: %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
+      FOCUSLOG("Using fixed API URL to access hue Bridge %s: %s", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
       callback(ErrorPtr()); // success
     }
   };
@@ -276,13 +276,13 @@ public:
     if (Error::isOK(aError)) {
       // check device for possibility of being a hue bridge
       if (aSsdpSearch->server.find("IpBridge")!=string::npos) {
-        LOG(LOG_INFO, "hue bridge candidate device found at %s, server=%s, uuid=%s\n", aSsdpSearch->locationURL.c_str(), aSsdpSearch->server.c_str(), aSsdpSearch->uuid.c_str());
+        LOG(LOG_INFO, "hue bridge candidate device found at %s, server=%s, uuid=%s", aSsdpSearch->locationURL.c_str(), aSsdpSearch->server.c_str(), aSsdpSearch->uuid.c_str());
         // put into map
         bridgeCandiates[aSsdpSearch->uuid.c_str()] = aSsdpSearch->locationURL.c_str();
       }
     }
     else {
-      FOCUSLOG("discovery ended, error = %s (usually: timeout)\n", aError->description().c_str());
+      FOCUSLOG("discovery ended, error = %s (usually: timeout)", aError->description().c_str());
       aSsdpSearch->stopSearch();
       // now process the results
       currentBridgeCandidate = bridgeCandiates.begin();
@@ -324,8 +324,8 @@ public:
   {
     if (Error::isOK(aError)) {
       // show
-      //FOCUSLOG("Received bridge description:\n%s\n", aResponse.c_str());
-      FOCUSLOG("Received service description XML\n");
+      //FOCUSLOG("Received bridge description:\n%s", aResponse.c_str());
+      FOCUSLOG("Received service description XML");
       // TODO: this is poor man's XML scanning, use some real XML parser eventually
       // do some basic checking for model
       size_t i = aResponse.find("<manufacturer>Royal Philips Electronics</manufacturer>");
@@ -349,14 +349,14 @@ public:
                 // that's my known hue bridge, save the URL and report success
                 hueComm.baseURL = url; // save it
                 hueComm.apiReady = true; // can use API now
-                FOCUSLOG("pre-known hue Bridge %s found at %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
+                FOCUSLOG("pre-known hue Bridge %s found at %s", hueComm.uuid.c_str(), hueComm.baseURL.c_str());
                 callback(ErrorPtr()); // success
                 keepAlive.reset(); // will delete object if nobody else keeps it
                 return; // done
               }
               else {
                 // that's a hue bridge, remember it for trying to authorize
-                FOCUSLOG("- Seems to be a hue bridge at %s\n", url.c_str());
+                FOCUSLOG("- Seems to be a hue bridge at %s", url.c_str());
                 authCandidates[currentBridgeCandidate->first] = url;
               }
             }
@@ -365,7 +365,7 @@ public:
       }
     }
     else {
-      FOCUSLOG("Error accessing bridge description: %s\n", aError->description().c_str());
+      FOCUSLOG("Error accessing bridge description: %s", aError->description().c_str());
     }
     // try next
     ++currentBridgeCandidate;
@@ -384,7 +384,7 @@ public:
   {
     if (currentAuthCandidate!=authCandidates.end() && hueComm.findInProgress) {
       // try to authorize
-      FOCUSLOG("Auth candidate: uuid=%s, baseURL=%s -> try creating user\n", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
+      FOCUSLOG("Auth candidate: uuid=%s, baseURL=%s -> try creating user", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
       JsonObjectPtr request = JsonObject::newObj();
       request->add("username", JsonObject::newString(userName));
       request->add("devicetype", JsonObject::newString(deviceType));
@@ -399,7 +399,7 @@ public:
       }
       else {
         // all candidates tried, nothing found in given time
-        LOG(LOG_NOTICE, "Could not register with a hue bridge\n");
+        LOG(LOG_NOTICE, "Could not register with a hue bridge");
         hueComm.findInProgress = false;
         callback(ErrorPtr(new HueCommError(HueCommErrorNoRegistration, "No hue bridge found ready to register")));
         // done!
@@ -413,7 +413,7 @@ public:
   void handleCreateUserAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
   {
     if (Error::isOK(aError)) {
-      FOCUSLOG("Received success answer:\n%s\n", aJsonResponse->json_c_str());
+      FOCUSLOG("Received success answer:\n%s", aJsonResponse->json_c_str());
       JsonObjectPtr s = HueComm::getSuccessItem(aJsonResponse);
       // apparently successful, extract user name
       if (s) {
@@ -423,7 +423,7 @@ public:
           hueComm.uuid = currentAuthCandidate->first;
           hueComm.baseURL = currentAuthCandidate->second;
           hueComm.apiReady = true; // can use API now
-          FOCUSLOG("hue Bridge %s @ %s: successfully registered as user %s\n", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
+          FOCUSLOG("hue Bridge %s @ %s: successfully registered as user %s", hueComm.uuid.c_str(), hueComm.baseURL.c_str(), hueComm.userName.c_str());
           // successfully registered with hue bridge, let caller know
           callback(ErrorPtr());
           // done!
@@ -433,7 +433,7 @@ public:
       }
     }
     else {
-      LOG(LOG_ERR, "hue Bridge: Error creating user: %s\n", aError->description().c_str());
+      LOG(LOG_ERR, "hue Bridge: Error creating user: %s", aError->description().c_str());
     }
     // try next
     ++currentAuthCandidate;

@@ -47,7 +47,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
   else if (mode=="valve")
     analogIOType = analogio_valve;
   else {
-    LOG(LOG_ERR,"unknown analog IO type: %s\n", mode.c_str());
+    LOG(LOG_ERR, "unknown analog IO type: %s", mode.c_str());
   }
   // by default, act as black device so we can configure colors
   primaryGroup = group_black_joker;
@@ -183,7 +183,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     analogIO->setValue(pwm);
     // next step
     if (l->brightnessTransitionStep(aStepSize)) {
-      ALOG(LOG_DEBUG, "AnalogIO transitional PWM value: %.2f\n", w);
+      ALOG(LOG_DEBUG, "AnalogIO transitional PWM value: %.2f", w);
       // not yet complete, schedule next step
       transitionTicket = MainLoop::currentMainLoop().executeOnce(
         boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -191,7 +191,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
       );
       return; // will be called later again
     }
-    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final PWM value: %.2f\n", w);
+    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final PWM value: %.2f", w);
   }
   else if (analogIOType==analogio_rgbdimmer) {
     // three channel RGB PWM dimmer
@@ -220,7 +220,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
     analogIO3->setValue(pwm);
     // next step
     if (cl->colorTransitionStep(aStepSize)) {
-      ALOG(LOG_DEBUG, "AnalogIO transitional RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", r, g, b, w);
+      ALOG(LOG_DEBUG, "AnalogIO transitional RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f", r, g, b, w);
       // not yet complete, schedule next step
       transitionTicket = MainLoop::currentMainLoop().executeOnce(
         boost::bind(&AnalogIODevice::applyChannelValueSteps, this, aForDimming, aStepSize),
@@ -228,7 +228,7 @@ void AnalogIODevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
       );
       return; // will be called later again
     }
-    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f\n", r, g, b, w);
+    if (!aForDimming) ALOG(LOG_INFO, "AnalogIO final RGBW values: R=%.2f G=%.2f, B=%.2f, W=%.2f", r, g, b, w);
   }
 }
 
@@ -277,11 +277,11 @@ string AnalogIODevice::description()
 {
   string s = inherited::description();
   if (analogIOType==analogio_dimmer)
-    string_format_append(s, "- Dimmer at Analog output '%s'\n", analogIO->getName().c_str());
+    string_format_append(s, "\n- Dimmer at Analog output '%s'", analogIO->getName().c_str());
   if (analogIOType==analogio_rgbdimmer)
-    string_format_append(s, "- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'\n", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
-  else if (analogIOType==analogio_valve)
-    return string_format("Heating Valve @ '%s'\n", analogIO->getName().c_str());
+    string_format_append(s, "\n- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
+  if (analogIOType==analogio_valve)
+    string_format_append(s, "\nHeating Valve @ '%s'", analogIO->getName().c_str());
   return s;
 }
 

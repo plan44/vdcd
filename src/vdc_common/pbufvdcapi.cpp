@@ -981,7 +981,7 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
   if (!aResult || aResult->isNull()) {
     // empty result is like sending no error
     err = sendError(0);
-    LOG(LOG_INFO,"vdSM <- vDC (pbuf) result sent: requestid='%d', result=NULL\n", reqId);
+    LOG(LOG_INFO, "vdSM <- vDC (pbuf) result sent: requestid='%d', result=NULL", reqId);
   }
   else {
     // we might have a specific result
@@ -1013,7 +1013,7 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
         }
         break;
       default:
-        LOG(LOG_INFO,"vdSM <- vDC (pbuf) response '%s' cannot be sent because no message is implemented for it at the pbuf level\n", aResult->description().c_str());
+        LOG(LOG_INFO, "vdSM <- vDC (pbuf) response '%s' cannot be sent because no message is implemented for it at the pbuf level", aResult->description().c_str());
         return ErrorPtr(new VdcApiError(500,"Error: Method is not implemented in the pbuf API"));
     }
     // send
@@ -1021,7 +1021,7 @@ ErrorPtr VdcPbufApiRequest::sendResult(ApiValuePtr aResult)
     // dispose allocated submessage
     protobuf_c_message_free_unpacked(subMessageP, NULL);
     // log
-    LOG(LOG_INFO,"vdSM <- vDC (pbuf) result sent: requestid='%d', result=%s\n", reqId, aResult ? aResult->description().c_str() : "<none>");
+    LOG(LOG_INFO, "vdSM <- vDC (pbuf) result sent: requestid='%d', result=%s", reqId, aResult ? aResult->description().c_str() : "<none>");
   }
   return err;
 }
@@ -1042,7 +1042,7 @@ ErrorPtr VdcPbufApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage,
   err = pbufConnection->sendMessage(&msg);
   // log (if not just OK)
   if (aErrorCode!=ErrorOK)
-    LOG(LOG_INFO,"vdSM <- vDC (pbuf) error sent: requestid='%d', error=%d (%s)\n", reqId, aErrorCode, aErrorMessage.c_str());
+    LOG(LOG_INFO, "vdSM <- vDC (pbuf) error sent: requestid='%d', error=%d (%s)", reqId, aErrorCode, aErrorMessage.c_str());
   // done
   return err;
 }
@@ -1073,21 +1073,21 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // no error
     size_t dataSz = socketComm->numBytesReady();
-    DBGFOCUSLOG("gotData: numBytesReady()=%d\n", dataSz);
+    DBGFOCUSLOG("gotData: numBytesReady()=%d", dataSz);
     // read data we've got so far
     if (dataSz>0) {
       // temporary buffer
       uint8_t *buf = new uint8_t[dataSz];
       size_t receivedBytes = socketComm->receiveBytes(dataSz, buf, aError);
-      DBGFOCUSLOG("gotData: receiveBytes(%d)=%d\n", dataSz, receivedBytes);
-      DBGFOCUSLOG("gotData: before appending: receivedMessage.size()=%d\n", receivedMessage.size());
+      DBGFOCUSLOG("gotData: receiveBytes(%d)=%d", dataSz, receivedBytes);
+      DBGFOCUSLOG("gotData: before appending: receivedMessage.size()=%d", receivedMessage.size());
       if (Error::isOK(aError)) {
         // append to receive buffer
         receivedMessage.append((const char *)buf, receivedBytes);
-        DBGFOCUSLOG("gotData: after appending: receivedMessage.size()=%d\n", receivedMessage.size());
+        DBGFOCUSLOG("gotData: after appending: receivedMessage.size()=%d", receivedMessage.size());
         // single message extraction
         while(true) {
-          DBGFOCUSLOG("gotData: processing loop beginning, expectedMsgBytes=%d\n", expectedMsgBytes);
+          DBGFOCUSLOG("gotData: processing loop beginning, expectedMsgBytes=%d", expectedMsgBytes);
           if(expectedMsgBytes==0 && receivedMessage.size()>=2) {
             // got 2-byte length header, decode it
             const uint8_t *sz = (const uint8_t *)receivedMessage.c_str();
@@ -1095,8 +1095,8 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
               (sz[0]<<8) +
               sz[1];
             receivedMessage.erase(0,2);
-            FOCUSLOG("gotData: parsed new header, now expectedMsgBytes=%d\n", expectedMsgBytes);
-            DBGFOCUSLOG("gotData: after removing header: receivedMessage.size()=%d\n", receivedMessage.size());
+            FOCUSLOG("gotData: parsed new header, now expectedMsgBytes=%d", expectedMsgBytes);
+            DBGFOCUSLOG("gotData: after removing header: receivedMessage.size()=%d", receivedMessage.size());
             if (expectedMsgBytes>MAX_DATA_SIZE) {
               aError = ErrorPtr(new VdcApiError(413, "message exceeds maximum length of 16kB"));
               break;
@@ -1104,12 +1104,12 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
           }
           // check for complete message
           if (expectedMsgBytes && (receivedMessage.size()>=expectedMsgBytes)) {
-            FOCUSLOG("gotData: receivedMessage.size()=%d >= expectedMsgBytes=%d -> process\n", receivedMessage.size(), expectedMsgBytes);
+            FOCUSLOG("gotData: receivedMessage.size()=%d >= expectedMsgBytes=%d -> process", receivedMessage.size(), expectedMsgBytes);
             // process message
             aError = processMessage((uint8_t *)receivedMessage.c_str(),expectedMsgBytes);
             // erase processed message
             receivedMessage.erase(0,expectedMsgBytes);
-            DBGFOCUSLOG("gotData: after removing message: receivedMessage.size()=%d\n", receivedMessage.size());
+            DBGFOCUSLOG("gotData: after removing message: receivedMessage.size()=%d", receivedMessage.size());
             expectedMsgBytes = 0; // reset to unknown
             // repeat evaluation with remaining bytes (could be another message)
           }
@@ -1118,7 +1118,7 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
             break;
           }
         }
-        DBGFOCUSLOG("gotData: end of processing loop: receivedMessage.size()=%d\n", receivedMessage.size());
+        DBGFOCUSLOG("gotData: end of processing loop: receivedMessage.size()=%d", receivedMessage.size());
       }
       // forget buffer
       delete[] buf; buf = NULL;
@@ -1127,7 +1127,7 @@ void VdcPbufApiConnection::gotData(ErrorPtr aError)
   if (!Error::isOK(aError)) {
     // error occurred
     // pbuf API cannot resynchronize, close connection
-    LOG(LOG_WARNING,"Error occurred on protobuf connection - cannot be re-synced, closing: %s\n", aError->description().c_str());
+    LOG(LOG_WARNING, "Error occurred on protobuf connection - cannot be re-synced, closing: %s", aError->description().c_str());
     closeConnection();
   }
 }
@@ -1202,7 +1202,7 @@ void VdcPbufApiConnection::canSendData(ErrorPtr aError)
       // check for closing connection when no data pending to be sent any more
       if (closeWhenSent && transmitBuffer.size()==0) {
         closeWhenSent = false; // done
-        LOG(LOG_NOTICE,"vDC API request demands ending connection now\n");
+        LOG(LOG_NOTICE, "vDC API request demands ending connection now");
         closeConnection();
       }
     }
@@ -1420,7 +1420,7 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
       PendingAnswerMap::iterator pos = pendingAnswers.find(responseForId);
       if (pos==pendingAnswers.end()) {
         // errors without ID cannot be associated with calls made earlier, so just log the error
-        LOG(LOG_WARNING,"vdSM -> vDC (pbuf) error: Received response with unknown 'id'=%d, error=%s\n", responseForId, Error::isOK(err) ? "<none>" : err->description().c_str());
+        LOG(LOG_WARNING, "vdSM -> vDC (pbuf) error: Received response with unknown 'id'=%d, error=%s", responseForId, Error::isOK(err) ? "<none>" : err->description().c_str());
       }
       else {
         // found callback
@@ -1429,10 +1429,10 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         // create request object just to hold the response ID
         VdcPbufApiRequestPtr request = VdcPbufApiRequestPtr(new VdcPbufApiRequest(VdcPbufApiConnectionPtr(this), responseForId));
         if (Error::isOK(err)) {
-          LOG(LOG_INFO,"vdSM -> vDC (pbuf) result received: id='%s', result=%s\n", request->requestId().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
+          LOG(LOG_INFO, "vdSM -> vDC (pbuf) result received: id='%s', result=%s", request->requestId().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
         }
         else {
-          LOG(LOG_INFO,"vdSM -> vDC (pbuf) error received: id='%s', error=%s, errordata=%s\n", request->requestId().c_str(), err->description().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
+          LOG(LOG_INFO, "vdSM -> vDC (pbuf) error received: id='%s', error=%s, errordata=%s", request->requestId().c_str(), err->description().c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
         }
         cb(this, request, err, msgFieldsObj); // call handler
       }
@@ -1450,10 +1450,10 @@ ErrorPtr VdcPbufApiConnection::processMessage(const uint8_t *aPackedMessageP, si
         // method call, we need a request reference object
         request = VdcPbufApiRequestPtr(new VdcPbufApiRequest(VdcPbufApiConnectionPtr(this), decodedMsg->message_id));
         request->responseType = (Vdcapi__Type)responseType; // save the response type for sending answers later
-        LOG(LOG_INFO,"vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s\n", request->reqId, method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
+        LOG(LOG_INFO, "vdSM -> vDC (pbuf) method call received: requestid='%d', method='%s', params=%s", request->reqId, method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
       else {
-        LOG(LOG_INFO,"vdSM -> vDC (pbuf) notification received: method='%s', params=%s\n", method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
+        LOG(LOG_INFO, "vdSM -> vDC (pbuf) notification received: method='%s', params=%s", method.c_str(), msgFieldsObj ? msgFieldsObj->description().c_str() : "<none>");
       }
       if (!Error::isOK(err)) {
         // error decoding message
@@ -1541,7 +1541,7 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
   }
   else {
     // no suitable submessage, cannot send
-    LOG(LOG_INFO,"vdSM <- vDC (pbuf) method '%s' cannot be sent because no message is implemented for it at the pbuf level\n", aMethod.c_str());
+    LOG(LOG_INFO, "vdSM <- vDC (pbuf) method '%s' cannot be sent because no message is implemented for it at the pbuf level", aMethod.c_str());
     return ErrorPtr(new VdcApiError(500,"Error: Method is not implemented in the pbuf API"));
   }
   if (Error::isOK(err)) {
@@ -1562,10 +1562,10 @@ ErrorPtr VdcPbufApiConnection::sendRequest(const string &aMethod, ApiValuePtr aP
     protobuf_c_message_free_unpacked(subMessageP, NULL);
     // log
     if (aResponseHandler) {
-      LOG(LOG_INFO,"vdSM <- vDC (pbuf) method call sent: requestid='%d', method='%s', params=%s\n", requestIdCounter, aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
+      LOG(LOG_INFO, "vdSM <- vDC (pbuf) method call sent: requestid='%d', method='%s', params=%s", requestIdCounter, aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
     }
     else {
-      LOG(LOG_INFO,"vdSM <- vDC (pbuf) notification sent: method='%s', params=%s\n", aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
+      LOG(LOG_INFO, "vdSM <- vDC (pbuf) notification sent: method='%s', params=%s", aMethod.c_str(), aParams ? aParams->description().c_str() : "<none>");
     }
   }
   // done
