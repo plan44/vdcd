@@ -410,10 +410,21 @@ void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, cons
       break; // -> done
     }
     // - keep assigned name and zone for new device(s)
-    newDev->initializeName(getAssignedName());
-    if (newDev->deviceSettings && deviceSettings) newDev->deviceSettings->zoneID = deviceSettings->zoneID;
+    bool hasNameOrZone = false;
+    if (!getAssignedName().empty()) {
+      hasNameOrZone = true;
+      newDev->initializeName(getAssignedName());
+    }
+    if (newDev->deviceSettings && deviceSettings && deviceSettings->zoneID!=0) {
+      hasNameOrZone = true;
+      newDev->deviceSettings->zoneID = deviceSettings->zoneID;
+    }
     // - add it to the container
-    getEnoceanDeviceContainer().addAndRemeberDevice(newDev);
+    getEnoceanDeviceContainer().addAndRememberDevice(newDev);
+    // - make it dirty if we have set zone or name
+    if (hasNameOrZone && newDev->deviceSettings) {
+      newDev->deviceSettings->markDirty(); // make sure name and/or zone are saved permanently
+    }
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
 }
@@ -576,7 +587,7 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
     // created device
     numDevices++;
     // - add it to the container
-    aClassContainerP->addAndRemeberDevice(newDev);
+    aClassContainerP->addAndRememberDevice(newDev);
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
   // return number of devices created

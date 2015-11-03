@@ -170,7 +170,7 @@ bool EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
 
 
 
-bool EnoceanDeviceContainer::addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice)
+bool EnoceanDeviceContainer::addAndRememberDevice(EnoceanDevicePtr aEnoceanDevice)
 {
   if (addKnownDevice(aEnoceanDevice)) {
     // save enocean ID to DB
