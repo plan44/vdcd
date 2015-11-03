@@ -138,9 +138,9 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // found already registered bridge again
     LOG(LOG_NOTICE,
-      "Hue bridge %s found again:"
+      "Hue bridge %s found again:\n"
       "- userName = %s\n"
-      "- API base URL = %s\n",
+      "- API base URL = %s",
       hueComm.uuid.c_str(),
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
@@ -180,10 +180,10 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
   if (Error::isOK(aError)) {
     // found and authenticated bridge
     LOG(LOG_NOTICE,
-      "Hue bridge found and logged in:"
+      "Hue bridge found and logged in:\n"
       "- uuid = %s\n"
       "- userName = %s\n"
-      "- API base URL = %s\n",
+      "- API base URL = %s",
       hueComm.uuid.c_str(),
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
