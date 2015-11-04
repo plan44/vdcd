@@ -150,7 +150,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add standard output behaviour
         OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-        o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
         o->setGroupMembership(group_black_joker, true); // put into joker group by default
         o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
         // does not need a channel handler at all, just add behaviour
@@ -175,7 +175,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add standard output behaviour
         LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*newDev.get()));
-        l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        l->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(l);
         // count it
@@ -198,7 +198,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add shadow behaviour
         ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*newDev.get()));
-        sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
+        sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_undefined, false, -1);
         sb->setHardwareName("blind");
         sb->setDeviceParams(shadowdevice_jalousie, false, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
         sb->position->syncChannelValue(100); // assume fully up at beginning

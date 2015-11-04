@@ -33,7 +33,8 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   variableRamp(true),
   maxPower(-1),
   // persistent settings
-  outputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
+  outputMode(outputmode_default), // use the default
+  defaultOutputMode(outputmode_disabled), // none by default, hardware should set a default matching the actual HW capabilities
   pushChanges(false), // do not push changes
   // volatile state
   localPriority(false) // no local priority
@@ -41,7 +42,7 @@ OutputBehaviour::OutputBehaviour(Device &aDevice) :
   // set default group membership (which is group_variable)
   resetGroupMembership();
   // set default hardware default configuration
-  setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+  setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
 }
 
 
@@ -66,24 +67,14 @@ Tristate OutputBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 }
 
 
-void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
+void OutputBehaviour::setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsOutputMode aDefaultOutputMode, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower)
 {
   outputFunction = aOutputFunction;
   outputUsage = aUsage;
   variableRamp = aVariableRamp;
   maxPower = aMaxPower;
-  // determine default output mode
-  switch (outputFunction) {
-    case outputFunction_switch:
-      // switch is always binary output mode
-      outputMode = outputmode_binary;
-      break;
-    default:
-      // for all others, use "default" ("generic" in dSS) to use the device's default mode.
-      // For most cases, this is is same as "gradual"
-      outputMode = outputmode_default;
-      break;
-  }
+  defaultOutputMode = aDefaultOutputMode;
+  // Note: actual outputMode is outputmode_default by default, so without modifying settings, defaultOutputMode applies
 }
 
 
@@ -170,20 +161,68 @@ void OutputBehaviour::resetGroupMembership()
 }
 
 
+DsOutputMode OutputBehaviour::actualOutputMode()
+{
+  if (outputMode==outputmode_default) {
+    return defaultOutputMode; // default mode
+  }
+  else {
+    return outputMode; // specifically set mode
+  }
+}
+
 
 void OutputBehaviour::setOutputMode(DsOutputMode aOutputMode)
 {
   // base class marks all channels needing re-apply and triggers a apply if mode changes
   if (outputMode!=aOutputMode) {
-    // mode has actually changed
+    bool actualChanged = actualOutputMode()!=aOutputMode; // check if actual mode also changes (because explicit setting could be same as default)
+    // mode setting has changed
     outputMode = aOutputMode;
-    for (ChannelBehaviourVector::iterator pos=channels.begin(); pos!=channels.end(); ++pos) {
-      (*pos)->setNeedsApplying(0); // needs immediate re-apply
+    // if actual mode of output has changed, make sure outputs get chance to apply it
+    if (actualChanged) {
+      for (ChannelBehaviourVector::iterator pos=channels.begin(); pos!=channels.end(); ++pos) {
+        (*pos)->setNeedsApplying(0); // needs immediate re-apply
+      }
+      device.requestApplyingChannels(NULL, false, true); // apply, for mode change
     }
-    device.requestApplyingChannels(NULL, false, true); // apply, for mode change
     markDirty();
   }
 }
+
+
+double OutputBehaviour::outputValueAccordingToMode(double aChannelValue)
+{
+  double outval = 0;
+  switch (actualOutputMode()) {
+    // disabled: zero
+    case outputmode_disabled:
+      break;
+    // binary: 0 or 100
+    case outputmode_binary:
+      outval = aChannelValue>0 ? 100 : 0;
+      break;
+    // positive values only
+    case outputmode_gradual_positive:
+      outval = aChannelValue>0 ? aChannelValue : 0;
+      break;
+    // negative values only, converted to positive
+    case outputmode_gradual_negative:
+      outval = aChannelValue<0 ? -aChannelValue : 0;
+      break;
+    // inverted, but no limits
+    case outputmode_gradual_bipolar_inverted:
+      outval = -aChannelValue;
+      break;
+    // default: no limits, not inverted -> just pass input to output
+    case outputmode_gradual_bipolar:
+    default:
+      outval = aChannelValue;
+      break;
+  }
+  return outval;
+}
+
 
 
 
@@ -496,7 +535,7 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         // Settings properties
         case mode_key+settings_key_offset:
-          aPropValue->setUint8Value(outputMode);
+          aPropValue->setUint8Value(actualOutputMode()); // return actual mode, never outputmode_default
           return true;
         case pushChanges_key+settings_key_offset:
           aPropValue->setBoolValue(pushChanges);
@@ -536,7 +575,7 @@ bool OutputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 string OutputBehaviour::description()
 {
   string s = string_format("%s behaviour", shortDesc().c_str());
-  string_format_append(s, "\n- hardware output function: %d (%s)", outputFunction, outputFunction==outputFunction_dimmer ? "dimmer" : (outputFunction==outputFunction_switch ? "switch" : "other"));
+  string_format_append(s, "\n- hardware output function: %d, default output mode: %d", outputFunction, defaultOutputMode);
   s.append(inherited::description());
   return s;
 }

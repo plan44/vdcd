@@ -658,7 +658,7 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     newDev->setFunctionDesc("heating valve actuator");
     // climate control output, use special behaviour (with has already set its specific default group membership)
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*newDev.get()));
-    ob->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
+    ob->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_room, false, 0);
     ob->setHardwareName("valve");
     // - create A5-20-01 specific handler for output
     Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
@@ -767,7 +767,11 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       // - DB(1,1) left 0 = no inverted set value
       // - DB(1,2) left 0 = sending valve position
       // - DB(3,7)..DB(3,0) is valve position 0..100% (0..255 is only for temperature set point mode!)
-      int32_t newValue = ch->getChannelValue(); // channel has 0..100 range -> correct for sending directly
+      int32_t newValue = cb->outputValueAccordingToMode(ch->getChannelValue()); // possible output range is still -100..100
+      // Limit to 0..100 which is what valve can understand
+      if (newValue<0) newValue=0;
+      else if (newValue>100) newValue=100;
+      // - DB3 is set point with range 0..100 (0..255 is only for temperature set point)
       data |= (newValue<<DB(3,0)); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
       LOG(LOG_NOTICE, "- EnOcean valve, new set point: %d%% open", newValue);

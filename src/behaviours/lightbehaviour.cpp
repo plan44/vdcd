@@ -117,8 +117,8 @@ Brightness LightBehaviour::brightnessForHardware()
     return 0;
   }
   else if (isDimmable()) {
-    // dim output
-    return brightness->getTransitionalValue();
+    // dim output (applying output mode transformations)
+    return outputValueAccordingToMode(brightness->getTransitionalValue());
   }
   else {
     // switch output

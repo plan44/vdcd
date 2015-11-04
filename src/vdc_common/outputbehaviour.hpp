@@ -59,6 +59,7 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    DsOutputMode defaultOutputMode; ///< the default mode of the output - this mode ist used when outputMode is set to outputmode_default
     bool localPriority; ///< if set device is in local priority mode
     /// @}
 
@@ -94,6 +95,10 @@ namespace p44 {
     /// @return resolved channel type, always != channeltype_default, except if output has no channels at all
     DsChannelType actualChannelType(DsChannelType aChannelType);
 
+    /// get the actual output mode
+    /// @return the actual output mode, never returns outputmode_default
+    DsOutputMode actualOutputMode();
+
     /// @}
 
 
@@ -101,7 +106,7 @@ namespace p44 {
     /// @{
 
     /// Configure hardware parameters of the output
-    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
+    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsOutputMode aDefaultOutputMode, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
     /// @param aLocalPriority true to set local priority mode, false to clear it
     void setLocalPriority(bool aLocalPriority) { localPriority = aLocalPriority; };
@@ -119,6 +124,10 @@ namespace p44 {
 
     /// @return output functionality the hardware provides
     DsOutputFunction getOutputFunction() { return outputFunction; };
+
+    /// @param aChannelValue channel value
+    /// @return channel value limited/inverted according to outputMode
+    double outputValueAccordingToMode(double aChannelValue);
 
     /// @}
 

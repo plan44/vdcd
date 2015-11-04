@@ -275,19 +275,24 @@ typedef enum {
 
 /// output functions
 typedef enum {
-  outputFunction_switch = 0, ///< switch output
-  outputFunction_dimmer = 1, ///< effective value dimmer
-  outputFunction_positional = 2, ///< positional (servo, valve, blinds)
-  outputFunction_ctdimmer = 3, ///< dimmer with color temperature (channels 1 and 4)
-  outputFunction_colordimmer = 4, ///< full color dimmer (channels 1..6)
+  outputFunction_switch = 0, ///< switch output - single channel 0..100
+  outputFunction_dimmer = 1, ///< effective value dimmer - single channel 0..100
+  outputFunction_positional = 2, ///< positional (servo, unipolar valves, blinds - single channel 0..n, usually n=100)
+  outputFunction_ctdimmer = 3, ///< dimmer with color temperature - channels 1 and 4
+  outputFunction_colordimmer = 4, ///< full color dimmer - channels 1..6
+  outputFunction_bipolar_positional = 5, ///< bipolar valves, dual direction fan control etc. - single channel -n...0...n, usually n=100
+  outputFunction_custom = 0x7F ///< custom output/channel configuration, none of the well-known functions above
 } DsOutputFunction;
 
 /// output modes
 typedef enum {
   outputmode_disabled = 0, ///< disabled
   outputmode_binary = 1, ///< binary ON/OFF mode
-  outputmode_gradual = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
-  outputmode_default = 0x7F, ///< use device in its default (or only) mode, without further specification
+  outputmode_gradual_positive = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
+  outputmode_gradual_negative = 3, ///< gradual negative-only -n..0 (e.g. cooling valve)
+  outputmode_gradual_bipolar = 4, ///< bipolar gradual output value -n..0..n (heating/cooling valve)
+  outputmode_gradual_bipolar_inverted = 5, ///< bipolar gradual output value -n..0..n, mapped inverted
+  outputmode_default = 0x7F ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 
 /// output channel types

@@ -516,7 +516,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction, outputFunction==outputFunction_switch ? outputmode_binary : outputmode_gradual_positive, usage_undefined, false, -1);
     l->setHardwareName(hardwareName);
     addBehaviour(l);
   }
@@ -545,7 +545,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     // - create climate control outout
     OutputBehaviourPtr cb = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     cb->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    cb->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
+    cb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_room, false, 0);
     cb->setHardwareName(hardwareName);
     addBehaviour(cb);
   }
@@ -555,7 +555,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*this)));
     // - add shadow behaviour
     ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*this));
-    sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
+    sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_undefined, false, -1);
     sb->setHardwareName(hardwareName);
     ShadowDeviceKind sk = shadowdevice_jalousie; // default to jalousie
     if (aInitParams->get("kind", o)) {
@@ -580,7 +580,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // - add generic output behaviour
     OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
     o->setHardwareName(hardwareName);
     o->setGroupMembership(primaryGroup, true); // put into primary group
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));

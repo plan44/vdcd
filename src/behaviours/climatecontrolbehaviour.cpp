@@ -99,10 +99,12 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
 {
   if (aName=="heatingLevel") {
     if (isMember(group_roomtemperature_control) && isEnabled()) {
-      // apply positive values to (default) valve output, clip to 100 max
+      // apply to channel
+      // Note: device implementation will limit the applicable range to positives or negatives only according to
+      //   outputMode using outputValueAccordingToMode().
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
-        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue), 0, true); // always apply
+        cb->setChannelValue(aValue, 0, true); // always apply
       }
     }
   }

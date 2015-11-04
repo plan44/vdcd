@@ -70,7 +70,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
     installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
     // - set the behaviour
     ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
-    cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    cl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
     cl->setHardwareName(string_format("color light #%s", lightID.c_str()));
     cl->initMinBrightness(0.4); // min brightness is roughly 1/256
     addBehaviour(cl);
@@ -81,7 +81,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - set the behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
     l->setHardwareName(string_format("monochrome light #%s", lightID.c_str()));
     l->initMinBrightness(0.4); // min brightness is roughly 1/256
     addBehaviour(l);
