@@ -1403,7 +1403,7 @@ void DaliDeviceInfo::clear()
 
 string DaliDeviceInfo::description()
 {
-  string s = string_format("- DaliDeviceInfo for shortAddress %d", shortAddress);
+  string s = string_format("\n- DaliDeviceInfo for shortAddress %d", shortAddress);
   string_format_append(s, "\n  - is %suniquely defining the device", devInfStatus==devinf_solid ? "" : "NOT ");
   string_format_append(s, "\n  - GTIN       : %lld", gtin);
   string_format_append(s, "\n  - Serial     : %lld", serialNo);
