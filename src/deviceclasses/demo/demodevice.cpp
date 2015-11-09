@@ -94,6 +94,6 @@ string DemoDevice::modelName()
 string DemoDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Demo output to console\n");
+  string_format_append(s, "\n- Demo output to console");
   return s;
 }

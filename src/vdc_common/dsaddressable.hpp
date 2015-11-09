@@ -28,6 +28,14 @@
 
 #include "vdcapi.hpp"
 
+// per-addressable logging macros
+#define ALOG(lvl, ...) { if (LOGENABLED(lvl)) { logAddressable(lvl, ##__VA_ARGS__); } }
+#if FOCUSLOGGING
+#define AFOCUSLOG(...) { ALOG(FOCUSLOGLEVEL, ##__VA_ARGS__); }
+#else
+#define AFOCUSLOG(...)
+#endif
+
 using namespace std;
 
 namespace p44 {
@@ -249,6 +257,11 @@ namespace p44 {
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs
     virtual string description() = 0;
+
+    /// log a message, prefixed with addressable's identification
+    /// @param aErrLevel error level of the message
+    /// @param aFmt, ... printf style error message
+    void logAddressable(int aErrLevel, const char *aFmt, ... ) __printflike(3,4);
 
   protected:
 

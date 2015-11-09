@@ -58,7 +58,7 @@ typedef enum {
   T3_S3 = 27,             ///< area 3 scene 3
   T3_S4 = 28,             ///< area 3 scene 4
   T4_S2 = 29,             ///< area 4 scene 2
-  CLIMATE_WINTER = 29,    ///< climate control: to summer mode
+  CLIMATE_WINTER = 29,    ///< climate control: to winter mode
   T4_S3 = 30,             ///< area 4 scene 3
   CLIMATE_SUMMER = 30,    ///< climate control: to summer mode
   T4_S4 = 31,             ///< area 4 scene 4
@@ -225,27 +225,27 @@ typedef enum {
 
 /// button types (for buttonDescriptions[].buttonType)
 typedef enum {
-  buttonType_undefined, ///< kind of button not defined by device hardware
-  buttonType_single, ///< single pushbutton
-  buttonType_2way, ///< two-way pushbutton or rocker
-  buttonType_4way, ///< 4-way navigation button
-  buttonType_4wayWithCenter, ///< 4-way navigation with center button
-  buttonType_8wayWithCenter, ///< 8-way navigation with center button
-  buttonType_onOffSwitch, ///< On-Off switch
+  buttonType_undefined = 0, ///< kind of button not defined by device hardware
+  buttonType_single = 1, ///< single pushbutton
+  buttonType_2way = 2, ///< two-way pushbutton or rocker
+  buttonType_4way = 3, ///< 4-way navigation button
+  buttonType_4wayWithCenter = 4, ///< 4-way navigation with center button
+  buttonType_8wayWithCenter = 5, ///< 8-way navigation with center button
+  buttonType_onOffSwitch = 6, ///< On-Off switch
 } DsButtonType;
 
 
 /// button element IDs (for buttonDescriptions[].buttonElementID)
 typedef enum {
-  buttonElement_center, ///< center element / single button
-  buttonElement_down, ///< down, for 2,4,8-way
-  buttonElement_up, ///< up, for 2,4,8-way
-  buttonElement_left, ///< left, for 2,4,8-way
-  buttonElement_right, ///< right, for 2,4,8-way
-  buttonElement_upperLeft, ///< upper left, for 8-way
-  buttonElement_lowerLeft, ///< lower left, for 8-way
-  buttonElement_upperRight, ///< upper right, for 8-way
-  buttonElement_lowerRight, ///< lower right, for 8-way
+  buttonElement_center = 0, ///< center element / single button
+  buttonElement_down = 1, ///< down, for 2,4,8-way
+  buttonElement_up = 2, ///< up, for 2,4,8-way
+  buttonElement_left = 3, ///< left, for 2,4,8-way
+  buttonElement_right = 4, ///< right, for 2,4,8-way
+  buttonElement_upperLeft = 5, ///< upper left, for 8-way
+  buttonElement_lowerLeft = 6, ///< lower left, for 8-way
+  buttonElement_upperRight = 7, ///< upper right, for 8-way
+  buttonElement_lowerRight = 8, ///< lower right, for 8-way
 } DsButtonElement;
 
 
@@ -278,19 +278,24 @@ typedef enum {
 
 /// output functions
 typedef enum {
-  outputFunction_switch, ///< switch output
-  outputFunction_dimmer, ///< effective value dimmer
-  outputFunction_positional, ///< positional (servo, valve, blinds)
-  outputFunction_ctdimmer, ///< dimmer with color temperature (channels 1 and 4)
-  outputFunction_colordimmer, ///< full color dimmer (channels 1..6)
+  outputFunction_switch = 0, ///< switch output - single channel 0..100
+  outputFunction_dimmer = 1, ///< effective value dimmer - single channel 0..100
+  outputFunction_positional = 2, ///< positional (servo, unipolar valves, blinds - single channel 0..n, usually n=100)
+  outputFunction_ctdimmer = 3, ///< dimmer with color temperature - channels 1 and 4
+  outputFunction_colordimmer = 4, ///< full color dimmer - channels 1..6
+  outputFunction_bipolar_positional = 5, ///< bipolar valves, dual direction fan control etc. - single channel -n...0...n, usually n=100
+  outputFunction_custom = 0x7F ///< custom output/channel configuration, none of the well-known functions above
 } DsOutputFunction;
 
 /// output modes
 typedef enum {
-  outputmode_disabled, ///< disabled
-  outputmode_binary, ///< binary ON/OFF mode
-  outputmode_gradual, ///< gradual output value (dimmer, positional etc.)
-  outputmode_default = 0x7F, ///< use device in its default (or only) mode, without further specification
+  outputmode_disabled = 0, ///< disabled
+  outputmode_binary = 1, ///< binary ON/OFF mode
+  outputmode_gradual_positive = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
+  outputmode_gradual_negative = 3, ///< gradual negative-only -n..0 (e.g. cooling valve)
+  outputmode_gradual_bipolar = 4, ///< bipolar gradual output value -n..0..n (heating/cooling valve)
+  outputmode_gradual_bipolar_inverted = 5, ///< bipolar gradual output value -n..0..n, mapped inverted
+  outputmode_default = 0x7F ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 
 
@@ -328,13 +333,13 @@ typedef uint8_t DsChannelType;
 
 /// hardware error status
 typedef enum {
-  hardwareError_none, ///< hardware is ok
-  hardwareError_openCircuit, ///< input or output open circuit  (eg. bulb burnt)
-  hardwareError_shortCircuit, ///< input or output short circuit
-  hardwareError_overload, ///< output overload, including mechanical overload (e.g. heating valve actuator obstructed)
-  hardwareError_busConnection, ///< third party device bus problem (such as DALI short-circuit)
-  hardwareError_lowBattery, ///< third party device has low battery
-  hardwareError_deviceError, ///< other device error
+  hardwareError_none = 0, ///< hardware is ok
+  hardwareError_openCircuit = 1, ///< input or output open circuit  (eg. bulb burnt)
+  hardwareError_shortCircuit = 2, ///< input or output short circuit
+  hardwareError_overload = 3, ///< output overload, including mechanical overload (e.g. heating valve actuator obstructed)
+  hardwareError_busConnection = 4, ///< third party device bus problem (such as DALI short-circuit)
+  hardwareError_lowBattery = 5, ///< third party device has low battery
+  hardwareError_deviceError = 6, ///< other device error
 } DsHardwareError;
 
 
@@ -368,35 +373,35 @@ typedef enum {
 
 /// usage hints for inputs and outputs
 typedef enum {
-  usage_undefined, ///< usage not defined
-  usage_room, ///< room related (e.g. indoor sensors and controllers)
-  usage_outdoors, ///< outdoors related (e.g. outdoor sensors)
-  usage_user, ///< user interaction (e.g. indicators, displays, dials, sliders)
+  usage_undefined = 0, ///< usage not defined
+  usage_room = 1, ///< room related (e.g. indoor sensors and controllers)
+  usage_outdoors = 2, ///< outdoors related (e.g. outdoor sensors)
+  usage_user = 3, ///< user interaction (e.g. indicators, displays, dials, sliders)
 } DsUsageHint;
 
 
 
 /// binary input types (sensor functions)
 typedef enum {
-  binInpType_none, ///< no system function
-  binInpType_presence, ///< Presence
-  binInpType_light, ///< Light
-  binInpType_presenceInDarkness, ///< Presence in darkness
-  binInpType_twilight, ///< twilight
-  binInpType_motion, ///< motion
-  binInpType_motionInDarkness, ///< motion in darkness
-  binInpType_smoke, ///< smoke
-  binInpType_wind, ///< wind
-  binInpType_rain, ///< rain
-  binInpType_sun, ///< solar radiation (sun light above threshold)
-  binInpType_thermostat, ///< thermostat (temperature below user-adjusted threshold)
-  binInpType_lowBattery, ///< device has low battery
-  binInpType_windowOpen, ///< window is open
-  binInpType_doorOpen, ///< door is open
-  binInpType_windowTilted, ///< window is tilted instead of fully opened
-  binInpType_garageDoorOpen, ///< garage door is open
-  binInpType_sunProtection, ///< protect against too much sunlight
-  binInpType_frost, ///< frost detector
+  binInpType_none = 0, ///< no system function
+  binInpType_presence = 1, ///< Presence
+  binInpType_light = 2, ///< Light
+  binInpType_presenceInDarkness = 3, ///< Presence in darkness
+  binInpType_twilight = 4, ///< twilight
+  binInpType_motion = 5, ///< motion
+  binInpType_motionInDarkness = 6, ///< motion in darkness
+  binInpType_smoke = 7, ///< smoke
+  binInpType_wind = 8, ///< wind
+  binInpType_rain = 9, ///< rain
+  binInpType_sun = 10, ///< solar radiation (sun light above threshold)
+  binInpType_thermostat = 11, ///< thermostat (temperature below user-adjusted threshold)
+  binInpType_lowBattery = 12, ///< device has low battery
+  binInpType_windowOpen = 13, ///< window is open
+  binInpType_doorOpen = 14, ///< door is open
+  binInpType_windowTilted = 15, ///< window is tilted instead of fully opened
+  binInpType_garageDoorOpen = 16, ///< garage door is open
+  binInpType_sunProtection = 17, ///< protect against too much sunlight
+  binInpType_frost = 18, ///< frost detector
 } DsBinaryInputType;
 
 

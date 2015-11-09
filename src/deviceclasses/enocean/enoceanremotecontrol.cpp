@@ -68,7 +68,7 @@ void EnoceanRemoteControlDevice::sendSwitchBeaconRelease(bool aRight, bool aUp)
 
 void EnoceanRemoteControlDevice::buttonAction(bool aRight, bool aUp, bool aPress)
 {
-  FOCUSLOG("- %s simulated %s %s button\n", aPress ? "PRESSING" : "RELEASING", aRight ? "RIGHT" : "LEFT", aUp ? "UP" : "DOWN");
+  FOCUSLOG("- %s simulated %s %s button", aPress ? "PRESSING" : "RELEASING", aRight ? "RIGHT" : "LEFT", aUp ? "UP" : "DOWN");
   Esp3PacketPtr packet = Esp3PacketPtr(new Esp3Packet());
   packet->initForRorg(rorg_RPS);
   packet->setRadioDestination(EnoceanBroadcast);
@@ -150,7 +150,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add standard output behaviour
         OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*newDev.get()));
-        o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
         o->setGroupMembership(group_black_joker, true); // put into joker group by default
         o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
         // does not need a channel handler at all, just add behaviour
@@ -175,7 +175,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add standard output behaviour
         LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*newDev.get()));
-        l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+        l->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
         // does not need a channel handler at all, just add behaviour
         newDev->addBehaviour(l);
         // count it
@@ -198,9 +198,9 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add shadow behaviour
         ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*newDev.get()));
-        sb->setHardwareOutputConfig(outputFunction_positional, usage_undefined, false, -1);
+        sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_undefined, false, -1);
         sb->setHardwareName("blind");
-        sb->setDeviceParams(shadowdevice_jalousie, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
+        sb->setDeviceParams(shadowdevice_jalousie, false, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
         sb->position->syncChannelValue(100); // assume fully up at beginning
         sb->angle->syncChannelValue(100); // assume fully open at beginning
         // does not need a channel handler at all, just add behaviour
@@ -306,12 +306,12 @@ void EnoceanBlindControlDevice::dimChannel(DsChannelType aChannelType, DsDimMode
 void EnoceanBlindControlDevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
 {
   // - 0=stopped, -1=moving down, +1=moving up
-  FOCUSLOG("blind action requested: %d (current: %d)\n", aNewDirection, movingDirection);
+  FOCUSLOG("blind action requested: %d (current: %d)", aNewDirection, movingDirection);
   if (aNewDirection!=movingDirection) {
     int previousDirection = movingDirection;
     movingDirection = aNewDirection;
     // needs change
-    FOCUSLOG("- needs action:\n");
+    FOCUSLOG("- needs action:");
     if (movingDirection==0) {
       // requesting stop:
       if (commandTicket) {

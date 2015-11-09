@@ -41,12 +41,15 @@ void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
   switch (aSceneNo) {
     case CLIMATE_WINTER:
       sceneCmd = scene_cmd_heating_winter_mode;
+      sceneArea = 0; // not an area scene any more
       break;
     case CLIMATE_SUMMER:
       sceneCmd = scene_cmd_heating_summer_mode;
+      sceneArea = 0; // not an area scene any more
       break;
     case CLIMATE_VALVE_PROPHYLAXIS:
       sceneCmd = scene_cmd_heating_valve_prophylaxis;
+      sceneArea = 0; // not an area scene any more
       break;
     default:
       break;
@@ -96,10 +99,12 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
 {
   if (aName=="heatingLevel") {
     if (isMember(group_roomtemperature_control) && isEnabled()) {
-      // apply positive values to (default) valve output, clip to 100 max
+      // apply to channel
+      // Note: device implementation will limit the applicable range to positives or negatives only according to
+      //   outputMode using outputValueAccordingToMode().
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
-        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue), 0, true); // always apply
+        cb->setChannelValue(aValue, 0, true); // always apply
       }
     }
   }
@@ -189,7 +194,7 @@ string ClimateControlBehaviour::shortDesc()
 
 string ClimateControlBehaviour::description()
 {
-  string s = string_format("%s behaviour (in %smode)\n", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
+  string s = string_format("%s behaviour (in %smode)", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
   s.append(inherited::description());
   return s;
 }

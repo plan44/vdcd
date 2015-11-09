@@ -115,6 +115,8 @@
 		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
+		ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
+		ED5DA3EE1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -370,6 +372,8 @@
 		ED5D486719ED502F000DF5A5 /* analogio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = analogio.hpp; sourceTree = "<group>"; };
 		ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = analogiodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = externaldevicecontainer.cpp; sourceTree = "<group>"; };
+		ED5DA3EA1BB294D7003C86C7 /* externaldevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = externaldevicecontainer.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -610,6 +614,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				ED5DA3E61BB294D7003C86C7 /* external */,
 				ED911D251B11D73A00B18624 /* ledchain */,
 				EDDDD54D1A125F8E007D2ABE /* ola */,
 				EDF62B43183A0EA50016BFDA /* upnphack */,
@@ -784,6 +789,15 @@
 				ED5B29201740E72200334C71 /* sqlite3ppext.h */,
 			);
 			path = sqlite3pp;
+			sourceTree = "<group>";
+		};
+		ED5DA3E61BB294D7003C86C7 /* external */ = {
+			isa = PBXGroup;
+			children = (
+				ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */,
+				ED5DA3EA1BB294D7003C86C7 /* externaldevicecontainer.hpp */,
+			);
+			path = external;
 			sourceTree = "<group>";
 		};
 		ED6D7BD21716B63A005DED18 = {
@@ -967,7 +981,7 @@
 		ED6D7BD31716B63A005DED18 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = plan44.ch;
 			};
 			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */;
@@ -1067,6 +1081,7 @@
 				ED3126C518318CC100FAF28B /* sqlite3persistence.cpp in Sources */,
 				ED3126C718318CC100FAF28B /* demodevice.cpp in Sources */,
 				ED3126C818318CC100FAF28B /* lightbehaviour.cpp in Sources */,
+				ED5DA3EE1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */,
 				EDF62B4B183A29550016BFDA /* ssdpsearch.cpp in Sources */,
 				ED3126CA18318CC100FAF28B /* dsaddressable.cpp in Sources */,
 				ED3126CB18318CC100FAF28B /* buttonbehaviour.cpp in Sources */,
@@ -1180,6 +1195,7 @@
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
+				ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */,
 				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED8038111B18645A0054E4B0 /* elsnerp03weatherstation.cpp in Sources */,
@@ -1304,7 +1320,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -1313,6 +1328,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -1334,7 +1350,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ljson-c";
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -1342,7 +1358,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
@@ -1365,7 +1380,7 @@
 				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "-ljson-c";
-				SDKROOT = macosx10.10;
+				SDKROOT = macosx;
 			};
 			name = Release;
 		};

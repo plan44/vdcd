@@ -139,8 +139,8 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       }
     }
   }
-  else if (functionProfile==0xF61000) {
-    // F6-10-00 : Window handle = single device
+  else if (functionProfile==0xF61000 || functionProfile==0xF61001) {
+    // F6-10-00/01 : Window handle = single device
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
       newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
@@ -160,6 +160,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       bb->setHardwareInputConfig(binInpType_windowOpen, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
       bb->setHardwareName("window open");
+      newHandler->isERP2 = EEP_TYPE(functionProfile)==0x01;
       newHandler->isTiltedStatus = false;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
@@ -169,6 +170,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       bb->setHardwareInputConfig(binInpType_windowTilted, usage_undefined, true, Never);
       bb->setGroup(group_black_joker); // joker by default
       bb->setHardwareName("window tilted");
+      newHandler->isERP2 = EEP_TYPE(functionProfile)==0x01;
       newHandler->isTiltedStatus = true;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
@@ -308,23 +310,23 @@ void EnoceanRpsButtonHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   // extract payload data
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
   uint8_t status = aEsp3PacketPtr->radioStatus();
-  LOG(LOG_INFO, "RPS message: data=0x%02X, status=0x%02X, processing in %s (switchIndex=%d, isRockerUp=%d)\n", data, status, device.shortDesc().c_str(), switchIndex, isRockerUp);
+  HLOG(LOG_INFO, "RPS message processing: data=0x%02X, status=0x%02X (switchIndex=%d, isRockerUp=%d)", data, status, switchIndex, isRockerUp);
   // decode
   if (status & status_NU) {
     // N-Message
-    FOCUSLOG("- N-message\n");
+    FOCUSLOG("- N-message");
     // collect action(s)
     for (int ai=1; ai>=0; ai--) {
       // first action is in DB7..5, second action is in DB3..1 (if DB0==1)
       uint8_t a = (data >> (4*ai+1)) & 0x07;
       if (ai==0 && (data&0x01)==0)
         break; // no second action
-      FOCUSLOG("- action #%d = %d\n", 2-ai, a);
+      FOCUSLOG("- action #%d = %d", 2-ai, a);
       if (((a>>1) & 0x03)==switchIndex) {
         // querying this subdevice/rocker
-        FOCUSLOG("- is my switchIndex == %d\n", switchIndex);
+        FOCUSLOG("- is my switchIndex == %d", switchIndex);
         if (((a & 0x01)!=0) == isRockerUp) {
-          FOCUSLOG("- is my side (%s) of the switch, isRockerUp == %d\n", isRockerUp ? "Up" : "Down", isRockerUp);
+          FOCUSLOG("- is my side (%s) of the switch, isRockerUp == %d", isRockerUp ? "Up" : "Down", isRockerUp);
           // my half of the rocker, DB4 is button state (1=pressed, 0=released)
           setButtonState((data & 0x10)!=0);
         }
@@ -333,15 +335,15 @@ void EnoceanRpsButtonHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   }
   else {
     // U-Message
-    FOCUSLOG("- U-message\n");
+    FOCUSLOG("- U-message");
     uint8_t b = (data>>5) & 0x07;
     bool pressed = (data & 0x10);
-    FOCUSLOG("- number of buttons still pressed code = %d, action (energy bow) = %s\n", b, pressed ? "PRESSED" : "RELEASED");
+    FOCUSLOG("- number of buttons still pressed code = %d, action (energy bow) = %s", b, pressed ? "PRESSED" : "RELEASED");
     if (!pressed) {
       // report release if all buttons are released now
       if (b==0) {
         // all buttons released, this includes this button
-        FOCUSLOG("- released multiple buttons, report RELEASED for all\n");
+        FOCUSLOG("- released multiple buttons, report RELEASED for all");
         setButtonState(false);
       }
     }
@@ -357,7 +359,7 @@ void EnoceanRpsButtonHandler::setButtonState(bool aPressed)
     // real change, propagate to behaviour
     ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(behaviour);
     if (b) {
-      LOG(LOG_INFO,"Enocean Button %s - %08X, subDevice %d, channel %d: changed state to %s\n", b->getHardwareName().c_str(), device.getAddress(), device.getSubDevice(), channel, aPressed ? "PRESSED" : "RELEASED");
+      HLOG(LOG_INFO, "Enocean Button %s - %08X, subDevice %d, channel %d: changed state to %s", b->getHardwareName().c_str(), device.getAddress(), device.getSubDevice(), channel, aPressed ? "PRESSED" : "RELEASED");
       b->buttonAction(aPressed);
     }
     // update cached status
@@ -380,6 +382,7 @@ EnoceanRpsWindowHandleHandler::EnoceanRpsWindowHandleHandler(EnoceanDevice &aDev
   inherited(aDevice)
 {
   isTiltedStatus = false; // default to "open" status
+  isERP2 = false; // default to ERP1
 }
 
 
@@ -393,23 +396,31 @@ void EnoceanRpsWindowHandleHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketP
   uint8_t data = aEsp3PacketPtr->radioUserData()[0];
   uint8_t status = aEsp3PacketPtr->radioStatus();
   // decode
-  if ((status & status_NU)==0 && (status & status_T21)!=0) {
-    // Valid window handle status change message
-    // extract status
-    bool tilted =
-      (data & 0xF0)==0xD0; // turned up from sideways
-    bool closed =
-      (data & 0xF0)==0xF0; // turned down from sideways
-    // report data for this binary input
-    BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
-    if (bb) {
-      if (isTiltedStatus) {
-        LOG(LOG_INFO,"Enocean Window Handle %08X reports state: %s\n", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
-        bb->updateInputState(tilted); // report the tilted status
-      }
-      else {
-        bb->updateInputState(!closed); // report the open/close status
-      }
+  bool tilted = false;
+  bool closed = false;
+  if (isERP2) {
+    // extract status (in bits 0..3 for ERP2)
+    tilted = (data & 0x0F)==0x0D; // turned up from sideways
+    closed = (data & 0x0F)==0x0F; // turned down from sideways
+  }
+  else if ((status & status_NU)==0 && (status & status_T21)!=0) {
+    // Valid ERP1 window handle status change message
+    // extract status (in bits 4..7 for ERP1
+    tilted = (data & 0xF0)==0xD0; // turned up from sideways
+    closed = (data & 0xF0)==0xF0; // turned down from sideways
+  }
+  else {
+    return; // unknown data, don't update binary inputs at all
+  }
+  // report data for this binary input
+  BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
+  if (bb) {
+    if (isTiltedStatus) {
+      LOG(LOG_INFO, "Enocean Window Handle %08X reports state: %s", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
+      bb->updateInputState(tilted); // report the tilted status
+    }
+    else {
+      bb->updateInputState(!closed); // report the open/close status (inverted, because dS definition is binInpType_windowOpen)
     }
   }
 }
@@ -476,11 +487,11 @@ void EnoceanRpsCardKeyHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
   if (bb) {
     if (isServiceCardDetector) {
-      LOG(LOG_INFO,"Enocean Key Card Switch %08X reports: %s\n", device.getAddress(), isServiceCard ? "Service Card" : "Guest Card");
+      LOG(LOG_INFO, "Enocean Key Card Switch %08X reports: %s", device.getAddress(), isServiceCard ? "Service Card" : "Guest Card");
       bb->updateInputState(isServiceCard); // report the card type
     }
     else {
-      LOG(LOG_INFO,"Enocean Key Card Switch %08X reports state: %s\n", device.getAddress(), isInserted ? "inserted" : "extracted");
+      LOG(LOG_INFO, "Enocean Key Card Switch %08X reports state: %s", device.getAddress(), isInserted ? "inserted" : "extracted");
       bb->updateInputState(isInserted); // report the status
     }
   }
@@ -519,13 +530,13 @@ void EnoceanRpsSmokeDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3Packet
   if (isBatteryStatus) {
     // battery status channel
     bool lowBat = (data & 0x30)==0x30;
-    LOG(LOG_INFO,"Enocean Smoke Detector %08X reports state: Battery %s\n", device.getAddress(), lowBat ? "LOW" : "ok");
+    LOG(LOG_INFO, "Enocean Smoke Detector %08X reports state: Battery %s", device.getAddress(), lowBat ? "LOW" : "ok");
     bb->updateInputState(lowBat);
   }
   else {
     // smoke alarm status
     bool smokeAlarm = (data & 0x30)==0x10;
-    LOG(LOG_INFO,"Enocean Smoke Detector %08X reports state: %s\n", device.getAddress(), smokeAlarm ? "SMOKE ALARM" : "no alarm");
+    LOG(LOG_INFO, "Enocean Smoke Detector %08X reports state: %s", device.getAddress(), smokeAlarm ? "SMOKE ALARM" : "no alarm");
     bb->updateInputState(smokeAlarm);
   }
 }
@@ -559,7 +570,7 @@ void EnoceanRpsLeakageDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3Pack
   BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
   // smoke alarm status
   bool leakage = data==0x11;
-  LOG(LOG_INFO,"Enocean Liquid Leakage Detector %08X reports state: %s\n", device.getAddress(), leakage ? "LEAKAGE" : "no leakage");
+  LOG(LOG_INFO, "Enocean Liquid Leakage Detector %08X reports state: %s", device.getAddress(), leakage ? "LEAKAGE" : "no leakage");
   bb->updateInputState(leakage);
 }
 

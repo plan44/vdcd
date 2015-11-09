@@ -168,6 +168,6 @@ void ElsnerP03WeatherStation::deriveDsUid()
 string ElsnerP03WeatherStation::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- drives a Elsner P03 weather station\n");
+  string_format_append(s, "\n- drives a Elsner P03 weather station");
   return s;
 }

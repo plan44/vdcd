@@ -32,13 +32,36 @@ using namespace std;
 namespace p44 {
 
 
+  class Enocean1BSDevice : public EnoceanDevice
+  {
+    typedef EnoceanDevice inherited;
+
+  public:
+
+    /// constructor
+    Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP);
+
+    /// device type identifier
+    /// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_1bs"; };
+
+    /// get table of profile variants
+    /// @return NULL or pointer to a list of profile variants
+    virtual const ProfileVariantEntry *profileVariantsTable();
+    
+  };
+
+
   /// single EnOcean device channel
   class Enocean1bsHandler : public EnoceanChannelHandler
   {
     typedef EnoceanChannelHandler inherited;
 
     /// private constructor, create new channels using factory static method
-    Enocean1bsHandler(EnoceanDevice &aDevice);
+    Enocean1bsHandler(EnoceanDevice &aDevice, bool aActiveState);
+
+    /// active state
+    bool activeState;
 
   public:
 

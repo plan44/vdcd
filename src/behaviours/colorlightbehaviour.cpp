@@ -77,11 +77,11 @@ void ColorLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_hue: XOrHueOrCt = aValue; colorMode = colorLightModeHueSaturation; break;
-    case channeltype_saturation: YOrSat = aValue; colorMode = colorLightModeHueSaturation; break;
-    case channeltype_colortemp: XOrHueOrCt = aValue; colorMode = colorLightModeCt; break;
-    case channeltype_cie_x: XOrHueOrCt = aValue; colorMode = colorLightModeXY; break;
-    case channeltype_cie_y: YOrSat = aValue; colorMode = colorLightModeXY; break;
+    case channeltype_hue: setPVar(XOrHueOrCt, aValue); setPVar(colorMode, colorLightModeHueSaturation); break;
+    case channeltype_saturation: setPVar(YOrSat, aValue); setPVar(colorMode, colorLightModeHueSaturation); break;
+    case channeltype_colortemp: setPVar(XOrHueOrCt, aValue); setPVar(colorMode, colorLightModeCt); break;
+    case channeltype_cie_x: setPVar(XOrHueOrCt, aValue); setPVar(colorMode, colorLightModeXY); break;
+    case channeltype_cie_y: setPVar(YOrSat, aValue); setPVar(colorMode, colorLightModeXY); break;
     default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
@@ -200,7 +200,7 @@ ColorLightBehaviour::ColorLightBehaviour(Device &aDevice) :
   derivedValuesComplete(false)
 {
   // primary channel of a color light is always a dimmer controlling the brightness
-  setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, -1);
+  setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, -1);
   // Create and add auxiliary channels to the device for Hue, Saturation, Color Temperature and CIE x,y
   // - hue
   hue = ChannelBehaviourPtr(new HueChannel(*this));
@@ -280,17 +280,17 @@ void ColorLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
     // save the values and adjust don't cares according to color mode
     switch (colorMode) {
       case colorLightModeHueSaturation: {
-        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, hue->getChannelValue());
-        colorLightScene->setRepVar(colorLightScene->YOrSat, saturation->getChannelValue());
+        colorLightScene->setPVar(colorLightScene->XOrHueOrCt, hue->getChannelValue());
+        colorLightScene->setPVar(colorLightScene->YOrSat, saturation->getChannelValue());
         break;
       }
       case colorLightModeXY: {
-        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, cieX->getChannelValue());
-        colorLightScene->setRepVar(colorLightScene->YOrSat, cieY->getChannelValue());
+        colorLightScene->setPVar(colorLightScene->XOrHueOrCt, cieX->getChannelValue());
+        colorLightScene->setPVar(colorLightScene->YOrSat, cieY->getChannelValue());
         break;
       }
       case colorLightModeCt: {
-        colorLightScene->setRepVar(colorLightScene->XOrHueOrCt, ct->getChannelValue());
+        colorLightScene->setPVar(colorLightScene->XOrHueOrCt, ct->getChannelValue());
         break;
       }
       default: {
@@ -423,10 +423,10 @@ void ColorLightBehaviour::deriveMissingColorChannels()
     derivedValuesComplete = true;
     if (DBGLOGENABLED(LOG_DEBUG)) {
       // show all values, plus RGB
-      DBGLOG(LOG_DEBUG, "Color mode = %s, actual and derived channel settings:\n", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
-      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%%, %%, %%]\n", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
-      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, %%]\n", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
-      DBGLOG(LOG_DEBUG, "- CT  : %6.0f, %6.0f [mired, K]\n", ct->getChannelValue(), 1E6/ct->getChannelValue());
+      DBGLOG(LOG_DEBUG, "Color mode = %s, actual and derived channel settings:", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
+      DBGLOG(LOG_DEBUG, "- HSV : %6.1f, %6.1f, %6.1f [%%, %%, %%]", hue->getChannelValue(), saturation->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- xyV : %6.4f, %6.4f, %6.4f [0..1, 0..1, %%]", cieX->getChannelValue(), cieY->getChannelValue(), brightness->getChannelValue());
+      DBGLOG(LOG_DEBUG, "- CT  : %6.0f, %6.0f [mired, K]", ct->getChannelValue(), 1E6/ct->getChannelValue());
     }
   }
 }
@@ -489,8 +489,8 @@ string ColorLightBehaviour::shortDesc()
 
 string ColorLightBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- color mode = %s", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- color mode = %s", colorMode==colorLightModeHueSaturation ? "HSB" : (colorMode==colorLightModeXY ? "CIExy" : (colorMode==colorLightModeCt ? "CT" : "none")));
   // TODO: add color specific info here
   s.append(inherited::description());
   return s;
@@ -829,7 +829,7 @@ bool RGBColorLightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr a
       }
       else {
         // write properties
-        calibration[ix/3][ix%3] = aPropValue->doubleValue();
+        setPVar(calibration[ix/3][ix%3], aPropValue->doubleValue());
       }
       return true;
     }

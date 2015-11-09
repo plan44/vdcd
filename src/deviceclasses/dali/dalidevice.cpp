@@ -101,7 +101,7 @@ void DaliBusDevice::deriveDsUid()
         if (n.length()>0) {
           // shortAddr based device has already been named. So keep that, and don't generate a devInf based dSUID
           deviceInfo.devInfStatus = DaliDeviceInfo::devinf_notForID;
-          LOG(LOG_WARNING, "DaliBusDevice shortaddr %d kept with shortaddr-based dSUID because it is already named: '%s'\n", deviceInfo.shortAddress, n.c_str());
+          LOG(LOG_WARNING, "DaliBusDevice shortaddr %d kept with shortaddr-based dSUID because it is already named: '%s'", deviceInfo.shortAddress, n.c_str());
         }
       }
     }
@@ -187,7 +187,7 @@ void DaliBusDevice::groupMembershipResponse(StatusCB aCompletedCB, uint16_t aUse
     for (int g=0; g<16; ++g) {
       if (aUsedGroupsMask & aGroups & (1<<g)) {
         // single device is member of a group in use -> remove it
-        LOG(LOG_INFO, "- removing single DALI bus device with shortaddr %d from group %d\n", aShortAddress, g);
+        LOG(LOG_INFO, "- removing single DALI bus device with shortaddr %d from group %d", aShortAddress, g);
         daliDeviceContainer.daliComm->daliSendConfigCommand(aShortAddress, DALICMD_REMOVE_FROM_GROUP|g);
       }
     }
@@ -216,7 +216,7 @@ void DaliBusDevice::queryActualLevelResponse(StatusCB aCompletedCB, bool aNoOrTi
     isPresent = true; // answering a query means presence
     // this is my current arc power, save it as brightness for dS system side queries
     currentBrightness = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliBusDevice: retrieved current dimming level: arc power = %d, brightness = %0.1f\n", aResponse, currentBrightness);
+    LOG(LOG_DEBUG, "DaliBusDevice: retrieved current dimming level: arc power = %d, brightness = %0.1f", aResponse, currentBrightness);
   }
   // next: query the minimum dimming level
   daliDeviceContainer.daliComm->daliSendQuery(
@@ -234,7 +234,7 @@ void DaliBusDevice::queryMinLevelResponse(StatusCB aCompletedCB, bool aNoOrTimeo
     isPresent = true; // answering a query means presence
     // this is my current arc power, save it as brightness for dS system side queries
     minBrightness = arcpowerToBrightness(aResponse);
-    LOG(LOG_DEBUG, "DaliBusDevice: retrieved minimum dimming level: arc power = %d, brightness = %0.1f\n", aResponse, minBrightness);
+    LOG(LOG_DEBUG, "DaliBusDevice: retrieved minimum dimming level: arc power = %d, brightness = %0.1f", aResponse, minBrightness);
   }
   // done updating parameters
   aCompletedCB(aError);
@@ -284,10 +284,10 @@ void DaliBusDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
       h = h*h;
       h = log(h)/log(2);
       tr = h>1 ? (uint8_t)h : 1;
-      LOG(LOG_DEBUG, "DaliDevice: new transition time = %.1f mS, calculated FADE_TIME setting = %f (rounded %d)\n", (double)aTransitionTime/MilliSecond, h, (int)tr);
+      LOG(LOG_DEBUG, "DaliDevice: new transition time = %.1f mS, calculated FADE_TIME setting = %f (rounded %d)", (double)aTransitionTime/MilliSecond, h, (int)tr);
     }
     if (tr!=currentFadeTime || currentTransitionTime==Infinite) {
-      LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d\n", (int)tr);
+      LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d", (int)tr);
       daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       currentFadeTime = tr;
     }
@@ -302,7 +302,7 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
   if (currentBrightness!=aBrightness) {
     currentBrightness = aBrightness;
     uint8_t power = brightnessToArcpower(aBrightness);
-    LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.2f, arc power = %d\n", (int)deviceInfo.shortAddress, aBrightness, (int)power);
+    LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.2f, arc power = %d", (int)deviceInfo.shortAddress, aBrightness, (int)power);
     daliDeviceContainer.daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
   }
 }
@@ -329,8 +329,6 @@ Brightness DaliBusDevice::arcpowerToBrightness(int aArcpower)
 void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
 {
   if (isDummy) return;
-  // start dimming
-  FOCUSLOG("DALI dimmer %s\n", aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN"));
   MainLoop::currentMainLoop().cancelExecutionTicket(dimRepeaterTicket); // stop any previous dimming activity
   // Use DALI UP/DOWN dimming commands
   if (aDimMode==dimmode_stop) {
@@ -346,9 +344,9 @@ void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
       double h = 506.0/(currentDimPerMS*1000);
       h = log(h*h)/log(2);
       uint8_t fr = h>0 ? (uint8_t)h : 0;
-      LOG(LOG_DEBUG, "DaliDevice: new dimming rate = %f Steps/second, calculated FADE_RATE setting = %f (rounded %d)\n", currentDimPerMS*1000, h, fr);
+      LOG(LOG_DEBUG, "DaliDevice: new dimming rate = %f Steps/second, calculated FADE_RATE setting = %f (rounded %d)", currentDimPerMS*1000, h, fr);
       if (fr!=currentFadeRate) {
-        LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_RATE to %d\n", fr);
+        LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_RATE to %d", fr);
         daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_RATE, fr);
         currentFadeRate = fr;
       }
@@ -386,12 +384,12 @@ DaliBusDeviceGroup::DaliBusDeviceGroup(DaliDeviceContainer &aDaliDeviceContainer
 void DaliBusDeviceGroup::addDaliBusDevice(DaliBusDevicePtr aDaliBusDevice)
 {
   // add the ID to the mix
-  LOG(LOG_NOTICE, "- DALI bus device with shortaddr %d is grouped in DALI group %d\n", aDaliBusDevice->deviceInfo.shortAddress, deviceInfo.shortAddress & DaliGroupMask);
+  LOG(LOG_NOTICE, "- DALI bus device with shortaddr %d is grouped in DALI group %d", aDaliBusDevice->deviceInfo.shortAddress, deviceInfo.shortAddress & DaliGroupMask);
   aDaliBusDevice->dSUID.xorDsUidIntoMix(mixID);
   // if this is the first valid device, use it as master
   if (groupMaster==DaliBroadcast && !aDaliBusDevice->isDummy) {
     // this is the master device
-    LOG(LOG_INFO, "- DALI bus device with shortaddr %d is master of the group (queried for brightness, mindim)\n", aDaliBusDevice->deviceInfo.shortAddress);
+    LOG(LOG_INFO, "- DALI bus device with shortaddr %d is master of the group (queried for brightness, mindim)", aDaliBusDevice->deviceInfo.shortAddress);
     groupMaster = aDaliBusDevice->deviceInfo.shortAddress;
   }
   // add member
@@ -428,7 +426,7 @@ void DaliBusDeviceGroup::groupMembershipResponse(StatusCB aCompletedCB, DaliComm
   // make sure device is member of the group
   if ((aGroups & (1<<groupNo))==0) {
     // is not yet member of this group -> add it
-    LOG(LOG_INFO, "- making DALI bus device with shortaddr %d member of group %d\n", *aNextMember, groupNo);
+    LOG(LOG_INFO, "- making DALI bus device with shortaddr %d member of group %d", *aNextMember, groupNo);
     daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_ADD_TO_GROUP|groupNo);
   }
   // remove from all other groups
@@ -436,7 +434,7 @@ void DaliBusDeviceGroup::groupMembershipResponse(StatusCB aCompletedCB, DaliComm
   for (groupNo=0; groupNo<16; groupNo++) {
     if (aGroups & (1<<groupNo)) {
       // device is member of a group it shouldn't be in -> remove it
-      LOG(LOG_INFO, "- removing DALI bus device with shortaddr %d from group %d\n", *aNextMember, groupNo);
+      LOG(LOG_INFO, "- removing DALI bus device with shortaddr %d from group %d", *aNextMember, groupNo);
       daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_REMOVE_FROM_GROUP|groupNo);
     }
   }
@@ -505,7 +503,7 @@ void DaliDimmerDevice::willBeAdded()
   installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
   // - set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
+  l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
   if (daliTechnicalType()==dalidevice_group)
     l->setHardwareName(string_format("DALI dimmer group # %d",brightnessDimmer->deviceInfo.shortAddress & DaliGroupMask));
   else
@@ -559,7 +557,7 @@ void DaliDimmerDevice::brightnessDimmerSynced(StatusCB aCompletedCB, bool aFacto
     l->initMinBrightness(brightnessDimmer->minBrightness);
   }
   else {
-    LOG(LOG_ERR, "DaliDevice: error getting state/params from dimmer: %s\n", aError->description().c_str());
+    LOG(LOG_ERR, "DaliDevice: error getting state/params from dimmer: %s", aError->description().c_str());
   }
   // continue with initialisation in superclasses
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
@@ -622,11 +620,17 @@ void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode
 {
   // start dimming
   if (aChannelType==channeltype_brightness) {
+    // start dimming
+    ALOG(LOG_INFO,
+      "dimChannel (DALI): channel type %d (brightness) %s",
+      aChannelType,
+      aDimMode==dimmode_stop ? "STOPS dimming" : (aDimMode==dimmode_up ? "starts dimming UP" : "starts dimming DOWN")
+    );
     ChannelBehaviourPtr ch = getChannelByType(aChannelType);
     brightnessDimmer->dim(aDimMode, ch->getDimPerMS());
   }
   else {
-    // not my channel, use standard implementation
+    // not my channel, use generic implementation
     inherited::dimChannel(aChannelType, aDimMode);
   }
 }
@@ -692,7 +696,7 @@ void DaliRGBWDevice::willBeAdded()
   installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
   // set the behaviour
   RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
-  cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
+  cl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
   cl->setHardwareName(string_format("DALI color light"));
   cl->initMinBrightness(0.4); // min brightness is 0.4 (~= 1/256)
   addBehaviour(cl);
@@ -752,7 +756,7 @@ void DaliRGBWDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 void DaliRGBWDevice::updateNextDimmer(StatusCB aCompletedCB, bool aFactoryReset, DimmerIndex aDimmerIndex, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
-    LOG(LOG_ERR, "DaliRGBWDevice: error getting state/params from dimmer#%d: %s\n", aDimmerIndex-1, aError->description().c_str());
+    LOG(LOG_ERR, "DaliRGBWDevice: error getting state/params from dimmer#%d: %s", aDimmerIndex-1, aError->description().c_str());
   }
   while (aDimmerIndex<numDimmers) {
     DaliBusDevicePtr di = dimmers[aDimmerIndex];
@@ -849,21 +853,23 @@ void DaliRGBWDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       if (dimmers[dimmer_white]) {
         // RGBW
         cl->getRGBW(r, g, b, w, 100); // dali dimmers use abstracted 0..100% brightness as input
-        if (!aForDimming) LOG(LOG_INFO,
-          "DALI composite RGB device %s: R=%d, G=%d, B=%d, W=%d\n",
-          shortDesc().c_str(),
-          (int)r, (int)g, (int)b, (int)w
-        );
+        if (!aForDimming) {
+          ALOG(LOG_INFO,
+            "DALI composite RGB: R=%d, G=%d, B=%d, W=%d",
+            (int)r, (int)g, (int)b, (int)w
+          );
+        }
         dimmers[dimmer_white]->setTransitionTime(tt);
       }
       else {
         // RGB
         cl->getRGB(r, g, b, 100); // dali dimmers use abstracted 0..100% brightness as input
-        if (!aForDimming) LOG(LOG_INFO,
-          "DALI composite RGBW device %s: R=%d, G=%d, B=%d\n",
-          shortDesc().c_str(),
-          (int)r, (int)g, (int)b
-        );
+        if (!aForDimming) {
+          ALOG(LOG_INFO,
+            "DALI composite: R=%d, G=%d, B=%d",
+            (int)r, (int)g, (int)b
+          );
+        }
       }
       // set transition time for all dimmers to brightness transition time
       dimmers[dimmer_red]->setTransitionTime(tt);

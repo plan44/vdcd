@@ -59,6 +59,7 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    DsOutputMode defaultOutputMode; ///< the default mode of the output - this mode ist used when outputMode is set to outputmode_default
     bool localPriority; ///< if set device is in local priority mode
     /// @}
 
@@ -89,6 +90,15 @@ namespace p44 {
     ///   add the behaviour specific channels.
     void addChannel(ChannelBehaviourPtr aChannel);
 
+    /// get the actual type of the channel (i.e. resolve channeltype_default)
+    /// @param aChannelType channel type, can be channeltype_default
+    /// @return resolved channel type, always != channeltype_default, except if output has no channels at all
+    DsChannelType actualChannelType(DsChannelType aChannelType);
+
+    /// get the actual output mode
+    /// @return the actual output mode, never returns outputmode_default
+    DsOutputMode actualOutputMode();
+
     /// @}
 
 
@@ -96,7 +106,7 @@ namespace p44 {
     /// @{
 
     /// Configure hardware parameters of the output
-    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
+    void setHardwareOutputConfig(DsOutputFunction aOutputFunction, DsOutputMode aDefaultOutputMode, DsUsageHint aUsage, bool aVariableRamp, double aMaxPower);
 
     /// @param aLocalPriority true to set local priority mode, false to clear it
     void setLocalPriority(bool aLocalPriority) { localPriority = aLocalPriority; };
@@ -115,6 +125,10 @@ namespace p44 {
     /// @return output functionality the hardware provides
     DsOutputFunction getOutputFunction() { return outputFunction; };
 
+    /// @param aChannelValue channel value
+    /// @return channel value limited/inverted according to outputMode
+    double outputValueAccordingToMode(double aChannelValue);
+
     /// @}
 
 
@@ -130,6 +144,9 @@ namespace p44 {
     /// @param aGroup group number to set or remove
     /// @param aIsMember true to make device member of this group
     void setGroupMembership(DsGroup aGroup, bool aIsMember);
+
+    /// remove all group memberships
+    void resetGroupMembership();
 
     /// check for presence of model feature (flag in dSS visibility matrix)
     /// @param aFeatureIndex the feature to check for

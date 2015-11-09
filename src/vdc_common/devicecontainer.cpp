@@ -42,13 +42,11 @@
 
 using namespace p44;
 
-
-// how long vDC waits after receiving ok from one announce until it fires the next
-//#define DEFAULT_ANNOUNCE_PAUSE (100*MilliSecond)
-#define DEFAULT_ANNOUNCE_PAUSE (10*MilliSecond)
-
 // how often to write mainloop statistics into log output
 #define DEFAULT_MAINLOOP_STATS_INTERVAL (60) // every 5 min (with periodic activity every 5 seconds: 60*5 = 300 = 5min)
+
+// how long vDC waits after receiving ok from one announce until it fires the next
+#define ANNOUNCE_PAUSE (10*MilliSecond)
 
 // how long until a not acknowledged registrations is considered timed out (and next device can be attempted)
 #define ANNOUNCE_TIMEOUT (30*Second)
@@ -73,7 +71,6 @@ DeviceContainer::DeviceContainer() :
   localDimDirection(0), // undefined
   mainloopStatsInterval(DEFAULT_MAINLOOP_STATS_INTERVAL),
   mainLoopStatsCounter(0),
-  announcePause(DEFAULT_ANNOUNCE_PAUSE),
   productName(DEFAULT_PRODUCT_NAME)
 {
   // obtain MAC address
@@ -99,7 +96,7 @@ string DeviceContainer::macAddressString()
   string macStr;
   if (mac!=0) {
     for (int i=0; i<6; ++i) {
-      string_format_append(macStr, "%02X",(mac>>((5-i)*8)) & 0xFF);
+      string_format_append(macStr, "%02llX",(mac>>((5-i)*8)) & 0xFF);
     }
   }
   else {
@@ -181,6 +178,26 @@ const char *DeviceContainer::getPersistentDataDir()
 }
 
 
+
+string DeviceContainer::publishedDescription()
+{
+  // derive the descriptive name
+  // - descriptive name: vendor name + Model name + optional custom name + optional serial
+  string n = vendorName();
+  if (!n.empty()) n+=" ";
+  n += modelName();
+  if (!getName().empty()) {
+    // append custom name
+    string_format_append(n, " \"%s\"", getName().c_str());
+  }
+  string s = getDeviceHardwareId();
+  if (s.empty()) {
+    // use dSUID if no other ID is specified
+    s = getDsUid().getString();
+  }
+  string_format_append(n, " %s", s.c_str());
+  return n;
+}
 
 
 
@@ -268,7 +285,13 @@ void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
   // load the vdc host settings
   load();
   // Log start message
-  LOG(LOG_NOTICE,"\n****** starting vdcd (vdc host) initialisation, MAC: %s, dSUID (%s) = %s, IP = %s\n", macAddressString().c_str(), externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(), ipv4AddressString().c_str());
+  LOG(LOG_NOTICE,
+    "\n\n\n*** starting initialisation of vcd host '%s'\n*** dSUID (%s) = %s, MAC: %s, IP = %s\n",
+    publishedDescription().c_str(),
+    externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(),
+    macAddressString().c_str(),
+    ipv4AddressString().c_str()
+  );
   // start the API server
   if (vdcApiServer) {
     vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
@@ -325,10 +348,10 @@ private:
     if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end()) {
       DeviceClassContainerPtr vdc = nextContainer->second;
       LOG(LOG_NOTICE,
-        "=== collecting devices from vdc %s #%d with dSUID = %s\n",
+        "=== collecting devices from vdc %s (%s #%d)",
+        vdc->shortDesc().c_str(),
         vdc->deviceClassIdentifier(),
-        vdc->getInstanceNumber(),
-        vdc->getDsUid().getString().c_str()
+        vdc->getInstanceNumber()
       );
       nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive, clear);
     }
@@ -340,6 +363,7 @@ private:
   {
     // load persistent params
     nextContainer->second->load();
+    LOG(LOG_NOTICE, "=== done collecting from %s\n", nextContainer->second->shortDesc().c_str());
     // check next
     ++nextContainer;
     queryNextContainer(aError);
@@ -392,7 +416,7 @@ void DeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, b
     if (!aIncremental) {
       // only for non-incremental collect, close vdsm connection
       if (activeSessionConnection) {
-        LOG(LOG_NOTICE, "requested to re-collect devices -> closing vDC API connection\n");
+        LOG(LOG_NOTICE, "requested to re-collect devices -> closing vDC API connection");
         activeSessionConnection->closeConnection(); // close the API connection
         resetAnnouncing();
         activeSessionConnection.reset(); // forget connection
@@ -419,12 +443,12 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   // check if device with same dSUID already exists
   DsDeviceMap::iterator pos = dSDevices.find(aDevice->getDsUid());
   if (pos!=dSDevices.end()) {
-    LOG(LOG_INFO, "- device %s already registered, not added again\n",aDevice->shortDesc().c_str());
+    LOG(LOG_INFO, "- device %s already registered, not added again",aDevice->shortDesc().c_str());
     return false; // duplicate dSUID, not added
   }
   // set for given dSUID in the container-wide map of devices
   dSDevices[aDevice->getDsUid()] = aDevice;
-  LOG(LOG_NOTICE,"--- added device: %s (not yet initialized)\n",aDevice->shortDesc().c_str());
+  LOG(LOG_NOTICE, "--- added device: %s (not yet initialized)",aDevice->shortDesc().c_str());
   // load the device's persistent params
   aDevice->load();
   // if not collecting, initialize device right away.
@@ -458,7 +482,7 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
   }
   // remove from container-wide map of devices
   dSDevices.erase(aDevice->getDsUid());
-  LOG(LOG_NOTICE,"--- removed device: %s\n", aDevice->shortDesc().c_str());
+  LOG(LOG_NOTICE, "--- removed device: %s", aDevice->shortDesc().c_str());
 }
 
 
@@ -468,7 +492,7 @@ void DeviceContainer::startLearning(LearnCB aLearnHandler, bool aDisableProximit
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
-  LOG(LOG_NOTICE,"=== start learning%s\n", aDisableProximityCheck ? " with proximity check disabled" : "");
+  LOG(LOG_NOTICE, "=== start learning%s", aDisableProximityCheck ? " with proximity check disabled" : "");
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     pos->second->setLearnMode(true, aDisableProximityCheck);
   }
@@ -481,7 +505,7 @@ void DeviceContainer::stopLearning()
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
     pos->second->setLearnMode(false, false);
   }
-  LOG(LOG_NOTICE,"=== stopped learning\n");
+  LOG(LOG_NOTICE, "=== stopped learning");
   learningMode = false;
   learnHandler.clear();
 }
@@ -491,10 +515,10 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (aLearnIn) {
-      LOG(LOG_NOTICE,"--- learned in (paired) new device(s)\n");
+      LOG(LOG_NOTICE, "--- learned in (paired) new device(s)");
     }
     else {
-      LOG(LOG_NOTICE,"--- learned out (unpaired) device(s)\n");
+      LOG(LOG_NOTICE, "--- learned out (unpaired) device(s)");
     }
   }
   // report status
@@ -535,7 +559,7 @@ void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 
 bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 {
-  LOG(LOG_INFO,"--- device %s reports %s user action\n", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
+  LOG(LOG_INFO, "vdSD %s: reports %s user action", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
   if (deviceUserActionHandler) {
     deviceUserActionHandler(DevicePtr(&aDevice), aRegular);
     return true; // suppress normal action
@@ -724,17 +748,17 @@ void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConn
   }
   else {
     // error or connection closed
-    LOG(LOG_ERR,"vDC API connection closing, reason: %s\n", aError->description().c_str());
+    LOG(LOG_ERR, "vDC API connection closing, reason: %s", aError->description().c_str());
     // - close if not already closed
     aApiConnection->closeConnection();
     if (aApiConnection==activeSessionConnection) {
       // this is the active session connection
       resetAnnouncing(); // stop possibly ongoing announcing
       activeSessionConnection.reset();
-      LOG(LOG_NOTICE,"vDC API session ends because connection closed \n");
+      LOG(LOG_NOTICE, "vDC API session ends because connection closed ");
     }
     else {
-      LOG(LOG_NOTICE,"vDC API connection (not yet in session) closed \n");
+      LOG(LOG_NOTICE, "vDC API connection (not yet in session) closed ");
     }
   }
 }
@@ -798,7 +822,7 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
       }
     }
     else {
-      LOG(LOG_DEBUG,"Received notification '%s' out of session -> ignored\n", aMethod.c_str());
+      LOG(LOG_DEBUG, "Received notification '%s' out of session -> ignored", aMethod.c_str());
     }
   }
   // check error
@@ -809,7 +833,7 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
     }
     else {
       // just log in case of notification
-      LOG(LOG_WARNING, "Notification '%s' processing error: %s\n", aMethod.c_str(), respErr->description().c_str());
+      LOG(LOG_WARNING, "Notification '%s' processing error: %s", aMethod.c_str(), respErr->description().c_str());
     }
   }
 }
@@ -954,7 +978,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
     return addressable->handleMethod(aRequest, aMethod, aParams);
   }
   else {
-    LOG(LOG_WARNING, "Target entity %s not found for method '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+    LOG(LOG_WARNING, "Target entity %s not found for method '%s'", aDsUid.getString().c_str(), aMethod.c_str());
     return ErrorPtr(new VdcApiError(404, "unknown dSUID"));
   }
 }
@@ -968,7 +992,7 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
     addressable->handleNotification(aMethod, aParams);
   }
   else {
-    LOG(LOG_WARNING, "Target entity %s not found for notification '%s'\n", aDsUid.getString().c_str(), aMethod.c_str());
+    LOG(LOG_WARNING, "Target entity %s not found for notification '%s'", aDsUid.getString().c_str(), aMethod.c_str());
   }
 }
 
@@ -1054,11 +1078,11 @@ void DeviceContainer::announceNext()
       params->setType(apivalue_object);
       params->add("dSUID", params->newBinary(vdc->getDsUid().getBinary()));
       if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
-        LOG(LOG_ERR, "Could not send vdc announcement message for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+        LOG(LOG_ERR, "Could not send vdc announcement message for %s %s", vdc->entityType(), vdc->shortDesc().c_str());
         vdc->announcing = Never; // not registering
       }
       else {
-        LOG(LOG_NOTICE, "Sent vdc announcement for %s %s\n", vdc->entityType(), vdc->shortDesc().c_str());
+        LOG(LOG_NOTICE, "Sent vdc announcement for %s %s", vdc->entityType(), vdc->shortDesc().c_str());
       }
       // schedule a retry
       announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
@@ -1083,11 +1107,11 @@ void DeviceContainer::announceNext()
       // include link to vdc for device announcements
       params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getDsUid().getBinary()));
       if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
-        LOG(LOG_ERR, "Could not send device announcement message for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+        LOG(LOG_ERR, "Could not send device announcement message for %s %s", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
       else {
-        LOG(LOG_NOTICE, "Sent device announcement for %s %s\n", dev->entityType(), dev->shortDesc().c_str());
+        LOG(LOG_NOTICE, "Sent device announcement for %s %s", dev->entityType(), dev->shortDesc().c_str());
       }
       // schedule a retry
       announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
@@ -1102,14 +1126,14 @@ void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcAp
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
-    LOG(LOG_NOTICE, "Announcement for %s %s acknowledged by vdSM\n", aAddressable->entityType(), aAddressable->shortDesc().c_str());
+    LOG(LOG_NOTICE, "Announcement for %s %s acknowledged by vdSM", aAddressable->entityType(), aAddressable->shortDesc().c_str());
     aAddressable->announced = MainLoop::now();
     aAddressable->announcing = Never; // not announcing any more
   }
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), announcePause);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
 }
 
 
@@ -1307,8 +1331,9 @@ void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 
 string DeviceContainer::description()
 {
-  string d = string_format("DeviceContainer with %d device classes:\n", deviceClassContainers.size());
+  string d = string_format("DeviceContainer with %lu device classes:", deviceClassContainers.size());
   for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+    d.append("\n");
     d.append(pos->second->description());
   }
   return d;

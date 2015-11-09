@@ -5,8 +5,9 @@ Here's what you need to do if you want to build vdcd in XCode on OS X
 
 ## Prepare
 
-### install XCode 6.x
+### install XCode 7.x
 Just from Mac App Store or see [https://developer.apple.com/xcode/](https://developer.apple.com/xcode/)
+
 ### install (home)brew
 Go to [http://brew.sh](http://brew.sh) and follow instructions
 
@@ -16,14 +17,19 @@ Go to [http://brew.sh](http://brew.sh) and follow instructions
 	brew install protobuf-c
 	brew install boost
 
-### create a project directory
+### go to your projects folder
 
-	mkdir <project dir of your choice>
-	cd <project dir of your choice>
+	cd <your projects dir>
 
-### clone the git repository
+vdcd will be created as a subfolder of this folder
+
+
+### clone the git repository (and the required p44utils submodule)
 
 	git clone https://github.com/plan44/vdcd.git
+	cd vdcd
+	git submodule init
+	git submodule update
 
 
 ## Build
@@ -55,6 +61,19 @@ The static device class containes the devices statically created at vdcd startup
 	
 ### list of all properties of a device by dSUID
 	http://localhost/api.php/vdc?method=getProperty&name=%20&dSUID=9ADC13F7D59E5B0280EC4E22E273FA0600
+
+
+## vdcd external devices API
+
+vdcd supports "external devices", which are external scripts or programs that connect to the vdcd to instantiate devices, and communicated via the *plan44 vdcd external device API*. This API is a very easy to use API designed to simplify development of custom devices.
+
+To start vdcd with external devices support enabled (API at TCP port 8999), call vdcd as follows:
+
+    vdcd --externaldevices 8999
+    
+To allow external device scripts/programs from other hosts than your Mac where vdcd runs, add the *--externalnonlocal* command line option.
+
+For more information about the external devices API, please consult the *plan44 vdcd external device API.pdf* document in the *docs* folder, and check out the sample scripts in the *external\_devices\_samples* folder.
 
 
 ## vdc API

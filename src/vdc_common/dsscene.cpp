@@ -151,11 +151,9 @@ protected:
         switch (aPropertyDescriptor->fieldKey()) {
           case value_key:
             scene.setSceneValue(outputIndex, aPropValue->doubleValue());
-            scene.markDirty();
             return true;
           case dontCare_key:
             scene.setSceneValueFlags(outputIndex, valueflags_dontCare, aPropValue->boolValue());
-            scene.markDirty();
             return true;
         }
       }
@@ -192,6 +190,16 @@ OutputBehaviourPtr DsScene::getOutputBehaviour()
 {
   return sceneDeviceSettings.device.output;
 }
+
+
+void DsScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  sceneNo = aSceneNo; // usually already set, but still make sure
+  sceneCmd = scene_cmd_invoke; // assume invoke type
+  sceneArea = 0; // no area scene by default
+  markClean(); // default values are always clean
+}
+
 
 
 
@@ -257,17 +265,20 @@ enum {
 };
 
 
-/// load values from passed row
 void DsScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
-  // get the fields
+  // get the scene number
   sceneNo = aRow->get<int>(aIndex++);
+  // as the scene is loaded into a object which did not yet have the correct scene number
+  // default values must be set again now that the sceneNo is known
+  // Note: this is important to make sure those field which are not stored have the correct scene related value (sceneCmd, sceneArea)
+  setDefaultSceneValues(sceneNo);
+  // then proceed with loading other fields
   globalSceneFlags = aRow->get<int>(aIndex++);
 }
 
 
-// bind values to passed statement
 void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
@@ -495,7 +506,7 @@ ErrorPtr SceneDeviceSettings::loadChildren()
 {
   ErrorPtr err;
   // my own ROWID is the parent key for the children
-  string parentID = string_format("%d",rowid);
+  string parentID = string_format("%llu",rowid);
   // create a template
   DsScenePtr scene = newDefaultScene(0);
   // get the query
@@ -528,11 +539,11 @@ ErrorPtr SceneDeviceSettings::saveChildren()
   // Cannot save children before I have my own rowID
   if (rowid!=0) {
     // my own ROWID is the parent key for the children
-    string parentID = string_format("%d",rowid);
+    string parentID = string_format("%llu",rowid);
     // save all elements of the map (only dirty ones will be actually stored to DB
     for (DsSceneMap::iterator pos = scenes.begin(); pos!=scenes.end(); ++pos) {
       err = pos->second->saveToStore(parentID.c_str(), true); // multiple children of same parent allowed
-      if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving scene %d for device %s: %s", pos->second->sceneNo, device.shortDesc().c_str(), err->description().c_str());
+      if (!Error::isOK(err)) LOG(LOG_ERR,"vdSD %s: Error saving scene %d: %s", device.shortDesc().c_str(), pos->second->sceneNo, err->description().c_str());
     }
   }
   return err;

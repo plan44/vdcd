@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "864A552BCB727709F09289CEAC88D24F59A8277C",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "569F94B848C72CF763EE224AC8F4ACF287185489" : 0,
+    "864A552BCB727709F09289CEAC88D24F59A8277C" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "C315A6EC-7FAB-4037-A21E-056AC3757F96",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "569F94B848C72CF763EE224AC8F4ACF287185489" : "..",
+    "864A552BCB727709F09289CEAC88D24F59A8277C" : "vdcd\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "externalButton",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "external_devices_samples\/plain C\/externalButton.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "ssh:\/\/plan44.ch\/home\/plan44\/sharedgit\/plan44bridge.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "569F94B848C72CF763EE224AC8F4ACF287185489"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:plan44\/vdcd.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "864A552BCB727709F09289CEAC88D24F59A8277C"
+    }
+  ]
+}

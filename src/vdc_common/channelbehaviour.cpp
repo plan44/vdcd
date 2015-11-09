@@ -147,7 +147,7 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlways
     if (LOGENABLED(LOG_INFO)) {
       string s = output.device.shortDesc();
       LOG(LOG_INFO,
-        "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f\n",
+        "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f",
         getName(), s.c_str(), cachedChannelValue, aActualChannelValue
       );
     }
@@ -196,7 +196,7 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     if (LOGENABLED(LOG_INFO)) {
       string s = output.device.shortDesc();
       LOG(LOG_INFO,
-        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%d mS)\n",
+        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%d mS)",
         getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
       );
     }
@@ -253,7 +253,7 @@ void ChannelBehaviour::channelValueApplied(bool aAnyWay)
       if (LOGENABLED(LOG_INFO)) {
         string s = output.device.shortDesc();
         LOG(LOG_INFO,
-          "Channel '%s' in device %s: has applied new value %0.2f to hardware%s\n",
+          "Channel '%s' in device %s: has applied new value %0.2f to hardware%s",
           getName(), s.c_str(), cachedChannelValue, inTransition() ? " (still in transition)" : " (complete)"
         );
       }

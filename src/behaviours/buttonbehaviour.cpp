@@ -84,7 +84,7 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
-  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s was %s\n", index, hardwareName.c_str(), device.shortDesc().c_str(), aPressed ? "pressed" : "released");
+  BLOG(LOG_NOTICE, "Button[%zu] '%s' was %s", index, hardwareName.c_str(), aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
   checkStateMachine(true, MainLoop::now());
 }
@@ -132,7 +132,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
   MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
   MLMicroSeconds timeSinceRef = aNow-timerRef;
 
-  FOCUSLOG("button state machine entered in state %s at reference time %d and clickCounter=%d\n", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
+  FOCUSLOG("button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
   switch (state) {
 
     case S0_idle :
@@ -305,7 +305,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       break;
   }
-  FOCUSLOG(" -->                       exit state %s with %sfurther timing needed\n", stateNames[state], timerRef!=Never ? "" : "NO ");
+  FOCUSLOG(" -->                       exit state %s with %sfurther timing needed", stateNames[state], timerRef!=Never ? "" : "NO ");
   if (timerRef!=Never) {
     // need timing, schedule calling again
     buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkStateMachine, this, false, _1), aNow+10*MilliSecond);
@@ -328,7 +328,7 @@ DsButtonElement ButtonBehaviour::localFunctionElement()
 
 void ButtonBehaviour::localSwitchOutput()
 {
-  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s: Local switch\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
+  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local switch", index, hardwareName.c_str());
 //  if (isTwoWay()) {
 //    // on or off depending on which side of the two-way switch was clicked
 //    outputOn = secondKey;
@@ -347,7 +347,7 @@ void ButtonBehaviour::localSwitchOutput()
 
 void ButtonBehaviour::localDim()
 {
-  LOG(LOG_NOTICE,"Button[%d] '%s' in device %s: Local dim\n", index, hardwareName.c_str(),  device.shortDesc().c_str());
+  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local dim", index, hardwareName.c_str());
   // TODO: actually dim output in direction as indicated by dimmingUp
 }
 
@@ -361,9 +361,9 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
   // button press is considered a (regular!) user action, have it checked globally first
   if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
     // button press not consumed on global level, forward to upstream dS
-    LOG(LOG_NOTICE,
-      "Button[%d] '%s' in device %s pushes value = %d, clickType %d\n",
-      index, hardwareName.c_str(),  device.shortDesc().c_str(), buttonPressed, aClickType
+    BLOG(LOG_NOTICE,
+      "Button[%zu] '%s' pushes value = %d, clickType %d",
+      index, hardwareName.c_str(), buttonPressed, aClickType
     );
     // issue a state property push
     pushBehaviourState();
@@ -595,8 +595,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          buttonGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonGroup, (DsGroup)aPropValue->int32Value());
           return true;
         case mode_key+settings_key_offset: {
           DsButtonMode m = (DsButtonMode)aPropValue->int32Value();
@@ -604,25 +603,20 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
             // only one particular mode (aside from inactive) is allowed.
             m = fixedButtonMode;
           }
-          buttonMode = m;
-          markDirty();
+          setPVar(buttonMode, m);
           return true;
         }
         case function_key+settings_key_offset:
-          buttonFunc = (DsButtonFunc)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonFunc, (DsButtonFunc)aPropValue->int32Value());
           return true;
         case channel_key+settings_key_offset:
-          buttonChannel = (DsChannelType)aPropValue->int32Value();
-          markDirty();
+          setPVar(buttonChannel, (DsChannelType)aPropValue->int32Value());
           return true;
         case setsLocalPriority_key+settings_key_offset:
-          setsLocalPriority = (DsButtonMode)aPropValue->boolValue();
-          markDirty();
+          setPVar(setsLocalPriority, aPropValue->boolValue());
           return true;
         case callsPresent_key+settings_key_offset:
-          callsPresent = (DsButtonMode)aPropValue->boolValue();
-          markDirty();
+          setPVar(callsPresent, aPropValue->boolValue());
           return true;
       }
     }
@@ -637,9 +631,9 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 
 string ButtonBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- buttonID: %d, buttonType: %d, buttonElementID: %d\n", buttonID, buttonType, buttonElementID);
-  string_format_append(s, "- buttonChannel: %d, buttonFunc: %d, buttonmode/LTMODE: %d\n", buttonChannel, buttonFunc, buttonMode);
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- buttonID: %d, buttonType: %d, buttonElementID: %d", buttonID, buttonType, buttonElementID);
+  string_format_append(s, "\n- buttonChannel: %d, buttonFunc: %d, buttonmode/LTMODE: %d", buttonChannel, buttonFunc, buttonMode);
   s.append(inherited::description());
   return s;
 }

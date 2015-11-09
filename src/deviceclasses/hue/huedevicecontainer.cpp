@@ -140,7 +140,7 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
     LOG(LOG_NOTICE,
       "Hue bridge %s found again:\n"
       "- userName = %s\n"
-      "- API base URL = %s\n",
+      "- API base URL = %s",
       hueComm.uuid.c_str(),
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
@@ -152,7 +152,7 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
   }
   else {
     // not found (usually timeout)
-    LOG(LOG_NOTICE, "Error refinding hue bridge with uuid %s, error = %s\n", hueComm.uuid.c_str(), aError->description().c_str());
+    LOG(LOG_NOTICE, "Error refinding hue bridge with uuid %s, error = %s", hueComm.uuid.c_str(), aError->description().c_str());
     collectedHandler(ErrorPtr()); // no hue bridge to collect lights from (but this is not a collect error)
   }
 }
@@ -183,7 +183,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
       "Hue bridge found and logged in:\n"
       "- uuid = %s\n"
       "- userName = %s\n"
-      "- API base URL = %s\n",
+      "- API base URL = %s",
       hueComm.uuid.c_str(),
       hueComm.userName.c_str(),
       hueComm.baseURL.c_str()
@@ -225,7 +225,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
   }
   else {
     // not found (usually timeout)
-    LOG(LOG_NOTICE, "No hue bridge found to register, error = %s\n", aError->description().c_str());
+    LOG(LOG_NOTICE, "No hue bridge found to register, error = %s", aError->description().c_str());
   }
 }
 
@@ -234,14 +234,14 @@ void HueDeviceContainer::collectLights()
 {
   // Note: can be used to incrementally search additional lights
   // issue lights query
-  LOG(LOG_INFO, "Querying hue bridge for available lights...\n");
+  LOG(LOG_INFO, "Querying hue bridge for available lights...");
   hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _1, _2));
 }
 
 
 void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError)
 {
-  LOG(LOG_INFO, "hue bridge reports lights = \n%s\n", aResult ? aResult->c_strValue() : "<none>");
+  LOG(LOG_INFO, "hue bridge reports lights = \n%s", aResult ? aResult->c_strValue() : "<none>");
   if (aResult) {
     // pre-v1.3 bridges: { "1": { "name": "Bedroom" }, "2": .... }
     // v1.3 and later bridges: { "1": { "name": "Bedroom", "state": {...}, "modelid":"LCT001", ... }, "2": .... }

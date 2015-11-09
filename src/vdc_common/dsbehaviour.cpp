@@ -66,7 +66,7 @@ bool DsBehaviour::pushBehaviourState()
     ApiValuePtr query = api->newApiValue();
     query->setType(apivalue_object);
     ApiValuePtr subQuery = query->newValue(apivalue_object);
-    subQuery->add(string_format("%d",index), subQuery->newValue(apivalue_null));
+    subQuery->add(string_format("%zu",index), subQuery->newValue(apivalue_null));
     query->add(string(getTypeName()).append("States"), subQuery);
     return device.pushProperty(query, VDC_API_DOMAIN);
   }
@@ -77,14 +77,14 @@ bool DsBehaviour::pushBehaviourState()
 
 string DsBehaviour::getDbKey()
 {
-  return string_format("%s_%d",device.dSUID.getString().c_str(),index);
+  return string_format("%s_%zu",device.dSUID.getString().c_str(),index);
 }
 
 
 ErrorPtr DsBehaviour::load()
 {
   ErrorPtr err = loadFromStore(getDbKey().c_str());
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) BLOG(LOG_ERR,"Error loading behaviour %s: %s", shortDesc().c_str(), err->description().c_str());
   return err;
 }
 
@@ -92,7 +92,7 @@ ErrorPtr DsBehaviour::load()
 ErrorPtr DsBehaviour::save()
 {
   ErrorPtr err = saveToStore(getDbKey().c_str(), false); // only one record per dbkey (=per device+behaviourindex)
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error saving behaviour %s for device %s: %s", shortDesc().c_str(), device.shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) BLOG(LOG_ERR,"Error saving behaviour %s: %s", shortDesc().c_str(), err->description().c_str());
   return err;
 }
 
@@ -232,8 +232,8 @@ string DsBehaviour::shortDesc()
 
 string DsBehaviour::description()
 {
-  string s = string_format("- behaviour hardware name: '%s'\n", hardwareName.c_str());
-  string_format_append(s, "- hardwareError: %d\n", hardwareError);
+  string s = string_format("\n- behaviour hardware name: '%s'", hardwareName.c_str());
+  string_format_append(s, "\n- hardwareError: %d\n", hardwareError);
   return s;
 }
 

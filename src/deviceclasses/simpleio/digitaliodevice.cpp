@@ -27,6 +27,7 @@
 
 using namespace p44;
 
+#define INPUT_DEBOUNCE_TIME (25*MilliSecond)
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
@@ -53,7 +54,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
       digitalIoType = digitalio_relay;
     }
     else {
-      LOG(LOG_ERR,"unknown digital IO type: %s\n", mode.c_str());
+      LOG(LOG_ERR, "unknown digital IO type: %s", mode.c_str());
     }
   }
   // basically act as black device so we can configure colors
@@ -75,8 +76,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Standard device settings without scene table
     installSettings();
     // Digital input as binary input (AKM, automation block type)
-    buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
-    buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1, _2), true);
+    digitalInput = DigitalIoPtr(new DigitalIo(ioname.c_str(), inverted));
+    digitalInput->setInputChangedHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1), INPUT_DEBOUNCE_TIME, 0); // edge detection if possible, mainloop idle poll otherwise
     // - create one binary input
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
@@ -90,7 +91,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
@@ -101,7 +102,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // - add generic output behaviour
     OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
     o->setGroupMembership(group_black_joker, true); // put into joker group by default
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
     addBehaviour(o);
@@ -119,7 +120,7 @@ void DigitalIODevice::buttonHandler(bool aNewState, MLMicroSeconds aTimestamp)
 }
 
 
-void DigitalIODevice::inputHandler(bool aNewState, MLMicroSeconds aTimestamp)
+void DigitalIODevice::inputHandler(bool aNewState)
 {
   BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
   if (b) {
@@ -160,6 +161,7 @@ void DigitalIODevice::deriveDsUid()
   s += ':';
   if (buttonInput) { s += ":"; s += buttonInput->getName(); }
   if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }
+  if (digitalInput) { s += ":"; s += digitalInput->getName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
@@ -179,7 +181,9 @@ string DigitalIODevice::modelName()
 string DigitalIODevice::getExtraInfo()
 {
   if (buttonInput)
-    return string_format("Input: %s\n", buttonInput->getName().c_str());
+    return string_format("Button: %s\n", buttonInput->getName().c_str());
+  else if (digitalInput)
+    return string_format("Input: %s\n", digitalInput->getName().c_str());
   else if (indicatorOutput)
     return string_format("Output: %s\n", indicatorOutput->getName().c_str());
   else
@@ -192,8 +196,10 @@ string DigitalIODevice::description()
 {
   string s = inherited::description();
   if (buttonInput)
-    string_format_append(s, "- Button at Digital IO '%s'\n", buttonInput->getName().c_str());
+    string_format_append(s, "\n- Button at Digital IO '%s'", buttonInput->getName().c_str());
+  if (digitalInput)
+    string_format_append(s, "\n- Input at Digital IO '%s'", digitalInput->getName().c_str());
   if (indicatorOutput)
-    string_format_append(s, "- Switch output at Digital IO '%s'\n", indicatorOutput->getName().c_str());
+    string_format_append(s, "\n- Switch output at Digital IO '%s'", indicatorOutput->getName().c_str());
   return s;
 }

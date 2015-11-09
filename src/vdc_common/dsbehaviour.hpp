@@ -62,6 +62,15 @@ namespace p44 {
   class SensorBehaviour;
 
 
+  // behaviour-level logging macro
+  #define BLOG(lvl, ...) { if (LOGENABLED(lvl)) { device.logAddressable(lvl, ##__VA_ARGS__); } }
+  #if FOCUSLOGGING
+  #define BFOCUSLOG(...) { BLOG(FOCUSLOGLEVEL, ##__VA_ARGS__); }
+  #else
+  #define BFOCUSLOG(...)
+  #endif
+
+
   /// a DsBehaviour represents and implements a device behaviour according to dS specs
   /// (for example: the dS Light state machine). The interface of a DsBehaviour is generic
   /// such that it can be used by different physical implementations (e.g. both DALI devices

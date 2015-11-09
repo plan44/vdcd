@@ -123,7 +123,7 @@ namespace p44 {
 
     /// @return hardware GUID in URN format to identify hardware as uniquely as possible
     /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
-    virtual string hardwareGUID() { return string_format("enoceanaddress:%08lX", enoceanComm.modemAddress()); };
+    virtual string hardwareGUID() { return string_format("enoceanaddress:%08X", enoceanComm.modemAddress()); };
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
@@ -141,7 +141,7 @@ namespace p44 {
 
     /// add newly learned device to EnOcean container (and remember it in DB)
     /// @return false if aEnoceanDevice dSUID is already known and thus was *not* added
-    virtual bool addAndRemeberDevice(EnoceanDevicePtr aEnoceanDevice);
+    virtual bool addAndRememberDevice(EnoceanDevicePtr aEnoceanDevice);
 
     /// un-pair devices by physical device address
     /// @param aEnoceanAddress address for which to disconnect and forget all physical devices

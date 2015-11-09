@@ -38,9 +38,9 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
 {
   ErrorPtr err;
   #if DEBUGFOCUSLOGGING
-  FOCUSLOG("\naccessProperty: entered with query = %s\n", aQueryObject->description().c_str());
+  FOCUSLOG("\naccessProperty: entered with query = %s", aQueryObject->description().c_str());
   if (aParentDescriptor) {
-    FOCUSLOG("- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
+    FOCUSLOG("- parentDescriptor '%s' (%s), fieldKey=%u, objectKey=%u", aParentDescriptor->name(), aParentDescriptor->isStructured() ? "structured" : "scalar", aParentDescriptor->fieldKey(), aParentDescriptor->objectKey());
   }
   #endif
   // for reading, NULL query is like query { "":NULL }
@@ -62,7 +62,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
   ApiValuePtr queryValue;
   string errorMsg;
   while (aQueryObject->nextKeyValue(queryName, queryValue)) {
-    FOCUSLOG("- starting to process query element named '%s' : %s\n", queryName.c_str(), queryValue->description().c_str());
+    FOCUSLOG("- starting to process query element named '%s' : %s", queryName.c_str(), queryValue->description().c_str());
     if (aMode==access_read && queryName=="#") {
       // asking for number of elements at this level -> generate and return int value
       queryValue = queryValue->newValue(apivalue_int64); // integer
@@ -80,7 +80,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
         propDesc = getDescriptorByName(queryName, propIndex, aDomain, aParentDescriptor);
         if (propDesc) {
           foundone = true; // found at least one descriptor for this query element
-          FOCUSLOG("  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u\n", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
+          FOCUSLOG("  - processing descriptor '%s' (%s), fieldKey=%u, objectKey=%u", propDesc->name(), propDesc->isStructured() ? "structured" : "scalar", propDesc->fieldKey(), propDesc->objectKey());
           // actually access by descriptor
           if (propDesc->isStructured()) {
             ApiValuePtr subQuery;
@@ -102,23 +102,23 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
               PropertyDescriptorPtr containerPropDesc = propDesc;
               PropertyContainerPtr container = getContainer(containerPropDesc, containerDomain);
               if (container) {
-                FOCUSLOG("  - container for '%s' is 0x%p\n", propDesc->name(), container.get());
-                FOCUSLOG("    >>>> RECURSING into accessProperty()\n");
+                FOCUSLOG("  - container for '%s' is 0x%p", propDesc->name(), container.get());
+                FOCUSLOG("    >>>> RECURSING into accessProperty()");
                 if (aMode==access_read) {
                   // read needs a result object
                   ApiValuePtr resultValue = queryValue->newValue(apivalue_object);
                   err = container->accessProperty(aMode, subQuery, resultValue, containerDomain, containerPropDesc);
                   if (Error::isOK(err)) {
                     // add to result with actual name (from descriptor)
-                    FOCUSLOG("\n  <<<< RETURNED from accessProperty() recursion\n");
-                    FOCUSLOG("  - accessProperty of container for '%s' returns %s\n", propDesc->name(), resultValue->description().c_str());
+                    FOCUSLOG("\n  <<<< RETURNED from accessProperty() recursion");
+                    FOCUSLOG("  - accessProperty of container for '%s' returns %s", propDesc->name(), resultValue->description().c_str());
                     aResultObject->add(propDesc->name(), resultValue);
                   }
                 }
                 else {
                   // for write, just pass the query value
                   err = container->accessProperty(aMode, subQuery, ApiValuePtr(), containerDomain, containerPropDesc);
-                  FOCUSLOG("    <<<< RETURNED from accessProperty() recursion\n", propDesc->name(), container.get());
+                  FOCUSLOG("    <<<< RETURNED from accessProperty() recursion", propDesc->name(), container.get());
                 }
                 if ((aMode!=access_read) && Error::isOK(err)) {
                   // give this container a chance to post-process write access
@@ -145,7 +145,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
                 // add to result with actual name (from descriptor)
                 aResultObject->add(propDesc->name(), fieldValue);
               }
-              FOCUSLOG("    - accessField for '%s' returns %s\n", propDesc->name(), fieldValue->description().c_str());
+              FOCUSLOG("    - accessField for '%s' returns %s", propDesc->name(), fieldValue->description().c_str());
             }
             else {
               // write access: just pass the value
@@ -179,7 +179,7 @@ ErrorPtr PropertyContainer::accessProperty(PropertyAccessMode aMode, ApiValuePtr
     }
     #if DEBUGLOGGING
     if (aMode==access_read) {
-      FOCUSLOG("- query element named '%s' now has result object: %s\n", queryName.c_str(), aResultObject->description().c_str());
+      FOCUSLOG("- query element named '%s' now has result object: %s", queryName.c_str(), aResultObject->description().c_str());
     }
     #endif
   }

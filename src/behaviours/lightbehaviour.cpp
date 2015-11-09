@@ -117,8 +117,8 @@ Brightness LightBehaviour::brightnessForHardware()
     return 0;
   }
   else if (isDimmable()) {
-    // dim output
-    return brightness->getTransitionalValue();
+    // dim output (applying output mode transformations)
+    return outputValueAccordingToMode(brightness->getTransitionalValue());
   }
   else {
     // switch output
@@ -167,7 +167,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
         else
           fadeStepTime = AUTO_OFF_FADE_TIME; // single step, to be executed after fade time
         fadeDownTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LightBehaviour::fadeDownHandler, this, fadeStepTime), fadeStepTime);
-        LOG(LOG_NOTICE,"- ApplyScene(AUTO_OFF): starting slow fade down from %d to %d (and then OFF) in steps of %d, stepTime = %dmS\n", (int)b, (int)brightness->getMinDim(), AUTO_OFF_FADE_STEPSIZE, (int)(fadeStepTime/MilliSecond));
+        LOG(LOG_NOTICE, "- ApplyScene(AUTO_OFF): starting slow fade down from %d to %d (and then OFF) in steps of %d, stepTime = %dmS", (int)b, (int)brightness->getMinDim(), AUTO_OFF_FADE_STEPSIZE, (int)(fadeStepTime/MilliSecond));
         return false; // fade down process will take care of output updates
       }
     }
@@ -183,7 +183,7 @@ void LightBehaviour::fadeDownHandler(MLMicroSeconds aFadeStepTime)
   Brightness b = brightness->dimChannelValue(-AUTO_OFF_FADE_STEPSIZE, aFadeStepTime);
   bool isAtMin = b<=brightness->getMinDim();
   if (isAtMin) {
-    LOG(LOG_INFO,"- ApplyScene(AUTO_OFF): reached minDim, now turning off lamp\n");
+    LOG(LOG_INFO, "- ApplyScene(AUTO_OFF): reached minDim, now turning off lamp");
     brightness->setChannelValue(0); // off
   }
   // Note: device.requestApplyingChannels paces requests to hardware, so we can just call it here without special precautions
@@ -216,7 +216,7 @@ void LightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // save brightness channel from scene
-    lightScene->setRepVar(lightScene->value, brightness->getChannelValue());
+    lightScene->setPVar(lightScene->value, brightness->getChannelValue());
     lightScene->setSceneValueFlags(brightness->getChannelIndex(), valueflags_dontCare, false);
   }
   else {
@@ -266,7 +266,7 @@ void LightBehaviour::onAtMinBrightness(DsScenePtr aScene)
     LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
     if (lightScene && lightScene->sceneValue(brightness->getChannelIndex())>0) {
       // - load scene values for channels
-      loadChannelsFromScene(lightScene);
+      loadChannelsFromScene(lightScene); // Note: causes log message because channel is set to new value
       // - override brightness with minDim
       brightness->setChannelValue(brightness->getMinDim(), transitionTimeFromSceneEffect(lightScene->effect, true));
     }
@@ -586,26 +586,24 @@ bool LightBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValu
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case onThreshold_key+settings_key_offset:
-          onThreshold = aPropValue->doubleValue();
-          markDirty();
+          setPVar(onThreshold, aPropValue->doubleValue());
           return true;
         case minBrightness_key+settings_key_offset:
           brightness->setDimMin(aPropValue->doubleValue());
-          markDirty();
+          if (!hardwareHasSetMinDim) markDirty();
           return true;
         case dimTimeUp_key+settings_key_offset:
         case dimTimeUpAlt1_key+settings_key_offset:
         case dimTimeUpAlt2_key+settings_key_offset:
-          dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          setPVar(dimTimeUp[aPropertyDescriptor->fieldKey()-(dimTimeUp_key+settings_key_offset)], (DimmingTime)aPropValue->int32Value());
           return true;
         case dimTimeDown_key+settings_key_offset:
         case dimTimeDownAlt1_key+settings_key_offset:
         case dimTimeDownAlt2_key+settings_key_offset:
-          dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)] = (DimmingTime)aPropValue->int32Value();
+          setPVar(dimTimeDown[aPropertyDescriptor->fieldKey()-(dimTimeDown_key+settings_key_offset)], (DimmingTime)aPropValue->int32Value());
           return true;
         case dimCurveExp_key+settings_key_offset:
-          dimCurveExp = aPropValue->doubleValue();
-          markDirty();
+          setPVar(dimCurveExp, aPropValue->doubleValue());
           return true;
       }
     }
@@ -626,9 +624,9 @@ string LightBehaviour::shortDesc()
 
 string LightBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- brightness = %.1f, localPriority = %d\n", brightness->getChannelValue(), hasLocalPriority());
-  string_format_append(s, "- dimmable: %d, minBrightness=%.1f, onThreshold=%.1f\n", isDimmable(), brightness->getMinDim(), onThreshold);
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- brightness = %.1f, localPriority = %d", brightness->getChannelValue(), hasLocalPriority());
+  string_format_append(s, "\n- dimmable: %d, minBrightness=%.1f, onThreshold=%.1f", isDimmable(), brightness->getMinDim(), onThreshold);
   s.append(inherited::description());
   return s;
 }

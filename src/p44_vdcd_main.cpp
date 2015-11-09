@@ -28,21 +28,31 @@
 #include "pbufvdcapi.hpp"
 
 // device classes to be used
+#if !DISABLE_DALI
 #include "dalidevicecontainer.hpp"
-#include "huedevicecontainer.hpp"
+#endif
+#if !DISABLE_ENOCEAN
 #include "enoceandevicecontainer.hpp"
-#include "staticdevicecontainer.hpp"
-
+#endif
+#if !DISABLE_HUE
+#include "huedevicecontainer.hpp"
+#endif
 #if !DISABLE_OLA
 #include "oladevicecontainer.hpp"
 #endif
 #if !DISABLE_LEDCHAIN
 #include "ledchaindevicecontainer.hpp"
 #endif
+#if !DISABLE_STATIC
+#include "staticdevicecontainer.hpp"
+#endif
+#if !DISABLE_EXTERNAL
+#include "externaldevicecontainer.hpp"
+#endif
+
 #if !DISABLE_DISCOVERY
 #include "discovery.hpp"
 #endif
-
 
 #include "digitalio.hpp"
 
@@ -98,8 +108,10 @@ class P44Vdcd : public CmdLineApp
     tempstatus_failure,  // failure/learn-out indication (red blinking)
   } TempStatus;
 
+  #if !DISABLE_STATIC
   // command line defined devices
   DeviceConfigMap staticDeviceConfigs;
+  #endif
 
   // App status
   bool factoryResetWait;
@@ -227,12 +239,12 @@ public:
           redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
-          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!\n");
+          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!");
           greenLED->steadyOff();
           redLED->steadyOn();
           break;
         case status_fatalerror:
-          LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!\n");
+          LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!");
           greenLED->steadyOff();
           redLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
@@ -247,6 +259,7 @@ public:
 
 
 
+  #if !DISABLE_STATIC
   virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
   {
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
@@ -266,6 +279,7 @@ public:
     }
     return true;
   }
+  #endif
 
 
   virtual int main(int argc, char **argv)
@@ -273,30 +287,25 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
-      #if !DISABLE_DISCOVERY
-      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
-      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
-      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
-      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
-      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
-      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
-      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
-      #endif
-      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      #if !DISABLE_DALI
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
       { 0  , "dalirxadj",     true,  "adjustment;DALI signal adjustment for receiving" },
+      #endif
+      #if !DISABLE_ENOCEAN
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
+      #endif
+      #if !DISABLE_HUE
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 0,   "hueapiurl",     true,  "hue API url;use hue bridge API at specific location (disables UPnP/SSDP search)" },
+      #endif
       #if !DISABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
@@ -304,19 +313,12 @@ public:
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
+      #if !DISABLE_EXTERNAL
+      { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
+      { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
+      #endif
+      #if !DISABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
-      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
-      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
-      { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 0  , "announcepause", true,  "milliseconds;pause between device announcements at startup" },
-      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
-      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
-      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
-      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
-      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
-      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
-      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
-      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
@@ -336,6 +338,31 @@ public:
                                      },
       { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
+      #endif // !DISABLE_STATIC
+      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
+      #if !DISABLE_DISCOVERY
+      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
+      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
+      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
+      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
+      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
+      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
+      { 0  , "vdsmnotaux"    ,false, NULL /* can be set to make vdsm non-auxiliary */ },
+      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
+      #endif
+      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
+      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
+      { 'w', "startupdelay",  true,  "seconds;delay startup" },
+      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
+      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
+      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
+      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
+      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
+      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
+      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
+      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
+
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
@@ -348,7 +375,7 @@ public:
     setCommandDescriptors(usageText, options);
     parseCommandLine(argc, argv);
 
-    if ((numOptions()<1 && staticDeviceConfigs.size()==0) || numArguments()>0) {
+    if ((numOptions()<1) || numArguments()>0) {
       // show usage
       showUsage();
       terminateApp(EXIT_SUCCESS);
@@ -379,7 +406,7 @@ public:
 
     // before starting anything, delay
     if (startupDelay>0) {
-      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)\n", startupDelay);
+      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)", startupDelay);
       sleep(startupDelay);
     }
 
@@ -448,12 +475,6 @@ public:
         p44VdcHost->setDeviceHardwareId(s);
       }
 
-      // - set custom announce pause
-      int announcePause;
-      if (getIntOption("announcepause", announcePause)){
-        p44VdcHost->setAnnouncePause(announcePause*MilliSecond);
-      }
-
       // - set custom mainloop statistics output interval
       int mainloopStatsInterval;
       if (getIntOption("mainloopstats", mainloopStatsInterval)){
@@ -488,6 +509,7 @@ public:
 
       // Create static container structure
       // - Add DALI devices class if DALI bridge serialport/host is specified
+      #if !DISABLE_DALI
       const char *daliname = getOption("dali");
       if (daliname) {
         int sec = 0;
@@ -499,6 +521,8 @@ public:
         if (getIntOption("dalirxadj", adj)) daliDeviceContainer->daliComm->setDaliSampleAdj(adj);
         daliDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
+      #if !DISABLE_ENOCEAN
       // - Add EnOcean devices class if EnOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       const char *enoceanresetpin = getOption("enoceanreset");
@@ -508,6 +532,8 @@ public:
         // add
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
+      #if !DISABLE_HUE
       // - Add hue support
       if (getOption("huelights")) {
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
@@ -517,6 +543,7 @@ public:
         }
         hueDeviceContainer->addClassToDeviceContainer();
       }
+      #endif
       #if !DISABLE_OLA
       // - Add OLA support
       if (getOption("ola")) {
@@ -538,13 +565,22 @@ public:
         }
       }
       #endif
+      #if !DISABLE_STATIC
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
         staticDeviceContainer->addClassToDeviceContainer();
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
-
+      #endif
+      #if !DISABLE_EXTERNAL
+      // - Add support for external devices connecting via socket
+      const char *extdevname = getOption("externaldevices");
+      if (extdevname) {
+        ExternalDeviceContainerPtr externalDeviceContainer = ExternalDeviceContainerPtr(new ExternalDeviceContainer(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
+        externalDeviceContainer->addClassToDeviceContainer();
+      }
+      #endif
       // install activity monitor
       p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
     }
@@ -574,7 +610,7 @@ public:
       }
     }
     else {
-      LOG(LOG_ERR,"Learning error: %s\n", aError->description().c_str());
+      LOG(LOG_ERR, "Learning error: %s", aError->description().c_str());
     }
   }
 
@@ -594,7 +630,7 @@ public:
 
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d", aState, aHasChanged);
     // LED yellow as long as button pressed
     if (aHasChanged) {
       if (aState) indicateTempStatus(tempstatus_buttonpressed);
@@ -605,13 +641,13 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // visually acknowledge long keypress by turning LED red
         indicateTempStatus(tempstatus_buttonpressedlong);
-        LOG(LOG_WARNING,"Button held for >5 seconds now...\n");
+        LOG(LOG_WARNING, "Button held for >5 seconds now...");
       }
       // check for very long keypress
       if (aTimeSincePreviousChange>=15*Second) {
         // very long press (labelled "Factory reset" on the case)
         setAppStatus(status_error);
-        LOG(LOG_WARNING,"Very long button press detected -> clean exit(%d) in 2 seconds\n", P44_EXIT_LOCALMODE);
+        LOG(LOG_WARNING, "Very long button press detected -> clean exit(%d) in 2 seconds", P44_EXIT_LOCALMODE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
@@ -627,7 +663,7 @@ public:
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
-        LOG(LOG_WARNING,"Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS\n", P44_EXIT_FIRMWAREUPDATE);
+        LOG(LOG_WARNING, "Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS", P44_EXIT_FIRMWAREUPDATE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
@@ -653,12 +689,12 @@ public:
 
   virtual bool fromStartButtonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d\n", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d", aState, aHasChanged);
     if (aHasChanged && aState==false) {
       // released
       if (factoryResetWait && aTimeSincePreviousChange>20*Second) {
         // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
-        LOG(LOG_WARNING,"Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds\n", P44_EXIT_FACTORYRESET);
+        LOG(LOG_WARNING, "Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds", P44_EXIT_FACTORYRESET);
         // indicate red "error/danger" state
         redLED->steadyOn();
         greenLED->steadyOff();
@@ -668,7 +704,7 @@ public:
       }
       else {
         // held in waiting-for-reset state less than 20 seconds or more than 30 seconds -> just restart
-        LOG(LOG_WARNING,"Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds\n");
+        LOG(LOG_WARNING, "Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds");
         // indicate yellow "busy" state
         redLED->steadyOn();
         greenLED->steadyOn();
@@ -739,7 +775,7 @@ public:
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
-      LOG(LOG_ALERT,"****** Fatal error - vdc host initialisation failed: %s\n", aError->description().c_str());
+      LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->description().c_str());
       MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
       return;
     }
@@ -778,7 +814,7 @@ public:
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
-      DBGLOG(LOG_INFO, p44VdcHost->description().c_str());
+      DBGLOG(LOG_INFO, "%s", p44VdcHost->description().c_str());
     }
     else
       setAppStatus(status_error);
@@ -819,10 +855,11 @@ public:
       auxVdsmDsuid,
       auxVdsmPort,
       getOption("auxvdsmrunning"),
-      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1)
+      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
+      getOption("vdsmnotaux")
     );
     if (!Error::isOK(err)) {
-      LOG(LOG_ERR,"**** Cannot start discovery manager: %s\n", err->description().c_str());
+      LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
     }
   }
 
@@ -830,10 +867,10 @@ public:
   void discoveryStatusHandler(bool aAuxVdsmShouldRun)
   {
     if (aAuxVdsmShouldRun) {
-      LOG(LOG_WARNING,"***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds\n", P44_EXIT_START_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds", P44_EXIT_START_AUXVDSM);
     }
     else {
-      LOG(LOG_WARNING,"***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds\n", P44_EXIT_STOP_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds", P44_EXIT_STOP_AUXVDSM);
     }
     // needs to switch vdsms, means device is busy
     setAppStatus(status_busy);

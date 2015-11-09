@@ -84,6 +84,8 @@ namespace p44 {
     DsChannelType currentDimChannel; ///< currently dimmed channel (if dimming in progress)
     long dimHandlerTicket; ///< for standard dimming
     bool isDimming; ///< if set, dimming is in progress
+    uint8_t areaDimmed; ///< last dimmed area (so continue know which dimming command to re-start in case it comes late)
+    DsDimMode areaDimMode; ///< last area dim mode
 
     // hardware access serializer/pacer
     SimpleCB appliedOrSupersededCB; ///< will be called when values are either applied or ignored because a subsequent change is already pending

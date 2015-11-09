@@ -116,7 +116,7 @@ void EnoceanDevice::deriveDsUid()
   // UUID in EnOcean name space
   //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
-  string s = string_format("%08lX", getAddress()); // base address comes from
+  string s = string_format("%08X", getAddress()); // base address comes from
   dSUID.setNameInSpace(s, enOceanNamespace);
   dSUID.setSubdeviceIndex(getSubDevice());
 }
@@ -124,13 +124,13 @@ void EnoceanDevice::deriveDsUid()
 
 string EnoceanDevice::hardwareGUID()
 {
-  return string_format("enoceanaddress:%08lX", getAddress());
+  return string_format("enoceanaddress:%08X", getAddress());
 }
 
 
 string EnoceanDevice::hardwareModelGUID()
 {
-  return string_format("enoceaneep:%06lX", EEP_PURE(getEEProfile()));
+  return string_format("enoceaneep:%06X", EEP_PURE(getEEProfile()));
 }
 
 
@@ -218,7 +218,7 @@ void EnoceanDevice::needOutgoingUpdate()
     sendOutgoingUpdate();
   }
   else {
-    LOG(LOG_NOTICE,"EnOcean device %s: flagged output updated pending -> outgoing package will be sent later\n", shortDesc().c_str());
+    ALOG(LOG_NOTICE, "flagged output update pending -> outgoing EnOcean package will be sent later");
   }
 }
 
@@ -237,7 +237,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       // set destination
       outgoingEsp3Packet->setRadioDestination(enoceanAddress); // the target is the device I manage
       outgoingEsp3Packet->finalize();
-      LOG(LOG_INFO, "EnOcean device %s: sending outgoing packet:\n%s", shortDesc().c_str(), outgoingEsp3Packet->description().c_str());
+      ALOG(LOG_INFO, "sending outgoing EnOcean packet:\n%s", outgoingEsp3Packet->description().c_str());
       // send it
       getEnoceanDeviceContainer().enoceanComm.sendCommand(outgoingEsp3Packet, NULL);
     }
@@ -265,7 +265,7 @@ void EnoceanDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 
 void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  LOG(LOG_INFO, "EnOcean device %s: now starts processing packet:\n%s", shortDesc().c_str(), aEsp3PacketPtr->description().c_str());
+  ALOG(LOG_INFO, "now starts processing EnOcean packet:\n%s", aEsp3PacketPtr->description().c_str());
   lastPacketTime = MainLoop::now();
   lastRSSI = aEsp3PacketPtr->radioDBm();
   lastRepeaterCount = aEsp3PacketPtr->radioRepeaterCount();
@@ -277,7 +277,7 @@ void EnoceanDevice::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
   if (pendingDeviceUpdate || updateAtEveryReceive) {
     // send updates, if any
     pendingDeviceUpdate = true; // set it in case of updateAtEveryReceive (so message goes out even if no changes pending)
-    LOG(LOG_NOTICE,"EnOcean device %s: pending output update is now sent to device\n", shortDesc().c_str());
+    ALOG(LOG_NOTICE, "pending output update is now sent to device");
     sendOutgoingUpdate();
   }
 }
@@ -300,10 +300,10 @@ void EnoceanDevice::checkPresence(PresenceCB aPresenceResultHandler)
 string EnoceanDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Enocean Address = 0x%08lX, subDevice=%d\n", enoceanAddress, subDevice);
+  string_format_append(s, "\n- Enocean Address = 0x%08X, subDevice=%d", enoceanAddress, subDevice);
   const char *mn = EnoceanComm::manufacturerName(eeManufacturer);
   string_format_append(s,
-    "- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X\n",
+    "\n- %s, EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer: %s (%03X), Profile variant: %02X",
     eeFunctionDesc.c_str(),
     EEP_RORG(eeProfile),
     EEP_FUNC(eeProfile),
@@ -314,7 +314,7 @@ string EnoceanDevice::description()
   );
   // show channels
   for (EnoceanChannelHandlerVector::iterator pos = channels.begin(); pos!=channels.end(); ++pos) {
-    string_format_append(s, "- EnOcean device channel #%d: %s\n", (*pos)->channel, (*pos)->shortDesc().c_str());
+    string_format_append(s, "\n- EnOcean device channel #%d: %s", (*pos)->channel, (*pos)->shortDesc().c_str());
   }
   return s;
 }
@@ -409,8 +409,22 @@ void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, cons
       // could not create a device for subDeviceIndex
       break; // -> done
     }
+    // - keep assigned name and zone for new device(s)
+    bool hasNameOrZone = false;
+    if (!getAssignedName().empty()) {
+      hasNameOrZone = true;
+      newDev->initializeName(getAssignedName());
+    }
+    if (newDev->deviceSettings && deviceSettings && deviceSettings->zoneID!=0) {
+      hasNameOrZone = true;
+      newDev->deviceSettings->zoneID = deviceSettings->zoneID;
+    }
     // - add it to the container
-    getEnoceanDeviceContainer().addAndRemeberDevice(newDev);
+    getEnoceanDeviceContainer().addAndRememberDevice(newDev);
+    // - make it dirty if we have set zone or name
+    if (hasNameOrZone && newDev->deviceSettings) {
+      newDev->deviceSettings->markDirty(); // make sure name and/or zone are saved permanently
+    }
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
 }
@@ -545,7 +559,7 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
       newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     default:
-      LOG(LOG_WARNING,"EnoceanDevice::newDevice: unknown RORG = 0x%02X\n", rorg);
+      LOG(LOG_WARNING, "EnoceanDevice::newDevice: unknown RORG = 0x%02X", rorg);
       break;
   }
   // return device (or empty if none created)
@@ -573,7 +587,7 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
     // created device
     numDevices++;
     // - add it to the container
-    aClassContainerP->addAndRemeberDevice(newDev);
+    aClassContainerP->addAndRememberDevice(newDev);
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
   // return number of devices created

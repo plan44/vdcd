@@ -70,7 +70,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
     installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
     // - set the behaviour
     ColorLightBehaviourPtr cl = ColorLightBehaviourPtr(new ColorLightBehaviour(*this));
-    cl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    cl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
     cl->setHardwareName(string_format("color light #%s", lightID.c_str()));
     cl->initMinBrightness(0.4); // min brightness is roughly 1/256
     addBehaviour(cl);
@@ -81,7 +81,7 @@ HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightI
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - set the behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, true, 8.5); // hue lights are always dimmable, one hue = 8.5W
     l->setHardwareName(string_format("monochrome light #%s", lightID.c_str()));
     l->initMinBrightness(0.4); // min brightness is roughly 1/256
     addBehaviour(l);
@@ -331,20 +331,20 @@ void HueDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     }
     // show what we are doing
     if (LOGENABLED(LOG_INFO) && (!aForDimming || LOGENABLED(LOG_DEBUG))) {
-      LOG(LOG_INFO, "hue device %s: sending new light state: light is %s, brightness=%0.0f, transition in %d mS\n", shortDesc().c_str(), lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
+      ALOG(LOG_INFO, "sending new light state: light is %s, brightness=%0.0f, transition in %d mS", lightIsOn ? "ON" : "OFF", l->brightness->getChannelValue(), (int)(transitionTime/MilliSecond));
       if (cl) {
         switch (cl->colorMode) {
           case colorLightModeHueSaturation:
-            LOG(LOG_INFO, "- color mode HSV: hue=%0.0f, saturation=%0.0f\n", cl->hue->getChannelValue(), cl->saturation->getChannelValue());
+            LOG(LOG_INFO, "- color mode HSV: hue=%0.0f, saturation=%0.0f", cl->hue->getChannelValue(), cl->saturation->getChannelValue());
             break;
           case colorLightModeXY:
-            LOG(LOG_INFO, "- color mode xyV: x=%0.3f, y=%0.3f\n", cl->cieX->getChannelValue(), cl->cieY->getChannelValue());
+            LOG(LOG_INFO, "- color mode xyV: x=%0.3f, y=%0.3f", cl->cieX->getChannelValue(), cl->cieY->getChannelValue());
             break;
           case colorLightModeCt:
-            LOG(LOG_INFO, "- color mode color temperature: mired=%0.0f\n", cl->ct->getChannelValue());
+            LOG(LOG_INFO, "- color mode color temperature: mired=%0.0f", cl->ct->getChannelValue());
             break;
           default:
-            LOG(LOG_INFO, "- NO color\n");
+            LOG(LOG_INFO, "- NO color");
             break;
         }
       }
@@ -506,5 +506,6 @@ void HueDevice::deriveDsUid()
 string HueDevice::description()
 {
   string s = inherited::description();
+  string_format_append(s, "\n- hue unique ID: %s", uniqueID.c_str());
   return s;
 }

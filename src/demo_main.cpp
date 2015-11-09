@@ -137,7 +137,7 @@ public:
   {
     if (!Error::isOK(aError)) {
       // cannot initialize, this is a fatal error
-      LOG(LOG_ERR, "Cannot initialize device container - fatal error\n");
+      LOG(LOG_ERR, "Cannot initialize device container - fatal error");
       terminateApp(EXIT_FAILURE);
     }
     else {
@@ -152,7 +152,7 @@ public:
       LOG(LOG_INFO, deviceContainer->description().c_str());
     }
     else {
-      LOG(LOG_ERR, "Cannot collect devices - fatal error\n");
+      LOG(LOG_ERR, "Cannot collect devices - fatal error");
       terminateApp(EXIT_FAILURE);
     }
   }

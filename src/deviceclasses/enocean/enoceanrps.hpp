@@ -106,7 +106,7 @@ namespace p44 {
     /// private constructor, create new channels using factory static method
     EnoceanRpsWindowHandleHandler(EnoceanDevice &aDevice);
 
-
+    bool isERP2; ///< set if protocol is ERP2
     bool isTiltedStatus; ///< set if this represents the tilted status (otherwise, it's the open status)
 
 

@@ -41,7 +41,7 @@ P44JsonApiRequest::P44JsonApiRequest(JsonCommPtr aJsonComm)
 
 ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 {
-  LOG(LOG_INFO,"cfg <- vdcd (JSON) result sent: result=%s\n", aResult ? aResult->description().c_str() : "<none>");
+  LOG(LOG_INFO, "cfg <- vdcd (JSON) result sent: result=%s", aResult ? aResult->description().c_str() : "<none>");
   JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
   if (result) {
     P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
@@ -57,7 +57,7 @@ ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 
 ErrorPtr P44JsonApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage, ApiValuePtr aErrorData)
 {
-  LOG(LOG_INFO,"cfg <- vdcd (JSON) error sent: error=%d (%s)\n", aErrorCode, aErrorMessage.c_str());
+  LOG(LOG_INFO, "cfg <- vdcd (JSON) error sent: error=%d (%s)", aErrorCode, aErrorMessage.c_str());
   ErrorPtr err = ErrorPtr(new Error(aErrorCode, aErrorMessage));
   P44VdcHost::sendCfgApiResponse(jsonComm, JsonObjectPtr(), err);
   return ErrorPtr();
@@ -112,7 +112,7 @@ private:
       greenLED->steadyOn();
       redLED->blinkFor(Infinite, 600*MilliSecond, 50);
       // - run the test
-      LOG(LOG_WARNING,"Starting Test of %s (Tag=%d, %s)\n", nextContainer->second->deviceClassIdentifier(), nextContainer->second->getTag(), nextContainer->second->shortDesc().c_str());
+      LOG(LOG_WARNING, "Starting Test of %s (Tag=%d, %s)", nextContainer->second->deviceClassIdentifier(), nextContainer->second->getTag(), nextContainer->second->shortDesc().c_str());
       nextContainer->second->selfTest(boost::bind(&SelfTestRunner::containerTested, this, _1));
     }
     else
@@ -124,7 +124,7 @@ private:
   {
     if (!Error::isOK(aError)) {
       // test failed
-      LOG(LOG_ERR,"****** Test of '%s' FAILED with error: %s\n", nextContainer->second->deviceClassIdentifier(), aError->description().c_str());
+      LOG(LOG_ERR, "****** Test of '%s' FAILED with error: %s", nextContainer->second->deviceClassIdentifier(), aError->description().c_str());
       // remember
       globalError = aError;
       // morse out tag number of device class failing self test until button is pressed
@@ -138,7 +138,7 @@ private:
     }
     else {
       // test was ok
-      LOG(LOG_ERR,"------ Test of '%s' OK\n", nextContainer->second->deviceClassIdentifier());
+      LOG(LOG_ERR, "------ Test of '%s' OK", nextContainer->second->deviceClassIdentifier());
       // check next
       ++nextContainer;
       testNextContainer();
@@ -161,12 +161,12 @@ private:
   void testCompleted()
   {
     if (Error::isOK(globalError)) {
-      LOG(LOG_ERR,"Self test OK\n");
+      LOG(LOG_ERR, "Self test OK");
       redLED->steadyOff();
       greenLED->blinkFor(Infinite, 500, 85); // slow green blinking = good
     }
     else  {
-      LOG(LOG_ERR,"Self test has FAILED\n");
+      LOG(LOG_ERR, "Self test has FAILED");
       greenLED->steadyOff();
       redLED->blinkFor(Infinite, 250, 60); // faster red blinking = not good
     }
@@ -240,7 +240,7 @@ void P44VdcHost::configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError,
   // - "uri" selects one of possibly multiple APIs
   if (Error::isOK(aError)) {
     // not JSON level error, try to process
-    LOG(LOG_INFO,"cfg -> vdcd (JSON) request received: %s\n", aJsonObject->c_strValue());
+    LOG(LOG_INFO, "cfg -> vdcd (JSON) request received: %s", aJsonObject->c_strValue());
     // find out which one is our actual JSON request
     // - try POST data first
     JsonObjectPtr request = aJsonObject->get("data");
@@ -297,7 +297,7 @@ void P44VdcHost::sendCfgApiResponse(JsonCommPtr aJsonComm, JsonObjectPtr aResult
     // no error, return result (if any)
     response->add("result", aResult);
   }
-  LOG(LOG_DEBUG,"Config API response: %s\n", response->c_strValue());
+  LOG(LOG_DEBUG, "Config API response: %s", response->c_strValue());
   aJsonComm->sendMessage(response);
 }
 
@@ -457,7 +457,7 @@ ErrorPtr P44VdcHost::processP44Request(JsonCommPtr aJsonComm, JsonObjectPtr aReq
         int newLevel = o->int32Value();
         int oldLevel = LOGLEVEL;
         SETLOGLEVEL(newLevel);
-        LOG(LOG_WARNING,"\n========== changed log level from %d to %d ===============\n", oldLevel, newLevel);
+        LOG(LOG_WARNING, "\n\n========== changed log level from %d to %d ===============", oldLevel, newLevel);
       }
       // anyway: return current value
       sendCfgApiResponse(aJsonComm, JsonObject::newInt32(LOGLEVEL), ErrorPtr());

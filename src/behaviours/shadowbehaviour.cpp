@@ -59,7 +59,7 @@ void ShadowScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   if (cb->getChannelType()==channeltype_position_angle) {
-    angle = aValue;
+    setPVar(angle, aValue);
     return;
   }
   inherited::setSceneValue(aChannelIndex, aValue);
@@ -182,6 +182,7 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
   minMoveTime(200*MilliSecond),
   maxShortMoveTime(0),
   minLongMoveTime(0),
+  hasEndContacts(false),
   // persistent settings (defaults are MixWerk's)
   openTime(54),
   closeTime(51),
@@ -192,14 +193,16 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
   movingTicket(0),
   blindState(blind_idle),
   movingUp(false),
+  runIntoEnd(false),
+  updateMoveTimeAtEndReached(false),
   referencePosition(100), // assume fully open, at top
   referenceAngle(100) // at top means that angle is open as well
 {
   // make it member of the light group
   setGroupMembership(group_grey_shadow, true);
-  // primary output controls brightness
+  // primary output controls position
   setHardwareName("position");
-  // add the channels (every shadow device has an angle so far)
+  // add the channels (every shadow device has an angle so far, but roller/sun blinds dont use it)
   position = ShadowPositionChannelPtr(new ShadowPositionChannel(*this));
   addChannel(position);
   angle = ShadowAngleChannelPtr(new ShadowAngleChannel(*this));
@@ -207,9 +210,10 @@ ShadowBehaviour::ShadowBehaviour(Device &aDevice) :
 }
 
 
-void ShadowBehaviour::setDeviceParams(ShadowDeviceKind aShadowDeviceKind, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime, MLMicroSeconds aMinLongMoveTime)
+void ShadowBehaviour::setDeviceParams(ShadowDeviceKind aShadowDeviceKind, bool aHasEndContacts, MLMicroSeconds aMinMoveTime, MLMicroSeconds aMaxShortMoveTime, MLMicroSeconds aMinLongMoveTime)
 {
   shadowDeviceKind = aShadowDeviceKind;
+  hasEndContacts = aHasEndContacts;
   minMoveTime = aMinMoveTime;
   maxShortMoveTime = aMaxShortMoveTime;
   minLongMoveTime = aMinLongMoveTime;
@@ -238,6 +242,7 @@ Tristate ShadowBehaviour::hasModelFeature(DsModelFeatures aFeatureIndex)
 
 
 #pragma mark - Blind Movement Sequencer
+
 
 
 double ShadowBehaviour::getPosition()
@@ -299,7 +304,7 @@ void ShadowBehaviour::syncBlindState()
 
 void ShadowBehaviour::applyBlindChannels(MovementChangeCB aMovementCB, SimpleCB aApplyDoneCB, bool aForDimming)
 {
-  FOCUSLOG("Initiating blind moving sequence\n");
+  BFOCUSLOG("Initiating blind moving sequence");
   movementCB = aMovementCB;
   if (blindState!=blind_idle) {
     // not idle
@@ -330,7 +335,7 @@ void ShadowBehaviour::applyBlindChannels(MovementChangeCB aMovementCB, SimpleCB 
 
 void ShadowBehaviour::dimBlind(MovementChangeCB aMovementCB, DsDimMode aDimMode)
 {
-  FOCUSLOG("dimBlind called for %s\n", aDimMode==dimmode_up ? "UP" : (aDimMode==dimmode_down ? "DOWN" : "STOP"));
+  BFOCUSLOG("dimBlind called for %s", aDimMode==dimmode_up ? "UP" : (aDimMode==dimmode_down ? "DOWN" : "STOP"));
   if (aDimMode==dimmode_stop) {
     // simply stop
     movementCB = aMovementCB; // install new
@@ -374,7 +379,7 @@ void ShadowBehaviour::stop(SimpleCB aApplyDoneCB)
       // normal stop, unless this is a stop caused by a request to apply new values afterwards
       blindState = blind_stopping;
     }
-    LOG(LOG_INFO,"Stopping all movement%s\n", blindState==blind_stopping_before_apply ? " before applying" : "");
+    BLOG(LOG_INFO, "Stopping all movement%s", blindState==blind_stopping_before_apply ? " before applying" : "");
     MainLoop::currentMainLoop().cancelExecutionTicket(movingTicket);
     movementCB(boost::bind(&ShadowBehaviour::stopped, this, aApplyDoneCB), 0);
   }
@@ -387,10 +392,50 @@ void ShadowBehaviour::stop(SimpleCB aApplyDoneCB)
 
 
 
+void ShadowBehaviour::endReached(bool aTop)
+{
+  // completely ignore if we don't have end contacts
+  if (hasEndContacts) {
+    BLOG(LOG_INFO, "reports %s actually reached", aTop ? "top (fully rolled in)" : "bottom (fully extended)");
+    // cancel timeouts that might want to stop movement
+    MainLoop::currentMainLoop().cancelExecutionTicket(movingTicket);
+    // check for updating full range time
+    if (updateMoveTimeAtEndReached) {
+      // ran full range, update time
+      MLMicroSeconds fullRangeTime = MainLoop::now()-referenceTime;
+      LOG(LOG_INFO, "- is end of a full range movement : measured move time %.1f -> updating settings", (double)fullRangeTime/Second);
+      if (aTop) {
+        openTime = fullRangeTime; // update opening time
+      }
+      else {
+        closeTime = fullRangeTime; // update closing time
+      }
+    }
+    // update positions
+    referenceTime = Never; // prevent re-calculation of position and angle from timing
+    if (aTop) {
+      // at top
+      referencePosition = 100;
+      referenceAngle = 100;
+    }
+    else {
+      // at bottom
+      referencePosition = 0;
+      referenceAngle = 0;
+    }
+    // now report stopped
+    stopped(endContactMoveAppliedCB);
+  }
+}
+
+
+
+
 void ShadowBehaviour::stopped(SimpleCB aApplyDoneCB)
 {
+  updateMoveTimeAtEndReached = false; // stopping cancels full range timing update (if stop is due to end contact, measurement will be already done now)
   moveTimerStop();
-  FOCUSLOG("- calculated current blind position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
+  FOCUSLOG("- calculated current blind position=%.1f%%, angle=%.1f", referencePosition, referenceAngle);
   // next step depends on state
   switch (blindState) {
     case blind_stopping_before_apply:
@@ -424,7 +469,7 @@ void ShadowBehaviour::allDone(SimpleCB aApplyDoneCB)
   moveTimerStop();
   movementCB = NULL;
   blindState = blind_idle;
-  LOG(LOG_INFO,"End of movement sequence, reached position=%.1f%%, angle=%.1f\n", referencePosition, referenceAngle);
+  BLOG(LOG_INFO, "End of movement sequence, reached position=%.1f%%, angle=%.1f", referencePosition, referenceAngle);
   if (aApplyDoneCB) aApplyDoneCB();
 }
 
@@ -434,7 +479,7 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
 {
   // decide what to do next
   if (position->needsApplying()) {
-    FOCUSLOG("- starting position apply: %.1f -> %.1f\n", referencePosition, position->getChannelValue());
+    FOCUSLOG("- starting position apply: %.1f -> %.1f", referencePosition, position->getChannelValue());
     // set new position
     targetPosition = position->getChannelValue();
     // as position changes angle, make sure we have a valid target angle (even in case it is not marked needsApplying() right now)
@@ -442,14 +487,19 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
     // new position requested, calculate next move
     double dist = 0;
     MLMicroSeconds stopIn = 0;
+    runIntoEnd = false;
     // full up or down always schedule full way to synchronize
     if (targetPosition>=100) {
       // fully up, always do full cycle to synchronize position
       dist = 120; // 20% extra to fully run into end switch
+      runIntoEnd = true; // if we have end switches, let them stop the movement
+      if (referencePosition<=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else if (targetPosition<=0) {
       // fully down, always do full cycle to synchronize position
       dist = -120; // 20% extra to fully run into end switch
+      runIntoEnd = true; // if we have end switches, let them stop the movement
+      if (referencePosition>=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else {
       // somewhere in between, actually estimate distance
@@ -472,8 +522,8 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
       if (stopIn<angleCloseTime)
         stopIn = angleCloseTime;
     }
-    LOG(LOG_INFO,
-      "Blind position=%.1f%% requested, current=%.1f%% -> moving %s for %.3f Seconds\n",
+    BLOG(LOG_INFO,
+      "Blind position=%.1f%% requested, current=%.1f%% -> moving %s for %.3f Seconds",
       targetPosition, referencePosition, dist>0 ? "up" : "down", (double)stopIn/Second
     );
     // start moving position if not already moving (dimming case)
@@ -511,7 +561,7 @@ void ShadowBehaviour::applyAngle(SimpleCB aApplyDoneCB)
     allDone(aApplyDoneCB);
   }
   else {
-    FOCUSLOG("- starting angle apply: %.1f -> %.1f\n", referenceAngle, targetAngle);
+    FOCUSLOG("- starting angle apply: %.1f -> %.1f", referenceAngle, targetAngle);
     double dist = targetAngle-referenceAngle; // distance to move up
     MLMicroSeconds stopIn = 0;
     // calculate new stop time
@@ -525,8 +575,8 @@ void ShadowBehaviour::applyAngle(SimpleCB aApplyDoneCB)
     }
     // For full opened or closed, add 20% to make sure we're in sync
     if (targetAngle>=100 || targetAngle<=0) stopIn *= 1.2;
-    LOG(LOG_INFO,
-      "Blind angle=%.1f%% requested, current=%.1f%% -> moving %s for %.3f Seconds\n",
+    BLOG(LOG_INFO,
+      "Blind angle=%.1f%% requested, current=%.1f%% -> moving %s for %.3f Seconds",
       targetAngle, referenceAngle, dist>0 ? "up" : "down", (double)stopIn/Second
     );
     // start moving angle
@@ -550,7 +600,7 @@ void ShadowBehaviour::startMoving(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB)
     return;
   }
   // actually start moving
-  FOCUSLOG("- start moving into direction = %d\n", dir);
+  FOCUSLOG("- start moving into direction = %d", dir);
   movementCB(boost::bind(&ShadowBehaviour::moveStarted, this, aStopIn, aApplyDoneCB), dir);
 }
 
@@ -559,34 +609,41 @@ void ShadowBehaviour::moveStarted(MLMicroSeconds aStopIn, SimpleCB aApplyDoneCB)
 {
   // started
   moveTimerStart();
-  MLMicroSeconds remaining = aStopIn;
-  if (maxShortMoveTime>0 && aStopIn<minLongMoveTime && aStopIn>maxShortMoveTime) {
-    // need multiple shorter segments
-    if (remaining<2*minLongMoveTime && remaining>2*minMoveTime) {
-      // evenly divide
-      remaining /= 2;
-      aStopIn = remaining;
-    }
-    else {
-      // reduce by max short time move and carry over rest
-      aStopIn = maxShortMoveTime;
-      remaining-=aStopIn;
-    }
-    FOCUSLOG("- must restrict to %.3f Seconds now (%.3f later) to prevent starting continuous blind movement\n", (double)aStopIn/Second, (double)remaining/Second);
+  // schedule stop if not moving into end positions (and end contacts are available)
+  if (hasEndContacts && runIntoEnd) {
+    FOCUSLOG("- move started, let movement run into end contacts");
   }
   else {
-    remaining = 0;
+    // calculate stop time and set timer
+    MLMicroSeconds remaining = aStopIn;
+    if (maxShortMoveTime>0 && aStopIn<minLongMoveTime && aStopIn>maxShortMoveTime) {
+      // need multiple shorter segments
+      if (remaining<2*minLongMoveTime && remaining>2*minMoveTime) {
+        // evenly divide
+        remaining /= 2;
+        aStopIn = remaining;
+      }
+      else {
+        // reduce by max short time move and carry over rest
+        aStopIn = maxShortMoveTime;
+        remaining-=aStopIn;
+      }
+      FOCUSLOG("- must restrict to %.3f Seconds now (%.3f later) to prevent starting continuous blind movement", (double)aStopIn/Second, (double)remaining/Second);
+    }
+    else {
+      remaining = 0;
+    }
+    if (aStopIn>MIN_INTERRUPTABLE_MOVE_TIME) {
+      // this is a long move, allow interrupting it
+      // - which means that we confirm applied now
+      FOCUSLOG("- is long move, should be interruptable -> confirming applied now");
+      if (aApplyDoneCB) aApplyDoneCB();
+      // - and prevent calling back again later
+      aApplyDoneCB = NULL;
+    }
+    FOCUSLOG("- move started, scheduling stop in %.3f Seconds", (double)aStopIn/Second);
+    movingTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::endMove, this, remaining, aApplyDoneCB), aStopIn);
   }
-  if (aStopIn>MIN_INTERRUPTABLE_MOVE_TIME) {
-    // this is a long move, allow interrupting it
-    // - which means that we confirm applied now
-    FOCUSLOG("- is long move, should be interruptable -> confirming applied now\n");
-    if (aApplyDoneCB) aApplyDoneCB();
-    // - and prevent calling back again later
-    aApplyDoneCB = NULL;
-  }
-  FOCUSLOG("- move started, scheduling stop in %.3f Seconds\n", (double)aStopIn/Second);
-  movingTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ShadowBehaviour::endMove, this, remaining, aApplyDoneCB), aStopIn);
 }
 
 
@@ -599,7 +656,7 @@ void ShadowBehaviour::endMove(MLMicroSeconds aRemainingMoveTime, SimpleCB aApply
   else {
     // move is segmented, needs pause now and restart later
     // - stop (=start pause)
-    FOCUSLOG("- end of move segment, pause now\n");
+    FOCUSLOG("- end of move segment, pause now");
     movementCB(boost::bind(&ShadowBehaviour::movePaused, this, aRemainingMoveTime, aApplyDoneCB), 0);
   }
 }
@@ -608,7 +665,7 @@ void ShadowBehaviour::endMove(MLMicroSeconds aRemainingMoveTime, SimpleCB aApply
 void ShadowBehaviour::movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aApplyDoneCB)
 {
   // paused, restart afterwards
-  FOCUSLOG("- move paused, waiting to start next segment\n");
+  FOCUSLOG("- move paused, waiting to start next segment");
   // must update reference values between segments as well, otherwise estimate will include pause
   moveTimerStop();
   // schedule next segment
@@ -654,9 +711,9 @@ void ShadowBehaviour::saveChannelsToScene(DsScenePtr aScene)
   ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
   if (shadowScene) {
     // save position and angle to scene
-    shadowScene->setRepVar(shadowScene->value, position->getChannelValue());
+    shadowScene->setPVar(shadowScene->value, position->getChannelValue());
     shadowScene->setSceneValueFlags(position->getChannelIndex(), valueflags_dontCare, false);
-    shadowScene->setRepVar(shadowScene->angle, angle->getChannelValue());
+    shadowScene->setPVar(shadowScene->angle, angle->getChannelValue());
     shadowScene->setSceneValueFlags(angle->getChannelIndex(), valueflags_dontCare, false);
   }
   else {
@@ -814,10 +871,10 @@ bool ShadowBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       // write properties
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
-        case openTime_key+settings_key_offset: openTime = aPropValue->doubleValue(); markDirty(); return true;
-        case closeTime_key+settings_key_offset: closeTime = aPropValue->doubleValue(); markDirty(); return true;
-        case angleOpenTime_key+settings_key_offset: angleOpenTime = aPropValue->doubleValue(); markDirty(); return true;
-        case angleCloseTime_key+settings_key_offset: angleCloseTime = aPropValue->doubleValue(); markDirty(); return true;
+        case openTime_key+settings_key_offset: setPVar(openTime, aPropValue->doubleValue()); return true;
+        case closeTime_key+settings_key_offset: setPVar(closeTime, aPropValue->doubleValue()); return true;
+        case angleOpenTime_key+settings_key_offset: setPVar(angleOpenTime, aPropValue->doubleValue()); return true;
+        case angleCloseTime_key+settings_key_offset: setPVar(angleCloseTime, aPropValue->doubleValue()); return true;
       }
     }
   }
@@ -837,8 +894,8 @@ string ShadowBehaviour::shortDesc()
 
 string ShadowBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- position = %.1f, angle = %.1f, localPriority = %d\n", position->getChannelValue(), angle->getChannelValue(), hasLocalPriority());
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- position = %.1f, angle = %.1f, localPriority = %d", position->getChannelValue(), angle->getChannelValue(), hasLocalPriority());
   s.append(inherited::description());
   return s;
 }

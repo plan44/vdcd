@@ -237,7 +237,7 @@ ErrorPtr DeviceClassContainer::load()
   ErrorPtr err;
   // load the vdc settings
   err = loadFromStore(dSUID.getString().c_str());
-  if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc %s: %s", shortDesc().c_str(), err->description().c_str());
+  if (!Error::isOK(err)) ALOG(LOG_ERR,"Error loading settings: %s", err->description().c_str());
   return ErrorPtr();
 }
 
@@ -373,16 +373,16 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           aPropValue->setStringValue(webuiURLString());
           return true;
         case defaultzone_key:
-          aPropValue->setInt32Value(defaultZoneID);
+          aPropValue->setUint16Value(defaultZoneID);
           return true;
         case deviceclassidentifier_key:
           aPropValue->setStringValue(deviceClassIdentifier());
           return true;
         case instancenumber_key:
-          aPropValue->setInt32Value(getInstanceNumber());
+          aPropValue->setUint32Value(getInstanceNumber());
           return true;
         case rescanModes_key:
-          aPropValue->setInt32Value(getRescanModes());
+          aPropValue->setUint32Value(getRescanModes());
           return true;
       }
     }
@@ -390,8 +390,7 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
       // write
       switch (aPropertyDescriptor->fieldKey()) {
         case defaultzone_key:
-          defaultZoneID = aPropValue->int32Value();
-          markDirty();
+          setPVar(defaultZoneID, aPropValue->int32Value());
           return true;
       }
     }
@@ -470,7 +469,7 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
 
 string DeviceClassContainer::description()
 {
-  string d = string_format("%s #%d: %s (%ld devices)\n", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
+  string d = string_format("%s #%d: %s (%ld devices)", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
   return d;
 }
 

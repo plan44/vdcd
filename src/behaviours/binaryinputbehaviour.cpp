@@ -53,9 +53,9 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
-  LOG(LOG_NOTICE,
-    "BinaryInput[%d] '%s' in device %s received new state = %d\n",
-    index, hardwareName.c_str(),  device.shortDesc().c_str(), aNewState
+  BLOG(LOG_NOTICE,
+    "BinaryInput[%zu] '%s' received new state = %d",
+    index, hardwareName.c_str(), aNewState
   );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
@@ -267,20 +267,16 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          binInputGroup = (DsGroup)aPropValue->int32Value();
-          markDirty();
+          setPVar(binInputGroup, (DsGroup)aPropValue->int32Value());
           return true;
         case minPushInterval_key+settings_key_offset:
-          minPushInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(minPushInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
         case changesOnlyInterval_key+settings_key_offset:
-          changesOnlyInterval = aPropValue->doubleValue()*Second;
-          markDirty();
+          setPVar(changesOnlyInterval, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
           return true;
         case configuredInputType_key+settings_key_offset: // aka "sensorFunction"
-          configuredInputType = (DsBinaryInputType)aPropValue->int32Value();
-          markDirty();
+          setPVar(configuredInputType, (DsBinaryInputType)aPropValue->int32Value());
           return true;
       }
     }
@@ -296,9 +292,9 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
 
 string BinaryInputBehaviour::description()
 {
-  string s = string_format("%s behaviour\n", shortDesc().c_str());
-  string_format_append(s, "- binary input type: %d, reportsChanges=%d, interval: %d mS\n", hardwareInputType, reportsChanges, updateInterval/MilliSecond);
-  string_format_append(s, "- minimal interval between pushes: %d mS\n", minPushInterval/MilliSecond);
+  string s = string_format("%s behaviour", shortDesc().c_str());
+  string_format_append(s, "\n- binary input type: %d, reportsChanges=%d, interval: %lld mS", hardwareInputType, reportsChanges, updateInterval/MilliSecond);
+  string_format_append(s, "\n- minimal interval between pushes: %lld mS", minPushInterval/MilliSecond);
   s.append(inherited::description());
   return s;
 }

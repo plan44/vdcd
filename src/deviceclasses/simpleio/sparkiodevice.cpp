@@ -58,7 +58,7 @@ void SparkLightScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_sparkmode: extendedState = aValue; break;
+    case channeltype_sparkmode: setPVar(extendedState, (uint32_t)aValue); break;
     default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
@@ -162,7 +162,7 @@ void SparkLightBehaviour::saveChannelsToScene(DsScenePtr aScene)
   // now save color specific scene information
   SparkLightScenePtr sparkLightScene = boost::dynamic_pointer_cast<SparkLightScene>(aScene);
   if (sparkLightScene) {
-    sparkLightScene->setRepVar(sparkLightScene->extendedState, (uint32_t)sparkmode->getChannelValue());
+    sparkLightScene->setPVar(sparkLightScene->extendedState, (uint32_t)sparkmode->getChannelValue());
     sparkLightScene->setSceneValueFlags(sparkmode->getChannelIndex(), valueflags_dontCare, false);
   }
 }
@@ -212,7 +212,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   installSettings(DeviceSettingsPtr(new SparkDeviceSettings(*this)));
   // set the behaviour
   SparkLightBehaviourPtr sl = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
-  sl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
+  sl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
   sl->setHardwareName("SparkCore based RGB light");
   sl->initMinBrightness(1); // min brightness is 1
   addBehaviour(sl);
@@ -228,7 +228,7 @@ bool SparkIoDevice::sparkApiCall(JsonWebClientCB aResponseCB, string aArgs)
   string data;
   HttpComm::appendFormValue(data, "access_token", sparkCoreToken);
   HttpComm::appendFormValue(data, "args", aArgs);
-  LOG(LOG_DEBUG,"sparkApiCall to %s - data = %s\n", url.c_str(), data.c_str());
+  LOG(LOG_DEBUG, "sparkApiCall to %s - data = %s", url.c_str(), data.c_str());
   return sparkCloudComm.jsonReturningRequest(url.c_str(), aResponseCB, "POST", data);
 }
 
@@ -314,7 +314,7 @@ void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
         ((int)r << 16) |
         ((int)g << 8) |
         (int)b;
-      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d\n", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, RGB=%d,%d,%d, stateWord=0x%08X / %d", mode, (int)r, (int)g, (int)b, stateWord, stateWord);
     }
     else {
       // brightness only
@@ -322,11 +322,11 @@ void SparkIoDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       stateWord =
         (mode << 24) |
         ((int)br & 0xFF);
-      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d\n", mode, (int)br, stateWord, stateWord);
+      LOG(LOG_DEBUG, "Spark vdsd: Update state to mode=%d, Brightness=%d, stateWord=0x%08X / %d", mode, (int)br, stateWord, stateWord);
     }
     // set output value
     if (apiVersion==2) {
-      string args = string_format("state=%lu", stateWord);
+      string args = string_format("state=%u", stateWord);
       // posting might fail if done too early
       if (!sparkApiCall(boost::bind(&SparkIoDevice::channelValuesSent, this, sl, aDoneCB, _1, _2), args)) {
         // retry after a while
@@ -347,7 +347,7 @@ void SparkIoDevice::channelValuesSent(SparkLightBehaviourPtr aSparkLightBehaviou
     aSparkLightBehaviour->appliedColorValues();
   }
   else {
-    LOG(LOG_DEBUG, "Spark API error: %s\n", aError->description().c_str());
+    LOG(LOG_DEBUG, "Spark API error: %s", aError->description().c_str());
   }
   // confirm done
   if (aDoneCB) aDoneCB();
@@ -406,6 +406,6 @@ void SparkIoDevice::deriveDsUid()
 string SparkIoDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- MessageTorch RGB light controlled via spark cloud API\n");
+  string_format_append(s, "\n- MessageTorch RGB light controlled via spark cloud API");
   return s;
 }

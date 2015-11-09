@@ -53,7 +53,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     else if (mode=="valve")
       consoleIoType = consoleio_valve;
     else {
-      LOG(LOG_ERR,"unknown console IO type: %s\n", mode.c_str());
+      LOG(LOG_ERR, "unknown console IO type: %s", mode.c_str());
     }
   }
   // assign name for showing on console and for creating dSUID from
@@ -96,8 +96,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    ob->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
-    ob->setHardwareName("Simulated valve, 0..100");
+    ob->setHardwareOutputConfig(outputFunction_bipolar_positional, outputmode_gradual_bipolar, usage_room, false, 0);
+    ob->setHardwareName("Simulated valve, -100..100");
     addBehaviour(ob);
     // - create feedback sensor input
     SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*this));
@@ -128,7 +128,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, true, -1);
     addBehaviour(l);
   }
   else if (consoleIoType==consoleio_colordimmer) {
@@ -259,10 +259,10 @@ string ConsoleDevice::description()
 {
   string s = inherited::description();
   if (consoleIoType==consoleio_dimmer || consoleIoType==consoleio_colordimmer)
-    string_format_append(s, "- has output printing channel value(s) to console\n");
+    string_format_append(s, "\n- has output printing channel value(s) to console");
   if (consoleIoType==consoleio_button)
-    string_format_append(s, "- has button which can be switched via console keypresses\n");
+    string_format_append(s, "\n- has button which can be switched via console keypresses");
   if (consoleIoType==consoleio_valve)
-    string_format_append(s, "- has valve actuator shown on console, pseudo temperature, battery low via console keypress\n");
+    string_format_append(s, "\n- has valve actuator shown on console, pseudo temperature, battery low via console keypress");
   return s;
 }
