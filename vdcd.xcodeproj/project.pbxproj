@@ -18,6 +18,12 @@
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
 		ED07E7181A2D14AA009845D5 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED0FDE121BF223AB00857282 /* voxnetcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */; };
+		ED0FDE131BF223AB00857282 /* voxnetdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */; };
+		ED0FDE141BF223AB00857282 /* voxnetdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */; };
+		ED0FDE1B1BF223C000857282 /* vzughomecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE151BF223C000857282 /* vzughomecomm.cpp */; };
+		ED0FDE1C1BF223C000857282 /* vzughomedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE171BF223C000857282 /* vzughomedevice.cpp */; };
+		ED0FDE1D1BF223C000857282 /* vzughomedevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
 		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
@@ -300,6 +306,18 @@
 		ED0DE309184E385A001ADB5E /* vdcapi.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vdcapi.proto; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = voxnetcomm.cpp; path = voxnet/voxnetcomm.cpp; sourceTree = "<group>"; };
+		ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = voxnetcomm.hpp; path = voxnet/voxnetcomm.hpp; sourceTree = "<group>"; };
+		ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = voxnetdevice.cpp; path = voxnet/voxnetdevice.cpp; sourceTree = "<group>"; };
+		ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = voxnetdevice.hpp; path = voxnet/voxnetdevice.hpp; sourceTree = "<group>"; };
+		ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = voxnetdevicecontainer.cpp; path = voxnet/voxnetdevicecontainer.cpp; sourceTree = "<group>"; };
+		ED0FDE111BF223AB00857282 /* voxnetdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = voxnetdevicecontainer.hpp; path = voxnet/voxnetdevicecontainer.hpp; sourceTree = "<group>"; };
+		ED0FDE151BF223C000857282 /* vzughomecomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vzughomecomm.cpp; path = vzughome/vzughomecomm.cpp; sourceTree = "<group>"; };
+		ED0FDE161BF223C000857282 /* vzughomecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = vzughomecomm.hpp; path = vzughome/vzughomecomm.hpp; sourceTree = "<group>"; };
+		ED0FDE171BF223C000857282 /* vzughomedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vzughomedevice.cpp; path = vzughome/vzughomedevice.cpp; sourceTree = "<group>"; };
+		ED0FDE181BF223C000857282 /* vzughomedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = vzughomedevice.hpp; path = vzughome/vzughomedevice.hpp; sourceTree = "<group>"; };
+		ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vzughomedevicecontainer.cpp; path = vzughome/vzughomedevicecontainer.cpp; sourceTree = "<group>"; };
+		ED0FDE1A1BF223C000857282 /* vzughomedevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = vzughomedevicecontainer.hpp; path = vzughome/vzughomedevicecontainer.hpp; sourceTree = "<group>"; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -533,6 +551,32 @@
 			path = pbuf;
 			sourceTree = "<group>";
 		};
+		ED0FDE071BF1D82C00857282 /* voxnet */ = {
+			isa = PBXGroup;
+			children = (
+				ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */,
+				ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */,
+				ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */,
+				ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */,
+				ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */,
+				ED0FDE111BF223AB00857282 /* voxnetdevicecontainer.hpp */,
+			);
+			name = voxnet;
+			sourceTree = "<group>";
+		};
+		ED0FDE0B1BF1D83800857282 /* vzughome */ = {
+			isa = PBXGroup;
+			children = (
+				ED0FDE151BF223C000857282 /* vzughomecomm.cpp */,
+				ED0FDE161BF223C000857282 /* vzughomecomm.hpp */,
+				ED0FDE171BF223C000857282 /* vzughomedevice.cpp */,
+				ED0FDE181BF223C000857282 /* vzughomedevice.hpp */,
+				ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */,
+				ED0FDE1A1BF223C000857282 /* vzughomedevicecontainer.hpp */,
+			);
+			name = vzughome;
+			sourceTree = "<group>";
+		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
 			isa = PBXGroup;
 			children = (
@@ -614,6 +658,8 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				ED0FDE0B1BF1D83800857282 /* vzughome */,
+				ED0FDE071BF1D82C00857282 /* voxnet */,
 				ED5DA3E61BB294D7003C86C7 /* external */,
 				ED911D251B11D73A00B18624 /* ledchain */,
 				EDDDD54D1A125F8E007D2ABE /* ola */,
@@ -1129,6 +1175,7 @@
 			files = (
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
 				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
+				ED0FDE1C1BF223C000857282 /* vzughomedevice.cpp in Sources */,
 				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
@@ -1173,6 +1220,7 @@
 				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
+				ED0FDE131BF223AB00857282 /* voxnetdevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
@@ -1187,6 +1235,8 @@
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
+				ED0FDE1B1BF223C000857282 /* vzughomecomm.cpp in Sources */,
+				ED0FDE1D1BF223C000857282 /* vzughomedevicecontainer.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
@@ -1206,6 +1256,8 @@
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
 				ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */,
+				ED0FDE121BF223AB00857282 /* voxnetcomm.cpp in Sources */,
+				ED0FDE141BF223AB00857282 /* voxnetdevicecontainer.cpp in Sources */,
 				ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */,
 				ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */,
@@ -1333,10 +1385,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -1369,6 +1418,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -1387,6 +1437,11 @@
 		ED6D7BE51716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					$inherited,
+					"ENABLE_VOXNET=1",
+					"ENABLE_VZUGHOME=0",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",
@@ -1408,6 +1463,11 @@
 		ED6D7BE61716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					$inherited,
+					"ENABLE_VOXNET=1",
+					"ENABLE_VZUGHOME=0",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/../libmongoose",

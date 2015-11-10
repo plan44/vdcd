@@ -320,11 +320,11 @@ void AudioBehaviour::saveChannelsToScene(DsScenePtr aScene)
   AudioScenePtr audioScene = boost::dynamic_pointer_cast<AudioScene>(aScene);
   if (audioScene) {
     // save channels from scene
-    audioScene->setRepVar(audioScene->value, volume->getChannelValue());
+    audioScene->setPVar(audioScene->value, volume->getChannelValue());
     audioScene->setSceneValueFlags(volume->getChannelIndex(), valueflags_dontCare, false);
-    audioScene->setRepVar(audioScene->powerState, (DsAudioPowerState)powerState->getChannelValue());
+    audioScene->setPVar(audioScene->powerState, (DsAudioPowerState)powerState->getChannelValue());
     audioScene->setSceneValueFlags(powerState->getChannelIndex(), valueflags_dontCare, false);
-    audioScene->setRepVar(audioScene->contentSource, (uint32_t)contentSource->getChannelValue());
+    audioScene->setPVar(audioScene->contentSource, (uint32_t)contentSource->getChannelValue());
     audioScene->setSceneValueFlags(contentSource->getChannelIndex(), valueflags_dontCare, false);
   }
   else {
@@ -380,7 +380,7 @@ string AudioBehaviour::description()
     "- volume = %.1f, powerstate = %d, contentsource = %u\n",
     volume->getChannelValue(),
     (int)powerState->getChannelValue(),
-    contentSource->getChannelValue()
+    (unsigned int)contentSource->getChannelValue()
   );
   s.append(inherited::description());
   return s;

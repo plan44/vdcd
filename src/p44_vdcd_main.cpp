@@ -50,6 +50,14 @@
 #include "externaldevicecontainer.hpp"
 #endif
 
+#if ENABLE_VOXNET
+#include "voxnetdevicecontainer.hpp"
+#endif
+#if ENABLE_VZUGHOME
+#include "vzughomedevicecontainer.hpp"
+#endif
+
+
 #if !DISABLE_DISCOVERY
 #include "discovery.hpp"
 #endif
@@ -313,6 +321,12 @@ public:
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
+      #if ENABLE_VOXNET
+      { 0,   "voxnet",        true,  "voxnethost;enable support for Revox Voxnet" },
+      #endif
+      #if ENABLE_VZUGHOME
+      { 0,   "vzughome",      false, "enable support for V-Zug Home" },
+      #endif
       #if !DISABLE_EXTERNAL
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
@@ -565,6 +579,25 @@ public:
         }
       }
       #endif
+
+      #if ENABLE_VOXNET
+      // - Add Voxnet support
+      string voxnethost;
+      if (getStringOption("voxnet", voxnethost)) {
+        VoxnetDeviceContainerPtr voxnetDeviceContainer = VoxnetDeviceContainerPtr(new VoxnetDeviceContainer(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
+        voxnetDeviceContainer->addClassToDeviceContainer();
+        voxnetDeviceContainer->voxnetComm->setConnectionSpecification(voxnethost.c_str());
+      }
+      #endif
+      #if ENABLE_VZUGHOME
+      // - Add V-Zug Home support
+      if (getOption("vzughome")) {
+        VZugHomeDeviceContainerPtr vzughomeDeviceContainer = VZugHomeDeviceContainerPtr(new VZugHomeDeviceContainer(1, p44VdcHost.get(), 51)); // Tag 51 = VZugHome
+        vzughomeDeviceContainer->addClassToDeviceContainer();
+      }
+      #endif
+
+
       #if !DISABLE_STATIC
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
