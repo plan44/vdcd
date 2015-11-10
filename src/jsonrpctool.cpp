@@ -128,7 +128,7 @@ public:
     }
 
     // init user input
-    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1));
+    userInput->setReceiveHandler(boost::bind(&JsonRpcTool::userInputHandler, this, _1), '\n');
     userInput->setFd(STDIN_FILENO);
     userInput->makeNonBlocking();
 
@@ -253,8 +253,7 @@ public:
   {
     // get user input
     string text;
-    userInput->receiveString(text);
-    text.erase(text.size()-1, 1); // remove CR
+    userInput->receiveDelimitedString(text);
     //printf("User input = %s\n", jsonText.c_str());
     if (inputState==waiting_for_method) {
       if (text.size()>0) {
