@@ -33,6 +33,9 @@ using namespace std;
 
 namespace p44 {
 
+
+  typedef boost::function<void (const string aVoxnetID, const string aVoxnetStatus)> VoxnetStatusCB;
+
   class VoxnetComm : public SocketComm
   {
     typedef SocketComm inherited;
@@ -46,7 +49,19 @@ namespace p44 {
 
     CommState commState;
 
+    StatusCB initializedCB;
+
+    VoxnetStatusCB voxnetStatusHandler;
+
   public:
+
+    typedef map<string, string> StringStringMap;
+
+    StringStringMap rooms;
+    StringStringMap users;
+    StringStringMap sources;
+    StringStringMap aliases;
+
     /// create driver Voxnet
     VoxnetComm();
 
@@ -60,11 +75,15 @@ namespace p44 {
     /// initialize (start) communication with voxnet server
     void initialize(StatusCB aCompletedCB);
 
+    /// set status handler
+    void setVoxnetStatusHandler(VoxnetStatusCB aVoxnetStatusCB) { voxnetStatusHandler = aVoxnetStatusCB; }
+
   private:
 
     void start();
     void connectionStatusHandler(ErrorPtr aError);
     void dataHandler(ErrorPtr aError);
+    void voxnetInitialized(ErrorPtr aError);
 
 
   };

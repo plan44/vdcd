@@ -39,9 +39,11 @@ namespace p44 {
     typedef Device inherited;
     friend class VoxnetDeviceContainer;
 
+    string voxnetRoomID;
+
   public:
 
-    VoxnetDevice(VoxnetDeviceContainer *aClassContainerP);
+    VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -58,6 +60,9 @@ namespace p44 {
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
+
+    /// process voxnet status for this device
+    void processVoxnetStatus(const string aVoxnetStatus);
 
     /// @}
 
@@ -92,6 +97,12 @@ namespace p44 {
 
     /// @return human readable model name/short description
     virtual string modelName();
+
+    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    virtual string hardwareGUID();
+
+    /// @return Vendor name if known
+    virtual string vendorName();
 
     /// @}
 

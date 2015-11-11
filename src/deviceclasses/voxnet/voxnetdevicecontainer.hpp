@@ -46,6 +46,10 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
     friend class VoxnetDevice;
 
+    typedef map<string, VoxnetDevicePtr> VoxnetDeviceMap;
+
+    VoxnetDeviceMap voxnetDevices;
+
   public:
 
     VoxnetCommPtr voxnetComm;
@@ -76,9 +80,13 @@ namespace p44 {
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
-    virtual string vdcModelSuffix() { return "V-Zug Home"; }
+    virtual string vdcModelSuffix() { return "Voxnet"; }
 
   private:
+
+    VoxnetDevicePtr addVoxnetDevice(const string aID, const string aName);
+    void voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus);
+
 
   };
 

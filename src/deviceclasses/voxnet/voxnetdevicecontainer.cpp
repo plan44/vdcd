@@ -23,7 +23,7 @@
 
 #if ENABLE_VOXNET
 
-#include "vzughomedevice.hpp"
+#include "voxnetdevice.hpp"
 
 using namespace p44;
 
@@ -41,15 +41,28 @@ VoxnetDeviceContainer::VoxnetDeviceContainer(int aInstanceNumber, DeviceContaine
 
 void VoxnetDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
+  // set the status handler
+  voxnetComm->setVoxnetStatusHandler(boost::bind(&VoxnetDeviceContainer::voxnetStatusHandler, this, _1, _2));
   // initialize the communication
   voxnetComm->initialize(aCompletedCB);
 }
 
 
+void VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
+{
+  // dispatch status to device
+  VoxnetDeviceMap::iterator pos = voxnetDevices.find(aVoxnetID);
+  if (pos!=voxnetDevices.end()) {
+    pos->second->processVoxnetStatus(aVoxnetStatus);
+  }
+}
+
+
+
 
 bool VoxnetDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  if (getIcon("vdc_voxnet", aIcon, aWithData, aResolutionPrefix))
+  if (getIcon("voxnet", aIcon, aWithData, aResolutionPrefix))
     return true;
   else
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
@@ -63,20 +76,37 @@ const char *VoxnetDeviceContainer::deviceClassIdentifier() const
 }
 
 
+
+VoxnetDevicePtr VoxnetDeviceContainer::addVoxnetDevice(const string aID, const string aName)
+{
+  VoxnetDevicePtr newDev = VoxnetDevicePtr(new VoxnetDevice(this, aID));
+  if (newDev) {
+    newDev->initializeName(aName);
+    // add to container
+    addDevice(newDev);
+    // add to my own list
+    voxnetDevices[aID] = newDev;
+    return newDev;
+  }
+  // none added
+  return VoxnetDevicePtr();
+}
+
+
 void VoxnetDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
-  // incrementally collecting static devices makes no sense. The devices are "static"!
+  // incrementally collecting devices makes no sense.
   if (!aIncremental) {
-    //    // non-incremental, re-collect all devices
-    //    removeDevices(aClearSettings);
-    //    // then add those from the DB
-    //    sqlite3pp::query qry(db);
-    //    if (qry.prepare("SELECT firstLED, numLEDs, deviceconfig, rowid FROM devConfigs ORDER BY firstLED")==SQLITE_OK) {
-    //      for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-    //        LedChainDevicePtr dev =addLedChainDevice(i->get<int>(0), i->get<int>(1), i->get<string>(2));
-    //        dev->ledChainDeviceRowID = i->get<int>(3);
-    //      }
-    //    }
+    // remove all
+    removeDevices(aClearSettings);
+    voxnetDevices.clear();
+    // then create devices from rooms
+    for (VoxnetComm::StringStringMap::iterator pos=voxnetComm->rooms.begin(); pos!=voxnetComm->rooms.end(); ++pos) {
+      VoxnetDevicePtr newDev = VoxnetDevicePtr(new VoxnetDevice(this, pos->first));
+      newDev->initializeName(pos->second);
+      voxnetDevices[pos->first] = newDev;
+      addDevice(newDev);
+    }
   }
   // assume ok
   aCompletedCB(ErrorPtr());

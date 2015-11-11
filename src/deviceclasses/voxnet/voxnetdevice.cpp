@@ -30,12 +30,20 @@
 using namespace p44;
 
 
-#pragma mark - LedChainDevice
+#pragma mark - VoxnetDevice
 
 
-VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
+VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID) :
+  inherited(aClassContainerP),
+  voxnetRoomID(aVoxnetRoomID)
 {
+  // audio device
+  primaryGroup = group_cyan_audio;
+  // just color light settings, which include a color scene table
+  installSettings(DeviceSettingsPtr(new AudioDeviceSettings(*this)));
+  // - add audio device behaviour
+  AudioBehaviourPtr a = AudioBehaviourPtr(new AudioBehaviour(*this));
+  addBehaviour(a);
   // - create dSUID
   deriveDsUid();
 }
@@ -50,10 +58,6 @@ VoxnetDeviceContainer &VoxnetDevice::getVoxnetDeviceContainer()
 
 void VoxnetDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
-//  // clear learn-in data from DB
-//  if (ledChainDeviceRowID) {
-//    getLedChainDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", ledChainDeviceRowID);
-//  }
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
@@ -65,15 +69,34 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 }
 
 
+void VoxnetDevice::processVoxnetStatus(const string aVoxnetStatus)
+{
+  ALOG(LOG_INFO, "Status: %s", aVoxnetStatus.c_str());
+}
+
+
+
+
 void VoxnetDevice::deriveDsUid()
 {
   // vDC implementation specific UUID:
-//  //   UUIDv5 with name = classcontainerinstanceid::ledchainType:firstLED:lastLED
+  //   UUIDv5 with name = voxnetRoomID (which is MAC-derived and should be globally unique)
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
-  //string_format_append(s, "%s", %%%deviceid);
-  dSUID.setNameInSpace(s, vdcNamespace);
+  dSUID.setNameInSpace(voxnetRoomID, vdcNamespace);
 }
+
+
+string VoxnetDevice::hardwareGUID()
+{
+  return string_format("voxnetdeviceid:%s", voxnetRoomID.c_str());
+}
+
+
+string VoxnetDevice::vendorName()
+{
+  return "Revox";
+}
+
 
 
 string VoxnetDevice::modelName()
@@ -96,7 +119,7 @@ bool VoxnetDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aRes
 string VoxnetDevice::getExtraInfo()
 {
   string s;
-  s = string_format("Voxnet device");
+  s = string_format("Voxnet device %s", voxnetRoomID.c_str());
   return s;
 }
 
@@ -105,7 +128,7 @@ string VoxnetDevice::getExtraInfo()
 string VoxnetDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Voxnet device\n");
+  string_format_append(s, "\n- Voxnet device %s", voxnetRoomID.c_str());
   return s;
 }
 
