@@ -93,6 +93,9 @@ namespace p44 {
     /// @return human readable model name/short description
     virtual string modelName();
 
+    /// @return Vendor name if known
+    virtual string vendorName();
+
     /// @}
 
   protected:

@@ -76,10 +76,19 @@ void VZugHomeDevice::deriveDsUid()
 }
 
 
+string VZugHomeDevice::vendorName()
+{
+  return "V-Zug";
+}
+
+
+
 string VZugHomeDevice::modelName()
 {
   return "V-Zug Home device";
 }
+
+
 
 
 
@@ -105,7 +114,7 @@ string VZugHomeDevice::getExtraInfo()
 string VZugHomeDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- V-Zug Home device\n");
+  string_format_append(s, "\n- V-Zug Home device");
   return s;
 }
 
