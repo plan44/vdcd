@@ -79,8 +79,6 @@ LedChainDevice::LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16
   if (!configOK) {
     LOG(LOG_ERR, "invalid LedChain device config: %s", aDeviceConfig.c_str());
   }
-  // by default, act as black device so we can configure colors
-  primaryGroup = group_black_joker;
   // - is RGB
   primaryGroup = group_yellow_light;
   // just color light settings, which include a color scene table

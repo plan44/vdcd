@@ -377,7 +377,7 @@ string AudioBehaviour::description()
 {
   string s = string_format("%s behaviour\n", shortDesc().c_str());
   string_format_append(s,
-    "- volume = %.1f, powerstate = %d, contentsource = %u\n",
+    "\n- volume = %.1f, powerstate = %d, contentsource = %u",
     volume->getChannelValue(),
     (int)powerState->getChannelValue(),
     (unsigned int)contentSource->getChannelValue()

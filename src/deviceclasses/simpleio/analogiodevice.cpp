@@ -281,7 +281,7 @@ string AnalogIODevice::description()
   if (analogIOType==analogio_rgbdimmer)
     string_format_append(s, "\n- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
   if (analogIOType==analogio_valve)
-    string_format_append(s, "\nHeating Valve @ '%s'", analogIO->getName().c_str());
+    string_format_append(s, "\n- Heating Valve @ '%s'", analogIO->getName().c_str());
   return s;
 }
 
