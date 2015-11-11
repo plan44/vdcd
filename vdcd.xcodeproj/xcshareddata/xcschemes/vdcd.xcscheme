@@ -81,11 +81,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--auxvdsmdsuid 198C033E330755E78015F97AD093DD1C00 --noauto --hostname p44-dsb-mac --deviceid 007"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--auxvdsmrunning"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /tmp/vdcd"
@@ -93,15 +93,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a -l 7 -k testin:button"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-l 7"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 6"
+            argument = "-l 7"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-l 6"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -141,7 +141,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.233 --daliportidle 10 --dalitxadj 16"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2101 --daliportidle 10 --dalitxadj 16"
@@ -156,15 +156,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--externaldevices 8999"
+            argument = "--voxnet 192.168.1.9"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--externaldevices 8999"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44BridgeLinux/p44/www/icons"
+            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/installdata/usr/share/www/icons"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
