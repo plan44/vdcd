@@ -1109,7 +1109,7 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
   OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
   if (output) {
     // apply scene logically
-    if (output->applyScene(aScene)) {
+    if (output->performApplyScene(aScene)) {
       // now apply values to hardware
       requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
     }
@@ -1130,8 +1130,10 @@ void Device::sceneValuesApplied(DsScenePtr aScene)
 
 void Device::sceneActionsComplete(DsScenePtr aScene)
 {
-  // now perform scene special actions such as blinking
-  LOG(LOG_DEBUG, "- scene actions for scene %d complete", aScene->sceneNo);
+  // scene actions are now complete
+  LOG(LOG_DEBUG, "- apply and actions for scene %d complete", aScene->sceneNo);
+  // remove scene context
+  output->performApplyScene(DsScenePtr());
 }
 
 
@@ -1145,7 +1147,7 @@ void Device::undoScene(SceneNo aSceneNo)
     // scene found, now apply it to the output (if any)
     if (output) {
       // now apply the pseudo state
-      output->applyScene(previousState);
+      output->performApplyScene(previousState);
       // apply the values now, not dimming
       requestApplyingChannels(NULL, false);
     }

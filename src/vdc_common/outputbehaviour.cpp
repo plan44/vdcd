@@ -258,6 +258,20 @@ void OutputBehaviour::saveChannelsToScene(DsScenePtr aScene)
 
 
 
+bool OutputBehaviour::performApplyScene(DsScenePtr aScene)
+{
+  applyContextScene = aScene;
+  if (aScene) {
+    return applyScene(aScene); // actually apply
+  }
+  else {
+    return true; // pseudo-apply (=no scene -> remove scene context) is complete
+  }
+}
+
+
+
+
 bool OutputBehaviour::applyScene(DsScenePtr aScene)
 {
   // scenes with invoke functionality will apply channel values by default

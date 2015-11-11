@@ -35,8 +35,11 @@ namespace p44 {
     typedef DsBehaviour inherited;
     friend class ChannelBehaviour;
 
-    // channels
+    /// channels
     ChannelBehaviourVector channels;
+
+    /// the scene context for next/pending apply operation
+    DsScenePtr applyContextScene;
 
   protected:
 
@@ -129,6 +132,9 @@ namespace p44 {
     /// @return channel value limited/inverted according to outputMode
     double outputValueAccordingToMode(double aChannelValue);
 
+    /// @return scene context which has caused applyChannelValues(), or NULL if no scene
+    DsScenePtr sceneContextForApply() { return applyContextScene; }
+
     /// @}
 
 
@@ -153,24 +159,19 @@ namespace p44 {
     /// @return yes if this output behaviour has the feature, no if (explicitly) not, undefined if asked entity does not know
     virtual Tristate hasModelFeature(DsModelFeatures aFeatureIndex);
 
-    /// apply scene to output channels
-    /// @param aScene the scene to apply to output channels
-    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
-    ///   false if scene cannot be applied to hardware (not yet, or maybe not at all); applying to hardware, if
-    ///   needed at all, will be triggered otherwise.
-    /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
-    ///   a one-step scene value change.
-    ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
-    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
-    ///   only dimChannel method must be used.
-    /// @note base class' implementation provides applying the scene values to channels.
-    ///   Derived classes may implement handling of hard-wired behaviour specific scenes.
-    virtual bool applyScene(DsScenePtr aScene);
-
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
     /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
     virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
+
+    /// perform applying Scene
+    /// @param aScene the scene to apply
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot be applied to hardware (not yet, or maybe not at all); applying to hardware, if
+    ///   needed at all, will be triggered otherwise.
+    /// @note this is a OutputBehaviour level wrapper and preparator for behaviour-specific applyScene().
+    bool performApplyScene(DsScenePtr aScene);
+
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
@@ -211,6 +212,20 @@ namespace p44 {
     virtual string description();
 
   protected:
+
+    /// apply scene to output channels
+    /// @param aScene the scene to apply to output channels
+    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
+    ///   false if scene cannot be applied to hardware (not yet, or maybe not at all); applying to hardware, if
+    ///   needed at all, will be triggered otherwise.
+    /// @note This method must NOT call device level applyChannelValues() to actually apply values to hardware for
+    ///   a one-step scene value change.
+    ///   It MAY cause subsequent applyChannelValues() calls AFTER returning to perform special effects
+    /// @note this method does not handle dimming, and must not be called with dimming specific scenes. For dimming,
+    ///   only dimChannel method must be used.
+    /// @note base class' implementation provides applying the scene values to channels.
+    ///   Derived classes may implement handling of hard-wired behaviour specific scenes.
+    virtual bool applyScene(DsScenePtr aScene);
 
     /// called by applyScene to load channel values from a scene.
     /// @param aScene the scene to load channel values from
