@@ -26,6 +26,7 @@
 
 #if ENABLE_VOXNET
 
+#include "audiobehaviour.hpp"
 #include "voxnetdevicecontainer.hpp"
 
 using namespace std;
@@ -40,6 +41,9 @@ namespace p44 {
     friend class VoxnetDeviceContainer;
 
     string voxnetRoomID;
+
+    bool knownMuted; ///< set if we know output is currently muted
+    double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
 
   public:
 

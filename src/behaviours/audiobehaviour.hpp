@@ -109,6 +109,9 @@ namespace p44 {
     virtual double sceneValue(size_t aChannelIndex);
     virtual void setSceneValue(size_t aChannelIndex, double aValue);
 
+    // query flags
+    bool hasFixVol();
+
   protected:
 
     // persistence implementation
@@ -200,6 +203,10 @@ namespace p44 {
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
     ///   cannot mess up things.
     virtual void stopActions();
+
+    /// check if this channel of this device is allowed to dim now (for lights, this will prevent dimming lights that are off)
+    /// @param aChannelType the channel to check
+    virtual bool canDim(DsChannelType aChannelType);
 
     /// identify the device to the user in a behaviour-specific way
     /// @note implemented as blinking for LightBehaviour

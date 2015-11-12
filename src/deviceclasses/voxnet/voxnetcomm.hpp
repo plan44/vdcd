@@ -78,6 +78,9 @@ namespace p44 {
     /// set status handler
     void setVoxnetStatusHandler(VoxnetStatusCB aVoxnetStatusCB) { voxnetStatusHandler = aVoxnetStatusCB; }
 
+    /// send voxnet text command
+    void sendVoxnetText(const string aVoxNetText);
+
   private:
 
     void start();

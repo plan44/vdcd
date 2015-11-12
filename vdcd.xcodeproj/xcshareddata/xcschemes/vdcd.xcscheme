@@ -109,7 +109,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--cfgapiport 8090"

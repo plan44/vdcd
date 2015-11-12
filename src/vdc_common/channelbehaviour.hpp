@@ -94,7 +94,7 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
-    /// set the fixed channel configuration: identification (defined by the device's hardware)
+    /// set the resolution the hardware actually has
     /// @param aResolution actual resolution (smallest step) of the connected hardware
     void setResolution(double aResolution);
 

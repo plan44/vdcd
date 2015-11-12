@@ -104,6 +104,13 @@ void VoxnetComm::voxnetInitialized(ErrorPtr aError)
 }
 
 
+void VoxnetComm::sendVoxnetText(const string aVoxNetText)
+{
+  sendString(aVoxNetText + "\r");
+}
+
+
+
 //      id              alias             name                      type
 //  -------------------------------------------------------------------------------
 //  1   #P00113220A2A40 $P00113220A2A40   Proxy 1                   SYN.00.proxy
@@ -130,7 +137,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
         if (trimWhiteSpace(line).size()==0) {
           commState = commState_servicesread;
           // initiate reading list of services
-          sendString("2\r");
+          sendVoxnetText("2");
         }
         break;
       }
@@ -142,7 +149,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
           commState = commState_idle;
           voxnetInitialized(ErrorPtr());
           // initiate sending status
-          sendString("8\r");
+          sendVoxnetText("8");
           break;
         }
         // - skip header lines
@@ -174,7 +181,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
                   if (i!=string::npos) {
                     name.assign(line, i, 25); // copy name, max 25 chars
                     name = trimWhiteSpace(name);
-                    FOCUSLOG("Voxnet Text: Extracted ID=%s, alias=%s, name='%s'", id.c_str(), alias.c_str(), name.c_str());
+                    //FOCUSLOG("Voxnet Text: Extracted ID=%s, alias=%s, name='%s'", id.c_str(), alias.c_str(), name.c_str());
                     if (id.size()>=2) {
                       // map alias to ID
                       aliases[alias] = id;

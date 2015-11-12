@@ -212,6 +212,16 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
   markClean(); // default values are always clean
 }
 
+#pragma mark - FixVol
+
+
+bool AudioScene::hasFixVol()
+{
+  return (globalSceneFlags & audioflags_fixvol)!=0;
+}
+
+
+
 
 #pragma mark - AudioDeviceSettings with default audio scenes factory
 
@@ -244,7 +254,7 @@ AudioBehaviour::AudioBehaviour(Device &aDevice) :
 {
   // make it member of the audio group
   setGroupMembership(group_cyan_audio, true);
-  // primary output controls brightness
+  // primary output controls volume
   setHardwareName("volume");
   // add the audio device channels
   // - volume (default channel, comes first)
@@ -288,11 +298,13 @@ bool AudioBehaviour::applyScene(DsScenePtr aScene)
   if (audioScene) {
     // any scene call cancels actions (and fade down)
     stopActions();
+    // Note: some of the audio special commands are handled at the applyChannelValues() level
+    //   in the device, using sceneContextForApply().
+    // Now check for the commands that can be handled at the behaviour level
     SceneCmd sceneCmd = audioScene->sceneCmd;
-    // now check for special hard-wired scenes
-    if (sceneCmd==scene_cmd_audio_mute) {
-      #warning "%%% tbd"
-    }
+//    if (sceneCmd==scene_cmd_audio_xxx) {
+//      #warning "%%% tbd"
+//    }
   } // if audio scene
   // other type of scene, let base class handle it
   return inherited::applyScene(aScene);
@@ -304,8 +316,15 @@ void AudioBehaviour::loadChannelsFromScene(DsScenePtr aScene)
   AudioScenePtr audioScene = boost::dynamic_pointer_cast<AudioScene>(aScene);
   if (audioScene) {
     // load channels from scene
-    volume->setChannelValueIfNotDontCare(aScene, audioScene->value, 0, 0, false);
+    // - powerstate first, because it might decide if channel value needs to be loaded
     powerState->setChannelValueIfNotDontCare(aScene, audioScene->powerState, 0, 0, false);
+    // - volume: ds-audio says: "If the flag is not set, the volume setting of the previously set scene
+    //   will be taken over unchanged unless the device was off before the scene call."
+    if (powerState->getChannelValue()!=dsAudioPower_on || audioScene->hasFixVol()) {
+      // device was off before or fixvol is set
+      volume->setChannelValueIfNotDontCare(aScene, audioScene->value, 0, 0, false);
+    }
+    // - content source
     contentSource->setChannelValueIfNotDontCare(aScene, audioScene->contentSource, 0, 0, false);
   }
   else {
@@ -333,6 +352,21 @@ void AudioBehaviour::saveChannelsToScene(DsScenePtr aScene)
   }
 }
 
+
+// dS Dimming rule for Audio:
+//  "All selected devices which are turned on and in play state take part in the dimming process."
+
+bool AudioBehaviour::canDim(DsChannelType aChannelType)
+{
+  // only devices that are on can be dimmed (volume changed)
+  if (aChannelType==channeltype_p44_audio_volume) {
+    return powerState->getChannelValue()==dsAudioPower_on; // dimmable if on
+  }
+  else {
+    // other audio channels cannot be dimmed anyway
+    return false;
+  }
+}
 
 
 void AudioBehaviour::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
