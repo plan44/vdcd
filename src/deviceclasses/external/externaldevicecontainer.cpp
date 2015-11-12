@@ -216,16 +216,6 @@ ErrorPtr ExternalDevice::processJsonMessage(string aMessageType, JsonObjectPtr a
       else if (aMessageType=="channel") {
         err = processInputJson('C', aMessage);
       }
-      else if (aMessageType=="log") {
-        // log something
-        int logLevel = LOG_NOTICE; // default to normally displayed (5)
-        JsonObjectPtr o = aMessage->get("level");
-        if (o) logLevel = o->int32Value();
-        o = aMessage->get("text");
-        if (o) {
-          LOG(logLevel,"External Device %s: %s", shortDesc().c_str(), o->c_strValue());
-        }
-      }
       else {
         err = TextError::err("Unknown message '%s'", aMessageType.c_str());
       }
@@ -251,21 +241,14 @@ ErrorPtr ExternalDevice::processSimpleMessage(string aMessageType, string aValue
     return ErrorPtr(); // no answer
   }
   else if (aMessageType.size()>0) {
-    // none of the other commands, try inputs (or log)
+    // none of the other commands, try inputs
     char iotype = aMessageType[0];
     int index = 0;
     if (sscanf(aMessageType.c_str()+1, "%d", &index)==1) {
-      if (iotype=='L') {
-        // log
-        LOG(index,"External Device %s: %s", shortDesc().c_str(), aValue.c_str());
-        return ErrorPtr(); // no answer
-      }
-      else {
-        // must be input
-        double value = 0;
-        sscanf(aValue.c_str(), "%lf", &value);
-        return processInput(iotype, index, value);
-      }
+      // must be input
+      double value = 0;
+      sscanf(aValue.c_str(), "%lf", &value);
+      return processInput(iotype, index, value);
     }
   }
   return TextError::err("Unknown message '%s'", aMessageType.c_str());
@@ -813,11 +796,11 @@ void ExternalDeviceConnector::sendDeviceApiStatusMessage(ErrorPtr aError, const 
 
 
 
-ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag)
+ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag, bool aNoError)
 {
   ExternalDevicePtr dev;
   if (aTag.empty() && externalDevices.size()>1) {
-    sendDeviceApiStatusMessage(TextError::err("missing 'tag' field"));
+    if (!aNoError) sendDeviceApiStatusMessage(TextError::err("missing 'tag' field"));
   }
   else {
     ExternalDevicesMap::iterator pos = externalDevices.end();
@@ -830,7 +813,7 @@ ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag)
       pos = externalDevices.begin();
     }
     if (pos==externalDevices.end()) {
-      sendDeviceApiStatusMessage(TextError::err("no device tagged '%s' found", aTag.c_str()));
+      if (!aNoError) sendDeviceApiStatusMessage(TextError::err("no device tagged '%s' found", aTag.c_str()));
     }
     else {
       dev = pos->second;
@@ -929,9 +912,21 @@ ErrorPtr ExternalDeviceConnector::handleDeviceApiJsonSubMessage(JsonObjectPtr aM
         }
       }
     }
+    else if (msg=="log") {
+      // log something
+      int logLevel = LOG_NOTICE; // default to normally displayed (5)
+      JsonObjectPtr o = aMessage->get("level");
+      if (o) logLevel = o->int32Value();
+      o = aMessage->get("text");
+      if (o) {
+        DsAddressablePtr a = findDeviceByTag(tag, true);
+        if (a) { LOG(logLevel,"External Device %s: %s", a->shortDesc().c_str(), o->c_strValue()); }
+        else { LOG(logLevel,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), o->c_strValue()); }
+      }
+    }
     else {
       // must be a message directed to an already existing device
-      extDev = findDeviceByTag(tag);
+      extDev = findDeviceByTag(tag, false);
       if (extDev) {
         err = extDev->processJsonMessage(o->stringValue(), aMessage);
       }
@@ -969,9 +964,19 @@ void ExternalDeviceConnector::handleDeviceApiSimpleMessage(ErrorPtr aError, stri
       msg = taggedmsg;
       tag.clear(); // no tag
     }
-    extDev = findDeviceByTag(tag);
-    if (extDev) {
-      aError = extDev->processSimpleMessage(msg,val);
+    if (msg[0]=='L') {
+      // log
+      int level = LOG_ERR;
+      sscanf(msg.c_str()+1, "%d", &level);
+      DsAddressablePtr a = findDeviceByTag(tag, true);
+      if (a) { LOG(level,"External Device %s: %s", a->shortDesc().c_str(), val.c_str()); }
+      else { LOG(level,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), val.c_str()); }
+    }
+    else {
+      extDev = findDeviceByTag(tag, false);
+      if (extDev) {
+        aError = extDev->processSimpleMessage(msg,val);
+      }
     }
   }
   // remove device that are not configured now

@@ -177,7 +177,7 @@ namespace p44 {
     ErrorPtr handleDeviceApiJsonSubMessage(JsonObjectPtr aMessage);
     void handleDeviceApiSimpleMessage(ErrorPtr aError, string aMessage);
 
-    ExternalDevicePtr findDeviceByTag(string aTag);
+    ExternalDevicePtr findDeviceByTag(string aTag, bool aNoError);
     void sendDeviceApiJsonMessage(JsonObjectPtr aMessage, const char *aTag = NULL);
     void sendDeviceApiSimpleMessage(string aMessage, const char *aTag = NULL);
     void sendDeviceApiStatusMessage(ErrorPtr aError, const char *aTag = NULL);
