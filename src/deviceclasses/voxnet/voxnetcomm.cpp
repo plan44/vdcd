@@ -24,7 +24,7 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 7
+#define FOCUSLOGLEVEL 5
 
 
 #include "voxnetcomm.hpp"
@@ -106,6 +106,7 @@ void VoxnetComm::voxnetInitialized(ErrorPtr aError)
 
 void VoxnetComm::sendVoxnetText(const string aVoxNetText)
 {
+  FOCUSLOG("Voxnet <- vDC: %s", aVoxNetText.c_str());
   sendString(aVoxNetText + "\r");
 }
 
@@ -130,7 +131,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
 {
   string line;
   if (receiveDelimitedString(line)) {
-    FOCUSLOG("Voxnet Text: %s", line.c_str());
+    FOCUSLOG("Voxnet -> vDC: %s", line.c_str());
     switch (commState) {
       case commState_menuwait: {
         // skip menu text until empty line is found
