@@ -34,6 +34,7 @@ namespace p44 {
   class StaticDeviceContainer;
   class AnalogIODevice;
   typedef boost::intrusive_ptr<AnalogIODevice> AnalogIODevicePtr;
+
   class AnalogIODevice : public StaticDevice
   {
     typedef StaticDevice inherited;
