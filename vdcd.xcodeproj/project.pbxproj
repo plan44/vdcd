@@ -1440,7 +1440,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_VOXNET=1",
-					"ENABLE_VZUGHOME=0",
+					"ENABLE_VZUGHOME=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1466,7 +1466,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_VOXNET=1",
-					"ENABLE_VZUGHOME=0",
+					"ENABLE_VZUGHOME=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",

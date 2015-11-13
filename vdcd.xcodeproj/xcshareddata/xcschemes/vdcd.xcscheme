@@ -92,7 +92,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--button simpin.a -l 7 -k testin:button"
+            argument = "--button simpin.a"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k testin:button"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -157,11 +161,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet 192.168.1.9"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vzughome"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"

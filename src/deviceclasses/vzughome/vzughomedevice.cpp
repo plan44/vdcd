@@ -71,7 +71,7 @@ void VZugHomeDevice::deriveDsUid()
   //  //   UUIDv5 with name = classcontainerinstanceid::ledchainType:firstLED:lastLED
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
   string s = classContainerP->deviceClassContainerInstanceIdentifier();
-  string_format_append(s, "%s", %%%deviceid);
+  string_format_append(s, "%s", "%%%deviceid");
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 

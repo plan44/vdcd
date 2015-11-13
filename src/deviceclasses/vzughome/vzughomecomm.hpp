@@ -26,13 +26,53 @@
 
 #if ENABLE_VZUGHOME
 
+#include "socketcomm.hpp"
+#include "jsonwebclient.hpp"
+
 using namespace std;
 
 namespace p44 {
 
+  typedef std::list<string> StringList;
+
+  class VZugHomeDiscovery : public SocketComm
+  {
+    typedef SocketComm inherited;
+
+    long timeoutTicket;
+    StatusCB statusCB; // discopvery status callback
+
+  public:
+    /// create driver Voxnet
+    VZugHomeDiscovery();
+
+    /// destructor
+    ~VZugHomeDiscovery();
+
+    /// discover V-ZUG devices
+    void discover(StatusCB aStatusCB, MLMicroSeconds aTimeout);
+
+    /// stop discovery early
+    void stopDiscovery();
+
+    /// list of API base URLs
+    StringList baseURLs;
+
+  private:
+
+    void socketStatusHandler(MLMicroSeconds aTimeout, ErrorPtr aError);
+    void searchTimedOut();
+    void gotData(ErrorPtr aError);
+
+  };
+  typedef boost::intrusive_ptr<VZugHomeDiscovery> VZugHomeDiscoveryPtr;
+
+
+
   class VZugHomeComm : public P44Obj
   {
     typedef P44Obj inherited;
+
 
   public:
     /// create driver Voxnet
@@ -40,6 +80,12 @@ namespace p44 {
 
     /// destructor
     ~VZugHomeComm();
+
+    // HTTP communication object
+    JsonWebClient apiComm;
+
+    // volatile vars
+    string baseURL; ///< base URL for API calls
 
   };
   typedef boost::intrusive_ptr<VZugHomeComm> VZugHomeCommPtr;

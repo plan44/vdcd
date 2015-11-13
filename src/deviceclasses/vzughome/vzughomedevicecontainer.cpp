@@ -62,24 +62,35 @@ const char *VZugHomeDeviceContainer::deviceClassIdentifier() const
 }
 
 
+
+
 void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
-//    // non-incremental, re-collect all devices
-//    removeDevices(aClearSettings);
-//    // then add those from the DB
-//    sqlite3pp::query qry(db);
-//    if (qry.prepare("SELECT firstLED, numLEDs, deviceconfig, rowid FROM devConfigs ORDER BY firstLED")==SQLITE_OK) {
-//      for (sqlite3pp::query::iterator i = qry.begin(); i != qry.end(); ++i) {
-//        LedChainDevicePtr dev =addLedChainDevice(i->get<int>(0), i->get<int>(1), i->get<string>(2));
-//        dev->ledChainDeviceRowID = i->get<int>(3);
-//      }
-//    }
+    removeDevices(aClearSettings);
+  }
+  VZugHomeDiscoveryPtr discovery = VZugHomeDiscoveryPtr(new VZugHomeDiscovery);
+  discovery->discover(boost::bind(&VZugHomeDeviceContainer::discoveryStatusHandler, this, discovery, aCompletedCB, _1), 15*Second);
+}
+
+
+
+void VZugHomeDeviceContainer::discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError)
+{
+  // TODO: actually create devices
+  for (StringList::iterator pos = aDiscovery->baseURLs.begin(); pos!=aDiscovery->baseURLs.end(); ++pos) {
+    LOG(LOG_NOTICE, "V-Zug home device with API at %s", pos->c_str());
+    // TODO: actually create device
   }
   // assume ok
   aCompletedCB(ErrorPtr());
 }
+
+
+
+
+
 
 
 ErrorPtr VZugHomeDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)

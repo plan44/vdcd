@@ -78,6 +78,8 @@ namespace p44 {
 
   private:
 
+    void discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError);
+
   };
 
 } // namespace p44
