@@ -151,10 +151,122 @@ void VZugHomeDiscovery::gotData(ErrorPtr aError)
 }
 
 
+#pragma mark - VZugHomeOperation
+
+VZugHomeOperation::VZugHomeOperation(VZugHomeComm &aVzugHomeComm, const char* aUrl, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler) :
+  vzugHomeComm(aVzugHomeComm),
+  url(aUrl),
+  data(aData),
+  hasJSONresult(aHasJSONResult),
+  resultHandler(aResultHandler),
+  completed(false)
+{
+}
+
+
+
+VZugHomeOperation::~VZugHomeOperation()
+{
+
+}
+
+
+
+bool VZugHomeOperation::initiate()
+{
+  if (!canInitiate())
+    return false;
+  // initiate the web request
+  const char *methodStr;
+  if (data) {
+    // has a body, needs to be sent via POST
+    methodStr = "POST";
+  }
+  else {
+    // assume GET
+    methodStr = "GET";
+  }
+  if (hasJSONresult) {
+    // will return a JSON result
+    vzugHomeComm.apiComm.jsonRequest(url.c_str(), boost::bind(&VZugHomeOperation::processJsonAnswer, this, _1, _2), methodStr, data);
+  }
+  else {
+    // will return a plain string
+    vzugHomeComm.apiComm.httpRequest(url.c_str(), boost::bind(&VZugHomeOperation::processPlainAnswer, this, _1, _2), methodStr, NULL);
+  }
+  // executed
+  return inherited::initiate();
+}
+
+
+
+void VZugHomeOperation::processJsonAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
+{
+  error = aError;
+  if (Error::isOK(error)) {
+    data = aJsonResponse;
+  }
+  // done
+  completed = true;
+  // have queue reprocessed
+  vzugHomeComm.processOperations();
+}
+
+
+void VZugHomeOperation::processPlainAnswer(const string &aResponse, ErrorPtr aError)
+{
+  error = aError;
+  if (Error::isOK(error)) {
+    // return as a JSON string object
+    data = JsonObject::newString(aResponse);
+  }
+  // done
+  completed = true;
+  // have queue reprocessed
+  vzugHomeComm.processOperations();
+}
+
+
+
+
+bool VZugHomeOperation::hasCompleted()
+{
+  return completed;
+}
+
+
+
+OperationPtr VZugHomeOperation::finalize(p44::OperationQueue *aQueueP)
+{
+  if (resultHandler) {
+    resultHandler(data, error);
+    resultHandler = NULL; // call once only
+  }
+  return OperationPtr(); // no operation to insert
+}
+
+
+
+void VZugHomeOperation::abortOperation(ErrorPtr aError)
+{
+  if (!aborted) {
+    if (!completed) {
+      vzugHomeComm.apiComm.cancelRequest();
+    }
+    if (resultHandler) {
+      resultHandler(JsonObjectPtr(), aError);
+      resultHandler = NULL; // call once only
+    }
+  }
+}
+
+
+
 
 #pragma mark - VZugHomeComm
 
 VZugHomeComm::VZugHomeComm() :
+  inherited(MainLoop::currentMainLoop()),
   apiComm(MainLoop::currentMainLoop())
 {
 }
@@ -163,6 +275,18 @@ VZugHomeComm::VZugHomeComm() :
 VZugHomeComm::~VZugHomeComm()
 {
 }
+
+
+void VZugHomeComm::apiAction(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler)
+{
+  string url = baseURL + nonNullCStr(aUrlSuffix);
+  VZugHomeOperationPtr op = VZugHomeOperationPtr(new VZugHomeOperation(*this, url.c_str(), aData, aHasJSONResult, aResultHandler));
+  queueOperation(op);
+  // process operations
+  processOperations();
+}
+
+
 
 
 

@@ -79,6 +79,8 @@ namespace p44 {
   private:
 
     void discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError);
+    void addNextDevice(VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB);
+    void gotDeviceInfos(VZugHomeDevicePtr aNewDev, VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB);
 
   };
 

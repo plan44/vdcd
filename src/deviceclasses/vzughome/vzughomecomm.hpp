@@ -27,6 +27,7 @@
 #if ENABLE_VZUGHOME
 
 #include "socketcomm.hpp"
+#include "operationqueue.hpp"
 #include "jsonwebclient.hpp"
 
 using namespace std;
@@ -69,9 +70,46 @@ namespace p44 {
 
 
 
-  class VZugHomeComm : public P44Obj
+  /// will be called to deliver api result
+  /// @param aResult the result in case of success.
+  /// @param aError error in case of failure
+  typedef boost::function<void (JsonObjectPtr aResult, ErrorPtr aError)> VZugHomeResultCB;
+
+  class VZugHomeComm;
+
+  class VZugHomeOperation : public Operation
   {
-    typedef P44Obj inherited;
+    typedef Operation inherited;
+
+    VZugHomeComm &vzugHomeComm;
+    string url;
+    JsonObjectPtr data;
+    bool completed;
+    bool hasJSONresult;
+    ErrorPtr error;
+    VZugHomeResultCB resultHandler;
+
+    void processJsonAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError);
+    void processPlainAnswer(const string &aResponse, ErrorPtr aError);
+
+  public:
+
+    VZugHomeOperation(VZugHomeComm &aHueComm, const char* aUrl, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler);
+    virtual ~VZugHomeOperation();
+
+    virtual bool initiate();
+    virtual bool hasCompleted();
+    virtual OperationPtr finalize(p44::OperationQueue *aQueueP);
+    virtual void abortOperation(ErrorPtr aError);
+
+  };
+  typedef boost::intrusive_ptr<VZugHomeOperation> VZugHomeOperationPtr;
+
+
+
+  class VZugHomeComm : public OperationQueue
+  {
+    typedef OperationQueue inherited;
 
 
   public:
@@ -86,6 +124,14 @@ namespace p44 {
 
     // volatile vars
     string baseURL; ///< base URL for API calls
+
+    /// Send information to the API
+    /// @param aUrlSuffix the suffix to append to the baseURL+userName (including leading slash)
+    /// @param aData the data for the action to perform (JSON body of the request, if any)
+    /// @param aHasJSONResult if true, action expects a JSON result, if false the action returns a plain string, which is reported
+    ///   back to the caller as a JSON string object
+    /// @param aResultHandler will be called with the result
+    void apiAction(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler);
 
   };
   typedef boost::intrusive_ptr<VZugHomeComm> VZugHomeCommPtr;

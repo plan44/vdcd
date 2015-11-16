@@ -24,20 +24,94 @@
 #if ENABLE_VZUGHOME
 
 
-#include "audiobehaviour.hpp"
+#include "outputbehaviour.hpp"
 
 
 using namespace p44;
 
 
-#pragma mark - LedChainDevice
+#pragma mark - VZugHomeDevice
 
 
-VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP) :
+// MARK: gugus
+
+VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL) :
   inherited(aClassContainerP)
 {
-  // - create dSUID
-  deriveDsUid();
+  vzugHomeComm.baseURL = aBaseURL;
+  setPrimaryGroup(group_black_joker); // TODO: what is the correct color for whiteware?
+  installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
+  // - set the behaviour
+  OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
+  o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
+  o->setGroupMembership(group_black_joker, true); // TODO: what is the correct color for whiteware?
+  o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
+  addBehaviour(o);
+}
+
+
+void VZugHomeDevice::queryDeviceInfos(StatusCB aCompletedCB)
+{
+  // query model ID
+  vzugHomeComm.apiAction("/hh?command=getModel", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelId, this, aCompletedCB, _1, _2));
+}
+
+
+void VZugHomeDevice::gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aResult) {
+      modelId = aResult->stringValue();
+      vzugHomeComm.apiAction("/hh?command=getModelDescription", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelDescription, this, aCompletedCB, _1, _2));
+      return;
+    }
+    aError = TextError::err("no model ID");
+  }
+  // early fail
+  aCompletedCB(aError);
+}
+
+
+void VZugHomeDevice::gotModelDescription(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aResult) {
+      modelDesc = aResult->stringValue();
+      vzugHomeComm.apiAction("/hh?command=getSerialNumber", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotSerialNumber, this, aCompletedCB, _1, _2));
+      return;
+    }
+    aError = TextError::err("no model description");
+  }
+  // early fail
+  aCompletedCB(aError);
+}
+
+
+void VZugHomeDevice::gotSerialNumber(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aResult) {
+      serialNo = aResult->stringValue();
+      deriveDsUid(); // dSUID bases on modelId and serial number
+      vzugHomeComm.apiAction("/hh?command=getDeviceName", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotDeviceName, this, aCompletedCB, _1, _2));
+      return;
+    }
+    aError = TextError::err("no serial number");
+  }
+  // early fail
+  aCompletedCB(aError);
+}
+
+
+void VZugHomeDevice::gotDeviceName(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    if (aResult) {
+      initializeName(aResult->stringValue());
+    }
+  }
+  // end of init in all cases
+  aCompletedCB(aError);
 }
 
 
@@ -68,10 +142,10 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 void VZugHomeDevice::deriveDsUid()
 {
   // vDC implementation specific UUID:
-  //  //   UUIDv5 with name = classcontainerinstanceid::ledchainType:firstLED:lastLED
+  // UUIDv5 with name = deviceClassIdentifier:modelid:serialno
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
-  string_format_append(s, "%s", "%%%deviceid");
+  string s = classContainerP->deviceClassIdentifier();
+  string_format_append(s, "%s:%s", modelId.c_str(), serialNo.c_str());
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
@@ -85,7 +159,7 @@ string VZugHomeDevice::vendorName()
 
 string VZugHomeDevice::modelName()
 {
-  return "V-Zug Home device";
+  return modelDesc;
 }
 
 

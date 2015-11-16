@@ -48,7 +48,7 @@ void VZugHomeDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRes
 
 bool VZugHomeDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
-  if (getIcon("vdc_vzughome", aIcon, aWithData, aResolutionPrefix))
+  if (getIcon("vzughome", aIcon, aWithData, aResolutionPrefix))
     return true;
   else
     return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
@@ -63,6 +63,11 @@ const char *VZugHomeDeviceContainer::deviceClassIdentifier() const
 
 
 
+#if !DEBUG
+#error TESTHACK
+#else
+//#define TESTHACK 1
+#endif
 
 void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
@@ -71,6 +76,12 @@ void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrem
     removeDevices(aClearSettings);
   }
   VZugHomeDiscoveryPtr discovery = VZugHomeDiscoveryPtr(new VZugHomeDiscovery);
+  #ifdef TESTHACK
+  discovery->baseURLs.clear();
+  discovery->baseURLs.push_back("http://localhost/vzug.php");
+  discoveryStatusHandler(discovery, aCompletedCB, ErrorPtr());
+  return;
+  #endif
   discovery->discover(boost::bind(&VZugHomeDeviceContainer::discoveryStatusHandler, this, discovery, aCompletedCB, _1), 15*Second);
 }
 
@@ -78,16 +89,41 @@ void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrem
 
 void VZugHomeDeviceContainer::discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError)
 {
-  // TODO: actually create devices
-  for (StringList::iterator pos = aDiscovery->baseURLs.begin(); pos!=aDiscovery->baseURLs.end(); ++pos) {
-    LOG(LOG_NOTICE, "V-Zug home device with API at %s", pos->c_str());
-    // TODO: actually create device
+  StringList::iterator pos = aDiscovery->baseURLs.begin();
+  if (Error::isOK(aError)) {
+    addNextDevice(aDiscovery, pos, aCompletedCB);
+    return;
   }
-  // assume ok
-  aCompletedCB(ErrorPtr());
+  // report error
+  aCompletedCB(aError);
 }
 
 
+
+void VZugHomeDeviceContainer::addNextDevice(VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB)
+{
+  if (aNext!=aDiscovery->baseURLs.end()) {
+    LOG(LOG_NOTICE, "V-Zug home device with API at %s", aNext->c_str());
+    VZugHomeDevicePtr newDev = VZugHomeDevicePtr(new VZugHomeDevice(this, *aNext));
+    newDev->queryDeviceInfos(boost::bind(&VZugHomeDeviceContainer::gotDeviceInfos, this, newDev, aDiscovery, aNext, aCompletedCB));
+  }
+  else {
+    // all collected
+    aCompletedCB(ErrorPtr());
+  }
+}
+
+
+void VZugHomeDeviceContainer::gotDeviceInfos(VZugHomeDevicePtr aNewDev, VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB)
+{
+  if (aNewDev) {
+    if (addDevice(aNewDev)) {
+      // actually added, no duplicate
+    }
+  }
+  aNext++;
+  addNextDevice(aDiscovery, aNext, aCompletedCB);
+}
 
 
 

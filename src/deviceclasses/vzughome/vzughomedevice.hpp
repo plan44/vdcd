@@ -37,11 +37,16 @@ namespace p44 {
   class VZugHomeDevice : public Device
   {
     typedef Device inherited;
-    friend class VoxnetDeviceContainer;
+    friend class VZugHomeDeviceContainer;
+
+    VZugHomeComm vzugHomeComm;
+    string modelId;
+    string modelDesc;
+    string serialNo;
 
   public:
 
-    VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP);
+    VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -99,6 +104,20 @@ namespace p44 {
     /// @}
 
   protected:
+
+    /// initializes the physical device for being used
+    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
+    /// @note this is called before interaction with dS system starts
+    /// @note implementation should call inherited when complete, so superclasses could chain further activity
+    virtual void queryDeviceInfos(StatusCB aCompletedCB);
+
+  private:
+
+    void gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void gotModelDescription(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void gotSerialNumber(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void gotDeviceName(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
+
 
     void deriveDsUid();
 
