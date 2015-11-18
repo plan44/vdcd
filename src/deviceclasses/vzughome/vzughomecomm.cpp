@@ -53,14 +53,6 @@ VZugHomeDiscovery::~VZugHomeDiscovery()
 }
 
 
-
-// Search request:
-//  M-SEARCH * HTTP/1.1
-//  HOST: 239.255.255.250:1900
-//  MAN: "ssdp:discover"
-//  MX: 5
-//  ST: upnp:rootdevice
-
 #define VZUGHOME_DISCOVERY_BROADCASTADDR "255.255.255.255"
 #define VZUGHOME_DISCOVERY_PORT "2047"
 #define VZUGHOME_DISCOVERY_REQUEST "DISCOVERY_LAN_INTERFACE_REQUEST"
@@ -93,7 +85,7 @@ void VZugHomeDiscovery::socketStatusHandler(MLMicroSeconds aTimeout, ErrorPtr aE
     setConnectionStatusHandler(NULL);
     // send search request
     transmitString(VZUGHOME_DISCOVERY_REQUEST);
-    // start timer (wait 1.5 the MX for answers)
+    // start timer
     timeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VZugHomeDiscovery::searchTimedOut, this), aTimeout);
   }
   else {

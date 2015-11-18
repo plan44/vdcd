@@ -33,7 +33,6 @@ using namespace std;
 
 namespace p44 {
 
-
   typedef boost::function<void (const string aVoxnetID, const string aVoxnetStatus)> VoxnetStatusCB;
 
   class VoxnetComm : public SocketComm
@@ -42,6 +41,8 @@ namespace p44 {
 
     typedef enum {
       commState_unknown,
+      commState_discovery,
+      commState_servercheck,
       commState_menuwait,
       commState_servicesread,
       commState_idle
@@ -52,6 +53,8 @@ namespace p44 {
     StatusCB initializedCB;
 
     VoxnetStatusCB voxnetStatusHandler;
+
+    long searchTimeoutTicket;
 
   public:
 
@@ -68,10 +71,6 @@ namespace p44 {
     /// destructor
     ~VoxnetComm();
 
-    /// set the connection parameters to connect to the EnOcean TCM310 modem
-    /// @param aVoxnetHost voxnet server host address
-    void setConnectionSpecification(const char *aVoxnetHost);
-
     /// initialize (start) communication with voxnet server
     void initialize(StatusCB aCompletedCB);
 
@@ -82,6 +81,12 @@ namespace p44 {
     void sendVoxnetText(const string aVoxNetText);
 
   private:
+
+    void discoverAndStart();
+    void stopDiscovery();
+    void searchSocketStatusHandler(ErrorPtr aError);
+    void searchTimedOut();
+    void searchDataHandler(ErrorPtr aError);
 
     void start();
     void connectionStatusHandler(ErrorPtr aError);

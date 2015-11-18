@@ -322,7 +322,7 @@ public:
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
       #if ENABLE_VOXNET
-      { 0,   "voxnet",        true,  "voxnethost;enable support for Revox Voxnet" },
+      { 0,   "voxnet",        false, "enable support for Revox Voxnet" },
       #endif
       #if ENABLE_VZUGHOME
       { 0,   "vzughome",      false, "enable support for V-Zug Home" },
@@ -582,11 +582,9 @@ public:
 
       #if ENABLE_VOXNET
       // - Add Voxnet support
-      string voxnethost;
-      if (getStringOption("voxnet", voxnethost)) {
+      if (getOption("voxnet")) {
         VoxnetDeviceContainerPtr voxnetDeviceContainer = VoxnetDeviceContainerPtr(new VoxnetDeviceContainer(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
         voxnetDeviceContainer->addClassToDeviceContainer();
-        voxnetDeviceContainer->voxnetComm->setConnectionSpecification(voxnethost.c_str());
       }
       #endif
       #if ENABLE_VZUGHOME

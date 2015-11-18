@@ -39,6 +39,7 @@ using namespace p44;
 
 VoxnetComm::VoxnetComm() :
   inherited(MainLoop::currentMainLoop()),
+  searchTimeoutTicket(0),
   commState(commState_unknown)
 {
 }
@@ -50,17 +51,117 @@ VoxnetComm::~VoxnetComm()
 }
 
 
-void VoxnetComm::setConnectionSpecification(const char *aVoxnetHost)
-{
-  setConnectionParams(aVoxnetHost, VOXNET_TEXT_SERVICE, SOCK_STREAM);
-}
+#pragma mark - discovery
+
+#define VOXNET_DISCOVERY_BROADCASTADDR "255.255.255.255"
+#define VOXNET_DISCOVERY_PORT "11224"
+#define VOXNET_DISCOVERY_REQUEST "FOXNET:DISCOVER:REQUEST"
+#define VOXNET_DISCOVERY_RESPONSE_PREFIX "FOXNET:DISCOVER:ANSWER:"
+
+#define VOXNET_DISCOVERY_TIMEOUT (5*Second)
+#define VOXNET_DISCOVERY_RETRY_INTERVAL (60*Second)
 
 
 void VoxnetComm::initialize(StatusCB aCompletedCB)
 {
   initializedCB = aCompletedCB;
-  start();
+  discoverAndStart();
 }
+
+
+void VoxnetComm::voxnetInitialized(ErrorPtr aError)
+{
+  if (initializedCB) {
+    StatusCB cb = initializedCB;
+    initializedCB = NULL;
+    cb(aError);
+  }
+}
+
+
+
+void VoxnetComm::discoverAndStart()
+{
+  // close current socket
+  closeConnection();
+  // setup new UDP socket
+  setConnectionParams(VOXNET_DISCOVERY_BROADCASTADDR, VOXNET_DISCOVERY_PORT, SOCK_DGRAM, AF_INET);
+  enableBroadcast(true);
+  setConnectionStatusHandler(boost::bind(&VoxnetComm::searchSocketStatusHandler, this, _2));
+  setReceiveHandler(boost::bind(&VoxnetComm::searchDataHandler, this, _1)); // line-by-line text interface
+  // prepare socket for usage
+  initiateConnection();
+}
+
+
+void VoxnetComm::searchSocketStatusHandler(ErrorPtr aError)
+{
+  FOCUSLOG("Voxnet discovery socket status: %s", aError ? aError->description().c_str() : "<no error>");
+  if (Error::isOK(aError)) {
+    FOCUSLOG("### sending Voxnet discovery request");
+    // unregister socket status handler (or we'll get called when connection closes)
+    setConnectionStatusHandler(NULL);
+    // send search request
+    transmitString(VOXNET_DISCOVERY_REQUEST);
+    // start timer
+    searchTimeoutTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetComm::searchTimedOut, this), VOXNET_DISCOVERY_TIMEOUT);
+  }
+  else {
+    // error starting search, try again later
+    voxnetInitialized(aError); // failed starting discovery
+  }
+}
+
+
+void VoxnetComm::stopDiscovery()
+{
+  MainLoop::currentMainLoop().cancelExecutionTicket(searchTimeoutTicket);
+  closeConnection();
+}
+
+
+
+void VoxnetComm::searchDataHandler(ErrorPtr aError)
+{
+  string response;
+  if (Error::isOK(receiveIntoString(response))) {
+    FOCUSLOG("Voxnet discovery response: %s", response.c_str());
+    // check if this is a Voxnet discovery response
+    if (response.find(VOXNET_DISCOVERY_RESPONSE_PREFIX)==0) {
+//      string a,p;
+//      getDatagramOrigin(a,p);
+//      LOG(LOG_DEBUG, "Voxnet device responds from %s:%s", a.c_str(), p.c_str());
+      string reportedIP = response.substr(strlen(VOXNET_DISCOVERY_RESPONSE_PREFIX));
+      LOG(LOG_NOTICE, "Found Voxnet server at %s", reportedIP.c_str());
+      // stop search
+      stopDiscovery();
+      // start server TCP/IP connection
+      setConnectionParams(reportedIP.c_str(), VOXNET_TEXT_SERVICE, SOCK_STREAM);
+      start();
+    }
+  }
+  else {
+    FOCUSLOG("Voxnet: error reading discovery data: %s", aError->description().c_str());
+  }
+}
+
+
+
+void VoxnetComm::searchTimedOut()
+{
+  // No server found now
+  stopDiscovery();
+  // end initialisation for now
+  if (initializedCB) {
+    initializedCB(ErrorPtr());
+    initializedCB = NULL;
+  }
+}
+
+
+
+
+#pragma mark - server communication
 
 
 void VoxnetComm::start()
@@ -92,16 +193,6 @@ void VoxnetComm::connectionStatusHandler(ErrorPtr aError)
   }
 }
 
-
-
-void VoxnetComm::voxnetInitialized(ErrorPtr aError)
-{
-  if (initializedCB) {
-    StatusCB cb = initializedCB;
-    initializedCB = NULL;
-    cb(aError);
-  }
-}
 
 
 void VoxnetComm::sendVoxnetText(const string aVoxNetText)
