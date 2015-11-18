@@ -44,6 +44,14 @@ namespace p44 {
     string modelDesc;
     string serialNo;
 
+    enum {
+      model_unknown,
+      model_MSLQ
+    } deviceModel;
+
+    uint64_t mostRecentPush; ///< "time" of most recent push we've already reported
+
+
   public:
 
     VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL);
@@ -111,13 +119,33 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void queryDeviceInfos(StatusCB aCompletedCB);
 
+    /// this will be called just before a device is added to the vdc, and thus needs to be fully constructed
+    /// (settings, scenes, behaviours) and MUST have determined the henceforth invariable dSUID.
+    /// After having received this call, the device must also be ready to load persistent settings.
+    virtual void willBeAdded();
+
+    /// initializes the physical device for being used
+    /// @param aFactoryReset if set, the device will be inititalized as thoroughly as possible (factory reset, default settings etc.)
+    /// @note this is called before interaction with dS system starts
+    /// @note implementation should call inherited when complete, so superclasses could chain further activity
+    virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
+
+
   private:
 
     void gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
     void gotModelDescription(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
     void gotSerialNumber(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
     void gotDeviceName(StatusCB aCompletedCB, JsonObjectPtr aResult, ErrorPtr aError);
+    void getDeviceState();
+    void gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError);
+    void gotCurrentProgram(JsonObjectPtr aResult, ErrorPtr aError);
+    void gotCurrentProgramEnd(JsonObjectPtr aResult, ErrorPtr aError);
+    void gotIsActive(JsonObjectPtr aResult, ErrorPtr aError);
+    void gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aError);
+    void scheduleNextStatePoll(ErrorPtr aError);
 
+    void processPushMessage(const string aMessage);
 
     void deriveDsUid();
 
