@@ -150,22 +150,7 @@ void HueDevice::deviceStateReceived(StatusCB aCompletedCB, bool aFactoryReset, J
       hueModel += ": " + o->stringValue();
     }
     // now look at state
-    JsonObjectPtr state = aDeviceInfo->get("state");
-    Brightness bri = 0;
-    if (state) {
-      // get current brightness
-      o = state->get("on");
-      if (o && o->boolValue()) {
-        // lamp is on
-        bri = 100; // default to full brightness
-        o = state->get("bri");
-        if (o) {
-          bri = o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS;
-        }
-        // set current brightness
-        output->getChannelByType(channeltype_brightness)->syncChannelValue(bri);
-      }
-    }
+    parseLightState(aDeviceInfo);
   }
   // let superclass initialize as well
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
@@ -408,6 +393,63 @@ void HueDevice::channelValuesSent(LightBehaviourPtr aLightBehaviour, SimpleCB aD
 
 
 
+void HueDevice::parseLightState(JsonObjectPtr aDeviceInfo)
+{
+  JsonObjectPtr o;
+  // get current color settings
+  JsonObjectPtr state = aDeviceInfo->get("state");
+  if (state) {
+    LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
+    if (l) {
+      // on with brightness or off
+      o = state->get("on");
+      if (o && o->boolValue()) {
+        // lamp is on, get brightness
+        o = state->get("bri");
+        if (o) l->syncBrightnessFromHardware(o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS); // 0..255 -> 0.4..100
+      }
+      else {
+        l->syncBrightnessFromHardware(0); // off
+      }
+      ColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<ColorLightBehaviour>(l);
+      if (cl) {
+        // color information
+        o = state->get("colormode");
+        if (o) {
+          string mode = o->stringValue();
+          if (mode=="hs") {
+            cl->colorMode = colorLightModeHueSaturation;
+            o = state->get("hue");
+            if (o) cl->hue->syncChannelValue(o->int32Value()/HUEAPI_FACTOR_HUE);
+            o = state->get("sat");
+            if (o) cl->saturation->syncChannelValue(o->int32Value()/HUEAPI_FACTOR_SATURATION);
+          }
+          else if (mode=="xy") {
+            cl->colorMode = colorLightModeXY;
+            o = state->get("xy");
+            if (o) {
+              JsonObjectPtr e = o->arrayGet(0);
+              if (e) cl->cieX->syncChannelValue(e->doubleValue());
+              e = o->arrayGet(1);
+              if (e) cl->cieY->syncChannelValue(e->doubleValue());
+            }
+          }
+          else if (mode=="ct") {
+            cl->colorMode = colorLightModeCt;
+            o = state->get("ct");
+            if (o) cl->ct->syncChannelValue(o->int32Value());
+          }
+          else {
+            cl->colorMode = colorLightModeNone;
+          }
+        }
+      } // color
+    } // light
+  } // state
+}
+
+
+
 void HueDevice::syncChannelValues(SimpleCB aDoneCB)
 {
   // query light attributes and state
@@ -421,61 +463,15 @@ void HueDevice::channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aDeviceInf
 {
   if (Error::isOK(aError)) {
     // assign the channel values
-    JsonObjectPtr o;
-    // get current color settings
-    JsonObjectPtr state = aDeviceInfo->get("state");
-    if (state) {
-      LightBehaviourPtr l = boost::dynamic_pointer_cast<LightBehaviour>(output);
-      if (l) {
-        // on with brightness or off
-        o = state->get("on");
-        if (o && o->boolValue()) {
-          // lamp is on, get brightness
-          o = state->get("bri");
-          if (o) l->syncBrightnessFromHardware(o->int32Value()/HUEAPI_FACTOR_BRIGHTNESS+HUEAPI_OFFSET_BRIGHTNESS); // 0..255 -> 0.4..100
-        }
-        else {
-          l->syncBrightnessFromHardware(0); // off
-        }
-        ColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<ColorLightBehaviour>(l);
-        if (cl) {
-          // color information
-          o = state->get("colormode");
-          if (o) {
-            string mode = o->stringValue();
-            if (mode=="hs") {
-              cl->colorMode = colorLightModeHueSaturation;
-              o = state->get("hue");
-              if (o) cl->hue->syncChannelValue(o->int32Value()/HUEAPI_FACTOR_HUE);
-              o = state->get("sat");
-              if (o) cl->saturation->syncChannelValue(o->int32Value()/HUEAPI_FACTOR_SATURATION);
-            }
-            else if (mode=="xy") {
-              cl->colorMode = colorLightModeXY;
-              o = state->get("xy");
-              if (o) {
-                JsonObjectPtr e = o->arrayGet(0);
-                if (e) cl->cieX->syncChannelValue(e->doubleValue());
-                e = o->arrayGet(1);
-                if (e) cl->cieY->syncChannelValue(e->doubleValue());
-              }
-            }
-            else if (mode=="ct") {
-              cl->colorMode = colorLightModeCt;
-              o = state->get("ct");
-              if (o) cl->ct->syncChannelValue(o->int32Value());
-            }
-            else {
-              cl->colorMode = colorLightModeNone;
-            }
-          }
-        } // color
-      } // light
-    } // state
+    parseLightState(aDeviceInfo);
   } // no error
   // done
   if (aDoneCB) aDoneCB();
 }
+
+
+
+
 
 
 

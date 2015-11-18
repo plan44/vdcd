@@ -332,8 +332,8 @@ public:
       if (i!=string::npos) {
         // is from Philips
         // - check model number
-        i = aResponse.find("<modelNumber>929000226503</modelNumber>"); // real hue bridge
-        //if (i==string::npos) i = aResponse.find("<modelNumber>8986674235553</modelNumber>"); // try deCONZ pseudo model number
+        i = aResponse.find("<modelNumber>929000226503</modelNumber>"); // original 2012 hue bridge, FreeRTOS
+        if (i==string::npos) i = aResponse.find("<modelNumber>BSB002</modelNumber>"); // hue bridge 2015 with homekit, Linux
         if (i!=string::npos) {
           // is the right model
           // - get base URL
