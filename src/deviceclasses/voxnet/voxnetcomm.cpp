@@ -214,6 +214,23 @@ void VoxnetComm::sendVoxnetText(const string aVoxNetText)
 
 
 
+void VoxnetComm::resolveVoxnetRef(string &aVoxNetRef)
+{
+  if (aVoxNetRef.size()>0) {
+    if (aVoxNetRef[0]=='$') {
+      // alias reference, get ID
+      StringStringMap::iterator pos = aliases.find(aVoxNetRef);
+      if (pos!=aliases.end()) {
+        aVoxNetRef = pos->second;
+      }
+      else {
+        aVoxNetRef.clear(); // alias not found
+      }
+    }
+  }
+}
+
+
 //      id              alias             name                      type
 //  -------------------------------------------------------------------------------
 //  1   #P00113220A2A40 $P00113220A2A40   Proxy 1                   SYN.00.proxy
@@ -311,18 +328,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
           string ref;
           ref.assign(line,0,e);
           i = e+1;
-          if (ref.size()>0) {
-            if (ref[0]=='$') {
-              // alias reference, get ID
-              StringStringMap::iterator pos = aliases.find(ref);
-              if (pos!=aliases.end()) {
-                ref = pos->second;
-              }
-              else {
-                ref.clear(); // alias not found
-              }
-            }
-          }
+          resolveVoxnetRef(ref);
           if (ref.size()>0 && ref[0]=='#') {
             // ID reference
             // - now check for status

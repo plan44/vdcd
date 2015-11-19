@@ -42,9 +42,14 @@ namespace p44 {
 
     string voxnetRoomID;
 
+    string currentSource; ///< alias or ID of current source
+    string currentStream; ///< name of the source's substream
     bool knownMuted; ///< set if we know output is currently muted
     double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
+
     double preMessageVolume; ///< volume that was present when last message started playing, will be restored at end of message
+    string preMessageSource; ///< alias or ID of source before message started playing
+    string preMessageStream; ///< name of the source's substream before message started playing
 
     long messageTimerTicket; ///< set while message is playing
 
@@ -74,8 +79,8 @@ namespace p44 {
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
-    /// process voxnet status for this device
-    void processVoxnetStatus(const string aVoxnetStatus);
+    /// process voxnet status
+    void processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus);
 
     /// @}
 

@@ -50,10 +50,10 @@ void VoxnetDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset
 
 void VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
 {
-  // dispatch status to device
-  VoxnetDeviceMap::iterator pos = voxnetDevices.find(aVoxnetID);
-  if (pos!=voxnetDevices.end()) {
-    pos->second->processVoxnetStatus(aVoxnetStatus);
+  // dispatch status to all devices
+  for (VoxnetDeviceMap::iterator pos = voxnetDevices.begin(); pos!=voxnetDevices.end(); ++pos) {
+    // have device process the status
+    pos->second->processVoxnetStatus(aVoxnetID, aVoxnetStatus);
   }
 }
 

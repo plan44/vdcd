@@ -86,6 +86,10 @@ namespace p44 {
     /// send voxnet text command
     void sendVoxnetText(const string aVoxNetText);
 
+    /// resolve a voxnet reference (i.e. convert to ID if given an alias)
+    void resolveVoxnetRef(string &aVoxNetRef);
+
+
   private:
 
     void discoverAndStart();

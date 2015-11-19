@@ -47,7 +47,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   // TODO: make these configurable
   messageSourceID = "$MyMusic2";
   messageStream = "radio";
-  messageShellCommand = "echo bratenExplodiert >/tmp/nextmsg; killall -SIGUSR1 ices";
+  //messageShellCommand = "echo bratenExplodiert >/tmp/nextmsg; killall -SIGUSR1 ices";
   //messageShellCommand = "echo message_@contentindex >/tmp/nextmsg; killall -SIGUSR1 ices";
   messageTitleNo = 1;
   messageLength = 20; // Seconds
@@ -185,8 +185,10 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   // - content source
   if (ab->contentSource->needsApplying()) {
     // transmit a play command for the source
-    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
-    ab->contentSource->channelValueApplied(); // confirm having applied the value
+    if (ab->contentSource->getIndex()>0) {
+      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
+      ab->contentSource->channelValueApplied(); // confirm having applied the value
+    }
   }
   // let inherited complete the apply
   inherited::applyChannelValues(aDoneCB, aForDimming);
@@ -195,6 +197,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 
 void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
 {
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   ALOG(LOG_INFO, "playing message");
   if (messageTimerTicket) {
     // message is already playing, source selection already made
@@ -202,7 +205,9 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
   }
   else {
     // remember pre-Message volume
-    preMessageVolume = boost::dynamic_pointer_cast<AudioBehaviour>(output)->volume->getChannelValue();
+    preMessageVolume = ab->volume->getChannelValue();
+    preMessageSource = currentSource;
+    preMessageStream = currentStream;
     // prepare for message playing
     getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
@@ -251,57 +256,90 @@ void VoxnetDevice::playingStarted(const string &aPlayCommandOutput)
 
 void VoxnetDevice::endOfMessage()
 {
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   ALOG(LOG_INFO,"Message played to end -> reverting source and volume (to %d) now", (int)preMessageVolume);
   MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
-  // revert source to previous
-  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:revert", voxnetRoomID.c_str()));
+  // revert source and stream to previous
+  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+    "%s:room:select:%s;%s:stream:%s",
+    voxnetRoomID.c_str(),
+    preMessageSource.c_str(),
+    voxnetRoomID.c_str(),
+    preMessageStream.c_str()
+  ));
   // revert volume to previous
-  boost::dynamic_pointer_cast<AudioBehaviour>(output)->volume->setChannelValue(preMessageVolume); // restore value known before message started playing
+  ab->volume->setChannelValue(preMessageVolume); // restore value known before message started playing
   requestApplyingChannels(NULL, false);
 }
 
 
 
 
-void VoxnetDevice::processVoxnetStatus(const string aVoxnetStatus)
+void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus)
 {
-  ALOG(LOG_DEBUG, "Status: %s", aVoxnetStatus.c_str());
-  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
-  // streaming=$U00113220A2A40:volume=10:balance=1:treble=1:bass=2:mute=off
-  string kv;
-  size_t i = 0;
-  size_t e;
-  double vol = 0;
-  do {
-    e = aVoxnetStatus.find_first_of(":", i);
-    kv.assign(aVoxnetStatus, i, e-i);
-    string k, v;
-    if (keyAndValue(kv, k, v, '=')) {
-      // extract state
-      if (k=="mute") {
-        // mute state
-        knownMuted = v=="on";
+  if (aVoxnetID==voxnetRoomID) {
+    ALOG(LOG_DEBUG, "Room Status: %s", aVoxnetStatus.c_str());
+    AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
+    // streaming=$U00113220A2A40:volume=10:balance=1:treble=1:bass=2:mute=off
+    string kv;
+    size_t i = 0;
+    size_t e;
+    double vol = 0;
+    do {
+      e = aVoxnetStatus.find_first_of(":", i);
+      kv.assign(aVoxnetStatus, i, e-i);
+      string k, v;
+      if (keyAndValue(kv, k, v, '=')) {
+        // extract state
+        if (k=="mute") {
+          // mute state
+          knownMuted = v=="on";
+        }
+        else if (k=="volume") {
+          // current volume
+          int voxvol;
+          sscanf(v.c_str(), "%d", &voxvol);
+          vol = (double)voxvol/MAX_VOXNET_VOLUME*100;
+        }
+        else if (k=="streaming") {
+          // streaming
+          // TODO: For now we consider any streaming as indication of device being on
+          //   (and Voxnet 219 does not have a deep off)
+          ab->powerState->syncChannelValue(v=="$unknown" ? dsAudioPower_power_save : dsAudioPower_on);
+          // save current source ID
+          getVoxnetDeviceContainer().voxnetComm->resolveVoxnetRef(v);
+          currentSource = v;
+        }
       }
-      else if (k=="volume") {
-        // current volume
-        int voxvol;
-        sscanf(v.c_str(), "%d", &voxvol);
-        vol = (double)voxvol/MAX_VOXNET_VOLUME*100;
+      i = e+1;
+    } while (e!=string::npos);
+    // update channel state
+    // - save the volume, we might need it for unmute
+    unmuteVolume = vol;
+    if (knownMuted) vol = 0; // when muted, channel value is 0
+    ab->volume->syncChannelValue(vol);
+  }
+  else if (aVoxnetID==currentSource) {
+    ALOG(LOG_DEBUG, "Source Status: %s", aVoxnetStatus.c_str());
+    // streaming=radio:info_1=SRF Virus
+    string kv;
+    size_t i = 0;
+    size_t e;
+    do {
+      e = aVoxnetStatus.find_first_of(":", i);
+      kv.assign(aVoxnetStatus, i, e-i);
+      string k, v;
+      if (keyAndValue(kv, k, v, '=')) {
+        // extract state
+        if (k=="streaming") {
+          // streaming (substream of the source)
+          currentStream = v;
+          ALOG(LOG_DEBUG, "Current Source=%s, current stream=%s", currentSource.c_str(), currentStream.c_str());
+        }
       }
-      else if (k=="streaming") {
-        // streaming
-        // TODO: For now we consider any streaming as indication of device being on
-        //   (and Voxnet 219 does not have a deep off)
-        ab->powerState->syncChannelValue(v=="$unknown" ? dsAudioPower_power_save : dsAudioPower_on);
-      }
-    }
-    i = e+1;
-  } while (e!=string::npos);
-  // update channel state
-  // - save the volume, we might need it for unmute
-  unmuteVolume = vol;
-  if (knownMuted) vol = 0; // when muted, channel value is 0
-  ab->volume->syncChannelValue(vol);
+      i = e+1;
+    } while (e!=string::npos);
+  }
 }
 
 
