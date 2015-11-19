@@ -322,10 +322,10 @@ public:
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
       #if ENABLE_VOXNET
-      { 0,   "voxnet",        false, "enable support for Revox Voxnet" },
+      { 0,   "voxnet",        true,  "auto|serverip;enable support for Revox Voxnet" },
       #endif
       #if ENABLE_VZUGHOME
-      { 0,   "vzughome",      false, "enable support for V-Zug Home" },
+      { 0,   "vzughome",      true,  "auto|ip[,ip,...];enable support for V-Zug Home" },
       #endif
       #if !DISABLE_EXTERNAL
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
@@ -582,15 +582,23 @@ public:
 
       #if ENABLE_VOXNET
       // - Add Voxnet support
-      if (getOption("voxnet")) {
+      string voxip;
+      if (getStringOption("voxnet", voxip)) {
         VoxnetDeviceContainerPtr voxnetDeviceContainer = VoxnetDeviceContainerPtr(new VoxnetDeviceContainer(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
+        if (voxip!="auto") {
+          voxnetDeviceContainer->voxnetComm->setConnectionSpecification(voxip.c_str());
+        }
         voxnetDeviceContainer->addClassToDeviceContainer();
       }
       #endif
       #if ENABLE_VZUGHOME
       // - Add V-Zug Home support
-      if (getOption("vzughome")) {
+      string vzugurl;
+      if (getStringOption("vzughome", vzugurl)) {
         VZugHomeDeviceContainerPtr vzughomeDeviceContainer = VZugHomeDeviceContainerPtr(new VZugHomeDeviceContainer(1, p44VdcHost.get(), 51)); // Tag 51 = VZugHome
+        if (vzugurl!="auto") {
+          vzughomeDeviceContainer->addVzugApiBaseURLs(vzugurl.c_str());
+        }
         vzughomeDeviceContainer->addClassToDeviceContainer();
       }
       #endif

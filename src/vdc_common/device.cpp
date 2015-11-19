@@ -1278,8 +1278,7 @@ void Device::processControlValue(const string &aName, double aValue)
 ErrorPtr Device::load()
 {
   ErrorPtr err;
-  // if we don't have device settings at this point (created by subclass)
-  // create standard base class settings.
+  // if we don't have device settings at this point (created by subclass), this is a misconfigured device!
   if (!deviceSettings) {
     ALOG(LOG_ERR, "***** no settings at load() time! -> probably misconfigured");
     return ErrorPtr(new WebError(500,"missing settings"));

@@ -183,6 +183,7 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
         }
       }
       sensorIndex++;
+      i=e+1;
     }
   }
   // query current program

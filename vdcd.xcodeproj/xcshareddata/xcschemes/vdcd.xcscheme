@@ -160,11 +160,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--voxnet"
+            argument = "--voxnet auto"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--voxnet 192.168.1.9"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--vzughome"
+            argument = "--vzughome http://localhost/vzug.php"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

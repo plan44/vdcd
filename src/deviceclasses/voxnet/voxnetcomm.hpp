@@ -54,6 +54,7 @@ namespace p44 {
 
     VoxnetStatusCB voxnetStatusHandler;
 
+    string manualServerIP;
     long searchTimeoutTicket;
 
   public:
@@ -70,6 +71,11 @@ namespace p44 {
 
     /// destructor
     ~VoxnetComm();
+
+
+    /// set the connection parameters to connect to the voxnet server
+    /// @param aVoxnetHost voxnet server host address, or NULL/empty string to use autodiscovery
+    void setConnectionSpecification(const char *aVoxnetHost);
 
     /// initialize (start) communication with voxnet server
     void initialize(StatusCB aCompletedCB);

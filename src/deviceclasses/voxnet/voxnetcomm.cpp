@@ -79,11 +79,25 @@ void VoxnetComm::voxnetInitialized(ErrorPtr aError)
 }
 
 
+void VoxnetComm::setConnectionSpecification(const char *aVoxnetHost)
+{
+  manualServerIP = nonNullCStr(aVoxnetHost);
+}
+
+
+
 
 void VoxnetComm::discoverAndStart()
 {
   // close current socket
   closeConnection();
+  // check for fixed IP
+  if (!manualServerIP.empty()) {
+    // start server TCP/IP connection
+    setConnectionParams(manualServerIP.c_str(), VOXNET_TEXT_SERVICE, SOCK_STREAM);
+    start();
+    return;
+  }
   // setup new UDP socket
   setConnectionParams(VOXNET_DISCOVERY_BROADCASTADDR, VOXNET_DISCOVERY_PORT, SOCK_DGRAM, AF_INET);
   enableBroadcast(true);

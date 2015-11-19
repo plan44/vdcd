@@ -36,6 +36,8 @@ using namespace std;
 
 namespace p44 {
 
+
+
   class VZugHomeDeviceContainer;
   class VZugHomeDevice;
   typedef boost::intrusive_ptr<VZugHomeDevice> VZugHomeDevicePtr;
@@ -46,11 +48,18 @@ namespace p44 {
     typedef DeviceClassContainer inherited;
     friend class VZugHomeDevice;
 
+    StringList baseURLs;
+
   public:
   
     VZugHomeDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
+
+    /// Switch to manual API URL specification (disables discovery)
+    /// @param aVzugApiBaseURLs one or multiple semicolon separated VZug home device API base URLs
+    void addVzugApiBaseURLs(const string aVzugApiBaseURLs);
+
 
     virtual const char *deviceClassIdentifier() const;
 
@@ -79,8 +88,8 @@ namespace p44 {
   private:
 
     void discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError);
-    void addNextDevice(VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB);
-    void gotDeviceInfos(VZugHomeDevicePtr aNewDev, VZugHomeDiscoveryPtr aDiscovery, StringList::iterator aNext, StatusCB aCompletedCB);
+    void addNextDevice(StringList::iterator aNext, StatusCB aCompletedCB);
+    void gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringList::iterator aNext, StatusCB aCompletedCB);
 
   };
 
