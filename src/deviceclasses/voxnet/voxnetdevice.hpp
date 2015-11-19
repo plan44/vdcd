@@ -44,6 +44,7 @@ namespace p44 {
 
     bool knownMuted; ///< set if we know output is currently muted
     double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
+    double preMessageVolume; ///< volume that was present when last message started playing, will be restored at end of message
 
     long messageTimerTicket; ///< set while message is playing
 

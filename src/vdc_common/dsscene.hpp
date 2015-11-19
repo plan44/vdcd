@@ -50,9 +50,6 @@ namespace p44 {
     scene_cmd_area_continue, ///< special case: continue last area increment/decrement
     scene_cmd_stop, ///< stop
     scene_cmd_slow_off, ///< slow motion off
-    scene_cmd_audio_message, ///< invoke message, similar to standard scene invoke behaviour, but in message mode
-    scene_cmd_audio_message_priority, ///< invoke priority message,
-    scene_cmd_audio_message_interruptible, ///< invoke message which is interruptible
     scene_cmd_audio_repeat_off, ///< audio: repeat off
     scene_cmd_audio_repeat_1, ///< audio: repeat 1
     scene_cmd_audio_repeat_all, ///< audio: repeat all

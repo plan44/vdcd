@@ -132,8 +132,8 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
   // set the common light scene defaults
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special audio scene behaviour
-  bool psi = false; // ignore power state
-  bool sci = false; // ignore content source
+  bool psi = false; // default: dont ignore power state
+  bool sci = false; // default: dont ignore content source
   switch (aSceneNo) {
     // group related scenes
     case AUDIO_REPEAT_OFF: sceneCmd = scene_cmd_audio_repeat_off; break;
@@ -152,6 +152,14 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
     case AUDIO_RESUME_OFF: sceneCmd = scene_cmd_audio_resume_off; break;
     case AUDIO_RESUME_ON: sceneCmd = scene_cmd_audio_resume_on; break;
     // group independent scenes
+    case BELL1:
+    case BELL2:
+    case BELL3:
+    case BELL4:
+      // Non-Standard: simple messages
+      globalSceneFlags |= audioflags_fixvol|audioflags_message;
+      value = 30;
+      break;
     case SIG_PANIC:
       value = 0; // silent on panic
       globalSceneFlags |= audioflags_fixvol;
@@ -194,13 +202,16 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
   if (value>0) {
     value=30; // all non-zero volume presets are 30%
   }
-  if (aSceneNo>=T0_S2 && aSceneNo<=T4E_S1) {
+  if (
+    (aSceneNo>=T0_S2 && aSceneNo<=T4E_S1) || // standard invoke scenes
+    (aSceneNo==T0_S0) || // main off
+    (aSceneNo==T0_S1) // main on
+  ) {
     // powerstate follows volume
     powerState = value>0 ? dsAudioPower_on : dsAudioPower_deep_off;
     // fixvol for mute scenes
     if (value==0) {
       globalSceneFlags |= audioflags_fixvol;
-      psi = true;
     }
   }
   // adjust per-channel dontcare
@@ -220,6 +231,26 @@ bool AudioScene::hasFixVol()
   return (globalSceneFlags & audioflags_fixvol)!=0;
 }
 
+
+bool AudioScene::isMessage()
+{
+  return (globalSceneFlags & audioflags_message)!=0;
+}
+
+bool AudioScene::isPriorityMessage()
+{
+  return (globalSceneFlags & audioflags_priority)!=0;
+}
+
+bool AudioScene::isInterruptible()
+{
+  return (globalSceneFlags & audioflags_interruptible)!=0;
+}
+
+bool AudioScene::hasPausedRestore()
+{
+  return (globalSceneFlags & audioflags_paused_restore)!=0;
+}
 
 
 
@@ -320,16 +351,16 @@ void AudioBehaviour::loadChannelsFromScene(DsScenePtr aScene)
   AudioScenePtr audioScene = boost::dynamic_pointer_cast<AudioScene>(aScene);
   if (audioScene) {
     // load channels from scene
-    // - powerstate first, because it might decide if channel value needs to be loaded
-    powerState->setChannelValueIfNotDontCare(aScene, audioScene->powerState, 0, 0, false);
     // - volume: ds-audio says: "If the flag is not set, the volume setting of the previously set scene
     //   will be taken over unchanged unless the device was off before the scene call."
-    if (powerState->getChannelValue()!=dsAudioPower_on || audioScene->hasFixVol()) {
+    if ((powerState->getChannelValue()!=dsAudioPower_on) || audioScene->hasFixVol()) {
       // device was off before or fixvol is set
       volume->setChannelValueIfNotDontCare(aScene, audioScene->value, 0, 0, false);
     }
+    // - powerstate
+    powerState->setChannelValueIfNotDontCare(aScene, audioScene->powerState, 0, 0, false);
     // - content source
-    contentSource->setChannelValueIfNotDontCare(aScene, audioScene->contentSource, 0, 0, false);
+    contentSource->setChannelValueIfNotDontCare(aScene, audioScene->contentSource, 0, 0, !audioScene->command.empty()); // always apply if there is a command
   }
   else {
     // only if not audio scene, use default loader

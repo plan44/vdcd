@@ -30,9 +30,6 @@ using namespace std;
 
 namespace p44 {
 
-  typedef uint8_t DimmingTime; ///< dimming time with bits 0..3 = mantissa in 6.666mS, bits 4..7 = exponent (# of bits to shift left)
-  typedef double Brightness;
-
   /// Audio volume channel, 0..100%
   class AudioVolumeChannel : public ChannelBehaviour
   {
@@ -46,7 +43,7 @@ namespace p44 {
 
     virtual DsChannelType getChannelType() { return channeltype_p44_audio_volume; }; ///< the dS channel type
     virtual const char *getName() { return "volume"; };
-    virtual double getMin() { return 0; }; // dS brightness goes from 0 to 100%
+    virtual double getMin() { return 0; }; // dS volume goes from 0 to 100%
     virtual double getMax() { return 100; };
 
   };
@@ -111,6 +108,10 @@ namespace p44 {
 
     // query flags
     bool hasFixVol();
+    bool isMessage();
+    bool isPriorityMessage();
+    bool isInterruptible();
+    bool hasPausedRestore();
 
   protected:
 
@@ -165,6 +166,7 @@ namespace p44 {
 
 
   public:
+
     AudioBehaviour(Device &aDevice);
 
     /// device type identifier
