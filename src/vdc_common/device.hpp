@@ -257,7 +257,8 @@ namespace p44 {
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
     /// @note base class by default forwards the control value to all of its output behaviours.
-    virtual void processControlValue(const string &aName, double aValue);
+    /// @return true if value processed and channel values should be applied
+    virtual bool processControlValue(const string &aName, double aValue);
 
     /// @}
 

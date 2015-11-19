@@ -172,6 +172,8 @@ namespace p44 {
     /// @note this is a OutputBehaviour level wrapper and preparator for behaviour-specific applyScene().
     bool performApplyScene(DsScenePtr aScene);
 
+    /// report end of applying scene (will remove scene context)
+    void endApplyScene();
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
@@ -198,7 +200,8 @@ namespace p44 {
     /// and if, how the value affects the output
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
-    virtual void processControlValue(const string &aName, double aValue) { /* NOP in base class */ };
+    /// @return true if value processed and channel values should be applied
+    virtual bool processControlValue(const string &aName, double aValue) { return false; /* NOP in base class */ };
 
     /// identify the device to the user in a behaviour-specific way
     /// @note this is usually called by device's identifyToUser(), unless device has hardware (rather than behaviour)

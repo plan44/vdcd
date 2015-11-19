@@ -146,7 +146,8 @@ namespace p44 {
     /// and if, how the value affects the output
     /// @param aName the name of the control value, which describes the purpose
     /// @param aValue the control value to process
-    virtual void processControlValue(const string &aName, double aValue);
+    /// @return true if value processed and channel values should be applied
+    virtual bool processControlValue(const string &aName, double aValue);
 
     /// apply scene to output channels
     /// @param aScene the scene to apply to output channels

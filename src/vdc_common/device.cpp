@@ -461,10 +461,13 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         // get value
         double value = o->doubleValue();
         // now process the value (updates channel values, but does not yet apply them)
-        ALOG(LOG_NOTICE, "processControlValue(%s, %f):", controlValueName.c_str(), value);
-        processControlValue(controlValueName, value);
-        // apply the values
-        requestApplyingChannels(NULL, false);
+        if (processControlValue(controlValueName, value)) {
+          // apply the values
+          ALOG(LOG_NOTICE, "processControlValue(%s, %f) completed -> requests applying channels now", controlValueName.c_str(), value);
+          output->stopActions();
+          output->endApplyScene();
+          requestApplyingChannels(NULL, false);
+        }
       }
     }
     if (!Error::isOK(err)) {
@@ -1133,7 +1136,7 @@ void Device::sceneActionsComplete(DsScenePtr aScene)
   // scene actions are now complete
   LOG(LOG_DEBUG, "- apply and actions for scene %d complete", aScene->sceneNo);
   // remove scene context
-  output->performApplyScene(DsScenePtr());
+  output->endApplyScene();
 }
 
 
@@ -1261,12 +1264,13 @@ void Device::updateSceneIfDirty(DsScenePtr aScene)
 
 
 
-void Device::processControlValue(const string &aName, double aValue)
+bool Device::processControlValue(const string &aName, double aValue)
 {
   // default base class behaviour is letting know all output behaviours
   if (output) {
-    output->processControlValue(aName, aValue);
+    return output->processControlValue(aName, aValue);
   }
+  return false; // nothing to process
 }
 
 

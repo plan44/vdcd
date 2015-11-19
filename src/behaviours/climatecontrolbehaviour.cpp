@@ -95,7 +95,7 @@ ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
 
 
 
-void ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
+bool ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
 {
   if (aName=="heatingLevel") {
     if (isMember(group_roomtemperature_control) && isEnabled()) {
@@ -105,9 +105,11 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
         cb->setChannelValue(aValue, 0, true); // always apply
+        return true; // needs apply
       }
     }
   }
+  return inherited::processControlValue(aName, aValue);
 }
 
 
