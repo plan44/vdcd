@@ -33,13 +33,24 @@ using namespace p44;
 
 // max volume value for voxnet
 #define MAX_VOXNET_VOLUME 40
+// maximum number of content sources (titles in an album/playlist, radio stations)
+#define MAX_VOXNET_CONTENTSOURCES 50
 
 VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID) :
   inherited(aClassContainerP),
   voxnetRoomID(aVoxnetRoomID),
   unmuteVolume(0),
-  knownMuted(false)
+  knownMuted(false),
+  messageTimerTicket(0)
 {
+  // TODO: make these configurable
+  messageSourceID = "#S00113220A2A41";
+  messageStream = "radio";
+  messageShellCommand = "echo bratenExplodiert >/tmp/nextmsg; killall -SIGUSR1 ices";
+  //messageShellCommand = "echo message_@contentindex >/tmp/nextmsg; killall -SIGUSR1 ices";
+  messageTitleNo = 1;
+  messageLength = 10; // Seconds
+
   // audio device
   primaryGroup = group_cyan_audio;
   // just color light settings, which include a color scene table
@@ -49,6 +60,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   a->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_room, true, -1);
   // - adjust resolution for volume
   a->volume->setResolution(a->volume->getMax()/MAX_VOXNET_VOLUME);
+  a->contentSource->setNumIndices(MAX_VOXNET_CONTENTSOURCES);
   addBehaviour(a);
   // - create dSUID
   deriveDsUid();
@@ -69,19 +81,13 @@ void VoxnetDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
 }
 
 
-
-
-
-
-
-
 void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   // check for scene context
-  DsScenePtr s = ab->sceneContextForApply();
-  if (s) {
-    switch (s->sceneCmd) {
+  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(ab->sceneContextForApply());
+  if (as) {
+    switch (as->sceneCmd) {
       case scene_cmd_audio_mute:
         ab->volume->setChannelValue(0); // mute
         break;
@@ -96,13 +102,55 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       case scene_cmd_audio_previous_title:
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
         break;
-
-
+      case scene_cmd_audio_pause:
+        // TODO: voxnet text does not have pause yet
+        // for now, just do same as for stop
+      case scene_cmd_stop:
+        // TODO: better command than room power off
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
+        break;
+      case scene_cmd_audio_play:
+        // TODO: better command
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play", voxnetRoomID.c_str()));
+        break;
+      case scene_cmd_audio_message_priority: // invoke priority message,
+      case scene_cmd_audio_message_interruptible: // invoke message which is interruptible
+      case scene_cmd_audio_message: // invoke message, similar to standard scene invoke behaviour, but in message mode
+        // play message
+        playMessage(as);
+        break;
+      // Unimplemented ones:
+      case scene_cmd_audio_repeat_off:
+      case scene_cmd_audio_repeat_1:
+      case scene_cmd_audio_repeat_all:
+      case scene_cmd_audio_shuffle_off:
+      case scene_cmd_audio_shuffle_on:
+      case scene_cmd_audio_resume_off:
+      case scene_cmd_audio_resume_on:
       default:
         break;
     }
+    // execute custom scene commands
+    if (!as->command.empty()) {
+      string subcmd, params;
+      if (keyAndValue(as->command, subcmd, params, ':')) {
+        if (subcmd=="voxnet") {
+          // Syntax: voxnet:<voxnet text command or macro>
+          // direct execution of voxnet commands, replacing extra "magic" identifiers as follows:
+          // - @dsroom with this device's room ID
+          size_t i;
+          while ((i = params.find("@dsroom"))!=string::npos) {
+            params.replace(i, 7, voxnetRoomID);
+          }
+          getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
+        }
+        else {
+          ALOG(LOG_ERR, "Unknown scene command: %s", as->command.c_str());
+        }
+      }
+    }
   }
-  // now apply the values
+  // finally apply the values
   // - Volume
   if (ab->volume->needsApplying()) {
     int voxvol = ab->volume->getTransitionalValue()*MAX_VOXNET_VOLUME/100;
@@ -134,9 +182,74 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     }
     ab->powerState->channelValueApplied(); // confirm having applied the value
   }
+  // - content source
+  if (ab->contentSource->needsApplying()) {
+    // transmit a play command for the source
+    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
+    ab->contentSource->channelValueApplied(); // confirm having applied the value
+  }
   // let inherited complete the apply
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
+
+
+void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
+{
+  if (messageTimerTicket) {
+    // message is already playing, source selection already made
+    MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
+  }
+  else {
+    // prepare for message playing
+    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+      "%s:room:select:%s;%s:stream:%s",
+      voxnetRoomID.c_str(),
+      messageSourceID.c_str(),
+      voxnetRoomID.c_str(),
+      messageStream.c_str()
+    ));
+    if (messageTitleNo>0) {
+      // start playing the title (radio station)
+      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), messageTitleNo));
+    }
+  }
+  // shell command to trigger actual message play
+  if (!messageShellCommand.empty()) {
+    // first start it
+    size_t i;
+    string sc = messageShellCommand;
+    while ((i = sc.find("@contentindex"))!=string::npos) {
+      sc.replace(i, 13, string_format("%d", aAudioScene->contentSource));
+    }
+    MainLoop::currentMainLoop().fork_and_system(boost::bind(&VoxnetDevice::playingStarted, this, _3), sc.c_str());
+  }
+  else {
+    // no shell command, consider started already
+    playingStarted("");
+  }
+}
+
+
+void VoxnetDevice::playingStarted(const string &aPlayCommandOutput)
+{
+  int msgLen = messageLength;
+  if (msgLen==0) {
+    // shell command is supposed to return it
+    sscanf(aPlayCommandOutput.c_str(), "%d", &msgLen);
+  }
+  // set up end-of-message timer
+  messageTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::endOfMessage, this), msgLen*Second);
+}
+
+
+
+void VoxnetDevice::endOfMessage()
+{
+  MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
+  // revert source to previous
+  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:revert", voxnetRoomID.c_str()));
+}
+
 
 
 
@@ -180,9 +293,6 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetStatus)
   if (knownMuted) vol = 0; // when muted, channel value is 0
   ab->volume->syncChannelValue(vol);
 }
-
-
-
 
 
 

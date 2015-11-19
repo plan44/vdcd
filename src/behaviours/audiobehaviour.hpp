@@ -86,9 +86,9 @@ namespace p44 {
 
   /// A concrete class implementing the Scene object for a audio device, having a volume channel plus a index value (for specific song/sound effects)
   /// @note subclasses can implement more parameters
-  class AudioScene : public SimpleScene
+  class AudioScene : public SimpleCmdScene
   {
-    typedef SimpleScene inherited;
+    typedef SimpleCmdScene inherited;
 
   public:
     AudioScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo);
@@ -128,9 +128,9 @@ namespace p44 {
 
   /// the persistent parameters of a audio scene device (including scene table)
   /// @note subclasses can implement more parameters
-  class AudioDeviceSettings : public SceneDeviceSettings
+  class AudioDeviceSettings : public CmdSceneDeviceSettings
   {
-    typedef SceneDeviceSettings inherited;
+    typedef CmdSceneDeviceSettings inherited;
 
   public:
     AudioDeviceSettings(Device &aDevice);

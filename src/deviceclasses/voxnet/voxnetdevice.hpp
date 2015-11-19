@@ -45,6 +45,14 @@ namespace p44 {
     bool knownMuted; ///< set if we know output is currently muted
     double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
 
+    long messageTimerTicket; ///< set while message is playing
+
+    string messageSourceID; ///< ID/alias of the source that provides messages
+    string messageStream; ///< stream in the message source that provides messages
+    string messageShellCommand; ///< the shell command to execute to start message playing, empty if none
+    int messageTitleNo; ///< the title number to play for messages, 0 if none
+    int messageLength; ///< length of message in seconds
+
   public:
 
     VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID);
@@ -113,6 +121,12 @@ namespace p44 {
   protected:
 
     void deriveDsUid();
+
+  private:
+
+    void playMessage(AudioScenePtr aAudioScene);
+    void playingStarted(const string &aPlayCommandOutput);
+    void endOfMessage();
 
   };
   typedef boost::intrusive_ptr<VoxnetDevice> VoxnetDevicePtr;

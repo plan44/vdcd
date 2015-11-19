@@ -302,7 +302,11 @@ bool AudioBehaviour::applyScene(DsScenePtr aScene)
     //   in the device, using sceneContextForApply().
     // Now check for the commands that can be handled at the behaviour level
     SceneCmd sceneCmd = audioScene->sceneCmd;
-//    if (sceneCmd==scene_cmd_audio_xxx) {
+    if (sceneCmd==scene_cmd_slow_off) {
+      // TODO: implement it
+      #warning "%%% tbd"
+    }
+//    else if (sceneCmd==scene_cmd_audio_xxx) {
 //      #warning "%%% tbd"
 //    }
   } // if audio scene

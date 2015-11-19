@@ -142,9 +142,6 @@ void VoxnetComm::searchDataHandler(ErrorPtr aError)
     FOCUSLOG("Voxnet discovery response: %s", response.c_str());
     // check if this is a Voxnet discovery response
     if (response.find(VOXNET_DISCOVERY_RESPONSE_PREFIX)==0) {
-//      string a,p;
-//      getDatagramOrigin(a,p);
-//      LOG(LOG_DEBUG, "Voxnet device responds from %s:%s", a.c_str(), p.c_str());
       string reportedIP = response.substr(strlen(VOXNET_DISCOVERY_RESPONSE_PREFIX));
       LOG(LOG_NOTICE, "Found Voxnet server at %s", reportedIP.c_str());
       // stop search
