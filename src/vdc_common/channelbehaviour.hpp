@@ -234,6 +234,7 @@ namespace p44 {
     virtual const char *getName() { return "string"; };
     virtual double getMin() { return 0; }; // 0..numIndices-1
     virtual double getMax() { return numIndices>0 ? numIndices-1 : 0; };
+    int getIndex() { return getChannelValue(); }; // return as int for convenience
 
     void setNumIndices(uint32_t aNumIndices) { numIndices = aNumIndices; };
 

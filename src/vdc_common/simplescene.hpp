@@ -70,6 +70,61 @@ namespace p44 {
   typedef boost::intrusive_ptr<SimpleScene> SimpleScenePtr;
 
 
+
+  /// concrete implementation of a single-value scene including a command value string for device-specific actions
+  /// like audio titles, source selection etc.
+  class SimpleCmdScene : public SimpleScene
+  {
+    typedef SimpleScene inherited;
+
+  public:
+    SimpleCmdScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+
+    /// @name SimpleCmdScene specific values
+    /// @{
+
+    string command;
+
+    /// @}
+
+  protected:
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
+
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
+  };
+  typedef boost::intrusive_ptr<SimpleCmdScene> SimpleCmdScenePtr;
+
+
+  /// the persistent parameters of a simple scene with an extra command string field
+  /// @note subclasses can implement more parameters
+  class CmdSceneDeviceSettings : public SceneDeviceSettings
+  {
+    typedef SceneDeviceSettings inherited;
+
+  public:
+    CmdSceneDeviceSettings(Device &aDevice);
+
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+    
+  };
+  
+  
+
+
+
 }
 
 

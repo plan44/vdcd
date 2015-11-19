@@ -290,3 +290,135 @@ void SimpleScene::setDefaultSceneValues(SceneNo aSceneNo)
 }
 
 
+
+#pragma mark - SimpleCmdScene
+
+
+SimpleCmdScene::SimpleCmdScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+  inherited(aSceneDeviceSettings, aSceneNo)
+{
+  command.clear();
+}
+
+const char *SimpleCmdScene::tableName()
+{
+  return "SimpleCmdScenes";
+}
+
+
+static const size_t numCmdSceneFields = 1;
+
+size_t SimpleCmdScene::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numCmdSceneFields;
+}
+
+
+const FieldDefinition *SimpleCmdScene::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numCmdSceneFields] = {
+    { "command", SQLITE_TEXT }
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numCmdSceneFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void SimpleCmdScene::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // get the fields
+  command = nonNullCStr(aRow->get<const char *>(aIndex++));
+}
+
+
+/// bind values to passed statement
+void SimpleCmdScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, command.c_str());
+}
+
+
+#pragma mark - SimpleCmdScene property access
+
+
+static char cmdscene_key;
+
+enum {
+  command_key,
+  numCmdSceneProperties
+};
+
+
+int SimpleCmdScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  return inherited::numProps(aDomain, aParentDescriptor)+numCmdSceneProperties;
+}
+
+
+PropertyDescriptorPtr SimpleCmdScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numCmdSceneProperties] = {
+    { "x-p44-command", apivalue_string, command_key, OKEY(cmdscene_key) },
+  };
+  int n = inherited::numProps(aDomain, aParentDescriptor);
+  if (aPropIndex<n)
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+}
+
+
+bool SimpleCmdScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(cmdscene_key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case command_key:
+          aPropValue->setStringValue(command);
+          return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case effect_key:
+          setPVar(command, aPropValue->stringValue());
+          return true;
+      }
+    }
+  }
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
+
+
+#pragma mark - CmdSceneDeviceSettings
+
+
+CmdSceneDeviceSettings::CmdSceneDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+};
+
+
+DsScenePtr CmdSceneDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+{
+  SimpleCmdScenePtr simpleCmdScene = SimpleCmdScenePtr(new SimpleCmdScene(*this, aSceneNo));
+  simpleCmdScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return simpleCmdScene;
+}
+
+
+
+
+
