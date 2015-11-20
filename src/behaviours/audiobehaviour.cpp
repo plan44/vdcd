@@ -124,6 +124,73 @@ void AudioScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, 
 }
 
 
+#pragma mark - Audio Scene properties
+
+enum {
+  fixvol_key,
+  message_key,
+  priority_key,
+  interruptible_key,
+  pausedRestore_key,
+  numSceneProperties
+};
+
+static char audioscene_key;
+
+
+int AudioScene::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  return inherited::numProps(aDomain, aParentDescriptor)+numSceneProperties;
+}
+
+
+
+PropertyDescriptorPtr AudioScene::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  // scene level properties
+  static const PropertyDescription sceneproperties[numSceneProperties] = {
+    { "fixvol", apivalue_bool, fixvol_key, OKEY(audioscene_key) },
+    { "message", apivalue_bool, message_key, OKEY(audioscene_key) },
+    { "priority", apivalue_bool, priority_key, OKEY(audioscene_key) },
+    { "interruptible", apivalue_bool, interruptible_key, OKEY(audioscene_key) },
+    { "pausedRestore", apivalue_bool, pausedRestore_key, OKEY(audioscene_key) },
+  };
+  int n = inherited::numProps(aDomain, aParentDescriptor);
+  if (aPropIndex<n)
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  aPropIndex -= n; // rebase to 0 for my own first property
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&sceneproperties[aPropIndex], aParentDescriptor));
+}
+
+
+bool AudioScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(audioscene_key)) {
+    // global scene level
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case fixvol_key: aPropValue->setBoolValue(hasFixVol()); return true;
+        case message_key: aPropValue->setBoolValue(isMessage()); return true;
+        case priority_key: aPropValue->setBoolValue(hasPriority()); return true;
+        case interruptible_key: aPropValue->setBoolValue(isInterruptible()); return true;
+        case pausedRestore_key: aPropValue->setBoolValue(hasPausedRestore()); return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case fixvol_key: setFixVol(aPropValue->boolValue()); return true;
+        case message_key: setMessage(aPropValue->boolValue()); return true;
+        case priority_key: setPriority(aPropValue->boolValue()); return true;
+        case interruptible_key: setInterruptible(aPropValue->boolValue()); return true;
+        case pausedRestore_key: setPausedRestore(aPropValue->boolValue()); return true;
+      }
+    }
+  }
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
 
 #pragma mark - default audio scene
 
@@ -231,25 +298,58 @@ bool AudioScene::hasFixVol()
   return (globalSceneFlags & audioflags_fixvol)!=0;
 }
 
+void AudioScene::setFixVol(bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & audioflags_fixvol) | (aNewValue ? audioflags_fixvol : 0);
+  setPVar(globalSceneFlags, newFlags);
+}
+
 
 bool AudioScene::isMessage()
 {
   return (globalSceneFlags & audioflags_message)!=0;
 }
 
-bool AudioScene::isPriorityMessage()
+void AudioScene::setMessage(bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & audioflags_message) | (aNewValue ? audioflags_message : 0);
+  setPVar(globalSceneFlags, newFlags);
+}
+
+
+bool AudioScene::hasPriority()
 {
   return (globalSceneFlags & audioflags_priority)!=0;
 }
+
+void AudioScene::setPriority(bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & audioflags_priority) | (aNewValue ? audioflags_priority : 0);
+  setPVar(globalSceneFlags, newFlags);
+}
+
 
 bool AudioScene::isInterruptible()
 {
   return (globalSceneFlags & audioflags_interruptible)!=0;
 }
 
+void AudioScene::setInterruptible(bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & audioflags_interruptible) | (aNewValue ? audioflags_interruptible : 0);
+  setPVar(globalSceneFlags, newFlags);
+}
+
+
 bool AudioScene::hasPausedRestore()
 {
   return (globalSceneFlags & audioflags_paused_restore)!=0;
+}
+
+void AudioScene::setPausedRestore(bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & audioflags_paused_restore) | (aNewValue ? audioflags_paused_restore : 0);
+  setPVar(globalSceneFlags, newFlags);
 }
 
 

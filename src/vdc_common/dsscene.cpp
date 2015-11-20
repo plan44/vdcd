@@ -298,10 +298,7 @@ bool DsScene::isDontCare()
 void DsScene::setDontCare(bool aDontCare)
 {
   uint32_t newFlags = (globalSceneFlags & ~globalflags_sceneDontCare) | (aDontCare ? globalflags_sceneDontCare : 0);
-  if (newFlags!=globalSceneFlags) {
-    globalSceneFlags = newFlags;
-    markDirty();
-  }
+  setPVar(globalSceneFlags, newFlags);
 }
 
 
@@ -314,10 +311,7 @@ bool DsScene::ignoresLocalPriority()
 void DsScene::setIgnoreLocalPriority(bool aIgnoreLocalPriority)
 {
   uint32_t newFlags = (globalSceneFlags & ~globalflags_ignoreLocalPriority) | (aIgnoreLocalPriority ? globalflags_ignoreLocalPriority : 0);
-  if (newFlags!=globalSceneFlags) {
-    globalSceneFlags = newFlags;
-    markDirty();
-  }
+  setPVar(globalSceneFlags, newFlags);
 }
 
 

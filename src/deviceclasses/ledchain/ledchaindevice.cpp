@@ -233,7 +233,7 @@ string LedChainDevice::getExtraInfo()
 string LedChainDevice::description()
 {
   string s = inherited::description();
-  string_format_append(s, "- Led Chain Color Light from LED #%d..%d\n", firstLED, firstLED+numLEDs-1);
+  string_format_append(s, "\n- Led Chain Color Light from LED #%d..%d", firstLED, firstLED+numLEDs-1);
   return s;
 }
 

@@ -109,11 +109,24 @@ namespace p44 {
     // query flags
     bool hasFixVol();
     bool isMessage();
-    bool isPriorityMessage();
+    bool hasPriority();
     bool isInterruptible();
     bool hasPausedRestore();
 
+    // set flags
+    void setFixVol(bool aNewValue);
+    void setMessage(bool aNewValue);
+    void setPriority(bool aNewValue);
+    void setInterruptible(bool aNewValue);
+    void setPausedRestore(bool aNewValue);
+
+
   protected:
+
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
     // persistence implementation
     virtual const char *tableName();
