@@ -465,7 +465,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
           // apply the values
           ALOG(LOG_NOTICE, "processControlValue(%s, %f) completed -> requests applying channels now", controlValueName.c_str(), value);
           output->stopActions();
-          output->endApplyScene();
+          output->endSceneContext();
           requestApplyingChannels(NULL, false);
         }
       }
@@ -1136,7 +1136,7 @@ void Device::sceneActionsComplete(DsScenePtr aScene)
   // scene actions are now complete
   LOG(LOG_DEBUG, "- apply and actions for scene %d complete", aScene->sceneNo);
   // remove scene context
-  output->endApplyScene();
+  output->endSceneContext();
 }
 
 

@@ -85,8 +85,8 @@ void VoxnetDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
 void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
-  // check for scene context
-  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(ab->sceneContextForApply());
+  // check for scene context for this apply
+  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(ab->getAndResetApplySceneContext());
   if (as) {
     switch (as->sceneCmd) {
       case scene_cmd_audio_mute:

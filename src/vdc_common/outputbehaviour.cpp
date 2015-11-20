@@ -268,7 +268,16 @@ bool OutputBehaviour::performApplyScene(DsScenePtr aScene)
 }
 
 
-void OutputBehaviour::endApplyScene()
+DsScenePtr OutputBehaviour::getAndResetApplySceneContext()
+{
+  DsScenePtr ctx = applyContextScene;
+  endSceneContext();
+  return ctx;
+}
+
+
+
+void OutputBehaviour::endSceneContext()
 {
   applyContextScene.reset();
 }

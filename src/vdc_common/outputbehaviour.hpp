@@ -133,7 +133,8 @@ namespace p44 {
     double outputValueAccordingToMode(double aChannelValue);
 
     /// @return scene context which has caused applyChannelValues(), or NULL if no scene
-    DsScenePtr sceneContextForApply() { return applyContextScene; }
+    /// @note can be called once, afterwards scene context is gone
+    DsScenePtr getAndResetApplySceneContext();
 
     /// @}
 
@@ -172,8 +173,8 @@ namespace p44 {
     /// @note this is a OutputBehaviour level wrapper and preparator for behaviour-specific applyScene().
     bool performApplyScene(DsScenePtr aScene);
 
-    /// report end of applying scene (will remove scene context)
-    void endApplyScene();
+    /// report end of needing scene context while applying
+    void endSceneContext();
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
