@@ -52,8 +52,8 @@ void AudioScene::setSceneValue(size_t aChannelIndex, double aValue)
 {
   ChannelBehaviourPtr cb = getDevice().getChannelByIndex(aChannelIndex);
   switch (cb->getChannelType()) {
-    case channeltype_p44_audio_content_source: contentSource = aValue; break;
-    case channeltype_p44_audio_power_state: powerState = (DsAudioPowerState)aValue; break;
+    case channeltype_p44_audio_content_source: setPVar(contentSource, (uint32_t)aValue); break;
+    case channeltype_p44_audio_power_state: setPVar(powerState, (DsAudioPowerState)aValue); break;
     default: inherited::setSceneValue(aChannelIndex, aValue); break;
   }
 }
