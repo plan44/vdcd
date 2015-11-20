@@ -464,8 +464,7 @@ void Device::handleNotification(const string &aMethod, ApiValuePtr aParams)
         if (processControlValue(controlValueName, value)) {
           // apply the values
           ALOG(LOG_NOTICE, "processControlValue(%s, %f) completed -> requests applying channels now", controlValueName.c_str(), value);
-          output->stopActions();
-          output->endSceneContext();
+          stopSceneActions();
           requestApplyingChannels(NULL, false);
         }
       }
@@ -638,7 +637,7 @@ void Device::dimChannelForArea(DsChannelType aChannel, DsDimMode aDimMode, int a
   }
   // always give device chance to stop, even if no dimming is in progress
   if (aDimMode==dimmode_stop) {
-    output->stopActions();
+    stopSceneActions();
   }
   // requested dimming this device, no area suppress active
   if (aDimMode!=currentDimMode || aChannel!=currentDimChannel) {
@@ -1096,30 +1095,60 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       } // if output
     } // not dontCare
     else {
-      // do other scene actions now, as dontCare prevented applying scene above
-      if (output) {
-        output->performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
-      } // if output
+      // Scene is dontCare
+      // - possibly still do other scene actions now, although scene was not applied
+      performSceneActions(scene, boost::bind(&Device::sceneActionsComplete, this, scene));
     }
   } // device with scenes
 }
 
 
+void Device::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
+{
+  if (output) {
+    output->performSceneActions(aScene, aDoneCB);
+  }
+  else {
+    if (aDoneCB) aDoneCB(); // nothing to do
+  }
+}
+
+
+void Device::stopSceneActions()
+{
+  if (output) {
+    output->stopSceneActions();
+  }
+}
+
+
+
+bool Device::prepareSceneCall(DsScenePtr aScene)
+{
+  // base class - just complete
+  return true;
+}
+
 
 // deferred applying of state, after current state has been captured for this output
 void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 {
-  OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
-  if (output) {
-    // apply scene logically
-    if (output->performApplyScene(aScene)) {
-      // now apply values to hardware
-      requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+  if (prepareSceneCall(aScene)) {
+    OutputBehaviourPtr output = boost::dynamic_pointer_cast<OutputBehaviour>(aOutput);
+    if (output) {
+      // apply scene logically
+      if (output->performApplyScene(aScene)) {
+        // now apply values to hardware
+        requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+      }
+      else {
+        // no apply to hardware needed, directly proceed to actions
+        sceneValuesApplied(aScene);
+      }
     }
-    else {
-      // no apply to hardware needed, directly proceed to actions
-      sceneValuesApplied(aScene);
-    }
+  }
+  else {
+     ALOG(LOG_DEBUG, "Device level prepareSceneCall() returns false -> no more actions");
   }
 }
 
@@ -1127,16 +1156,14 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 void Device::sceneValuesApplied(DsScenePtr aScene)
 {
   // now perform scene special actions such as blinking
-  output->performSceneActions(aScene, boost::bind(&Device::sceneActionsComplete, this, aScene));
+  performSceneActions(aScene, boost::bind(&Device::sceneActionsComplete, this, aScene));
 }
 
 
 void Device::sceneActionsComplete(DsScenePtr aScene)
 {
   // scene actions are now complete
-  LOG(LOG_DEBUG, "- apply and actions for scene %d complete", aScene->sceneNo);
-  // remove scene context
-  output->endSceneContext();
+  ALOG(LOG_INFO, "Scene actions for callScene(%d) complete -> now in final state", aScene->sceneNo);
 }
 
 

@@ -683,7 +683,7 @@ bool ShadowBehaviour::applyScene(DsScenePtr aScene)
   ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
   if (shadowScene) {
     // any scene call cancels actions (and fade down)
-    stopActions();
+    stopSceneActions();
   } // if shadowScene
   // otherwise, let base class handle it
   return inherited::applyScene(aScene);
@@ -732,12 +732,12 @@ void ShadowBehaviour::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
 }
 
 
-void ShadowBehaviour::stopActions()
+void ShadowBehaviour::stopSceneActions()
 {
   // stop
   stop(NULL);
   // let inherited stop as well
-  inherited::stopActions();
+  inherited::stopSceneActions();
 }
 
 

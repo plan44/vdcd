@@ -162,6 +162,7 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
+    double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
     /// @}
 
 
@@ -198,13 +199,13 @@ namespace p44 {
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
+    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopSceneActions())
     virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB);
 
     /// will be called to stop all ongoing actions before next callScene etc. is issued.
     /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
     ///   cannot mess up things.
-    virtual void stopActions();
+    virtual void stopSceneActions();
 
     /// check if this channel of this device is allowed to dim now (for lights, this will prevent dimming lights that are off)
     /// @param aChannelType the channel to check

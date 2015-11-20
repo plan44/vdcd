@@ -278,10 +278,11 @@ DsScenePtr AudioDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 #define STANDARD_DIM_CURVE_EXPONENT 4 // standard exponent, usually ok for PWM for LEDs
 
 AudioBehaviour::AudioBehaviour(Device &aDevice) :
-  inherited(aDevice)
+  inherited(aDevice),
   // hardware derived parameters
   // persistent settings
   // volatile state
+  unmuteVolume(0)
 {
   // make it member of the audio group
   setGroupMembership(group_cyan_audio, true);
@@ -327,21 +328,29 @@ bool AudioBehaviour::applyScene(DsScenePtr aScene)
   // check special actions (commands) for audio scenes
   AudioScenePtr audioScene = boost::dynamic_pointer_cast<AudioScene>(aScene);
   if (audioScene) {
-    // any scene call cancels actions (and fade down)
-    stopActions();
+    // any scene call cancels actions (such as fade down)
+    stopSceneActions();
     // Note: some of the audio special commands are handled at the applyChannelValues() level
     //   in the device, using sceneContextForApply().
     // Now check for the commands that can be handled at the behaviour level
     SceneCmd sceneCmd = audioScene->sceneCmd;
-    if (sceneCmd==scene_cmd_slow_off) {
-      // TODO: implement it
-      #warning "%%% tbd"
+    switch (sceneCmd) {
+      case scene_cmd_audio_mute:
+        unmuteVolume = volume->getChannelValue(); ///< save current volume
+        volume->setChannelValue(0); // mute
+        return true; // don't let inherited load channels, just request apply
+      case scene_cmd_audio_unmute:
+        volume->setChannelValue(unmuteVolume>0 ? unmuteVolume : 1); // restore value known before last mute, but at least non-zero
+        return true; // don't let inherited load channels, just request apply
+      case scene_cmd_slow_off:
+        // TODO: implement it
+        #warning "%%% tbd"
+        break;
+      default:
+        break;
     }
-//    else if (sceneCmd==scene_cmd_audio_xxx) {
-//      #warning "%%% tbd"
-//    }
   } // if audio scene
-  // other type of scene, let base class handle it
+  // perform standard apply (loading channels)
   return inherited::applyScene(aScene);
 }
 
@@ -409,19 +418,17 @@ void AudioBehaviour::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
   // we can only handle audio scenes
   AudioScenePtr audioScene = boost::dynamic_pointer_cast<AudioScene>(aScene);
   if (audioScene) {
-    // check for blink effect?
-    #warning "%%% tbd"
-    return;
+    // TODO: check for blink effect?
   }
   // none of my effects, let inherited check
   inherited::performSceneActions(aScene, aDoneCB);
 }
 
 
-void AudioBehaviour::stopActions()
+void AudioBehaviour::stopSceneActions()
 {
   // let inherited stop as well
-  inherited::stopActions();
+  inherited::stopSceneActions();
 }
 
 

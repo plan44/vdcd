@@ -153,7 +153,7 @@ bool LightBehaviour::applyScene(DsScenePtr aScene)
   LightScenePtr lightScene = boost::dynamic_pointer_cast<LightScene>(aScene);
   if (lightScene) {
     // any scene call cancels actions (and fade down)
-    stopActions();
+    stopSceneActions();
     SceneCmd sceneCmd = lightScene->sceneCmd;
     // now check for special hard-wired scenes
     if (sceneCmd==scene_cmd_slow_off) {
@@ -288,14 +288,14 @@ void LightBehaviour::performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB)
 }
 
 
-void LightBehaviour::stopActions()
+void LightBehaviour::stopSceneActions()
 {
   // stop fading down
   MainLoop::currentMainLoop().cancelExecutionTicket(fadeDownTicket);
   // stop blink
   if (blinkTicket) stopBlink();
   // let inherited stop as well
-  inherited::stopActions();
+  inherited::stopSceneActions();
 }
 
 

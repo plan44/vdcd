@@ -261,28 +261,10 @@ void OutputBehaviour::saveChannelsToScene(DsScenePtr aScene)
 bool OutputBehaviour::performApplyScene(DsScenePtr aScene)
 {
   if (aScene) {
-    applyContextScene = aScene;
     return applyScene(aScene); // actually apply
   }
   return false; // no scene to apply
 }
-
-
-DsScenePtr OutputBehaviour::getAndResetApplySceneContext()
-{
-  DsScenePtr ctx = applyContextScene;
-  endSceneContext();
-  return ctx;
-}
-
-
-
-void OutputBehaviour::endSceneContext()
-{
-  applyContextScene.reset();
-}
-
-
 
 
 

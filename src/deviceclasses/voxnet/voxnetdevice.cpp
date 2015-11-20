@@ -39,7 +39,6 @@ using namespace p44;
 VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID) :
   inherited(aClassContainerP),
   voxnetRoomID(aVoxnetRoomID),
-  unmuteVolume(0),
   preMessageVolume(0),
   knownMuted(false),
   messageTimerTicket(0)
@@ -82,26 +81,22 @@ void VoxnetDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
 }
 
 
-void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
+bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
 {
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
-  // check for scene context for this apply
-  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(ab->getAndResetApplySceneContext());
+  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(aScene);
+  bool continueApply = true;
   if (as) {
     switch (as->sceneCmd) {
-      case scene_cmd_audio_mute:
-        ab->volume->setChannelValue(0); // mute
-        break;
-      case scene_cmd_audio_unmute:
-        ab->volume->setChannelValue(unmuteVolume>0 ? unmuteVolume : 1); // restore value known before last mute, but at least non-zero
-        break;
       case scene_cmd_audio_next_channel:
       case scene_cmd_audio_next_title:
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:next", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_previous_channel:
       case scene_cmd_audio_previous_title:
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_pause:
         // TODO: voxnet text does not have pause yet
@@ -109,12 +104,14 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       case scene_cmd_stop:
         // TODO: better command than room power off
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_play:
         // TODO: better command
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
         break;
-      // Unimplemented ones:
+        // Unimplemented ones:
       case scene_cmd_audio_repeat_off:
       case scene_cmd_audio_repeat_1:
       case scene_cmd_audio_repeat_all:
@@ -122,6 +119,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       case scene_cmd_audio_shuffle_on:
       case scene_cmd_audio_resume_off:
       case scene_cmd_audio_resume_on:
+        continueApply = false; // that's all what we need to do
       default:
         break;
     }
@@ -150,7 +148,15 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       playMessage(as);
     }
   }
-  // finally apply the values
+  // prepared ok
+  return continueApply;
+}
+
+
+void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
+{
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
+  // Apply the values
   // - Volume
   if (ab->volume->needsApplying()) {
     int voxvol = ab->volume->getTransitionalValue()*MAX_VOXNET_VOLUME/100;
@@ -208,6 +214,7 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
     preMessageVolume = ab->volume->getChannelValue();
     preMessageSource = currentSource;
     preMessageStream = currentStream;
+    preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
     // prepare for message playing
     getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
@@ -260,15 +267,22 @@ void VoxnetDevice::endOfMessage()
   ALOG(LOG_INFO,"Message played to end -> reverting source and volume (to %d) now", (int)preMessageVolume);
   MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
   // revert source and stream to previous
-  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
-    "%s:room:select:%s;%s:stream:%s",
-    voxnetRoomID.c_str(),
-    preMessageSource.c_str(),
-    voxnetRoomID.c_str(),
-    preMessageStream.c_str()
-  ));
-  // revert volume to previous
-  ab->volume->setChannelValue(preMessageVolume); // restore value known before message started playing
+  if (preMessagePower) {
+    // was on before, revert
+    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+      "%s:room:select:%s;%s:stream:%s",
+      voxnetRoomID.c_str(),
+      preMessageSource.c_str(),
+      voxnetRoomID.c_str(),
+      preMessageStream.c_str()
+    ));
+    // revert volume to previous
+    ab->volume->setChannelValue(preMessageVolume); // restore value known before message started playing
+  }
+  else {
+    // was off before, turn off again
+    ab->powerState->setChannelValue(dsAudioPower_power_save);
+  }
   requestApplyingChannels(NULL, false);
 }
 
@@ -315,7 +329,6 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     } while (e!=string::npos);
     // update channel state
     // - save the volume, we might need it for unmute
-    unmuteVolume = vol;
     if (knownMuted) vol = 0; // when muted, channel value is 0
     ab->volume->syncChannelValue(vol);
   }

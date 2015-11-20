@@ -208,7 +208,7 @@ void VoxnetComm::connectionStatusHandler(ErrorPtr aError)
 
 void VoxnetComm::sendVoxnetText(const string aVoxNetText)
 {
-  FOCUSLOG("Voxnet <- vDC: %s", aVoxNetText.c_str());
+  LOG(LOG_NOTICE, "Voxnet <- vDC: %s", aVoxNetText.c_str());
   sendString(aVoxNetText + "\r");
 }
 

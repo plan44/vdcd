@@ -392,6 +392,24 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset) { aCompletedCB(ErrorPtr()); /* NOP in base class */ };
 
+    /// prepare for calling a scene on the device level
+    /// @param aScene the scene that is to be called
+    /// @return true if scene preparation is ok and call can continue. If false, no further action will be taken
+    /// @note this is called BEFORE scene values are recalled
+    virtual bool prepareSceneCall(DsScenePtr aScene);
+
+    /// perform special scene actions (like flashing) which are independent of dontCare flag.
+    /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
+    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopSceneActions())
+    /// @note base class implementation just calls performSceneActions() on output
+    /// @note this is called after scene values have been applied already
+    virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB);
+
+    /// abort any currently ongoing scene action
+    /// @note base class just calls stopActions() on the output
+    virtual void stopSceneActions();
+
+
     /// apply all pending channel value updates to the device's hardware
     /// @param aDoneCB will called when values are actually applied, or hardware reports an error/timeout
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement

@@ -45,11 +45,11 @@ namespace p44 {
     string currentSource; ///< alias or ID of current source
     string currentStream; ///< name of the source's substream
     bool knownMuted; ///< set if we know output is currently muted
-    double unmuteVolume; ///< volume that was present when last "mute" command was found, will be restored at "unmute"
 
     double preMessageVolume; ///< volume that was present when last message started playing, will be restored at end of message
     string preMessageSource; ///< alias or ID of source before message started playing
     string preMessageStream; ///< name of the source's substream before message started playing
+    bool preMessagePower; ///< power state before message started playing
 
     long messageTimerTicket; ///< set while message is playing
 
@@ -69,6 +69,13 @@ namespace p44 {
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
+
+
+    /// prepare for calling a scene on the device level
+    /// @param aScene the scene that is to be called
+    /// @return true if scene preparation is ok and call can continue. If false, no further action will be taken
+    /// @note this is called BEFORE scene values are recalled
+    virtual bool prepareSceneCall(DsScenePtr aScene);
 
     /// apply all pending channel value updates to the device's hardware
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's

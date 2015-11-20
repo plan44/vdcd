@@ -38,9 +38,6 @@ namespace p44 {
     /// channels
     ChannelBehaviourVector channels;
 
-    /// the scene context for next/pending apply operation
-    DsScenePtr applyContextScene;
-
   protected:
 
     /// @name hardware derived parameters (constant during operation)
@@ -132,10 +129,6 @@ namespace p44 {
     /// @return channel value limited/inverted according to outputMode
     double outputValueAccordingToMode(double aChannelValue);
 
-    /// @return scene context which has caused applyChannelValues(), or NULL if no scene
-    /// @note can be called once, afterwards scene context is gone
-    DsScenePtr getAndResetApplySceneContext();
-
     /// @}
 
 
@@ -162,8 +155,13 @@ namespace p44 {
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
-    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopActions())
+    /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopSceneActions())
     virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB) { if (aDoneCB) aDoneCB(); /* NOP in base class */ };
+
+    /// will be called to stop all ongoing actions before next callScene etc. is issued.
+    /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
+    ///   cannot mess up things.
+    virtual void stopSceneActions() { /* NOP in base class */ };
 
     /// perform applying Scene
     /// @param aScene the scene to apply
@@ -172,14 +170,6 @@ namespace p44 {
     ///   needed at all, will be triggered otherwise.
     /// @note this is a OutputBehaviour level wrapper and preparator for behaviour-specific applyScene().
     bool performApplyScene(DsScenePtr aScene);
-
-    /// report end of needing scene context while applying
-    void endSceneContext();
-
-    /// will be called to stop all ongoing actions before next callScene etc. is issued.
-    /// @note this must stop all ongoing actions such that applying another scene or action right afterwards
-    ///   cannot mess up things.
-    virtual void stopActions() { /* NOP in base class */ };
 
     /// capture current state into passed scene object
     /// @param aScene the scene object to update
