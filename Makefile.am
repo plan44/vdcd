@@ -42,6 +42,9 @@ else
 vdcd_PLATFORM =
 endif
 
+# enable some extras
+vdcd_EXTRAS = -D ENABLE_VOXNET=1 -D ENABLE_VZUGHOME=1
+
 
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
@@ -97,6 +100,8 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  -I ${srcdir}/src/deviceclasses/vzughome \
+  -I ${srcdir}/src/deviceclasses/voxnet \
   -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
@@ -106,6 +111,7 @@ vdcd_CXXFLAGS = \
   ${PROTOBUFC_CFLAGS} \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
+  ${vdcd_EXTRAS} \
   -D DISABLE_OLA=1
 
 
@@ -214,6 +220,8 @@ vdcd_SOURCES = \
   src/vdc_common/vdcd_common.hpp \
   src/behaviours/climatecontrolbehaviour.cpp \
   src/behaviours/climatecontrolbehaviour.hpp \
+  src/behaviours/audiobehaviour.cpp \
+  src/behaviours/audiobehaviour.hpp \
   src/behaviours/shadowbehaviour.cpp \
   src/behaviours/shadowbehaviour.hpp \
   src/behaviours/buttonbehaviour.hpp \
@@ -269,6 +277,18 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevicecontainer.hpp \
   src/deviceclasses/hue/huedevice.cpp \
   src/deviceclasses/hue/huedevice.hpp \
+  src/deviceclasses/vzughome/vzughomecomm.cpp \
+  src/deviceclasses/vzughome/vzughomecomm.hpp \
+  src/deviceclasses/vzughome/vzughomedevice.cpp \
+  src/deviceclasses/vzughome/vzughomedevice.hpp \
+  src/deviceclasses/vzughome/vzughomedevicecontainer.cpp \
+  src/deviceclasses/vzughome/vzughomedevicecontainer.hpp \
+  src/deviceclasses/voxnet/voxnetcomm.cpp \
+  src/deviceclasses/voxnet/voxnetcomm.hpp \
+  src/deviceclasses/voxnet/voxnetdevice.cpp \
+  src/deviceclasses/voxnet/voxnetdevice.hpp \
+  src/deviceclasses/voxnet/voxnetdevicecontainer.cpp \
+  src/deviceclasses/voxnet/voxnetdevicecontainer.hpp \
   src/p44_vdcd_main.cpp
 
 
@@ -296,6 +316,8 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
   -I ${srcdir}/src/deviceclasses/ola \
+  -I ${srcdir}/src/deviceclasses/vzughome \
+  -I ${srcdir}/src/deviceclasses/voxnet \
   -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
@@ -305,6 +327,7 @@ olavdcd_CXXFLAGS = \
   ${PROTOBUFC_CFLAGS} \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
+  ${vdcd_EXTRAS} \
   -D DISABLE_OLA=0
 
 olavdcd_SOURCES = \
