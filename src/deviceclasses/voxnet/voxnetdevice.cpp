@@ -48,6 +48,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   messageStream = "radio";
   //messageShellCommand = "echo bratenExplodiert >/tmp/nextmsg; killall -SIGUSR1 ices";
   //messageShellCommand = "echo message_@contentindex >/tmp/nextmsg; killall -SIGUSR1 ices";
+  messageShellCommand = "echo scene_@sceneno_message >/tmp/nextmsg; killall -SIGUSR1 ices";
   messageTitleNo = 1;
   messageLength = 20; // Seconds
 
@@ -235,6 +236,9 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
     string sc = messageShellCommand;
     while ((i = sc.find("@contentindex"))!=string::npos) {
       sc.replace(i, 13, string_format("%d", aAudioScene->contentSource));
+    }
+    while ((i = sc.find("@sceneno"))!=string::npos) {
+      sc.replace(i, 8, string_format("%d", aAudioScene->sceneNo));
     }
     ALOG(LOG_INFO, "- executing play shell command: %s", sc.c_str());
     MainLoop::currentMainLoop().fork_and_system(boost::bind(&VoxnetDevice::playingStarted, this, _3), sc.c_str());
