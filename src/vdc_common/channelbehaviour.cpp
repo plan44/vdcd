@@ -144,11 +144,11 @@ double ChannelBehaviour::getTransitionalValue()
 void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlwaysSync)
 {
   if (!channelUpdatePending || aAlwaysSync) {
-    if (LOGENABLED(LOG_INFO)) {
-      string s = output.device.shortDesc();
-      LOG(LOG_INFO,
-        "Channel '%s' in device %s: cached value synchronized from %0.2f -> %0.2f",
-        getName(), s.c_str(), cachedChannelValue, aActualChannelValue
+    if (cachedChannelValue!=aActualChannelValue || LOGENABLED(LOG_DEBUG)) {
+      // show only changes except if debugging
+      SALOG(output.device,LOG_INFO,
+        "Channel '%s': cached value synchronized from %0.2f -> %0.2f",
+        getName(), cachedChannelValue, aActualChannelValue
       );
     }
     // make sure new value is within bounds
@@ -193,13 +193,10 @@ void ChannelBehaviour::setChannelValue(double aNewValue, MLMicroSeconds aTransit
     aNewValue = getMin();
   // prevent propagating changes smaller than device resolution, but always apply when transition is in progress
   if (aAlwaysApply || inTransition() || fabs(aNewValue-cachedChannelValue)>=getResolution()) {
-    if (LOGENABLED(LOG_INFO)) {
-      string s = output.device.shortDesc();
-      LOG(LOG_INFO,
-        "Channel '%s' in device %s: is requested to change from %0.2f ->  %0.2f (transition time=%d mS)",
-        getName(), s.c_str(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
-      );
-    }
+    SALOG(output.device, LOG_INFO,
+      "Channel '%s' is requested to change from %0.2f ->  %0.2f (transition time=%d mS)",
+      getName(), cachedChannelValue, aNewValue, (int)(aTransitionTime/MilliSecond)
+    );
     // setting new value captures current (possibly transitional) value as previous and completes transition
     previousChannelValue = channelLastSync!=Never ? getTransitionalValue() : aNewValue; // If there is no valid previous value, set current as previous.
     transitionProgress = 1; // consider done
@@ -250,13 +247,10 @@ void ChannelBehaviour::channelValueApplied(bool aAnyWay)
     channelLastSync = MainLoop::now(); // now we know that we are in sync
     if (!aAnyWay) {
       // only log when actually of importance (to prevent messages for devices that apply mostly immediately)
-      if (LOGENABLED(LOG_INFO)) {
-        string s = output.device.shortDesc();
-        LOG(LOG_INFO,
-          "Channel '%s' in device %s: has applied new value %0.2f to hardware%s",
-          getName(), s.c_str(), cachedChannelValue, inTransition() ? " (still in transition)" : " (complete)"
-        );
-      }
+      SALOG(output.device, LOG_INFO,
+        "Channel '%s' has applied new value %0.2f to hardware%s",
+        getName(), cachedChannelValue, inTransition() ? " (still in transition)" : " (complete)"
+      );
     }
   }
 }

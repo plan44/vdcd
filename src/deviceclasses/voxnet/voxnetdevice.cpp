@@ -181,7 +181,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   }
   // - Power
   if (ab->powerState->needsApplying()) {
-    bool powerOn = ab->powerState->getTransitionalValue();
+    bool powerOn = ab->powerState->getIndex()==dsAudioPower_on;
     if (!powerOn) {
       // transmit a room off command
       getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
@@ -291,18 +291,19 @@ void VoxnetDevice::endOfMessage()
 
 void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus)
 {
+  string kv;
+  string k, v;
+  size_t i;
+  size_t e;
   if (aVoxnetID==voxnetRoomID) {
     ALOG(LOG_DEBUG, "Room Status: %s", aVoxnetStatus.c_str());
     AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
     // streaming=$U00113220A2A40:volume=10:balance=1:treble=1:bass=2:mute=off
-    string kv;
-    size_t i = 0;
-    size_t e;
+    i = 0;
     double vol = 0;
     do {
       e = aVoxnetStatus.find_first_of(":", i);
-      kv.assign(aVoxnetStatus, i, e-i);
-      string k, v;
+      kv.assign(aVoxnetStatus, i, e==string::npos ? e : e-i);
       if (keyAndValue(kv, k, v, '=')) {
         // extract state
         if (k=="mute") {
@@ -320,9 +321,24 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
           // TODO: For now we consider any streaming as indication of device being on
           //   (and Voxnet 219 does not have a deep off)
           ab->powerState->syncChannelValue(v=="$unknown" ? dsAudioPower_power_save : dsAudioPower_on);
-          // save current source ID
+          // try to resolve source
           getVoxnetDeviceContainer().voxnetComm->resolveVoxnetRef(v);
-          currentSource = v;
+          // - check if streaming a user (i.e. we'd need further resolving)
+          if (v.size()>1 && v[1]=='U') {
+            // this is a user reference
+            if (v!=currentUser) {
+              currentUser = v;
+              ALOG(LOG_NOTICE,"User changed: %s", v.c_str());
+            }
+          }
+          else {
+            currentUser.clear(); // remove user assignment
+            // save current source ID
+            if (v!=currentSource) {
+              currentSource = v;
+              ALOG(LOG_NOTICE,"Source changed: %s", v.c_str());
+            }
+          }
         }
       }
       i = e+1;
@@ -335,24 +351,49 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
   else if (aVoxnetID==currentSource) {
     ALOG(LOG_DEBUG, "Source Status: %s", aVoxnetStatus.c_str());
     // streaming=radio:info_1=SRF Virus
-    string kv;
-    size_t i = 0;
-    size_t e;
+    i = 0;
     do {
       e = aVoxnetStatus.find_first_of(":", i);
-      kv.assign(aVoxnetStatus, i, e-i);
-      string k, v;
+      kv.assign(aVoxnetStatus, i, e==string::npos ? e : e-i);
       if (keyAndValue(kv, k, v, '=')) {
         // extract state
         if (k=="streaming") {
           // streaming (substream of the source)
-          currentStream = v;
-          ALOG(LOG_DEBUG, "Current Source=%s, current stream=%s", currentSource.c_str(), currentStream.c_str());
+          if (v!=currentStream) {
+            currentStream = v;
+            ALOG(LOG_NOTICE, "Stream of source %s changed to %s", currentSource.c_str(), v.c_str());
+          }
         }
       }
       i = e+1;
     } while (e!=string::npos);
   }
+  else if (aVoxnetID==currentUser) {
+    ALOG(LOG_DEBUG, "User Status: %s", aVoxnetStatus.c_str());
+    // selected=$MyMusic2
+    // streaming=radio:info_1=SRF Virus
+    i = 0;
+    do {
+      e = aVoxnetStatus.find_first_of(":", i);
+      kv.assign(aVoxnetStatus, i, e==string::npos ? e : e-i);
+      if (keyAndValue(kv, k, v, '=')) {
+        // extract state
+        if (k=="selected") {
+          // source of current user changed
+          getVoxnetDeviceContainer().voxnetComm->resolveVoxnetRef(v);
+          if (v!=currentSource) {
+            currentSource = v;
+            ALOG(LOG_NOTICE,"Source changed: %s (via user %s)", v.c_str(), currentUser.c_str());
+          }
+        }
+      }
+      i = e+1;
+    } while (e!=string::npos);
+  }
+  ALOG(LOG_DEBUG,
+    "Overall Status: currentUser=%s, currentSource=%s, currentStream=%s",
+    currentUser.c_str(), currentSource.c_str(), currentStream.c_str()
+  );
 }
 
 

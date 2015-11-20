@@ -30,6 +30,7 @@
 
 // per-addressable logging macros
 #define ALOG(lvl, ...) { if (LOGENABLED(lvl)) { logAddressable(lvl, ##__VA_ARGS__); } }
+#define SALOG(addressable,lvl, ...) { if (LOGENABLED(lvl)) { addressable.logAddressable(lvl, ##__VA_ARGS__); } }
 #if FOCUSLOGGING
 #define AFOCUSLOG(...) { ALOG(FOCUSLOGLEVEL, ##__VA_ARGS__); }
 #else

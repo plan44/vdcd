@@ -42,6 +42,7 @@ namespace p44 {
 
     string voxnetRoomID;
 
+    string currentUser; ///< alias or ID of current user
     string currentSource; ///< alias or ID of current source
     string currentStream; ///< name of the source's substream
     bool knownMuted; ///< set if we know output is currently muted
