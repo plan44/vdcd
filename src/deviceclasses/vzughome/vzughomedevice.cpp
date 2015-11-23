@@ -65,7 +65,7 @@ void VZugHomeDevice::gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, Er
   if (Error::isOK(aError)) {
     if (aResult) {
       modelId = aResult->stringValue();
-      if (modelId=="MSLQ") {
+      if (modelId=="CSTMSLQ") {
         deviceModel = model_MSLQ;
       }
       vzugHomeComm.apiAction("/hh?command=getModelDescription", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelDescription, this, aCompletedCB, _1, _2));
@@ -129,11 +129,11 @@ void VZugHomeDevice::willBeAdded()
     // - add two temperature sensors
     SensorBehaviourPtr s1 = SensorBehaviourPtr(new SensorBehaviour(*this));
     s1->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
-    s1->setHardwareName("Gartemperatur");
+    s1->setHardwareName("Garraumtemperatur");
     addBehaviour(s1);
     SensorBehaviourPtr s2 = SensorBehaviourPtr(new SensorBehaviour(*this));
     s2->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
-    s2->setHardwareName("Garraumtemperatur");
+    s2->setHardwareName("Garsensortemperatur");
     addBehaviour(s2);
   }
 }
@@ -164,26 +164,40 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
   // Status:
   if (deviceModel==model_MSLQ) {
     // for MSLQ something like
-    //  "Gartemperatur: 45°\nGarraumtemperatur: 120°"
+    // (sensor) xx°, (garraum) xx°\n(unknown) 0(unknown unit)
+
+    // EE 83 B1 = degree sign
+    // EE 84 B2 = unknown unit of 3rd value
+
+    // EE 85 81 = Garraum
+    // EE 84 86 = Garsensor
+
+    // EE 83 B5 = 3rd value, not visible on display so far
+
     string s = aResult->stringValue();
+    size_t i = string::npos;
     ALOG(LOG_DEBUG, "Status: %s", s.c_str());
-    size_t i = 0;
-    int sensorIndex = 0;
-    while (i<s.size() && sensorIndex<2) {
-      size_t e = s.find('\n',i);
-      if (e==string::npos) e=s.size();
-      // extract temperature
-      size_t ne = s.find_last_of("0123456789",e);
-      size_t ns = s.find_last_of(' ',ne);
-      if (ns<ne && ns!=string::npos) {
-        int temp;
-        if (sscanf(s.c_str()+ns+1, "%d", &temp)==1) {
-          // update sensor
-          boost::dynamic_pointer_cast<SensorBehaviour>(sensors[sensorIndex])->updateSensorValue(temp);
-        }
+    // search for UTF-8 char designating Garraum
+    i = s.find("\xEE\x85\x81");
+    if (i!=string::npos) {
+      // find start of temperature value
+      i = s.find_first_of("0123456789",i);
+      int temp;
+      if (sscanf(s.c_str()+i, "%d", &temp)==1) {
+        // update Garraumtemperatur
+        boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0])->updateSensorValue(temp);
       }
-      sensorIndex++;
-      i=e+1;
+    }
+    // search for UTF-8 char designating Gargutsensor
+    i = s.find("\xEE\x84\x86");
+    if (i!=string::npos) {
+      // find start of temperature value
+      i = s.find_first_of("0123456789",i);
+      int temp;
+      if (sscanf(s.c_str()+i, "%d", &temp)==1) {
+        // update Garsensortemperatur
+        boost::dynamic_pointer_cast<SensorBehaviour>(sensors[1])->updateSensorValue(temp);
+      }
     }
   }
   // query current program
