@@ -42,12 +42,12 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   mostRecentPush(0)
 {
   vzugHomeComm.baseURL = aBaseURL;
-  setPrimaryGroup(group_black_joker); // TODO: what is the correct color for whiteware?
+  setPrimaryGroup(group_black_joker);
   installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
   // - set the output behaviour
   OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
   o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
-  o->setGroupMembership(group_black_joker, true); // TODO: what is the correct color for whiteware?
+  o->setGroupMembership(group_black_joker, true);
   o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
   addBehaviour(o);
 }
@@ -258,7 +258,6 @@ void VZugHomeDevice::gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aE
   }
   // Figure out if there are new push notifications
   ALOG(LOG_DEBUG, "Last Push notifications: %s", aResult->json_c_str());
-  // TODO: implement it
   int i = 0;
   uint64_t newMostRecent = mostRecentPush;
   while (aResult->arrayLength()>i) {
@@ -333,8 +332,31 @@ void VZugHomeDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResu
 
 void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch && ch->needsApplying()) {
+    // we can turn off the device
+    if (ch->getChannelValue()==0) {
+      // send off command
+      vzugHomeComm.apiAction("/hh?command=doTurnOff", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::sentDoTurnOff, this, aDoneCB, aForDimming, _2));
+      return;
+    }
+  }
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
+
+
+void VZugHomeDevice::sentDoTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    ALOG(LOG_INFO, "Successfully turned off device");
+  }
+  else {
+    ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
+  }
+  inherited::applyChannelValues(aDoneCB, aForDimming);
+}
+
+
 
 
 void VZugHomeDevice::deriveDsUid()

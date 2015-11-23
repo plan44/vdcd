@@ -144,6 +144,7 @@ namespace p44 {
     void gotIsActive(JsonObjectPtr aResult, ErrorPtr aError);
     void gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aError);
     void scheduleNextStatePoll(ErrorPtr aError);
+    void sentDoTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError);
 
     void processPushMessage(const string aMessage);
 
