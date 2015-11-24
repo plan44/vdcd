@@ -163,13 +163,46 @@ bool ClimateControlBehaviour::applyScene(DsScenePtr aScene)
 
 #pragma mark - persistence
 
+
+const char *ClimateControlBehaviour::tableName()
+{
+  return "ClimateOutputSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 1;
+
+size_t ClimateControlBehaviour::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *ClimateControlBehaviour::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "heatingSystemCapability", SQLITE_INTEGER },
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
 /// load values from passed row
 void ClimateControlBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   // get the data
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
-  // decode the flags
+  // decode the common flags
   if (aCommonFlagsP) summerMode = *aCommonFlagsP & outputflag_summerMode;
+  // get the fields
+  heatingSystemCapability = (DsHeatingSystemCapability)aRow->get<int>(aIndex++);
 }
 
 
@@ -180,8 +213,66 @@ void ClimateControlBehaviour::bindToStatement(sqlite3pp::statement &aStatement, 
   if (summerMode) aCommonFlags |= outputflag_summerMode;
   // bind
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, heatingSystemCapability);
 }
 
+
+#pragma mark - property access
+
+
+static char climatecontrol_key;
+
+// settings properties
+
+enum {
+  heatingSystemCapability_key,
+  numSettingsProperties
+};
+
+
+int ClimateControlBehaviour::numSettingsProps() { return inherited::numSettingsProps()+numSettingsProperties; }
+const PropertyDescriptorPtr ClimateControlBehaviour::getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numSettingsProperties] = {
+    { "heatingSystemCapability", apivalue_uint64, heatingSystemCapability_key+settings_key_offset, OKEY(climatecontrol_key) },
+  };
+  int n = inherited::numSettingsProps();
+  if (aPropIndex<n)
+    return inherited::getSettingsDescriptorByIndex(aPropIndex, aParentDescriptor);
+  aPropIndex -= n;
+  return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+}
+
+
+// access to all fields
+
+bool ClimateControlBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(climatecontrol_key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        // Settings properties
+        case heatingSystemCapability_key+settings_key_offset: aPropValue->setUint8Value(heatingSystemCapability); return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        // Settings properties
+        case heatingSystemCapability_key+settings_key_offset: setPVar(heatingSystemCapability, (DsHeatingSystemCapability)aPropValue->uint8Value()); return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
+
+
+
+#pragma mark - description
 
 
 string ClimateControlBehaviour::shortDesc()
