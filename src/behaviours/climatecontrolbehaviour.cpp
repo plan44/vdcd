@@ -20,6 +20,7 @@
 //
 
 #include "climatecontrolbehaviour.hpp"
+#include <math.h>
 
 using namespace p44;
 
@@ -82,6 +83,7 @@ DsScenePtr ClimateDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice),
+  heatingSystemCapability(hscapability_heatingAndCooling), // assume valve can handle both negative and positive values (even if only by applying absolute value to valve)
   summerMode(false), // assume valve active
   runProphylaxis(false) // no run scheduled
 {
@@ -99,10 +101,35 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
 {
   if (aName=="heatingLevel") {
     if (isMember(group_roomtemperature_control) && isEnabled()) {
-      // apply positive values to (default) valve output, clip to 100 max
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
-        cb->setChannelValue(aValue<0 ? 0 : (aValue>100 ? 100 : aValue), 0, true); // always apply
+        // apply outputmode
+        aValue = outputValueAccordingToMode(aValue);
+        // clip to -100..0..100 range
+        if (aValue<-100) aValue = -100;
+        else if (aValue>100) aValue = 100;
+        // limit according to heatingSystemCapability setting
+        switch (heatingSystemCapability) {
+          case hscapability_heatingOnly:
+            // 0..100
+            if (aValue<0) aValue = 0; // ignore negatives
+            break;
+          case hscapability_coolingOnly:
+            // -100..0
+            if (aValue>0) aValue = 0; // ignore positives
+            break;
+          default:
+          case hscapability_heatingAndCooling:
+            // pass all values
+            break;
+        }
+        // adapt to hardware capabilities
+        if (outputFunction!=outputFunction_bipolar_positional) {
+          // non-bipolar valves can only handle positive values, even for cooling
+          aValue = fabs(aValue);
+        }
+        // apply now
+        cb->setChannelValue(aValue); // always apply
       }
     }
   }

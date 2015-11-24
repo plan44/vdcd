@@ -96,8 +96,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    ob->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
-    ob->setHardwareName("Simulated valve, 0..100");
+    ob->setHardwareOutputConfig(outputFunction_bipolar_positional, outputmode_gradual, usage_room, false, 0);
+    ob->setHardwareName("Simulated valve, -100..100");
     addBehaviour(ob);
     // - create feedback sensor input
     SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*this));
@@ -128,7 +128,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, true, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_undefined, true, -1);
     addBehaviour(l);
   }
   else if (consoleIoType==consoleio_colordimmer) {

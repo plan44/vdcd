@@ -80,15 +80,6 @@ namespace p44 {
   };
 
 
-  /// possible values for heatingSystemCapability property
-  typedef enum {
-    hscapability_heatingOnly = 1, ///< only positive "heatingLevel" will be applied to the output
-    hscapability_coolingOnly = 2, ///< only negative "heatingLevel" will be applied as positive values to the output
-    hscapability_heatingAndCooling = 3 ///< absolute value of "heatingLevel" will be applied to the output
-  } DsHeatingSystemCapability;
-
-
-
   /// Implements the behaviour of climate control outputs, in particular evaluating
   /// control values with processControlValue()
   class ClimateControlBehaviour : public OutputBehaviour

@@ -60,7 +60,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else if (analogIOType==analogio_rgbdimmer) {
@@ -108,7 +108,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    ob->setHardwareOutputConfig(outputFunction_positional, usage_room, false, 0);
+    ob->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, 0);
     ob->setHardwareName("Valve, 0..100");
     addBehaviour(ob);
   }

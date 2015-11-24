@@ -212,7 +212,7 @@ SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const stri
   installSettings(DeviceSettingsPtr(new SparkDeviceSettings(*this)));
   // set the behaviour
   SparkLightBehaviourPtr sl = SparkLightBehaviourPtr(new SparkLightBehaviour(*this));
-  sl->setHardwareOutputConfig(outputFunction_colordimmer, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
+  sl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual, usage_undefined, true, 70); // spark light can draw 70 Watts with 240 WS2812 connected
   sl->setHardwareName("SparkCore based RGB light");
   sl->initMinBrightness(1); // min brightness is 1
   addBehaviour(sl);

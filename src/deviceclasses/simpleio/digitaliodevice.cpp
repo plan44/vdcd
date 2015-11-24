@@ -91,7 +91,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
@@ -102,7 +102,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
     // - add generic output behaviour
     OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-    o->setHardwareOutputConfig(outputFunction_switch, usage_undefined, false, -1);
+    o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
     o->setGroupMembership(group_black_joker, true); // put into joker group by default
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
     addBehaviour(o);
