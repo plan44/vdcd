@@ -20,6 +20,7 @@
 //
 
 #include "climatecontrolbehaviour.hpp"
+#include <math.h>
 
 using namespace p44;
 
@@ -96,7 +97,7 @@ ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
 
 
 
-void ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
+bool ClimateControlBehaviour::processControlValue(const string &aName, double aValue)
 {
   if (aName=="heatingLevel") {
     if (isMember(group_roomtemperature_control) && isEnabled()) {
@@ -128,10 +129,12 @@ void ClimateControlBehaviour::processControlValue(const string &aName, double aV
           aValue = fabs(aValue);
         }
         // apply now
-        cb->setChannelValue(aValue); // always apply
+        cb->setChannelValue(aValue, 0, true); // always apply
+        return true; // needs apply
       }
     }
   }
+  return inherited::processControlValue(aName, aValue);
 }
 
 

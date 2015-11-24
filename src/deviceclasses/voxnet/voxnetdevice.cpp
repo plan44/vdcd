@@ -49,7 +49,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   installSettings(DeviceSettingsPtr(new VoxnetDeviceSettings(*this)));
   // - add audio device behaviour
   AudioBehaviourPtr a = AudioBehaviourPtr(new AudioBehaviour(*this));
-  a->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_room, true, -1);
+  a->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_room, true, -1);
   // - adjust resolution for volume
   a->volume->setResolution(a->volume->getMax()/MAX_VOXNET_VOLUME);
   a->contentSource->setNumIndices(MAX_VOXNET_CONTENTSOURCES);
