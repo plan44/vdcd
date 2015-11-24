@@ -198,7 +198,7 @@ EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
         newDev->setAlwaysUpdateable();
         // - add shadow behaviour
         ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*newDev.get()));
-        sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_undefined, false, -1);
+        sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_undefined, false, -1);
         sb->setHardwareName("blind");
         sb->setDeviceParams(shadowdevice_jalousie, false, MIN_MOVE_TIME, MAX_SHORT_MOVE_TIME, MIN_LONG_MOVE_TIME);
         sb->position->syncChannelValue(100); // assume fully up at beginning

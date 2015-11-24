@@ -216,6 +216,16 @@ ErrorPtr ExternalDevice::processJsonMessage(string aMessageType, JsonObjectPtr a
       else if (aMessageType=="channel") {
         err = processInputJson('C', aMessage);
       }
+      else if (aMessageType=="log") {
+        // log something
+        int logLevel = LOG_NOTICE; // default to normally displayed (5)
+        JsonObjectPtr o = aMessage->get("level");
+        if (o) logLevel = o->int32Value();
+        o = aMessage->get("text");
+        if (o) {
+          LOG(logLevel,"External Device %s: %s", shortDesc().c_str(), o->c_strValue());
+        }
+      }
       else {
         err = TextError::err("Unknown message '%s'", aMessageType.c_str());
       }
@@ -241,14 +251,21 @@ ErrorPtr ExternalDevice::processSimpleMessage(string aMessageType, string aValue
     return ErrorPtr(); // no answer
   }
   else if (aMessageType.size()>0) {
-    // none of the other commands, try inputs
+    // none of the other commands, try inputs (or log)
     char iotype = aMessageType[0];
     int index = 0;
     if (sscanf(aMessageType.c_str()+1, "%d", &index)==1) {
-      // must be input
-      double value = 0;
-      sscanf(aValue.c_str(), "%lf", &value);
-      return processInput(iotype, index, value);
+      if (iotype=='L') {
+        // log
+        LOG(index,"External Device %s: %s", shortDesc().c_str(), aValue.c_str());
+        return ErrorPtr(); // no answer
+      }
+      else {
+        // must be input
+        double value = 0;
+        sscanf(aValue.c_str(), "%lf", &value);
+        return processInput(iotype, index, value);
+      }
     }
   }
   return TextError::err("Unknown message '%s'", aMessageType.c_str());
@@ -499,7 +516,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction, outputFunction==outputFunction_switch ? outputmode_binary : outputmode_gradual_positive, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction, outputFunction==outputFunction_switch ? outputmode_binary : outputmode_gradual, usage_undefined, false, -1);
     l->setHardwareName(hardwareName);
     addBehaviour(l);
   }
@@ -528,7 +545,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     // - create climate control outout
     OutputBehaviourPtr cb = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     cb->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    cb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_room, false, 0);
+    cb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, 0);
     cb->setHardwareName(hardwareName);
     addBehaviour(cb);
   }
@@ -538,7 +555,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*this)));
     // - add shadow behaviour
     ShadowBehaviourPtr sb = ShadowBehaviourPtr(new ShadowBehaviour(*this));
-    sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_undefined, false, -1);
+    sb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_undefined, false, -1);
     sb->setHardwareName(hardwareName);
     ShadowDeviceKind sk = shadowdevice_jalousie; // default to jalousie
     if (aInitParams->get("kind", o)) {
@@ -796,11 +813,11 @@ void ExternalDeviceConnector::sendDeviceApiStatusMessage(ErrorPtr aError, const 
 
 
 
-ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag, bool aNoError)
+ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag)
 {
   ExternalDevicePtr dev;
   if (aTag.empty() && externalDevices.size()>1) {
-    if (!aNoError) sendDeviceApiStatusMessage(TextError::err("missing 'tag' field"));
+    sendDeviceApiStatusMessage(TextError::err("missing 'tag' field"));
   }
   else {
     ExternalDevicesMap::iterator pos = externalDevices.end();
@@ -813,7 +830,7 @@ ExternalDevicePtr ExternalDeviceConnector::findDeviceByTag(string aTag, bool aNo
       pos = externalDevices.begin();
     }
     if (pos==externalDevices.end()) {
-      if (!aNoError) sendDeviceApiStatusMessage(TextError::err("no device tagged '%s' found", aTag.c_str()));
+      sendDeviceApiStatusMessage(TextError::err("no device tagged '%s' found", aTag.c_str()));
     }
     else {
       dev = pos->second;
@@ -912,21 +929,9 @@ ErrorPtr ExternalDeviceConnector::handleDeviceApiJsonSubMessage(JsonObjectPtr aM
         }
       }
     }
-    else if (msg=="log") {
-      // log something
-      int logLevel = LOG_NOTICE; // default to normally displayed (5)
-      JsonObjectPtr o = aMessage->get("level");
-      if (o) logLevel = o->int32Value();
-      o = aMessage->get("text");
-      if (o) {
-        DsAddressablePtr a = findDeviceByTag(tag, true);
-        if (a) { LOG(logLevel,"External Device %s: %s", a->shortDesc().c_str(), o->c_strValue()); }
-        else { LOG(logLevel,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), o->c_strValue()); }
-      }
-    }
     else {
       // must be a message directed to an already existing device
-      extDev = findDeviceByTag(tag, false);
+      extDev = findDeviceByTag(tag);
       if (extDev) {
         err = extDev->processJsonMessage(o->stringValue(), aMessage);
       }
@@ -964,19 +969,9 @@ void ExternalDeviceConnector::handleDeviceApiSimpleMessage(ErrorPtr aError, stri
       msg = taggedmsg;
       tag.clear(); // no tag
     }
-    if (msg[0]=='L') {
-      // log
-      int level = LOG_ERR;
-      sscanf(msg.c_str()+1, "%d", &level);
-      DsAddressablePtr a = findDeviceByTag(tag, true);
-      if (a) { LOG(level,"External Device %s: %s", a->shortDesc().c_str(), val.c_str()); }
-      else { LOG(level,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), val.c_str()); }
-    }
-    else {
-      extDev = findDeviceByTag(tag, false);
-      if (extDev) {
-        aError = extDev->processSimpleMessage(msg,val);
-      }
+    extDev = findDeviceByTag(tag);
+    if (extDev) {
+      aError = extDev->processSimpleMessage(msg,val);
     }
   }
   // remove device that are not configured now

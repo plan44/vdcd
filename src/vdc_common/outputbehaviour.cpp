@@ -203,19 +203,7 @@ double OutputBehaviour::outputValueAccordingToMode(double aChannelValue)
       outval = aChannelValue>0 ? 100 : 0;
       break;
     // positive values only
-    case outputmode_gradual_positive:
-      outval = aChannelValue>0 ? aChannelValue : 0;
-      break;
-    // negative values only, converted to positive
-    case outputmode_gradual_negative:
-      outval = aChannelValue<0 ? -aChannelValue : 0;
-      break;
-    // inverted, but no limits
-    case outputmode_gradual_bipolar_inverted:
-      outval = -aChannelValue;
-      break;
-    // default: no limits, not inverted -> just pass input to output
-    case outputmode_gradual_bipolar:
+    case outputmode_gradual:
     default:
       outval = aChannelValue;
       break;

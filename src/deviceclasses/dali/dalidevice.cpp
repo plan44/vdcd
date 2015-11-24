@@ -503,7 +503,7 @@ void DaliDimmerDevice::willBeAdded()
   installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
   // - set the behaviour
   LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-  l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
+  l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_undefined, true, 160); // DALI ballasts are always dimmable, // TODO: %%% somewhat arbitrary 2*80W max wattage
   if (daliTechnicalType()==dalidevice_group)
     l->setHardwareName(string_format("DALI dimmer group # %d",brightnessDimmer->deviceInfo.shortAddress & DaliGroupMask));
   else
@@ -696,7 +696,7 @@ void DaliRGBWDevice::willBeAdded()
   installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
   // set the behaviour
   RGBColorLightBehaviourPtr cl = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
-  cl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual_positive, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
+  cl->setHardwareOutputConfig(outputFunction_colordimmer, outputmode_gradual, usage_undefined, true, 0); // DALI lights are always dimmable, no power known
   cl->setHardwareName(string_format("DALI color light"));
   cl->initMinBrightness(0.4); // min brightness is 0.4 (~= 1/256)
   addBehaviour(cl);

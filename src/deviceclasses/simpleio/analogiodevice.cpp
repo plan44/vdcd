@@ -60,7 +60,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else if (analogIOType==analogio_rgbdimmer) {
@@ -108,7 +108,7 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
     // - create climate control outout
     OutputBehaviourPtr ob = OutputBehaviourPtr(new ClimateControlBehaviour(*this));
     ob->setGroupMembership(group_roomtemperature_control, true); // put into room temperature control group by default, NOT into standard blue)
-    ob->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual_positive, usage_room, false, 0);
+    ob->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, 0);
     ob->setHardwareName("Valve, 0..100");
     addBehaviour(ob);
   }
@@ -281,7 +281,7 @@ string AnalogIODevice::description()
   if (analogIOType==analogio_rgbdimmer)
     string_format_append(s, "\n- Color Dimmer with RGB outputs '%s', '%s', '%s'; White: '%s'", analogIO->getName().c_str(), analogIO2->getName().c_str(), analogIO3->getName().c_str(), analogIO4 ? analogIO4->getName().c_str() : "none");
   if (analogIOType==analogio_valve)
-    string_format_append(s, "\n- Heating Valve @ '%s'", analogIO->getName().c_str());
+    string_format_append(s, "\nHeating Valve @ '%s'", analogIO->getName().c_str());
   return s;
 }
 

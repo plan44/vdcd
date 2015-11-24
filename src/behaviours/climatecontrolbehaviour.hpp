@@ -80,8 +80,6 @@ namespace p44 {
   };
 
 
-
-
   /// Implements the behaviour of climate control outputs, in particular evaluating
   /// control values with processControlValue()
   class ClimateControlBehaviour : public OutputBehaviour
@@ -101,6 +99,9 @@ namespace p44 {
     /// set if climate controlling output is in summer mode (uses less energy or is switched off)
     /// @note this flag is not exposed as a property, but set/reset by callScene(29=wintermode) and callScene(30=summermode)
     bool summerMode;
+
+    /// defines how "heatingLevel" is applied to the output
+    DsHeatingSystemCapability heatingSystemCapability;
 
     /// @}
 
@@ -169,11 +170,20 @@ namespace p44 {
 
   protected:
 
+    // property access implementation for descriptor/settings/states
+    virtual int numSettingsProps();
+    virtual const PropertyDescriptorPtr getSettingsDescriptorByIndex(int aPropIndex, PropertyDescriptorPtr aParentDescriptor);
+    // combined field access for all types of properties
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
     // persistence implementation
     enum {
       outputflag_summerMode = inherited::outputflag_nextflag<<0,
       outputflag_nextflag = inherited::outputflag_nextflag<<1
     };
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
     virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
     virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
 

@@ -122,7 +122,7 @@ OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDevice
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
-    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_undefined, false, -1);
+    l->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_undefined, false, -1);
     addBehaviour(l);
   }
   else if (olaType==ola_fullcolordimmer) {

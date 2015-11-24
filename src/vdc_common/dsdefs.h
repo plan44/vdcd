@@ -276,7 +276,7 @@ typedef enum {
 } DsButtonFunc;
 
 
-/// output functions
+/// output functions (describes capability of output)
 typedef enum {
   outputFunction_switch = 0, ///< switch output - single channel 0..100
   outputFunction_dimmer = 1, ///< effective value dimmer - single channel 0..100
@@ -291,10 +291,7 @@ typedef enum {
 typedef enum {
   outputmode_disabled = 0, ///< disabled
   outputmode_binary = 1, ///< binary ON/OFF mode
-  outputmode_gradual_positive = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
-  outputmode_gradual_negative = 3, ///< gradual negative-only -n..0 (e.g. cooling valve)
-  outputmode_gradual_bipolar = 4, ///< bipolar gradual output value -n..0..n (heating/cooling valve)
-  outputmode_gradual_bipolar_inverted = 5, ///< bipolar gradual output value -n..0..n, mapped inverted
+  outputmode_gradual = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
   outputmode_default = 0x7F ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 
@@ -306,6 +303,14 @@ typedef enum {
   dsAudioPower_on = 2,
   numDsAudioPowerStates
 } DsAudioPowerState;
+
+
+/// heatingSystemCapability modes
+typedef enum {
+  hscapability_heatingOnly = 1, ///< only positive "heatingLevel" will be applied to the output
+  hscapability_coolingOnly = 2, ///< only negative "heatingLevel" will be applied as positive values to the output
+  hscapability_heatingAndCooling = 3 ///< absolute value of "heatingLevel" will be applied to the output
+} DsHeatingSystemCapability;
 
 
 /// output channel types
