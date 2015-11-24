@@ -79,6 +79,22 @@ void BinaryInputBehaviour::updateInputState(bool aNewState)
 }
 
 
+void BinaryInputBehaviour::invalidateInputState()
+{
+  if (lastUpdate!=Never) {
+    // currently valid -> invalidate
+    lastUpdate = Never;
+    currentState = false;
+    // push invalidation (primitive clients not capable of NULL will at least see state==false)
+    MLMicroSeconds now = MainLoop::now();
+    // push the invalid state
+    if (pushBehaviourState()) {
+      lastPush = now;
+    }
+  }
+}
+
+
 #pragma mark - persistence implementation
 
 

@@ -84,6 +84,9 @@ namespace p44 {
     /// @name interface towards actual device hardware (or simulation)
     /// @{
 
+    /// invalidate input state, i.e. indicate that current state is not known
+    void invalidateInputState();
+
     /// button action occurred
     /// @param aNewState the new state of the input
     void updateInputState(bool aNewState);

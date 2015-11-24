@@ -94,6 +94,9 @@ namespace p44 {
     /// @return the sensor type
     DsSensorType getSensorType() { return sensorType; };
 
+    /// invalidate sensor value, i.e. indicate that current value is not known
+    void invalidateSensorValue();
+
     /// update sensor value (when new value received from hardware)
     /// @param aValue the new value from the sensor, in physical units according to sensorType (DsSensorType)
     void updateSensorValue(double aValue);

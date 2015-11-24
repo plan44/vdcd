@@ -84,6 +84,22 @@ void SensorBehaviour::updateSensorValue(double aValue)
 }
 
 
+void SensorBehaviour::invalidateSensorValue()
+{
+  if (lastUpdate!=Never) {
+    // currently valid -> invalidate
+    lastUpdate = Never;
+    currentValue = 0;
+    // push invalidation (primitive clients not capable of NULL will at least see value==0)
+    MLMicroSeconds now = MainLoop::now();
+    // push the invalid state
+    if (pushBehaviourState()) {
+      lastPush = now;
+    }
+  }
+}
+
+
 #pragma mark - persistence implementation
 
 
