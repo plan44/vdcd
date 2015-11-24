@@ -34,6 +34,35 @@ using namespace std;
 namespace p44 {
 
   class VoxnetDeviceContainer;
+  class VoxnetDevice;
+
+
+  class VoxnetDeviceSettings : public AudioDeviceSettings
+  {
+    typedef AudioDeviceSettings inherited;
+    friend class VoxnetDevice;
+
+    string messageSourceID; ///< ID/alias of the source that provides messages
+    string messageStream; ///< stream in the message source that provides messages
+    int messageTitleNo; ///< the title number to play for messages, 0 if none
+    string messageShellCommand; ///< the shell command to execute to start message playing, empty if none
+    int messageDuration; ///< duration of message in seconds (0 if actual length is reported back by shell command)
+
+  protected:
+
+    VoxnetDeviceSettings(Device &aDevice);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
+
+  };
+  typedef boost::intrusive_ptr<VoxnetDeviceSettings> VoxnetDeviceSettingsPtr;
+
+
 
   class VoxnetDevice : public Device
   {
@@ -54,11 +83,7 @@ namespace p44 {
 
     long messageTimerTicket; ///< set while message is playing
 
-    string messageSourceID; ///< ID/alias of the source that provides messages
-    string messageStream; ///< stream in the message source that provides messages
-    string messageShellCommand; ///< the shell command to execute to start message playing, empty if none
-    int messageTitleNo; ///< the title number to play for messages, 0 if none
-    int messageLength; ///< length of message in seconds
+    VoxnetDeviceSettingsPtr voxnetSettings() { return boost::dynamic_pointer_cast<VoxnetDeviceSettings>(deviceSettings); };
 
   public:
 
@@ -135,6 +160,11 @@ namespace p44 {
   protected:
 
     void deriveDsUid();
+
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
 
   private:
 

@@ -43,19 +43,10 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   knownMuted(false),
   messageTimerTicket(0)
 {
-  // TODO: make these configurable
-  messageSourceID = "$MyMusic2";
-  messageStream = "radio";
-  //messageShellCommand = "echo bratenExplodiert >/tmp/nextmsg; killall -SIGUSR1 ices";
-  //messageShellCommand = "echo message_@contentindex >/tmp/nextmsg; killall -SIGUSR1 ices";
-  messageShellCommand = "echo scene_@sceneno_message >/tmp/nextmsg; killall -SIGUSR1 ices";
-  messageTitleNo = 1;
-  messageLength = 20; // Seconds
-
   // audio device
   primaryGroup = group_cyan_audio;
   // just color light settings, which include a color scene table
-  installSettings(DeviceSettingsPtr(new AudioDeviceSettings(*this)));
+  installSettings(DeviceSettingsPtr(new VoxnetDeviceSettings(*this)));
   // - add audio device behaviour
   AudioBehaviourPtr a = AudioBehaviourPtr(new AudioBehaviour(*this));
   a->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual_positive, usage_room, true, -1);
@@ -220,20 +211,20 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
     getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
       voxnetRoomID.c_str(),
-      messageSourceID.c_str(),
+      voxnetSettings()->messageSourceID.c_str(),
       voxnetRoomID.c_str(),
-      messageStream.c_str()
+      voxnetSettings()->messageStream.c_str()
     ));
-    if (messageTitleNo>0) {
+    if (voxnetSettings()->messageTitleNo>0) {
       // start playing the title (radio station)
-      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), messageTitleNo));
+      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), voxnetSettings()->messageTitleNo));
     }
   }
   // shell command to trigger actual message play
-  if (!messageShellCommand.empty()) {
+  if (!voxnetSettings()->messageShellCommand.empty()) {
     // first start it
     size_t i;
-    string sc = messageShellCommand;
+    string sc = voxnetSettings()->messageShellCommand;
     while ((i = sc.find("@contentindex"))!=string::npos) {
       sc.replace(i, 13, string_format("%d", aAudioScene->contentSource));
     }
@@ -253,14 +244,14 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
 void VoxnetDevice::playingStarted(const string &aPlayCommandOutput)
 {
   ALOG(LOG_INFO,"- play shell command returns: %s", aPlayCommandOutput.c_str());
-  int msgLen = messageLength;
-  if (msgLen==0) {
+  int duration = voxnetSettings()->messageDuration;
+  if (duration==0) {
     // shell command is supposed to return it
-    sscanf(aPlayCommandOutput.c_str(), "%d", &msgLen);
+    sscanf(aPlayCommandOutput.c_str(), "%d", &duration);
   }
   // set up end-of-message timer
-  ALOG(LOG_INFO,"- play time of %d seconds starts now", msgLen);
-  messageTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::endOfMessage, this), msgLen*Second);
+  ALOG(LOG_INFO,"- play time of %d seconds starts now", duration);
+  messageTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::endOfMessage, this), duration*Second);
 }
 
 
@@ -402,6 +393,8 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
 
 
 
+#pragma mark - description
+
 
 void VoxnetDevice::deriveDsUid()
 {
@@ -457,6 +450,166 @@ string VoxnetDevice::description()
   string_format_append(s, "\n- Voxnet device %s", voxnetRoomID.c_str());
   return s;
 }
+
+
+#pragma mark - property access
+
+enum {
+  messageSource_key,
+  messageStream_key,
+  messageTitleNo_key,
+  messageDuration_key,
+  messageShellCmd_key,
+  numProperties
+};
+
+static char voxnetDevice_key;
+
+
+int VoxnetDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  // Note: only add my own count when accessing root level properties!!
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level, add mine
+    return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  }
+  // just return base class' count
+  return inherited::numProps(aDomain, aParentDescriptor);
+}
+
+
+PropertyDescriptorPtr VoxnetDevice::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numProperties] = {
+    { "x-p44-messageSource", apivalue_string, messageSource_key, OKEY(voxnetDevice_key) },
+    { "x-p44-messageStream", apivalue_string, messageStream_key, OKEY(voxnetDevice_key) },
+    { "x-p44-messageTitleNo", apivalue_int64, messageTitleNo_key, OKEY(voxnetDevice_key) },
+    { "x-p44-messageDuration", apivalue_int64, messageDuration_key, OKEY(voxnetDevice_key) },
+    { "x-p44-messageShellCmd", apivalue_string, messageShellCmd_key, OKEY(voxnetDevice_key) }
+  };
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
+  else {
+    // other level
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  }
+}
+
+
+// access to all fields
+bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(voxnetDevice_key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case messageSource_key: aPropValue->setStringValue(voxnetSettings()->messageSourceID); return true;
+        case messageStream_key: aPropValue->setStringValue(voxnetSettings()->messageStream); return true;
+        case messageTitleNo_key: aPropValue->setInt32Value(voxnetSettings()->messageTitleNo); return true;
+        case messageDuration_key: aPropValue->setInt32Value(voxnetSettings()->messageDuration); return true;
+        case messageShellCmd_key: aPropValue->setStringValue(voxnetSettings()->messageShellCommand); return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case messageSource_key: voxnetSettings()->setPVar(voxnetSettings()->messageSourceID, aPropValue->stringValue()); return true;
+        case messageStream_key: voxnetSettings()->setPVar(voxnetSettings()->messageStream, aPropValue->stringValue()); return true;
+        case messageTitleNo_key: voxnetSettings()->setPVar(voxnetSettings()->messageTitleNo, (int)aPropValue->int32Value()); return true;
+        case messageDuration_key: voxnetSettings()->setPVar(voxnetSettings()->messageDuration, (int)aPropValue->int32Value()); return true;
+        case messageShellCmd_key: voxnetSettings()->setPVar(voxnetSettings()->messageShellCommand, aPropValue->stringValue()); return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
+
+
+
+#pragma mark - settings
+
+
+VoxnetDeviceSettings::VoxnetDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+  messageSourceID = "$MyMusic2";
+  messageStream = "radio";
+  messageTitleNo = 1;
+  messageDuration = 20; // Seconds
+  messageShellCommand = "playmessage @sceneno";
+}
+
+
+
+const char *VoxnetDeviceSettings::tableName()
+{
+  return "VoxnetDeviceSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 5;
+
+size_t VoxnetDeviceSettings::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *VoxnetDeviceSettings::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "messageSourceID", SQLITE_TEXT },
+    { "messageStream", SQLITE_TEXT },
+    { "messageTitleNo", SQLITE_INTEGER },
+    { "messageDuration", SQLITE_INTEGER },
+    { "messageShellCommand", SQLITE_TEXT },
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void VoxnetDeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // get the field values
+  messageSourceID.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  messageStream.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  messageTitleNo = aRow->get<int>(aIndex++);
+  messageDuration = aRow->get<int>(aIndex++);
+  messageShellCommand.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+}
+
+
+// bind values to passed statement
+void VoxnetDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, messageSourceID.c_str());
+  aStatement.bind(aIndex++, messageStream.c_str());
+  aStatement.bind(aIndex++, messageTitleNo);
+  aStatement.bind(aIndex++, messageDuration);
+  aStatement.bind(aIndex++, messageShellCommand.c_str());
+}
+
+
+
 
 
 #endif // ENABLE_VOXNET

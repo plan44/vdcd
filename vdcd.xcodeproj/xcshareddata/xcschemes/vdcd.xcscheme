@@ -161,11 +161,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet auto"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet 192.168.1.9"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vzughome auto"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vzughome http://localhost/vzug.php"
@@ -173,7 +177,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
