@@ -28,6 +28,9 @@
 
 #include "vzughomedevicecontainer.hpp"
 
+#include "binaryinputbehaviour.hpp"
+#include "sensorbehaviour.hpp"
+
 using namespace std;
 
 namespace p44 {
@@ -51,6 +54,16 @@ namespace p44 {
 
     uint64_t mostRecentPush; ///< "time" of most recent push we've already reported
 
+    string lastPushMessage;
+    string currentStatus;
+    string currentProgram;
+
+    BinaryInputBehaviourPtr programActive;
+    BinaryInputBehaviourPtr needWater;
+    BinaryInputBehaviourPtr needAttention;
+
+    SensorBehaviourPtr ovenTemp;
+    SensorBehaviourPtr foodTemp;
 
   public:
 

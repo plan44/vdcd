@@ -25,7 +25,6 @@
 
 
 #include "outputbehaviour.hpp"
-#include "sensorbehaviour.hpp"
 
 
 using namespace p44;
@@ -33,8 +32,12 @@ using namespace p44;
 #define POLL_INTERVAL (10*Second)
 #define ERROR_RETRY_INTERVAL (30*Second)
 
+#define NUM_MESSAGE_BINARY_INPUTS 4
 
 #pragma mark - VZugHomeDevice
+
+
+
 
 VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL) :
   inherited(aClassContainerP),
@@ -50,6 +53,19 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   o->setGroupMembership(group_black_joker, true);
   o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
   addBehaviour(o);
+  // - add some "message" binary inputs
+  programActive = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+  programActive->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
+  programActive->setHardwareName("Programm aktiv");
+  addBehaviour(programActive);
+  needWater = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+  needWater->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
+  needWater->setHardwareName("Wasser nachfüllen");
+  addBehaviour(needWater);
+  needAttention = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+  needAttention->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
+  needAttention->setHardwareName("Aktion erforderlich");
+  addBehaviour(needAttention);
 }
 
 
@@ -65,7 +81,7 @@ void VZugHomeDevice::gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, Er
   if (Error::isOK(aError)) {
     if (aResult) {
       modelId = aResult->stringValue();
-      if (modelId=="CSTMSLQ") {
+      if (modelId=="CSTMSLQ" || modelId=="MSLQ") {
         deviceModel = model_MSLQ;
       }
       vzugHomeComm.apiAction("/hh?command=getModelDescription", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelDescription, this, aCompletedCB, _1, _2));
@@ -127,14 +143,14 @@ void VZugHomeDevice::willBeAdded()
   // now add inputs according to model
   if (deviceModel==model_MSLQ) {
     // - add two temperature sensors
-    SensorBehaviourPtr s1 = SensorBehaviourPtr(new SensorBehaviour(*this));
-    s1->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
-    s1->setHardwareName("Garraumtemperatur");
-    addBehaviour(s1);
-    SensorBehaviourPtr s2 = SensorBehaviourPtr(new SensorBehaviour(*this));
-    s2->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
-    s2->setHardwareName("Garsensortemperatur");
-    addBehaviour(s2);
+    ovenTemp = SensorBehaviourPtr(new SensorBehaviour(*this));
+    ovenTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
+    ovenTemp->setHardwareName("Garraumtemperatur");
+    addBehaviour(ovenTemp);
+    foodTemp = SensorBehaviourPtr(new SensorBehaviour(*this));
+    foodTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
+    foodTemp->setHardwareName("Garsensortemperatur");
+    addBehaviour(foodTemp);
   }
 }
 
@@ -162,6 +178,8 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
     return;
   }
   // Status:
+  string s = aResult->stringValue();
+  currentStatus = s;
   if (deviceModel==model_MSLQ) {
     // for MSLQ something like
     // (sensor) xx°, (garraum) xx°\n(unknown) 0(unknown unit)
@@ -174,7 +192,6 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
 
     // EE 83 B5 = 3rd value, not visible on display so far
 
-    string s = aResult->stringValue();
     size_t i = string::npos;
     ALOG(LOG_DEBUG, "Status: %s", s.c_str());
     // search for UTF-8 char designating Garraum
@@ -185,8 +202,11 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
       int temp;
       if (sscanf(s.c_str()+i, "%d", &temp)==1) {
         // update Garraumtemperatur
-        boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0])->updateSensorValue(temp);
+        ovenTemp->updateSensorValue(temp);
       }
+    }
+    else {
+      ovenTemp->invalidateSensorValue();
     }
     // search for UTF-8 char designating Gargutsensor
     i = s.find("\xEE\x84\x86");
@@ -196,8 +216,11 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
       int temp;
       if (sscanf(s.c_str()+i, "%d", &temp)==1) {
         // update Garsensortemperatur
-        boost::dynamic_pointer_cast<SensorBehaviour>(sensors[1])->updateSensorValue(temp);
+        foodTemp->updateSensorValue(temp);
       }
+    }
+    else {
+      foodTemp->invalidateSensorValue();
     }
   }
   // query current program
@@ -213,6 +236,7 @@ void VZugHomeDevice::gotCurrentProgram(JsonObjectPtr aResult, ErrorPtr aError)
   }
   // Status:
   string s = aResult->stringValue();
+  currentProgram = s;
   ALOG(LOG_DEBUG, "Program: %s", s.c_str());
   // query current program end
   vzugHomeComm.apiAction("/hh?command=getCurrentProgramEnd", JsonObjectPtr(), true, boost::bind(&VZugHomeDevice::gotCurrentProgramEnd, this, _1, _2));
@@ -241,9 +265,14 @@ void VZugHomeDevice::gotIsActive(JsonObjectPtr aResult, ErrorPtr aError)
   // Active?
   string s = aResult->stringValue();
   ALOG(LOG_DEBUG, "isActive: %s", s.c_str());
-  int value = 0;
-  if (s=="true") value = 100;
-  output->getChannelByType(channeltype_default)->syncChannelValue(value);
+  bool isActive = false;
+  if (s=="true") isActive = true;
+  programActive->updateInputState(isActive); // update status binInp
+  if (!isActive) {
+    needWater->updateInputState(false);
+    needAttention->updateInputState(false);
+  }
+  output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? 100 : 0); // update channel value
   // query last push messages
   vzugHomeComm.apiAction("/ai?command=getLastPUSHNotifications", JsonObjectPtr(), true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
 }
@@ -297,7 +326,24 @@ void VZugHomeDevice::gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aE
 
 void VZugHomeDevice::processPushMessage(const string aMessage)
 {
+  lastPushMessage = aMessage;
   ALOG(LOG_NOTICE, "Push Message: %s", aMessage.c_str());
+  // TODO: refine
+  if (aMessage.find("Wasser")!=string::npos) {
+    needWater->updateInputState(true);
+  }
+  else if (aMessage.find("gestartet")!=string::npos) {
+    needWater->updateInputState(false);
+    needAttention->updateInputState(false);
+  }
+  else if (aMessage.find("beendet")!=string::npos) {
+    needWater->updateInputState(false);
+    needAttention->updateInputState(false);
+  }
+  else {
+    // everything else needs general attention
+    needAttention->updateInputState(true);
+  }
 }
 
 
@@ -338,9 +384,11 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     if (ch->getChannelValue()==0) {
       // send off command
       vzugHomeComm.apiAction("/hh?command=doTurnOff", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::sentDoTurnOff, this, aDoneCB, aForDimming, _2));
-      return;
+      ch->channelValueApplied(); // value is "applied" (saved in request)
+      return; // wait for actual apply
     }
   }
+  // not my channel, let inherited handle it
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
@@ -353,6 +401,7 @@ void VZugHomeDevice::sentDoTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr 
   else {
     ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
   }
+  // applied
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
@@ -399,7 +448,7 @@ bool VZugHomeDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aR
 string VZugHomeDevice::getExtraInfo()
 {
   string s;
-  s = string_format("V-Zug Home device");
+  s = string_format("Last Push: %s | Program: %s | Status: %s", lastPushMessage.c_str(), currentProgram.c_str(), currentStatus.c_str());
   return s;
 }
 

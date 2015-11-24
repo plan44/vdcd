@@ -184,6 +184,8 @@ bool VZugHomeOperation::initiate()
   }
   else {
     // will return a plain string
+    // Note: we need to log here because httpRequest does not log (unlike jsonRequest above, which does log)
+    LOG(LOG_DEBUG, "VZugHome: -> sending %s plain text result request: %s", methodStr, url.c_str());
     vzugHomeComm.apiComm.httpRequest(url.c_str(), boost::bind(&VZugHomeOperation::processPlainAnswer, this, _1, _2), methodStr, NULL);
   }
   // executed
