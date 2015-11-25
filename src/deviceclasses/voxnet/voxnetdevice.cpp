@@ -352,8 +352,11 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
       kv.assign(aVoxnetStatus, i, e==string::npos ? e : e-i);
       if (keyAndValue(kv, k, v, '=')) {
         // extract state
-        if (k=="streaming") {
-          // streaming (substream of the source)
+        if (
+          k=="streaming" || // Voxnet 215 server says "streaming"
+          k=="stream" // voxnet 219 room amplifier says "stream"
+        ) {
+          // Substream of the source
           if (v!=currentStream) {
             currentStream = v;
             ALOG(LOG_NOTICE, "Stream of source %s changed to %s", currentSource.c_str(), v.c_str());
@@ -438,7 +441,13 @@ bool VoxnetDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aRes
 string VoxnetDevice::getExtraInfo()
 {
   string s;
-  s = string_format("Voxnet device %s", voxnetRoomID.c_str());
+  s = string_format(
+    "Room %s | User %s | Source %s | Stream %s",
+    voxnetRoomID.c_str(),
+    currentUser.c_str(),
+    currentSource.c_str(),
+    currentStream.c_str()
+  );
   return s;
 }
 
@@ -540,11 +549,17 @@ bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue,
 VoxnetDeviceSettings::VoxnetDeviceSettings(Device &aDevice) :
   inherited(aDevice)
 {
-  messageSourceID = "$MyMusic2";
-  messageStream = "radio";
-  messageTitleNo = 1;
+
+//  messageSourceID = "$MyMusic2";
+//  messageStream = "radio";
+//  messageTitleNo = 1;
+
+  messageSourceID = "$s.zone1";
+  messageStream = "analog";
+  messageTitleNo = 0;
+
   messageDuration = 20; // Seconds
-  messageShellCommand = "playmessage @sceneno";
+  messageShellCommand = "/etc/ices/playmessage @sceneno";
 }
 
 
