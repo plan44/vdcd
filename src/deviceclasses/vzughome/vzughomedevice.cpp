@@ -387,8 +387,13 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
       ch->channelValueApplied(); // value is "applied" (saved in request)
       return; // wait for actual apply
     }
+    else {
+      // can't turn on, just dummy-confirm
+      // TODO: start program here
+      ch->channelValueApplied();
+    }
   }
-  // not my channel, let inherited handle it
+  // let inherited handle and callback right now
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
@@ -401,7 +406,7 @@ void VZugHomeDevice::sentDoTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr 
   else {
     ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
   }
-  // applied
+  // applied, let inherited handle and callback
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
