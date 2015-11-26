@@ -48,13 +48,17 @@ void VoxnetDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset
 }
 
 
-void VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
+bool VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
 {
+  bool needFullStatus = false;
   // dispatch status to all devices
   for (VoxnetDeviceMap::iterator pos = voxnetDevices.begin(); pos!=voxnetDevices.end(); ++pos) {
     // have device process the status
-    pos->second->processVoxnetStatus(aVoxnetID, aVoxnetStatus);
+    if (pos->second->processVoxnetStatus(aVoxnetID, aVoxnetStatus)) {
+      needFullStatus = true;
+    }
   }
+  return needFullStatus;
 }
 
 
@@ -107,6 +111,8 @@ void VoxnetDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremen
       voxnetDevices[pos->first] = newDev;
       addDevice(newDev);
     }
+    // request status so all devices can update their user/source info
+    voxnetComm->requestStatus();
   }
   // assume ok
   aCompletedCB(ErrorPtr());

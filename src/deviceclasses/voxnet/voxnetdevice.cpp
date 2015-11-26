@@ -292,12 +292,13 @@ void VoxnetDevice::endOfMessage()
 
 
 
-void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus)
+bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus)
 {
   string kv;
   string k, v;
   size_t i;
   size_t e;
+  bool needFullStatus = false;
   if (aVoxnetID==voxnetRoomID) {
     ALOG(LOG_DEBUG, "Room Status: %s", aVoxnetStatus.c_str());
     AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
@@ -332,6 +333,7 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
             if (v!=currentUser) {
               currentUser = v;
               ALOG(LOG_NOTICE,"User changed: %s", v.c_str());
+              needFullStatus = true;
             }
           }
           else {
@@ -340,6 +342,7 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
             if (v!=currentSource) {
               currentSource = v;
               ALOG(LOG_NOTICE,"Source changed: %s", v.c_str());
+              needFullStatus = true;
             }
           }
         }
@@ -368,6 +371,7 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
           if (v!=currentStream) {
             currentStream = v;
             ALOG(LOG_NOTICE, "Stream of source %s changed to %s", currentSource.c_str(), v.c_str());
+            needFullStatus = true;
           }
         }
       }
@@ -390,6 +394,7 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
           if (v!=currentSource) {
             currentSource = v;
             ALOG(LOG_NOTICE,"Source changed: %s (via user %s)", v.c_str(), currentUser.c_str());
+            needFullStatus = true;
           }
         }
       }
@@ -400,6 +405,7 @@ void VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     "Overall Status: currentUser=%s, currentSource=%s, currentStream=%s",
     currentUser.c_str(), currentSource.c_str(), currentStream.c_str()
   );
+  return needFullStatus;
 }
 
 

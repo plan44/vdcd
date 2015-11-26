@@ -113,7 +113,8 @@ namespace p44 {
     virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// process voxnet status
-    void processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus);
+    /// @return true when device needs to see full status
+    bool processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus);
 
     /// @}
 

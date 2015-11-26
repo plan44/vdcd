@@ -85,7 +85,7 @@ namespace p44 {
   private:
 
     VoxnetDevicePtr addVoxnetDevice(const string aID, const string aName);
-    void voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus);
+    bool voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus);
 
 
   };

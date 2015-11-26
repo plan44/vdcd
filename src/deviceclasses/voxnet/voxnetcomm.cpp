@@ -40,6 +40,7 @@ using namespace p44;
 VoxnetComm::VoxnetComm() :
   inherited(MainLoop::currentMainLoop()),
   searchTimeoutTicket(0),
+  statusRequestTicket(0),
   commState(commState_unknown)
 {
 }
@@ -213,6 +214,12 @@ void VoxnetComm::sendVoxnetText(const string aVoxNetText)
 }
 
 
+void VoxnetComm::requestStatus()
+{
+  sendVoxnetText("8");
+}
+
+
 
 void VoxnetComm::resolveVoxnetRef(string &aVoxNetRef)
 {
@@ -269,7 +276,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
           commState = commState_idle;
           voxnetInitialized(ErrorPtr());
           // initiate sending status
-          sendVoxnetText("8");
+          requestStatus();
           break;
         }
         // - skip header lines
@@ -340,7 +347,11 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
               if (cmd=="status") {
                 // call back
                 if (voxnetStatusHandler) {
-                  voxnetStatusHandler(ref, line.substr(i));
+                  if (voxnetStatusHandler(ref, line.substr(i))) {
+                    if (!MainLoop::currentMainLoop().rescheduleExecutionTicket(statusRequestTicket, 1*Second)) {
+                      MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetComm::requestStatus, this), 1*Second);
+                    }
+                  }
                 }
               }
             }

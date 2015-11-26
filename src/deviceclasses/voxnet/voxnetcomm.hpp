@@ -33,7 +33,7 @@ using namespace std;
 
 namespace p44 {
 
-  typedef boost::function<void (const string aVoxnetID, const string aVoxnetStatus)> VoxnetStatusCB;
+  typedef boost::function<bool (const string aVoxnetID, const string aVoxnetStatus)> VoxnetStatusCB;
 
   class VoxnetComm : public SocketComm
   {
@@ -56,6 +56,9 @@ namespace p44 {
 
     string manualServerIP;
     long searchTimeoutTicket;
+
+    long statusRequestTicket;
+
 
   public:
 
@@ -85,6 +88,9 @@ namespace p44 {
 
     /// send voxnet text command
     void sendVoxnetText(const string aVoxNetText);
+
+    /// request status
+    void requestStatus();
 
     /// resolve a voxnet reference (i.e. convert to ID if given an alias)
     void resolveVoxnetRef(string &aVoxNetRef);
