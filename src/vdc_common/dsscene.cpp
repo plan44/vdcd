@@ -290,6 +290,15 @@ void DsScene::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, con
 
 #pragma mark - scene flags
 
+
+void DsScene::setGlobalSceneFlag(uint32_t aMask, bool aNewValue)
+{
+  uint32_t newFlags = (globalSceneFlags & ~aMask) | (aNewValue ? aMask : 0);
+  setPVar(globalSceneFlags, newFlags);
+}
+
+
+
 bool DsScene::isDontCare()
 {
   return globalSceneFlags & globalflags_sceneDontCare;
@@ -297,8 +306,7 @@ bool DsScene::isDontCare()
 
 void DsScene::setDontCare(bool aDontCare)
 {
-  uint32_t newFlags = (globalSceneFlags & ~globalflags_sceneDontCare) | (aDontCare ? globalflags_sceneDontCare : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(globalflags_sceneDontCare, aDontCare);
 }
 
 

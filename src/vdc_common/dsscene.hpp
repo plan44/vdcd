@@ -109,6 +109,9 @@ namespace p44 {
     /// @note base class already maps some flags, see globalflags_xxx enum in implementation.
     uint32_t globalSceneFlags;
 
+    /// sets or resets global scene flag indicated by mask, sets dirty if global flags actually changed
+    void setGlobalSceneFlag(uint32_t aMask, bool aNewValue);
+
   public:
     DsScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, creates empty scene
     virtual ~DsScene() {}; // important for multiple inheritance!
