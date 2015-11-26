@@ -300,8 +300,7 @@ bool AudioScene::hasFixVol()
 
 void AudioScene::setFixVol(bool aNewValue)
 {
-  uint32_t newFlags = (globalSceneFlags & audioflags_fixvol) | (aNewValue ? audioflags_fixvol : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(audioflags_fixvol, aNewValue);
 }
 
 
@@ -312,8 +311,7 @@ bool AudioScene::isMessage()
 
 void AudioScene::setMessage(bool aNewValue)
 {
-  uint32_t newFlags = (globalSceneFlags & audioflags_message) | (aNewValue ? audioflags_message : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(audioflags_message, aNewValue);
 }
 
 
@@ -324,8 +322,7 @@ bool AudioScene::hasPriority()
 
 void AudioScene::setPriority(bool aNewValue)
 {
-  uint32_t newFlags = (globalSceneFlags & audioflags_priority) | (aNewValue ? audioflags_priority : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(audioflags_priority, aNewValue);
 }
 
 
@@ -336,8 +333,7 @@ bool AudioScene::isInterruptible()
 
 void AudioScene::setInterruptible(bool aNewValue)
 {
-  uint32_t newFlags = (globalSceneFlags & audioflags_interruptible) | (aNewValue ? audioflags_interruptible : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(audioflags_interruptible, aNewValue);
 }
 
 
@@ -348,8 +344,7 @@ bool AudioScene::hasPausedRestore()
 
 void AudioScene::setPausedRestore(bool aNewValue)
 {
-  uint32_t newFlags = (globalSceneFlags & audioflags_paused_restore) | (aNewValue ? audioflags_paused_restore : 0);
-  setPVar(globalSceneFlags, newFlags);
+  setGlobalSceneFlag(audioflags_paused_restore, aNewValue);
 }
 
 
