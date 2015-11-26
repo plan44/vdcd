@@ -116,6 +116,9 @@ namespace p44 {
     /// @name identification of the addressable entity
     /// @{
 
+    /// @return model GUID in URN format to identify model of the connected hardware device as uniquely as possible
+    virtual string hardwareModelGUID();
+
     /// @return human readable model name/short description
     virtual string modelName();
 

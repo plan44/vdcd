@@ -437,6 +437,10 @@ string VZugHomeDevice::modelName()
 }
 
 
+string VZugHomeDevice::hardwareModelGUID()
+{
+  return "vzughomemodel:" + modelId;
+}
 
 
 

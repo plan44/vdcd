@@ -414,6 +414,12 @@ string VoxnetDevice::hardwareGUID()
 }
 
 
+string VoxnetDevice::hardwareModelGUID()
+{
+  return "voxnetdevicemodel:voxnet219";
+}
+
+
 string VoxnetDevice::vendorName()
 {
   return "Revox";
