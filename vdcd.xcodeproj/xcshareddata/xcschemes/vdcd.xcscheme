@@ -101,11 +101,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -164,15 +164,19 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--voxnet 192.168.1.9"
+            argument = "--voxnet 10.0.0.5"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vzughome auto"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vzughome http://localhost/vzug.php"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vzughome http://10.0.0.3"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
