@@ -41,7 +41,7 @@ P44JsonApiRequest::P44JsonApiRequest(JsonCommPtr aJsonComm)
 
 ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 {
-  LOG(LOG_INFO, "cfg <- vdcd (JSON) result sent: result=%s", aResult ? aResult->description().c_str() : "<none>");
+  LOG(LOG_DEBUG, "cfg <- vdcd (JSON) result sent: result=%s", aResult ? aResult->description().c_str() : "<none>");
   JsonApiValuePtr result = boost::dynamic_pointer_cast<JsonApiValue>(aResult);
   if (result) {
     P44VdcHost::sendCfgApiResponse(jsonComm, result->jsonObject(), ErrorPtr());
@@ -57,7 +57,7 @@ ErrorPtr P44JsonApiRequest::sendResult(ApiValuePtr aResult)
 
 ErrorPtr P44JsonApiRequest::sendError(uint32_t aErrorCode, string aErrorMessage, ApiValuePtr aErrorData)
 {
-  LOG(LOG_INFO, "cfg <- vdcd (JSON) error sent: error=%d (%s)", aErrorCode, aErrorMessage.c_str());
+  LOG(LOG_DEBUG, "cfg <- vdcd (JSON) error sent: error=%d (%s)", aErrorCode, aErrorMessage.c_str());
   ErrorPtr err = ErrorPtr(new Error(aErrorCode, aErrorMessage));
   P44VdcHost::sendCfgApiResponse(jsonComm, JsonObjectPtr(), err);
   return ErrorPtr();
@@ -240,7 +240,7 @@ void P44VdcHost::configApiRequestHandler(JsonCommPtr aJsonComm, ErrorPtr aError,
   // - "uri" selects one of possibly multiple APIs
   if (Error::isOK(aError)) {
     // not JSON level error, try to process
-    LOG(LOG_INFO, "cfg -> vdcd (JSON) request received: %s", aJsonObject->c_strValue());
+    LOG(LOG_DEBUG, "cfg -> vdcd (JSON) request received: %s", aJsonObject->c_strValue());
     // find out which one is our actual JSON request
     // - try POST data first
     JsonObjectPtr request = aJsonObject->get("data");
