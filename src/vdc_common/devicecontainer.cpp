@@ -1322,7 +1322,7 @@ void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
-  aStatement.bind(aIndex++, getAssignedName().c_str());
+  aStatement.bind(aIndex++, getAssignedName().c_str()); // stable string!
 }
 
 

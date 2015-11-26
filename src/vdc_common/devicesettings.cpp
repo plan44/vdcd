@@ -86,6 +86,6 @@ void DeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, deviceFlags);
-  aStatement.bind(aIndex++, device.getAssignedName().c_str());
+  aStatement.bind(aIndex++, device.getAssignedName().c_str()); // stable string!
   aStatement.bind(aIndex++, zoneID);
 }

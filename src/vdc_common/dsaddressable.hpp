@@ -78,7 +78,8 @@ namespace p44 {
 
     /// get user assigned name of the addressable
     /// @return name string
-    virtual string getAssignedName() { return name; };
+    /// @note this is returned as a reference to make sure it represents stable data (needed e.g. for bind to SQL)
+    const string &getAssignedName() { return name; };
 
     /// @return name string
     /// @note derived classes might provide a default name if no actual name is set
