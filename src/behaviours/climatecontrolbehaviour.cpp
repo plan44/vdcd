@@ -103,8 +103,6 @@ bool ClimateControlBehaviour::processControlValue(const string &aName, double aV
     if (isMember(group_roomtemperature_control) && isEnabled()) {
       ChannelBehaviourPtr cb = getChannelByType(channeltype_default);
       if (cb) {
-        // apply outputmode
-        aValue = outputValueAccordingToMode(aValue);
         // clip to -100..0..100 range
         if (aValue<-100) aValue = -100;
         else if (aValue>100) aValue = 100;
