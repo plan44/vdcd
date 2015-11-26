@@ -342,7 +342,7 @@ void SimpleCmdScene::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
-  aStatement.bind(aIndex++, command.c_str());
+  aStatement.bind(aIndex++, command.c_str()); // stable string!
 }
 
 

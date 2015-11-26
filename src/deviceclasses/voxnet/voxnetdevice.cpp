@@ -116,6 +116,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
         break;
     }
     // execute custom scene commands
+    string playcmd;
     if (!as->command.empty()) {
       string subcmd, params;
       if (keyAndValue(as->command, subcmd, params, ':')) {
@@ -130,6 +131,10 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
           getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
         }
+        else if (subcmd=="msgcmd") {
+          // use as message play shell command
+          playcmd=params;
+        }
         else {
           ALOG(LOG_ERR, "Unknown scene command: %s", as->command.c_str());
         }
@@ -137,7 +142,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
     }
     // check for messages
     if (as->isMessage()) {
-      playMessage(as);
+      playMessage(as, playcmd);
     }
   }
   // prepared ok
@@ -193,7 +198,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 }
 
 
-void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
+void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
 {
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   ALOG(LOG_INFO, "playing message");
@@ -221,10 +226,13 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene)
     }
   }
   // shell command to trigger actual message play
-  if (!voxnetSettings()->messageShellCommand.empty()) {
+  string sc = aPlayCmd;
+  if (sc.empty()) {
+    sc = voxnetSettings()->messageShellCommand;
+  }
+  if (!sc.empty()) {
     // first start it
     size_t i;
-    string sc = voxnetSettings()->messageShellCommand;
     while ((i = sc.find("@contentindex"))!=string::npos) {
       sc.replace(i, 13, string_format("%d", aAudioScene->contentSource));
     }
@@ -622,11 +630,11 @@ void VoxnetDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
-  aStatement.bind(aIndex++, messageSourceID.c_str());
-  aStatement.bind(aIndex++, messageStream.c_str());
+  aStatement.bind(aIndex++, messageSourceID.c_str()); // stable string!
+  aStatement.bind(aIndex++, messageStream.c_str()); // stable string!
   aStatement.bind(aIndex++, messageTitleNo);
   aStatement.bind(aIndex++, messageDuration);
-  aStatement.bind(aIndex++, messageShellCommand.c_str());
+  aStatement.bind(aIndex++, messageShellCommand.c_str()); // stable string!
 }
 
 

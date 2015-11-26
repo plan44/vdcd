@@ -171,7 +171,7 @@ namespace p44 {
 
   private:
 
-    void playMessage(AudioScenePtr aAudioScene);
+    void playMessage(AudioScenePtr aAudioScene, const string aPlayCmd);
     void playingStarted(const string &aPlayCommandOutput);
     void endOfMessage();
 
