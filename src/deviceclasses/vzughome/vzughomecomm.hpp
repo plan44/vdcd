@@ -125,13 +125,22 @@ namespace p44 {
     // volatile vars
     string baseURL; ///< base URL for API calls
 
-    /// Send information to the API
-    /// @param aUrlSuffix the suffix to append to the baseURL+userName (including leading slash)
-    /// @param aData the data for the action to perform (JSON body of the request, if any)
+    /// Send API command/value
+    /// @param aToInterface if set, command goes to interface, otherwise to device
+    /// @param aCommand the command name
+    /// @param aValue the value, depending on the command
     /// @param aHasJSONResult if true, action expects a JSON result, if false the action returns a plain string, which is reported
     ///   back to the caller as a JSON string object
     /// @param aResultHandler will be called with the result
-    void apiAction(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler);
+    void apiCommand(bool aToInterface, const char* aCommand, const char* aValue, bool aHasJSONResult, VZugHomeResultCB aResultHandler);
+
+    /// Send request to the API
+    /// @param aUrlSuffix the suffix to append to the baseURL+userName (including leading slash, including URLencoded parameters)
+    /// @param aData the data for the action to perform (JSON POST body of the request, if any - NOTE: current VZug API does not do POST)
+    /// @param aHasJSONResult if true, action expects a JSON result, if false the action returns a plain string, which is reported
+    ///   back to the caller as a JSON string object
+    /// @param aResultHandler will be called with the result
+    void apiRequest(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler);
 
   };
   typedef boost::intrusive_ptr<VZugHomeComm> VZugHomeCommPtr;

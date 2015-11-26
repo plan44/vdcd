@@ -271,7 +271,26 @@ VZugHomeComm::~VZugHomeComm()
 }
 
 
-void VZugHomeComm::apiAction(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler)
+
+void VZugHomeComm::apiCommand(bool aToInterface, const char* aCommand, const char* aValue, bool aHasJSONResult, VZugHomeResultCB aResultHandler)
+{
+  string urlsuffix = aToInterface ? "/ai" : "/hh";
+  // add command
+  urlsuffix += "?command=";
+  urlsuffix += nonNullCStr(aCommand);
+  // add value, if any
+  if (aValue && *aValue) {
+    // non-empty value
+    urlsuffix += "&value=";
+    urlsuffix += HttpComm::urlEncode(aValue, false);
+  }
+  // now call API
+  apiRequest(urlsuffix.c_str(), JsonObjectPtr(), aHasJSONResult, aResultHandler);
+}
+
+
+
+void VZugHomeComm::apiRequest(const char* aUrlSuffix, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler)
 {
   string url = baseURL + nonNullCStr(aUrlSuffix);
   VZugHomeOperationPtr op = VZugHomeOperationPtr(new VZugHomeOperation(*this, url.c_str(), aData, aHasJSONResult, aResultHandler));
@@ -279,11 +298,6 @@ void VZugHomeComm::apiAction(const char* aUrlSuffix, JsonObjectPtr aData, bool a
   // process operations
   processOperations();
 }
-
-
-
-
-
 
 
 

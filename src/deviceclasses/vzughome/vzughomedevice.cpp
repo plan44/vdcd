@@ -72,7 +72,7 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
 void VZugHomeDevice::queryDeviceInfos(StatusCB aCompletedCB)
 {
   // query model ID
-  vzugHomeComm.apiAction("/hh?command=getModel", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelId, this, aCompletedCB, _1, _2));
+  vzugHomeComm.apiCommand(false, "getModel", NULL, false, boost::bind(&VZugHomeDevice::gotModelId, this, aCompletedCB, _1, _2));
 }
 
 
@@ -84,7 +84,7 @@ void VZugHomeDevice::gotModelId(StatusCB aCompletedCB, JsonObjectPtr aResult, Er
       if (modelId=="CSTMSLQ" || modelId=="MSLQ") {
         deviceModel = model_MSLQ;
       }
-      vzugHomeComm.apiAction("/hh?command=getModelDescription", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotModelDescription, this, aCompletedCB, _1, _2));
+      vzugHomeComm.apiCommand(false,"getModelDescription", NULL, false, boost::bind(&VZugHomeDevice::gotModelDescription, this, aCompletedCB, _1, _2));
       return;
     }
     aError = TextError::err("no model ID");
@@ -99,7 +99,7 @@ void VZugHomeDevice::gotModelDescription(StatusCB aCompletedCB, JsonObjectPtr aR
   if (Error::isOK(aError)) {
     if (aResult) {
       modelDesc = aResult->stringValue();
-      vzugHomeComm.apiAction("/hh?command=getSerialNumber", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotSerialNumber, this, aCompletedCB, _1, _2));
+      vzugHomeComm.apiCommand(false, "getSerialNumber", NULL, false, boost::bind(&VZugHomeDevice::gotSerialNumber, this, aCompletedCB, _1, _2));
       return;
     }
     aError = TextError::err("no model description");
@@ -115,7 +115,7 @@ void VZugHomeDevice::gotSerialNumber(StatusCB aCompletedCB, JsonObjectPtr aResul
     if (aResult) {
       serialNo = aResult->stringValue();
       deriveDsUid(); // dSUID bases on modelId and serial number
-      vzugHomeComm.apiAction("/hh?command=getDeviceName", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotDeviceName, this, aCompletedCB, _1, _2));
+      vzugHomeComm.apiCommand(false, "getDeviceName", NULL, false, boost::bind(&VZugHomeDevice::gotDeviceName, this, aCompletedCB, _1, _2));
       return;
     }
     aError = TextError::err("no serial number");
@@ -166,7 +166,7 @@ void VZugHomeDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset)
 
 void VZugHomeDevice::getDeviceState()
 {
-  vzugHomeComm.apiAction("/hh?command=getCurrentStatus", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotCurrentStatus, this, _1, _2));
+  vzugHomeComm.apiCommand(false, "getCurrentStatus", NULL, false, boost::bind(&VZugHomeDevice::gotCurrentStatus, this, _1, _2));
 }
 
 
@@ -224,7 +224,7 @@ void VZugHomeDevice::gotCurrentStatus(JsonObjectPtr aResult, ErrorPtr aError)
     }
   }
   // query current program
-  vzugHomeComm.apiAction("/hh?command=getCurrentProgram", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotCurrentProgram, this, _1, _2));
+  vzugHomeComm.apiCommand(false, "getCurrentProgram", NULL, false, boost::bind(&VZugHomeDevice::gotCurrentProgram, this, _1, _2));
 }
 
 
@@ -239,7 +239,7 @@ void VZugHomeDevice::gotCurrentProgram(JsonObjectPtr aResult, ErrorPtr aError)
   currentProgram = s;
   ALOG(LOG_DEBUG, "Program: %s", s.c_str());
   // query current program end
-  vzugHomeComm.apiAction("/hh?command=getCurrentProgramEnd", JsonObjectPtr(), true, boost::bind(&VZugHomeDevice::gotCurrentProgramEnd, this, _1, _2));
+  vzugHomeComm.apiCommand(false, "getCurrentProgramEnd", NULL, true, boost::bind(&VZugHomeDevice::gotCurrentProgramEnd, this, _1, _2));
 }
 
 
@@ -252,7 +252,7 @@ void VZugHomeDevice::gotCurrentProgramEnd(JsonObjectPtr aResult, ErrorPtr aError
   // Status:
   ALOG(LOG_DEBUG, "Program End: %s", aResult->json_c_str());
   // query activity status
-  vzugHomeComm.apiAction("/hh?command=isActive", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::gotIsActive, this, _1, _2));
+  vzugHomeComm.apiCommand(false, "isActive", NULL, false, boost::bind(&VZugHomeDevice::gotIsActive, this, _1, _2));
 }
 
 
@@ -274,7 +274,7 @@ void VZugHomeDevice::gotIsActive(JsonObjectPtr aResult, ErrorPtr aError)
   }
   output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? 100 : 0); // update channel value
   // query last push messages
-  vzugHomeComm.apiAction("/ai?command=getLastPUSHNotifications", JsonObjectPtr(), true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
+  vzugHomeComm.apiCommand(false, "getLastPUSHNotifications", NULL, true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
 }
 
 
@@ -383,14 +383,15 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     // we can turn off the device
     if (ch->getChannelValue()==0) {
       // send off command
-      vzugHomeComm.apiAction("/hh?command=doTurnOff", JsonObjectPtr(), false, boost::bind(&VZugHomeDevice::sentDoTurnOff, this, aDoneCB, aForDimming, _2));
+      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
       ch->channelValueApplied(); // value is "applied" (saved in request)
       return; // wait for actual apply
     }
     else {
-      // can't turn on, just dummy-confirm
-      // TODO: start program here
-      ch->channelValueApplied();
+      // can't turn on, but request a default program instead
+      vzugHomeComm.apiCommand(false, "setProgram", "{\"id\":7,\"temperature\":42,\"duration\":0}", false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
+      ch->channelValueApplied(); // value is "applied" (saved in request)
+      return; // wait for request to complete
     }
   }
   // let inherited handle and callback right now
@@ -398,10 +399,10 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 }
 
 
-void VZugHomeDevice::sentDoTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
+void VZugHomeDevice::sentProgramOrOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
-    ALOG(LOG_INFO, "Successfully turned off device");
+    ALOG(LOG_INFO, "Successfully sent off or set program");
   }
   else {
     ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
