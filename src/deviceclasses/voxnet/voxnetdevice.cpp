@@ -125,17 +125,19 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           // direct execution of voxnet commands, replacing extra "magic" identifiers as follows:
           // - @dsroom with this device's room ID
           size_t i;
-          while ((i = params.find("@dsroom"))!=string::npos) {
-            params.replace(i, 7, voxnetRoomID);
+          while ((i = params.find("@{dsroom}"))!=string::npos) {
+            params.replace(i, 9, voxnetRoomID);
           }
+          // also allow @{sceneno} and @{channel...} placeholders
+          as->substitutePlaceholders(params);
           ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
           getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
         }
         else if (subcmd=="msgcmd") {
           // Syntax: msgcmd:shell command
           // direct execution of a shell command supposed to play a message, replacing extra "magic" identifiers as follows:
-          // - @contentindex with the scene's contentSource channel value
-          // - @sceneno with the scene's number
+          // - @{sceneno} with the scene's number
+          // - @{channel...} channel values
           playcmd=params;
         }
         else {
@@ -235,13 +237,8 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
   }
   if (!sc.empty()) {
     // first start it
-    size_t i;
-    while ((i = sc.find("@contentindex"))!=string::npos) {
-      sc.replace(i, 13, string_format("%d", aAudioScene->contentSource));
-    }
-    while ((i = sc.find("@sceneno"))!=string::npos) {
-      sc.replace(i, 8, string_format("%d", aAudioScene->sceneNo));
-    }
+    // - allow @{sceneno} and @{channel...} placeholders
+    aAudioScene->substitutePlaceholders(sc);
     ALOG(LOG_INFO, "- executing play shell command: %s", sc.c_str());
     MainLoop::currentMainLoop().fork_and_system(boost::bind(&VoxnetDevice::playingStarted, this, _3), sc.c_str());
   }
@@ -584,7 +581,7 @@ VoxnetDeviceSettings::VoxnetDeviceSettings(Device &aDevice) :
   messageTitleNo = 0;
 
   messageDuration = 20; // Seconds
-  messageShellCommand = "/etc/ices/playmessage @sceneno";
+  messageShellCommand = "/etc/ices/playmessage @{sceneno}";
 }
 
 

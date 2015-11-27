@@ -25,6 +25,7 @@
 
 
 #include "outputbehaviour.hpp"
+#include "simplescene.hpp"
 
 
 using namespace p44;
@@ -46,7 +47,7 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
 {
   vzugHomeComm.baseURL = aBaseURL;
   setPrimaryGroup(group_black_joker);
-  installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
+  installSettings(DeviceSettingsPtr(new CmdSceneDeviceSettings(*this)));
   // - set the output behaviour
   OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
   o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
@@ -376,24 +377,80 @@ void VZugHomeDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResu
 }
 
 
-void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
+
+bool VZugHomeDevice::prepareSceneCall(DsScenePtr aScene)
 {
-  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
-  if (ch && ch->needsApplying()) {
-    // we can turn off the device
-    if (ch->getChannelValue()==0) {
-      // send off command
-      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
-      ch->channelValueApplied(); // value is "applied" (saved in request)
-      return; // wait for actual apply
-    }
-    else {
-      // can't turn on, but request a default program instead
-      vzugHomeComm.apiCommand(false, "setProgram", "{\"id\":7,\"temperature\":42,\"duration\":0}", false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
-      ch->channelValueApplied(); // value is "applied" (saved in request)
-      return; // wait for request to complete
+  SimpleCmdScenePtr cs = boost::dynamic_pointer_cast<SimpleCmdScene>(aScene);
+  bool continueApply = true;
+  if (cs) {
+    // execute custom scene commands
+    if (!cs->command.empty()) {
+      string subcmd, params;
+      if (keyAndValue(cs->command, subcmd, params, ':')) {
+        if (subcmd=="vzughome") {
+          // Syntax: vzughome:hh|ai:command[:value]
+          // direct execution of vzughome commands
+          // "value" will be scanned for @{sceneno} and @{channel...} placeholders
+          string dest;
+          string vzcmd;
+          if (keyAndValue(params, dest, vzcmd)) {
+            string cmd;
+            const char *p = vzcmd.c_str();
+            if (nextPart(p, cmd, ':')) {
+              string vsubst;
+              if (*p) {
+                // rest is value, substitute
+                vsubst = p;
+                cs->substitutePlaceholders(vsubst);
+              }
+              // issue
+              vzugHomeComm.apiCommand(dest=="ai", cmd.c_str(), vsubst.empty() ? NULL : vsubst.c_str(), false, boost::bind(&VZugHomeDevice::sceneCmdSent, this, _1, _2));
+            }
+          }
+        }
+        else {
+          ALOG(LOG_ERR, "Unknown scene command: %s", cs->command.c_str());
+        }
+      }
     }
   }
+  // prepared ok
+  return continueApply;
+}
+
+
+void VZugHomeDevice::sceneCmdSent(JsonObjectPtr aResult, ErrorPtr aError)
+{
+  if (Error::isOK(aError)) {
+    string s = aResult->stringValue();
+    ALOG(LOG_INFO, "VZug device reply for scene command: %s", s.c_str());
+  }
+  else {
+    ALOG(LOG_ERR, "Error sending command to VZug device: %s", aError->description().c_str());
+  }
+}
+
+
+
+
+void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
+{
+//  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+//  if (ch && ch->needsApplying()) {
+//    // we can turn off the device
+//    if (ch->getChannelValue()==0) {
+//      // send off command
+//      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
+//      ch->channelValueApplied(); // value is "applied" (saved in request)
+//      return; // wait for actual apply
+//    }
+//    else {
+//      // can't turn on, but request a default program instead
+//      vzugHomeComm.apiCommand(false, "setProgram", "{\"id\":7,\"temperature\":42,\"duration\":0}", false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
+//      ch->channelValueApplied(); // value is "applied" (saved in request)
+//      return; // wait for request to complete
+//    }
+//  }
   // let inherited handle and callback right now
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
@@ -401,14 +458,14 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 
 void VZugHomeDevice::sentProgramOrOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
 {
-  if (Error::isOK(aError)) {
-    ALOG(LOG_INFO, "Successfully sent off or set program");
-  }
-  else {
-    ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
-  }
-  // applied, let inherited handle and callback
-  inherited::applyChannelValues(aDoneCB, aForDimming);
+//  if (Error::isOK(aError)) {
+//    ALOG(LOG_INFO, "Successfully sent off or set program");
+//  }
+//  else {
+//    ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
+//  }
+//  // applied, let inherited handle and callback
+//  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 

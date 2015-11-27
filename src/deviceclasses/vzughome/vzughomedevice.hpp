@@ -76,6 +76,12 @@ namespace p44 {
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
 
+    /// prepare for calling a scene on the device level
+    /// @param aScene the scene that is to be called
+    /// @return true if scene preparation is ok and call can continue. If false, no further action will be taken
+    /// @note this is called BEFORE scene values are recalled
+    virtual bool prepareSceneCall(DsScenePtr aScene);
+
     /// apply all pending channel value updates to the device's hardware
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully
@@ -161,6 +167,7 @@ namespace p44 {
     void gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aError);
     void scheduleNextStatePoll(ErrorPtr aError);
     void sentProgramOrOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError);
+    void sceneCmdSent(JsonObjectPtr aResult, ErrorPtr aError);
 
     void processPushMessage(const string aMessage);
 

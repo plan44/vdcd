@@ -87,6 +87,12 @@ namespace p44 {
 
     /// @}
 
+
+    /// Substitute channel values for placeholders
+    /// @param aCommandStr string in which placeholders are substituted
+    /// @return number of substitutions applied
+    int substitutePlaceholders(string &aCommandStr);
+
   protected:
 
     // persistence implementation

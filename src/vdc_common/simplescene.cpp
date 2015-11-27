@@ -8,6 +8,7 @@
 
 #include "simplescene.hpp"
 
+#include "outputbehaviour.hpp"
 
 #pragma mark - SimpleScene
 
@@ -344,6 +345,83 @@ void SimpleCmdScene::bindToStatement(sqlite3pp::statement &aStatement, int &aInd
   // bind the fields
   aStatement.bind(aIndex++, command.c_str()); // stable string!
 }
+
+
+#pragma mark - scene command substitutions
+
+
+int SimpleCmdScene::substitutePlaceholders(string &aCommandStr)
+{
+  size_t p = 0;
+  int reps = 0;
+  // Syntax of channel placeholders:
+  //   by channel type: @{channel:tt[*ff]}
+  //   by channel index: @{channel#:ii[*ff][+|-oo][%frac]}
+  //   ff is an optional float factor to scale the channel value
+  //   oo is an float offset to apply
+  //   frac are number of fractional digits to use in output
+  while ((p = aCommandStr.find("@{",p))!=string::npos) {
+    size_t e = aCommandStr.find("}",p+2);
+    if (e==string::npos) {
+      // syntactically incorrect, no closing "}"
+      LOG(LOG_WARNING,"- unterminated replacement placeholder: %s", aCommandStr.c_str()+p);
+      break;
+    }
+    string v = aCommandStr.substr(p+2,e-2-p);
+    string k,chv,rep;
+    rep.clear(); // by default: no replacement string
+    if (v=="sceneno") {
+      rep = string_format("%d", sceneNo);
+    }
+    else if (keyAndValue(v, k, chv, ':')) {
+      // scan channel number with optional scaling and offset
+      ssize_t chn;
+      if (sscanf(chv.c_str(), "%ld", &chn)==1) {
+        double chfactor = 1;
+        double choffset = 0;
+        int numFracDigits = 0;
+        size_t i = 0;
+        while (true) {
+          i = chv.find_first_of("*+-%",i);
+          if (i==string::npos) break; // no more factors, offsets or format specs
+          // factor and/or offset
+          double dd;
+          if (sscanf(chv.c_str()+i+1, "%lf", &dd)==1) {
+            switch (chv[i]) {
+              case '*' : chfactor *= dd; break;
+              case '+' : choffset += dd; break;
+              case '-' : choffset -= dd; break;
+              case '%' : numFracDigits = dd; break;
+            }
+          }
+          i++;
+        }
+        ChannelBehaviourPtr ch;
+        if (k=="channel") {
+          // by channel type
+          chn = getOutputBehaviour()->getChannelByType(chn)->getChannelIndex();
+        }
+        else if (k!="channel#") {
+          chn = -1;
+        }
+        if (chn>=0) {
+          // get scene value for that channel (NOT the current channel value!)
+          double val = sceneValue(chn) * chfactor + choffset;
+          rep = string_format("%.*lf", numFracDigits, val);
+        }
+      }
+    }
+    else {
+      LOG(LOG_WARNING,"- unknown replacement placeholder @{%s}", v.c_str());
+    }
+    // replace, even if rep is empty
+    aCommandStr.replace(p, e-p+1, rep);
+    reps++;
+    p+=rep.size();
+  }
+  return reps;
+}
+
 
 
 #pragma mark - SimpleCmdScene property access

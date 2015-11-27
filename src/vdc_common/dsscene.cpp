@@ -24,6 +24,7 @@
 #include "device.hpp"
 #include "outputbehaviour.hpp"
 #include "simplescene.hpp"
+#include "jsonvdcapi.hpp"
 
 using namespace p44;
 
@@ -530,9 +531,12 @@ ErrorPtr SceneDeviceSettings::loadChildren()
       scene = newDefaultScene(0);
     }
     delete queryP; queryP = NULL;
+    // Now check for default settings from files
+    loadSceneDefaultFiles();
   }
   return err;
 }
+
 
 // save child parameters (scenes)
 ErrorPtr SceneDeviceSettings::saveChildren()
@@ -561,5 +565,160 @@ ErrorPtr SceneDeviceSettings::deleteChildren()
   }
   return err;
 }
+
+
+
+#pragma mark - additional scene defaults from files
+
+
+ErrorPtr SceneDeviceSettings::loadSceneDefaultFiles()
+{
+  string dir = device.getDeviceContainer().getPersistentDataDir();
+  const int numLevels = 4;
+  string levelids[numLevels];
+  // Level strategy: most specialized will be active, unless lower levels specify explicit override
+  // - Baselines are hardcoded defaults plus settings (already) loaded from persistent store
+  // - Level 0 are settings related to the device instance (dSUID)
+  // - Level 1 are settings related to the device type (deviceTypeIdentifier())
+  // - Level 2 are settings related to the behaviour (behaviourTypeIdentifier())
+  // - Level 3 are settings related to the device class (deviceClassIdentifier())
+  levelids[0] = "vdsd_" + device.getDsUid().getString();
+  levelids[1] = string(device.deviceTypeIdentifier()) + "_device";
+  levelids[2] = string(device.output->behaviourTypeIdentifier()) + "_behaviour";
+  levelids[3] = device.classContainerP->deviceClassIdentifier();
+  for(int i=0; i<numLevels; ++i) {
+    // try to open config file
+    string fn = dir+"scenes_"+levelids[i]+".csv";
+    string line;
+    int lineNo = 0;
+    FILE *file = fopen(fn.c_str(), "r");
+    if (!file) {
+      errno_t syserr = errno;
+      if (syserr!=ENOENT) {
+        // file not existing is ok, all other errors must be reported
+        LOG(LOG_ERR, "failed opening file %s - %s", fn.c_str(), strerror(syserr));
+      }
+      // don't process, try next
+    }
+    else {
+      // file opened
+      while (string_fgetline(file, line)) {
+        lineNo++;
+        // skip empty lines and those starting with #, allowing to format and comment CSV
+        if (line.empty() || line[0]=='#') {
+          // skip this line
+          continue;
+        }
+        string f;
+        const char *p = line.c_str();
+        // first field is scene number
+        bool overridden = false;
+        if (nextCSVField(p, f)) {
+          const char *fp = f.c_str();
+          if (!*fp) continue; // empty scene number field -> invalid line
+          // check override prefix
+          if (*fp=='!') {
+            ++fp;
+            overridden = true;
+          }
+          // read scene number
+          int sceneNo;
+          if (sscanf(fp, "%d", &sceneNo)!=1) {
+            continue; // no valid scene number -> invalid line
+            LOG(LOG_ERR, "%s:%d - no or invalid scene number", fn.c_str(), lineNo);
+          }
+          // check if this scene is already in the list (i.e. already has non-hardwired settings)
+          DsSceneMap::iterator pos = scenes.find(sceneNo);
+          DsScenePtr scene;
+          if (pos!=scenes.end()) {
+            // this scene already has settings, only apply if this is an overridden
+            if (!overridden) continue; // scene already configured by more specialized level -> dont apply
+            scene = pos->second;
+          }
+          else {
+            // no settings yet, create the scene object
+            scene = newDefaultScene(sceneNo);
+          }
+          // process properties
+          while (nextCSVField(p, f)) {
+            // skip empty fields and those starting with #, allowing to format and comment CSV a bit (align properties)
+            if (f.empty() || f[0]=='#') {
+              // skip this field
+              continue;
+            }
+            // get related value
+            string v;
+            if (!nextCSVField(p, v)) {
+              // no value
+              LOG(LOG_ERR, "%s:%d - missing value for '%s'", fn.c_str(), lineNo, f.c_str());
+              break;
+            }
+            // create writa access tree
+            fp = f.c_str();
+            string part;
+            ApiValuePtr property = ApiValuePtr(new JsonApiValue);
+            property->setType(apivalue_object);
+            ApiValuePtr proplvl = property;
+            while (nextPart(fp, part, '/')) {
+              if (*fp) {
+                // not last part, add another query level
+                ApiValuePtr nextlvl = proplvl->newValue(apivalue_object);
+                proplvl->add(part, nextlvl);
+                proplvl = nextlvl;
+              }
+              else {
+                // last part, assign value
+                ApiValuePtr val;
+                if (v.find_first_not_of("-0123456789.")==string::npos) {
+                  // numeric
+                  double nv = 0;
+                  sscanf(v.c_str(), "%lf", &nv);
+                  if (v.find('.')!=string::npos) {
+                    // float
+                    val = proplvl->newDouble(nv);
+                  }
+                  else {
+                    // integer
+                    val = proplvl->newInt64(nv);
+                  }
+                }
+                else {
+                  val = proplvl->newString(v);
+                }
+                proplvl->add(part, val);
+                break;
+              }
+            }
+            // now access that property
+            ErrorPtr err = scene->accessProperty(access_write, property, ApiValuePtr(), VDC_API_DOMAIN, PropertyDescriptorPtr());
+            if (!Error::isOK(err)) {
+              LOG(LOG_ERR, "%s:%d - error writing property '%s': %s", fn.c_str(), lineNo, f.c_str(), err->description().c_str());
+            }
+          }
+          // these changes are NOT to be made persistent in DB!
+          scene->markClean();
+          // put scene into table
+          scenes[sceneNo] = scene;
+          SALOG(device, LOG_INFO, "Customized scene %d %sfrom config file %s", sceneNo, overridden ? "(with override) " : "", fn.c_str());
+        }
+      }
+      fclose(file);
+    }
+  }
+  return ErrorPtr();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
