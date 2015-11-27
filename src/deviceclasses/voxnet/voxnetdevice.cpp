@@ -132,7 +132,10 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
         }
         else if (subcmd=="msgcmd") {
-          // use as message play shell command
+          // Syntax: msgcmd:shell command
+          // direct execution of a shell command supposed to play a message, replacing extra "magic" identifiers as follows:
+          // - @contentindex with the scene's contentSource channel value
+          // - @sceneno with the scene's number
           playcmd=params;
         }
         else {
@@ -342,6 +345,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
             if (v!=currentSource) {
               currentSource = v;
               ALOG(LOG_NOTICE,"Source changed: %s", v.c_str());
+              currentStream.clear(); // source change always invalidates stream
               needFullStatus = true;
             }
           }
@@ -394,6 +398,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
           if (v!=currentSource) {
             currentSource = v;
             ALOG(LOG_NOTICE,"Source changed: %s (via user %s)", v.c_str(), currentUser.c_str());
+            currentStream.clear(); // source change always invalidates stream
             needFullStatus = true;
           }
         }
