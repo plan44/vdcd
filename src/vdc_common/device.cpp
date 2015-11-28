@@ -1324,6 +1324,8 @@ ErrorPtr Device::load()
   for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->load();
   for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->load();
   if (output) output->load();
+  // load settings from files
+  loadSettingsFromFiles();
   return ErrorPtr();
 }
 
@@ -1343,6 +1345,29 @@ ErrorPtr Device::save()
 }
 
 
+bool Device::isDirty()
+{
+  // check the device settings
+  if (deviceSettings && deviceSettings->isDirty()) return true;
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) if ((*pos)->isDirty()) return true;
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) if ((*pos)->isDirty()) return true;
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) if ((*pos)->isDirty()) return true;
+  if (output && output->isDirty()) return true;
+  return false;
+}
+
+
+void Device::markClean()
+{
+  // check the device settings
+  if (deviceSettings) deviceSettings->markClean();
+  for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) (*pos)->markClean();
+  for (BehaviourVector::iterator pos = binaryInputs.begin(); pos!=binaryInputs.end(); ++pos) (*pos)->markClean();
+  for (BehaviourVector::iterator pos = sensors.begin(); pos!=sensors.end(); ++pos) (*pos)->markClean();
+  if (output) output->save();
+}
+
+
 ErrorPtr Device::forget()
 {
   // delete the device settings
@@ -1354,6 +1379,30 @@ ErrorPtr Device::forget()
   if (output) output->forget();
   return ErrorPtr();
 }
+
+
+void Device::loadSettingsFromFiles()
+{
+  string dir = getDeviceContainer().getPersistentDataDir();
+  const int numLevels = 3;
+  string levelids[numLevels];
+  // Level strategy: most specialized will be active, unless lower levels specify explicit override
+  // - Baselines are hardcoded defaults plus settings (already) loaded from persistent store
+  // - Level 0 are settings related to the device instance (dSUID)
+  // - Level 1 are settings related to the device type (deviceTypeIdentifier())
+  // - Level 2 are settings related to the device class (deviceClassIdentifier())
+  levelids[0] = getDsUid().getString();
+  levelids[1] = string(deviceTypeIdentifier());
+  levelids[2] = classContainerP->deviceClassIdentifier();
+  for(int i=0; i<numLevels; ++i) {
+    // try to open config file
+    string fn = dir+"devicesettings_"+levelids[i]+".csv";
+    // if device has already stored properties, only explicitly marked properties will be applied
+    if (loadSettingsFromFile(fn.c_str(), deviceSettings->rowid!=0)) markClean();
+  }
+}
+
+
 
 #pragma mark - property access
 

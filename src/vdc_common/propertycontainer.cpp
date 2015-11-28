@@ -28,6 +28,9 @@
 
 #include "propertycontainer.hpp"
 
+// needed to implement reading from CSV
+#include "jsonvdcapi.hpp"
+
 using namespace p44;
 
 
@@ -315,5 +318,88 @@ PropertyDescriptorPtr PropertyContainer::getDescriptorByNumericName(
   return propDesc;
 }
 
+
+#pragma mark - reading from CSV
+
+
+bool PropertyContainer::readPropsFromCSV(int aDomain, bool aOnlyExplicitlyOverridden, const char *&aCSVCursor, const char *aTextSourceName, int aLineNo)
+{
+  bool anySettingsApplied = false;
+  string f;
+  const char *fp;
+  // process properties
+  while (nextCSVField(aCSVCursor, f)) {
+    // skip empty fields and those starting with #, allowing to format and comment CSV a bit (align properties)
+    if (f.empty() || f[0]=='#') {
+      // skip this field
+      continue;
+    }
+    // get related value
+    string v;
+    // use same separator as used to terminate property name (these never contain comma, semicolon or TAB!)
+    if (!nextCSVField(aCSVCursor, v, *(aCSVCursor-1))) {
+      // no value
+      LOG(LOG_ERR, "%s:%d - missing value for '%s'", aTextSourceName, aLineNo, f.c_str());
+      break;
+    }
+    // create write access tree
+    fp = f.c_str();
+    string part;
+    ApiValuePtr property = ApiValuePtr(new JsonApiValue);
+    property->setType(apivalue_object);
+    ApiValuePtr proplvl = property;
+    // check override for this particular property
+    bool overridden = false;
+    if (*fp=='!') {
+      fp++;
+      overridden = true; // explicit override
+    }
+    // check if we should apply it
+    if (aOnlyExplicitlyOverridden && !overridden) {
+      // skip this property
+      continue;
+    }
+    // now apply
+    while (nextPart(fp, part, '/')) {
+      if (*fp) {
+        // not last part, add another query level
+        ApiValuePtr nextlvl = proplvl->newValue(apivalue_object);
+        proplvl->add(part, nextlvl);
+        proplvl = nextlvl;
+      }
+      else {
+        // last part, assign value
+        ApiValuePtr val;
+        if (v.find_first_not_of("-0123456789.")==string::npos) {
+          // numeric
+          double nv = 0;
+          sscanf(v.c_str(), "%lf", &nv);
+          if (v.find('.')!=string::npos) {
+            // float
+            val = proplvl->newDouble(nv);
+          }
+          else {
+            // integer
+            val = proplvl->newInt64(nv);
+          }
+        }
+        else {
+          val = proplvl->newString(v);
+        }
+        proplvl->add(part, val);
+        break;
+      }
+    }
+    // now access that property
+    ErrorPtr err = accessProperty(access_write, property, ApiValuePtr(), aDomain, PropertyDescriptorPtr());
+    if (!Error::isOK(err)) {
+      LOG(LOG_ERR, "%s:%d - error writing property '%s': %s", aTextSourceName, aLineNo, f.c_str(), err->description().c_str());
+    }
+    else {
+      anySettingsApplied = true;
+    }
+  }
+  return anySettingsApplied;
+}
 
 

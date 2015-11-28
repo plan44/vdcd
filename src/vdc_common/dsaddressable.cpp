@@ -461,6 +461,39 @@ string DsAddressable::vendorId()
 
 
 
+#pragma mark - load addressable settings from files
+
+
+bool DsAddressable::loadSettingsFromFile(const char *aCSVFilepath, bool aOnlyExplicitlyOverridden)
+{
+  bool anySettingsApplied = false;
+  string line;
+  int lineNo = 0;
+  FILE *file = fopen(aCSVFilepath, "r");
+  if (!file) {
+    int syserr = errno;
+    if (syserr!=ENOENT) {
+      // file not existing is ok, all other errors must be reported
+      LOG(LOG_ERR, "failed opening file %s - %s", aCSVFilepath, strerror(syserr));
+    }
+    // NOP
+  }
+  else {
+    // file opened
+    while (string_fgetline(file, line)) {
+      lineNo++;
+      const char *p = line.c_str();
+      // process CSV line as property name/value pairs
+      anySettingsApplied = anySettingsApplied || readPropsFromCSV(VDC_API_DOMAIN, aOnlyExplicitlyOverridden, p, aCSVFilepath, lineNo);
+    }
+    fclose(file);
+    if (anySettingsApplied) {
+      ALOG(LOG_INFO, "Customized settings from config file %s", aCSVFilepath);
+    }
+  }
+  return anySettingsApplied;
+}
+
 
 #pragma mark - description/shortDesc/logging
 

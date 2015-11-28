@@ -532,7 +532,7 @@ ErrorPtr SceneDeviceSettings::loadChildren()
     }
     delete queryP; queryP = NULL;
     // Now check for default settings from files
-    loadSceneDefaultFiles();
+    loadScenesFromFiles();
   }
   return err;
 }
@@ -571,7 +571,7 @@ ErrorPtr SceneDeviceSettings::deleteChildren()
 #pragma mark - additional scene defaults from files
 
 
-ErrorPtr SceneDeviceSettings::loadSceneDefaultFiles()
+void SceneDeviceSettings::loadScenesFromFiles()
 {
   string dir = device.getDeviceContainer().getPersistentDataDir();
   const int numLevels = 4;
@@ -593,7 +593,7 @@ ErrorPtr SceneDeviceSettings::loadSceneDefaultFiles()
     int lineNo = 0;
     FILE *file = fopen(fn.c_str(), "r");
     if (!file) {
-      errno_t syserr = errno;
+      int syserr = errno;
       if (syserr!=ENOENT) {
         // file not existing is ok, all other errors must be reported
         LOG(LOG_ERR, "failed opening file %s - %s", fn.c_str(), strerror(syserr));
@@ -639,62 +639,8 @@ ErrorPtr SceneDeviceSettings::loadSceneDefaultFiles()
             // no settings yet, create the scene object
             scene = newDefaultScene(sceneNo);
           }
-          // process properties
-          while (nextCSVField(p, f)) {
-            // skip empty fields and those starting with #, allowing to format and comment CSV a bit (align properties)
-            if (f.empty() || f[0]=='#') {
-              // skip this field
-              continue;
-            }
-            // get related value
-            string v;
-            if (!nextCSVField(p, v)) {
-              // no value
-              LOG(LOG_ERR, "%s:%d - missing value for '%s'", fn.c_str(), lineNo, f.c_str());
-              break;
-            }
-            // create writa access tree
-            fp = f.c_str();
-            string part;
-            ApiValuePtr property = ApiValuePtr(new JsonApiValue);
-            property->setType(apivalue_object);
-            ApiValuePtr proplvl = property;
-            while (nextPart(fp, part, '/')) {
-              if (*fp) {
-                // not last part, add another query level
-                ApiValuePtr nextlvl = proplvl->newValue(apivalue_object);
-                proplvl->add(part, nextlvl);
-                proplvl = nextlvl;
-              }
-              else {
-                // last part, assign value
-                ApiValuePtr val;
-                if (v.find_first_not_of("-0123456789.")==string::npos) {
-                  // numeric
-                  double nv = 0;
-                  sscanf(v.c_str(), "%lf", &nv);
-                  if (v.find('.')!=string::npos) {
-                    // float
-                    val = proplvl->newDouble(nv);
-                  }
-                  else {
-                    // integer
-                    val = proplvl->newInt64(nv);
-                  }
-                }
-                else {
-                  val = proplvl->newString(v);
-                }
-                proplvl->add(part, val);
-                break;
-              }
-            }
-            // now access that property
-            ErrorPtr err = scene->accessProperty(access_write, property, ApiValuePtr(), VDC_API_DOMAIN, PropertyDescriptorPtr());
-            if (!Error::isOK(err)) {
-              LOG(LOG_ERR, "%s:%d - error writing property '%s': %s", fn.c_str(), lineNo, f.c_str(), err->description().c_str());
-            }
-          }
+          // process rest of CSV line as property name/value pairs
+          scene->readPropsFromCSV(VDC_API_DOMAIN, false, p, fn.c_str(), lineNo);
           // these changes are NOT to be made persistent in DB!
           scene->markClean();
           // put scene into table
@@ -705,20 +651,4 @@ ErrorPtr SceneDeviceSettings::loadSceneDefaultFiles()
       fclose(file);
     }
   }
-  return ErrorPtr();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

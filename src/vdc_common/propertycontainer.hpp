@@ -160,6 +160,15 @@ namespace p44 {
 
     /// @}
 
+    /// read properties from CSV formatted text
+    /// @param aDomain the domain for which to access properties (different APIs might have different properties for the same PropertyContainer)
+    /// @param aOnlyExplicitlyOverridden if set, only properties prefixed with an exclamation mark are applied
+    /// @param aCSVCursor must point to a CSV formatted text which is parsed for propertypath/value pairs
+    /// @param aTextSourceName (file)name of where the text comes from, for logging error messages
+    /// @param aLineNo line number within the text source, for logging error messages
+    /// @return true if some settings were applied
+    bool readPropsFromCSV(int aDomain, bool aOnlyExplicitlyOverridden, const char *&aCSVCursor, const char *aTextSourceName, int aLineNo);
+
   protected:
 
     /// @name methods that should be overriden in concrete subclasses to access properties
@@ -255,8 +264,6 @@ namespace p44 {
       string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor,
       intptr_t aObjectKey
     );
-
-
 
     /// @}
 

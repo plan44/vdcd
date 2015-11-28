@@ -202,6 +202,15 @@ namespace p44 {
     /// forget any parameters stored in persistent DB
     virtual ErrorPtr forget();
 
+    // check if any settings are dirty
+    virtual bool isDirty();
+
+    // make all settings clean (not to be saved to DB)
+    virtual void markClean();
+
+    // load additional settings from files
+    void loadSettingsFromFiles();
+
     /// @}
 
 

@@ -238,6 +238,7 @@ ErrorPtr DeviceClassContainer::load()
   // load the vdc settings
   err = loadFromStore(dSUID.getString().c_str());
   if (!Error::isOK(err)) ALOG(LOG_ERR,"Error loading settings: %s", err->description().c_str());
+  loadSettingsFromFiles();
   return ErrorPtr();
 }
 
@@ -258,6 +259,25 @@ ErrorPtr DeviceClassContainer::forget()
   return ErrorPtr();
 }
 
+
+void DeviceClassContainer::loadSettingsFromFiles()
+{
+  string dir = getDeviceContainer().getPersistentDataDir();
+  const int numLevels = 2;
+  string levelids[numLevels];
+  // Level strategy: most specialized will be active, unless lower levels specify explicit override
+  // - Baselines are hardcoded defaults plus settings (already) loaded from persistent store
+  // - Level 0 are settings related to the device instance (dSUID)
+  // - Level 1 are settings related to the device class (deviceClassIdentifier())
+  levelids[0] = getDsUid().getString();
+  levelids[1] = deviceClassIdentifier();
+  for(int i=0; i<numLevels; ++i) {
+    // try to open config file
+    string fn = dir+"vdcsettings_"+levelids[i]+".csv";
+    // if vdc has already stored properties, only explicitly marked properties will be applied
+    if (loadSettingsFromFile(fn.c_str(), rowid!=0)) markClean();
+  }
+}
 
 
 #pragma mark - property access

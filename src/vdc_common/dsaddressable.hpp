@@ -296,6 +296,15 @@ namespace p44 {
 
     /// @}
 
+
+    /// load settings from CSV file
+    /// @param aCSVFilepath full file path to a CSV file to read. If file does not exist, the function does nothing. If
+    ///   an error occurs loading the file, the error is logged
+    /// @param aOnlyExplicitlyOverridden if set, only properties are applied which are explicitly marked with a exclamation mark prefix
+    /// @return true if some settings were applied
+    bool loadSettingsFromFile(const char *aCSVFilepath, bool aOnlyExplicitlyOverridden);
+
+    
     // property access implementation
     virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
     virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);

@@ -346,7 +346,10 @@ namespace p44 {
 
     /// forget any parameters stored in persistent DB
     ErrorPtr forget();
-    
+
+    // load additional settings from file
+    void loadSettingsFromFiles();
+
     /// @}
 
 

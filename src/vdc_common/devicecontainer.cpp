@@ -1254,6 +1254,8 @@ ErrorPtr DeviceContainer::load()
   // load the vdc host settings
   err = loadFromStore(entityType()); // is a singleton, identify by type
   if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc host: %s", err->description().c_str());
+  // check for settings from files
+  loadSettingsFromFiles();
   return ErrorPtr();
 }
 
@@ -1272,6 +1274,17 @@ ErrorPtr DeviceContainer::forget()
   // delete the vdc settings
   deleteFromStore();
   return ErrorPtr();
+}
+
+
+
+void DeviceContainer::loadSettingsFromFiles()
+{
+  // try to open config file
+  string fn = getPersistentDataDir();
+  fn += "vdchostsettings.csv";
+  // if vdc has already stored properties, only explicitly marked properties will be applied
+  if (loadSettingsFromFile(fn.c_str(), rowid!=0)) markClean();
 }
 
 

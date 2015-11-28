@@ -569,19 +569,10 @@ bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue,
 
 
 VoxnetDeviceSettings::VoxnetDeviceSettings(Device &aDevice) :
-  inherited(aDevice)
+  inherited(aDevice),
+  messageTitleNo(0),
+  messageDuration(10)
 {
-
-//  messageSourceID = "$MyMusic2";
-//  messageStream = "radio";
-//  messageTitleNo = 1;
-
-  messageSourceID = "$s.zone1";
-  messageStream = "analog";
-  messageTitleNo = 0;
-
-  messageDuration = 20; // Seconds
-  messageShellCommand = "/etc/ices/playmessage @{sceneno}";
 }
 
 

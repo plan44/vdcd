@@ -283,7 +283,7 @@ namespace p44 {
     virtual ErrorPtr deleteChildren();
 
     // additional defaults for scenes from files
-    ErrorPtr loadSceneDefaultFiles();
+    void loadScenesFromFiles();
     
     /// @}
   };
