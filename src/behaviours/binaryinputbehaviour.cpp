@@ -53,20 +53,18 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 
 void BinaryInputBehaviour::updateInputState(bool aNewState)
 {
-  BLOG(LOG_NOTICE,
-    "BinaryInput[%zu] '%s' received new state = %d",
-    index, hardwareName.c_str(), aNewState
-  );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
   lastUpdate = now;
   // input state change is considered a (regular!) user action, have it checked globally first
-  if (aNewState!=currentState) {
+  bool changedState = aNewState!=currentState;
+  if (changedState) {
     device.getDeviceContainer().signalDeviceUserAction(device, true);
     // Note: even if global identify handler processes this, still report state changes (otherwise upstream could get out of sync)
   }
+  BLOG(changedState ? LOG_NOTICE : LOG_INFO, "BinaryInput[%zu] '%s' reports %s state = %d", index, hardwareName.c_str(), changedState ? "NEW" : "same", aNewState);
   // in all cases, forward binary input state changes
-  if (aNewState!=currentState || now>lastPush+changesOnlyInterval) {
+  if (changedState || now>lastPush+changesOnlyInterval) {
     // changed state or no update sent for more than changesOnlyInterval
     currentState = aNewState;
     if (lastPush==Never || now>lastPush+minPushInterval) {

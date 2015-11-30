@@ -64,14 +64,12 @@ void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 
 void SensorBehaviour::updateSensorValue(double aValue)
 {
-  BLOG(LOG_NOTICE,
-    "Sensor[%zu] '%s' reported new value %0.3f",
-    index, hardwareName.c_str(), aValue
-  );
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
   lastUpdate = now;
-  if (aValue!=currentValue || now>lastPush+changesOnlyInterval) {
+  bool changedValue = aValue!=currentValue;
+  BLOG(changedValue ? LOG_NOTICE : LOG_INFO, "Sensor[%zu] '%s' reports %s value = %0.3f", index, hardwareName.c_str(), changedValue ? "NEW" : "same", aValue);
+  if (changedValue || now>lastPush+changesOnlyInterval) {
     // changed value or last push with same value long enough ago
     currentValue = aValue;
     if (lastPush==Never || now>lastPush+minPushInterval) {
