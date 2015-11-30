@@ -30,10 +30,13 @@
 
 #include "binaryinputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
+#include "buttonbehaviour.hpp"
 
 using namespace std;
 
 namespace p44 {
+
+  typedef map<string, string> StringStringMap;
 
   class VZugHomeDeviceContainer;
 
@@ -58,12 +61,17 @@ namespace p44 {
     string currentStatus;
     string currentProgram;
 
+    #ifdef STATUS_BINRAY_INPUTS
     BinaryInputBehaviourPtr programActive;
     BinaryInputBehaviourPtr needWater;
     BinaryInputBehaviourPtr needAttention;
+    #endif
+    ButtonBehaviourPtr actionButton; ///< the pseudo-button required to send direct scene calls
 
     SensorBehaviourPtr ovenTemp;
     SensorBehaviourPtr foodTemp;
+
+    StringStringMap pushMessageTriggers; ///< texts from push messages and corresponding direct actions
 
   public:
 
@@ -152,6 +160,9 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
+    /// load parameters from persistent DB
+    /// @note implemented here to load pushMessageTriggers
+    virtual ErrorPtr load();
 
   private:
 
@@ -166,7 +177,7 @@ namespace p44 {
     void gotIsActive(JsonObjectPtr aResult, ErrorPtr aError);
     void gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aError);
     void scheduleNextStatePoll(ErrorPtr aError);
-    void sentProgramOrOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError);
+    void sentTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError);
     void sceneCmdSent(JsonObjectPtr aResult, ErrorPtr aError);
 
     void processPushMessage(const string aMessage);

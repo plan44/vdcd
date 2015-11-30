@@ -257,6 +257,25 @@ namespace p44 {
   typedef boost::intrusive_ptr<DigitalChannel> DigitalChannelPtr;
 
 
+  /// general purpose "dial" channel
+  class DialChannel : public ChannelBehaviour
+  {
+    typedef ChannelBehaviour inherited;
+
+    double max; ///< maximum value
+
+  public:
+    DialChannel(OutputBehaviour &aOutput) : inherited(aOutput) { max=100; /* standard dimmer range */ resolution = 1; /* integer by default */ };
+    virtual DsChannelType getChannelType() { return channeltype_default; }; ///< no real dS channel type
+    virtual const char *getName() { return "dial"; };
+    virtual double getMin() { return 0; };
+    virtual double getMax() { return max; };
+
+    void setMax(double aMax) { max = aMax; };
+  };
+  typedef boost::intrusive_ptr<DialChannel> DialChannelPtr;
+
+
 } // namespace p44
 
 #endif /* defined(__vdcd__channelbehaviour__) */

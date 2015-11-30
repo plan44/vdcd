@@ -50,10 +50,18 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   installSettings(DeviceSettingsPtr(new CmdSceneDeviceSettings(*this)));
   // - set the output behaviour
   OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-  o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
+  o->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_undefined, false, -1);
   o->setGroupMembership(group_black_joker, true);
-  o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
+  DialChannelPtr dc = DialChannelPtr(new DialChannel(*o));
+  dc->setMax(230); // TODO: parametrize this - for now, the max 230 degrees
+  o->addChannel(dc);
   addBehaviour(o);
+  // - set the pseudo-button behaviour needed for direct scene calls
+  actionButton = ButtonBehaviourPtr(new ButtonBehaviour(*this));
+  actionButton->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, true);
+  actionButton->setHardwareName("status");
+  addBehaviour(actionButton);
+  #ifdef STATUS_BINRAY_INPUTS
   // - add some "message" binary inputs
   programActive = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
   programActive->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
@@ -67,6 +75,7 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   needAttention->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
   needAttention->setHardwareName("Aktion erforderlich");
   addBehaviour(needAttention);
+  #endif
 }
 
 
@@ -145,11 +154,11 @@ void VZugHomeDevice::willBeAdded()
   if (deviceModel==model_MSLQ) {
     // - add two temperature sensors
     ovenTemp = SensorBehaviourPtr(new SensorBehaviour(*this));
-    ovenTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
+    ovenTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never, 10*Minute);
     ovenTemp->setHardwareName("Garraumtemperatur");
     addBehaviour(ovenTemp);
     foodTemp = SensorBehaviourPtr(new SensorBehaviour(*this));
-    foodTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never);
+    foodTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never, 10*Minute);
     foodTemp->setHardwareName("Garsensortemperatur");
     addBehaviour(foodTemp);
   }
@@ -268,11 +277,13 @@ void VZugHomeDevice::gotIsActive(JsonObjectPtr aResult, ErrorPtr aError)
   ALOG(LOG_DEBUG, "isActive: %s", s.c_str());
   bool isActive = false;
   if (s=="true") isActive = true;
+  #ifdef STATUS_BINRAY_INPUTS
   programActive->updateInputState(isActive); // update status binInp
   if (!isActive) {
     needWater->updateInputState(false);
     needAttention->updateInputState(false);
   }
+  #endif
   output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? 100 : 0); // update channel value
   // query last push messages
   vzugHomeComm.apiCommand(false, "getLastPUSHNotifications", NULL, true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
@@ -324,11 +335,74 @@ void VZugHomeDevice::gotLastPUSHNotifications(JsonObjectPtr aResult, ErrorPtr aE
 }
 
 
+ErrorPtr VZugHomeDevice::load()
+{
+  // first do normal load, including loadings scenes and device settings from CSV files
+  ErrorPtr err = inherited::load();
+  // load triggers
+  pushMessageTriggers.clear();
+  string dir = getDeviceContainer().getPersistentDataDir();
+  const int numLevels = 3;
+  string levelids[numLevels];
+  // Level strategy: most specialized will be active, unless lower levels specify explicit override
+  // - Level 0 are triggers related to the device instance (dSUID)
+  // - Level 1 are triggers related to the device type (deviceTypeIdentifier())
+  levelids[0] = getDsUid().getString();
+  levelids[1] = string(deviceTypeIdentifier());
+  for(int i=0; i<numLevels; ++i) {
+    // try to open config file
+    string fn = dir+"actiontriggers_"+levelids[i]+".csv";
+    string line;
+    FILE *file = fopen(fn.c_str(), "r");
+    if (!file) {
+      int syserr = errno;
+      if (syserr!=ENOENT) {
+        // file not existing is ok, all other errors must be reported
+        LOG(LOG_ERR, "failed opening file %s - %s", fn.c_str(), strerror(syserr));
+      }
+      // NOP
+    }
+    else {
+      // file opened
+      while (string_fgetline(file, line)) {
+        const char *p = line.c_str();
+        string text,action;
+        while (nextCSVField(p, text)) {
+          if (!nextCSVField(p, action)) break;
+          pushMessageTriggers[text] = action;
+        }
+      }
+      fclose(file);
+      ALOG(LOG_INFO, "Loaded direct action triggers from file %s", fn.c_str());
+    }
+
+  }
+  return err;
+}
+
+
 
 void VZugHomeDevice::processPushMessage(const string aMessage)
 {
   lastPushMessage = aMessage;
   ALOG(LOG_NOTICE, "Push Message: %s", aMessage.c_str());
+  // look up
+  for (StringStringMap::iterator pos = pushMessageTriggers.begin(); pos!=pushMessageTriggers.end(); ++pos) {
+    if (aMessage.find(pos->first)!=string::npos) {
+      // matching trigger -> execute direct call
+      ALOG(LOG_NOTICE, "Trigger text '%s' detected -> pushing direct call: %s", pos->first.c_str(), pos->second.c_str());
+      // parse call: syntax: [-|!]n, "!" for force call, "-" for undo
+      const char *p = pos->second.c_str();
+      DsButtonActionMode m = buttonActionMode_normal;
+      if (*p=='!') { p++; m = buttonActionMode_force; }
+      else if (*p=='-') { p++; m = buttonActionMode_undo; }
+      int a;
+      if (sscanf(p, "%d", &a)==1) {
+        actionButton->sendAction(m, a);
+      }
+    }
+  }
+  #ifdef STATUS_BINRAY_INPUTS
   // TODO: refine
   if (aMessage.find("Wasser")!=string::npos) {
     needWater->updateInputState(true);
@@ -345,6 +419,7 @@ void VZugHomeDevice::processPushMessage(const string aMessage)
     // everything else needs general attention
     needAttention->updateInputState(true);
   }
+  #endif
 }
 
 
@@ -435,37 +510,35 @@ void VZugHomeDevice::sceneCmdSent(JsonObjectPtr aResult, ErrorPtr aError)
 
 void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
-//  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
-//  if (ch && ch->needsApplying()) {
-//    // we can turn off the device
-//    if (ch->getChannelValue()==0) {
-//      // send off command
-//      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
-//      ch->channelValueApplied(); // value is "applied" (saved in request)
-//      return; // wait for actual apply
-//    }
-//    else {
-//      // can't turn on, but request a default program instead
-//      vzugHomeComm.apiCommand(false, "setProgram", "{\"id\":7,\"temperature\":42,\"duration\":0}", false, boost::bind(&VZugHomeDevice::sentProgramOrOff, this, aDoneCB, aForDimming, _2));
-//      ch->channelValueApplied(); // value is "applied" (saved in request)
-//      return; // wait for request to complete
-//    }
-//  }
+  ChannelBehaviourPtr ch = getChannelByType(channeltype_default);
+  if (ch && ch->needsApplying()) {
+    // we can turn off the device
+    if (ch->getChannelValue()==0) {
+      // send off command
+      ALOG(LOG_INFO, "Main channel set to 0 -> send off command");
+      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentTurnOff, this, aDoneCB, aForDimming, _2));
+      ch->channelValueApplied(); // value is "applied" (saved in request)
+      return; // wait for actual apply
+    }
+    else {
+      // setting the channel to another value than 0 is NOP, or just for saving it into a scene that will use it together with a program
+    }
+  }
   // let inherited handle and callback right now
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 
-void VZugHomeDevice::sentProgramOrOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
+void VZugHomeDevice::sentTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aError)
 {
-//  if (Error::isOK(aError)) {
-//    ALOG(LOG_INFO, "Successfully sent off or set program");
-//  }
-//  else {
-//    ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
-//  }
-//  // applied, let inherited handle and callback
-//  inherited::applyChannelValues(aDoneCB, aForDimming);
+  if (Error::isOK(aError)) {
+    ALOG(LOG_INFO, "Successfully sent off command");
+  }
+  else {
+    ALOG(LOG_INFO, "Error turning off device: %s", aError->description().c_str());
+  }
+  // applied, let inherited handle and callback
+  inherited::applyChannelValues(aDoneCB, aForDimming);
 }
 
 
