@@ -276,6 +276,16 @@ typedef enum {
 } DsButtonFunc;
 
 
+
+/// direct scene call action mode for buttons
+typedef enum {
+  buttonActionMode_normal = 0, ///< normal scene call
+  buttonActionMode_force = 1, ///< forced scene call
+  buttonActionMode_undo = 2, ///< undo scene
+  buttonActionMode_none = 255, ///< no action
+} DsButtonActionMode;
+
+
 /// output functions (describes capability of output)
 typedef enum {
   outputFunction_switch = 0, ///< switch output - single channel 0..100

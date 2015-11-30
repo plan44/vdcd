@@ -67,8 +67,12 @@ namespace p44 {
     /// @name internal volatile state
     /// @{
     bool buttonPressed; ///< set if button is currently pressed
+    MLMicroSeconds lastAction; ///< time of last clickType or actionMode/actionScene update
+
     DsClickType clickType; ///< set to last click type of button
-    MLMicroSeconds lastClick; ///< time of last clickType update
+
+    DsButtonActionMode actionMode; ///< action mode
+    uint8_t actionId; ///< action Id (aka scene number)
     /// @}
 
   public:
@@ -98,6 +102,11 @@ namespace p44 {
     /// button action occurred
     /// @param aPressed true if action is button pressed, false if action is button released
     void buttonAction(bool aPressed);
+
+    /// send direct action
+    /// @param aActionMode the mode how to send the action
+    /// @param aSceneNo the scene number to send
+    void sendAction(DsButtonActionMode aActionMode, uint8_t aActionId);
 
     /// @}
 

@@ -43,8 +43,10 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   buttonFunc(buttonFunc_room_preset0x), // act as room button by default
   setsLocalPriority(false),
   clickType(ct_none),
+  actionMode(buttonActionMode_none),
+  actionId(0),
   buttonPressed(false),
-  lastClick(Never),
+  lastAction(Never),
   buttonStateMachineTicket(0),
   callsPresent(false)
 {
@@ -356,8 +358,9 @@ void ButtonBehaviour::localDim()
 void ButtonBehaviour::sendClick(DsClickType aClickType)
 {
   // update button state
-  lastClick = MainLoop::now();
+  lastAction = MainLoop::now();
   clickType = aClickType;
+  actionMode = buttonActionMode_none;
   // button press is considered a (regular!) user action, have it checked globally first
   if (!device.getDeviceContainer().signalDeviceUserAction(device, true)) {
     // button press not consumed on global level, forward to upstream dS
@@ -371,6 +374,16 @@ void ButtonBehaviour::sendClick(DsClickType aClickType)
     // TODO: more elegant solution for this
     device.getDeviceContainer().checkForLocalClickHandling(*this, aClickType);
   }
+}
+
+
+void ButtonBehaviour::sendAction(DsButtonActionMode aActionMode, uint8_t aActionId)
+{
+  lastAction = MainLoop::now();
+  actionMode = aActionMode;
+  actionId = aActionId;
+  // issue a state property push
+  pushBehaviourState();
 }
 
 
@@ -514,6 +527,8 @@ const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aP
 enum {
   value_key,
   clickType_key,
+  actionMode_key,
+  actionId_key,
   age_key,
   numStateProperties
 };
@@ -525,6 +540,8 @@ const PropertyDescriptorPtr ButtonBehaviour::getStateDescriptorByIndex(int aProp
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_bool, value_key+states_key_offset, OKEY(button_key) },
     { "clickType", apivalue_uint64, clickType_key+states_key_offset, OKEY(button_key) },
+    { "actionMode", apivalue_uint64, actionMode_key+states_key_offset, OKEY(button_key) },
+    { "actionId", apivalue_uint64, actionId_key+states_key_offset, OKEY(button_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(button_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
@@ -573,20 +590,32 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         // States properties
         case value_key+states_key_offset:
-          if (lastClick==Never)
+          if (lastAction==Never)
             aPropValue->setNull();
           else
             aPropValue->setBoolValue(buttonPressed);
           return true;
         case clickType_key+states_key_offset:
+          // click type is available only if last actions was a regular click
+          if (actionMode!=buttonActionMode_none) return false;
           aPropValue->setUint64Value(clickType);
+          return true;
+        case actionMode_key+states_key_offset:
+          // actionMode is available only if last actions was direct action
+          if (actionMode==buttonActionMode_none) return false;
+          aPropValue->setUint64Value(actionMode);
+          return true;
+        case actionId_key+states_key_offset:
+          // actionId is available only if last actions was direct action
+          if (actionMode==buttonActionMode_none) return false;
+          aPropValue->setUint64Value(actionId);
           return true;
         case age_key+states_key_offset:
           // age
-          if (lastClick==Never)
+          if (lastAction==Never)
             aPropValue->setNull();
           else
-            aPropValue->setDoubleValue((double)(MainLoop::now()-lastClick)/Second);
+            aPropValue->setDoubleValue((double)(MainLoop::now()-lastAction)/Second);
           return true;
       }
     }
