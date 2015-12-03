@@ -48,7 +48,9 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   buttonPressed(false),
   lastAction(Never),
   buttonStateMachineTicket(0),
-  callsPresent(false)
+  callsPresent(false),
+  buttonActionMode(buttonActionMode_none),
+  buttonActionId(0)
 {
   // set default hrdware configuration
   setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false);
@@ -357,6 +359,12 @@ void ButtonBehaviour::localDim()
 
 void ButtonBehaviour::sendClick(DsClickType aClickType)
 {
+  // check for p44-level scene buttons
+  if (buttonActionMode!=buttonActionMode_none && (aClickType==ct_tip_1x || aClickType==ct_click_1x)) {
+    // trigger direct scene action for single clicks
+    sendAction(buttonActionMode, buttonActionId);
+    return;
+  }
   // update button state
   lastAction = MainLoop::now();
   clickType = aClickType;
@@ -382,6 +390,10 @@ void ButtonBehaviour::sendAction(DsButtonActionMode aActionMode, uint8_t aAction
   lastAction = MainLoop::now();
   actionMode = aActionMode;
   actionId = aActionId;
+  BLOG(LOG_NOTICE,
+    "Button[%zu] '%s' pushes actionMode = %d, actionId %d",
+    index, hardwareName.c_str(), actionMode, actionId
+  );
   // issue a state property push
   pushBehaviourState();
 }
@@ -401,7 +413,7 @@ const char *ButtonBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 5;
+static const size_t numFields = 7;
 
 size_t ButtonBehaviour::numFieldDefs()
 {
@@ -416,7 +428,9 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
     { "buttonFunc", SQLITE_INTEGER },
     { "buttonGroup", SQLITE_INTEGER },
     { "buttonFlags", SQLITE_INTEGER },
-    { "buttonChannel", SQLITE_INTEGER }
+    { "buttonChannel", SQLITE_INTEGER },
+    { "buttonActionMode", SQLITE_INTEGER },
+    { "buttonActionId", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -441,6 +455,8 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
   buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
   uint64_t flags = aRow->get<int>(aIndex++);
   buttonChannel = (DsChannelType)aRow->get<int>(aIndex++);
+  buttonActionMode = (DsButtonActionMode)aRow->get<int>(aIndex++);
+  buttonActionId = aRow->get<int>(aIndex++);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
@@ -463,6 +479,8 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   aStatement.bind(aIndex++, buttonFunc);
   aStatement.bind(aIndex++, flags);
   aStatement.bind(aIndex++, buttonChannel);
+  aStatement.bind(aIndex++, buttonActionMode);
+  aStatement.bind(aIndex++, buttonActionId);
 }
 
 
@@ -504,6 +522,8 @@ enum {
   channel_key,
   setsLocalPriority_key,
   callsPresent_key,
+  buttonActionMode_key,
+  buttonActionId_key,
   numSettingsProperties
 };
 
@@ -518,6 +538,8 @@ const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aP
     { "channel", apivalue_uint64, channel_key+settings_key_offset, OKEY(button_key) },
     { "setsLocalPriority", apivalue_bool, setsLocalPriority_key+settings_key_offset, OKEY(button_key) },
     { "callsPresent", apivalue_bool, callsPresent_key+settings_key_offset, OKEY(button_key) },
+    { "x-p44-buttonActionMode", apivalue_uint64, buttonActionMode_key+settings_key_offset, OKEY(button_key) },
+    { "x-p44-buttonActionId", apivalue_uint64, buttonActionId_key+settings_key_offset, OKEY(button_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
@@ -588,6 +610,12 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case callsPresent_key+settings_key_offset:
           aPropValue->setBoolValue(callsPresent);
           return true;
+        case buttonActionMode_key+settings_key_offset:
+          aPropValue->setUint8Value(buttonActionMode);
+          return true;
+        case buttonActionId_key+settings_key_offset:
+          aPropValue->setUint8Value(buttonActionId);
+          return true;
         // States properties
         case value_key+states_key_offset:
           if (lastAction==Never)
@@ -646,6 +674,12 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         case callsPresent_key+settings_key_offset:
           setPVar(callsPresent, aPropValue->boolValue());
+          return true;
+        case buttonActionMode_key+settings_key_offset:
+          setPVar(buttonActionMode, (DsButtonActionMode)aPropValue->uint8Value());
+          return true;
+        case buttonActionId_key+settings_key_offset:
+          setPVar(buttonActionId, aPropValue->uint8Value());
           return true;
       }
     }

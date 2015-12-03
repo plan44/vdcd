@@ -61,6 +61,9 @@ namespace p44 {
     DsChannelType buttonChannel; ///< the channel the button is supposed to control
     bool setsLocalPriority; ///< button should set local priority
     bool callsPresent; ///< button should call "present" scene
+    DsButtonActionMode buttonActionMode; ///< if set, button clicks directly issue action
+    uint8_t buttonActionId; ///< action Id (aka scene number) to trigger when button is clicked
+
     /// @}
 
 
@@ -71,8 +74,8 @@ namespace p44 {
 
     DsClickType clickType; ///< set to last click type of button
 
-    DsButtonActionMode actionMode; ///< action mode
-    uint8_t actionId; ///< action Id (aka scene number)
+    DsButtonActionMode actionMode; ///< last triggered action mode
+    uint8_t actionId; ///< last triggered action Id (aka scene number)
     /// @}
 
   public:
