@@ -60,6 +60,7 @@ namespace p44 {
     string lastPushMessage;
     string currentStatus;
     string currentProgram;
+    int programTemp;
 
     #ifdef STATUS_BINRAY_INPUTS
     BinaryInputBehaviourPtr programActive;

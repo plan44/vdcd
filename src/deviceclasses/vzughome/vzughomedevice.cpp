@@ -43,7 +43,8 @@ using namespace p44;
 VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL) :
   inherited(aClassContainerP),
   deviceModel(model_unknown),
-  mostRecentPush(0)
+  mostRecentPush(0),
+  programTemp(0)
 {
   vzugHomeComm.baseURL = aBaseURL;
   setPrimaryGroup(group_black_joker);
@@ -247,6 +248,15 @@ void VZugHomeDevice::gotCurrentProgram(JsonObjectPtr aResult, ErrorPtr aError)
   // Status:
   string s = aResult->stringValue();
   currentProgram = s;
+  // Extract program setting
+  // \xEE\x85\x81 = temperature symbol
+  // Program:  Dämpfen,  30
+  size_t i = s.find("\xEE\x85\x81");
+  if (i!=string::npos) {
+    // find start of temperature value
+    i = s.find_first_of("0123456789",i);
+    sscanf(s.c_str()+i, "%d", &programTemp);
+  }
   ALOG(LOG_DEBUG, "Program: %s", s.c_str());
   // query current program end
   vzugHomeComm.apiCommand(false, "getCurrentProgramEnd", NULL, true, boost::bind(&VZugHomeDevice::gotCurrentProgramEnd, this, _1, _2));
@@ -284,9 +294,9 @@ void VZugHomeDevice::gotIsActive(JsonObjectPtr aResult, ErrorPtr aError)
     needAttention->updateInputState(false);
   }
   #endif
-  output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? 100 : 0); // update channel value
+  output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? (programTemp>0 ? programTemp : 1) : 0); // update channel value
   // query last push messages
-  vzugHomeComm.apiCommand(false, "getLastPUSHNotifications", NULL, true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
+  vzugHomeComm.apiCommand(true, "getLastPUSHNotifications", NULL, true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
 }
 
 
