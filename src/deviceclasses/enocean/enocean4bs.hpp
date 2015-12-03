@@ -178,6 +178,8 @@ namespace p44 {
       service_finish
     } serviceState;
 
+    int8_t lastValvePos; ///< last calculated valve position (used to calculate output for binary valves like MD10-FTL)
+
     /// private constructor, friend class' Enocean4bsHandler::newDevice is the place to call it from
     EnoceanA52001Handler(EnoceanDevice &aDevice);
 

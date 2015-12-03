@@ -621,7 +621,8 @@ string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSe
 
 EnoceanA52001Handler::EnoceanA52001Handler(EnoceanDevice &aDevice) :
   inherited(aDevice),
-  serviceState(service_idle)
+  serviceState(service_idle),
+  lastValvePos(50) // assume centered
 {
 }
 
@@ -664,8 +665,8 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
     newHandler->behaviour = cb;
     newDev->addChannelHandler(newHandler);
-    if (EEP_VARIANT(aEEProfile)==1) {
-      // profile variant with valve sensor enabled - add built-in temp sensor
+    if (EEP_VARIANT(aEEProfile)!=0) {
+      // profile variants with valve sensor enabled - add built-in temp sensor
       Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
     }
     // report low bat status as a binary input
@@ -768,14 +769,30 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       // - DB(1,2) left 0 = sending valve position
       // - DB(3,7)..DB(3,0) is valve position 0..100% (0..255 is only for temperature set point mode!)
       // Note: value is always positive even for cooling, because climateControlBehaviour checks outputfunction and sees this is a unipolar valve
-      int32_t newValue = cb->outputValueAccordingToMode(ch->getChannelValue());
+      int8_t newValue = cb->outputValueAccordingToMode(ch->getChannelValue());
       // Still: limit to 0..100 to make sure
       if (newValue<0) newValue = 0;
       else if (newValue>100) newValue=100;
+      // Special transformation in case valve is binary
+      if (EEP_VARIANT(device.getEEProfile())==2) {
+        // this valve can only adjust output by about 4k around the mechanically preset set point
+        if (newValue>lastValvePos) {
+          // increase -> open to at least 51%
+          LOG(LOG_NOTICE, "- Binary valve: requested set point has increased from %d%% to %d%% -> open to 51%% or more", lastValvePos, newValue);
+          lastValvePos = newValue;
+          if (newValue<=50) newValue = 51;
+        }
+        else if (newValue<lastValvePos) {
+          // decrease -> close to at least 49%
+          LOG(LOG_NOTICE, "- Binary valve: requested set point has decreased from %d%% to %d%% -> close to 49%% or less", lastValvePos, newValue);
+          lastValvePos = newValue;
+          if (newValue>=50) newValue = 49;
+        }
+      }
       // - DB3 is set point with range 0..100 (0..255 is only for temperature set point)
       data |= (newValue<<DB(3,0)); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
-      LOG(LOG_NOTICE, "- EnOcean valve, new set point: %d%% open", newValue);
+      LOG(LOG_NOTICE, "- EnOcean valve, requesting new set point: %d%% open", newValue);
       if (cb->isSummerMode()) {
         data |= DBMASK(1,3);
         LOG(LOG_NOTICE, "- valve is in SUMMER mode (slow updates)");
@@ -930,6 +947,7 @@ static const ProfileVariantEntry profileVariants4BS[] = {
   // dual rocker RPS button alternatives
   { 1, 0x00A52001, 0, "heating valve" },
   { 1, 0x01A52001, 0, "heating valve (with temperature sensor)" },
+  { 1, 0x02A52001, 0, "heating valve with binary output adjustment (e.g. MD10-FTL)" },
   { 2, 0x00A51006, 0, "standard profile" },
   { 2, 0x01A51006, 0, "set point interpreted as 0..40°C (e.g. FTR55D)" },
   { 0, 0, 0, NULL } // terminator
