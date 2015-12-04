@@ -41,6 +41,7 @@ namespace p44 {
     typedef enum {
       consoleio_unknown,
       consoleio_button,
+      consoleio_rocker,
       consoleio_input,
       consoleio_dimmer,
       consoleio_colordimmer,
@@ -48,7 +49,8 @@ namespace p44 {
     } ConsoleIoType;
 
     ConsoleIoType consoleIoType;
-    ConsoleKeyPtr consoleKey;
+    ConsoleKeyPtr consoleKey1;
+    ConsoleKeyPtr consoleKey2;
     string consoleName;
 
   public:
@@ -92,7 +94,7 @@ namespace p44 {
 		
 	private:
 
-    void buttonHandler(bool aState, MLMicroSeconds aTimeStamp);
+    void buttonHandler(int aButtonIndex, bool aState, MLMicroSeconds aTimestamp);
     void binaryInputHandler(bool aState, MLMicroSeconds aTimeStamp);
     void sensorValueHandler(double aValue, MLMicroSeconds aTimeStamp);
     void sensorJitter(bool aState, MLMicroSeconds aTimeStamp);

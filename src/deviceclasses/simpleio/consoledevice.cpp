@@ -44,6 +44,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     string mode = aDeviceConfig.substr(i+1,string::npos);
     if (mode=="button")
       consoleIoType = consoleio_button;
+    else if (mode=="rocker")
+      consoleIoType = consoleio_rocker;
     else if (mode=="input")
       consoleIoType = consoleio_input;
     else if (mode=="dimmer")
@@ -66,8 +68,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     // - standard device settings without scene table
     installSettings();
     // - console key input as button
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, _1, _2));
+    consoleKey1 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey1->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, 0, _1, _2));
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, false); // mode not restricted
@@ -75,13 +77,36 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     b->setHardwareName(string_format("console key '%c'",name[0]));
     addBehaviour(b);
   }
+  if (consoleIoType==consoleio_rocker) {
+    // Simulate Two-way Rocker Button device
+    // - defaults to black (generic button)
+    primaryGroup = group_black_joker;
+    // - standard device settings without scene table
+    installSettings();
+    // - create down button (index 0)
+    consoleKey1 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey1->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, 0, _1, _2));
+    ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
+    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1, true); // counterpart up-button has buttonIndex 1, fixed mode
+    b->setGroup(group_yellow_light); // pre-configure for light
+    b->setHardwareName(string_format("console key '%c'",consoleKey1->getKeyCode()));
+    addBehaviour(b);
+    // - create up button (index 1)
+    consoleKey2 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0]+1, name.c_str());
+    consoleKey2->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, 1, _1, _2));
+    b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
+    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 0, true); // counterpart down-button has buttonIndex 0, fixed mode
+    b->setGroup(group_yellow_light); // pre-configure for light
+    b->setHardwareName(string_format("console key '%c'",consoleKey2->getKeyCode()));
+    addBehaviour(b);
+  }
   else if (consoleIoType==consoleio_input) {
     // Standard device settings without scene table
     primaryGroup = group_black_joker;
     installSettings();
     // Digital input as binary input (AKM, automation block type)
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::binaryInputHandler, this, _1, _2));
+    consoleKey1 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey1->setConsoleKeyHandler(boost::bind(&ConsoleDevice::binaryInputHandler, this, _1, _2));
     // - create one binary input
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
@@ -114,11 +139,11 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     addBehaviour(bb);
     // Simulation
     // - add console key for low battery
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::binaryInputHandler, this, _1, _2));
+    consoleKey1 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey1->setConsoleKeyHandler(boost::bind(&ConsoleDevice::binaryInputHandler, this, _1, _2));
     // - add console keys for changing sensor
-    consoleKey = ConsoleKeyManager::sharedKeyManager()->newConsoleKey('$', "random sensor simulation change");
-    consoleKey->setConsoleKeyHandler(boost::bind(&ConsoleDevice::sensorJitter, this, _1, _2));
+    consoleKey2 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey('$', "random sensor simulation change");
+    consoleKey2->setConsoleKeyHandler(boost::bind(&ConsoleDevice::sensorJitter, this, _1, _2));
   }
   else if (consoleIoType==consoleio_dimmer) {
     // Simple single-channel light
@@ -149,8 +174,9 @@ string ConsoleDevice::modelName()
 {
   string m = "Console ";
   switch (consoleIoType) {
-    case consoleio_button: string_format_append(m, "button key:'%c'", consoleKey->getKeyCode()); break;
-    case consoleio_input: string_format_append(m, "binary input key:'%c'", consoleKey->getKeyCode()); break;
+    case consoleio_button: string_format_append(m, "button key:'%c'", consoleKey1->getKeyCode()); break;
+    case consoleio_rocker: string_format_append(m, "rocker keys:'%c'/'%c'", consoleKey1->getKeyCode(), consoleKey2->getKeyCode()+1); break;
+    case consoleio_input: string_format_append(m, "binary input key:'%c'", consoleKey1->getKeyCode()); break;
     case consoleio_valve: m += "valve"; break;
     case consoleio_dimmer: m += "dimmer"; break;
     case consoleio_colordimmer: m += "color dimmer"; break;
@@ -160,10 +186,9 @@ string ConsoleDevice::modelName()
 }
 
 
-void ConsoleDevice::buttonHandler(bool aState, MLMicroSeconds aTimestamp)
+void ConsoleDevice::buttonHandler(int aButtonIndex, bool aState, MLMicroSeconds aTimestamp)
 {
-  // TODO: assuming SINGLE button per device here - fix it when we need to simulate multi-button devices
-	ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[0]);
+	ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[aButtonIndex]);
 	if (b) {
 		b->buttonAction(aState);
 	}
@@ -262,6 +287,8 @@ string ConsoleDevice::description()
     string_format_append(s, "\n- has output printing channel value(s) to console");
   if (consoleIoType==consoleio_button)
     string_format_append(s, "\n- has button which can be switched via console keypresses");
+  if (consoleIoType==consoleio_rocker)
+    string_format_append(s, "\n- has 2-way-rocker which can be switched via console keypresses");
   if (consoleIoType==consoleio_valve)
     string_format_append(s, "\n- has valve actuator shown on console, pseudo temperature, battery low via console keypress");
   return s;

@@ -97,7 +97,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k rocker:rocker"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-k testout:dimmer"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -157,14 +165,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--voxnet auto"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--voxnet 10.0.0.5"
+            argument = "--voxnet auto"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--voxnet 192.168.24.11"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -193,16 +201,6 @@
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
-         <AdditionalOption
-            key = "MallocStackLogging"
-            value = ""
-            isEnabled = "YES">
-         </AdditionalOption>
-         <AdditionalOption
-            key = "DYLD_INSERT_LIBRARIES"
-            value = "/usr/lib/libgmalloc.dylib"
-            isEnabled = "YES">
-         </AdditionalOption>
       </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
