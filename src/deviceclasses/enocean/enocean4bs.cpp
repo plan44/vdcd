@@ -622,7 +622,8 @@ string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSe
 EnoceanA52001Handler::EnoceanA52001Handler(EnoceanDevice &aDevice) :
   inherited(aDevice),
   serviceState(service_idle),
-  lastValvePos(50) // assume centered
+  lastActualValvePos(50), // assume centered
+  lastRequestedValvePos(50) // assume centered
 {
 }
 
@@ -776,19 +777,26 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       // Special transformation in case valve is binary
       if (EEP_VARIANT(device.getEEProfile())==2) {
         // this valve can only adjust output by about 4k around the mechanically preset set point
-        if (newValue>lastValvePos) {
+        if (newValue>lastRequestedValvePos) {
           // increase -> open to at least 51%
-          LOG(LOG_NOTICE, "- Binary valve: requested set point has increased from %d%% to %d%% -> open to 51%% or more", lastValvePos, newValue);
-          lastValvePos = newValue;
+          LOG(LOG_NOTICE, "- Binary valve: requested set point has increased from %d%% to %d%% -> open to 51%% or more", lastRequestedValvePos, newValue);
+          lastRequestedValvePos = newValue;
           if (newValue<=50) newValue = 51;
         }
-        else if (newValue<lastValvePos) {
+        else if (newValue<lastRequestedValvePos) {
           // decrease -> close to at least 49%
-          LOG(LOG_NOTICE, "- Binary valve: requested set point has decreased from %d%% to %d%% -> close to 49%% or less", lastValvePos, newValue);
-          lastValvePos = newValue;
+          LOG(LOG_NOTICE, "- Binary valve: requested set point has decreased from %d%% to %d%% -> close to 49%% or less", lastRequestedValvePos, newValue);
+          lastRequestedValvePos = newValue;
           if (newValue>=50) newValue = 49;
         }
+        else {
+          // no change, just repeat last valve position
+          LOG(LOG_NOTICE, "- Binary valve: requested set point has not changed (%d%%) -> send last actual value (%d%%) again", lastRequestedValvePos, lastActualValvePos);
+          newValue = lastActualValvePos;
+        }
       }
+      // remember last actually transmitted value
+      lastActualValvePos = newValue;
       // - DB3 is set point with range 0..100 (0..255 is only for temperature set point)
       data |= (newValue<<DB(3,0)); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
