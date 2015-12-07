@@ -484,7 +484,7 @@ bool DsAddressable::loadSettingsFromFile(const char *aCSVFilepath, bool aOnlyExp
       lineNo++;
       const char *p = line.c_str();
       // process CSV line as property name/value pairs
-      anySettingsApplied = anySettingsApplied || readPropsFromCSV(VDC_API_DOMAIN, aOnlyExplicitlyOverridden, p, aCSVFilepath, lineNo);
+      anySettingsApplied = readPropsFromCSV(VDC_API_DOMAIN, aOnlyExplicitlyOverridden, p, aCSVFilepath, lineNo) || anySettingsApplied;
     }
     fclose(file);
     if (anySettingsApplied) {
