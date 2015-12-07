@@ -240,7 +240,7 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
     // - allow @{sceneno} and @{channel...} placeholders
     aAudioScene->substitutePlaceholders(sc);
     ALOG(LOG_INFO, "- executing play shell command: %s", sc.c_str());
-    MainLoop::currentMainLoop().fork_and_system(boost::bind(&VoxnetDevice::playingStarted, this, _3), sc.c_str());
+    MainLoop::currentMainLoop().fork_and_system(boost::bind(&VoxnetDevice::playingStarted, this, _3), sc.c_str(), true);
   }
   else {
     // no shell command, consider started already
