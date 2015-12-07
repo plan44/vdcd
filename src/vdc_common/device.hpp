@@ -53,6 +53,7 @@ namespace p44 {
     friend class DsScene;
     friend class SceneChannels;
     friend class SceneDeviceSettings;
+    friend class ButtonBehaviour;
 
   protected:
 

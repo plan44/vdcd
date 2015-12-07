@@ -595,15 +595,17 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
       DsButtonElement buttonElement = buttonElement_center;
       DsGroup group = primaryGroup; // default group is same as primary
       string buttonName;
+      bool isLocalButton = false;
       // - optional params
       if (o2->get("id", o3)) buttonId = o3->int32Value();
       if (o2->get("buttontype", o3)) buttonType = (DsButtonType)o3->int32Value();
+      if (o2->get("localbutton", o3)) isLocalButton = o3->boolValue();
       if (o2->get("element", o3)) buttonElement = (DsButtonElement)o3->int32Value();
       if (o2->get("group", o3)) group = (DsGroup)o3->int32Value();
       if (o2->get("hardwarename", o3)) buttonName = o3->stringValue(); else buttonName = string_format("button_id%d_el%d", buttonId, buttonElement);
       // - create behaviour
       ButtonBehaviourPtr bb = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-      bb->setHardwareButtonConfig(buttonId, buttonType, buttonElement, false, buttonElement==buttonElement_down ? 1 : 0, true); // fixed mode
+      bb->setHardwareButtonConfig(buttonId, buttonType, buttonElement, isLocalButton, buttonElement==buttonElement_down ? 1 : 0, true); // fixed mode
       bb->setGroup(group);
       bb->setHardwareName(buttonName);
       addBehaviour(bb);

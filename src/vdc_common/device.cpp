@@ -276,8 +276,14 @@ Tristate Device::hasModelFeature(DsModelFeatures aFeatureIndex)
       // Assumption: any device with a buttonInputBehaviour has these props
       return buttons.size()>0 ? yes : no;
     case modelFeature_pushbdevice:
-      // Assumption: virtual devices don't have a local button
-      return no;
+      // Check if any of the buttons has localbutton functionality available
+      for (BehaviourVector::iterator pos = buttons.begin(); pos!=buttons.end(); ++pos) {
+        ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(*pos);
+        if (b && b->supportsLocalKeyMode) {
+          return yes; // there is a button with local key mode support
+        }
+      }
+      return no; // no button that supports local key mode
     case modelFeature_pushbcombined:
     case modelFeature_twowayconfig:
       // Assumption: devices with more than single button input are combined up/down (or even 4-way and more) buttons, and need two-way config
