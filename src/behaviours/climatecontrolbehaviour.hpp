@@ -96,9 +96,9 @@ namespace p44 {
     /// @name persistent settings
     /// @{
 
-    /// set if climate controlling output is in summer mode (uses less energy or is switched off)
+    /// set if climate controlling output is in idle (summer) mode - uses less energy or is switched off
     /// @note this flag is not exposed as a property, but set/reset by callScene(29=wintermode) and callScene(30=summermode)
-    bool summerMode;
+    bool climateControlIdle;
 
     /// defines how "heatingLevel" is applied to the output
     DsHeatingSystemCapability heatingSystemCapability;
@@ -126,7 +126,7 @@ namespace p44 {
     /// @{
 
     /// @return true if device should be in summer mode
-    bool isSummerMode() { return summerMode; };
+    bool isClimateControlIdle() { return climateControlIdle; };
 
     /// @return true if device should run a prophylaxis cycle
     /// @note automatically resets the internal flag when queried
@@ -178,7 +178,7 @@ namespace p44 {
 
     // persistence implementation
     enum {
-      outputflag_summerMode = inherited::outputflag_nextflag<<0,
+      outputflag_climateControlIdle = inherited::outputflag_nextflag<<0,
       outputflag_nextflag = inherited::outputflag_nextflag<<1
     };
     virtual const char *tableName();

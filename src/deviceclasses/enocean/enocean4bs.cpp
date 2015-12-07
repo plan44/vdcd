@@ -801,9 +801,9 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       data |= (newValue<<DB(3,0)); // insert data into DB(3,0..7)
       // - DB(1,3) is summer mode
       LOG(LOG_NOTICE, "- EnOcean valve, requesting new set point: %d%% open", newValue);
-      if (cb->isSummerMode()) {
+      if (cb->isClimateControlIdle()) {
         data |= DBMASK(1,3);
-        LOG(LOG_NOTICE, "- valve is in SUMMER mode (slow updates)");
+        LOG(LOG_NOTICE, "- valve is in IDLE mode (slow updates)");
       }
     }
     // save data

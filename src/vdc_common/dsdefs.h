@@ -58,9 +58,9 @@ typedef enum {
   T3_S3 = 27,             ///< area 3 scene 3
   T3_S4 = 28,             ///< area 3 scene 4
   T4_S2 = 29,             ///< area 4 scene 2
-  CLIMATE_WINTER = 29,    ///< climate control: to winter mode
+  CLIMATE_ENABLE = 29,    ///< climate control: enable
   T4_S3 = 30,             ///< area 4 scene 3
-  CLIMATE_SUMMER = 30,    ///< climate control: to summer mode
+  CLIMATE_DISABLE = 30,   ///< climate control: disable
   T4_S4 = 31,             ///< area 4 scene 4
   CLIMATE_VALVE_PROPHYLAXIS = 31, ///< climate control: valve prophylaxis
   T1E_S0 = 32,            ///< area 1 extended off scene

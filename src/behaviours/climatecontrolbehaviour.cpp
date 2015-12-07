@@ -40,16 +40,16 @@ void ClimateControlScene::setDefaultSceneValues(SceneNo aSceneNo)
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special climate behaviour scene commands
   switch (aSceneNo) {
-    case CLIMATE_WINTER:
-      sceneCmd = scene_cmd_heating_winter_mode;
+    case CLIMATE_ENABLE:
+      sceneCmd = scene_cmd_climatecontrol_enable;
       sceneArea = 0; // not an area scene any more
       break;
-    case CLIMATE_SUMMER:
-      sceneCmd = scene_cmd_heating_summer_mode;
+    case CLIMATE_DISABLE:
+      sceneCmd = scene_cmd_climatecontrol_disable;
       sceneArea = 0; // not an area scene any more
       break;
     case CLIMATE_VALVE_PROPHYLAXIS:
-      sceneCmd = scene_cmd_heating_valve_prophylaxis;
+      sceneCmd = scene_cmd_climatecontrol_valve_prophylaxis;
       sceneArea = 0; // not an area scene any more
       break;
     default:
@@ -84,7 +84,7 @@ DsScenePtr ClimateDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 ClimateControlBehaviour::ClimateControlBehaviour(Device &aDevice) :
   inherited(aDevice),
   heatingSystemCapability(hscapability_heatingAndCooling), // assume valve can handle both negative and positive values (even if only by applying absolute value to valve)
-  summerMode(false), // assume valve active
+  climateControlIdle(false), // assume valve active
   runProphylaxis(false) // no run scheduled
 {
   // make it member of the room temperature control group by default
@@ -167,20 +167,21 @@ bool ClimateControlBehaviour::applyScene(DsScenePtr aScene)
   if (isMember(group_roomtemperature_control)) {
     SceneCmd sceneCmd = aScene->sceneCmd;
     switch (sceneCmd) {
-      case scene_cmd_heating_winter_mode:
+      case scene_cmd_climatecontrol_enable:
         // switch to winter mode
-        summerMode = false;
+        climateControlIdle = false;
         return true;
-      case scene_cmd_heating_summer_mode:
+      case scene_cmd_climatecontrol_disable:
         // switch to summer mode
-        summerMode = true;
+        climateControlIdle = true;
         return true;
-      case scene_cmd_heating_valve_prophylaxis:
+      case scene_cmd_climatecontrol_valve_prophylaxis:
         // valve prophylaxis
         runProphylaxis = true;
         return true;
       default:
-        break;
+        // all other scene calls are suppressed in group_roomtemperature_control
+        return false;
     }
   }
   // other type of scene, let base class handle it
@@ -227,7 +228,7 @@ void ClimateControlBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int 
   // get the data
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // decode the common flags
-  if (aCommonFlagsP) summerMode = *aCommonFlagsP & outputflag_summerMode;
+  if (aCommonFlagsP) climateControlIdle = *aCommonFlagsP & outputflag_climateControlIdle;
   // get the fields
   heatingSystemCapability = (DsHeatingSystemCapability)aRow->get<int>(aIndex++);
 }
@@ -237,7 +238,7 @@ void ClimateControlBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int 
 void ClimateControlBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   // encode the flags
-  if (summerMode) aCommonFlags |= outputflag_summerMode;
+  if (climateControlIdle) aCommonFlags |= outputflag_climateControlIdle;
   // bind
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
@@ -310,7 +311,7 @@ string ClimateControlBehaviour::shortDesc()
 
 string ClimateControlBehaviour::description()
 {
-  string s = string_format("%s behaviour (in %smode)", shortDesc().c_str(), isSummerMode() ? "summer" : "winter");
+  string s = string_format("%s behaviour (in %s mode)", shortDesc().c_str(), isClimateControlIdle() ? "idle" : "active");
   s.append(inherited::description());
   return s;
 }
