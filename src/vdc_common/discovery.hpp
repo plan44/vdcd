@@ -27,15 +27,30 @@
 #include "dsuid.hpp"
 #include "devicecontainer.hpp"
 
+
+#ifndef USE_AVAHI_CORE
+#define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+#endif
+
 // Avahi includes
+#if USE_AVAHI_CORE
 #include <avahi-core/core.h>
 #include <avahi-core/publish.h>
 #include <avahi-core/lookup.h>
+#define AvahiEntryGroup AvahiSEntryGroup
+#define AvahiServiceBrowser AvahiSServiceBrowser
+#define AvahiServiceBrowser AvahiSServiceBrowser
+#define AvahiServiceResolver AvahiSServiceResolver
+#else
+#include <avahi-client/client.h>
+#include <avahi-client/publish.h>
+#include <avahi-client/client.h>
+#endif
+#include <avahi-core/log.h>
 #include <avahi-common/simple-watch.h>
 #include <avahi-common/malloc.h>
 #include <avahi-common/alternative.h>
 #include <avahi-common/error.h>
-#include <avahi-core/log.h>
 
 
 using namespace std;
@@ -51,11 +66,15 @@ namespace p44 {
   {
     typedef P44Obj inherited;
 
-    AvahiServer *server;
-    AvahiSEntryGroup *entryGroup;
     AvahiSimplePoll *simple_poll;
-    AvahiSServiceBrowser *serviceBrowser;
-    AvahiSServiceBrowser *debugServiceBrowser;
+    #if USE_AVAHI_CORE
+    AvahiServer *server;
+    #else
+    AvahiClient *client;
+    #endif
+    AvahiEntryGroup *entryGroup;
+    AvahiServiceBrowser *serviceBrowser;
+    AvahiServiceBrowser *debugServiceBrowser;
 
     // publishing information
     // - common for all services
@@ -119,16 +138,23 @@ namespace p44 {
     void rescanVdsms(AvahiServer *aServer);
     void evaluateState();
 
+    // callbacks
     static void avahi_log(AvahiLogLevel level, const char *txt);
-    bool avahi_poll();
+    #if USE_AVAHI_CORE
     static void server_callback(AvahiServer *s, AvahiServerState state, void* userdata);
+    static void entry_group_callback(AvahiServer *s, AvahiSEntryGroup *g, AvahiEntryGroupState state, void* userdata);
+    #else
+    static void client_callback(AvahiClient *c, AvahiClientState state, void* userdata);
+    static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void* userdata);
+    #endif
+    static void browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
+    static void resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
+
+    bool avahi_poll();
     void avahi_server_callback(AvahiServer *s, AvahiServerState state);
     void create_services(AvahiServer *aAvahiServer);
-    static void entry_group_callback(AvahiServer *s, AvahiSEntryGroup *g, AvahiEntryGroupState state, void* userdata);
     void avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGroup *g, AvahiEntryGroupState state);
-    static void browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
     void avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags);
-    static void resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
     void avahi_resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags);
   };
 

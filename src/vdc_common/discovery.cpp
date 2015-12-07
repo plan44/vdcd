@@ -522,14 +522,14 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGro
 
 
 
-void DiscoveryManager::browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
+void DiscoveryManager::browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
 {
   DiscoveryManager *discoveryManager = static_cast<DiscoveryManager*>(userdata);
   discoveryManager->avahi_browse_callback(b, interface, protocol, event, name, type, domain, flags);
 }
 
 
-void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags)
+void DiscoveryManager::avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags)
 {
   // Called whenever a new services becomes available on the LAN or is removed from the LAN
   // - may use global "server" var, because browsers are no set up within server callbacks, but only afterwards, when "server" is defined
@@ -589,14 +589,14 @@ void DiscoveryManager::avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfInd
 }
 
 
-void DiscoveryManager::resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata)
+void DiscoveryManager::resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata)
 {
   DiscoveryManager *discoveryManager = static_cast<DiscoveryManager*>(userdata);
   discoveryManager->avahi_resolve_callback(r, interface, protocol, event, name, type, domain, host_name, a, port, txt, flags);
 }
 
 
-void DiscoveryManager::avahi_resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags)
+void DiscoveryManager::avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags)
 {
   switch (event) {
     case AVAHI_RESOLVER_FAILURE:
