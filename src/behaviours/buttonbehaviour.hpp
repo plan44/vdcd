@@ -165,8 +165,6 @@ namespace p44 {
     ButtonState state;
     int clickCounter;
     int holdRepeats;
-    bool outputOn;
-    bool localButtonEnabled;
     bool dimmingUp;
     MLMicroSeconds timerRef;
     long buttonStateMachineTicket;
@@ -181,10 +179,13 @@ namespace p44 {
     static const int max_hold_repeats = 30;
 
     // methods
+    bool isLocalButtonEnabled();
+    bool isOutputOn();
+    DsDimMode twoWayDirection();
     void resetStateMachine();
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
     void localSwitchOutput();
-    void localDim();
+    void localDim(DsDimMode aDirection);
     void sendClick(DsClickType aClickType);
     
     /// @}

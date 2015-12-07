@@ -27,6 +27,7 @@
 #define FOCUSLOGLEVEL 0
 
 #include "buttonbehaviour.hpp"
+#include "outputbehaviour.hpp"
 
 
 using namespace p44;
@@ -96,8 +97,6 @@ void ButtonBehaviour::resetStateMachine()
   state = S0_idle;
   clickCounter = 0;
   holdRepeats = 0;
-  outputOn = false;
-  localButtonEnabled = false;
   dimmingUp = false;
   timerRef = Never;
   MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
@@ -136,9 +135,9 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
   switch (state) {
 
     case S0_idle :
-      timerRef = 0; // no timer running
+      timerRef = Never; // no timer running
       if (aButtonChange && buttonPressed) {
-        clickCounter = localButtonEnabled ? 0 : 1;
+        clickCounter = isLocalButtonEnabled() ? 0 : 1;
         timerRef = aNow;
         state = S1_initialpress;
       }
@@ -168,17 +167,17 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       }
       else if (timeSinceRef>=t_long_function_delay) {
         // long function
-        if (!localButtonEnabled || !outputOn) {
+        if (!isLocalButtonEnabled() || !isOutputOn()) {
           // hold
           holdRepeats = 0;
           timerRef = aNow;
           sendClick(ct_hold_start);
           state = S3_hold;
         }
-        else if (localButtonEnabled && outputOn) {
+        else if (isLocalButtonEnabled() && isOutputOn()) {
           // local dimming
           dimmingUp = !dimmingUp; // change direction
-          timerRef = aNow+t_local_dim_timeout; // force first timeout right away
+          localDim(dimmingUp ? dimmode_up : dimmode_down); // start dimming
           state = S11_localdim;
         }
       }
@@ -224,7 +223,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
         state = S6_2ClickWait;
       }
       else if (timeSinceRef>=t_click_pause) {
-        if (localButtonEnabled)
+        if (isLocalButtonEnabled())
           localSwitchOutput();
         else
           sendClick(ct_click_1x);
@@ -291,10 +290,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
     case S11_localdim:
       if (aButtonChange && !buttonPressed) {
         state = S0_idle;
-      }
-      else if (timeSinceRef>=t_dim_repeat_time) {
-        localDim();
-        timerRef = aNow;
+        localDim(dimmode_stop); // stop dimming
       }
       break;
 
@@ -324,31 +320,62 @@ DsButtonElement ButtonBehaviour::localFunctionElement()
 }
 
 
+bool ButtonBehaviour::isLocalButtonEnabled()
+{
+  return supportsLocalKeyMode && buttonFunc==buttonFunc_device;
+}
+
+
+bool ButtonBehaviour::isOutputOn()
+{
+  if (device.output) {
+    ChannelBehaviourPtr ch = device.output->getChannelByType(channeltype_default);
+    if (ch) {
+      return ch->getChannelValue()>0; // on if channel is above zero
+    }
+  }
+  return false; // no output or channel -> is not on
+}
+
+
+DsDimMode ButtonBehaviour::twoWayDirection()
+{
+  if (buttonMode<buttonMode_rockerDown_pairWith0 || buttonMode>buttonMode_rockerUp_pairWith3) return dimmode_stop; // single button -> no direction
+  return buttonMode>=buttonMode_rockerDown_pairWith0 && buttonMode<=buttonMode_rockerDown_pairWith3 ? dimmode_down : dimmode_up; // down = -1, up = 1
+}
+
 
 
 void ButtonBehaviour::localSwitchOutput()
 {
   BLOG(LOG_NOTICE, "Button[%zu] '%s': Local switch", index, hardwareName.c_str());
-//  if (isTwoWay()) {
-//    // on or off depending on which side of the two-way switch was clicked
-//    outputOn = secondKey;
-//  }
-//  else {
-//    // one-way: toggle output
-//    outputOn = !outputOn;
-//  }
-//  // TODO: actually switch output
-//  // send status
-//  sendClick(outputOn ? ct_local_on : ct_local_off);
-  // pass on local toggle to device container
-  // TODO: tbd
+  int dir = twoWayDirection();
+  if (dir==0) {
+    // single button, toggle
+    dir = isOutputOn() ? -1 : 1;
+  }
+  // actually switch output
+  if (device.output) {
+    ChannelBehaviourPtr ch = device.output->getChannelByType(channeltype_default);
+    if (ch) {
+      ch->setChannelValue(dir>0 ? ch->getMax() : ch->getMin());
+      device.requestApplyingChannels(NULL, false);
+    }
+  }
+  // send status
+  sendClick(dir>0 ? ct_local_on : ct_local_off);
 }
 
 
-void ButtonBehaviour::localDim()
+void ButtonBehaviour::localDim(DsDimMode aDirection)
 {
-  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local dim", index, hardwareName.c_str());
-  // TODO: actually dim output in direction as indicated by dimmingUp
+  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local dim %d", index, hardwareName.c_str(), aDirection);
+  if (device.output) {
+    if (twoWayDirection()!=dimmode_stop && aDirection!=dimmode_stop) {
+      aDirection = twoWayDirection();
+    }
+    device.dimChannel(channeltype_default, aDirection);
+  }
 }
 
 
