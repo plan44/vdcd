@@ -47,12 +47,14 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   programTemp(0)
 {
   vzugHomeComm.baseURL = aBaseURL;
-  setPrimaryGroup(group_black_joker);
+//  setPrimaryGroup(group_black_joker);
+  setPrimaryGroup(group_magenta_video);
   installSettings(DeviceSettingsPtr(new CmdSceneDeviceSettings(*this)));
   // - set the output behaviour
   OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
   o->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_undefined, false, -1);
-  o->setGroupMembership(group_black_joker, true);
+//  o->setGroupMembership(group_black_joker, true);
+  o->setGroupMembership(group_magenta_video, true);
   DialChannelPtr dc = DialChannelPtr(new DialChannel(*o));
   dc->setMax(230); // TODO: parametrize this - for now, the max 230 degrees
   o->addChannel(dc);
