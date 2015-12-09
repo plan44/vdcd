@@ -493,7 +493,7 @@ void VZugHomeDevice::processPushMessage(const string aMessage)
           }
         }
         // skip number, check for more commands
-        while (isnumber(*p)) p++;
+        while (*p>='0' && *p<='9') p++;
         if (*p!=',') break;
         p++;
       }
