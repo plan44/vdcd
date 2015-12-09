@@ -72,6 +72,7 @@ void VoxnetDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
 
+#define SUPPORT_OLD_AUDIO_BEHAVIOUR 1
 
 bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
 {
@@ -79,7 +80,18 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
   AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(aScene);
   bool continueApply = true;
   if (as) {
-    switch (as->sceneCmd) {
+    SceneCmd scmd = as->sceneCmd;
+    #if SUPPORT_OLD_AUDIO_BEHAVIOUR
+    if (as->sceneNo==T0_S0) {
+      // main off = pause
+      scmd = scene_cmd_audio_pause;
+    }
+    else if (as->sceneNo==T0_S1) {
+      // main on = play
+      scmd = scene_cmd_audio_play;
+    }
+    #endif
+    switch (scmd) {
       case scene_cmd_audio_next_channel:
       case scene_cmd_audio_next_title:
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:next", voxnetRoomID.c_str()));
@@ -90,17 +102,23 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
         continueApply = false; // that's all what we need to do
         break;
-      case scene_cmd_audio_pause:
-        // TODO: voxnet text does not have pause yet
-        // for now, just do same as for stop
-      case scene_cmd_stop:
-        // TODO: better command than room power off
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
-        continueApply = false; // that's all what we need to do
-        break;
       case scene_cmd_audio_play:
         // TODO: better command
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
+        break;
+      case scene_cmd_audio_pause:
+        // TODO: voxnet text does not have pause yet
+        // for now, just mute
+        knownMuted = true;
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
+        continueApply = false; // that's all what we need to do
+        break;
+      case scene_cmd_stop:
+      case scene_cmd_off:
+        // TODO: better command than room power off
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
         continueApply = false; // that's all what we need to do
         break;
         // Unimplemented ones:
@@ -257,9 +275,14 @@ void VoxnetDevice::playingStarted(const string &aPlayCommandOutput)
     // shell command is supposed to return it
     sscanf(aPlayCommandOutput.c_str(), "%d", &duration);
   }
-  // set up end-of-message timer
-  ALOG(LOG_INFO,"- play time of %d seconds starts now", duration);
-  messageTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::endOfMessage, this), duration*Second);
+  if (duration>0) {
+    // set up end-of-message timer
+    ALOG(LOG_INFO,"- play time of %d seconds starts now", duration);
+    messageTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::endOfMessage, this), duration*Second);
+  }
+  else {
+    ALOG(LOG_INFO,"- play time is unlimited");
+  }
 }
 
 

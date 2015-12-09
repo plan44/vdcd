@@ -46,7 +46,7 @@ namespace p44 {
     string messageStream; ///< stream in the message source that provides messages
     int messageTitleNo; ///< the title number to play for messages, 0 if none
     string messageShellCommand; ///< the shell command to execute to start message playing, empty if none
-    int messageDuration; ///< duration of message in seconds (0 if actual length is reported back by shell command)
+    int messageDuration; ///< duration of message in seconds (0 if actual length is reported back by shell command, <0 if unlimited (no auto-revert to previous source))
 
   protected:
 
