@@ -196,7 +196,7 @@ bool AudioScene::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, P
 
 void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
 {
-  // set the common light scene defaults
+  // set the common simple scene defaults
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special audio scene behaviour
   bool psi = false; // default: dont ignore power state

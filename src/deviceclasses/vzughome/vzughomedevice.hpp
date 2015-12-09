@@ -31,14 +31,57 @@
 #include "binaryinputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
 #include "buttonbehaviour.hpp"
+#include "simplescene.hpp"
 
 using namespace std;
 
 namespace p44 {
 
+
+  #define STATUS_BINARY_INPUTS 1
+  #define NUM_MESSAGE_BINARY_INPUTS 6
+
   typedef map<string, string> StringStringMap;
 
   class VZugHomeDeviceContainer;
+
+
+  class VZugHomeDeviceSettings : public CmdSceneDeviceSettings
+  {
+    typedef CmdSceneDeviceSettings inherited;
+
+  public:
+
+    VZugHomeDeviceSettings(Device &aDevice) : inherited(aDevice) {};
+
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+
+
+  };
+  typedef boost::intrusive_ptr<VZugHomeDeviceSettings> VZugHomeDeviceSettingsPtr;
+
+
+  /// A concrete class implementing the Scene object for a audio device, having a volume channel plus a index value (for specific song/sound effects)
+  /// @note subclasses can implement more parameters
+  class VZugHomeScene : public SimpleCmdScene
+  {
+    typedef SimpleCmdScene inherited;
+
+  public:
+
+    VZugHomeScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) : inherited(aSceneDeviceSettings, aSceneNo) {};
+
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+
+  };
+  typedef boost::intrusive_ptr<VZugHomeScene> VZugHomeScenePtr;
+
+
 
   class VZugHomeDevice : public Device
   {
@@ -57,16 +100,12 @@ namespace p44 {
 
     uint64_t mostRecentPush; ///< "time" of most recent push we've already reported
 
+    bool currentIsActive;
     string lastPushMessage;
     string currentStatus;
     string currentProgram;
     int programTemp;
 
-    #ifdef STATUS_BINRAY_INPUTS
-    BinaryInputBehaviourPtr programActive;
-    BinaryInputBehaviourPtr needWater;
-    BinaryInputBehaviourPtr needAttention;
-    #endif
     ButtonBehaviourPtr actionButton; ///< the pseudo-button required to send direct scene calls
 
     SensorBehaviourPtr ovenTemp;

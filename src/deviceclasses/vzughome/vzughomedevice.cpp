@@ -25,35 +25,86 @@
 
 
 #include "outputbehaviour.hpp"
-#include "simplescene.hpp"
 
 
 using namespace p44;
 
-#define POLL_INTERVAL (10*Second)
-#define ERROR_RETRY_INTERVAL (30*Second)
 
-#define NUM_MESSAGE_BINARY_INPUTS 4
+#pragma mark - VZugHomeDeviceSettings + VZugHomeScene
+
+DsScenePtr VZugHomeDeviceSettings::newDefaultScene(SceneNo aSceneNo)
+{
+  VZugHomeScenePtr vzugHomeScene = VZugHomeScenePtr(new VZugHomeScene(*this, aSceneNo));
+  vzugHomeScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return vzugHomeScene;
+}
+
+
+void VZugHomeScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special audio scene behaviour
+  switch (aSceneNo) {
+    // all alarms turn off the device
+    case SIG_PANIC:
+    case FIRE:
+    case SMOKE:
+    case WATER:
+    case ALARM1:
+    case ALARM2:
+    case ALARM3:
+    case ALARM4:
+    case GAS:
+    // off scenes as well
+    case STANDBY:
+    case DEEP_OFF:
+    case T0_S0:
+      value = 0;
+      setDontCare(false);
+      command.clear();
+      break;
+    case SLEEPING:
+    case ABSENT:
+      // no operation for these by default
+      value = 0; // if action, then it would be turning off
+      setDontCare(true); // but no action by default
+      command.clear();
+      break;
+    default:
+      // no operation by default for all other scenes
+      setDontCare(true);
+      break;
+  }
+  markClean(); // default values are always clean
+}
+
+
+
 
 #pragma mark - VZugHomeDevice
 
+#define POLL_INTERVAL (10*Second)
+#define ERROR_RETRY_INTERVAL (30*Second)
 
 
+#define DEVICE_COLOR group_magenta_video
 
 VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL) :
   inherited(aClassContainerP),
   deviceModel(model_unknown),
   mostRecentPush(0),
-  programTemp(0)
+  programTemp(0),
+  currentIsActive(false)
 {
   vzugHomeComm.baseURL = aBaseURL;
-//  setPrimaryGroup(group_black_joker);
-  setPrimaryGroup(group_magenta_video);
-  installSettings(DeviceSettingsPtr(new CmdSceneDeviceSettings(*this)));
+  setPrimaryGroup(DEVICE_COLOR);
+  installSettings(DeviceSettingsPtr(new VZugHomeDeviceSettings(*this)));
   // - set the output behaviour
   OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
   o->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_undefined, false, -1);
-//  o->setGroupMembership(group_black_joker, true);
+  o->setGroupMembership(DEVICE_COLOR, true);
   o->setGroupMembership(group_magenta_video, true);
   DialChannelPtr dc = DialChannelPtr(new DialChannel(*o));
   dc->setMax(230); // TODO: parametrize this - for now, the max 230 degrees
@@ -64,20 +115,14 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   actionButton->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, true);
   actionButton->setHardwareName("status");
   addBehaviour(actionButton);
-  #ifdef STATUS_BINRAY_INPUTS
+  #if STATUS_BINARY_INPUTS
   // - add some "message" binary inputs
-  programActive = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
-  programActive->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
-  programActive->setHardwareName("Programm aktiv");
-  addBehaviour(programActive);
-  needWater = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
-  needWater->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
-  needWater->setHardwareName("Wasser nachfüllen");
-  addBehaviour(needWater);
-  needAttention = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
-  needAttention->setHardwareInputConfig(binInpType_none, usage_undefined, true, POLL_INTERVAL);
-  needAttention->setHardwareName("Aktion erforderlich");
-  addBehaviour(needAttention);
+  for (int i=0; i<NUM_MESSAGE_BINARY_INPUTS; i++) {
+    BinaryInputBehaviourPtr bi = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
+    bi->setHardwareInputConfig((DsBinaryInputType)(i+25), usage_undefined, true, POLL_INTERVAL);
+    bi->setHardwareName(string_format("event %d", i+25));
+    addBehaviour(bi);
+  }
   #endif
 }
 
@@ -289,14 +334,11 @@ void VZugHomeDevice::gotIsActive(JsonObjectPtr aResult, ErrorPtr aError)
   ALOG(LOG_DEBUG, "isActive: %s", s.c_str());
   bool isActive = false;
   if (s=="true") isActive = true;
-  #ifdef STATUS_BINRAY_INPUTS
-  programActive->updateInputState(isActive); // update status binInp
-  if (!isActive) {
-    needWater->updateInputState(false);
-    needAttention->updateInputState(false);
+  if (currentIsActive!=isActive) {
+    currentIsActive = isActive;
+    output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? (programTemp>0 ? programTemp : 1) : 0); // update channel value
+    processPushMessage(isActive ? "GOT_ACTIVE" : "GOT_INACTIVE");
   }
-  #endif
-  output->getChannelByType(channeltype_default)->syncChannelValue(isActive ? (programTemp>0 ? programTemp : 1) : 0); // update channel value
   // query last push messages
   vzugHomeComm.apiCommand(true, "getLastPUSHNotifications", NULL, true, boost::bind(&VZugHomeDevice::gotLastPUSHNotifications, this, _1, _2));
 }
@@ -402,36 +444,61 @@ void VZugHomeDevice::processPushMessage(const string aMessage)
   for (StringStringMap::iterator pos = pushMessageTriggers.begin(); pos!=pushMessageTriggers.end(); ++pos) {
     if (aMessage.find(pos->first)!=string::npos) {
       // matching trigger -> execute direct call
-      ALOG(LOG_NOTICE, "Trigger text '%s' detected -> pushing direct call: %s", pos->first.c_str(), pos->second.c_str());
-      // parse call: syntax: [-|!]n, "!" for force call, "-" for undo
+      ALOG(LOG_NOTICE, "Trigger text '%s' detected -> executing signalling commands: %s", pos->first.c_str(), pos->second.c_str());
+      // parse call: syntax:
+      //   <action>[,<action>...]
+      //   action = <directscenecall>|<inputchange>
+      //   directscenecall = [-|!]n, n=scene number, "!" for force call, "-" for undo
+      //   inputchange = >[-|+]n, n=input index, "+" to set input, "-" to clear input, no "+"/"-" to pulse input
       const char *p = pos->second.c_str();
-      DsButtonActionMode m = buttonActionMode_normal;
-      if (*p=='!') { p++; m = buttonActionMode_force; }
-      else if (*p=='-') { p++; m = buttonActionMode_undo; }
-      int a;
-      if (sscanf(p, "%d", &a)==1) {
-        actionButton->sendAction(m, a);
+      while (*p) {
+        #if STATUS_BINARY_INPUTS
+        if (*p=='>') {
+          // input change
+          bool on = false;
+          bool off = false;
+          p++;
+          if (*p=='+') {
+            on = true;
+            p++;
+          }
+          else if (*p=='-') {
+            off = true;
+            p++;
+          }
+          int i;
+          if (sscanf(p, "%d", &i)==1 && i>=0 && i<binaryInputs.size()) {
+            BinaryInputBehaviourPtr bi = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[i]);
+            if (bi) {
+              if (on) bi->updateInputState(true);
+              else if (off) bi->updateInputState(false);
+              else {
+                // pulse 1 second
+                bi->updateInputState(true);
+                MainLoop::currentMainLoop().executeOnce(boost::bind(&BinaryInputBehaviour::updateInputState, bi, false), 1*Second);
+              }
+            }
+          }
+        }
+        else
+        #endif
+        {
+          // direct scene call
+          DsButtonActionMode m = buttonActionMode_normal;
+          if (*p=='!') { p++; m = buttonActionMode_force; }
+          else if (*p=='-') { p++; m = buttonActionMode_undo; }
+          int a;
+          if (sscanf(p, "%d", &a)==1) {
+            actionButton->sendAction(m, a);
+          }
+        }
+        // skip number, check for more commands
+        while (isnumber(*p)) p++;
+        if (*p!=',') break;
+        p++;
       }
     }
   }
-  #ifdef STATUS_BINRAY_INPUTS
-  // TODO: refine
-  if (aMessage.find("Wasser")!=string::npos) {
-    needWater->updateInputState(true);
-  }
-  else if (aMessage.find("gestartet")!=string::npos) {
-    needWater->updateInputState(false);
-    needAttention->updateInputState(false);
-  }
-  else if (aMessage.find("beendet")!=string::npos) {
-    needWater->updateInputState(false);
-    needAttention->updateInputState(false);
-  }
-  else {
-    // everything else needs general attention
-    needAttention->updateInputState(true);
-  }
-  #endif
 }
 
 
@@ -455,11 +522,6 @@ VZugHomeDeviceContainer &VZugHomeDevice::getVZugHomeDeviceContainer()
 
 void VZugHomeDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
-  //  // clear learn-in data from DB
-  //  if (ledChainDeviceRowID) {
-  //    getLedChainDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", ledChainDeviceRowID);
-  //  }
-  // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
 
@@ -526,11 +588,13 @@ void VZugHomeDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   if (ch && ch->needsApplying()) {
     // we can turn off the device
     if (ch->getChannelValue()==0) {
-      // send off command
-      ALOG(LOG_INFO, "Main channel set to 0 -> send off command");
-      vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentTurnOff, this, aDoneCB, aForDimming, _2));
-      ch->channelValueApplied(); // value is "applied" (saved in request)
-      return; // wait for actual apply
+      // send off command if not already inactive
+      if (currentIsActive) {
+        ALOG(LOG_INFO, "Main channel set to 0 -> send off command");
+        vzugHomeComm.apiCommand(false, "doTurnOff", NULL, false, boost::bind(&VZugHomeDevice::sentTurnOff, this, aDoneCB, aForDimming, _2));
+        ch->channelValueApplied(); // value is "applied" (saved in request)
+        return; // wait for actual apply
+      }
     }
     else {
       // setting the channel to another value than 0 is NOP, or just for saving it into a scene that will use it together with a program
