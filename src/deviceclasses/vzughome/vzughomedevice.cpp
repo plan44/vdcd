@@ -26,7 +26,6 @@
 
 #include "outputbehaviour.hpp"
 
-
 using namespace p44;
 
 
@@ -209,6 +208,11 @@ void VZugHomeDevice::willBeAdded()
     foodTemp->setHardwareSensorConfig(sensorType_temperature, usage_undefined, 0, 500, 1, POLL_INTERVAL, Never, 10*Minute);
     foodTemp->setHardwareName("Garsensortemperatur");
     addBehaviour(foodTemp);
+    // and a remaining program time
+    remainingMinutes = SensorBehaviourPtr(new SensorBehaviour(*this));
+    remainingMinutes->setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 2000, 1, POLL_INTERVAL, Never, 1*Minute);
+    remainingMinutes->setHardwareName("Minuten bis Programmende");
+    addBehaviour(remainingMinutes);
   }
 }
 
@@ -295,14 +299,16 @@ void VZugHomeDevice::gotCurrentProgram(JsonObjectPtr aResult, ErrorPtr aError)
   // Status:
   string s = aResult->stringValue();
   currentProgram = s;
-  // Extract program setting
-  // \xEE\x85\x81 = temperature symbol
-  // Program:  Dämpfen,  30
-  size_t i = s.find("\xEE\x85\x81");
-  if (i!=string::npos) {
-    // find start of temperature value
-    i = s.find_first_of("0123456789",i);
-    sscanf(s.c_str()+i, "%d", &programTemp);
+  if (deviceModel==model_MSLQ) {
+    // Extract program setting
+    // \xEE\x85\x81 = temperature symbol
+    // Program:  Dämpfen,  30
+    size_t i = s.find("\xEE\x85\x81");
+    if (i!=string::npos) {
+      // find start of temperature value
+      i = s.find_first_of("0123456789",i);
+      sscanf(s.c_str()+i, "%d", &programTemp);
+    }
   }
   ALOG(LOG_DEBUG, "Program: %s", s.c_str());
   // query current program end
@@ -318,6 +324,53 @@ void VZugHomeDevice::gotCurrentProgramEnd(JsonObjectPtr aResult, ErrorPtr aError
   }
   // Status:
   ALOG(LOG_DEBUG, "Program End: %s", aResult->json_c_str());
+  if (deviceModel==model_MSLQ) {
+    // Antwort: JSON-Objekt mit den Tags EndType und End.
+    // Es gibt 4 verschiedene EndTypes:
+    //  0: Keine Endezeit
+    //  1: Absolute Endezeit (z.B. {"EndType":"1", "End":"19:58"})
+    //  2: Relatvie Endezeit (z.B. {"EndType":"2", "End":"1h05"})
+    //  3: Endebedingung (z.B. {"EndType":"3", "End":"Gartemperatur 55°"})
+    int mins = 0;
+    JsonObjectPtr o = aResult->get("EndType");
+    if (o) {
+      int endType = o->int32Value();
+      if (aResult->get("End", o)) {
+        string end = o->stringValue();
+        size_t i = end.find_first_of("0123456789");
+        if (i!=string::npos && i>0) {
+          // remove funny prefix chars
+          end.erase(0,i);
+          if (endType==1) {
+            //  1: Absolute Endezeit (z.B. {"EndType":"1", "End":"19:58"})
+            int h,m;
+            if (sscanf(end.c_str(), "%d:%02d", &h, &m)==2) {
+              // calculate minutes within day
+              mins = h*60+m;
+              // convert into remaining minutes
+              struct timeval t;
+              gettimeofday(&t, NULL);
+              struct tm *now = localtime(&t.tv_sec);
+              int nowmins = now->tm_hour*60+now->tm_min;
+              // difference
+              mins -= nowmins;
+            }
+          }
+          else if (endType==2) {
+            //  2: Relatvie Endezeit (z.B. {"EndType":"2", "End":"1h05"})
+            int h,m;
+            if (sscanf(end.c_str(), "%dh%02d", &h, &m)==2) {
+              // calculate remaining minutes
+              mins = h*60+m;
+            }
+          }
+        }
+      }
+    }
+    if (mins<0) mins=0;
+    // update sensor value
+    remainingMinutes->updateSensorValue(mins);
+  }
   // query activity status
   vzugHomeComm.apiCommand(false, "isActive", NULL, false, boost::bind(&VZugHomeDevice::gotIsActive, this, _1, _2));
 }

@@ -110,6 +110,7 @@ namespace p44 {
 
     SensorBehaviourPtr ovenTemp;
     SensorBehaviourPtr foodTemp;
+    SensorBehaviourPtr remainingMinutes;
 
     StringStringMap pushMessageTriggers; ///< texts from push messages and corresponding direct actions
 
