@@ -194,6 +194,11 @@ namespace p44 {
     /// the content source channel
     AudioContentSourceChannelPtr contentSource;
 
+    /// the current state command
+    bool stateRestoreCmdValid; ///< set if state restore command is valid
+    string stateRestoreCmd; ///< scene command that will restore current state (beyond what is stored in the channels)
+
+
     /// @name interaction with digitalSTROM system
     /// @{
 

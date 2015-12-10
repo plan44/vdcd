@@ -377,7 +377,8 @@ AudioBehaviour::AudioBehaviour(Device &aDevice) :
   // hardware derived parameters
   // persistent settings
   // volatile state
-  unmuteVolume(0)
+  unmuteVolume(0),
+  stateRestoreCmdValid(false)
 {
   // make it member of the audio group
   setGroupMembership(group_cyan_audio, true);
@@ -465,6 +466,9 @@ void AudioBehaviour::loadChannelsFromScene(DsScenePtr aScene)
     powerState->setChannelValueIfNotDontCare(aScene, audioScene->powerState, 0, 0, false);
     // - content source
     contentSource->setChannelValueIfNotDontCare(aScene, audioScene->contentSource, 0, 0, !audioScene->command.empty()); // always apply if there is a command
+    // - state restore command
+    stateRestoreCmd = audioScene->command;
+    stateRestoreCmdValid = !audioScene->command.empty(); // only non-empty command is considered valid
   }
   else {
     // only if not audio scene, use default loader
@@ -484,6 +488,10 @@ void AudioBehaviour::saveChannelsToScene(DsScenePtr aScene)
     audioScene->setSceneValueFlags(powerState->getChannelIndex(), valueflags_dontCare, false);
     audioScene->setPVar(audioScene->contentSource, (uint32_t)contentSource->getChannelValue());
     audioScene->setSceneValueFlags(contentSource->getChannelIndex(), valueflags_dontCare, false);
+    // save command from scene if there is one
+    if (stateRestoreCmdValid) {
+      audioScene->setPVar(audioScene->command, stateRestoreCmd);
+    }
   }
   else {
     // only if not light scene, use default save

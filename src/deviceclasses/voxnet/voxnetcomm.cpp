@@ -344,7 +344,16 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
               string cmd;
               cmd.assign(line, i, e-i); // copy command
               i = e+1;
-              if (cmd=="status") {
+              if (
+                cmd=="status" || // status command
+                (cmd.substr(0,2)=="$M" && line[i]=='[') // or music source confirm command
+              ) {
+                // status:
+                //   $MyMusic1:status:streaming=radio:info_1=SRF 3
+                //   :info_2=ANGUS AND JULIA STONE - GRIZZLY BEAR:info_3=:info_4=Buffer Level\: 90%
+                // music source confirm:
+                //   $MyMusic1:$M00113220A2A41:[next]:ok
+                //   $MyMusic1:$M00113220A2A40:[play\:4]:ok
                 // call back
                 if (voxnetStatusHandler) {
                   if (voxnetStatusHandler(ref, line.substr(i))) {

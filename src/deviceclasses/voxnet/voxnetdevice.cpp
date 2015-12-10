@@ -95,18 +95,25 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       case scene_cmd_audio_next_channel:
       case scene_cmd_audio_next_title:
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:next", voxnetRoomID.c_str()));
+        // Note: we rely on status parsing to actually update content source channel change
         continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_previous_channel:
       case scene_cmd_audio_previous_title:
+        // Note: we rely on status parsing to actually update content source channel change
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
         continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_play:
-        // TODO: better command
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play", voxnetRoomID.c_str()));
-        continueApply = false; // that's all what we need to do
+        // TODO: play does not have a function when power is off or nothing is selected
+        if (ab->powerState->getIndex()==dsAudioPower_on) {
+          // already on, only unmute in case it is muted
+          if (knownMuted) {
+            getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
+            knownMuted = false;
+          }
+          continueApply = false; // that's all what we need to do
+        }
         break;
       case scene_cmd_audio_pause:
         // TODO: voxnet text does not have pause yet
@@ -133,43 +140,60 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       default:
         break;
     }
-    // execute custom scene commands
-    string playcmd;
-    if (!as->command.empty()) {
-      string subcmd, params;
-      if (keyAndValue(as->command, subcmd, params, ':')) {
-        if (subcmd=="voxnet") {
-          // Syntax: voxnet:<voxnet text command or macro>
-          // direct execution of voxnet commands, replacing extra "magic" identifiers as follows:
-          // - @dsroom with this device's room ID
-          size_t i;
-          while ((i = params.find("@{dsroom}"))!=string::npos) {
-            params.replace(i, 9, voxnetRoomID);
-          }
-          // also allow @{sceneno} and @{channel...} placeholders
-          as->substitutePlaceholders(params);
-          ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
-          getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
-        }
-        else if (subcmd=="msgcmd") {
-          // Syntax: msgcmd:shell command
-          // direct execution of a shell command supposed to play a message, replacing extra "magic" identifiers as follows:
-          // - @{sceneno} with the scene's number
-          // - @{channel...} channel values
-          playcmd=params;
-        }
-        else {
-          ALOG(LOG_ERR, "Unknown scene command: %s", as->command.c_str());
-        }
-      }
-    }
-    // check for messages
-    if (as->isMessage()) {
-      playMessage(as, playcmd);
-    }
   }
   // prepared ok
   return continueApply;
+}
+
+
+bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
+{
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
+  AudioScenePtr as = boost::dynamic_pointer_cast<AudioScene>(aScene);
+  // execute custom scene commands
+  string playcmd;
+  if (ab->stateRestoreCmdValid) {
+    string subcmd, params;
+    if (keyAndValue(ab->stateRestoreCmd, subcmd, params, ':')) {
+      if (subcmd=="voxnet") {
+        // Syntax: voxnet:<voxnet text command or macro>
+        // direct execution of voxnet commands, replacing extra "magic" identifiers as follows:
+        // - @dsroom with this device's room ID
+        size_t i;
+        while ((i = params.find("@{dsroom}"))!=string::npos) {
+          params.replace(i, 9, voxnetRoomID);
+        }
+        // also allow @{sceneno} and @{channel...} placeholders
+        as->substitutePlaceholders(params);
+        ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
+        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
+      }
+      else if (subcmd=="msgcmd") {
+        // Syntax: msgcmd:shell command
+        // direct execution of a shell command supposed to play a message, replacing extra "magic" identifiers as follows:
+        // - @{sceneno} with the scene's number
+        // - @{channel...} channel values
+        as->substitutePlaceholders(params);
+        playcmd=params;
+      }
+      else {
+        ALOG(LOG_ERR, "Unknown scene command: %s", as->command.c_str());
+      }
+    }
+  }
+  // check for messages
+  if (as->isMessage()) {
+    if (!messageTimerTicket) {
+      // remember pre-Message state
+      preMessageVolume = ab->volume->getChannelValue();
+      preMessageSource = currentSource;
+      preMessageStream = currentStream;
+      preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
+    }
+    playMessage(as, playcmd);
+  }
+  // still apply channel values
+  return true;
 }
 
 
@@ -230,11 +254,6 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
     MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
   }
   else {
-    // remember pre-Message volume
-    preMessageVolume = ab->volume->getChannelValue();
-    preMessageSource = currentSource;
-    preMessageStream = currentStream;
-    preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
     // prepare for message playing
     getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
@@ -317,14 +336,34 @@ void VoxnetDevice::endOfMessage()
 
 bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVoxnetStatus)
 {
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   string kv;
   string k, v;
   size_t i;
   size_t e;
   bool needFullStatus = false;
-  if (aVoxnetID==voxnetRoomID) {
+  if (aVoxnetStatus[0]=='[') {
+    if (aVoxnetID==currentSource) {
+      ALOG(LOG_DEBUG, "Source command confirmation: %s", aVoxnetStatus.c_str());
+      // $MyMusic1:$M00113220A2A41:[next]:ok
+      // $MyMusic1:$M00113220A2A40:[play\:4]:ok
+      // $MyMusic1:$M00113220A2A40:[previous]:ok
+      if (aVoxnetStatus.substr(0,6)=="[next]") {
+        ab->contentSource->syncChannelValue(ab->contentSource->getIndex()+1);
+      }
+      else if (aVoxnetStatus.substr(0,10)=="[previous]") {
+        ab->contentSource->syncChannelValue(ab->contentSource->getIndex()-1);
+      }
+      else if (aVoxnetStatus.substr(0,7)=="[play\\:") {
+        int cs;
+        if (sscanf(aVoxnetStatus.c_str()+7, "%d", &cs)==1) {
+          ab->contentSource->syncChannelValue(cs);
+        }
+      }
+    }
+  }
+  else if (aVoxnetID==voxnetRoomID) {
     ALOG(LOG_DEBUG, "Room Status: %s", aVoxnetStatus.c_str());
-    AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
     // streaming=$U00113220A2A40:volume=10:balance=1:treble=1:bass=2:mute=off
     i = 0;
     double vol = 0;
@@ -430,6 +469,30 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     "Overall Status: currentUser=%s, currentSource=%s, currentStream=%s",
     currentUser.c_str(), currentSource.c_str(), currentStream.c_str()
   );
+  // update state restore command when we have collected everything
+  if (!needFullStatus) {
+    // data should be complete now, create new state restore command
+    // $r.zone2:room:select:$MyMusic1;$r.zone2:stream:music;$r.zone2:play
+    if (!currentSource.empty()) {
+      //
+      string src;
+      if (ab->contentSource->getIndex()>0) {
+        src = string_format("@{channel:%d}", ab->contentSource->getChannelType());
+      }
+      // only save state if we have a current source
+      ab->stateRestoreCmd = string_format(
+        "%s:room:select:%s;%s:stream:%s;%s:play:%s",
+        voxnetRoomID.c_str(),
+        currentSource.c_str(), // always source, we don't persist users
+        voxnetRoomID.c_str(),
+        currentStream.c_str(),
+        voxnetRoomID.c_str(),
+        src.c_str()
+      );
+      ab->stateRestoreCmdValid = true;
+      ALOG(LOG_NOTICE,"State restore command updated: %s", ab->stateRestoreCmd.c_str());
+    }
+  }
   return needFullStatus;
 }
 

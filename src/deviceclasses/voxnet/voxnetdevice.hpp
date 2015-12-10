@@ -103,6 +103,13 @@ namespace p44 {
     /// @note this is called BEFORE scene values are recalled
     virtual bool prepareSceneCall(DsScenePtr aScene);
 
+    /// prepare for applying a scene on the device level
+    /// @param aScene the scene that is to be applied
+    /// @return true if channel values should be applied, false if not
+    /// @note this is called AFTER scene values are already loaded and prepareSceneCall() has already been called, but before
+    ///   channels are applied (or not, if method returns false)
+    virtual bool prepareSceneApply(DsScenePtr aScene);
+
     /// apply all pending channel value updates to the device's hardware
     /// @note this is the only routine that should trigger actual changes in output values. It must consult all of the device's
     ///   ChannelBehaviours and check isChannelUpdatePending(), and send new values to the device hardware. After successfully

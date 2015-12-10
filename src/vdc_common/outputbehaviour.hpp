@@ -207,7 +207,7 @@ namespace p44 {
 
   protected:
 
-    /// apply scene to output channels
+    /// apply scene to output channels and other state variables
     /// @param aScene the scene to apply to output channels
     /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
     ///   false if scene cannot be applied to hardware (not yet, or maybe not at all); applying to hardware, if
