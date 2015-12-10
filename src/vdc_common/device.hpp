@@ -409,11 +409,18 @@ namespace p44 {
     /// @note this is called BEFORE scene values are recalled
     virtual bool prepareSceneCall(DsScenePtr aScene);
 
+    /// prepare for applying a scene on the device level
+    /// @param aScene the scene that is to be applied
+    /// @return true if channel values should be applied, false if not
+    /// @note this is called AFTER scene values are already loaded and prepareSceneCall() has already been called, but before
+    ///   channels are applied (or not, if method returns false)
+    virtual bool prepareSceneApply(DsScenePtr aScene);
+
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)
     /// @param aDoneCB will be called when scene actions have completed (but not necessarily when stopped by stopSceneActions())
     /// @note base class implementation just calls performSceneActions() on output
-    /// @note this is called after scene values have been applied already
+    /// @note this is called after scene values have been applied already (or as only action if dontCare has prevented applying values)
     virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB);
 
     /// abort any currently ongoing scene action

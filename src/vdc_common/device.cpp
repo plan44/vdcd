@@ -1136,6 +1136,15 @@ bool Device::prepareSceneCall(DsScenePtr aScene)
 }
 
 
+bool Device::prepareSceneApply(DsScenePtr aScene)
+{
+  // base class - just complete
+  return true;
+}
+
+
+
+
 // deferred applying of state, after current state has been captured for this output
 void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
 {
@@ -1144,8 +1153,11 @@ void Device::outputUndoStateSaved(DsBehaviourPtr aOutput, DsScenePtr aScene)
     if (output) {
       // apply scene logically
       if (output->performApplyScene(aScene)) {
-        // now apply values to hardware
-        requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+        // prepare for apply
+        if (prepareSceneApply(aScene)) {
+          // now apply values to hardware
+          requestApplyingChannels(boost::bind(&Device::sceneValuesApplied, this, aScene), false);
+        }
       }
       else {
         // no apply to hardware needed, directly proceed to actions
@@ -1185,7 +1197,9 @@ void Device::undoScene(SceneNo aSceneNo)
       // now apply the pseudo state
       output->performApplyScene(previousState);
       // apply the values now, not dimming
-      requestApplyingChannels(NULL, false);
+      if (prepareSceneApply(previousState)) {
+        requestApplyingChannels(NULL, false);
+      }
     }
   }
 }
@@ -1217,7 +1231,9 @@ void Device::callSceneMin(SceneNo aSceneNo)
       if (output) {
         output->onAtMinBrightness(scene);
         // apply the values now, not dimming
-        requestApplyingChannels(NULL, false);
+        if (prepareSceneApply(scene)) {
+          requestApplyingChannels(NULL, false);
+        }
       }
     }
   }
