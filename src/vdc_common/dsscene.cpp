@@ -468,6 +468,17 @@ DsScenePtr SceneDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 }
 
 
+DsScenePtr SceneDeviceSettings::newUndoStateScene()
+{
+  DsScenePtr undoStateScene = newDefaultScene(T0_S1); // use main on as template
+  // to make sure: the "previous" pseudo-screne must always be "invoke" type (restoring output values)
+  undoStateScene->sceneCmd = scene_cmd_invoke;
+  undoStateScene->sceneArea = 0; // no area
+  return undoStateScene;
+}
+
+
+
 
 DsScenePtr SceneDeviceSettings::getScene(SceneNo aSceneNo)
 {

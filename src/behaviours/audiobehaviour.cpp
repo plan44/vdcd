@@ -367,6 +367,20 @@ DsScenePtr AudioDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 }
 
 
+DsScenePtr AudioDeviceSettings::newUndoStateScene()
+{
+  // get standard undo state scene
+  AudioScenePtr undoStateScene =  boost::dynamic_pointer_cast<AudioScene>(inherited::newUndoStateScene());
+  // adjust flags for restoring a state
+  if (undoStateScene) {
+    undoStateScene->setFixVol(true);
+  }
+  return undoStateScene;
+}
+
+
+
+
 
 #pragma mark - AudioBehaviour
 
@@ -494,7 +508,7 @@ void AudioBehaviour::saveChannelsToScene(DsScenePtr aScene)
     }
   }
   else {
-    // only if not light scene, use default save
+    // only if not audio scene, use default save
     inherited::saveChannelsToScene(aScene);
   }
 }

@@ -154,6 +154,10 @@ namespace p44 {
     /// @note setDefaultSceneValues() must be called to set default scene values
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
 
+    /// factory method to create the correct subclass type of DsScene
+    /// suitable for storing current state for later undo.
+    virtual DsScenePtr newUndoStateScene();
+
   };
 
 

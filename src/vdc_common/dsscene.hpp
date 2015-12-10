@@ -273,6 +273,12 @@ namespace p44 {
     ///   Base class returns a SimpleScene.
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
 
+    /// factory method to create the correct subclass type of DsScene
+    /// suitable for storing current state for later undo.
+    /// @note Base class returns a scene configured like T0_S1, but always with scene_cmd_invoke and no area
+    ///   Derived classes might need to pre-configure other things, such as flags (e.g. fixvol for audio)
+    virtual DsScenePtr newUndoStateScene();
+
     /// @}
 
   protected:

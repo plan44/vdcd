@@ -140,6 +140,14 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       default:
         break;
     }
+    // check for messages
+    if (as->isMessage() && !messageTimerTicket) {
+      // no message already playing - remember pre-Message state
+      preMessageVolume = ab->volume->getChannelValue();
+      preMessageSource = currentSource;
+      preMessageStream = currentStream;
+      preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
+    }
   }
   // prepared ok
   return continueApply;
@@ -167,6 +175,8 @@ bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
         as->substitutePlaceholders(params);
         ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
+        // make sure contentSource channel is also re-applied
+        ab->contentSource->setNeedsApplying();
       }
       else if (subcmd=="msgcmd") {
         // Syntax: msgcmd:shell command
@@ -183,13 +193,6 @@ bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
   }
   // check for messages
   if (as->isMessage()) {
-    if (!messageTimerTicket) {
-      // remember pre-Message state
-      preMessageVolume = ab->volume->getChannelValue();
-      preMessageSource = currentSource;
-      preMessageStream = currentStream;
-      preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
-    }
     playMessage(as, playcmd);
   }
   // still apply channel values
@@ -354,11 +357,13 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
       else if (aVoxnetStatus.substr(0,10)=="[previous]") {
         ab->contentSource->syncChannelValue(ab->contentSource->getIndex()-1);
       }
-      else if (aVoxnetStatus.substr(0,7)=="[play\\:") {
-        int cs;
-        if (sscanf(aVoxnetStatus.c_str()+7, "%d", &cs)==1) {
-          ab->contentSource->syncChannelValue(cs);
+      else if (aVoxnetStatus.substr(0,5)=="[play") {
+        int cs = 1; // play without number is considered to be the first title in the play list
+        if (aVoxnetStatus.substr(5,2)=="\\:") {
+          // maybe there's a play number
+          sscanf(aVoxnetStatus.c_str()+7, "%d", &cs); // try to get play number
         }
+        ab->contentSource->syncChannelValue(cs);
       }
     }
   }
@@ -474,23 +479,17 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     // data should be complete now, create new state restore command
     // $r.zone2:room:select:$MyMusic1;$r.zone2:stream:music;$r.zone2:play
     if (!currentSource.empty()) {
-      //
-      string src;
-      if (ab->contentSource->getIndex()>0) {
-        src = string_format("@{channel:%d}", ab->contentSource->getChannelType());
-      }
       // only save state if we have a current source
-      ab->stateRestoreCmd = string_format(
-        "%s:room:select:%s;%s:stream:%s;%s:play:%s",
-        voxnetRoomID.c_str(),
+      string srcmd = string_format(
+        "voxnet:@{dsroom}:room:select:%s;@{dsroom}:stream:%s",
         currentSource.c_str(), // always source, we don't persist users
-        voxnetRoomID.c_str(),
-        currentStream.c_str(),
-        voxnetRoomID.c_str(),
-        src.c_str()
+        currentStream.c_str()
       );
-      ab->stateRestoreCmdValid = true;
-      ALOG(LOG_NOTICE,"State restore command updated: %s", ab->stateRestoreCmd.c_str());
+      if (srcmd!=ab->stateRestoreCmd) {
+        ab->stateRestoreCmd = srcmd;
+        ab->stateRestoreCmdValid = true;
+        ALOG(LOG_INFO,"State restore command updated: %s", srcmd.c_str());
+      }
     }
   }
   return needFullStatus;

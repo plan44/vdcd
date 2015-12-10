@@ -1083,10 +1083,7 @@ void Device::callScene(SceneNo aSceneNo, bool aForce)
       }
       // - make sure we have the lastState pseudo-scene for undo
       if (!previousState) {
-        previousState = scenes->newDefaultScene(T0_S1); // use main ON as template
-        // to make sure: the "previous" pseudo-screne must always be "invoke" type (restoring output values)
-        previousState->sceneCmd = scene_cmd_invoke;
-        previousState->sceneArea = 0; // no area
+        previousState = scenes->newUndoStateScene();
       }
       // we remember the scene for which these are undo values in sceneNo of the pseudo scene
       // (but without actually re-configuring the scene according to that number!)

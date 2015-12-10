@@ -346,7 +346,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
               i = e+1;
               if (
                 cmd=="status" || // status command
-                (cmd.substr(0,2)=="$M" && line[i]=='[') // or music source confirm command
+                (cmd.substr(0,1)=="$" && line[i]=='[') // or music source confirm command
               ) {
                 // status:
                 //   $MyMusic1:status:streaming=radio:info_1=SRF 3
