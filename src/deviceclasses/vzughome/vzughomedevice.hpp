@@ -38,8 +38,11 @@ using namespace std;
 namespace p44 {
 
 
-  #define STATUS_BINARY_INPUTS 1
+  #define STATUS_BINARY_INPUTS 0
   #define NUM_MESSAGE_BINARY_INPUTS 6
+
+  #define STATUS_BUTTON_CLICKS 1
+
 
   typedef map<string, string> StringStringMap;
 
@@ -106,7 +109,7 @@ namespace p44 {
     string currentProgram;
     int programTemp;
 
-    ButtonBehaviourPtr actionButton; ///< the pseudo-button required to send direct scene calls
+    ButtonBehaviourPtr actionButton; ///< the pseudo-button required to send direct scene calls or button clicks
 
     SensorBehaviourPtr ovenTemp;
     SensorBehaviourPtr foodTemp;

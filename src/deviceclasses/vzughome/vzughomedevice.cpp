@@ -111,6 +111,7 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   addBehaviour(o);
   // - set the pseudo-button behaviour needed for direct scene calls
   actionButton = ButtonBehaviourPtr(new ButtonBehaviour(*this));
+  actionButton->setGroup(group_black_joker); // joker
   actionButton->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, true);
   actionButton->setHardwareName("status");
   addBehaviour(actionButton);
@@ -536,13 +537,23 @@ void VZugHomeDevice::processPushMessage(const string aMessage)
         else
         #endif
         {
-          // direct scene call
-          DsButtonActionMode m = buttonActionMode_normal;
-          if (*p=='!') { p++; m = buttonActionMode_force; }
-          else if (*p=='-') { p++; m = buttonActionMode_undo; }
-          int a;
-          if (sscanf(p, "%d", &a)==1) {
-            actionButton->sendAction(m, a);
+          if (*p=='C') {
+            // ordinary click
+            p++;
+            int clicktype;
+            if (sscanf(p, "%d", &clicktype)==1) {
+              actionButton->sendClick((DsClickType)clicktype);
+            }
+          }
+          else {
+            // direct scene call
+            DsButtonActionMode m = buttonActionMode_normal;
+            if (*p=='!') { p++; m = buttonActionMode_force; }
+            else if (*p=='-') { p++; m = buttonActionMode_undo; }
+            int a;
+            if (sscanf(p, "%d", &a)==1) {
+              actionButton->sendAction(m, a);
+            }
           }
         }
         // skip number, check for more commands

@@ -111,6 +111,13 @@ namespace p44 {
     /// @param aSceneNo the scene number to send
     void sendAction(DsButtonActionMode aActionMode, uint8_t aActionId);
 
+
+    /// send click
+    /// @param aClickType the click to send
+    /// @note Normally this is not directly used, but automatically called by the button state machine
+    void sendClick(DsClickType aClickType);
+
+
     /// @}
 
     
@@ -198,8 +205,7 @@ namespace p44 {
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
     void localSwitchOutput();
     void localDim(DsDimMode aDirection);
-    void sendClick(DsClickType aClickType);
-    
+
     /// @}
 
   };
