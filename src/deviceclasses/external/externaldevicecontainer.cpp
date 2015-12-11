@@ -375,10 +375,13 @@ void ExternalDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     // generic channel apply
     for (size_t i=0; i<numChannels(); i++) {
       ChannelBehaviourPtr cb = getChannelByIndex(i);
+      double chval = cb->getChannelValue();
+      // apply mode if this is the first channel
+      chval = output->outputValueAccordingToMode(chval, i);
       if (cb->needsApplying()) {
         // send channel value message
         if (deviceConnector->simpletext) {
-          string m = string_format("C%zu=%lf", i, cb->getChannelValue());
+          string m = string_format("C%zu=%lf", i, chval);
           sendDeviceApiSimpleMessage(m);
         }
         else {
@@ -505,13 +508,17 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     iconBaseName = o->stringValue();
   }
   // - basic output behaviour
-  DsOutputFunction outputFunction = outputFunction_dimmer; // dimmable by default
+  DsOutputFunction outputFunction = outputFunction_custom; // not defined yet
   if (aInitParams->get("dimmable", o)) {
-    if (!o->boolValue()) outputFunction = outputFunction_switch;
+    outputFunction = o->boolValue() ? outputFunction_dimmer : outputFunction_switch;
+  }
+  if (aInitParams->get("positional", o)) {
+    if (o->boolValue()) outputFunction = outputFunction_positional;
   }
   // - create appropriate output behaviour
   if (outputType=="light") {
     if (primaryGroup==group_variable) primaryGroup = group_yellow_light;
+    if (outputFunction==outputFunction_custom) outputFunction = outputFunction_dimmer;
     // - use light settings, which include a scene table
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
@@ -576,11 +583,12 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
   }
   else if (outputType=="basic") {
     if (primaryGroup==group_variable) primaryGroup = group_black_joker;
+    if (outputFunction==outputFunction_custom) outputFunction = outputFunction_switch;
     // - use simple scene settings
     installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // - add generic output behaviour
     OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
-    o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
+    o->setHardwareOutputConfig(outputFunction, outputFunction==outputFunction_switch ? outputmode_binary : outputmode_gradual, usage_undefined, false, -1);
     o->setHardwareName(hardwareName);
     o->setGroupMembership(primaryGroup, true); // put into primary group
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
