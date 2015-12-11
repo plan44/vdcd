@@ -342,6 +342,7 @@ struct ssl_func {
 #define SSL_pending (* (int (*)(SSL *)) ssl_sw[18].ptr)
 #define SSL_CTX_set_verify (* (void (*)(SSL_CTX *, int, int)) ssl_sw[19].ptr)
 #define SSL_shutdown (* (int (*)(SSL *)) ssl_sw[20].ptr)
+#define TLSv1_client_method (* (SSL_METHOD * (*)(void)) ssl_sw[21].ptr)
 
 #define CRYPTO_num_locks (* (int (*)(void)) crypto_sw[0].ptr)
 #define CRYPTO_set_locking_callback \
@@ -377,6 +378,7 @@ static struct ssl_func ssl_sw[] = {
   {"SSL_pending", NULL},
   {"SSL_CTX_set_verify", NULL},
   {"SSL_shutdown",   NULL},
+  {"TLSv1_client_method",   NULL},
   {NULL,    NULL}
 };
 
@@ -3733,11 +3735,18 @@ static void handle_ssi_file_request(struct mg_connection *conn,
     send_http_error(conn, 500, http_500_error, "fopen(%s): %s", path,
                     strerror(ERRNO));
   } else {
+    // determine mime type from ssi file's extension
+    struct vec mime_vec;
+    get_mime_type(conn->ctx, path, &mime_vec);
+    // deliver SSI file
     conn->must_close = 1;
     fclose_on_exec(&file);
     mg_printf(conn, "HTTP/1.1 200 OK\r\n"
-              "Content-Type: text/html\r\nConnection: %s\r\n\r\n",
+              "Content-Type: %.*s\r\n"
+              "Connection: %s\r\n\r\n",
+              (int) mime_vec.len, mime_vec.ptr,
               suggest_connection_header(conn));
+
     send_ssi_file(conn, path, &file, 0);
     mg_fclose(&file);
   }
@@ -4232,11 +4241,11 @@ int mg_upload(struct mg_connection *conn, const char *destination_dir) {
     // there is no other thread can save into the same file simultaneously.
     fp = NULL;
     // Construct destination file name. Do not allow paths to have slashes.
-    if ((s = strrchr(fname, '/')) == NULL && 
+    if ((s = strrchr(fname, '/')) == NULL &&
 		(s = strrchr(fname, '\\')) == NULL) {
             s = fname;
     }
-    
+
     // Open file in binary mode. TODO: set an exclusive lock.
     snprintf(path, sizeof(path), "%s/%s", destination_dir, s);
     if ((fp = fopen(path, "wb")) == NULL) {
@@ -4613,9 +4622,9 @@ static int set_uid_option(struct mg_context *ctx) {
 static pthread_mutex_t *ssl_mutexes;
 
 static int sslize(struct mg_connection *conn, SSL_CTX *s, int (*func)(SSL *)) {
-  return (conn->ssl = SSL_new(s)) != NULL &&
-    SSL_set_fd(conn->ssl, conn->client.sock) == 1 &&
-    func(conn->ssl) == 1;
+  if ((conn->ssl = SSL_new(s)) == NULL) return 0;
+  if (SSL_set_fd(conn->ssl, conn->client.sock) != 1) return 0;
+  return func(conn->ssl); // 1 if ok, 0 or -1 if we had an SSL error
 }
 
 // Return OpenSSL error message
@@ -4674,16 +4683,10 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 }
 #endif // NO_SSL_DL
 
-// Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
-static int set_ssl_option(struct mg_context *ctx) {
-  int i, size;
-  const char *pem;
 
-  // If PEM file is not specified, skip SSL initialization.
-  if ((pem = ctx->config[SSL_CERTIFICATE]) == NULL) {
-    return 1;
-  }
-
+// global SSL init
+int global_SSL_init(struct mg_context *ctx)
+{
 #if !defined(NO_SSL_DL)
   if (!load_dll(ctx, SSL_LIB, ssl_sw) ||
       !load_dll(ctx, CRYPTO_LIB, crypto_sw)) {
@@ -4694,6 +4697,21 @@ static int set_ssl_option(struct mg_context *ctx) {
   // Initialize SSL library
   SSL_library_init();
   SSL_load_error_strings();
+  return 1;
+}
+
+
+// Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
+static int set_ssl_option(struct mg_context *ctx) {
+  int i, size;
+  const char *pem;
+
+  // If PEM file is not specified, skip SSL initialization.
+  if ((pem = ctx->config[SSL_CERTIFICATE]) == NULL) {
+    return 1;
+  }
+
+  if (global_SSL_init(ctx)==0) return 0;
 
   if ((ctx->ssl_ctx = SSL_CTX_new(SSLv23_server_method())) == NULL) {
     cry(fc(ctx), "SSL_CTX_new (server) error: %s", ssl_error());
@@ -4832,6 +4850,7 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
   static struct mg_context fake_ctx;
   struct mg_connection *conn = NULL;
   SOCKET sock;
+  int ret;
 
   if ((sock = conn2(host, port, use_ssl, ebuf, ebuf_len)) == INVALID_SOCKET) {
   } else if ((conn = (struct mg_connection *)
@@ -4840,7 +4859,7 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
     closesocket(sock);
 #ifndef NO_SSL
   } else if (use_ssl && (conn->client_ssl_ctx =
-                         SSL_CTX_new(SSLv23_client_method())) == NULL) {
+                         SSL_CTX_new(TLSv1_client_method==NULL ? SSLv23_client_method() : TLSv1_client_method())) == NULL) {
     snprintf(ebuf, ebuf_len, "SSL_CTX_new error");
     closesocket(sock);
     free(conn);
@@ -4859,7 +4878,12 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
       // SSL_CTX_set_verify call is needed to switch off server certificate
       // checking, which is off by default in OpenSSL and on in yaSSL.
       SSL_CTX_set_verify(conn->client_ssl_ctx, 0, 0);
-      sslize(conn, conn->client_ssl_ctx, SSL_connect);
+      ret = sslize(conn, conn->client_ssl_ctx, SSL_connect);
+      if (!ret) {
+        snprintf(ebuf, ebuf_len, "SSL_connect ret=%d, SSL_get_error()=%d, ssl_error()='%s'", ret, SSL_get_error(conn->ssl, ret), ssl_error());
+        mg_close_connection(conn);
+        conn = NULL;
+      }
     }
 #endif
   }
@@ -4904,6 +4928,8 @@ static int getreq(struct mg_connection *conn, char *ebuf, size_t ebuf_len) {
   return ebuf[0] == '\0';
 }
 
+
+
 struct mg_connection *mg_download(const char *host, int port, int use_ssl,
                                   char *ebuf, size_t ebuf_len,
                                   const char *fmt, ...) {
@@ -4911,6 +4937,11 @@ struct mg_connection *mg_download(const char *host, int port, int use_ssl,
   va_list ap;
 
   va_start(ap, fmt);
+
+  if (use_ssl && SSLv23_client_method==NULL) {
+    global_SSL_init(NULL); // load SSL DLLs, no server context
+  }
+
   ebuf[0] = '\0';
   if ((conn = mg_connect(host, port, use_ssl, ebuf, ebuf_len)) == NULL) {
   } else if (mg_vprintf(conn, fmt, ap) <= 0) {
@@ -4925,6 +4956,54 @@ struct mg_connection *mg_download(const char *host, int port, int use_ssl,
 
   return conn;
 }
+
+
+static int set_sock_timeout(SOCKET sock, int milliseconds) {
+#ifdef _WIN32
+  DWORD t = milliseconds;
+#else
+  struct timeval t;
+  t.tv_sec = milliseconds / 1000;
+  t.tv_usec = (milliseconds * 1000) % 1000000;
+#endif
+  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *) &t, sizeof(t)) ||
+  setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *) &t, sizeof(t));
+}
+
+
+
+struct mg_connection *mg_download_tmo(const char *host, int port, int use_ssl,
+                                      int timeout,
+                                      char *ebuf, size_t ebuf_len,
+                                      const char *fmt, ...) {
+  struct mg_connection *conn;
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  if (use_ssl && SSLv23_client_method==NULL) {
+    global_SSL_init(NULL); // load SSL DLLs, no server context
+  }
+
+  ebuf[0] = '\0';
+  if ((conn = mg_connect(host, port, use_ssl, ebuf, ebuf_len)) == NULL) {
+  } else if (mg_vprintf(conn, fmt, ap) <= 0) {
+    snprintf(ebuf, ebuf_len, "%s", "Error sending request");
+  } else {
+    if (timeout>0) {
+      set_sock_timeout(conn->client.sock, timeout);
+    }
+    getreq(conn, ebuf, ebuf_len);
+  }
+  if (ebuf[0] != '\0' && conn != NULL) {
+    mg_close_connection(conn);
+    conn = NULL;
+  }
+
+  return conn;
+}
+
+
 
 static void process_new_connection(struct mg_connection *conn) {
   struct mg_request_info *ri = &conn->request_info;
@@ -5084,18 +5163,6 @@ static void produce_socket(struct mg_context *ctx, const struct socket *sp) {
 
   (void) pthread_cond_signal(&ctx->sq_full);
   (void) pthread_mutex_unlock(&ctx->mutex);
-}
-
-static int set_sock_timeout(SOCKET sock, int milliseconds) {
-#ifdef _WIN32
-  DWORD t = milliseconds;
-#else
-  struct timeval t;
-  t.tv_sec = milliseconds / 1000;
-  t.tv_usec = (milliseconds * 1000) % 1000000;
-#endif
-  return setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (void *) &t, sizeof(t)) ||
-    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (void *) &t, sizeof(t));
 }
 
 static void accept_new_connection(const struct socket *listener,

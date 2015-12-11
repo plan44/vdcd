@@ -312,6 +312,14 @@ struct mg_connection *mg_download(const char *host, int port, int use_ssl,
                                   PRINTF_FORMAT_STRING(const char *request_fmt),
                                   ...) PRINTF_ARGS(6, 7);
 
+// Variant with timeout
+struct mg_connection *mg_download_tmo(const char *host, int port, int use_ssl,
+                                      int timeout,
+                                      char *error_buffer, size_t error_buffer_size,
+                                      PRINTF_FORMAT_STRING(const char *request_fmt),
+                                      ...) PRINTF_ARGS(7, 8);
+
+
 
 // Close the connection opened by mg_download().
 void mg_close_connection(struct mg_connection *conn);
