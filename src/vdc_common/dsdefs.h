@@ -301,7 +301,7 @@ typedef enum {
 typedef enum {
   outputmode_disabled = 0, ///< disabled
   outputmode_binary = 1, ///< binary ON/OFF mode
-  outputmode_gradual = 2, ///< gradual positive-only output value, 0..n (dimmer, positional etc.)
+  outputmode_gradual = 2, ///< gradual output value (dimmer, valve, positional etc.)
   outputmode_default = 0x7F ///< use device in its default (or only) mode, without further specification
 } DsOutputMode;
 

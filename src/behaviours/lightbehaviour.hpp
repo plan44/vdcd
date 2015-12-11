@@ -142,6 +142,13 @@ namespace p44 {
     /// @note brightness: 0..100%, linear brightness as perceived by humans (half value = half brightness)
     void initMinBrightness(Brightness aMin);
 
+    /// Apply output-mode specific output value transformation
+    /// @param aChannelValue channel value
+    /// @param aChannelIndex channel index (might be different transformation depending on type)
+    /// @return output value limited/transformed according to outputMode
+    /// @note subclasses might implement behaviour-specific output transformations
+    virtual double outputValueAccordingToMode(double aChannelValue, size_t aChannelIndex);
+
     /// return the brightness to be applied to hardware
     /// @return brightness
     /// @note this is to allow lights to have switching behaviour - when brightness channel value is

@@ -112,19 +112,9 @@ void LightBehaviour::initMinBrightness(Brightness aMin)
 
 Brightness LightBehaviour::brightnessForHardware()
 {
-  if (!isEnabled()) {
-    // disabled lights are off
-    return 0;
-  }
-  else if (isDimmable()) {
-    // dim output (applying output mode transformations)
-    return outputValueAccordingToMode(brightness->getTransitionalValue());
-  }
-  else {
-    // switch output
-    return brightness->getChannelValue() >= onThreshold ? brightness->getMax() : brightness->getMin();
-  }
+  return outputValueAccordingToMode(brightness->getChannelValue(), brightness->getChannelIndex());
 }
+
 
 
 void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness, bool aAlwaysSync)
@@ -138,6 +128,15 @@ void LightBehaviour::syncBrightnessFromHardware(Brightness aBrightness, bool aAl
 }
 
 
+double LightBehaviour::outputValueAccordingToMode(double aChannelValue, size_t aChannelIndex)
+{
+  // non-default channels and dimmable brightness are passed directly
+  if (aChannelIndex!=0 || isDimmable()) {
+    return inherited::outputValueAccordingToMode(aChannelValue, aChannelIndex);
+  }
+  // switched light, check threshold
+  return brightness->getChannelValue() >= onThreshold ? brightness->getMax() : brightness->getMin();
+}
 
 
 #pragma mark - behaviour interaction with digitalSTROM system

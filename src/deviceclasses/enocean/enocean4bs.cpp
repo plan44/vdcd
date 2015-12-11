@@ -770,7 +770,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
       // - DB(1,2) left 0 = sending valve position
       // - DB(3,7)..DB(3,0) is valve position 0..100% (0..255 is only for temperature set point mode!)
       // Note: value is always positive even for cooling, because climateControlBehaviour checks outputfunction and sees this is a unipolar valve
-      int8_t newValue = cb->outputValueAccordingToMode(ch->getChannelValue());
+      int8_t newValue = cb->outputValueAccordingToMode(ch->getChannelValue(), ch->getChannelIndex());
       // Still: limit to 0..100 to make sure
       if (newValue<0) newValue = 0;
       else if (newValue>100) newValue=100;

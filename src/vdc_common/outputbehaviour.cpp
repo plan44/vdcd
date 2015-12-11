@@ -191,8 +191,11 @@ void OutputBehaviour::setOutputMode(DsOutputMode aOutputMode)
 }
 
 
-double OutputBehaviour::outputValueAccordingToMode(double aChannelValue)
+double OutputBehaviour::outputValueAccordingToMode(double aChannelValue, size_t aChannelIndex)
 {
+  // non-default channels are just passed directly
+  if (aChannelIndex!=0) return aChannelValue;
+  // output mode applies to default (=first) channel
   double outval = 0;
   switch (actualOutputMode()) {
     // disabled: zero
@@ -210,6 +213,14 @@ double OutputBehaviour::outputValueAccordingToMode(double aChannelValue)
   }
   return outval;
 }
+
+
+double OutputBehaviour::channelValueAccordingToMode(double aOutputValue, size_t aChannelIndex)
+{
+  // Base class does not do any backwards transformations
+  return aOutputValue;
+}
+
 
 
 

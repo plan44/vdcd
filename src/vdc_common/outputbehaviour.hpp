@@ -125,9 +125,19 @@ namespace p44 {
     /// @return output functionality the hardware provides
     DsOutputFunction getOutputFunction() { return outputFunction; };
 
+    /// Apply output-mode specific output value transformation
     /// @param aChannelValue channel value
-    /// @return channel value limited/inverted according to outputMode
-    double outputValueAccordingToMode(double aChannelValue);
+    /// @param aChannelIndex channel index (might be different transformation depending on type)
+    /// @return output value limited/transformed according to outputMode
+    /// @note subclasses might implement behaviour-specific output transformations
+    virtual double outputValueAccordingToMode(double aChannelValue, size_t aChannelIndex);
+
+    /// Convert actual output value back to channel value according to output-mode (for syncing back channel values)
+    /// @param aOutputValue actual output value
+    /// @param aChannelIndex channel index (might be different transformation depending on type)
+    /// @return channel value converted back from actual output value according to outputMode
+    /// @note subclasses might implement behaviour-specific output transformations
+    virtual double channelValueAccordingToMode(double aOutputValue, size_t aChannelIndex);
 
     /// @}
 
