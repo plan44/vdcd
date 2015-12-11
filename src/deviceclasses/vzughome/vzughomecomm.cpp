@@ -145,6 +145,9 @@ void VZugHomeDiscovery::gotData(ErrorPtr aError)
 
 #pragma mark - VZugHomeOperation
 
+static int ops = 0;
+
+
 VZugHomeOperation::VZugHomeOperation(VZugHomeComm &aVzugHomeComm, const char* aUrl, JsonObjectPtr aData, bool aHasJSONResult, VZugHomeResultCB aResultHandler) :
   vzugHomeComm(aVzugHomeComm),
   url(aUrl),
@@ -153,13 +156,14 @@ VZugHomeOperation::VZugHomeOperation(VZugHomeComm &aVzugHomeComm, const char* aU
   resultHandler(aResultHandler),
   completed(false)
 {
+  FOCUSLOG("+++++++ VZugHome: operation 0x%p created, total = %d", this, ops++);
 }
 
 
 
 VZugHomeOperation::~VZugHomeOperation()
 {
-
+  FOCUSLOG("------- VZugHome: operation 0x%p destroyed, total = %d", this, --ops);
 }
 
 
@@ -178,6 +182,8 @@ bool VZugHomeOperation::initiate()
     // assume GET
     methodStr = "GET";
   }
+  FOCUSLOG(">>>>>>> VZugHome: operation 0x%p initiated -> sends request: %s", this, url.c_str());
+  vzugHomeComm.apiComm.setTimeout(5*Second);
   if (hasJSONresult) {
     // will return a JSON result
     vzugHomeComm.apiComm.jsonRequest(url.c_str(), boost::bind(&VZugHomeOperation::processJsonAnswer, this, _1, _2), methodStr, data);
@@ -196,6 +202,7 @@ bool VZugHomeOperation::initiate()
 
 void VZugHomeOperation::processJsonAnswer(JsonObjectPtr aJsonResponse, ErrorPtr aError)
 {
+  FOCUSLOG("<<<<<<< VZugHome: operation 0x%p gets Json status: %s", this, Error::isOK(aError) ? "OK" : aError->description().c_str());
   error = aError;
   if (Error::isOK(error)) {
     data = aJsonResponse;
@@ -209,6 +216,7 @@ void VZugHomeOperation::processJsonAnswer(JsonObjectPtr aJsonResponse, ErrorPtr 
 
 void VZugHomeOperation::processPlainAnswer(const string &aResponse, ErrorPtr aError)
 {
+  FOCUSLOG("<<<<<<< VZugHome: operation 0x%p gets plain text status: %s", this, Error::isOK(aError) ? "OK" : aError->description().c_str());
   error = aError;
   if (Error::isOK(error)) {
     // return as a JSON string object
@@ -225,6 +233,7 @@ void VZugHomeOperation::processPlainAnswer(const string &aResponse, ErrorPtr aEr
 
 bool VZugHomeOperation::hasCompleted()
 {
+  if (completed) { FOCUSLOG("<<<<<<< VZugHome: operation 0x%p has completed", this); }
   return completed;
 }
 
@@ -236,6 +245,7 @@ OperationPtr VZugHomeOperation::finalize(p44::OperationQueue *aQueueP)
     resultHandler(data, error);
     resultHandler = NULL; // call once only
   }
+  FOCUSLOG("<<<<<<< VZugHome: operation 0x%p has finalized", this);
   return OperationPtr(); // no operation to insert
 }
 
@@ -243,8 +253,11 @@ OperationPtr VZugHomeOperation::finalize(p44::OperationQueue *aQueueP)
 
 void VZugHomeOperation::abortOperation(ErrorPtr aError)
 {
+  FOCUSLOG("<<<<<<< VZugHome: operation 0x%p requested to abort, status: %s", this, Error::isOK(aError) ? "OK" : aError->description().c_str());
   if (!aborted) {
+    FOCUSLOG("<<<<<<< VZugHome: operation 0x%p not yet aborted -> do abort now", this);
     if (!completed) {
+      FOCUSLOG("<<<<<<< VZugHome: operation 0x%p not yet completed -> cancel request now", this);
       vzugHomeComm.apiComm.cancelRequest();
     }
     if (resultHandler) {
