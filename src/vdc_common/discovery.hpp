@@ -34,18 +34,37 @@
 
 // Avahi includes
 #if USE_AVAHI_CORE
+// - directly using core, good for small embedded with single process using avahi
 #include <avahi-core/core.h>
 #include <avahi-core/publish.h>
 #include <avahi-core/lookup.h>
+#define AvahiService AvahiServer
+//#define AvahiServiceState AvahiServerState
+#define avahi_service_errno avahi_server_errno
+#define avahi_add_service avahi_server_add_service
+#define avahi_entry_group_commit avahi_s_entry_group_commit
 #define AvahiEntryGroup AvahiSEntryGroup
 #define AvahiServiceBrowser AvahiSServiceBrowser
 #define AvahiServiceBrowser AvahiSServiceBrowser
 #define AvahiServiceResolver AvahiSServiceResolver
+#define avahi_entry_group_new avahi_s_entry_group_new
+#define avahi_entry_group_reset avahi_s_entry_group_reset
+#define avahi_entry_group_free avahi_s_entry_group_free
+#define avahi_service_browser_new avahi_s_service_browser_new
+#define avahi_service_browser_free avahi_s_service_browser_free
+#define avahi_service_resolver_new avahi_s_service_resolver_new
+#define avahi_service_resolver_free avahi_s_service_resolver_free
 #else
+// - use avahi client, desktop/larger embedded (which uses system wide avahi server, together with other clients)
 #include <avahi-client/client.h>
 #include <avahi-client/publish.h>
-#include <avahi-client/client.h>
+#include <avahi-client/lookup.h>
+#define AvahiService AvahiClient
+//#define AvahiServiceState AvahiClientState
+#define avahi_service_errno avahi_client_errno
+#define avahi_add_service(srv,eg,...) avahi_entry_group_add_service(eg,##__VA_ARGS__)
 #endif
+
 #include <avahi-core/log.h>
 #include <avahi-common/simple-watch.h>
 #include <avahi-common/malloc.h>
@@ -67,11 +86,7 @@ namespace p44 {
     typedef P44Obj inherited;
 
     AvahiSimplePoll *simple_poll;
-    #if USE_AVAHI_CORE
-    AvahiServer *server;
-    #else
-    AvahiClient *client;
-    #endif
+    AvahiService *service;
     AvahiEntryGroup *entryGroup;
     AvahiServiceBrowser *serviceBrowser;
     AvahiServiceBrowser *debugServiceBrowser;
@@ -131,11 +146,11 @@ namespace p44 {
 
   private:
 
-    void startServer();
-    void stopServer();
-    void restartServer();
-    void startBrowsingVdms(AvahiServer *aServer);
-    void rescanVdsms(AvahiServer *aServer);
+    void startServices();
+    void stopServices();
+    void restartServices();
+    void startBrowsingVdms(AvahiService *aService);
+    void rescanVdsms(AvahiService *aService);
     void evaluateState();
 
     // callbacks
@@ -143,19 +158,20 @@ namespace p44 {
     #if USE_AVAHI_CORE
     static void server_callback(AvahiServer *s, AvahiServerState state, void* userdata);
     static void entry_group_callback(AvahiServer *s, AvahiSEntryGroup *g, AvahiEntryGroupState state, void* userdata);
+    void avahi_server_callback(AvahiServer *s, AvahiServerState state);
     #else
     static void client_callback(AvahiClient *c, AvahiClientState state, void* userdata);
     static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void* userdata);
+    void avahi_client_callback(AvahiClient *c, AvahiClientState state);
     #endif
     static void browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
     static void resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
 
     bool avahi_poll();
-    void avahi_server_callback(AvahiServer *s, AvahiServerState state);
-    void create_services(AvahiServer *aAvahiServer);
-    void avahi_entry_group_callback(AvahiServer *s, AvahiSEntryGroup *g, AvahiEntryGroupState state);
-    void avahi_browse_callback(AvahiSServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags);
-    void avahi_resolve_callback(AvahiSServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags);
+    void create_services(AvahiService *aService);
+    void avahi_entry_group_callback(AvahiService *aService, AvahiEntryGroup *g, AvahiEntryGroupState state);
+    void avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags);
+    void avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags);
   };
 
   typedef boost::intrusive_ptr<DiscoveryManager> DiscoveryManagerPtr;
