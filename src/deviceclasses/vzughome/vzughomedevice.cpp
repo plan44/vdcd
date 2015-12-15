@@ -84,8 +84,8 @@ void VZugHomeScene::setDefaultSceneValues(SceneNo aSceneNo)
 
 #pragma mark - VZugHomeDevice
 
-#define POLL_INTERVAL (10*Second)
-#define ERROR_RETRY_INTERVAL (30*Second)
+#define POLL_INTERVAL (5*Second)
+#define ERROR_RETRY_INTERVAL (10*Second)
 
 
 #define DEVICE_COLOR group_magenta_video

@@ -33,6 +33,10 @@
 
 #include "socketcomm.hpp"
 
+
+#define API_HTTP_TIMEOUT (5*Second)
+
+
 using namespace p44;
 
 #pragma mark - VZugHomeDiscovery
@@ -183,7 +187,7 @@ bool VZugHomeOperation::initiate()
     methodStr = "GET";
   }
   FOCUSLOG(">>>>>>> VZugHome: operation 0x%p initiated -> sends request: %s", this, url.c_str());
-  vzugHomeComm.apiComm.setTimeout(5*Second);
+  vzugHomeComm.apiComm.setTimeout(API_HTTP_TIMEOUT);
   if (hasJSONresult) {
     // will return a JSON result
     vzugHomeComm.apiComm.jsonRequest(url.c_str(), boost::bind(&VZugHomeOperation::processJsonAnswer, this, _1, _2), methodStr, data);
