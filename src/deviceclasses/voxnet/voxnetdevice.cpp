@@ -39,8 +39,11 @@ using namespace p44;
 VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID) :
   inherited(aClassContainerP),
   voxnetRoomID(aVoxnetRoomID),
-  preMessageVolume(0),
   knownMuted(false),
+  prePauseVolume(0),
+  prePausePower(true),
+  prePauseContentSource(0),
+  pauseToPoweroffTicket(0),
   messageTimerTicket(0)
 {
   // audio device
@@ -91,6 +94,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       scmd = scene_cmd_audio_play;
     }
     #endif
+    // check for pausing current audio (for message or real pause)
     switch (scmd) {
       case scene_cmd_audio_next_channel:
       case scene_cmd_audio_next_title:
@@ -114,12 +118,26 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           }
           continueApply = false; // that's all what we need to do
         }
+        else {
+          // powered off before, try to restore pre-pause state
+          if (ab->knownPaused) {
+            restorePrePauseState();
+          }
+        }
+        // definitely no longer paused
+        ab->knownPaused = false;
         break;
       case scene_cmd_audio_pause:
-        // TODO: voxnet text does not have pause yet
-        // for now, just mute
-        knownMuted = true;
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
+        // is NOP when power is already off
+        if (ab->powerState->getIndex()==dsAudioPower_on) {
+          ab->knownPaused = true; // Note: this flag is reset based on status parsing
+          capturePrePauseState();
+          // TODO: voxnet text does not have pause yet
+          // for now, just mute
+          knownMuted = true;
+          getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
+          // TODO: %%% schedule a poweroff timeout
+        }
         continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_stop:
@@ -140,18 +158,75 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       default:
         break;
     }
-    // check for messages
-    if (as->isMessage() && !messageTimerTicket) {
-      // no message already playing - remember pre-Message state
-      preMessageVolume = ab->volume->getChannelValue();
-      preMessageSource = currentSource;
-      preMessageStream = currentStream;
-      preMessagePower = ab->powerState->getIndex()==dsAudioPower_on;
-    }
+  }
+  // check for messages
+  if (as->isMessage() && !messageTimerTicket && !ab->knownPaused) {
+    // message, and no message already playing or audio already paused
+    capturePrePauseState();
   }
   // prepared ok
   return continueApply;
 }
+
+
+
+void VoxnetDevice::capturePrePauseState()
+{
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
+  // remember current state to be able to restore later
+  prePauseVolume = ab->volume->getChannelValue();
+  prePausePower = ab->powerState->getIndex()==dsAudioPower_on;
+  prePauseSource = currentSource;
+  prePauseStream = currentStream;
+  prePauseContentSource = ab->contentSource->getIndex();
+  ALOG(LOG_NOTICE,
+    "Captured pre-pause state; source=%s, stream=%s, contentsource=%d, power=%s, volume=%d",
+    prePauseSource.c_str(),
+    prePauseStream.c_str(),
+    prePauseContentSource,
+    prePausePower ? "ON" : "OFF",
+    (int)prePauseVolume
+  );
+}
+
+
+void VoxnetDevice::restorePrePauseState()
+{
+  AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
+  // revert source and stream to previous
+  ALOG(LOG_NOTICE,
+    "Restoring pre-pause state; source=%s, stream=%s, contentsource=%d, power=%s, volume=%d",
+    prePauseSource.c_str(),
+    prePauseStream.c_str(),
+    prePauseContentSource,
+    prePausePower ? "ON" : "OFF",
+    (int)prePauseVolume
+  );
+  if (prePausePower) {
+    // was on before, revert
+    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+      "%s:room:select:%s;%s:stream:%s",
+      voxnetRoomID.c_str(),
+      prePauseSource.c_str(),
+      voxnetRoomID.c_str(),
+      prePauseStream.c_str()
+    ));
+    // revert volume to previous
+    ab->volume->setChannelValue(prePauseVolume, 0, true); // restore value known before message started playing, will also unmute if needed
+    // if waking from poweroff, re-apply content source as well to make sure playing re-starts
+    if (ab->powerState->getIndex()!=dsAudioPower_on) {
+      ab->contentSource->setChannelValue(prePauseContentSource, 0, true);
+    }
+  }
+  else {
+    // was off before, turn off again
+    ab->powerState->setChannelValue(dsAudioPower_power_save, 0, true);
+  }
+  requestApplyingChannels(NULL, false);
+  // not paused any more
+  ab->knownPaused = false;
+}
+
 
 
 bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
@@ -240,6 +315,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     // transmit a play command for the source
     if (ab->contentSource->getIndex()>0) {
       getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
+      ab->knownPaused = false; // not paused any more
       ab->contentSource->channelValueApplied(); // confirm having applied the value
     }
   }
@@ -312,26 +388,14 @@ void VoxnetDevice::playingStarted(const string &aPlayCommandOutput)
 void VoxnetDevice::endOfMessage()
 {
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
-  ALOG(LOG_INFO,"Message played to end -> reverting source and volume (to %d) now", (int)preMessageVolume);
   MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
-  // revert source and stream to previous
-  if (preMessagePower) {
-    // was on before, revert
-    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
-      "%s:room:select:%s;%s:stream:%s",
-      voxnetRoomID.c_str(),
-      preMessageSource.c_str(),
-      voxnetRoomID.c_str(),
-      preMessageStream.c_str()
-    ));
-    // revert volume to previous
-    ab->volume->setChannelValue(preMessageVolume); // restore value known before message started playing
+  if (ab->knownPaused) {
+    ALOG(LOG_INFO,"Message played to end, but audio was paused before -> NOP");
   }
   else {
-    // was off before, turn off again
-    ab->powerState->setChannelValue(dsAudioPower_power_save);
+    ALOG(LOG_INFO,"Message played to end -> reverting source and restoring volume");
+    restorePrePauseState();
   }
-  requestApplyingChannels(NULL, false);
 }
 
 
@@ -348,22 +412,31 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
   if (aVoxnetStatus[0]=='[') {
     if (aVoxnetID==currentSource) {
       ALOG(LOG_DEBUG, "Source command confirmation: %s", aVoxnetStatus.c_str());
-      // $MyMusic1:$M00113220A2A41:[next]:ok
-      // $MyMusic1:$M00113220A2A40:[play\:4]:ok
-      // $MyMusic1:$M00113220A2A40:[previous]:ok
+      // $r.zone1:$A0011324822231:[room\:off]:ok
       if (aVoxnetStatus.substr(0,6)=="[next]") {
+        ab->knownPaused = false;
         ab->contentSource->syncChannelValue(ab->contentSource->getIndex()+1);
       }
       else if (aVoxnetStatus.substr(0,10)=="[previous]") {
+        ab->knownPaused = false;
         ab->contentSource->syncChannelValue(ab->contentSource->getIndex()-1);
       }
       else if (aVoxnetStatus.substr(0,5)=="[play") {
+        ab->knownPaused = false;
         int cs = 1; // play without number is considered to be the first title in the play list
         if (aVoxnetStatus.substr(5,2)=="\\:") {
           // maybe there's a play number
           sscanf(aVoxnetStatus.c_str()+7, "%d", &cs); // try to get play number
         }
         ab->contentSource->syncChannelValue(cs);
+      }
+    }
+    else if (aVoxnetID==voxnetRoomID) {
+      ALOG(LOG_DEBUG, "Room command confirmation: %s", aVoxnetStatus.c_str());
+      // $r.zone1:$A0011324822231:[room\:off]:ok
+      if (aVoxnetStatus.substr(0,11)=="[room\\:off]") {
+        // room known off, update power channel
+        ab->powerState->syncChannelValue(dsAudioPower_power_save);
       }
     }
   }
@@ -417,10 +490,12 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
       }
       i = e+1;
     } while (e!=string::npos);
-    // update channel state
-    // - save the volume, we might need it for unmute
-    if (knownMuted) vol = 0; // when muted, channel value is 0
-    ab->volume->syncChannelValue(vol);
+    // update channel state (only if not currently dimming, as feedback would ruin smooth dimming)
+    if (!isDimming) {
+      // - save the volume, we might need it for unmute
+      if (knownMuted) vol = 0; // when muted, channel value is 0
+      ab->volume->syncChannelValue(vol);
+    }
   }
   else if (aVoxnetID==currentSource) {
     ALOG(LOG_DEBUG, "Source Status: %s", aVoxnetStatus.c_str());

@@ -76,10 +76,13 @@ namespace p44 {
     string currentStream; ///< name of the source's substream
     bool knownMuted; ///< set if we know output is currently muted
 
-    double preMessageVolume; ///< volume that was present when last message started playing, will be restored at end of message
-    string preMessageSource; ///< alias or ID of source before message started playing
-    string preMessageStream; ///< name of the source's substream before message started playing
-    bool preMessagePower; ///< power state before message started playing
+    double prePauseVolume; ///< volume that was present before last pause/message play
+    bool prePausePower; ///< power state before audio was last paused (relevant for message play)
+    string prePauseSource; ///< source selected before pausing
+    string prePauseStream; ///< stream selected before pausing
+    int prePauseContentSource; ///< content index before pausing
+    long pauseToPoweroffTicket; ///< set when paused, will switch off room after timeout
+
 
     long messageTimerTicket; ///< set while message is playing
 
@@ -179,6 +182,8 @@ namespace p44 {
 
   private:
 
+    void capturePrePauseState();
+    void restorePrePauseState();
     void playMessage(AudioScenePtr aAudioScene, const string aPlayCmd);
     void playingStarted(const string &aPlayCommandOutput);
     void endOfMessage();

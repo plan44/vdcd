@@ -354,6 +354,7 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
                 // music source confirm:
                 //   $MyMusic1:$M00113220A2A41:[next]:ok
                 //   $MyMusic1:$M00113220A2A40:[play\:4]:ok
+                //   $r.zone1:$A0011324822231:[room\:off]:ok
                 // call back
                 if (voxnetStatusHandler) {
                   if (voxnetStatusHandler(ref, line.substr(i))) {
