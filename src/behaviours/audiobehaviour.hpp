@@ -202,6 +202,8 @@ namespace p44 {
     bool stateRestoreCmdValid; ///< set if state restore command is valid
     string stateRestoreCmd; ///< scene command that will restore current state (beyond what is stored in the channels)
 
+    bool knownPaused; ///< paused
+
 
     /// @name interaction with digitalSTROM system
     /// @{

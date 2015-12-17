@@ -392,6 +392,7 @@ AudioBehaviour::AudioBehaviour(Device &aDevice) :
   // persistent settings
   // volatile state
   unmuteVolume(0),
+  knownPaused(false),
   stateRestoreCmdValid(false)
 {
   // make it member of the audio group
@@ -472,9 +473,9 @@ void AudioBehaviour::loadChannelsFromScene(DsScenePtr aScene)
     // load channels from scene
     // - volume: ds-audio says: "If the flag is not set, the volume setting of the previously set scene
     //   will be taken over unchanged unless the device was off before the scene call."
-    if ((powerState->getChannelValue()!=dsAudioPower_on) || audioScene->hasFixVol()) {
-      // device was off before or fixvol is set
-      volume->setChannelValueIfNotDontCare(aScene, audioScene->value, 0, 0, false);
+    if ((powerState->getChannelValue()!=dsAudioPower_on) || knownPaused || audioScene->hasFixVol()) {
+      // device was off or paused before, or fixvol is set
+      volume->setChannelValueIfNotDontCare(aScene, audioScene->value, 0, 0, true); // always apply
     }
     // - powerstate
     powerState->setChannelValueIfNotDontCare(aScene, audioScene->powerState, 0, 0, false);
