@@ -272,7 +272,12 @@ void VoxnetComm::dataHandler(ErrorPtr aError)
         // analyze services list
         if (line.size()==0) {
           // end of services
-          FOCUSLOG("Voxnet Text: services list processing complete");
+          if (LOGENABLED(LOG_NOTICE)) {
+            LOG(LOG_NOTICE, "Voxnet Text: Services list processing complete. Known Aliases:");
+            for (StringStringMap::iterator pos = aliases.begin(); pos!=aliases.end(); ++pos) {
+              LOG(LOG_NOTICE, "- Alias %s -> %s", pos->first.c_str(), pos->second.c_str());
+            }
+          }
           commState = commState_idle;
           voxnetInitialized(ErrorPtr());
           // initiate sending status
