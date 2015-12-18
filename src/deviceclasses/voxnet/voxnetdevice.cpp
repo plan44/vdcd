@@ -19,12 +19,16 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
+// File scope debugging options
+// - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
+#define ALWAYS_DEBUG 0
+// - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
+//   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
+#define FOCUSLOGLEVEL 0
+
 #include "voxnetdevice.hpp"
 
 #if ENABLE_VOXNET
-
-
-
 
 using namespace p44;
 
@@ -40,6 +44,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   inherited(aClassContainerP),
   voxnetRoomID(aVoxnetRoomID),
   knownMuted(false),
+  playIsOnlyUnmute(false),
   prePauseVolume(0),
   prePausePower(true),
   prePauseContentSource(0),
@@ -110,8 +115,8 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
         break;
       case scene_cmd_audio_play:
         // TODO: play does not have a function when power is off or nothing is selected
-        if (ab->powerState->getIndex()==dsAudioPower_on) {
-          // already on, only unmute in case it is muted
+        if (ab->powerState->getIndex()==dsAudioPower_on && playIsOnlyUnmute) {
+          // already on - only unmute in case it is muted
           if (knownMuted) {
             getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
             knownMuted = false;
@@ -119,12 +124,13 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           continueApply = false; // that's all what we need to do
         }
         else {
-          // powered off before, try to restore pre-pause state
+          // powered off before, or otherwise needed to restore try to restore pre-pause state
           if (ab->knownPaused) {
             restorePrePauseState();
           }
         }
         // definitely no longer paused
+        playIsOnlyUnmute = false;
         ab->knownPaused = false;
         break;
       case scene_cmd_audio_pause:
@@ -136,6 +142,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           // for now, just mute
           knownMuted = true;
           getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
+          playIsOnlyUnmute = true;
           // TODO: %%% schedule a poweroff timeout
         }
         continueApply = false; // that's all what we need to do
@@ -250,6 +257,8 @@ bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
         as->substitutePlaceholders(params);
         ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
         getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
+        // applying a scene with a voxnet command means that play cannot just unmute, but must restore state
+        playIsOnlyUnmute = false;
         // make sure contentSource channel is also re-applied
         ab->contentSource->setNeedsApplying();
       }
@@ -390,7 +399,8 @@ void VoxnetDevice::endOfMessage()
   AudioBehaviourPtr ab = boost::dynamic_pointer_cast<AudioBehaviour>(output);
   MainLoop::currentMainLoop().cancelExecutionTicket(messageTimerTicket);
   if (ab->knownPaused) {
-    ALOG(LOG_INFO,"Message played to end, but audio was paused before -> NOP");
+    ALOG(LOG_INFO,"Message played to end, but audio was paused before -> NOP now, but make sure state will be restored at play");
+    playIsOnlyUnmute = false;
   }
   else {
     ALOG(LOG_INFO,"Message played to end -> reverting source and restoring volume");
@@ -411,7 +421,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
   bool needFullStatus = false;
   if (aVoxnetStatus[0]=='[') {
     if (aVoxnetID==currentSource) {
-      ALOG(LOG_DEBUG, "Source command confirmation: %s", aVoxnetStatus.c_str());
+      AFOCUSLOG("Source command confirmation: %s", aVoxnetStatus.c_str());
       // $r.zone1:$A0011324822231:[room\:off]:ok
       if (aVoxnetStatus.substr(0,6)=="[next]") {
         ab->knownPaused = false;
@@ -432,7 +442,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
       }
     }
     else if (aVoxnetID==voxnetRoomID) {
-      ALOG(LOG_DEBUG, "Room command confirmation: %s", aVoxnetStatus.c_str());
+      AFOCUSLOG("Room command confirmation: %s", aVoxnetStatus.c_str());
       // $r.zone1:$A0011324822231:[room\:off]:ok
       if (aVoxnetStatus.substr(0,11)=="[room\\:off]") {
         // room known off, update power channel
@@ -441,7 +451,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     }
   }
   else if (aVoxnetID==voxnetRoomID) {
-    ALOG(LOG_DEBUG, "Room Status: %s", aVoxnetStatus.c_str());
+    AFOCUSLOG("Room Status: %s", aVoxnetStatus.c_str());
     // streaming=$U00113220A2A40:volume=10:balance=1:treble=1:bass=2:mute=off
     i = 0;
     double vol = 0;
@@ -498,7 +508,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     }
   }
   else if (aVoxnetID==currentSource) {
-    ALOG(LOG_DEBUG, "Source Status: %s", aVoxnetStatus.c_str());
+    AFOCUSLOG("Source Status: %s", aVoxnetStatus.c_str());
     // streaming=radio:info_1=SRF Virus
     i = 0;
     do {
@@ -522,7 +532,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
     } while (e!=string::npos);
   }
   else if (aVoxnetID==currentUser) {
-    ALOG(LOG_DEBUG, "User Status: %s", aVoxnetStatus.c_str());
+    AFOCUSLOG("User Status: %s", aVoxnetStatus.c_str());
     // selected=$MyMusic2
     // streaming=radio:info_1=SRF Virus
     i = 0;

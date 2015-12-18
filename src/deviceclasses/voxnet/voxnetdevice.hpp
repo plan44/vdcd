@@ -76,6 +76,7 @@ namespace p44 {
     string currentStream; ///< name of the source's substream
     bool knownMuted; ///< set if we know output is currently muted
 
+    bool playIsOnlyUnmute; ///< set when unmute is enough to go back to "play" state
     double prePauseVolume; ///< volume that was present before last pause/message play
     bool prePausePower; ///< power state before audio was last paused (relevant for message play)
     string prePauseSource; ///< source selected before pausing
