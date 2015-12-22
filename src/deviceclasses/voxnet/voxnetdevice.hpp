@@ -47,6 +47,7 @@ namespace p44 {
     int messageTitleNo; ///< the title number to play for messages, 0 if none
     string messageShellCommand; ///< the shell command to execute to start message playing, empty if none
     int messageDuration; ///< duration of message in seconds (0 if actual length is reported back by shell command, <0 if unlimited (no auto-revert to previous source))
+    int playToUnmuteDelayMS; // delay in mS between end of pause and unmuting audio when also switching sources (to cover switchover delay)
 
   protected:
 
@@ -188,6 +189,7 @@ namespace p44 {
     void playMessage(AudioScenePtr aAudioScene, const string aPlayCmd);
     void playingStarted(const string &aPlayCommandOutput);
     void endOfMessage();
+    void sendVoxnetText(const string aVoxnetText);
 
   };
   typedef boost::intrusive_ptr<VoxnetDevice> VoxnetDevicePtr;

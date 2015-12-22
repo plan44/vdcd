@@ -103,14 +103,14 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
     switch (scmd) {
       case scene_cmd_audio_next_channel:
       case scene_cmd_audio_next_title:
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:next", voxnetRoomID.c_str()));
+        sendVoxnetText(string_format("%s:room:next", voxnetRoomID.c_str()));
         // Note: we rely on status parsing to actually update content source channel change
         continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_previous_channel:
       case scene_cmd_audio_previous_title:
         // Note: we rely on status parsing to actually update content source channel change
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
+        sendVoxnetText(string_format("%s:room:previous", voxnetRoomID.c_str()));
         continueApply = false; // that's all what we need to do
         break;
       case scene_cmd_audio_play:
@@ -118,7 +118,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
         if (ab->powerState->getIndex()==dsAudioPower_on && playIsOnlyUnmute) {
           // already on - only unmute in case it is muted
           if (knownMuted) {
-            getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
+            sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
             knownMuted = false;
           }
           continueApply = false; // that's all what we need to do
@@ -141,7 +141,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
           // TODO: voxnet text does not have pause yet
           // for now, just mute
           knownMuted = true;
-          getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
+          sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
           playIsOnlyUnmute = true;
           // TODO: %%% schedule a poweroff timeout
         }
@@ -150,7 +150,7 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
       case scene_cmd_stop:
       case scene_cmd_off:
         // TODO: better command than room power off
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
+        sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
         continueApply = false; // that's all what we need to do
         break;
         // Unimplemented ones:
@@ -211,7 +211,7 @@ void VoxnetDevice::restorePrePauseState()
   );
   if (prePausePower) {
     // was on before, revert
-    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+    sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
       voxnetRoomID.c_str(),
       prePauseSource.c_str(),
@@ -256,7 +256,7 @@ bool VoxnetDevice::prepareSceneApply(DsScenePtr aScene)
         // also allow @{sceneno} and @{channel...} placeholders
         as->substitutePlaceholders(params);
         ALOG(LOG_INFO, "sending voxnet scene command: %s", params.c_str());
-        getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(params);
+        sendVoxnetText(params);
         // applying a scene with a voxnet command means that play cannot just unmute, but must restore state
         playIsOnlyUnmute = false;
         // make sure contentSource channel is also re-applied
@@ -296,17 +296,19 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     if (voxvol==0) {
       // volume 0 is interpreted as muted
       knownMuted = true;
-      cmd = string_format("%s:room:mute:on", voxnetRoomID.c_str());
+      sendVoxnetText(string_format("%s:room:mute:on", voxnetRoomID.c_str()));
     }
     else {
-      // send volume change
+      // we need to send a volume change. Note: setting volume automatically unmutes
       cmd = string_format("%s:room:volume:set:%d", voxnetRoomID.c_str(), voxvol);
-    }
-    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(cmd);
-    // unmute if previously muted
-    if (knownMuted && voxvol>0) {
-      // need to unmute
-      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:mute:off", voxnetRoomID.c_str()));
+      if (ab->knownPaused && voxnetSettings()->playToUnmuteDelayMS>0) {
+        // this is applying non-zero volume after a pause - delay it according to playToUnmuteDelayMS (to cover stream switching delays)
+        MainLoop::currentMainLoop().executeOnce(boost::bind(&VoxnetDevice::sendVoxnetText, this, cmd), voxnetSettings()->playToUnmuteDelayMS*MilliSecond);
+      }
+      else {
+        // apply immediately
+        sendVoxnetText(cmd);
+      }
     }
     ab->volume->channelValueApplied(); // confirm having applied the value
   }
@@ -315,7 +317,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     bool powerOn = ab->powerState->getIndex()==dsAudioPower_on;
     if (!powerOn) {
       // transmit a room off command
-      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
+      sendVoxnetText(string_format("%s:room:off", voxnetRoomID.c_str()));
     }
     ab->powerState->channelValueApplied(); // confirm having applied the value
   }
@@ -323,7 +325,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   if (ab->contentSource->needsApplying()) {
     // transmit a play command for the source
     if (ab->contentSource->getIndex()>0) {
-      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
+      sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), ab->contentSource->getIndex()));
       ab->knownPaused = false; // not paused any more
       ab->contentSource->channelValueApplied(); // confirm having applied the value
     }
@@ -331,6 +333,13 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   // let inherited complete the apply
   inherited::applyChannelValues(aDoneCB, aForDimming);
 }
+
+
+void VoxnetDevice::sendVoxnetText(const string aVoxnetText)
+{
+  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(aVoxnetText);
+}
+
 
 
 void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
@@ -343,7 +352,7 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
   }
   else {
     // prepare for message playing
-    getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format(
+    sendVoxnetText(string_format(
       "%s:room:select:%s;%s:stream:%s",
       voxnetRoomID.c_str(),
       voxnetSettings()->messageSourceID.c_str(),
@@ -352,7 +361,7 @@ void VoxnetDevice::playMessage(AudioScenePtr aAudioScene, const string aPlayCmd)
     ));
     if (voxnetSettings()->messageTitleNo>0) {
       // start playing the title (radio station)
-      getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), voxnetSettings()->messageTitleNo));
+      sendVoxnetText(string_format("%s:play:%d", voxnetRoomID.c_str(), voxnetSettings()->messageTitleNo));
     }
   }
   // shell command to trigger actual message play
@@ -661,6 +670,7 @@ enum {
   messageTitleNo_key,
   messageDuration_key,
   messageShellCmd_key,
+  playToUnmuteDelay_key,
   numProperties
 };
 
@@ -686,7 +696,8 @@ PropertyDescriptorPtr VoxnetDevice::getDescriptorByIndex(int aPropIndex, int aDo
     { "x-p44-messageStream", apivalue_string, messageStream_key, OKEY(voxnetDevice_key) },
     { "x-p44-messageTitleNo", apivalue_int64, messageTitleNo_key, OKEY(voxnetDevice_key) },
     { "x-p44-messageDuration", apivalue_int64, messageDuration_key, OKEY(voxnetDevice_key) },
-    { "x-p44-messageShellCmd", apivalue_string, messageShellCmd_key, OKEY(voxnetDevice_key) }
+    { "x-p44-messageShellCmd", apivalue_string, messageShellCmd_key, OKEY(voxnetDevice_key) },
+    { "x-p44-playToUnmuteDelay", apivalue_double, playToUnmuteDelay_key, OKEY(voxnetDevice_key) }
   };
   if (!aParentDescriptor) {
     // root level - accessing properties on the Device level
@@ -715,6 +726,7 @@ bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue,
         case messageTitleNo_key: aPropValue->setInt32Value(voxnetSettings()->messageTitleNo); return true;
         case messageDuration_key: aPropValue->setInt32Value(voxnetSettings()->messageDuration); return true;
         case messageShellCmd_key: aPropValue->setStringValue(voxnetSettings()->messageShellCommand); return true;
+        case playToUnmuteDelay_key: aPropValue->setDoubleValue((double)voxnetSettings()->playToUnmuteDelayMS/1000); return true;
       }
     }
     else {
@@ -725,6 +737,7 @@ bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue,
         case messageTitleNo_key: voxnetSettings()->setPVar(voxnetSettings()->messageTitleNo, (int)aPropValue->int32Value()); return true;
         case messageDuration_key: voxnetSettings()->setPVar(voxnetSettings()->messageDuration, (int)aPropValue->int32Value()); return true;
         case messageShellCmd_key: voxnetSettings()->setPVar(voxnetSettings()->messageShellCommand, aPropValue->stringValue()); return true;
+        case playToUnmuteDelay_key: voxnetSettings()->setPVar(voxnetSettings()->playToUnmuteDelayMS, (int)(aPropValue->doubleValue()*1000)); return true;
       }
     }
   }
@@ -741,7 +754,8 @@ bool VoxnetDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue,
 VoxnetDeviceSettings::VoxnetDeviceSettings(Device &aDevice) :
   inherited(aDevice),
   messageTitleNo(0),
-  messageDuration(10)
+  messageDuration(10),
+  playToUnmuteDelayMS(1000) // one second by default
 {
 }
 
@@ -755,7 +769,7 @@ const char *VoxnetDeviceSettings::tableName()
 
 // data field definitions
 
-static const size_t numFields = 5;
+static const size_t numFields = 6;
 
 size_t VoxnetDeviceSettings::numFieldDefs()
 {
@@ -771,6 +785,7 @@ const FieldDefinition *VoxnetDeviceSettings::getFieldDef(size_t aIndex)
     { "messageTitleNo", SQLITE_INTEGER },
     { "messageDuration", SQLITE_INTEGER },
     { "messageShellCommand", SQLITE_TEXT },
+    { "playToUnmuteDelayMS", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -791,6 +806,7 @@ void VoxnetDeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
   messageTitleNo = aRow->get<int>(aIndex++);
   messageDuration = aRow->get<int>(aIndex++);
   messageShellCommand.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  playToUnmuteDelayMS = aRow->get<int>(aIndex++);
 }
 
 
@@ -804,6 +820,7 @@ void VoxnetDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int
   aStatement.bind(aIndex++, messageTitleNo);
   aStatement.bind(aIndex++, messageDuration);
   aStatement.bind(aIndex++, messageShellCommand.c_str()); // stable string!
+  aStatement.bind(aIndex++, playToUnmuteDelayMS);
 }
 
 
