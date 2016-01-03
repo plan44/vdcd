@@ -343,6 +343,24 @@ ErrorPtr ExternalDevice::processInput(char aInputType, uint32_t aIndex, double a
               sb->endReached(false); // reached bottom
           }
         }
+        // check for color mode
+        ColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<ColorLightBehaviour>(output);
+        if (cl) {
+          DsChannelType ct = cb->getChannelType();
+          switch (ct) {
+            case channeltype_hue:
+            case channeltype_saturation:
+              cl->colorMode = colorLightModeHueSaturation;
+              break;
+            case channeltype_cie_x:
+            case channeltype_cie_y:
+              cl->colorMode = colorLightModeXY;
+              break;
+            case channeltype_colortemp:
+              cl->colorMode = colorLightModeCt;
+              break;
+          }
+        }
       }
       break;
     }
@@ -372,13 +390,20 @@ void ExternalDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     sb->applyBlindChannels(boost::bind(&ExternalDevice::changeChannelMovement, this, 0, _1, _2), aDoneCB, aForDimming);
   }
   else {
+    // check for special color light handling
+    ColorLightBehaviourPtr cl = boost::dynamic_pointer_cast<ColorLightBehaviour>(output);
+    if (cl) {
+      // derive color mode from changed channel values
+      // Note: external device cannot make use of colormode for now, but correct mode is important for saving scenes
+      cl->deriveColorMode();
+    }
     // generic channel apply
     for (size_t i=0; i<numChannels(); i++) {
       ChannelBehaviourPtr cb = getChannelByIndex(i);
-      double chval = cb->getChannelValue();
-      // apply mode if this is the first channel
-      chval = output->outputValueAccordingToMode(chval, i);
       if (cb->needsApplying()) {
+        // get value and apply mode
+        double chval = cb->getChannelValue();
+        chval = output->outputValueAccordingToMode(chval, i);
         // send channel value message
         if (deviceConnector->simpletext) {
           string m = string_format("C%zu=%lf", i, chval);
