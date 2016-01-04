@@ -202,26 +202,26 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 17 : Preset 2 - T0_S2
   {  50, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 18 : Preset 3 - T0_S3
   {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 19 : Preset 4 - T0_S4
-  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        1 }, // 20 : Preset 12 - T1_S2
-  {  50, scene_effect_smooth, false, false, scene_cmd_invoke,        1 }, // 21 : Preset 13 - T1_S3
-  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        1 }, // 22 : Preset 14 - T1_S4
-  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        2 }, // 23 : Preset 22 - T2_S2
-  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        2 }, // 24 : Preset 23 - T2_S3
-  {  64, scene_effect_smooth, false, false, scene_cmd_invoke,        2 }, // 25 : Preset 24 - T2_S4
-  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        3 }, // 26 : Preset 32 - T3_S2
-  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        3 }, // 27 : Preset 33 - T3_S3
-  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        3 }, // 28 : Preset 34 - T3_S4
-  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        4 }, // 29 : Preset 42 - T4_S2
-  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        4 }, // 30 : Preset 43 - T4_S3
-  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        4 }, // 31 : Preset 44 - T4_S4
-  {   0, scene_effect_smooth, false, false, scene_cmd_off,           1 }, // 32 : Preset 10 - T1E_S0
-  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        1 }, // 33 : Preset 11 - T1E_S1
-  {   0, scene_effect_smooth, false, false, scene_cmd_off,           2 }, // 34 : Preset 20 - T2E_S0
-  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        2 }, // 35 : Preset 21 - T2E_S1
-  {   0, scene_effect_smooth, false, false, scene_cmd_off,           3 }, // 36 : Preset 30 - T3E_S0
-  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        3 }, // 37 : Preset 31 - T3E_S1
-  {   0, scene_effect_smooth, false, false, scene_cmd_off,           4 }, // 38 : Preset 40 - T4E_S0
-  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        4 }, // 39 : Preset 41 - T4E_S1
+  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 20 : Preset 12 - T1_S2
+  {  50, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 21 : Preset 13 - T1_S3
+  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 22 : Preset 14 - T1_S4
+  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 23 : Preset 22 - T2_S2
+  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 24 : Preset 23 - T2_S3
+  {  64, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 25 : Preset 24 - T2_S4
+  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 26 : Preset 32 - T3_S2
+  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 27 : Preset 33 - T3_S3
+  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 28 : Preset 34 - T3_S4
+  {  75, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 29 : Preset 42 - T4_S2
+  {  65, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 30 : Preset 43 - T4_S3
+  {  25, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 31 : Preset 44 - T4_S4
+  {   0, scene_effect_smooth, false, false, scene_cmd_off,           0 }, // 32 : Preset 10 - T1E_S0
+  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 33 : Preset 11 - T1E_S1
+  {   0, scene_effect_smooth, false, false, scene_cmd_off,           0 }, // 34 : Preset 20 - T2E_S0
+  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 35 : Preset 21 - T2E_S1
+  {   0, scene_effect_smooth, false, false, scene_cmd_off,           0 }, // 36 : Preset 30 - T3E_S0
+  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 37 : Preset 31 - T3E_S1
+  {   0, scene_effect_smooth, false, false, scene_cmd_off,           0 }, // 38 : Preset 40 - T4E_S0
+  { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 39 : Preset 41 - T4E_S1
   {   0, scene_effect_smooth, false, false, scene_cmd_slow_off,      0 }, // 40 : Fade down to 0 in 1min - AUTO_OFF
   {   0, scene_effect_smooth, false, true , scene_cmd_none,          0 }, // 41 : Reserved
   {   0, scene_effect_smooth, true,  false, scene_cmd_decrement,     1 }, // 42 : Area 1 Decrement - T1_DEC

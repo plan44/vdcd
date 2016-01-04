@@ -90,11 +90,11 @@ bool VoxnetDevice::prepareSceneCall(DsScenePtr aScene)
   if (as) {
     SceneCmd scmd = as->sceneCmd;
     #if SUPPORT_OLD_AUDIO_BEHAVIOUR
-    if (as->sceneNo==T0_S0) {
+    if (as->sceneNo==ROOM_OFF) {
       // main off = pause
       scmd = scene_cmd_audio_pause;
     }
-    else if (as->sceneNo==T0_S1) {
+    else if (as->sceneNo==ROOM_ON) {
       // main on = play
       scmd = scene_cmd_audio_play;
     }

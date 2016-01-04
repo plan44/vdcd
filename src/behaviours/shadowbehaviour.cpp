@@ -124,17 +124,17 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
   inherited::setDefaultSceneValues(aSceneNo);
   // Add special shadow behaviour
   switch (aSceneNo) {
-    case SIG_PANIC:
+    case PANIC:
     case SMOKE:
     case HAIL:
       // Panic, Smoke, Hail: open
       value = 100;
       break;
-    case T0_S2:
-    case T1_S2:
-    case T2_S2:
-    case T3_S2:
-    case T4_S2:
+    case PRESET_2:
+    case PRESET_12:
+    case PRESET_22:
+    case PRESET_32:
+    case PRESET_42:
       // For some reason, Preset 2 is not 75%, but also 100% for shade devices.
       value = 100;
       break;

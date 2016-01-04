@@ -352,7 +352,7 @@ void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, 
   SceneDeviceSettingsPtr scenes = device.getScenes();
   if (scenes) {
     // device has scenes, get a default scene to capture current state
-    blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(T0_S0)); // main off
+    blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(ROOM_OFF)); // main off
     captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
   }
   else {

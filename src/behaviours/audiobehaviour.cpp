@@ -227,7 +227,7 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
       globalSceneFlags |= audioflags_fixvol|audioflags_message;
       value = 30;
       break;
-    case SIG_PANIC:
+    case PANIC:
       value = 0; // silent on panic
       globalSceneFlags |= audioflags_fixvol;
       sci = true;
@@ -270,9 +270,9 @@ void AudioScene::setDefaultSceneValues(SceneNo aSceneNo)
     value=30; // all non-zero volume presets are 30%
   }
   if (
-    (aSceneNo>=T0_S2 && aSceneNo<=T4E_S1) || // standard invoke scenes
-    (aSceneNo==T0_S0) || // main off
-    (aSceneNo==T0_S1) // main on
+    (aSceneNo>=PRESET_2 && aSceneNo<=PRESET_41) || // standard invoke scenes
+    (aSceneNo==ROOM_OFF) || // main off
+    (aSceneNo==ROOM_ON) // main on
   ) {
     // powerstate follows volume
     powerState = value>0 ? dsAudioPower_on : dsAudioPower_deep_off;

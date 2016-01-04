@@ -47,7 +47,7 @@ void VZugHomeScene::setDefaultSceneValues(SceneNo aSceneNo)
   // Add special audio scene behaviour
   switch (aSceneNo) {
     // all alarms turn off the device
-    case SIG_PANIC:
+    case PANIC:
     case FIRE:
     case SMOKE:
     case WATER:
@@ -59,7 +59,7 @@ void VZugHomeScene::setDefaultSceneValues(SceneNo aSceneNo)
     // off scenes as well
     case STANDBY:
     case DEEP_OFF:
-    case T0_S0:
+    case ROOM_OFF:
       value = 0;
       setDontCare(false);
       command.clear();

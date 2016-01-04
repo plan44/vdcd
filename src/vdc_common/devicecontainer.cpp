@@ -652,21 +652,21 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
   switch (aClickType) {
     case ct_tip_1x:
     case ct_click_1x:
-      scene = T0_S1;
+      scene = ROOM_ON;
       // toggle direction if click has none
       if (newDirection==0)
         localDimDirection *= -1; // reverse if already determined
       break;
     case ct_tip_2x:
     case ct_click_2x:
-      scene = T0_S2;
+      scene = PRESET_2;
       break;
     case ct_tip_3x:
     case ct_click_3x:
-      scene = T0_S3;
+      scene = PRESET_3;
       break;
     case ct_tip_4x:
-      scene = T0_S4;
+      scene = PRESET_4;
       break;
     case ct_hold_start:
       scene = INC_S; // just as a marker to start dimming (we'll use dimChannelForArea(), not legacy dimming!)
@@ -715,7 +715,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
           else {
             // call a scene
             if (localDimDirection<0)
-              scene = T0_S0; // switching off a scene = call off scene
+              scene = ROOM_OFF; // switching off a scene = call off scene
             dev->callScene(scene, true);
           }
         }

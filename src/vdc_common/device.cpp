@@ -577,24 +577,24 @@ void Device::hasVanished(bool aForgetParams)
 static SceneNo mainSceneForArea(int aArea)
 {
   switch (aArea) {
-    case 1: return T1_S1;
-    case 2: return T2_S1;
-    case 3: return T3_S1;
-    case 4: return T4_S1;
+    case 1: return AREA_1_ON;
+    case 2: return AREA_2_ON;
+    case 3: return AREA_3_ON;
+    case 4: return AREA_4_ON;
   }
-  return T0_S1; // no area, main scene for room
+  return ROOM_ON; // no area, main scene for room
 }
 
 
 static SceneNo offSceneForArea(int aArea)
 {
   switch (aArea) {
-    case 1: return T1_S0;
-    case 2: return T2_S0;
-    case 3: return T3_S0;
-    case 4: return T4_S0;
+    case 1: return AREA_1_OFF;
+    case 2: return AREA_2_OFF;
+    case 3: return AREA_3_OFF;
+    case 4: return AREA_4_OFF;
   }
-  return T0_S0; // no area, off scene for room
+  return ROOM_OFF; // no area, off scene for room
 }
 
 
