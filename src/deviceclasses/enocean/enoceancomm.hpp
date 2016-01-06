@@ -111,6 +111,7 @@ namespace p44 {
 
   // learn bit
   #define LRN_BIT_MASK 0x08 // Bit 3, Byte 0 (4th data byte)
+  #define LRN_EEP_INFO_VALID_MASK 0x80 // Bit 7, Byte 0 (4th data byte)
 
   // common commands
   #define CO_WR_SLEEP 0x01 // Order to enter in energy saving mode Order to reset the device
@@ -136,12 +137,22 @@ namespace p44 {
   #define CO_RD_SECURITY 0x15 // Read security information (level, keys)
   #define CO_WR_SECURITY 0x16 // Write security information (level, keys)
 
+  // smart ack commands (controller role commands only)
+  #define SA_WR_LEARNMODE 0x01 // smart ack learn mode write
+  #define SA_RD_LEARNMODE 0x02 // smart ack learn mode read
+  #define SA_WR_LEARNCONFIRM 0x03 // smart ack learn confirm
+  #define SA_WR_RESET 0x05 // smart ack reset
+  #define SA_RD_LEARNEDCLIENTS 0x06 // smart ack read learned clients
+  #define SA_WR_POSTMASTER 0x08 // smart ack postmaster enable/disable
+
   // common response codes
   #define RET_OK 0x00 // OK
   #define RET_ERROR 0x01 // error occurred
   #define RET_NOT_SUPPORTED 0x02 // not supported command
   #define RET_WRONG_PARAM 0x03 // wrong/invalid parameter for this command
   #define RET_OPERATION_DENIED 0x04 // denied (e.g. memory access)
+
+
 
   /// Enocean Manufacturer number (11 bits)
   typedef uint16_t EnoceanManufacturer;
@@ -337,6 +348,8 @@ namespace p44 {
     /// @param aMinDBmForAll if set, all learn-in is considered valid only when aMinLearnDBm signal strength is found
     /// @return true if at least eep_func() has some valid information that can be used for teach-in
     ///   (is the case for specific teach-in telegrams in 1BS, 4BS, VLD, as well as all RPS telegrams)
+    /// Note: 4BS teach-in without EEP information (D0.7 cleared) will still return true, as these ARE teach-in telegrams,
+    ///   however eepProfile will return func_unknown and type_unknown in this case
     bool eepHasTeachInfo(int aMinLearnDBm=0, bool aMinDBmForAll=false);
 
     /// @return EEP signature as 0x00rrfftt (rr=RORG, ff=FUNC, tt=TYPE)
@@ -399,6 +412,7 @@ namespace p44 {
 		
 		Esp3PacketPtr currentIncomingPacket;
     ESPPacketCB radioPacketHandler;
+    ESPPacketCB eventPacketHandler;
 
     DigitalIoPtr enoceanResetPin;
     long aliveCheckTicket;
@@ -453,6 +467,10 @@ namespace p44 {
     /// @param aRadioPacketCB callback to deliver radio packets to
     void setRadioPacketHandler(ESPPacketCB aRadioPacketCB);
 
+    /// set callback to handle received event packets
+    /// @param aRadioPacketCB callback to deliver radio packets to
+    void setEventPacketHandler(ESPPacketCB aEventPacketCB);
+
     /// send flush, i.e. a row of zeroes to re-sync EnOcean modem
     void flushLine();
 
@@ -468,6 +486,11 @@ namespace p44 {
     /// @param aManufacturerCode EEP manufacturer code
     /// @return manufacturer name string or NULL if unknown code
     static const char *manufacturerName(EnoceanManufacturer aManufacturerCode);
+
+    /// enable/disable smart ack learn
+    /// @param aEnabled set to enable
+    /// @param aTimeout smart ack learn timeout
+    void smartAckLearnMode(bool aEnabled, MLMicroSeconds aTimeout);
 
 
   protected:

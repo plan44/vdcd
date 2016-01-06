@@ -274,7 +274,6 @@ void Esp3Packet::finalize()
 
 
 
-
 #pragma mark - common commands
 
 
@@ -610,11 +609,18 @@ EnoceanProfile Esp3Packet::eepProfile()
     else if (rorg==rorg_4BS) {
       // 4BS has separate LRN telegrams
       if (eepHasTeachInfo()) {
-        profile =
-          (rorg<<16) |
-          (((EnoceanProfile)(radioUserData()[0])<<6) & 0x3F00) | // 6 FUNC bits, shifted to bit 8..13
-          (((EnoceanProfile)(radioUserData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
-          (((EnoceanProfile)(radioUserData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
+        if ((radioUserData()[3] & LRN_EEP_INFO_VALID_MASK)!=0) {
+          // teach-in has EEP info
+          profile =
+            (rorg<<16) |
+            (((EnoceanProfile)(radioUserData()[0])<<6) & 0x3F00) | // 6 FUNC bits, shifted to bit 8..13
+            (((EnoceanProfile)(radioUserData()[0])<<5) & 0x60) | // upper 2 TYPE bits, shifted to bit 5..6
+            (((EnoceanProfile)(radioUserData()[1])>>3) & 0x1F); // lower 5 TYPE bits, shifted to bit 0..4
+        }
+        else {
+          // unknown
+          profile = (rorg<<16) | (eep_func_unknown<<8) | eep_type_unknown;
+        }
       }
     }
     else if (rorg==rorg_SM_LRN_REQ) {
@@ -635,7 +641,7 @@ EnoceanManufacturer Esp3Packet::eepManufacturer()
   EnoceanManufacturer man = manufacturer_unknown;
   RadioOrg rorg = eepRorg();
   if (eepHasTeachInfo()) {
-    if (rorg==rorg_4BS) {
+    if (rorg==rorg_4BS && ((radioUserData()[3] & LRN_EEP_INFO_VALID_MASK)!=0)) {
       man =
         ((((EnoceanManufacturer)radioUserData()[1])<<8) & 0x07) |
         radioUserData()[2];
@@ -1067,6 +1073,30 @@ void EnoceanComm::aliveCheck()
 }
 
 
+void EnoceanComm::smartAckLearnMode(bool aEnabled, MLMicroSeconds aTimeout)
+{
+  FOCUSLOG("EnoceanComm: %sabling smartAck learn mode in enocean module", aEnabled ? "en" : "dis");
+  // send a EPS3 command to the modem to check if it is alive
+  Esp3PacketPtr saPacket = Esp3PacketPtr(new Esp3Packet);
+  saPacket->setPacketType(pt_smart_ack_command);
+  // command data is command byte plus params (if any)
+  saPacket->setDataLength(7); // SA_WR_LEARNMODE
+  // set the command
+  saPacket->data()[0] = SA_WR_LEARNMODE;
+  // params
+  saPacket->data()[1] = aEnabled ? 1 : 0;
+  saPacket->data()[2] = 0; // simple learn mode
+  uint32_t toMs = 0;
+  if (aEnabled) toMs = (uint32_t)(aTimeout/MilliSecond);
+  saPacket->data()[3] = (toMs>>24) & 0xFF;
+  saPacket->data()[4] = (toMs>>16) & 0xFF;
+  saPacket->data()[5] = (toMs>>8) & 0xFF;
+  saPacket->data()[6] = toMs & 0xFF;
+  // issue command
+  sendCommand(saPacket, NULL); // we don't need the response
+}
+
+
 void EnoceanComm::aliveCheckResponse(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (!Error::isOK(aError)) {
@@ -1116,6 +1146,12 @@ void EnoceanComm::setRadioPacketHandler(ESPPacketCB aRadioPacketCB)
 }
 
 
+void EnoceanComm::setEventPacketHandler(ESPPacketCB aEventPacketCB)
+{
+  eventPacketHandler = aEventPacketCB;
+}
+
+
 size_t EnoceanComm::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
 {
   if (FOCUSLOGGING) {
@@ -1156,6 +1192,9 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
       // call the handler
       radioPacketHandler(aPacket, ErrorPtr());
     }
+    else {
+      LOG(LOG_INFO, "ESP3: Received radio packet, but no packet handler is installed -> ignored");
+    }
   }
   else if (pt==pt_response) {
     // This is a command response
@@ -1164,7 +1203,7 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
     // - this is a command response
     if (cmdQueue.empty() || cmdQueue.front().commandPacket) {
       // received unexpected answer
-      LOG(LOG_WARNING, "Received unexpected ESP3 response packet of length %zu", aPacket->dataLength());
+      LOG(LOG_WARNING, "ESP3: Received unexpected response packet of length %zu", aPacket->dataLength());
     }
     else {
       // must be response to first entry in queue
@@ -1181,8 +1220,18 @@ void EnoceanComm::dispatchPacket(Esp3PacketPtr aPacket)
       checkCmdQueue();
     }
   }
+  else if (pt==pt_event_message) {
+    // This is a event
+    if (eventPacketHandler) {
+      // call the handler
+      eventPacketHandler(aPacket, ErrorPtr());
+    }
+    else {
+      LOG(LOG_INFO, "ESP3: Received event code %d, but no packet handler is installed -> ignored", aPacket->data()[0]);
+    }
+  }
   else {
-    // TODO: %%% handle other packet types
+    LOG(LOG_INFO, "ESP3: Received unknown packet type %d of length %zu", pt, aPacket->dataLength());
   }
 }
 
@@ -1254,6 +1303,7 @@ void EnoceanComm::cmdTimeout()
 {
   // currently waiting command has timed out
   if (cmdQueue.empty()) return; // queue empty -> NOP (should not happen, no timeout should be running when queue is empty!)
+  FOCUSLOG("EnOcean Command timeout");
   EnoceanCmd cmd = cmdQueue.front();
   // Note: commandPacket should always be NULL here (because we are waiting for a response)
   if (!cmd.commandPacket) {

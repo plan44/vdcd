@@ -62,11 +62,11 @@ void Enocean4BSDevice::sendTeachInResponse()
     //  LRN EEP LRN LRN LRN  x   x   x
     //  typ res res sta bit
     responsePacket->radioUserData()[3] =
-    (1<<7) | // LRN type = 1=with EEP
-    (1<<6) | // 1=EEP is supported
-    (1<<5) | // 1=sender ID stored
-    (1<<4) | // 1=is LRN response
-    (0<<3); // 0=is LRN packet
+      (1<<7) | // LRN type = 1=with EEP
+      (1<<6) | // 1=EEP is supported
+      (1<<5) | // 1=sender ID stored
+      (1<<4) | // 1=is LRN response
+      (0<<3); // 0=is LRN packet
     // set destination
     responsePacket->setRadioDestination(getAddress());
     // now send
