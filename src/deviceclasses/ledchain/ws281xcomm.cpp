@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2015 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2015-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //

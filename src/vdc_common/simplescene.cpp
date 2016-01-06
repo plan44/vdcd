@@ -3,7 +3,7 @@
 //  vdcd
 //
 //  Created by Lukas Zeller on 21.10.14.
-//  Copyright (c) 2014-2015 plan44.ch. All rights reserved.
+//  Copyright (c) 2014-2016 plan44.ch. All rights reserved.
 //
 
 #include "simplescene.hpp"
