@@ -166,7 +166,10 @@ namespace p44 {
   private:
 
     void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+    void handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
     void handleTestRadioPacket(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError);
+
+    Tristate processLearn(EnoceanAddress aDeviceAddress, EnoceanProfile aEEProfile, EnoceanManufacturer aManufacturer);
 
     ErrorPtr addProfile(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
 

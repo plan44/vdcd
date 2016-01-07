@@ -83,7 +83,7 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
 // handle incoming data from device and extract data for this channel
 void Enocean1bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
+  if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
     if (aEsp3PacketPtr->eepRorg()==rorg_1BS && aEsp3PacketPtr->radioUserDataLength()==1) {
       // only look at 1BS packets of correct length

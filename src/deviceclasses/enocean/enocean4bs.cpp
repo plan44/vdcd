@@ -676,7 +676,7 @@ DsBehaviourPtr Enocean4bsSensorHandler::newSensorBehaviour(const Enocean4BSSenso
 // handle incoming data from device and extract data for this channel
 void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
+  if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
     if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
       // only look at 4BS packets of correct length
@@ -789,7 +789,7 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
 // handle incoming data from device and extract data for this channel
 void EnoceanA52001Handler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
+  if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
     if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
       // only look at 4BS packets of correct length
@@ -1009,7 +1009,7 @@ EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
 // handle incoming data from device and extract data for this channel
 void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
-  if (!aEsp3PacketPtr->eepHasTeachInfo()) {
+  if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
     if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
       // only look at 4BS packets of correct length

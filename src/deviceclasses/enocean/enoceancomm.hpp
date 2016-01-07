@@ -113,7 +113,7 @@ namespace p44 {
   #define LRN_BIT_MASK 0x08 // Bit 3, Byte 0 (4th data byte)
   #define LRN_EEP_INFO_VALID_MASK 0x80 // Bit 7, Byte 0 (4th data byte)
 
-  // common commands
+  // ESP3: common commands
   #define CO_WR_SLEEP 0x01 // Order to enter in energy saving mode Order to reset the device
   #define CO_WR_RESET 0x02 // Reset
   #define CO_RD_VERSION 0x03 // Read the device (SW) version / (HW) version, chip ID etc.
@@ -137,7 +137,7 @@ namespace p44 {
   #define CO_RD_SECURITY 0x15 // Read security information (level, keys)
   #define CO_WR_SECURITY 0x16 // Write security information (level, keys)
 
-  // smart ack commands (controller role commands only)
+  // ESP3: smart ack commands (controller role commands only)
   #define SA_WR_LEARNMODE 0x01 // smart ack learn mode write
   #define SA_RD_LEARNMODE 0x02 // smart ack learn mode read
   #define SA_WR_LEARNCONFIRM 0x03 // smart ack learn confirm
@@ -145,12 +145,19 @@ namespace p44 {
   #define SA_RD_LEARNEDCLIENTS 0x06 // smart ack read learned clients
   #define SA_WR_POSTMASTER 0x08 // smart ack postmaster enable/disable
 
-  // common response codes
+  // ESP3: common response codes
   #define RET_OK 0x00 // OK
   #define RET_ERROR 0x01 // error occurred
   #define RET_NOT_SUPPORTED 0x02 // not supported command
   #define RET_WRONG_PARAM 0x03 // wrong/invalid parameter for this command
   #define RET_OPERATION_DENIED 0x04 // denied (e.g. memory access)
+
+  // ESP3: events (controller role events only)
+  #define SA_RECLAIM_NOT_SUCCESSFUL 0x01 // smart ack client could not successfully reclaim
+  #define SA_CONFIRM_LEARN 0x02 // controller requests confirming Smart Ack Learn request
+  #define CO_READY 0x04 // informs about controller readyness state
+  #define CO_EVENT_SECUREDEVICES 0x05 // informs about secure device related events
+
 
 
 
@@ -340,9 +347,11 @@ namespace p44 {
     /// @name Enocean Equipment Profile (EEP) information
     /// @{
 
-    /// @return RORG (radio telegram organisation, valid for all telegrams)
+    /// @return RORG (radio telegram organisation
+    /// @note is valid for all telegrams, returns rorg_invalid for non-radio telegrams
     RadioOrg eepRorg();
 
+    /// 
     /// @param aMinLearnDBm if!=0, learn-in info must have at least aMinLearnDBm radio signal strength
     ///   for implicit learn-in information (RPS switches, window handle, key card)
     /// @param aMinDBmForAll if set, all learn-in is considered valid only when aMinLearnDBm signal strength is found
@@ -350,7 +359,7 @@ namespace p44 {
     ///   (is the case for specific teach-in telegrams in 1BS, 4BS, VLD, as well as all RPS telegrams)
     /// Note: 4BS teach-in without EEP information (D0.7 cleared) will still return true, as these ARE teach-in telegrams,
     ///   however eepProfile will return func_unknown and type_unknown in this case
-    bool eepHasTeachInfo(int aMinLearnDBm=0, bool aMinDBmForAll=false);
+    bool radioHasTeachInfo(int aMinLearnDBm=0, bool aMinDBmForAll=false);
 
     /// @return EEP signature as 0x00rrfftt (rr=RORG, ff=FUNC, tt=TYPE)
     ///   ff and tt can be func_unknown or type_unknown if not extractable from telegram
@@ -382,8 +391,12 @@ namespace p44 {
     /// @name Packet factory methods
     /// @{
 
-    /// @return radioUserData()[0..3] as 32bit value
-    static Esp3PacketPtr newCommonCommand(uint8_t aCommand, uint8_t aNumParamBytes=0, uint8_t *aParamBytesP=NULL);
+    /// @return initialized ESP3 packet
+    /// @param aPacketType ESP3 packet type
+    /// @param aCode byte to put into first data byte (command, event, response code)
+    /// @param aNumParamBytes additional bytes (apart from aCode)
+    /// @param aParamBytesInitializerP pointer to initializer data for the parameter bytes, can be left NULL to just zero the parameter bytes
+    static Esp3PacketPtr newEsp3Message(PacketType aPacketType, uint8_t aCode, uint8_t aNumParamBytes=0, uint8_t *aParamBytesInitializerP=NULL);
 
     /// @}
 

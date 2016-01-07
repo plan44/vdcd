@@ -124,6 +124,7 @@ void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncreme
 {
   // install standard packet handler
   enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
+  enoceanComm.setEventPacketHandler(boost::bind(&EnoceanDeviceContainer::handleEventPacket, this, _1, _2));
   // incrementally collecting EnOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
@@ -311,12 +312,35 @@ ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValueP
 
 #pragma mark - learn and unlearn devices
 
-
-#define MIN_LEARN_DBM -50 
+#define MIN_LEARN_DBM -50
 // -50 = for experimental luz v1 patched bridge: within approx one meter of the TCM310
 // -50 = for v2 bridge 223: very close to device, about 10-20cm
 // -55 = for v2 bridge 223: within approx one meter of the TCM310
 
+Tristate EnoceanDeviceContainer::processLearn(EnoceanAddress aDeviceAddress, EnoceanProfile aEEProfile, EnoceanManufacturer aManufacturer)
+{
+  // no learn/unlearn actions detected so far
+  // - check if we know that device address already. If so, it is a learn-out
+  bool learnIn = enoceanDevices.find(aDeviceAddress)==enoceanDevices.end();
+  if (learnIn) {
+    // new device learned in, add logical devices for it
+    int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aDeviceAddress, aEEProfile, aManufacturer);
+    if (numNewDevices>0) {
+      // successfully learned at least one device
+      // - update learn status (device learned)
+      getDeviceContainer().reportLearnEvent(true, ErrorPtr());
+      return yes; // learned in
+    }
+    return undefined; // failure - could not learn a device with this profile
+  }
+  else {
+    // device learned out, un-pair all logical dS devices it has represented
+    // but keep dS level config in case it is reconnected
+    unpairDevicesByAddress(aDeviceAddress, false);
+    getDeviceContainer().reportLearnEvent(false, ErrorPtr());
+    return no; // always successful learn out
+  }
+}
 
 
 void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
@@ -332,30 +356,12 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
   }
   // check learning mode
   if (learningMode) {
-    // no learn/unlearn actions detected so far
-    // - check if we know that device address already. If so, it is a learn-out
-    bool learnIn = enoceanDevices.find(aEsp3PacketPtr->radioSender())==enoceanDevices.end();
     // now add/remove the device (if the action is a valid learn/unlearn)
     // detect implicit (RPS) learn in only with sufficient radio strength (or explicit override of that check),
     // explicit ones are always recognized
-    if (aEsp3PacketPtr->eepHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
+    if (aEsp3PacketPtr->radioHasTeachInfo(disableProximityCheck ? 0 : MIN_LEARN_DBM, false)) {
       LOG(LOG_NOTICE, "Learn mode enabled: processing EnOcean learn packet: %s", aEsp3PacketPtr->description().c_str());
-      // This is actually a valid learn action
-      if (learnIn) {
-        // new device learned in, add logical devices for it
-        int numNewDevices = EnoceanDevice::createDevicesFromEEP(this, aEsp3PacketPtr->radioSender(), aEsp3PacketPtr->eepProfile(), aEsp3PacketPtr->eepManufacturer());
-        if (numNewDevices>0) {
-          // successfully learned at least one device
-          // - update learn status (device learned)
-          getDeviceContainer().reportLearnEvent(true, ErrorPtr());
-        }
-      }
-      else {
-        // device learned out, un-pair all logical dS devices it has represented
-        // but keep dS level config in case it is reconnected
-        unpairDevicesByAddress(aEsp3PacketPtr->radioSender(), false);
-        getDeviceContainer().reportLearnEvent(false, ErrorPtr());
-      }
+      processLearn(aEsp3PacketPtr->radioSender(), aEsp3PacketPtr->eepProfile(), aEsp3PacketPtr->eepManufacturer());
       // - only allow one learn action (to prevent learning out device when
       //   button is released or other repetition of radio packet)
       learningMode = false;
@@ -368,7 +374,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     // not learning mode, dispatch packet to all devices known for that address
     bool reachedDevice = false;
     for (EnoceanDeviceMap::iterator pos = enoceanDevices.lower_bound(aEsp3PacketPtr->radioSender()); pos!=enoceanDevices.upper_bound(aEsp3PacketPtr->radioSender()); ++pos) {
-      if (aEsp3PacketPtr->eepHasTeachInfo(MIN_LEARN_DBM, false) && aEsp3PacketPtr->eepRorg()!=rorg_RPS) {
+      if (aEsp3PacketPtr->radioHasTeachInfo(MIN_LEARN_DBM, false) && aEsp3PacketPtr->eepRorg()!=rorg_RPS) {
         // learning packet in non-learn mode -> report as non-regular user action, might be attempt to identify a device
         // Note: RPS devices are excluded because for these all telegrams are regular user actions.
         // signalDeviceUserAction() will be called from button and binary input behaviours
@@ -386,6 +392,93 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
     }
   }
 }
+
+
+#define SMART_ACK_RESPONSE_TIME_MS 100
+
+void EnoceanDeviceContainer::handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+{
+  if (aError) {
+    LOG(LOG_INFO, "Event packet error: %s", aError->description().c_str());
+    return;
+  }
+  uint8_t *dataP = aEsp3PacketPtr->data();
+  uint8_t eventCode = dataP[0];
+  if (eventCode==SA_CONFIRM_LEARN) {
+    uint8_t confirmCode = 0x13; // default: reject with "controller has no place for further mailbox"
+    if (learningMode) {
+      // process smart-ack learn
+      // - extract learn data
+      uint8_t postmasterFlags = dataP[1];
+      EnoceanManufacturer manufacturer =
+        ((EnoceanManufacturer)(dataP[2] & 0x03)<<8) +
+        dataP[3];
+      EnoceanProfile profile =
+        ((EnoceanProfile)dataP[4]<<16) +
+        ((EnoceanProfile)dataP[5]<<8) +
+        dataP[6];
+      int rssi = -dataP[7];
+      EnoceanAddress postmasterAddress =
+        ((EnoceanAddress)dataP[8]<<24) +
+        ((EnoceanAddress)dataP[9]<<16) +
+        ((EnoceanAddress)dataP[10]<<8) +
+        dataP[11];
+      EnoceanAddress deviceAddress =
+        ((EnoceanAddress)dataP[12]<<24) +
+        ((EnoceanAddress)dataP[13]<<16) +
+        ((EnoceanAddress)dataP[14]<<8) +
+        dataP[15];
+      uint8_t hopCount = dataP[16];
+      if (LOGENABLED(LOG_NOTICE)) {
+        const char *mn = EnoceanComm::manufacturerName(manufacturer);
+        LOG(LOG_NOTICE,
+          "ESP3 SA_CONFIRM_LEARN, sender=0x%08X, rssi=%d, hops=%d"
+          "\n- postmaster=0x%08X (priority flags = 0x%1X)"
+          "\n- EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)",
+          deviceAddress,
+          rssi,
+          hopCount,
+          postmasterAddress,
+          postmasterFlags,
+          EEP_RORG(profile),
+          EEP_FUNC(profile),
+          EEP_TYPE(profile),
+          mn ? mn : "<unknown>",
+          manufacturer
+        );
+      }
+      // try to process
+      Tristate lrn = processLearn(deviceAddress, profile, manufacturer);
+      if (lrn==no) {
+        // learn out
+        confirmCode = 0x20;
+      }
+      else if (lrn==yes) {
+        // learn in
+        confirmCode = 0x00;
+      }
+      else {
+        // unknown EEP
+        confirmCode = 0x11;
+        LOG(LOG_WARNING, "Received SA_CONFIRM_LEARN with unknown EEP %06X -> rejecting", profile);
+      }
+    }
+    else {
+      LOG(LOG_WARNING, "Received SA_CONFIRM_LEARN while not in learning mode -> rejecting");
+    }
+    // always send response for SA_CONFIRM_LEARN
+    Esp3PacketPtr respPacket = Esp3Packet::newEsp3Message(pt_response, RET_OK, 3);
+    respPacket->data()[1] = (SMART_ACK_RESPONSE_TIME_MS>>8) & 0xFF;
+    respPacket->data()[2] = SMART_ACK_RESPONSE_TIME_MS & 0xFF;
+    respPacket->data()[3] = confirmCode;
+    // issue response
+    enoceanComm.sendPacket(respPacket); // immediate response, not in queue
+  }
+  else {
+    LOG(LOG_INFO, "Unknown Event code: %d", eventCode);
+  }
+}
+
 
 
 void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)

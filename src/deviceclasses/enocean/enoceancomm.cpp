@@ -601,14 +601,14 @@ EnoceanProfile Esp3Packet::eepProfile()
     }
     else if (rorg==rorg_1BS) {
       // 1BS has a learn bit
-      if (eepHasTeachInfo()) {
+      if (radioHasTeachInfo()) {
         // As per March 2013, only one EEP is defined for 1BS: single contact
         profile = ((EnoceanProfile)rorg<<16) | ((EnoceanProfile)0x00<<8) | (0x01); // FUNC = contacts and switches, TYPE = single contact
       }
     }
     else if (rorg==rorg_4BS) {
       // 4BS has separate LRN telegrams
-      if (eepHasTeachInfo()) {
+      if (radioHasTeachInfo()) {
         if ((radioUserData()[3] & LRN_EEP_INFO_VALID_MASK)!=0) {
           // teach-in has EEP info
           profile =
@@ -640,7 +640,7 @@ EnoceanManufacturer Esp3Packet::eepManufacturer()
 {
   EnoceanManufacturer man = manufacturer_unknown;
   RadioOrg rorg = eepRorg();
-  if (eepHasTeachInfo()) {
+  if (radioHasTeachInfo()) {
     if (rorg==rorg_4BS && ((radioUserData()[3] & LRN_EEP_INFO_VALID_MASK)!=0)) {
       man =
         ((((EnoceanManufacturer)radioUserData()[1])<<8) & 0x07) |
@@ -658,7 +658,7 @@ EnoceanManufacturer Esp3Packet::eepManufacturer()
 
 
 
-bool Esp3Packet::eepHasTeachInfo(int aMinLearnDBm, bool aMinDBmForAll)
+bool Esp3Packet::radioHasTeachInfo(int aMinLearnDBm, bool aMinDBmForAll)
 {
   RadioOrg rorg = eepRorg();
   bool radioStrengthSufficient = aMinLearnDBm==0 || radioDBm()>aMinLearnDBm;
@@ -673,7 +673,7 @@ bool Esp3Packet::eepHasTeachInfo(int aMinLearnDBm, bool aMinDBmForAll)
     case rorg_SM_LRN_REQ:
       return explicitLearnOK; // smart ack learn requests are by definition teach-in commands and have full EEP signature
     default:
-      return false; // no learn-in, regular data
+      return false; // no or unknown radio telegram -> no teach-in info
   }
 }
 
@@ -729,17 +729,17 @@ void Esp3Packet::set4BSTeachInEEP(EnoceanProfile aEEProfile)
 #pragma mark - packet Factory methods
 
 
-Esp3PacketPtr Esp3Packet::newCommonCommand(uint8_t aCommand, uint8_t aNumParamBytes, uint8_t *aParamBytesP)
+Esp3PacketPtr Esp3Packet::newEsp3Message(PacketType aPacketType, uint8_t aCode, uint8_t aNumParamBytes, uint8_t *aParamBytesInitializerP)
 {
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr cmdPacket = Esp3PacketPtr(new Esp3Packet);
   cmdPacket->setPacketType(pt_common_cmd);
   // command data is command byte plus params (if any)
   cmdPacket->setDataLength(1+aNumParamBytes); // command code + parameters
-  // set the command
-  cmdPacket->data()[0] = aCommand;
+  // set the first byte (command, event, response code)
+  cmdPacket->data()[0] = aCode;
   for (int i=0; i<aNumParamBytes; i++) {
-    cmdPacket->data()[i] = aParamBytesP[i];
+    cmdPacket->data()[1+i] = aParamBytesInitializerP ? aParamBytesInitializerP[i] : 0; // copy byte from initializer or zero it
   }
   return cmdPacket;
 }
@@ -755,7 +755,7 @@ string Esp3Packet::description()
     string t;
     if (packetType()==pt_radio) {
       // ESP3 radio packet
-      string_format_append(t,
+      t = string_format(
         "ESP3 RADIO rorg=0x%02X,  sender=0x%08X, status=0x%02X\n"
         "- subtelegrams=%d, destination=0x%08X, dBm=%d, repeated=%d, secLevel=%d",
         eepRorg(),
@@ -768,25 +768,33 @@ string Esp3Packet::description()
         radioSecurityLevel()
       );
       // EEP info if any
-      if (eepHasTeachInfo()) {
+      if (radioHasTeachInfo()) {
         const char *mn = EnoceanComm::manufacturerName(eepManufacturer());
         string_format_append(t,
           "\n- Is Learn-In packet: EEP RORG/FUNC/TYPE: %02X %02X %02X, Manufacturer = %s (%03X)",
-          (eepProfile()>>16) & 0xFF,
-          (eepProfile()>>8) & 0xFF,
-          eepProfile() & 0xFF,
+          EEP_RORG(eepProfile()),
+          EEP_FUNC(eepProfile()),
+          EEP_TYPE(eepProfile()),
           mn ? mn : "<unknown>",
           eepManufacturer()
         );
       }
     }
     else if (packetType()==pt_response) {
-      // non-radio ESP3 packet
-      string_format_append(t, "\nESP3 response packet, return code = %d", data()[0]);
+      // ESP3 response packet
+      t = string_format("ESP3 response packet, return code = %d", data()[0]);
     }
     else if (packetType()==pt_common_cmd) {
-      // non-radio ESP3 packet
-      string_format_append(t, "\nESP3 common command (%d)", data()[0]);
+      // ESP3 common command packet
+      t = string_format("ESP3 common command (%d)", data()[0]);
+    }
+    else if (packetType()==pt_event_message) {
+      // ESP3 event packet
+      t = string_format("ESP3 event message (%d)", data()[0]);
+    }
+    else {
+      // other, unknown packet type
+      t = string_format("Unknown ESP3 packet type (%d)", packetType());
     }
     // raw data
     string_format_append(t, "\n- %3zu data bytes: ", dataLength());
@@ -993,7 +1001,7 @@ void EnoceanComm::initializeInternal(StatusCB aCompletedCB, int aRetriesLeft)
 {
   // get version
   serialComm->requestConnection();
-  sendCommand(Esp3Packet::newCommonCommand(CO_RD_VERSION), boost::bind(&EnoceanComm::versionReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
+  sendCommand(Esp3Packet::newEsp3Message(pt_common_cmd, CO_RD_VERSION), boost::bind(&EnoceanComm::versionReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
 }
 
 
@@ -1035,7 +1043,7 @@ void EnoceanComm::versionReceived(StatusCB aCompletedCB, int aRetriesLeft, Esp3P
     return;
   }
   // query base ID
-  sendCommand(Esp3Packet::newCommonCommand(CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
+  sendCommand(Esp3Packet::newEsp3Message(pt_common_cmd, CO_RD_IDBASE), boost::bind(&EnoceanComm::idbaseReceived, this, aCompletedCB, aRetriesLeft, _1, _2));
 }
 
 
@@ -1062,12 +1070,7 @@ void EnoceanComm::aliveCheck()
 {
   FOCUSLOG("EnoceanComm: checking enocean module operation by sending CO_RD_VERSION command");
   // send a EPS3 command to the modem to check if it is alive
-  Esp3PacketPtr checkPacket = Esp3PacketPtr(new Esp3Packet);
-  checkPacket->setPacketType(pt_common_cmd);
-  // command data is command byte plus params (if any)
-  checkPacket->setDataLength(1); // CO_RD_VERSION has no parameters
-  // set the command
-  checkPacket->data()[0] = CO_RD_VERSION;
+  Esp3PacketPtr checkPacket = Esp3Packet::newEsp3Message(pt_common_cmd, CO_RD_VERSION);
   // issue command
   sendCommand(checkPacket, boost::bind(&EnoceanComm::aliveCheckResponse, this, _1, _2));
 }
@@ -1077,12 +1080,7 @@ void EnoceanComm::smartAckLearnMode(bool aEnabled, MLMicroSeconds aTimeout)
 {
   FOCUSLOG("EnoceanComm: %sabling smartAck learn mode in enocean module", aEnabled ? "en" : "dis");
   // send a EPS3 command to the modem to check if it is alive
-  Esp3PacketPtr saPacket = Esp3PacketPtr(new Esp3Packet);
-  saPacket->setPacketType(pt_smart_ack_command);
-  // command data is command byte plus params (if any)
-  saPacket->setDataLength(7); // SA_WR_LEARNMODE
-  // set the command
-  saPacket->data()[0] = SA_WR_LEARNMODE;
+  Esp3PacketPtr saPacket = Esp3Packet::newEsp3Message(pt_smart_ack_command, SA_WR_LEARNMODE, 6);
   // params
   saPacket->data()[1] = aEnabled ? 1 : 0;
   saPacket->data()[2] = 0; // simple learn mode
@@ -1093,7 +1091,7 @@ void EnoceanComm::smartAckLearnMode(bool aEnabled, MLMicroSeconds aTimeout)
   saPacket->data()[5] = (toMs>>8) & 0xFF;
   saPacket->data()[6] = toMs & 0xFF;
   // issue command
-  sendCommand(saPacket, NULL); // we don't need the response
+  sendCommand(saPacket, NULL); // we don't need the response (but there is one)
 }
 
 
