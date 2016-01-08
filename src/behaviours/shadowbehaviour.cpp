@@ -676,21 +676,6 @@ void ShadowBehaviour::movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aAp
 #pragma mark - behaviour interaction with digitalSTROM system
 
 
-// apply scene
-bool ShadowBehaviour::applyScene(DsScenePtr aScene)
-{
-  // check special cases for shadow scenes
-  ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
-  if (shadowScene) {
-    // any scene call cancels actions (and fade down)
-    stopActions();
-  } // if shadowScene
-  // otherwise, let base class handle it
-  return inherited::applyScene(aScene);
-}
-
-
-
 void ShadowBehaviour::loadChannelsFromScene(DsScenePtr aScene)
 {
   ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
