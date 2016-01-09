@@ -603,7 +603,7 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
       // fully down, always do full cycle to synchronize position
       dist = -120; // 20% extra to fully run into end switch
       runIntoEnd = true; // if we have end switches, let them stop the movement
-      if (referencePosition>=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
+      if (referencePosition>=100) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else {
       // somewhere in between, actually estimate distance
