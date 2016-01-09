@@ -127,8 +127,24 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
     case SIG_PANIC:
     case SMOKE:
     case HAIL:
-      // Panic, Smoke, Hail: open
+    case FIRE:
+      // Panic, Smoke, Hail, Fire: open
+      setDontCare(false);
       value = 100;
+      break;
+    case ABSENT:
+    case PRESENT:
+    case SLEEPING:
+    case WAKE_UP:
+    case STANDBY:
+    case AUTO_STANDBY:
+    case DEEP_OFF:
+    case ALARM1:
+    case WATER:
+    case GAS:
+    case WIND:
+    case RAIN:
+      setDontCare(true);
       break;
     case T0_S2:
     case T1_S2:
@@ -149,6 +165,58 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
 }
 
 
+#pragma mark - ShadowJalousieScene
+
+
+ShadowJalousieScene::ShadowJalousieScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+inherited(aSceneDeviceSettings, aSceneNo)
+{
+}
+
+
+void ShadowJalousieScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special shadow behaviour
+  switch (aSceneNo) {
+    case WIND:
+      setDontCare(false);
+      value = 100;
+      break;
+  }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
+}
+
+
+#pragma mark - ShadowJalousieScene
+
+
+ShadowAwningScene::ShadowAwningScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+inherited(aSceneDeviceSettings, aSceneNo)
+{
+}
+
+
+void ShadowAwningScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special shadow behaviour
+  switch (aSceneNo) {
+    case ABSENT:
+    case SLEEPING:
+    case DEEP_OFF:
+    case WIND:
+    case RAIN:
+      setDontCare(false);
+      value = 100;
+      break;
+  }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
+}
+
+
 #pragma mark - ShadowDeviceSettings with default shadow scenes factory
 
 
@@ -164,6 +232,42 @@ DsScenePtr ShadowDeviceSettings::newDefaultScene(SceneNo aSceneNo)
   shadowScene->setDefaultSceneValues(aSceneNo);
   // return it
   return shadowScene;
+}
+
+
+#pragma mark - ShadowJalousieDeviceSetting with default shadow scenes factory
+
+
+ShadowJalousieDeviceSetting::ShadowJalousieDeviceSetting(Device &aDevice) :
+inherited(aDevice)
+{
+};
+
+
+DsScenePtr ShadowJalousieDeviceSetting::newDefaultScene(SceneNo aSceneNo)
+{
+  ShadowJalousieScenePtr shadowJalousieScene = ShadowJalousieScenePtr(new ShadowJalousieScene(*this, aSceneNo));
+  shadowJalousieScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return shadowJalousieScene;
+}
+
+
+#pragma mark - ShadowJalousieDeviceSetting with default shadow scenes factory
+
+
+ShadowAwningDeviceSetting::ShadowAwningDeviceSetting(Device &aDevice) :
+inherited(aDevice)
+{
+};
+
+
+DsScenePtr ShadowAwningDeviceSetting::newDefaultScene(SceneNo aSceneNo)
+{
+  ShadowAwningScenePtr shadowAwningScene = ShadowAwningScenePtr(new ShadowAwningScene(*this, aSceneNo));
+  shadowAwningScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return shadowAwningScene;
 }
 
 
