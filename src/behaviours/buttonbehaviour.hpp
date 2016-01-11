@@ -96,7 +96,10 @@ namespace p44 {
     void setHardwareButtonConfig(int aButtonID, DsButtonType aType, DsButtonElement aElement, bool aSupportsLocalKeyMode, int aCounterPartIndex, bool aButtonModeFixed);
 
     /// set group
-    virtual void setGroup(DsGroup aGroup) { buttonGroup = aGroup; };
+    virtual void setGroup(DsGroup aGroup) { setPVar(buttonGroup, aGroup); };
+
+    /// set function
+    virtual void setFunction(DsButtonFunc aFunc) { setPVar(buttonFunc, aFunc); };
 
 
     /// @name interface towards actual device hardware (or simulation)

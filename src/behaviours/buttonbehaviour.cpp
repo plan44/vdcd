@@ -689,7 +689,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
       switch (aPropertyDescriptor->fieldKey()) {
         // Settings properties
         case group_key+settings_key_offset:
-          setPVar(buttonGroup, (DsGroup)aPropValue->int32Value());
+          setGroup((DsGroup)aPropValue->int32Value());
           return true;
         case mode_key+settings_key_offset: {
           DsButtonMode m = (DsButtonMode)aPropValue->int32Value();
@@ -701,7 +701,7 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         }
         case function_key+settings_key_offset:
-          setPVar(buttonFunc, (DsButtonFunc)aPropValue->int32Value());
+          setFunction((DsButtonFunc)aPropValue->int32Value());
           return true;
         case channel_key+settings_key_offset:
           setPVar(buttonChannel, (DsChannelType)aPropValue->int32Value());

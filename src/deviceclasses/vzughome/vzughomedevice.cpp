@@ -112,6 +112,7 @@ VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const 
   // - set the pseudo-button behaviour needed for direct scene calls
   actionButton = ButtonBehaviourPtr(new ButtonBehaviour(*this));
   actionButton->setGroup(group_black_joker); // joker
+  actionButton->setFunction(buttonFunc_app); // app button
   actionButton->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, true);
   actionButton->setHardwareName("status");
   addBehaviour(actionButton);
