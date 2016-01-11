@@ -452,8 +452,8 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "dsGroup", SQLITE_INTEGER }, // Note: don't call a SQL field "group"!
-    { "buttonFunc", SQLITE_INTEGER },
-    { "buttonGroup", SQLITE_INTEGER },
+    { "buttonFunc", SQLITE_INTEGER },  // ACTUALLY: buttonMode! (harmless old bug, but DB field names are misleading)
+    { "buttonGroup", SQLITE_INTEGER }, // ACTUALLY: buttonFunc! (harmless old bug, but DB field names are misleading)
     { "buttonFlags", SQLITE_INTEGER },
     { "buttonChannel", SQLITE_INTEGER },
     { "buttonActionMode", SQLITE_INTEGER },
@@ -466,6 +466,16 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
     return &dataDefs[aIndex];
   return NULL;
 }
+
+// Buggy (but functionally harmless) mapping as per 2016-01-11
+//  DB                    actual property
+//  --------------------- -----------------------
+//  dsGroup               buttonGroup
+//  buttonFunc            buttonMode    // WRONG
+//  buttonGroup           buttonFunc    // WRONG
+//  buttonFlags           flags
+//  buttonChannel         buttonChannel
+//  ...all ok from here
 
 
 /// load values from passed row
