@@ -51,8 +51,16 @@ void BinaryInputBehaviour::setHardwareInputConfig(DsBinaryInputType aInputType, 
 }
 
 
-void BinaryInputBehaviour::updateInputState(bool aNewState)
+InputState BinaryInputBehaviour::maxExtendedValue()
 {
+  if (configuredInputType==binInpType_windowHandle) return 2; // Window handle is tri-state
+  return 1; // all others are binary so far
+}
+
+
+void BinaryInputBehaviour::updateInputState(InputState aNewState)
+{
+  if (aNewState>maxExtendedValue()) aNewState = maxExtendedValue(); // make sure state does not exceed expectation
   // always update age, even if value itself may not have changed
   MLMicroSeconds now = MainLoop::now();
   lastUpdate = now;
@@ -210,6 +218,7 @@ const PropertyDescriptorPtr BinaryInputBehaviour::getSettingsDescriptorByIndex(i
 
 enum {
   value_key,
+  extendedValue_key,
   age_key,
   numStateProperties
 };
@@ -220,6 +229,7 @@ const PropertyDescriptorPtr BinaryInputBehaviour::getStateDescriptorByIndex(int 
 {
   static const PropertyDescription properties[numStateProperties] = {
     { "value", apivalue_bool, value_key+states_key_offset, OKEY(binaryInput_key) },
+    { "extendedValue", apivalue_uint64, extendedValue_key+states_key_offset, OKEY(binaryInput_key) },
     { "age", apivalue_double, age_key+states_key_offset, OKEY(binaryInput_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
@@ -265,7 +275,22 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           if (lastUpdate==Never)
             aPropValue->setNull();
           else
-            aPropValue->setBoolValue(currentState);
+            aPropValue->setBoolValue(currentState>=1); // all states > 0 are considered "true" for the basic state
+          return true;
+        case extendedValue_key+states_key_offset:
+          // extended value
+          if (lastUpdate==Never)
+            aPropValue->setNull();
+          else {
+            if (maxExtendedValue()>1) {
+              // this is a multi-state input, show the actual state as "extendedValue"
+              aPropValue->setUint8Value(currentState);
+            }
+            else {
+              // simple binary input, do not show the extended state
+              return false; // property invisible
+            }
+          }
           return true;
         case age_key+states_key_offset:
           // age

@@ -107,8 +107,10 @@ namespace p44 {
     EnoceanRpsWindowHandleHandler(EnoceanDevice &aDevice);
 
     bool isERP2; ///< set if protocol is ERP2
-    bool isTiltedStatus; ///< set if this represents the tilted status (otherwise, it's the open status)
 
+    #if PRELIMINARY_WINDOWHANDLE_MAPPING
+    bool isTiltedStatus; ///< set if this represents the tilted status (otherwise, it's the open status)
+    #endif
 
     /// handle radio packet related to this channel
     /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information

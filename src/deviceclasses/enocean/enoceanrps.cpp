@@ -49,6 +49,8 @@ EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
 {
 }
 
+#define PRELIMINARY_WINDOWHANDLE_MAPPING 0 // if set, old window handle mapping with two binary inputs will be used
+
 
 EnoceanDevicePtr EnoceanRpsHandler::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
@@ -153,6 +155,7 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       newDev->setFunctionDesc("window handle");
       // Window handle switches can be used for anything
       newDev->setPrimaryGroup(group_black_joker);
+      #if PRELIMINARY_WINDOWHANDLE_MAPPING
       // Current simple dS mapping: two binary inputs
       // - Input0: 0: Window closed (Handle down position), 1: Window open (all other handle positions)
       EnoceanRpsWindowHandleHandlerPtr newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
@@ -174,6 +177,18 @@ EnoceanDevicePtr EnoceanRpsHandler::newDevice(
       newHandler->isTiltedStatus = true;
       newHandler->behaviour = bb;
       newDev->addChannelHandler(newHandler);
+      #else
+      // Single input with tri-state (extendedValue)
+      // - Input0: 0: window closed (Handle down position), 1: window fully open, 2: window tilted
+      EnoceanRpsWindowHandleHandlerPtr newHandler = EnoceanRpsWindowHandleHandlerPtr(new EnoceanRpsWindowHandleHandler(*newDev.get()));
+      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
+      bb->setHardwareInputConfig(binInpType_windowHandle, usage_undefined, true, Never);
+      bb->setGroup(group_black_joker); // joker by default
+      bb->setHardwareName("window open");
+      newHandler->isERP2 = EEP_TYPE(functionProfile)==0x01;
+      newHandler->behaviour = bb;
+      newDev->addChannelHandler(newHandler);
+      #endif
       // count it
       aSubDeviceIndex++;
     }
@@ -381,7 +396,9 @@ string EnoceanRpsButtonHandler::shortDesc()
 EnoceanRpsWindowHandleHandler::EnoceanRpsWindowHandleHandler(EnoceanDevice &aDevice) :
   inherited(aDevice)
 {
+  #if PRELIMINARY_WINDOWHANDLE_MAPPING
   isTiltedStatus = false; // default to "open" status
+  #endif
   isERP2 = false; // default to ERP1
 }
 
@@ -415,6 +432,7 @@ void EnoceanRpsWindowHandleHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketP
   // report data for this binary input
   BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(behaviour);
   if (bb) {
+    #if PRELIMINARY_WINDOWHANDLE_MAPPING
     if (isTiltedStatus) {
       LOG(LOG_INFO, "Enocean Window Handle %08X reports state: %s", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
       bb->updateInputState(tilted); // report the tilted status
@@ -422,6 +440,10 @@ void EnoceanRpsWindowHandleHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketP
     else {
       bb->updateInputState(!closed); // report the open/close status (inverted, because dS definition is binInpType_windowOpen)
     }
+    #else
+    LOG(LOG_INFO, "Enocean Window Handle %08X reports state: %s", device.getAddress(), closed ? "closed" : (tilted ? "tilted open" : "fully open"));
+    bb->updateInputState(closed ? 0 : (tilted ? 2 : 1)); // report the extendedValue state: 0=closed, 1=fully open, 2=tilted open
+    #endif
   }
 }
 

@@ -413,7 +413,7 @@ typedef enum {
   binInpType_lowBattery = 12, ///< device has low battery
   binInpType_windowOpen = 13, ///< window is open
   binInpType_doorOpen = 14, ///< door is open
-  binInpType_windowTilted = 15, ///< window is tilted instead of fully opened
+  binInpType_windowHandle = 15, ///< TRI-STATE! Window handle, has extendedValue showing closed/open/tilted, bool value is just closed/open
   binInpType_garageDoorOpen = 16, ///< garage door is open
   binInpType_sunProtection = 17, ///< protect against too much sunlight
   binInpType_frost = 18, ///< frost detector

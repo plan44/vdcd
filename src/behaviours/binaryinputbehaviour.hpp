@@ -28,6 +28,8 @@ using namespace std;
 
 namespace p44 {
 
+  typedef uint8_t InputState;
+
 
   /// Implements the behaviour of a digitalSTROM binary input
   /// This class should be used as-is in virtual devices representing binary inputs
@@ -58,7 +60,7 @@ namespace p44 {
 
     /// @name internal volatile state
     /// @{
-    bool currentState; ///< current input value
+    InputState currentState; ///< current input value
     MLMicroSeconds lastUpdate; ///< time of last update from hardware
     MLMicroSeconds lastPush; ///< time of last push
     /// @}
@@ -87,9 +89,14 @@ namespace p44 {
     /// invalidate input state, i.e. indicate that current state is not known
     void invalidateInputState();
 
-    /// button action occurred
+    /// action occurred
     /// @param aNewState the new state of the input
-    void updateInputState(bool aNewState);
+    /// @note input can be a bool (0=false, 1=true) but can also have "extended values">1.
+    ///   All extended values>0 are mapped to binaryInputState.value==true, and additionally
+    ///   represented 1:1 in binaryInputState.extendedValue. For true binary inputs with only
+    ///   2 states, binaryInputState.extendedValue is invisible.
+    void updateInputState(InputState aNewState);
+
 
     /// @}
 
@@ -101,6 +108,13 @@ namespace p44 {
 
     /// the behaviour type
     virtual BehaviourType getType() { return behaviour_binaryinput; };
+
+    /// returns the max extendedValue (depends on configuredInputType)
+    /// @return max value the state is allowed to have. Normal binary inputs return 1 here, special cases like
+    ///   binInpType_windowHandle might have extended values >1 to differentiate state.
+    /// @note if this method returns >1, the behaviour will have an additional binaryInputState.extendedValue property
+    InputState maxExtendedValue();
+
 
     // property access implementation for descriptor/settings/states
     virtual int numDescProps();
