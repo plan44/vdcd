@@ -392,7 +392,7 @@ void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisablePro
 {
   learningMode = aEnableLearning;
   disableProximityCheck = aDisableProximityCheck;
-  enoceanComm.smartAckLearnMode(aEnableLearning, 60*Second); // actual timeout of learn is usually smaller
+//  enoceanComm.smartAckLearnMode(aEnableLearning, 60*Second); // actual timeout of learn is usually smaller
 }
 
 
