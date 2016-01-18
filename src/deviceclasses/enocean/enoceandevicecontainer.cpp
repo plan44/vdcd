@@ -483,9 +483,11 @@ void EnoceanDeviceContainer::handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, Err
 
 void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
 {
+  // put normal radio packet evaluator into learn mode
   learningMode = aEnableLearning;
   disableProximityCheck = aDisableProximityCheck;
-//  enoceanComm.smartAckLearnMode(aEnableLearning, 60*Second); // actual timeout of learn is usually smaller
+  // also enable smartAck learn mode in the EnOcean module
+  enoceanComm.smartAckLearnMode(aEnableLearning, 60*Second); // actual timeout of learn is usually smaller
 }
 
 

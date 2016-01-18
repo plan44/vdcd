@@ -76,6 +76,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--mainloopstats 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--productname P44-DSB-Mac"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -109,7 +113,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
@@ -117,7 +121,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"
@@ -165,11 +169,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet auto"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet 192.168.24.11"
@@ -177,7 +181,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vzughome auto"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vzughome http://localhost/vzug.php"
