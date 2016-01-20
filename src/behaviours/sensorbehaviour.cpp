@@ -139,9 +139,9 @@ void SensorBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
 {
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
-  sensorGroup = (DsGroup)aRow->get<int>(aIndex++);
-  minPushInterval = aRow->get<long long int>(aIndex++);
-  changesOnlyInterval = aRow->get<long long int>(aIndex++);
+  aRow->getCastedIfNotNull<DsGroup, int>(aIndex++, sensorGroup);
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, minPushInterval);
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, changesOnlyInterval);
 }
 
 

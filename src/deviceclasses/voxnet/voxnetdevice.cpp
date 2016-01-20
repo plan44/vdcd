@@ -803,10 +803,10 @@ void VoxnetDeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
   // get the field values
   messageSourceID.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
   messageStream.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
-  messageTitleNo = aRow->get<int>(aIndex++);
-  messageDuration = aRow->get<int>(aIndex++);
+  aRow->getIfNotNull<int>(aIndex++, messageTitleNo);
+  aRow->getIfNotNull<int>(aIndex++, messageDuration);
   messageShellCommand.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
-  playToUnmuteDelayMS = aRow->get<int>(aIndex++);
+  aRow->getIfNotNull<int>(aIndex++, playToUnmuteDelayMS);
 }
 
 

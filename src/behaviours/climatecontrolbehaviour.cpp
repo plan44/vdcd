@@ -230,7 +230,7 @@ void ClimateControlBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int 
   // decode the common flags
   if (aCommonFlagsP) climateControlIdle = *aCommonFlagsP & outputflag_climateControlIdle;
   // get the fields
-  heatingSystemCapability = (DsHeatingSystemCapability)aRow->get<int>(aIndex++);
+  aRow->getCastedIfNotNull<DsHeatingSystemCapability, int>(aIndex++, heatingSystemCapability);
 }
 
 

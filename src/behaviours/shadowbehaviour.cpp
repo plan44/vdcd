@@ -799,10 +799,10 @@ void ShadowBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
 {
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
-  openTime = aRow->get<double>(aIndex++);
-  closeTime = aRow->get<double>(aIndex++);
-  angleOpenTime = aRow->get<double>(aIndex++);
-  angleCloseTime = aRow->get<double>(aIndex++);
+  aRow->getIfNotNull<double>(aIndex++, openTime);
+  aRow->getIfNotNull<double>(aIndex++, closeTime);
+  aRow->getIfNotNull<double>(aIndex++, angleOpenTime);
+  aRow->getIfNotNull<double>(aIndex++, angleCloseTime);
 }
 
 

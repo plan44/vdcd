@@ -462,25 +462,28 @@ void LightBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, 
 {
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // read onThreshold only if not NULL
-  if (aRow->column_type(aIndex)!=SQLITE_NULL)
-    onThreshold = aRow->get<double>(aIndex);
-  aIndex++;
+  aRow->getCastedIfNotNull<Brightness, double>(aIndex++, onThreshold);
   // get the other fields
-  Brightness md = aRow->get<double>(aIndex++);
-  if (!hardwareHasSetMinDim) brightness->setDimMin(md); // only apply if not set by hardware
-  uint32_t du = aRow->get<int>(aIndex++);
-  uint32_t dd = aRow->get<int>(aIndex++);
+  Brightness md;
+  if (aRow->getCastedIfNotNull<Brightness, double>(aIndex++, md)) {
+    if (!hardwareHasSetMinDim) brightness->setDimMin(md); // only apply if not set by hardware
+  }
+  uint32_t du;
+  if (aRow->getCastedIfNotNull<uint32_t, int>(aIndex++, du)) {
+    // dissect dimming times
+    dimTimeUp[0] = du & 0xFF;
+    dimTimeUp[1] = (du>>8) & 0xFF;
+    dimTimeUp[2] = (du>>16) & 0xFF;
+  }
+  uint32_t dd;
+  if (aRow->getCastedIfNotNull<uint32_t, int>(aIndex++, dd)) {
+    // dissect dimming times
+    dimTimeDown[0] = dd & 0xFF;
+    dimTimeDown[1] = (dd>>8) & 0xFF;
+    dimTimeDown[2] = (dd>>16) & 0xFF;
+  }
   // read dim curve exponent only if not NULL
-  if (aRow->column_type(aIndex)!=SQLITE_NULL)
-    dimCurveExp = aRow->get<double>(aIndex);
-  aIndex++;
-  // dissect dimming times
-  dimTimeUp[0] = du & 0xFF;
-  dimTimeUp[1] = (du>>8) & 0xFF;
-  dimTimeUp[2] = (du>>16) & 0xFF;
-  dimTimeDown[0] = dd & 0xFF;
-  dimTimeDown[1] = (dd>>8) & 0xFF;
-  dimTimeDown[2] = (dd>>16) & 0xFF;
+  aRow->getIfNotNull<double>(aIndex++, dimCurveExp);
 }
 
 

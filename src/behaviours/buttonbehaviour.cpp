@@ -483,17 +483,17 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
 {
   inherited::loadFromRow(aRow, aIndex, NULL); // no common flags in base class
   // get the fields
-  buttonGroup = (DsGroup)aRow->get<int>(aIndex++);
-  buttonMode = (DsButtonMode)aRow->get<int>(aIndex++);
+  aRow->getCastedIfNotNull<DsGroup, int>(aIndex++, buttonGroup);
+  aRow->getCastedIfNotNull<DsButtonMode, int>(aIndex++, buttonMode);
   if (buttonMode!=buttonMode_inactive && fixedButtonMode!=buttonMode_inactive && buttonMode!=fixedButtonMode) {
     // force mode according to fixedButtonMode, even if settings (from older versions) say something different
     buttonMode = fixedButtonMode;
   }
-  buttonFunc = (DsButtonFunc)aRow->get<int>(aIndex++);
-  uint64_t flags = aRow->get<int>(aIndex++);
-  buttonChannel = (DsChannelType)aRow->get<int>(aIndex++);
-  buttonActionMode = (DsButtonActionMode)aRow->get<int>(aIndex++);
-  buttonActionId = aRow->get<int>(aIndex++);
+  aRow->getCastedIfNotNull<DsButtonFunc, int>(aIndex++, buttonFunc);
+  uint64_t flags = aRow->getWithDefault<int>(aIndex++, 0);
+  aRow->getCastedIfNotNull<DsChannelType, int>(aIndex++, buttonChannel);
+  aRow->getCastedIfNotNull<DsButtonActionMode, int>(aIndex++, buttonActionMode);
+  aRow->getCastedIfNotNull<uint8_t, int>(aIndex++, buttonActionId);
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
