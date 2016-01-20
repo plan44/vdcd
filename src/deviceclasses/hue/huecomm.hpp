@@ -173,12 +173,10 @@ namespace p44 {
     typedef boost::function<void (ErrorPtr aError)> HueBridgeFindCB;
 
     /// find and try to pair new hue bridge
-    /// @param aUserName the suggested user name for the hue bridge. Identifier without spaces and funny characters
-    ///   if bridge is not happy with the user name suggested, it will assign a hex string
     /// @param aDeviceType a short description to identify the type of device/software accessing the hue bridge
     /// @param aAuthTimeWindow how long we should look for hue bridges with link button pressed among the candidates
     /// @note on success, the ssdpUuid, apiToken and baseURL string member variables will be set (when aFindHandler is called)
-    void findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler);
+    void findNewBridge(const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler);
 
     /// stop finding bridges
     void stopFind();
