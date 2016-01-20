@@ -206,6 +206,33 @@ namespace sqlite3pp
         return get(idx, T());
       }
 
+      template <class TCasted, class TNative> TCasted getCasted(int idx) const {
+        return (TCasted)get(idx, TNative());
+      }
+
+      template <class T> T getWithDefault(int idx, T defValue) const {
+        if (column_type(idx)==SQLITE_NULL) return defValue;
+        return get(idx, T());
+      }
+
+      template <class TCasted, class TNative> TCasted getCastedWithDefault(int idx, TCasted defValue) const {
+        if (column_type(idx)==SQLITE_NULL) return defValue;
+        return getCasted<TCasted, TNative>(idx);
+      }
+
+      template <class T> bool getIfNotNull(int idx, T &value) const {
+        if (column_type(idx)==SQLITE_NULL) return false;
+        value = get(idx, T());
+        return true;
+      }
+
+      template <class TCasted, class TNative> bool getCastedIfNotNull(int idx, TCasted &value) const {
+        if (column_type(idx)==SQLITE_NULL) return false;
+        value = getCasted<TCasted, TNative>(idx);
+        return true;
+      }
+
+
       template <class T1>
       boost::tuple<T1> get_columns(int idx1) const {
         return boost::make_tuple(get(idx1, T1()));
