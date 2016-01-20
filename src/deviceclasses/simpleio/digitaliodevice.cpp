@@ -24,6 +24,7 @@
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 #include "lightbehaviour.hpp"
+#include "shadowbehaviour.hpp"
 
 using namespace p44;
 
@@ -37,6 +38,8 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   size_t i = aDeviceConfig.rfind(":");
   string ioname = aDeviceConfig;
   bool inverted = false;
+  string upName;
+  string downName;
   if (i!=string::npos) {
     ioname = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
@@ -52,6 +55,16 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
       digitalIoType = digitalio_light;
     else if (mode=="relay") {
       digitalIoType = digitalio_relay;
+    } else if (mode=="blind") {
+      // ioname = "<upPinSpec>:<downPinSpec>"
+      size_t t = ioname.find(":");
+      if (t != string::npos) {
+        digitalIoType = digitalio_blind;
+        upName = ioname.substr(0, t);
+        downName = ioname.substr(t+1, string::npos);
+      } else {
+        LOG(LOG_ERR, "Illegal output specification for blinds: %s", ioname.c_str());
+      }
     }
     else {
       LOG(LOG_ERR, "unknown digital IO type: %s", mode.c_str());
@@ -107,6 +120,19 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
     addBehaviour(o);
   }
+  else if (digitalIoType==digitalio_blind) {
+    primaryGroup = group_grey_shadow;
+    installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*this)));
+    blindsOutputUp = DigitalIoPtr(new DigitalIo(upName.c_str(), true, inverted, false));
+    blindsOutputDown = DigitalIoPtr(new DigitalIo(downName.c_str(), true, inverted, false));
+    ShadowBehaviourPtr s = ShadowBehaviourPtr(new ShadowBehaviour(*this));
+    s->setHardwareName("blind");
+    s->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, -1);
+    s->setDeviceParams(shadowdevice_rollerblind, false, 500*MilliSecond);
+    s->position->setFullRangeTime(40*Second);
+    s->position->syncChannelValue(100); // assume fully up at beginning
+    addBehaviour(s);
+  }
 	deriveDsUid();
 }
 
@@ -129,16 +155,21 @@ void DigitalIODevice::inputHandler(bool aNewState)
 }
 
 
-
 void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 {
   LightBehaviourPtr lightBehaviour = boost::dynamic_pointer_cast<LightBehaviour>(output);
+  ShadowBehaviourPtr shadowBehaviour = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
   if (lightBehaviour) {
     // light
     if (lightBehaviour->brightnessNeedsApplying()) {
       indicatorOutput->set(lightBehaviour->brightnessForHardware());
       lightBehaviour->brightnessApplied(); // confirm having applied the value
     }
+  }
+  else if (shadowBehaviour) {
+    // ask shadow behaviour to start movement sequence
+    shadowBehaviour->applyBlindChannels(boost::bind(&DigitalIODevice::changeMovement, *this, _1, _2), aDoneCB, aForDimming);
+    return;
   }
   else if (output) {
     // simple switch output, activates at 50% of possible output range
@@ -152,6 +183,55 @@ void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 }
 
 
+void DigitalIODevice::syncChannelValues(SimpleCB aDoneCB)
+{
+  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
+  if (sb) {
+    sb->syncBlindState();
+  }
+  if (aDoneCB) aDoneCB();
+}
+
+
+void DigitalIODevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
+{
+  // start dimming
+  ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
+  if (sb) {
+    // no channel check, there's only global dimming of the blind, no separate position/angle
+    sb->dimBlind(boost::bind(&DigitalIODevice::changeMovement, *this, _1, _2), aDimMode);
+  } else {
+    inherited::dimChannel(aChannelType, aDimMode);
+  }
+}
+
+
+void DigitalIODevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
+{
+  if (aNewDirection == 0) {
+    // stop
+    blindsOutputUp->set(false);
+    blindsOutputDown->set(false);
+  } else if (aNewDirection > 0) {
+    blindsOutputDown->set(false);
+    blindsOutputUp->set(true);
+  } else {
+    blindsOutputUp->set(false);
+    blindsOutputDown->set(true);
+  }
+  if (aDoneCB) {
+    aDoneCB();
+  }
+}
+
+string DigitalIODevice::blindsName() const {
+  if (blindsOutputUp && blindsOutputDown) {
+    return string_format("%s+%s", blindsOutputUp->getName().c_str(), blindsOutputDown->getName().c_str());
+  }
+  return "";
+}
+
+
 void DigitalIODevice::deriveDsUid()
 {
   // vDC implementation specific UUID:
@@ -162,6 +242,7 @@ void DigitalIODevice::deriveDsUid()
   if (buttonInput) { s += ":"; s += buttonInput->getName(); }
   if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }
   if (digitalInput) { s += ":"; s += digitalInput->getName(); }
+  if (digitalio_blind) { s += ":"; s += blindsName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
@@ -173,6 +254,7 @@ string DigitalIODevice::modelName()
     case digitalio_input: return "Binary digital input";
     case digitalio_light: return "Light controlling output";
     case digitalio_relay: return "Relay controlling output";
+    case digitalio_blind: return "Blind controlling output";
     default: return "Digital I/O";
   }
 }
@@ -186,6 +268,8 @@ string DigitalIODevice::getExtraInfo()
     return string_format("Input: %s\n", digitalInput->getName().c_str());
   else if (indicatorOutput)
     return string_format("Output: %s\n", indicatorOutput->getName().c_str());
+  else if (blindsOutputUp && blindsOutputDown)
+    return string_format("Outputs: %s\n", blindsName().c_str());
   else
     return "?";
 }
@@ -201,5 +285,7 @@ string DigitalIODevice::description()
     string_format_append(s, "\n- Input at Digital IO '%s'", digitalInput->getName().c_str());
   if (indicatorOutput)
     string_format_append(s, "\n- Switch output at Digital IO '%s'", indicatorOutput->getName().c_str());
+  if (blindsOutputUp && blindsOutputDown)
+    string_format_append(s, "\n Blinds output at Digital IO %s", blindsName().c_str());
   return s;
 }

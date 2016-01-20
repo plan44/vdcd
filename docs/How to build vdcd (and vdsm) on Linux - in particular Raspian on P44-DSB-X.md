@@ -44,7 +44,7 @@ Now the platform is ready to install & build!
 	$SUPER apt-get update
 	
 	# build tools
-	$SUPER apt-get install git automake libtool autoconf g++
+	$SUPER apt-get install git automake libtool autoconf g++ make
 
 	# common libraries for both vdcd and vdsm
 	$SUPER apt-get install libjson0-dev libsqlite3-dev protobuf-c-compiler libprotobuf-c0-dev

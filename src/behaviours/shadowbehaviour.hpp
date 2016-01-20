@@ -116,6 +116,38 @@ namespace p44 {
 
   };
   typedef boost::intrusive_ptr<ShadowScene> ShadowScenePtr;
+  
+  
+  
+  class ShadowJalousieScene : public ShadowScene
+  {
+    typedef ShadowScene inherited;
+    
+  public:
+    ShadowJalousieScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+    
+  };
+  typedef boost::intrusive_ptr<ShadowJalousieScene> ShadowJalousieScenePtr;
+  
+  
+  
+  class ShadowAwningScene : public ShadowScene
+  {
+    typedef ShadowScene inherited;
+    
+  public:
+    ShadowAwningScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo); ///< constructor, sets values according to dS specs' default values
+    
+    /// Set default scene values for a specified scene number
+    /// @param aSceneNo the scene number to set default values
+    virtual void setDefaultSceneValues(SceneNo aSceneNo);
+    
+  };
+  typedef boost::intrusive_ptr<ShadowAwningScene> ShadowAwningScenePtr;
 
 
 
@@ -132,6 +164,36 @@ namespace p44 {
     /// @note setDefaultSceneValues() must be called to set default scene values
     virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
 
+  };
+    
+    
+    
+  class ShadowJalousieDeviceSetting : public ShadowDeviceSettings
+  {
+    typedef ShadowDeviceSettings inherited;
+
+  public:
+    ShadowJalousieDeviceSetting(Device &aDevice);
+
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
+  };
+  
+  
+  
+  class ShadowAwningDeviceSetting : public ShadowDeviceSettings
+  {
+    typedef ShadowDeviceSettings inherited;
+    
+  public:
+    ShadowAwningDeviceSetting(Device &aDevice);
+    
+    /// factory method to create the correct subclass type of DsScene
+    /// @param aSceneNo the scene number to create a scene object for.
+    /// @note setDefaultSceneValues() must be called to set default scene values
+    virtual DsScenePtr newDefaultScene(SceneNo aSceneNo);
   };
 
 
@@ -259,14 +321,6 @@ namespace p44 {
     /// @param aFeatureIndex the feature to check for
     /// @return yes if this output behaviour has the feature, no if (explicitly) not, undefined if asked entity does not know
     virtual Tristate hasModelFeature(DsModelFeatures aFeatureIndex);
-
-    /// apply scene to output channels
-    /// @param aScene the scene to apply to output channels
-    /// @return true if apply is complete, i.e. everything ready to apply to hardware outputs.
-    ///   false if scene cannot yet be applied to hardware, and will be performed later
-    /// @note this derived class' applyScene only implements special hard-wired behaviour specific scenes
-    ///   basic scene apply functionality is provided by base class' implementation already.
-    virtual bool applyScene(DsScenePtr aScene);
 
     /// perform special scene actions (like flashing) which are independent of dontCare flag.
     /// @param aScene the scene that was called (if not dontCare, applyScene() has already been called)

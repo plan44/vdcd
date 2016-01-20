@@ -127,8 +127,24 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
     case PANIC:
     case SMOKE:
     case HAIL:
-      // Panic, Smoke, Hail: open
+    case FIRE:
+      // Panic, Smoke, Hail, Fire: open
+      setDontCare(false);
       value = 100;
+      break;
+    case ABSENT:
+    case PRESENT:
+    case SLEEPING:
+    case WAKE_UP:
+    case STANDBY:
+    case AUTO_STANDBY:
+    case DEEP_OFF:
+    case ALARM1:
+    case WATER:
+    case GAS:
+    case WIND:
+    case RAIN:
+      setDontCare(true);
       break;
     case PRESET_2:
     case PRESET_12:
@@ -149,6 +165,58 @@ void ShadowScene::setDefaultSceneValues(SceneNo aSceneNo)
 }
 
 
+#pragma mark - ShadowJalousieScene
+
+
+ShadowJalousieScene::ShadowJalousieScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+inherited(aSceneDeviceSettings, aSceneNo)
+{
+}
+
+
+void ShadowJalousieScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special shadow behaviour
+  switch (aSceneNo) {
+    case WIND:
+      setDontCare(false);
+      value = 100;
+      break;
+  }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
+}
+
+
+#pragma mark - ShadowJalousieScene
+
+
+ShadowAwningScene::ShadowAwningScene(SceneDeviceSettings &aSceneDeviceSettings, SceneNo aSceneNo) :
+inherited(aSceneDeviceSettings, aSceneNo)
+{
+}
+
+
+void ShadowAwningScene::setDefaultSceneValues(SceneNo aSceneNo)
+{
+  // set the common simple scene defaults
+  inherited::setDefaultSceneValues(aSceneNo);
+  // Add special shadow behaviour
+  switch (aSceneNo) {
+    case ABSENT:
+    case SLEEPING:
+    case DEEP_OFF:
+    case WIND:
+    case RAIN:
+      setDontCare(false);
+      value = 100;
+      break;
+  }
+  markClean(); // default values are always clean (but setSceneValueFlags sets dirty)
+}
+
+
 #pragma mark - ShadowDeviceSettings with default shadow scenes factory
 
 
@@ -164,6 +232,42 @@ DsScenePtr ShadowDeviceSettings::newDefaultScene(SceneNo aSceneNo)
   shadowScene->setDefaultSceneValues(aSceneNo);
   // return it
   return shadowScene;
+}
+
+
+#pragma mark - ShadowJalousieDeviceSetting with default shadow scenes factory
+
+
+ShadowJalousieDeviceSetting::ShadowJalousieDeviceSetting(Device &aDevice) :
+inherited(aDevice)
+{
+};
+
+
+DsScenePtr ShadowJalousieDeviceSetting::newDefaultScene(SceneNo aSceneNo)
+{
+  ShadowJalousieScenePtr shadowJalousieScene = ShadowJalousieScenePtr(new ShadowJalousieScene(*this, aSceneNo));
+  shadowJalousieScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return shadowJalousieScene;
+}
+
+
+#pragma mark - ShadowJalousieDeviceSetting with default shadow scenes factory
+
+
+ShadowAwningDeviceSetting::ShadowAwningDeviceSetting(Device &aDevice) :
+inherited(aDevice)
+{
+};
+
+
+DsScenePtr ShadowAwningDeviceSetting::newDefaultScene(SceneNo aSceneNo)
+{
+  ShadowAwningScenePtr shadowAwningScene = ShadowAwningScenePtr(new ShadowAwningScene(*this, aSceneNo));
+  shadowAwningScene->setDefaultSceneValues(aSceneNo);
+  // return it
+  return shadowAwningScene;
 }
 
 
@@ -499,7 +603,7 @@ void ShadowBehaviour::applyPosition(SimpleCB aApplyDoneCB)
       // fully down, always do full cycle to synchronize position
       dist = -120; // 20% extra to fully run into end switch
       runIntoEnd = true; // if we have end switches, let them stop the movement
-      if (referencePosition>=0) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
+      if (referencePosition>=100) updateMoveTimeAtEndReached = true; // full range movement, use it to update movement time
     }
     else {
       // somewhere in between, actually estimate distance
@@ -674,21 +778,6 @@ void ShadowBehaviour::movePaused(MLMicroSeconds aRemainingMoveTime, SimpleCB aAp
 
 
 #pragma mark - behaviour interaction with digitalSTROM system
-
-
-// apply scene
-bool ShadowBehaviour::applyScene(DsScenePtr aScene)
-{
-  // check special cases for shadow scenes
-  ShadowScenePtr shadowScene = boost::dynamic_pointer_cast<ShadowScene>(aScene);
-  if (shadowScene) {
-    // any scene call cancels actions (and fade down)
-    stopSceneActions();
-  } // if shadowScene
-  // otherwise, let base class handle it
-  return inherited::applyScene(aScene);
-}
-
 
 
 void ShadowBehaviour::loadChannelsFromScene(DsScenePtr aScene)
