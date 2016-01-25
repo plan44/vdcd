@@ -162,8 +162,7 @@ void HueDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximi
 {
   if (aEnableLearning) {
     hueComm.findNewBridge(
-      getDeviceContainer().getDsUid().getString().c_str(), // dSUID is suitable as hue login name
-      getDeviceContainer().modelName().c_str(),
+      string_format("%s#%s", getDeviceContainer().modelName().c_str(), getDeviceContainer().getDeviceHardwareId().c_str()).c_str(),
       15*Second, // try to login for 15 secs
       boost::bind(&HueDeviceContainer::searchResultHandler, this, _1)
     );

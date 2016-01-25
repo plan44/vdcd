@@ -359,9 +359,9 @@ void OutputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
 {
   inherited::loadFromRow(aRow, aIndex, NULL); // common flags are loaded here, not in superclasses
   // get the fields
-  outputMode = (DsOutputMode)aRow->get<int>(aIndex++);
-  uint64_t flags = aRow->get<long long int>(aIndex++);
-  outputGroups = aRow->get<long long int>(aIndex++);
+  aRow->getCastedIfNotNull<DsOutputMode, int>(aIndex++, outputMode);
+  uint64_t flags = aRow->getCastedWithDefault<uint64_t, long long int>(aIndex++, 0);
+  aRow->getCastedIfNotNull<uint64_t, long long int>(aIndex++, outputGroups);
   // decode my own flags
   pushChanges = flags & outputflag_pushChanges;
   // pass the flags out to subclass which called this superclass to get the flags (and decode themselves)

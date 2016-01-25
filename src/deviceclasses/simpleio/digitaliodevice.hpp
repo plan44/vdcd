@@ -44,12 +44,15 @@ namespace p44 {
       digitalio_input, // binary input
       digitalio_light, // light output
       digitalio_relay, // general purpose relay output
+      digitalio_blind, // blind output
     } DigitalIoType;
 
 
 		ButtonInputPtr buttonInput;
     DigitalIoPtr digitalInput;
     IndicatorOutputPtr indicatorOutput;
+    DigitalIoPtr blindsOutputUp;
+    DigitalIoPtr blindsOutputDown;
 
     DigitalIoType digitalIoType;
 
@@ -67,6 +70,8 @@ namespace p44 {
     /// Get extra info (plan44 specific) to describe the addressable in more detail
     /// @return string, single line extra info describing aspects of the device not visible elsewhere
     virtual string getExtraInfo();
+      
+    virtual void dimChannel(DsChannelType aChannelType, DsDimMode aDimMode);
 
     /// @name interaction with subclasses, actually representing physical I/O
     /// @{
@@ -79,6 +84,15 @@ namespace p44 {
     /// @param aForDimming hint for implementations to optimize dimming, indicating that change is only an increment/decrement
     ///   in a single channel (and not switching between color modes etc.)
     virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
+      
+    /// synchronize channel values by reading them back from the device's hardware (if possible)
+    /// @param aDoneCB will be called when values are updated with actual hardware values
+    /// @note this method is only called at startup and before saving scenes to make sure changes done to the outputs directly (e.g. using
+    ///   a direct remote control for a lamp) are included. Just reading a channel state does not call this method.
+    /// @note implementation must use channel's syncChannelValue() method
+    virtual void syncChannelValues(SimpleCB aDoneCB);
+    
+    void changeMovement(SimpleCB aDoneCB, int aNewDirection);
 
     /// @}
 
@@ -99,6 +113,7 @@ namespace p44 {
 
     void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
     void inputHandler(bool aNewState);
+    string blindsName() const;
 
   };
 

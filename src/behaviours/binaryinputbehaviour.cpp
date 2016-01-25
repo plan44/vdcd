@@ -143,10 +143,10 @@ void BinaryInputBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 {
   inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the fields
-  binInputGroup = (DsGroup)aRow->get<int>(aIndex++);
-  minPushInterval = aRow->get<long long int>(aIndex++);
-  changesOnlyInterval = aRow->get<long long int>(aIndex++);
-  configuredInputType = (DsBinaryInputType)aRow->get<int>(aIndex++);
+  aRow->getCastedIfNotNull<DsGroup, int>(aIndex++, binInputGroup);
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, minPushInterval);
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, changesOnlyInterval);
+  aRow->getCastedIfNotNull<DsBinaryInputType, int>(aIndex++, configuredInputType);
 }
 
 

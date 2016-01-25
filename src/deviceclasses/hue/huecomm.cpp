@@ -206,11 +206,11 @@ public:
     MainLoop::currentMainLoop().cancelExecutionTicket(retryLoginTicket);
   }
 
-  void findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueComm::HueBridgeFindCB aFindHandler)
+  void findNewBridge(const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueComm::HueBridgeFindCB aFindHandler)
   {
     refind = false;
     callback = aFindHandler;
-    userName = nonNullCStr(aUserName);
+    userName.clear();
     deviceType = nonNullCStr(aDeviceType);
     authTimeWindow = aAuthTimeWindow;
     if (hueComm.fixedBaseURL.empty()) {
@@ -386,7 +386,6 @@ public:
       // try to authorize
       FOCUSLOG("Auth candidate: uuid=%s, baseURL=%s -> try creating user", currentAuthCandidate->first.c_str(), currentAuthCandidate->second.c_str());
       JsonObjectPtr request = JsonObject::newObj();
-      request->add("username", JsonObject::newString(userName));
       request->add("devicetype", JsonObject::newString(deviceType));
       hueComm.apiAction(httpMethodPOST, currentAuthCandidate->second.c_str(), request, boost::bind(&BridgeFinder::handleCreateUserAnswer, this, _1, _2), true);
     }
@@ -503,11 +502,11 @@ JsonObjectPtr HueComm::getSuccessItem(JsonObjectPtr aResult, int aIndex)
 
 
 
-void HueComm::findNewBridge(const char *aUserName, const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler)
+void HueComm::findNewBridge(const char *aDeviceType, MLMicroSeconds aAuthTimeWindow, HueBridgeFindCB aFindHandler)
 {
   findInProgress = true;
   BridgeFinderPtr bridgeFinder = BridgeFinderPtr(new BridgeFinder(*this, aFindHandler));
-  bridgeFinder->findNewBridge(aUserName, aDeviceType, aAuthTimeWindow, aFindHandler);
+  bridgeFinder->findNewBridge(aDeviceType, aAuthTimeWindow, aFindHandler);
 };
 
 
