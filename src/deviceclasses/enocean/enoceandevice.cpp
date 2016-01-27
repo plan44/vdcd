@@ -30,7 +30,7 @@
 #include "enoceanrps.hpp"
 #include "enocean1bs.hpp"
 #include "enocean4bs.hpp"
-//#include "enoceanVld.hpp"
+#include "enoceanvld.hpp"
 #include "enoceanremotecontrol.hpp"
 
 
@@ -543,20 +543,20 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   // dispatch to factory according to RORG
   switch ((int)rorg) {
     case rorg_RPS:
-      newDev = EnoceanRpsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = EnoceanRPSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_1BS:
-      newDev = Enocean1bsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = Enocean1BSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_4BS:
-      newDev = Enocean4bsHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = Enocean4BSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
-//    case rorg_VLD:
-//      newDev = EnoceanVldHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
-//      break;
+    case rorg_VLD:
+      newDev = EnoceanVLDDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      break;
     // pseudo RORGs (internal encoding of non-standard devices)
     case PSEUDO_RORG_REMOTECONTROL:
-      newDev = EnoceanRemoteControlHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = EnoceanRemoteControlDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     default:
       LOG(LOG_WARNING, "EnoceanDevice::newDevice: unknown RORG = 0x%02X", rorg);

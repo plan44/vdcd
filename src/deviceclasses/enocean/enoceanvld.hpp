@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2013-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2015-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //
@@ -19,31 +19,31 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__enocean1bs__
-#define __vdcd__enocean1bs__
+#ifndef __vdcd__enoceanvld__
+#define __vdcd__enoceanvld__
 
 #include "vdcd_common.hpp"
 
 #include "enoceandevice.hpp"
-
+#include "enoceansensorhandler.hpp"
 
 using namespace std;
 
 namespace p44 {
 
 
-  class Enocean1BSDevice : public EnoceanDevice
+  class EnoceanVLDDevice : public EnoceanDevice
   {
     typedef EnoceanDevice inherited;
 
   public:
 
     /// constructor
-    Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP);
+    EnoceanVLDDevice(EnoceanDeviceContainer *aClassContainerP);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
-    virtual const char *deviceTypeIdentifier() { return "enocean_1bs"; };
+    virtual const char *deviceTypeIdentifier() { return "enocean_vld"; };
 
     /// get table of profile variants
     /// @return NULL or pointer to a list of profile variants
@@ -54,7 +54,7 @@ namespace p44 {
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
     ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
-    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
+    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
@@ -63,39 +63,12 @@ namespace p44 {
       EnoceanAddress aAddress,
       EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      bool aNeedsTeachInResponse
+      bool aSendTeachInResponse
     );
-    
-  };
-
-
-  /// single contact EnOcean device channel
-  class SingleContactHandler : public EnoceanChannelHandler
-  {
-    typedef EnoceanChannelHandler inherited;
-    friend class Enocean1BSDevice;
-
-    /// private constructor, create new channels using factory static method
-    SingleContactHandler(EnoceanDevice &aDevice, bool aActiveState);
-
-    /// active state
-    bool activeState;
-
-  public:
-
-    /// handle radio packet related to this channel
-    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
-    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
 
   };
-  typedef boost::intrusive_ptr<SingleContactHandler> SingleContactHandlerPtr;
-
 
 
 } // namespace p44
 
-#endif /* defined(__vdcd__enocean1bs__) */
+#endif /* defined(__vdcd__enoceanvld__) */

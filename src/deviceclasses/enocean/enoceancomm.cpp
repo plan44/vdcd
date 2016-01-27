@@ -733,7 +733,7 @@ Esp3PacketPtr Esp3Packet::newEsp3Message(PacketType aPacketType, uint8_t aCode, 
 {
   // send a EPS3 command to the modem to check if it is alive
   Esp3PacketPtr cmdPacket = Esp3PacketPtr(new Esp3Packet);
-  cmdPacket->setPacketType(pt_common_cmd);
+  cmdPacket->setPacketType(aPacketType);
   // command data is command byte plus params (if any)
   cmdPacket->setDataLength(1+aNumParamBytes); // command code + parameters
   // set the first byte (command, event, response code)
@@ -787,6 +787,10 @@ string Esp3Packet::description()
     else if (packetType()==pt_common_cmd) {
       // ESP3 common command packet
       t = string_format("ESP3 common command (%d)", data()[0]);
+    }
+    else if (packetType()==pt_smart_ack_command) {
+      // ESP3 smart ack command
+      t = string_format("ESP3 SmartAck command (%d)", data()[0]);
     }
     else if (packetType()==pt_event_message) {
       // ESP3 event packet

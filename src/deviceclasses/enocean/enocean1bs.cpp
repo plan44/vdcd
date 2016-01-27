@@ -28,14 +28,15 @@
 using namespace p44;
 
 
-Enocean1bsHandler::Enocean1bsHandler(EnoceanDevice &aDevice, bool aActiveState) :
-  EnoceanChannelHandler(aDevice),
-  activeState(aActiveState)
+#pragma mark - Enocean1BSDevice
+
+Enocean1BSDevice::Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP) :
+inherited(aClassContainerP)
 {
 }
 
 
-EnoceanDevicePtr Enocean1bsHandler::newDevice(
+EnoceanDevicePtr Enocean1BSDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
@@ -62,7 +63,7 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
       // joker by default, we don't know what kind of contact this is
       newDev->setPrimaryGroup(group_black_joker);
       // create channel handler, EEP variant 1 means inverted state interpretation
-      Enocean1bsHandlerPtr newHandler = Enocean1bsHandlerPtr(new Enocean1bsHandler(*newDev.get(), !(EEP_VARIANT(aEEProfile)==1)));
+      SingleContactHandlerPtr newHandler = SingleContactHandlerPtr(new SingleContactHandler(*newDev.get(), !(EEP_VARIANT(aEEProfile)==1)));
       // create the behaviour
       BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*newDev.get()));
       bb->setHardwareInputConfig(binInpType_none, usage_undefined, true, 15*Minute);
@@ -80,8 +81,33 @@ EnoceanDevicePtr Enocean1bsHandler::newDevice(
 }
 
 
+static const ProfileVariantEntry E1BSprofileVariants[] = {
+  // single contact alternatives
+  { 1, 0x00D50001, 0, "single contact" },
+  { 1, 0x01D50001, 0, "single contact (inverted, e.g. for window contact)" },
+  { 0, 0, 0, NULL } // terminator
+};
+
+
+const ProfileVariantEntry *Enocean1BSDevice::profileVariantsTable()
+{
+  return E1BSprofileVariants;
+}
+
+
+
+#pragma mark - SingleContactHandler
+
+
+SingleContactHandler::SingleContactHandler(EnoceanDevice &aDevice, bool aActiveState) :
+  EnoceanChannelHandler(aDevice),
+  activeState(aActiveState)
+{
+}
+
+
 // handle incoming data from device and extract data for this channel
-void Enocean1bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+void SingleContactHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
@@ -98,31 +124,8 @@ void Enocean1bsHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 }
 
 
-string Enocean1bsHandler::shortDesc()
+string SingleContactHandler::shortDesc()
 {
   return "Single Contact";
-}
-
-
-#pragma mark - Enocean1BSDevice with profile variants
-
-
-Enocean1BSDevice::Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
-{
-}
-
-
-static const ProfileVariantEntry E1BSprofileVariants[] = {
-  // single contact alternatives
-  { 1, 0x00D50001, 0, "single contact" },
-  { 1, 0x01D50001, 0, "single contact (inverted, e.g. for window contact)" },
-  { 0, 0, 0, NULL } // terminator
-};
-
-
-const ProfileVariantEntry *Enocean1BSDevice::profileVariantsTable()
-{
-  return E1BSprofileVariants;
 }
 

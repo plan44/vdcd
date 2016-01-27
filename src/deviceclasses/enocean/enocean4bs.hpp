@@ -25,51 +25,11 @@
 #include "vdcd_common.hpp"
 
 #include "enoceandevice.hpp"
+#include "enoceansensorhandler.hpp"
 
 using namespace std;
 
 namespace p44 {
-
-
-  /// single EnOcean device channel
-  class Enocean4bsHandler : public EnoceanChannelHandler
-  {
-    typedef EnoceanChannelHandler inherited;
-
-  protected:
-
-    /// protected constructor
-    /// @note create new channels using factory static methods of specialized subclasses
-    Enocean4bsHandler(EnoceanDevice &aDevice) : inherited(aDevice) {};
-
-  public:
-
-    /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
-    /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
-    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
-    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
-    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
-    /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aSendTeachInResponse enable sending teach-in response for this device
-    /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
-    static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
-      EnoceanAddress aAddress,
-      EnoceanSubDevice &aSubDeviceIndex,
-      EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      bool aSendTeachInResponse
-    );
-
-    /// prepare aOutgoingPacket for sending 4BS data.
-    /// creates new packet if none passed in, and returns already collected data
-    /// @param aOutgoingPacket existing packet will be used, if NULL, new packet will be created
-    /// @param a4BSdata will be set to already collected 4BS data (from already consulted channels or device global bits like LRN)
-    void prepare4BSpacket(Esp3PacketPtr &aOutgoingPacket, uint32_t &a4BSdata);
-
-  };
-  typedef boost::intrusive_ptr<Enocean4bsHandler> Enocean4bsHandlerPtr;
-
 
 
   class Enocean4BSDevice : public EnoceanDevice
@@ -93,32 +53,12 @@ namespace p44 {
     /// @return NULL or pointer to a list of profile variants
     virtual const ProfileVariantEntry *profileVariantsTable();
 
-  };
-
-
-  #pragma mark - handler implementations
-
-
-  /// generic, table driven sensor channel handler
-  struct Enocean4BSSensorDescriptor;
-  class Enocean4bsSensorHandler : public Enocean4bsHandler
-  {
-    typedef Enocean4bsHandler inherited;
-
-    /// private constructor, friend class' Enocean4bsHandler::newDevice is the place to call it from
-    Enocean4bsSensorHandler(EnoceanDevice &aDevice);
-
-  public:
-
-    /// the sensor channel descriptor
-    const Enocean4BSSensorDescriptor *sensorChannelDescriptorP;
-
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
     ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
-    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
+    /// @param aEEProfile RORG/FUNC/TYPE EEP profile number
     /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
@@ -127,49 +67,23 @@ namespace p44 {
       EnoceanAddress aAddress,
       EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      bool aNeedsTeachInResponse
+      bool aSendTeachInResponse
     );
 
-
-    /// factory: add sensor/binary input channel to device by descriptor
-    /// @param aDevice the device to add the channel to
-    /// @param aSensorDescriptor a sensor or binary input descriptor
-    /// @param aSetDeviceDescription if set, this sensor channel is the "main" channel and will set description on the device itself
-    static void addSensorChannel(
-      EnoceanDevicePtr aDevice,
-      const Enocean4BSSensorDescriptor &aSensorDescriptor,
-      bool aSetDeviceDescription
-    );
-
-    /// factory: create behaviour (sensor/binary input) by descriptor
-    /// @param aDevice the device to add the behaviour to
-    /// @param aSensorDescriptor a sensor or binary input descriptor
-    /// @return the behaviour
-    static DsBehaviourPtr newSensorBehaviour(const Enocean4BSSensorDescriptor &aSensorDescriptor, DevicePtr aDevice);
-
-    /// utility: get description string from sensor descriptor info
-    static string sensorDesc(const Enocean4BSSensorDescriptor &aSensorDescriptor);
-
-    /// handle radio packet related to this channel
-    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
-    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr);
-
-    /// check if channel is alive = has received life sign within timeout window
-    virtual bool isAlive();
-
-    /// short (text without LFs!) description of object, mainly for referencing it in log messages
-    /// @return textual description of object
-    virtual string shortDesc();
+    /// prepare aOutgoingPacket for sending 4BS data.
+    /// creates new packet if none passed in, and returns already collected data
+    /// @param aOutgoingPacket existing packet will be used, if NULL, new packet will be created
+    /// @param a4BSdata will be set to already collected 4BS data (from already consulted channels or device global bits like LRN)
+    static void prepare4BSpacket(Esp3PacketPtr &aOutgoingPacket, uint32_t &a4BSdata);
 
   };
-  typedef boost::intrusive_ptr<Enocean4bsSensorHandler> Enocean4bsSensorHandlerPtr;
+
 
 
   /// heating valve handler
-  class EnoceanA52001Handler : public Enocean4bsHandler
+  class EnoceanA52001Handler : public EnoceanChannelHandler
   {
-    typedef Enocean4bsHandler inherited;
-    friend class Enocean4bsHandler;
+    typedef EnoceanChannelHandler inherited;
 
     enum {
       service_idle,
@@ -220,10 +134,9 @@ namespace p44 {
 
 
   /// heating valve handler
-  class EnoceanA5130XHandler : public Enocean4bsHandler
+  class EnoceanA5130XHandler : public EnoceanChannelHandler
   {
-    typedef Enocean4bsHandler inherited;
-    friend class Enocean4bsHandler;
+    typedef EnoceanChannelHandler inherited;
 
     // behaviours for extra sensors
     // Note: using base class' behaviour pointer for first sensor = dawn sensor

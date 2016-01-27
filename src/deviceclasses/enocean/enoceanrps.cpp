@@ -42,17 +42,32 @@ EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP) :
 }
 
 
-#pragma mark - EnoceanRpsHandler
+static const ProfileVariantEntry RPSprofileVariants[] = {
+  // dual rocker RPS button alternatives
+  { 1, 0x00F602FF, 2, "dual rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
+  { 1, 0x01F602FF, 2, "dual rocker switch (up and down as separate buttons)" },
+  { 1, 0x00F60401, 0, "key card activated switch ERP1" },
+  { 1, 0x00F60402, 0, "key card activated switch ERP2" },
+  { 1, 0x00F604C0, 0, "key card activated switch FKC/FKF" },
+  { 1, 0x00F60501, 0, "Liquid Leakage detector" },
+  { 1, 0x00F605C0, 0, "Smoke detector FRW/GUARD" },
+  // quad rocker RPS button alternatives
+  { 2, 0x00F603FF, 2, "quad rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
+  { 2, 0x01F603FF, 2, "quad rocker switch (up and down as separate buttons)" },
+  { 0, 0, 0, NULL } // terminator
+};
 
-EnoceanRpsHandler::EnoceanRpsHandler(EnoceanDevice &aDevice) :
-  inherited(aDevice)
+
+const ProfileVariantEntry *EnoceanRPSDevice::profileVariantsTable()
 {
+  return RPSprofileVariants;
 }
+
 
 #define PRELIMINARY_WINDOWHANDLE_MAPPING 0 // if set, old window handle mapping with two binary inputs will be used
 
 
-EnoceanDevicePtr EnoceanRpsHandler::newDevice(
+EnoceanDevicePtr EnoceanRPSDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
@@ -600,33 +615,6 @@ void EnoceanRpsLeakageDetectorHandler::handleRadioPacket(Esp3PacketPtr aEsp3Pack
 string EnoceanRpsLeakageDetectorHandler::shortDesc()
 {
   return "Leakage Detector";
-}
-
-
-
-
-#pragma mark - EnoceanRPSDevice profile variants
-
-
-static const ProfileVariantEntry RPSprofileVariants[] = {
-  // dual rocker RPS button alternatives
-  { 1, 0x00F602FF, 2, "dual rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
-  { 1, 0x01F602FF, 2, "dual rocker switch (up and down as separate buttons)" },
-  { 1, 0x00F60401, 0, "key card activated switch ERP1" },
-  { 1, 0x00F60402, 0, "key card activated switch ERP2" },
-  { 1, 0x00F604C0, 0, "key card activated switch FKC/FKF" },
-  { 1, 0x00F60501, 0, "Liquid Leakage detector" },
-  { 1, 0x00F605C0, 0, "Smoke detector FRW/GUARD" },
-  // quad rocker RPS button alternatives
-  { 2, 0x00F603FF, 2, "quad rocker switch (as 2-way rockers)" }, // rocker switches affect 2 indices (of which odd one does not exist in 2-way mode)
-  { 2, 0x01F603FF, 2, "quad rocker switch (up and down as separate buttons)" },
-  { 0, 0, 0, NULL } // terminator
-};
-
-
-const ProfileVariantEntry *EnoceanRPSDevice::profileVariantsTable()
-{
-  return RPSprofileVariants;
 }
 
 

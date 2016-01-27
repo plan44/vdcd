@@ -31,17 +31,24 @@ using namespace std;
 
 namespace p44 {
 
-  /// single EnOcean device channel
-  class EnoceanRpsHandler : public EnoceanChannelHandler
-  {
-    typedef EnoceanChannelHandler inherited;
 
-  protected:
-  
-    /// private constructor, create new channels using factory static method
-    EnoceanRpsHandler(EnoceanDevice &aDevice);
+  class EnoceanRPSDevice : public EnoceanDevice
+  {
+    typedef EnoceanDevice inherited;
 
   public:
+
+    /// constructor
+    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP);
+
+    /// device type identifier
+		/// @return constant identifier for this type of device (one container might contain more than one type)
+    virtual const char *deviceTypeIdentifier() { return "enocean_rps"; };
+
+    /// get table of profile variants
+    /// @return NULL or pointer to a list of profile variants
+    virtual const ProfileVariantEntry *profileVariantsTable();
+
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aClassContainerP the class container
@@ -60,19 +67,15 @@ namespace p44 {
       bool aNeedsTeachInResponse
     );
 
-    /// handle radio packet related to this channel
-    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
-    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) = 0;
-
   };
-  typedef boost::intrusive_ptr<EnoceanRpsHandler> EnoceanRpsHandlerPtr;
+
 
 
   /// single EnOcean button channel
-  class EnoceanRpsButtonHandler : public EnoceanRpsHandler
+  class EnoceanRpsButtonHandler : public EnoceanChannelHandler
   {
-    typedef EnoceanRpsHandler inherited;
-    friend class EnoceanRpsHandler;
+    typedef EnoceanChannelHandler inherited;
+    friend class EnoceanRPSDevice;
 
     /// private constructor, create new channels using factory static method
     EnoceanRpsButtonHandler(EnoceanDevice &aDevice);
@@ -90,7 +93,6 @@ namespace p44 {
     /// @return textual description of object
     virtual string shortDesc();
     
-  private:
     void setButtonState(bool aPressed);
     
   };
@@ -98,10 +100,10 @@ namespace p44 {
 
 
   /// single EnOcean window handle channel
-  class EnoceanRpsWindowHandleHandler : public EnoceanRpsHandler
+  class EnoceanRpsWindowHandleHandler : public EnoceanChannelHandler
   {
-    typedef EnoceanRpsHandler inherited;
-    friend class EnoceanRpsHandler;
+    typedef EnoceanChannelHandler inherited;
+    friend class EnoceanRPSDevice;
 
     /// private constructor, create new channels using factory static method
     EnoceanRpsWindowHandleHandler(EnoceanDevice &aDevice);
@@ -126,10 +128,10 @@ namespace p44 {
 
 
   /// single EnOcean key card switch handler
-  class EnoceanRpsCardKeyHandler : public EnoceanRpsHandler
+  class EnoceanRpsCardKeyHandler : public EnoceanChannelHandler
   {
-    typedef EnoceanRpsHandler inherited;
-    friend class EnoceanRpsHandler;
+    typedef EnoceanChannelHandler inherited;
+    friend class EnoceanRPSDevice;
 
     bool isServiceCardDetector; ///< set if this represents the service card detector (otherwise, it's the card inserted status)
 
@@ -150,10 +152,10 @@ namespace p44 {
 
 
   /// single EnOcean smoke detector handler
-  class EnoceanRpsSmokeDetectorHandler : public EnoceanRpsHandler
+  class EnoceanRpsSmokeDetectorHandler : public EnoceanChannelHandler
   {
-    typedef EnoceanRpsHandler inherited;
-    friend class EnoceanRpsHandler;
+    typedef EnoceanChannelHandler inherited;
+    friend class EnoceanRPSDevice;
 
     bool isBatteryStatus; ///< set if this represents the battery status (otherwise, it's the alarm status)
 
@@ -173,10 +175,10 @@ namespace p44 {
 
 
   /// single EnOcean liquid leakage detector handler
-  class EnoceanRpsLeakageDetectorHandler : public EnoceanRpsHandler
+  class EnoceanRpsLeakageDetectorHandler : public EnoceanChannelHandler
   {
-    typedef EnoceanRpsHandler inherited;
-    friend class EnoceanRpsHandler;
+    typedef EnoceanChannelHandler inherited;
+    friend class EnoceanRPSDevice;
 
     /// private constructor, create new channels using factory static method
     EnoceanRpsLeakageDetectorHandler(EnoceanDevice &aDevice);
@@ -191,30 +193,6 @@ namespace p44 {
 
   };
   typedef boost::intrusive_ptr<EnoceanRpsLeakageDetectorHandler> EnoceanRpsLeakageDetectorHandlerPtr;
-
-
-
-
-
-  class EnoceanRPSDevice : public EnoceanDevice
-  {
-    typedef EnoceanDevice inherited;
-
-  public:
-
-    /// constructor
-    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP);
-
-    /// device type identifier
-		/// @return constant identifier for this type of device (one container might contain more than one type)
-    virtual const char *deviceTypeIdentifier() { return "enocean_rps"; };
-
-    /// get table of profile variants
-    /// @return NULL or pointer to a list of profile variants
-    virtual const ProfileVariantEntry *profileVariantsTable();
-
-  };
-
 
 
 }

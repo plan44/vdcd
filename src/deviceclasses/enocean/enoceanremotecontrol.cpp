@@ -115,13 +115,7 @@ void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
 
 
 
-EnoceanRemoteControlHandler::EnoceanRemoteControlHandler(EnoceanDevice &aDevice) :
-  inherited(aDevice)
-{
-}
-
-
-EnoceanDevicePtr EnoceanRemoteControlHandler::newDevice(
+EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,

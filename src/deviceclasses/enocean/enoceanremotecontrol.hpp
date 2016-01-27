@@ -39,43 +39,6 @@ namespace p44 {
   #define PSEUDO_TYPE_ON_OFF 0xFD // simple relay switched on by key up and switched off by key down
   #define PSEUDO_TYPE_SWITCHED_LIGHT 0xFC // switched light (with full light behaviour)
 
-  /// remote control type channel (using base id to communicate with actor)
-  class EnoceanRemoteControlHandler : public EnoceanChannelHandler
-  {
-    typedef EnoceanChannelHandler inherited;
-
-  protected:
-  
-    /// private constructor, create new channels using factory static method
-    EnoceanRemoteControlHandler(EnoceanDevice &aDevice);
-
-  public:
-
-    /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
-    /// @param aClassContainerP the class container
-    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
-    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
-    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
-    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
-    /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
-    /// @param aSendTeachInResponse enable sending teach-in response for this device
-    /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
-    static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
-      EnoceanAddress aAddress,
-      EnoceanSubDevice &aSubDeviceIndex,
-      EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-      bool aNeedsTeachInResponse
-    );
-
-    /// handle radio packet related to this channel
-    /// @param aEsp3PacketPtr the radio packet to analyze and extract channel related information
-    virtual void handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr) { /* no responses by default */ };
-
-  };
-  typedef boost::intrusive_ptr<EnoceanRemoteControlHandler> EnoceanRemoteControlHandlerPtr;
-
-
 
   class EnoceanRemoteControlDevice : public EnoceanDevice
   {
@@ -100,6 +63,23 @@ namespace p44 {
     /// mark base offsets in use by this device
     /// @param aUsedOffsetsMap must be passed a string with 128 chars of '0' or '1'.
     virtual void markUsedBaseOffsets(string &aUsedOffsetsMap);
+
+    /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
+    /// @param aClassContainerP the class container
+    /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
+    ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
+    ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
+    /// @param aEEProfile VARIANT/RORG/FUNC/TYPE EEP profile number
+    /// @param aEEManufacturer manufacturer number (or manufacturer_unknown)
+    /// @param aSendTeachInResponse enable sending teach-in response for this device
+    /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
+    static EnoceanDevicePtr newDevice(
+      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanAddress aAddress,
+      EnoceanSubDevice &aSubDeviceIndex,
+      EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
+      bool aNeedsTeachInResponse
+    );
 
   protected:
 
@@ -142,8 +122,6 @@ namespace p44 {
     void sendReleaseTelegram(SimpleCB aDoneCB, bool aUp);
 
   };
-
-
 
 
   class EnoceanBlindControlDevice : public EnoceanRemoteControlDevice

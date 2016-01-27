@@ -30,278 +30,75 @@
 
 using namespace p44;
 
-/// enocean bit specification to bit number macro
-#define DB(byte,bit) (byte*8+bit)
-/// enocean bit specification to bit mask macro
-#define DBMASK(byte,bit) ((uint32_t)1<<DB(byte,bit))
 
-
-#pragma mark - Enocean4BSDevice
-
-
-Enocean4BSDevice::Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
-{
-}
-
-
-
-void Enocean4BSDevice::sendTeachInResponse()
-{
-  Esp3PacketPtr responsePacket = Esp3PacketPtr(new Esp3Packet);
-  responsePacket->initForRorg(rorg_4BS);
-  // TODO: implement other 4BS teach-in variants
-  if (EEP_FUNC(getEEProfile())==0x20) {
-    // A5-20-xx, just mirror back the learn request's EEP
-    responsePacket->set4BSTeachInEEP(getEEProfile());
-    // Note: manufacturer not set for now (is 0)
-    // Set learn response flags
-    //               D[3]
-    //   7   6   5   4   3   2   1   0
-    //
-    //  LRN EEP LRN LRN LRN  x   x   x
-    //  typ res res sta bit
-    responsePacket->radioUserData()[3] =
-      (1<<7) | // LRN type = 1=with EEP
-      (1<<6) | // 1=EEP is supported
-      (1<<5) | // 1=sender ID stored
-      (1<<4) | // 1=is LRN response
-      (0<<3); // 0=is LRN packet
-    // set destination
-    responsePacket->setRadioDestination(getAddress());
-    // now send
-    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", EEP_PURE(getEEProfile()));
-    getEnoceanDeviceContainer().enoceanComm.sendCommand(responsePacket, NULL);
-  }
-}
-
-
-
-#pragma mark - Enocean4BSHandler
-
-
-// static factory method
-EnoceanDevicePtr Enocean4bsHandler::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
-  EnoceanAddress aAddress,
-  EnoceanSubDevice &aSubDeviceIndex,
-  EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
-  bool aSendTeachInResponse
-) {
-  EnoceanDevicePtr newDev; // none so far
-  // check for specialized handlers for certain profiles first
-  if (EEP_PURE(aEEProfile)==0xA52001) {
-    // Note: Profile has variants (with and without temperature sensor)
-    // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
-    newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
-  }
-  else if (aEEProfile==0xA51301) {
-    // use specialized handler for multi-telegram sensor
-    newDev = EnoceanA5130XHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
-  }
-  else {
-    // check table based sensors, might create more than one device
-    newDev = Enocean4bsSensorHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
-  }
-  return newDev;
-}
-
-
-void Enocean4bsHandler::prepare4BSpacket(Esp3PacketPtr &aOutgoingPacket, uint32_t &a4BSdata)
-{
-  if (!aOutgoingPacket) {
-    aOutgoingPacket = Esp3PacketPtr(new Esp3Packet());
-    aOutgoingPacket->initForRorg(rorg_4BS);
-    // new packet, start with zero data except for LRN bit (D0.3) which must be set for ALL non-learn data
-    a4BSdata = LRN_BIT_MASK;
-  }
-  else {
-    // packet exists, get already collected data to modify
-    a4BSdata = aOutgoingPacket->get4BSdata();
-  }
-}
-
-
-
-#pragma mark - generic table driven sensor handler
-
-
-
-
-namespace p44 {
-
-  struct Enocean4BSSensorDescriptor;
-
-  /// decoder function
-  /// @param aDescriptor descriptor for data to extract
-  /// @param a4BSdata the 4BS data as 32-bit value, MSB=enocean DB_3, LSB=enocean DB_0
-  typedef void (*BitFieldHandlerFunc)(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata);
-
-
-  /// enocean sensor value descriptor
-  typedef struct Enocean4BSSensorDescriptor {
-    uint8_t variant; ///< the variant from the EEP signature
-    uint8_t func; ///< the function code from the EPP signature
-    uint8_t type; ///< the type code from the EPP signature
-    uint8_t subDevice; ///< subdevice index, in case EnOcean device needs to be split into multiple logical vdSDs
-    DsGroup primaryGroup; ///< the dS group for the entire device
-    DsGroup channelGroup; ///< the dS group for this channel
-    BehaviourType behaviourType; ///< the behaviour type
-    uint8_t behaviourParam; ///< DsSensorType, DsBinaryInputType or DsOutputFunction resp., depending on behaviourType
-    DsUsageHint usage; ///< usage hint
-    float min; ///< min value
-    float max; ///< max value
-    uint8_t msBit; ///< most significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
-    uint8_t lsBit; ///< least significant bit of sensor value field in 4BS 32-bit word (31=Bit7 of DB_3, 0=Bit0 of DB_0)
-    double updateInterval; ///< normal update interval (average time resolution) in seconds
-    double aliveSignInterval; ///< maximum interval between two reports of a sensor. If sensor does not push a value for longer than that, it should be considered out-of-order
-    BitFieldHandlerFunc bitFieldHandler; ///< function used to convert between bit field in 4BS telegram and engineering value for the behaviour
-    const char *typeText;
-    const char *unitText;
-  } Enocean4BSSensorDescriptor;
-
-} // namespace p44
-
-
-#pragma mark - bit field handlers for Enocean4bsSensorHandler
-
-/// standard bitfield extractor function for sensor behaviours (read only)
-static void stdSensorHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
-{
-  if (!aForSend) {
-    uint32_t value = a4BSdata>>aSensorDescriptor.lsBit;
-    int numBits = aSensorDescriptor.msBit-aSensorDescriptor.lsBit+1;
-    long mask = (1l<<numBits)-1;
-    value &= mask;
-    // now pass to behaviour
-    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour);
-    if (sb) {
-      sb->updateEngineeringValue(value);
-    }
-  }
-}
-
-/// inverted bitfield extractor function
-static void invSensorHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
-{
-  if (!aForSend) {
-    uint32_t data = ~a4BSdata;
-    stdSensorHandler(aSensorDescriptor, aBehaviour, false, data);
-  }
-}
-
+#pragma mark - special extraction functions
 
 /// two-range illumination handler, as used in A5-06-01 and A5-06-02
-static void illumHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
+static void illumHandler(const struct EnoceanSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, uint8_t *aDataP, int aDataSize)
 {
-  uint32_t data = 0;
-  if (!aForSend) {
-    // actual data comes in:
-    //  DB(0,0)==0 -> in DB(2), real 9-bit value is DB(2)
-    //  DB(0,0)==1 -> in DB(1), real 9-bit value is DB(1)*2
-    // Convert this to an always 9-bit value in DB(2,0)..DB(1,0)
-    if (a4BSdata % 0x01) {
-      // DB(0,0)==1: put DB(2) into DB(1,7)..DB(1,0)
-      data = (a4BSdata>>8) & 0x0000FF00; // normal range, full resolution
+  uint16_t value;
+  // actual data comes in:
+  //  DB(0,0)==0 -> in DB(2), real 9-bit value is DB(2)
+  //  DB(0,0)==1 -> in DB(1), real 9-bit value is DB(1)*2
+  if (aDataSize<4) return;
+  if (aDataP[3-0] & 0x01) {
+    // DB(0,0)==1: DB 2 contains low range / higher resolution
+    value = aDataP[3-2]; // use as 9 bit value as-is
+  }
+  else {
+    // DB(0,0)==0: DB 1 contains high range / lower resolution
+    value = aDataP[3-1]<<1; // multiply by 2 to use as 9 bit value
+  }
+  if (SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour)) {
+    sb->updateEngineeringValue(value);
+  }
+}
+
+/// power meter data extraction handler
+static void powerMeterHandler(const struct EnoceanSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, uint8_t *aDataP, int aDataSize)
+{
+  // raw value is in DB3.7..DB1.0 (upper 24 bits)
+  uint32_t value =
+  (aDataP[0]<<16) +
+  (aDataP[1]<<8) +
+  aDataP[2];
+  // scaling is in bits DB0.1 and DB0.0 : 00=scale1, 01=scale10, 10=scale100, 11=scale1000
+  int divisor = 1;
+  switch (aDataP[3] & 0x03) {
+    case 1: divisor = 10; break; // value scale is 0.1kWh or 0.1W per LSB
+    case 2: divisor = 100; break; // value scale is 0.01kWh or 0.01W per LSB
+    case 3: divisor = 1000; break; // value scale is 0.001kWh (1Wh) or 0.001W (1mW) per LSB
+  }
+  if (SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour)) {
+    // DB0.2 signals which value it is: 0=cumulative (energy), 1=current value (power)
+    if (aDataP[3] & 0x04) {
+      // power
+      if (sb->getSensorType()==sensorType_power) {
+        // we're being called for power, and data is power -> update
+        sb->updateSensorValue((double)value/divisor);
+      }
     }
     else {
-      // DB(0,0)==1: put DB(1) into DB(2,0)..DB(1,1)
-      data = (a4BSdata<<1) & 0x0001FE00; // double range, half resolution
-    }
-    stdSensorHandler(aSensorDescriptor, aBehaviour, false, data);
-  }
-}
-
-
-static void powerMeterHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
-{
-  if (!aForSend) {
-    // raw value is in DB3.7..DB1.0 (upper 24 bits)
-    uint32_t value = a4BSdata>>8;
-    // scaling is in bits DB0.1 and DB0.0 : 00=scale1, 01=scale10, 10=scale100, 11=scale1000
-    int divisor = 1;
-    switch (a4BSdata & 0x03) {
-      case 1: divisor = 10; break; // value scale is 0.1kWh or 0.1W per LSB
-      case 2: divisor = 100; break; // value scale is 0.01kWh or 0.01W per LSB
-      case 3: divisor = 1000; break; // value scale is 0.001kWh (1Wh) or 0.001W (1mW) per LSB
-    }
-    SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour);
-    if (sb) {
-      // DB0.2 signals which value it is: 0=cumulative (energy), 1=current value (power)
-      if (a4BSdata & 0x04) {
-        // power
-        if (sb->getSensorType()==sensorType_power) {
-          // we're being called for power, and data is power -> update
-          sb->updateSensorValue((double)value/divisor);
-        }
-      }
-      else {
-        // energy
-        if (sb->getSensorType()==sensorType_energy) {
-          // we're being called for energy, and data is energy -> update
-          sb->updateSensorValue((double)value/divisor);
-        }
+      // energy
+      if (sb->getSensorType()==sensorType_energy) {
+        // we're being called for energy, and data is energy -> update
+        sb->updateSensorValue((double)value/divisor);
       }
     }
   }
 }
 
 
+#pragma mark - sensor mapping table for generic EnoceanSensorHandler
 
-/// standard binary input handler
-static void stdInputHandler(const struct Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
-{
-  // read only
-  if (!aForSend) {
-    bool newRawState = (a4BSdata>>aSensorDescriptor.lsBit) & 0x01;
-    bool newState;
-    if (newRawState)
-      newState = (bool)aSensorDescriptor.max; // true: report value for max
-    else
-      newState = (bool)aSensorDescriptor.min; // false: report value for min
-    // now pass to behaviour
-    BinaryInputBehaviourPtr bb = boost::dynamic_pointer_cast<BinaryInputBehaviour>(aBehaviour);
-    if (bb) {
-      bb->updateInputState(newState);
-    }
-  }
-}
+using namespace EnoceanSensors;
 
-
-
-#pragma mark - sensor mapping table for Enocean4bsSensorHandler
-
-
-static const char *tempText = "Temperature";
-static const char *tempSetPt = "Temperature Set Point";
-static const char *tempUnit = "°C";
-
-static const char *humText = "Humidity";
-static const char *humUnit = "%";
-
-static const char *illumText = "Illumination";
-static const char *illumUnit = "lx";
-
-static const char *occupText = "Occupancy";
-
-static const char *motionText = "Motion";
-
-static const char *unityUnit = "units"; // undefined unit, but not just 0/1 (binary)
-
-static const char *binaryUnit = ""; // binary, only 0 or 1
-
-static const char *setPointText = "Set Point";
-static const char *fanSpeedText = "Fan Speed";
-static const char *dayNightText = "Day/Night";
-static const char *contactText = "Contact";
-
-
-
-static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
+const p44::EnoceanSensorDescriptor enocean4BSdescriptors[] = {
   // variant,func,type, SD,primarygroup,  channelGroup,                  behaviourType,         behaviourParam,         usage,              min,  max,MSB,     LSB,  updateIv,aliveSignIv, handler,     typeText, unitText
   // A5-02-xx: Temperature sensors
   // - 40 degree range                 behaviour_binaryinput
   { 0, 0x02, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_undefined,   -40,    0, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
+
   { 0, 0x02, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_undefined,   -30,   10, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
   { 0, 0x02, 0x03, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_undefined,   -20,   20, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
   { 0, 0x02, 0x04, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,        -10,   30, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler,  tempText, tempUnit },
@@ -475,10 +272,10 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
   { 0, 0x10, 0x17, 0, group_blue_heating, group_black_joker,             behaviour_binaryinput, binInpType_presence,    usage_user,          1,    0, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
 
   // A5-10-18..1F seem quite exotic, and Occupancy enable/button bits are curiously swapped in A5-10-19 compared to all other similar profiles (typo or real?)
-//  // INCOMPLETE: A5-10-18: Room Panel with Temperature Sensor, Temperature set point, fan speed and Occupancy button and disable
-//  { 0, 0x10, 0x18, 0, group_blue_heating, group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1020, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
-//  { 0, 0x10, 0x18, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_user,          0,   40, DB(2,7), DB(2,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
-//  { 0, 0x10, 0x18, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempSetPt, tempUnit },
+  //  // INCOMPLETE: A5-10-18: Room Panel with Temperature Sensor, Temperature set point, fan speed and Occupancy button and disable
+  //  { 0, 0x10, 0x18, 0, group_blue_heating, group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1020, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
+  //  { 0, 0x10, 0x18, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_user,          0,   40, DB(2,7), DB(2,0), 100, 40*60, &invSensorHandler, tempText, tempUnit },
+  //  { 0, 0x10, 0x18, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0,   40, DB(1,7), DB(1,0), 100, 40*60, &invSensorHandler, tempSetPt, tempUnit },
 
   // A5-10-20 and A5-10-21 (by MSR/Viessmann) are currently too exotic as well, so left off for now
 
@@ -509,210 +306,114 @@ static const p44::Enocean4BSSensorDescriptor enocean4BSdescriptors[] = {
 
 
 
-// helper to make sure handler and its parameter always match
-static void handle4BSBitField(const Enocean4BSSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, bool aForSend, uint32_t &a4BSdata)
+#pragma mark - Enocean4BSDevice
+
+
+Enocean4BSDevice::Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP) :
+  inherited(aClassContainerP)
 {
-  if (aSensorDescriptor.bitFieldHandler) {
-    aSensorDescriptor.bitFieldHandler(aSensorDescriptor, aBehaviour, aForSend, a4BSdata);
+}
+
+
+static const ProfileVariantEntry profileVariants4BS[] = {
+  // dual rocker RPS button alternatives
+  { 1, 0x00A52001, 0, "heating valve" },
+  { 1, 0x01A52001, 0, "heating valve (with temperature sensor)" },
+  { 1, 0x02A52001, 0, "heating valve with binary output adjustment (e.g. MD10-FTL)" },
+  { 2, 0x00A51006, 0, "standard profile" },
+  { 2, 0x01A51006, 0, "set point interpreted as 0..40°C (e.g. FTR55D)" },
+  { 0, 0, 0, NULL } // terminator
+};
+
+
+const ProfileVariantEntry *Enocean4BSDevice::profileVariantsTable()
+{
+  return profileVariants4BS;
+}
+
+
+
+void Enocean4BSDevice::sendTeachInResponse()
+{
+  Esp3PacketPtr responsePacket = Esp3PacketPtr(new Esp3Packet);
+  responsePacket->initForRorg(rorg_4BS);
+  // TODO: implement other 4BS teach-in variants
+  if (EEP_FUNC(getEEProfile())==0x20) {
+    // A5-20-xx, just mirror back the learn request's EEP
+    responsePacket->set4BSTeachInEEP(getEEProfile());
+    // Note: manufacturer not set for now (is 0)
+    // Set learn response flags
+    //               D[3]
+    //   7   6   5   4   3   2   1   0
+    //
+    //  LRN EEP LRN LRN LRN  x   x   x
+    //  typ res res sta bit
+    responsePacket->radioUserData()[3] =
+      (1<<7) | // LRN type = 1=with EEP
+      (1<<6) | // 1=EEP is supported
+      (1<<5) | // 1=sender ID stored
+      (1<<4) | // 1=is LRN response
+      (0<<3); // 0=is LRN packet
+    // set destination
+    responsePacket->setRadioDestination(getAddress());
+    // now send
+    LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", EEP_PURE(getEEProfile()));
+    getEnoceanDeviceContainer().enoceanComm.sendCommand(responsePacket, NULL);
   }
 }
 
 
 
-Enocean4bsSensorHandler::Enocean4bsSensorHandler(EnoceanDevice &aDevice) :
-  inherited(aDevice),
-  sensorChannelDescriptorP(NULL)
+// static device creator function
+EnoceanDevicePtr create4BSDeviceFunc(EnoceanDeviceContainer *aClassContainerP)
 {
-
-}
-
-
-
-#define TIMEOUT_FACTOR_FOR_INACTIVE 4
-
-bool Enocean4bsSensorHandler::isAlive()
-{
-  if (sensorChannelDescriptorP->aliveSignInterval<=0)
-    return true; // no alive sign interval to check, assume alive
-  // check if gotten no message for longer than aliveSignInterval
-  if (MainLoop::now()-device.getLastPacketTime() < sensorChannelDescriptorP->aliveSignInterval*Second*TIMEOUT_FACTOR_FOR_INACTIVE)
-    return true;
-  // timed out
-  return false;
+  return EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
 }
 
 
 // static factory method
-EnoceanDevicePtr Enocean4bsSensorHandler::newDevice(
+EnoceanDevicePtr Enocean4BSDevice::newDevice(
   EnoceanDeviceContainer *aClassContainerP,
   EnoceanAddress aAddress,
-  EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
+  EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
   bool aSendTeachInResponse
 ) {
-  uint8_t variant = EEP_VARIANT(aEEProfile);
-  EepFunc func = EEP_FUNC(aEEProfile);
-  EepType type = EEP_TYPE(aEEProfile);
   EnoceanDevicePtr newDev; // none so far
-
-  // create device from matching with sensor table
-  int numDescriptors = 0; // number of descriptors
-  // Search descriptors for this EEP and for the start of channels for this aSubDeviceIndex (in case sensors in one physical devices are split into multiple vdSDs)
-  const Enocean4BSSensorDescriptor *subdeviceDescP = NULL;
-  const Enocean4BSSensorDescriptor *descP = enocean4BSdescriptors;
-  while (descP->bitFieldHandler!=NULL) {
-    if (descP->variant==variant && descP->func==func && descP->type==type) {
-      // remember if this is the subdevice we are looking for
-      if (descP->subDevice==aSubDeviceIndex) {
-        if (!subdeviceDescP) subdeviceDescP = descP; // remember the first descriptor of this subdevice as starting point for creating handlers below
-        numDescriptors++; // count descriptors for this subdevice as a limit for creating handlers below
-      }
-    }
-    descP++;
+  // check for specialized handlers for certain profiles first
+  if (EEP_PURE(aEEProfile)==0xA52001) {
+    // Note: Profile has variants (with and without temperature sensor)
+    // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
+    newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
-  // Create device and channels
-  bool needsTeachInResponse = false;
-  bool firstDescriptorForDevice = true;
-  while (numDescriptors>0) {
-    // more channels to create for this subdevice number
-    if (!newDev) {
-      // device not yet created, create it now
-      newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
-      // sensor devices don't need scenes
-      newDev->installSettings(); // no scenes
-      // assign channel and address
-      newDev->setAddressingInfo(aAddress, aSubDeviceIndex);
-      // assign EPP information
-      newDev->setEEPInfo(aEEProfile, aEEManufacturer);
-      // first descriptor defines device primary color
-      newDev->setPrimaryGroup(subdeviceDescP->primaryGroup);
-      // count it
-      aSubDeviceIndex++;
-    }
-    // now add the channel
-    addSensorChannel(newDev, *subdeviceDescP, firstDescriptorForDevice);
-    // next descriptor
-    firstDescriptorForDevice = false;
-    subdeviceDescP++;
-    numDescriptors--;
+  else if (aEEProfile==0xA51301) {
+    // use specialized handler for multi-telegram sensor
+    newDev = EnoceanA5130XHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
-  // create the teach-in response if one is required
-  if (newDev && aSendTeachInResponse && needsTeachInResponse) {
-    newDev->sendTeachInResponse();
+  else {
+    // check table based sensors, might create more than one device
+    newDev = EnoceanSensorHandler::newDevice(aClassContainerP, create4BSDeviceFunc, enocean4BSdescriptors, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
-  // return device (or empty if none created)
   return newDev;
 }
 
 
-// static factory method
-void Enocean4bsSensorHandler::addSensorChannel(
-  EnoceanDevicePtr aDevice,
-  const Enocean4BSSensorDescriptor &aSensorDescriptor,
-  bool aSetDeviceDescription
-) {
-  // create channel handler
-  Enocean4bsSensorHandlerPtr newHandler = Enocean4bsSensorHandlerPtr(new Enocean4bsSensorHandler(*aDevice.get()));
-  // assign descriptor
-  newHandler->sensorChannelDescriptorP = &aSensorDescriptor;
-  // create the behaviour
-  newHandler->behaviour = Enocean4bsSensorHandler::newSensorBehaviour(aSensorDescriptor, aDevice);
-  switch (aSensorDescriptor.behaviourType) {
-    case behaviour_sensor: {
-      if (aSetDeviceDescription) {
-        aDevice->setFunctionDesc(string(aSensorDescriptor.typeText) + " sensor");
-        aDevice->setIconInfo("enocean_sensor", true);
-      }
-      break;
-    }
-    case behaviour_binaryinput: {
-      if (aSetDeviceDescription) {
-        aDevice->setFunctionDesc(string(aSensorDescriptor.typeText) + " input");
-      }
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-  // add channel to device
-  aDevice->addChannelHandler(newHandler);
-}
-
-
-
-// static factory method
-DsBehaviourPtr Enocean4bsSensorHandler::newSensorBehaviour(const Enocean4BSSensorDescriptor &aSensorDescriptor, DevicePtr aDevice) {
-  // create the behaviour
-  switch (aSensorDescriptor.behaviourType) {
-    case behaviour_sensor: {
-      SensorBehaviourPtr sb = SensorBehaviourPtr(new SensorBehaviour(*aDevice.get()));
-      int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
-      double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
-      sb->setHardwareSensorConfig((DsSensorType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, aSensorDescriptor.min, aSensorDescriptor.max, resolution, aSensorDescriptor.updateInterval*Second, aSensorDescriptor.aliveSignInterval*Second);
-      sb->setGroup(aSensorDescriptor.channelGroup);
-      sb->setHardwareName(Enocean4bsSensorHandler::sensorDesc(aSensorDescriptor));
-      return sb;
-    }
-    case behaviour_binaryinput: {
-      BinaryInputBehaviourPtr bb = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*aDevice.get()));
-      bb->setHardwareInputConfig((DsBinaryInputType)aSensorDescriptor.behaviourParam, aSensorDescriptor.usage, true, aSensorDescriptor.updateInterval*Second);
-      bb->setGroup(aSensorDescriptor.channelGroup);
-      bb->setHardwareName(Enocean4bsSensorHandler::sensorDesc(aSensorDescriptor));
-      return bb;
-    }
-    default: {
-      break;
-    }
-  }
-  // none
-  return DsBehaviourPtr();
-}
-
-
-
-
-
-// handle incoming data from device and extract data for this channel
-void Enocean4bsSensorHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
+void Enocean4BSDevice::prepare4BSpacket(Esp3PacketPtr &aOutgoingPacket, uint32_t &a4BSdata)
 {
-  if (!aEsp3PacketPtr->radioHasTeachInfo()) {
-    // only look at non-teach-in packets
-    if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
-      // only look at 4BS packets of correct length
-      if (sensorChannelDescriptorP && sensorChannelDescriptorP->bitFieldHandler) {
-        // create 32bit data word
-        uint32_t data = aEsp3PacketPtr->get4BSdata();
-        // call bit field handler, will pass result to behaviour
-        handle4BSBitField(*sensorChannelDescriptorP, behaviour, false, data);
-      }
-    }
-  }
-}
-
-
-string Enocean4bsSensorHandler::shortDesc()
-{
-  return Enocean4bsSensorHandler::sensorDesc(*sensorChannelDescriptorP);
-}
-
-
-string Enocean4bsSensorHandler::sensorDesc(const Enocean4BSSensorDescriptor &aSensorDescriptor)
-{
-  const char *unitText = aSensorDescriptor.unitText;
-  if (unitText==binaryUnit) {
-    // binary input
-    return string_format("%s", aSensorDescriptor.typeText);
+  if (!aOutgoingPacket) {
+    aOutgoingPacket = Esp3PacketPtr(new Esp3Packet());
+    aOutgoingPacket->initForRorg(rorg_4BS);
+    // new packet, start with zero data except for LRN bit (D0.3) which must be set for ALL non-learn data
+    a4BSdata = LRN_BIT_MASK;
   }
   else {
-    // sensor with a value
-    int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
-    double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
-    int fracDigits = (int)(-log(resolution)/log(10)+0.99);
-    if (fracDigits<0) fracDigits=0;
-    return string_format("%s, %0.*f..%0.*f %s", aSensorDescriptor.typeText, fracDigits, aSensorDescriptor.min, fracDigits, aSensorDescriptor.max, unitText);
+    // packet exists, get already collected data to modify
+    a4BSdata = aOutgoingPacket->get4BSdata();
   }
 }
+
+
+
 
 
 
@@ -739,9 +440,9 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   // A5-20-01: heating valve actuator
   // - e.g. thermokon SAB 02 or Kieback+Peter MD15-FTL, MD10-FTL
   // configuration for included sensor channels
-  static const p44::Enocean4BSSensorDescriptor tempSensor =
+  static const p44::EnoceanSensorDescriptor tempSensor =
     { 0, 0x20, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room, 0, 40, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText,      tempUnit };
-  static const p44::Enocean4BSSensorDescriptor lowBatInput =
+  static const p44::EnoceanSensorDescriptor lowBatInput =
     { 0, 0x20, 0x01, 0, group_blue_heating, group_roomtemperature_control, behaviour_binaryinput, binInpType_lowBattery,  usage_room, 1,  0, DB(2,4), DB(2,4), 100, 40*60, &stdInputHandler,  "Low Battery", binaryUnit };
   // create device
   EnoceanDevicePtr newDev; // none so far
@@ -763,15 +464,15 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
     cb->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, 0);
     cb->setHardwareName("valve");
     // - create A5-20-01 specific handler for output
-    Enocean4bsHandlerPtr newHandler = Enocean4bsHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
+    EnoceanChannelHandlerPtr newHandler = EnoceanChannelHandlerPtr(new EnoceanA52001Handler(*newDev.get()));
     newHandler->behaviour = cb;
     newDev->addChannelHandler(newHandler);
     if (EEP_VARIANT(aEEProfile)!=0) {
       // profile variants with valve sensor enabled - add built-in temp sensor
-      Enocean4bsSensorHandler::addSensorChannel(newDev, tempSensor, false);
+      EnoceanSensorHandler::addSensorChannel(newDev, tempSensor, false);
     }
     // report low bat status as a binary input
-    Enocean4bsSensorHandler::addSensorChannel(newDev, lowBatInput, false);
+    EnoceanSensorHandler::addSensorChannel(newDev, lowBatInput, false);
     // A5-20-01 need teach-in response if requested (i.e. if this device creation is caused by learn-in, not reinstantiation from DB)
     if (aSendTeachInResponse) {
       newDev->sendTeachInResponse();
@@ -836,7 +537,7 @@ void EnoceanA52001Handler::collectOutgoingMessageData(Esp3PacketPtr &aEsp3Packet
     ChannelBehaviourPtr ch = cb->getChannelByIndex(dsChannelIndex);
     // prepare 4BS packet (create packet if none created already)
     uint32_t data;
-    prepare4BSpacket(aEsp3PacketPtr, data);
+    Enocean4BSDevice::prepare4BSpacket(aEsp3PacketPtr, data);
     // check for pending service cycle
     if (cb->shouldRunProphylaxis() && serviceState==service_idle) {
       // needs to initiate a prophylaxis cycle (only if not already one running)
@@ -926,22 +627,22 @@ string EnoceanA52001Handler::shortDesc()
 
 // configuration for A5-13-0X sensor channels
 // - A5-13-01 telegram
-static const p44::Enocean4BSSensorDescriptor A513dawnSensor =
+static const p44::EnoceanSensorDescriptor A513dawnSensor =
   { 0, 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 999, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, illumText, illumUnit };
-static const p44::Enocean4BSSensorDescriptor A513outdoorTemp =
+static const p44::EnoceanSensorDescriptor A513outdoorTemp =
   { 0, 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_temperature, usage_outdoors, -40, 80, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit };
-static const p44::Enocean4BSSensorDescriptor A513windSpeed =
+static const p44::EnoceanSensorDescriptor A513windSpeed =
   { 0, 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_wind_speed, usage_outdoors, 0, 70, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, "wind speed", "m/s" };
-static const p44::Enocean4BSSensorDescriptor A513dayIndicator =
+static const p44::EnoceanSensorDescriptor A513dayIndicator =
   { 0, 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_none,  usage_outdoors, 1,  0, DB(0,2), DB(0,2), 100, 40*60, &stdInputHandler,  "Day indicator", binaryUnit };
-static const p44::Enocean4BSSensorDescriptor A513rainIndicator =
+static const p44::EnoceanSensorDescriptor A513rainIndicator =
   { 0, 0x13, 0x01, 0, group_black_joker, group_black_joker, behaviour_binaryinput, binInpType_rain,  usage_outdoors, 0,  1, DB(0,1), DB(0,1), 100, 40*60, &stdInputHandler,  "Rain indicator", binaryUnit };
 // - A5-13-02 telegram
-static const p44::Enocean4BSSensorDescriptor A513sunWest =
+static const p44::EnoceanSensorDescriptor A513sunWest =
   { 0, 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, "Sun west", illumUnit };
-static const p44::Enocean4BSSensorDescriptor A513sunSouth =
+static const p44::EnoceanSensorDescriptor A513sunSouth =
   { 0, 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, "Sun south", illumUnit };
-static const p44::Enocean4BSSensorDescriptor A513sunEast =
+static const p44::EnoceanSensorDescriptor A513sunEast =
   { 0, 0x13, 0x02, 0, group_black_joker, group_black_joker, behaviour_sensor, sensorType_illumination, usage_outdoors, 0, 150000, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, "Sun east", illumUnit };
 
 EnoceanA5130XHandler::EnoceanA5130XHandler(EnoceanDevice &aDevice) :
@@ -978,24 +679,24 @@ EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
     // - create A5-13-0X specific handler (which handles all sensors)
     EnoceanA5130XHandlerPtr newHandler = EnoceanA5130XHandlerPtr(new EnoceanA5130XHandler(*newDev.get()));
     // - Add channel-built-in behaviour
-    newHandler->behaviour = Enocean4bsSensorHandler::newSensorBehaviour(A513dawnSensor, newDev);
+    newHandler->behaviour = EnoceanSensorHandler::newSensorBehaviour(A513dawnSensor, newDev);
     // - register the handler and the default behaviour
     newDev->addChannelHandler(newHandler);
     // - Add extra behaviours for A5-13-01
-    newHandler->outdoorTemp = Enocean4bsSensorHandler::newSensorBehaviour(A513outdoorTemp, newDev);
+    newHandler->outdoorTemp = EnoceanSensorHandler::newSensorBehaviour(A513outdoorTemp, newDev);
     newDev->addBehaviour(newHandler->outdoorTemp);
-    newHandler->windSpeed = Enocean4bsSensorHandler::newSensorBehaviour(A513windSpeed, newDev);
+    newHandler->windSpeed = EnoceanSensorHandler::newSensorBehaviour(A513windSpeed, newDev);
     newDev->addBehaviour(newHandler->windSpeed);
-    newHandler->dayIndicator = Enocean4bsSensorHandler::newSensorBehaviour(A513dayIndicator, newDev);
+    newHandler->dayIndicator = EnoceanSensorHandler::newSensorBehaviour(A513dayIndicator, newDev);
     newDev->addBehaviour(newHandler->dayIndicator);
-    newHandler->rainIndicator = Enocean4bsSensorHandler::newSensorBehaviour(A513rainIndicator, newDev);
+    newHandler->rainIndicator = EnoceanSensorHandler::newSensorBehaviour(A513rainIndicator, newDev);
     newDev->addBehaviour(newHandler->rainIndicator);
     // - Add extra behaviours for A5-13-02
-    newHandler->sunWest = Enocean4bsSensorHandler::newSensorBehaviour(A513sunWest, newDev);
+    newHandler->sunWest = EnoceanSensorHandler::newSensorBehaviour(A513sunWest, newDev);
     newDev->addBehaviour(newHandler->sunWest);
-    newHandler->sunSouth = Enocean4bsSensorHandler::newSensorBehaviour(A513sunSouth, newDev);
+    newHandler->sunSouth = EnoceanSensorHandler::newSensorBehaviour(A513sunSouth, newDev);
     newDev->addBehaviour(newHandler->sunSouth);
-    newHandler->sunEast = Enocean4bsSensorHandler::newSensorBehaviour(A513sunEast, newDev);
+    newHandler->sunEast = EnoceanSensorHandler::newSensorBehaviour(A513sunEast, newDev);
     newDev->addBehaviour(newHandler->sunEast);
     // count it
     aSubDeviceIndex++;
@@ -1011,30 +712,29 @@ void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 {
   if (!aEsp3PacketPtr->radioHasTeachInfo()) {
     // only look at non-teach-in packets
-    if (aEsp3PacketPtr->eepRorg()==rorg_4BS && aEsp3PacketPtr->radioUserDataLength()==4) {
-      // only look at 4BS packets of correct length
-      // - check identifier to see what info we got
-      uint32_t data = aEsp3PacketPtr->get4BSdata();
-      uint8_t identifier = (data>>4) & 0x0F;
-      switch (identifier) {
-        case 1:
-          // A5-13-01
-          handle4BSBitField(A513dawnSensor, behaviour, false, data);
-          handle4BSBitField(A513outdoorTemp, outdoorTemp, false, data);
-          handle4BSBitField(A513windSpeed, windSpeed, false, data);
-          handle4BSBitField(A513dayIndicator, dayIndicator, false, data);
-          handle4BSBitField(A513rainIndicator, rainIndicator, false, data);
-          break;
-        case 2:
-          // A5-13-02
-          handle4BSBitField(A513sunWest, sunWest, false, data);
-          handle4BSBitField(A513sunSouth, sunSouth, false, data);
-          handle4BSBitField(A513sunEast, sunEast, false, data);
-          break;
-        default:
-          // A5-13-03..06 are not supported
-          break;
-      }
+    uint8_t *dataP = aEsp3PacketPtr->radioUserData();
+    int datasize = (int)aEsp3PacketPtr->radioUserDataLength();
+    if (datasize!=4) return; // wrong data size
+    // - check identifier in DB0.7..DB0.4 to see what info we got
+    uint8_t identifier = (dataP[3]>>4) & 0x0F;
+    switch (identifier) {
+      case 1:
+        // A5-13-01
+        handleBitField(A513dawnSensor, behaviour, dataP, datasize);
+        handleBitField(A513outdoorTemp, outdoorTemp, dataP, datasize);
+        handleBitField(A513windSpeed, windSpeed, dataP, datasize);
+        handleBitField(A513dayIndicator, dayIndicator, dataP, datasize);
+        handleBitField(A513rainIndicator, rainIndicator, dataP, datasize);
+        break;
+      case 2:
+        // A5-13-02
+        handleBitField(A513sunWest, sunWest, dataP, datasize);
+        handleBitField(A513sunSouth, sunSouth, dataP, datasize);
+        handleBitField(A513sunEast, sunEast, dataP, datasize);
+        break;
+      default:
+        // A5-13-03..06 are not supported
+        break;
     }
   }
 }
@@ -1044,27 +744,6 @@ void EnoceanA5130XHandler::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr)
 string EnoceanA5130XHandler::shortDesc()
 {
   return string_format("Dawn/Temp/Wind/Rain/Sun outdoor sensor");
-}
-
-
-
-#pragma mark - Enocean4BSDevice profile variants
-
-
-static const ProfileVariantEntry profileVariants4BS[] = {
-  // dual rocker RPS button alternatives
-  { 1, 0x00A52001, 0, "heating valve" },
-  { 1, 0x01A52001, 0, "heating valve (with temperature sensor)" },
-  { 1, 0x02A52001, 0, "heating valve with binary output adjustment (e.g. MD10-FTL)" },
-  { 2, 0x00A51006, 0, "standard profile" },
-  { 2, 0x01A51006, 0, "set point interpreted as 0..40°C (e.g. FTR55D)" },
-  { 0, 0, 0, NULL } // terminator
-};
-
-
-const ProfileVariantEntry *Enocean4BSDevice::profileVariantsTable()
-{
-  return profileVariants4BS;
 }
 
 
