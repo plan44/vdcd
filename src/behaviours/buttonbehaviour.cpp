@@ -51,7 +51,8 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   buttonStateMachineTicket(0),
   callsPresent(false),
   buttonActionMode(buttonActionMode_none),
-  buttonActionId(0)
+  buttonActionId(0),
+  useSimpleStateMachine(false)
 {
   // set default hrdware configuration
   setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false);
@@ -91,7 +92,15 @@ void ButtonBehaviour::buttonAction(bool aPressed)
 {
   BLOG(LOG_NOTICE, "Button[%zu] '%s' was %s", index, hardwareName.c_str(), aPressed ? "pressed" : "released");
   buttonPressed = aPressed; // remember state
-  checkStateMachine(true, MainLoop::now());
+  // check which statemachine to use
+  if (buttonMode==buttonMode_turbo || useSimpleStateMachine) {
+    // use simplified state machine
+    checkSimpleStateMachine(MainLoop::now());
+  }
+  else {
+    // use regular state machine
+    checkStateMachine(true, MainLoop::now());
+  }
 }
 
 
@@ -108,7 +117,7 @@ void ButtonBehaviour::resetStateMachine()
 
 
 
-#if DEBUGFOCUSLOGGING
+#if FOCUSLOGGING
 static const char *stateNames[] = {
   "S0_idle",
   "S1_initialpress",
@@ -130,6 +139,54 @@ static const char *stateNames[] = {
 
 
 
+
+// plan44 "turbo" state machine which can tolerate missing a "press" or a "release" event
+// Note: only to be called when button state changes
+void ButtonBehaviour::checkSimpleStateMachine(MLMicroSeconds aNow)
+{
+  MLMicroSeconds timeSinceRef = aNow-timerRef;
+  timerRef = aNow;
+
+  FOCUSLOG("simple button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
+  // reset click counter if tip timeout has passed since last event
+  if (timeSinceRef>t_tip_timeout) {
+    clickCounter = 0;
+  }
+  // use Idle and Awaitrelease states only to remember previous button state detected
+  bool isTip = false;
+  if (buttonPressed) {
+    // the button was pressed right now
+    // - always count button press as a tip
+    isTip = true;
+    // - state is now Awaitrelease
+    state = S14_awaitrelease;
+  }
+  else {
+    // the button was released right now
+    // - if we haven't seen a press before, assume the press got lost and act on the release
+    if (state==S0_idle) {
+      isTip = true;
+    }
+    // - state is now idle again
+    state = S0_idle;
+  }
+  if (isTip) {
+    if (isLocalButtonEnabled() && clickCounter==0) {
+      // first tip switches local output if local button is enabled
+      localSwitchOutput();
+    }
+    else {
+      // other tips are sent upstream
+      sendClick((DsClickType)(ct_tip_1x+clickCounter));
+      clickCounter++;
+      if (clickCounter>=4) clickCounter = 0; // wrap around
+    }
+  }
+}
+
+
+
+// standard button state machine
 void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
@@ -497,6 +554,7 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
+  useSimpleStateMachine = flags & buttonflag_simpleStateMachine;
   // pass the flags out to subclasses which call this superclass to get the flags (and decode themselves)
   if (aCommonFlagsP) *aCommonFlagsP = flags;
 }
@@ -510,6 +568,7 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   int flags = 0;
   if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
   if (callsPresent) flags |= buttonflag_callsPresent;
+  if (useSimpleStateMachine) flags |= buttonflag_simpleStateMachine;
   // bind the fields
   aStatement.bind(aIndex++, buttonGroup);
   aStatement.bind(aIndex++, buttonMode);
@@ -561,6 +620,7 @@ enum {
   callsPresent_key,
   buttonActionMode_key,
   buttonActionId_key,
+  simpleSM_key,
   numSettingsProperties
 };
 
@@ -577,6 +637,7 @@ const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aP
     { "callsPresent", apivalue_bool, callsPresent_key+settings_key_offset, OKEY(button_key) },
     { "x-p44-buttonActionMode", apivalue_uint64, buttonActionMode_key+settings_key_offset, OKEY(button_key) },
     { "x-p44-buttonActionId", apivalue_uint64, buttonActionId_key+settings_key_offset, OKEY(button_key) },
+    { "x-p44-simpleStateMachine", apivalue_bool, simpleSM_key+settings_key_offset, OKEY(button_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
@@ -653,6 +714,9 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case buttonActionId_key+settings_key_offset:
           aPropValue->setUint8Value(buttonActionId);
           return true;
+        case simpleSM_key+settings_key_offset:
+          aPropValue->setBoolValue(useSimpleStateMachine);
+          return true;
         // States properties
         case value_key+states_key_offset:
           if (lastAction==Never)
@@ -717,6 +781,9 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           return true;
         case buttonActionId_key+settings_key_offset:
           setPVar(buttonActionId, aPropValue->uint8Value());
+          return true;
+        case simpleSM_key+settings_key_offset:
+          setPVar(useSimpleStateMachine, aPropValue->boolValue());
           return true;
       }
     }

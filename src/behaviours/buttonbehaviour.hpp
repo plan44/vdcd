@@ -63,6 +63,7 @@ namespace p44 {
     bool callsPresent; ///< button should call "present" scene
     DsButtonActionMode buttonActionMode; ///< if set, button clicks directly issue action
     uint8_t buttonActionId; ///< action Id (aka scene number) to trigger when button is clicked
+    bool useSimpleStateMachine; ///< if set, simple state machine is used (no dimming, only tips, tolerant to missing a pressed/released event sometimes)
 
     /// @}
 
@@ -151,7 +152,8 @@ namespace p44 {
       buttonflag_firstflag = 0x0001,
       buttonflag_setsLocalPriority = buttonflag_firstflag<<0,
       buttonflag_callsPresent = buttonflag_firstflag<<1,
-      buttonflag_nextflag = buttonflag_firstflag<<2
+      buttonflag_simpleStateMachine = buttonflag_firstflag<<2,
+      buttonflag_nextflag = buttonflag_firstflag<<3
     };
         virtual const char *tableName();
     virtual size_t numFieldDefs();
@@ -205,6 +207,7 @@ namespace p44 {
     bool isOutputOn();
     DsDimMode twoWayDirection();
     void resetStateMachine();
+    void checkSimpleStateMachine(MLMicroSeconds aNow);
     void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
     void localSwitchOutput();
     void localDim(DsDimMode aDirection);

@@ -195,8 +195,8 @@ typedef enum {
 
 /// button mode aka "LTMODE"
 typedef enum {
-  buttonMode_standard = 0,
-  buttonMode_turbo = 1,
+  buttonMode_standard = 0, ///< standard pushbutton with full state machine
+  buttonMode_turbo = 1, ///< only tips, no hold (dimming) or double/triple clicks
   buttonMode_presence = 2,
   buttonMode_switch = 3,
   buttonMode_reserved1 = 4,
