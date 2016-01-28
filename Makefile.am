@@ -256,12 +256,16 @@ vdcd_SOURCES = \
   src/deviceclasses/enocean/enoceandevice.hpp \
   src/deviceclasses/enocean/enoceanremotecontrol.cpp \
   src/deviceclasses/enocean/enoceanremotecontrol.hpp \
+  src/deviceclasses/enocean/enoceansensorhandler.cpp \
+  src/deviceclasses/enocean/enoceansensorhandler.hpp \
   src/deviceclasses/enocean/enoceanrps.cpp \
   src/deviceclasses/enocean/enoceanrps.hpp \
   src/deviceclasses/enocean/enocean4bs.cpp \
   src/deviceclasses/enocean/enocean4bs.hpp \
   src/deviceclasses/enocean/enocean1bs.cpp \
   src/deviceclasses/enocean/enocean1bs.hpp \
+  src/deviceclasses/enocean/enoceanvld.cpp \
+  src/deviceclasses/enocean/enoceanvld.hpp \
   src/deviceclasses/enocean/enoceandevicecontainer.cpp \
   src/deviceclasses/enocean/enoceandevicecontainer.hpp \
   src/deviceclasses/dali/dalicomm.cpp \
