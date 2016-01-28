@@ -328,7 +328,7 @@ void DiscoveryManager::evaluateState()
         // no active session
         if (dmState!=dm_detected_master || !vdsmAuxiliary) {
           // and we haven't detected a master vdsm
-          LOG(LOG_WARNING, "***** Detected no master vdsm, and vdc has no connection -> need auxiliary vdsm");
+          LOG(LOG_WARNING, "***** Detected no master vdsm, and vdc has no connection, or vdsm is not auxiliary -> need local vdsm");
           if (auxVdsmStatusHandler) auxVdsmStatusHandler(true);
         }
       }
