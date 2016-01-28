@@ -224,7 +224,8 @@ void DigitalIODevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
   }
 }
 
-string DigitalIODevice::blindsName() const {
+string DigitalIODevice::blindsName() const
+{
   if (blindsOutputUp && blindsOutputDown) {
     return string_format("%s+%s", blindsOutputUp->getName().c_str(), blindsOutputDown->getName().c_str());
   }
@@ -242,7 +243,7 @@ void DigitalIODevice::deriveDsUid()
   if (buttonInput) { s += ":"; s += buttonInput->getName(); }
   if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }
   if (digitalInput) { s += ":"; s += digitalInput->getName(); }
-  if (digitalio_blind) { s += ":"; s += blindsName(); }
+  if (blindsOutputUp && blindsOutputDown) { s += ":"; s += blindsName(); }
   dSUID.setNameInSpace(s, vdcNamespace);
 }
 
