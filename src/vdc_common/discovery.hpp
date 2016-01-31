@@ -109,8 +109,11 @@ namespace p44 {
     enum {
       dm_starting, // waiting for pusblishing to happen
       dm_started, // published
+      dm_previously_not_detected_master, // in previous scan, we did NOT see a master, and also not (yet) in current scan
+      dm_previously_detected_master, // in previous scan, we did see a master, but not (yet) in current scan
       dm_detected_master, // at least one master vdsm has been detected
       dm_lost_vdsm, // just lost a vdsm, re-discovering what is on the network
+      dm_auxvdsm_needs_change, // need for auxiliary vdsm run state change (needs to be started or stopped)
     } dmState;
 
     long rescanTicket;

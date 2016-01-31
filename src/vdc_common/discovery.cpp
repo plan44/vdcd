@@ -272,14 +272,20 @@ void DiscoveryManager::startServices()
 
 void DiscoveryManager::startBrowsingVdms(AvahiService *aService)
 {
-  // Note: may NOT use global "server" var, because this can be called from within server callback, which might be called before avahi_server_new() returns
+  // Note: may NOT use global "service" var, because this can be called from within server callback, which might be called before avahi_server_new() returns
   // stop previous, if any
   if (serviceBrowser) {
     avahi_service_browser_free(serviceBrowser);
   }
-  serviceBrowser = avahi_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, VDSM_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
+  // demote "vdsm found" state to "vdsm found in last scan"
+  if (dmState==dm_detected_master)
+    dmState = dm_previously_detected_master;
+  else if (dmState==dm_previously_detected_master)
+    dmState = dm_previously_not_detected_master;
+  // start scanning
+  serviceBrowser = avahi_service_browser_new(aService, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, VDSM_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
   if (!serviceBrowser) {
-    LOG(LOG_ERR, "Failed to create service browser for vdsms: %s", avahi_strerror(avahi_service_errno(service)));
+    LOG(LOG_ERR, "Failed to create service browser for vdsms: %s", avahi_strerror(avahi_service_errno(aService)));
   }
   if (auxVdsmDsUid && !auxVdsmRunning) {
     // if no auxiliary vdsm is running now, schedule a check to detect if we've found no master vdsms (otherwise, only FINDING a master is relevant)
@@ -311,13 +317,12 @@ void DiscoveryManager::evaluateState()
     if (auxVdsmRunning) {
       // we have a auxiliary vdsm running and must decide whether to shut it down now
       if (dmState==dm_detected_master) {
+        // most recent scan did detect at least one master vdsm running
         if (vdsmAuxiliary) {
-          // there is indeed a master vdsm in the network, let it take over
+          // our vdsm is auxiliary -> let master vdsm take over
           LOG(LOG_WARNING, "***** Detected master vdsm -> shut down auxiliary vdsm");
           if (auxVdsmStatusHandler) auxVdsmStatusHandler(false);
-        }
-        else {
-          LOG(LOG_WARNING, "***** Detected master vdsm but this vdsm is not auxiliary -> no change");
+          dmState = dm_auxvdsm_needs_change; // prevent re-triggering change
         }
       }
     }
@@ -326,10 +331,11 @@ void DiscoveryManager::evaluateState()
       // - only start auxiliary vdsm if our vdc API is not connected
       if (!deviceContainer->getSessionConnection()) {
         // no active session
-        if (dmState!=dm_detected_master || !vdsmAuxiliary) {
-          // and we haven't detected a master vdsm
+        if ((dmState!=dm_detected_master && dmState!=dm_previously_detected_master && dmState!=dm_auxvdsm_needs_change) || !vdsmAuxiliary) {
+          // ...and we haven't detected a master vdsm recently or our vdsm is not auxiliary (but meant to run all the time)
           LOG(LOG_WARNING, "***** Detected no master vdsm, and vdc has no connection, or vdsm is not auxiliary -> need local vdsm");
           if (auxVdsmStatusHandler) auxVdsmStatusHandler(true);
+          dmState = dm_auxvdsm_needs_change; // prevent re-triggering change
         }
       }
       else {
@@ -654,7 +660,7 @@ void DiscoveryManager::avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfInde
         // Note: local vdsm record (my own) is ignored
         if (strcmp(type, VDSM_SERVICE_TYPE)==0 && (flags & AVAHI_LOOKUP_RESULT_LOCAL)==0) {
           // new vdsm found. Only for vdsms, we need to resolve to get the TXT records in order to see if we've found a master vdsm
-          LOG(LOG_NOTICE, "discovery: vdsm '%s' detected", name);
+          LOG(LOG_INFO, "discovery: vdsm '%s' detected", name);
           // Note: the returned resolver object can be ignored, it is freed in the callback
           //   if the server terminates before the callback has been executes, the server deletes the resolver.
           if (!(avahi_service_resolver_new(service, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, (AvahiLookupFlags)0, resolve_callback, this))) {
@@ -667,8 +673,8 @@ void DiscoveryManager::avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfInde
         LOG(LOG_DEBUG, "avahi: BROWSER_REMOVE: service '%s' of type '%s' in domain '%s'", name, type, domain);
         if (strcmp(type, VDSM_SERVICE_TYPE)==0) {
           // a vdsm has disappeared
-          LOG(LOG_NOTICE, "discovery: vdsm '%s' no longer online", name);
-          // we have lost a vdsm, we need to rescan in a while (unless another master appears in the meantime)
+          LOG(dmState==dm_lost_vdsm ? LOG_INFO : LOG_NOTICE, "discovery: vdsm '%s' no longer online", name);
+          // we have lost a vdsm (but we don't know if it's master) -> we need to rescan in a while (unless another master appears in the meantime)
           dmState = dm_lost_vdsm;
           MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
           rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this, service), VDSM_LOST_RESCAN_DELAY);
@@ -730,7 +736,13 @@ void DiscoveryManager::avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIn
         // is indeed a vdsm
         if (avahi_string_list_find(txt, VDSM_ROLE_MASTER)) {
           // there IS a master vdsm
-          LOG(LOG_NOTICE, "discovery: detected presence of master vdsm '%s' at %s", name, addrtxt);
+          LOG(dmState==dm_detected_master || dmState==dm_previously_detected_master ? LOG_INFO : LOG_NOTICE,
+            "discovery: detected presence of master vdsm '%s' at %s%s",
+            name,
+            addrtxt,
+            vdsmAuxiliary ? "" : " (but this vdsm is NOT auxiliary, so it will always run)"
+          );
+          // fresh confirmation of having at least one master vdsm in the network
           dmState = dm_detected_master;
           evaluateState();
         }
