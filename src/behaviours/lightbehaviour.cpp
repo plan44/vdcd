@@ -347,16 +347,25 @@ Brightness LightBehaviour::PWMToBrightness(double aPWM, double aMaxPWM)
 
 void LightBehaviour::blink(MLMicroSeconds aDuration, LightScenePtr aParamScene, SimpleCB aDoneCB, MLMicroSeconds aBlinkPeriod, int aOnRatioPercent)
 {
-  // save current state in temp scene
+  // prevent current blink from going on further (but do not restore previous state)
+  MainLoop::currentMainLoop().cancelExecutionTicket(blinkTicket);
+  // confirm end of previous blink if any handler was set for that
+  if (blinkDoneHandler) {
+    SimpleCB h = blinkDoneHandler;
+    blinkDoneHandler = NULL;
+    h();
+  }
+  // save new handler now
   blinkDoneHandler = aDoneCB;
+  // check for saving current before-blink state
   SceneDeviceSettingsPtr scenes = device.getScenes();
-  if (scenes) {
-    // device has scenes, get a default scene to capture current state
-    blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(ROOM_OFF)); // main off
+  if (scenes && !blinkRestoreScene) {
+    // device has scenes, and blink not in progress already -> capture current state
+    blinkRestoreScene = boost::dynamic_pointer_cast<LightScene>(device.getScenes()->newDefaultScene(ROOM_OFF)); // main off as template to store state
     captureScene(blinkRestoreScene, false, boost::bind(&LightBehaviour::beforeBlinkStateSavedHandler, this, aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent));
   }
   else {
-    // device has no scenes (some switch outputs don't have scenes)
+    // device has no scenes (some switch outputs don't have scenes), or blink already in progress -> just start blinking
     beforeBlinkStateSavedHandler(aDuration, aParamScene, aBlinkPeriod, aOnRatioPercent);
   }
 }
