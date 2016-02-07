@@ -424,7 +424,7 @@ namespace p44 {
     virtual void performSceneActions(DsScenePtr aScene, SimpleCB aDoneCB);
 
     /// abort any currently ongoing scene action
-    /// @note base class just calls stopActions() on the output
+    /// @note base class just calls stopSceneActions() on the output
     virtual void stopSceneActions();
 
 
