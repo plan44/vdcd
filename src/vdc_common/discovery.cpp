@@ -289,7 +289,7 @@ void DiscoveryManager::startBrowsingVdms(AvahiService *aService)
   }
   if (auxVdsmDsUid && !auxVdsmRunning) {
     // if no auxiliary vdsm is running now, schedule a check to detect if we've found no master vdsms (otherwise, only FINDING a master is relevant)
-    evaluateTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::evaluateState, this), INITIAL_EVALUATION_DELAY);
+    MainLoop::currentMainLoop().executeTicketOnce(evaluateTicket, boost::bind(&DiscoveryManager::evaluateState, this), INITIAL_EVALUATION_DELAY);
   }
   // schedule a rescan now and then
   MainLoop::currentMainLoop().executeTicketOnce(rescanTicket, boost::bind(&DiscoveryManager::rescanVdsms, this, aService), VDSM_RESCAN_DELAY);
@@ -339,7 +339,7 @@ void DiscoveryManager::evaluateState()
       else {
         // as long as we have a connection, apparently a vdsm is taking care, so we don't need the aux vdsm
         // - but check again in a while
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::evaluateState, this), REEVALUATION_DELAY);
+        MainLoop::currentMainLoop().executeTicketOnce(evaluateTicket, boost::bind(&DiscoveryManager::evaluateState, this), REEVALUATION_DELAY);
       }
     }
   }
@@ -744,6 +744,7 @@ void DiscoveryManager::avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIn
           evaluateState();
         }
       }
+      break;
     }
   }
   avahi_service_resolver_free(r);
