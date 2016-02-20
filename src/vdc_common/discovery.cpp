@@ -292,8 +292,7 @@ void DiscoveryManager::startBrowsingVdms(AvahiService *aService)
     evaluateTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::evaluateState, this), INITIAL_EVALUATION_DELAY);
   }
   // schedule a rescan now and then
-  MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
-  rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this, aService), VDSM_RESCAN_DELAY);
+  MainLoop::currentMainLoop().executeTicketOnce(rescanTicket, boost::bind(&DiscoveryManager::rescanVdsms, this, aService), VDSM_RESCAN_DELAY);
 }
 
 
@@ -303,8 +302,7 @@ void DiscoveryManager::rescanVdsms(AvahiService *aService)
   // - restart browsing
   startBrowsingVdms(aService);
   // - schedule an evaluation in a while
-  MainLoop::currentMainLoop().cancelExecutionTicket(evaluateTicket);
-  evaluateTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::evaluateState, this), RESCAN_EVALUATION_DELAY);
+  MainLoop::currentMainLoop().executeTicketOnce(evaluateTicket, boost::bind(&DiscoveryManager::evaluateState, this), RESCAN_EVALUATION_DELAY);
 }
 
 
@@ -676,8 +674,7 @@ void DiscoveryManager::avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfInde
           LOG(dmState==dm_lost_vdsm ? LOG_INFO : LOG_NOTICE, "discovery: vdsm '%s' no longer online", name);
           // we have lost a vdsm (but we don't know if it's master) -> we need to rescan in a while (unless another master appears in the meantime)
           dmState = dm_lost_vdsm;
-          MainLoop::currentMainLoop().cancelExecutionTicket(rescanTicket); // cancel possibly pending overall timeout
-          rescanTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DiscoveryManager::rescanVdsms, this, service), VDSM_LOST_RESCAN_DELAY);
+          MainLoop::currentMainLoop().executeTicketOnce(rescanTicket, boost::bind(&DiscoveryManager::rescanVdsms, this, service), VDSM_LOST_RESCAN_DELAY);
         }
         break;
       case AVAHI_BROWSER_ALL_FOR_NOW:

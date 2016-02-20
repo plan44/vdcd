@@ -804,8 +804,7 @@ void Device::requestApplyingChannels(SimpleCB aAppliedOrSupersededCB, bool aForD
     AFOCUSLOG("ready, calling applyChannelValues()");
     #if SERIALIZER_WATCHDOG
     // - start watchdog
-    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
-    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), 10*Second); // new
+    MainLoop::currentMainLoop().executeTicketOnce(serializerWatchdogTicket, boost::bind(&Device::serializerWatchdog, this), 10*Second); // new
     FOCUSLOG("+++++ Serializer watchdog started for apply with ticket #%ld", serializerWatchdogTicket);
     #endif
     // - start applying
@@ -966,8 +965,7 @@ void Device::requestUpdatingChannels(SimpleCB aUpdatedOrCachedCB)
     updateInProgress = true;
     #if SERIALIZER_WATCHDOG
     // - start watchdog
-    MainLoop::currentMainLoop().cancelExecutionTicket(serializerWatchdogTicket); // cancel old
-    serializerWatchdogTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&Device::serializerWatchdog, this), SERIALIZER_WATCHDOG_TIMEOUT);
+    MainLoop::currentMainLoop().executeTicketOnce(serializerWatchdogTicket, boost::bind(&Device::serializerWatchdog, this), SERIALIZER_WATCHDOG_TIMEOUT);
     FOCUSLOG("+++++ Serializer watchdog started for update with ticket #%ld", serializerWatchdogTicket);
     #endif
     // - trigger querying hardware
