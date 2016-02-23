@@ -48,9 +48,9 @@ VoxnetComm::VoxnetComm() :
 
 VoxnetComm::~VoxnetComm()
 {
-  closeConnection();
+  // do NOT close the connection here, this is done by SocketComm
+  // calling closeConnection() here would cause callbacks referencing the already being destructed object again -> bad
 }
-
 
 #pragma mark - discovery
 
