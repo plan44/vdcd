@@ -36,23 +36,26 @@ using namespace p44;
 /// two-range illumination handler, as used in A5-06-01 and A5-06-02
 static void illumHandler(const struct EnoceanSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, uint8_t *aDataP, int aDataSize)
 {
-  uint16_t value;
+  double value;
   // actual data comes in:
   //  DB(0,0)==0 -> in DB(2), real 9-bit value is DB(2)
   //  DB(0,0)==1 -> in DB(1), real 9-bit value is DB(1)*2
   if (aDataSize<4) return;
   if (aDataP[3-0] & 0x01) {
     // DB(0,0)==1: DB 2 contains low range / higher resolution
-    value = aDataP[3-2]; // use as 9 bit value as-is
+    double res = (aSensorDescriptor.max/2 - aSensorDescriptor.min) / 255.0; // units per LSB, half scale (half max)
+    value = aSensorDescriptor.min + (double)aDataP[3-2]*res;
   }
   else {
     // DB(0,0)==0: DB 1 contains high range / lower resolution
-    value = aDataP[3-1]<<1; // multiply by 2 to use as 9 bit value
+    double res = (aSensorDescriptor.max - aSensorDescriptor.min*2) / 255.0; // units per LSB, full scale
+    value = aSensorDescriptor.min*2 + (double)aDataP[3-1]*res; // starting point is double min!
   }
   if (SensorBehaviourPtr sb = boost::dynamic_pointer_cast<SensorBehaviour>(aBehaviour)) {
-    sb->updateEngineeringValue(value);
+    sb->updateSensorValue(value);
   }
 }
+
 
 /// power meter data extraction handler
 static void powerMeterHandler(const struct EnoceanSensorDescriptor &aSensorDescriptor, DsBehaviourPtr aBehaviour, uint8_t *aDataP, int aDataSize)
@@ -162,8 +165,8 @@ const p44::EnoceanSensorDescriptor enocean4BSdescriptors[] = {
   { 0, 0x04, 0x02, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_outdoors,      0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler,  humText,  humUnit  },
 
   // A5-06-xx: Light Sensor
-  { 0, 0x06, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_outdoors,    600,60000, DB(2,0), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
-  { 0, 0x06, 0x02, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,0), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
+  { 0, 0x06, 0x01, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_outdoors,    300,60000, DB(2,7), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
+  { 0, 0x06, 0x02, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1020, DB(2,7), DB(1,0), 100, 40*60, &illumHandler,     illumText, illumUnit },
   { 0, 0x06, 0x03, 0, group_black_joker,  group_yellow_light,            behaviour_sensor,      sensorType_illumination,usage_room,          0, 1024, DB(2,7), DB(1,6), 100, 40*60, &stdSensorHandler, illumText, illumUnit },
 
   // A5-07-xx: Occupancy Sensor
