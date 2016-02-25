@@ -38,8 +38,8 @@ static void illumHandler(const struct EnoceanSensorDescriptor &aSensorDescriptor
 {
   double value;
   // actual data comes in:
-  //  DB(0,0)==0 -> in DB(2), real 9-bit value is DB(2)
-  //  DB(0,0)==1 -> in DB(1), real 9-bit value is DB(1)*2
+  //  DB(0,0)==0 -> in DB(1), full range / lower resolution
+  //  DB(0,0)==1 -> in DB(2), half range / higher resolution
   if (aDataSize<4) return;
   if (aDataP[3-0] & 0x01) {
     // DB(0,0)==1: DB 2 contains low range / higher resolution

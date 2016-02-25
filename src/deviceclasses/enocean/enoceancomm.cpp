@@ -137,7 +137,7 @@ bool Esp3Packet::isComplete()
 
 
 
-size_t Esp3Packet::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
+size_t Esp3Packet::acceptBytes(size_t aNumBytes, const uint8_t *aBytes, bool aNoChecks)
 {
   size_t replayBytes = 0;
   size_t acceptedBytes = 0;
@@ -176,8 +176,8 @@ size_t Esp3Packet::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
         ++dataIndex;
         if (dataIndex==ESP3_HEADERBYTES) {
           // header including CRC received
-          // - check header CRC now
-          if (header[ESP3_HEADERBYTES-1]!=headerCRC()) {
+          // - check header CRC now (unless disabled)
+          if (!aNoChecks && header[ESP3_HEADERBYTES-1]!=headerCRC()) {
             // CRC mismatch
             // - replay from byte 1 (which could be a sync byte again)
             replayP = header+1; // consider 2nd byte of already received and stored header as potential start
@@ -201,8 +201,8 @@ size_t Esp3Packet::acceptBytes(size_t aNumBytes, uint8_t *aBytes)
         ++dataIndex;
         if (dataIndex==payloadSize) {
           // payload including CRC received
-          // - check payload CRC now
-          if (payloadP[payloadSize-1]!=payloadCRC()) {
+          // - check payload CRC now (unless disabled)
+          if (!aNoChecks && payloadP[payloadSize-1]!=payloadCRC()) {
             // payload CRC mismatch, discard packet, start scanning for packet at next byte
             clear();
           }

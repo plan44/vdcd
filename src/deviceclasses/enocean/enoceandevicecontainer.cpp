@@ -239,6 +239,10 @@ ErrorPtr EnoceanDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const s
     // create a composite device out of existing single-channel ones
     respErr = addProfile(aRequest, aParams);
   }
+  else if (aMethod=="x-p44-simulatePacket") {
+    // simulate reception of a ESP packet
+    respErr = simulatePacket(aRequest, aParams);
+  }
   else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
   }
@@ -307,6 +311,40 @@ ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValueP
 }
 
 
+ErrorPtr EnoceanDeviceContainer::simulatePacket(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+{
+  ErrorPtr respErr;
+  ApiValuePtr o;
+  respErr = checkParam(aParams, "data", o); // ESP packet data, no need for matching CRCs
+  if (Error::isOK(respErr)) {
+    Esp3PacketPtr simPacket = Esp3PacketPtr(new Esp3Packet);
+    // input string is hex bytes, optionally separated by spaces or dashes
+    string dataStr = o->stringValue();
+    string bs = hexToBinaryString(dataStr.c_str(), true);
+    // process with no CRC checks
+    if (simPacket->acceptBytes(bs.size(), (const uint8_t *)bs.c_str(), true)!=bs.size()) {
+      respErr = ErrorPtr(new WebError(400, "Wrong number of bytes in simulated ESP3 packet data"));
+    }
+    else {
+      // process if complete
+      if (simPacket->isComplete()) {
+        LOG(LOG_DEBUG, "Simulated Enocean Packet:\n%s", simPacket->description().c_str());
+        if (simPacket->packetType()==pt_radio) {
+          handleRadioPacket(simPacket, ErrorPtr());
+        }
+        else if (simPacket->packetType()==pt_event_message) {
+          handleEventPacket(simPacket, ErrorPtr());
+        }
+        // done
+        aRequest->sendResult(ApiValuePtr());
+      }
+      else {
+        respErr = ErrorPtr(new WebError(400, "invalid simulated ESP3 packet data"));
+      }
+    }
+  }
+  return respErr;
+}
 
 
 

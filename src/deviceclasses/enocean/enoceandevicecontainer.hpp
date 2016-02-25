@@ -172,7 +172,7 @@ namespace p44 {
     Tristate processLearn(EnoceanAddress aDeviceAddress, EnoceanProfile aEEProfile, EnoceanManufacturer aManufacturer);
 
     ErrorPtr addProfile(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
-
+    ErrorPtr simulatePacket(VdcApiRequestPtr aRequest, ApiValuePtr aParams);
   };
 
 } // namespace p44

@@ -233,8 +233,9 @@ namespace p44 {
     /// swallow bytes until packet is complete
     /// @param aNumBytes number of bytes ready for accepting
     /// @param aBytes pointer to bytes buffer
+    /// @param aNoChecks if set, incoming ESP3 header and data CRCs will not be checked (for simulation)
     /// @return number of bytes operation could accept, 0 if none (means that packet is already complete)
-    size_t acceptBytes(size_t aNumBytes, uint8_t *aBytes);
+    size_t acceptBytes(size_t aNumBytes, const uint8_t *aBytes, bool aNoChecks = false);
 
 
     /// finalize packet to make it ready for sending (complete header fields, calculate CRCs)
