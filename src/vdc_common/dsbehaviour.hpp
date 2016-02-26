@@ -27,6 +27,7 @@
 #include "dsuid.hpp"
 #include "dsdefs.h"
 
+#include "valuesource.hpp"
 #include "dsscene.hpp"
 
 using namespace std;
@@ -91,8 +92,6 @@ namespace p44 {
     /// the index of this behaviour in the device's vector
     size_t index;
 
-  protected:
-
     /// @name behaviour description, constants or variables
     ///   set by device implementations when adding a Behaviour.
     /// @{
@@ -119,7 +118,7 @@ namespace p44 {
     /// @note default is the basic behaviour type name. Subclasses need to override this method to get separate identification!
     virtual const char *behaviourTypeIdentifier() { return getTypeName(); }
 
-    /// initialisation of hardware-specific constants for this button input
+    /// initialisation of hardware-specific constants for this behaviour
     /// @param aHardwareName name to identify this functionality in hardware (like input terminal label, button label or kind etc.)
     /// @note this must be called once before the device gets added to the device container.
     void setHardwareName(const string &aHardwareName) { hardwareName = aHardwareName; };

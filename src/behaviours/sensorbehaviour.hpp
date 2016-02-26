@@ -34,7 +34,7 @@ namespace p44 {
   /// Implements the behaviour of a digitalSTROM Sensor. In particular it manages and throttles
   /// pushing updates to the dS upstream, to avoid jitter in hardware reported values to flood
   /// the system with unneded update messages
-  class SensorBehaviour : public DsBehaviour
+  class SensorBehaviour : public DsBehaviour, public ValueSource
   {
     typedef DsBehaviour inherited;
     friend class Device;
@@ -89,6 +89,7 @@ namespace p44 {
     double getCurrentValue() { return currentValue; };
     double getMax() { return max; };
     double getMin() { return min; };
+    double getResolution() { return resolution; };
 
     /// get sensor type
     /// @return the sensor type
@@ -109,6 +110,23 @@ namespace p44 {
     void updateEngineeringValue(long aEngineeringValue);
 
     /// @}
+
+
+    /// @name ValueSource interface
+    /// @{
+
+    /// get descriptive name identifying the source within the entire vdcd (for using in selection lists)
+    virtual string getSourceName();
+
+    /// get value
+    virtual double getSourceValue() { return getCurrentValue(); };
+
+    /// get age
+    virtual MLMicroSeconds getSourceAge() { return lastUpdate; };
+
+    /// @}
+
+
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object, may contain LFs

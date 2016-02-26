@@ -1163,6 +1163,7 @@ static char vdc_key;
 
 enum {
   vdcs_key,
+  valueSources_key,
   webui_url_key,
   numDeviceContainerProperties
 };
@@ -1183,6 +1184,7 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 {
   static const PropertyDescription properties[numDeviceContainerProperties] = {
     { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
+    { "x-p44-valueSources", apivalue_null, valueSources_key, OKEY(devicecontainer_key) },
     { "configURL", apivalue_string, webui_url_key, OKEY(devicecontainer_key) }
   };
   int n = inherited::numProps(aDomain, aParentDescriptor);
@@ -1235,6 +1237,10 @@ bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
   if (aPropertyDescriptor->hasObjectKey(devicecontainer_key)) {
     if (aMode==access_read) {
       switch (aPropertyDescriptor->fieldKey()) {
+        case valueSources_key:
+          aPropValue->setType(apivalue_object); // make object (incoming object is NULL)
+          createValueSourcesList(aPropValue);
+          return true;
         case webui_url_key:
           aPropValue->setStringValue(webuiURLString());
           return true;
@@ -1244,6 +1250,70 @@ bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
   // not my field, let base class handle it
   return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
 }
+
+
+#pragma mark - value sources
+
+void DeviceContainer::createValueSourcesList(ApiValuePtr aApiObjectValue)
+{
+  // iterate through all devices and all of their sensors and inputs
+  for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
+    DevicePtr dev = pos->second;
+    // Sensors
+    for (BehaviourVector::iterator pos2 = dev->sensors.begin(); pos2!=dev->sensors.end(); ++pos2) {
+      DsBehaviourPtr b = *pos2;
+      ValueSource *vs = dynamic_cast<ValueSource *>(b.get());
+      if (vs) {
+        aApiObjectValue->add(string_format("%s_S%zu",dev->getDsUid().getString().c_str(), b->getIndex()), aApiObjectValue->newString(vs->getSourceName().c_str()));
+      }
+    }
+    // Inputs
+    for (BehaviourVector::iterator pos2 = dev->binaryInputs.begin(); pos2!=dev->binaryInputs.end(); ++pos2) {
+      DsBehaviourPtr b = *pos2;
+      ValueSource *vs = dynamic_cast<ValueSource *>(b.get());
+      if (vs) {
+        aApiObjectValue->add(string_format("%s_I%zu",dev->getDsUid().getString().c_str(), b->getIndex()), aApiObjectValue->newString(vs->getSourceName().c_str()));
+      }
+    }
+  }
+}
+
+
+ValueSource *DeviceContainer::getValueSourceById(string aValueSourceID)
+{
+  ValueSource *valueSource = NULL;
+  // value source ID is
+  //  dSUID:Sx for sensors (x=sensor index)
+  //  dSUID:Ix for inputs (x=input index)
+  // - extract dSUID
+  size_t i = aValueSourceID.find("_");
+  if (i!=string::npos) {
+    DsUid dsuid(aValueSourceID.substr(0,i));
+    DsDeviceMap::iterator pos = dSDevices.find(dsuid);
+    if (pos!=dSDevices.end()) {
+      // is a device
+      DevicePtr dev = pos->second;
+      const char *p = aValueSourceID.c_str()+i+1;
+      if (*p) {
+        char ty = *p++;
+        // scan index
+        int idx = 0;
+        if (sscanf(p, "%d", &idx)==1) {
+          if (ty=='S' && idx<dev->sensors.size()) {
+            // sensor
+            valueSource = dynamic_cast<ValueSource *>(dev->sensors[idx].get());
+          }
+          else if (ty=='I' && idx<dev->binaryInputs.size()) {
+            // input
+            valueSource = dynamic_cast<ValueSource *>(dev->binaryInputs[idx].get());
+          }
+        }
+      }
+    }
+  }
+  return valueSource;
+}
+
 
 
 #pragma mark - persistent vdc host level parameters

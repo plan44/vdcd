@@ -34,6 +34,10 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   StaticDevice((DeviceClassContainer *)aClassContainerP),
   digitalIoType(digitalio_unknown)
 {
+  // Config is:
+  //  <pin(s) specification>:[!]<behaviour mode>
+  //  - where ! before the behaviour mode means inverted operation (in addition to possibly inverted pin specs)
+  //  - where pin specification describes the actual I/Os to be used (see DigitialIO)
   // last : separates behaviour from pin specification
   size_t i = aDeviceConfig.rfind(":");
   string ioname = aDeviceConfig;

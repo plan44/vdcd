@@ -24,6 +24,7 @@
 #include "digitaliodevice.hpp"
 #include "analogiodevice.hpp"
 #include "consoledevice.hpp"
+#include "evaluatordevice.hpp"
 #include "sparkiodevice.hpp"
 #include "elsnerp03weatherstation.hpp"
 
@@ -130,6 +131,10 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
   else if (aDeviceType=="console") {
     // console based simulated device
     newDev = DevicePtr(new ConsoleDevice(this, aDeviceConfig));
+  }
+  else if (aDeviceType=="evaluator") {
+    // virtual input or button evaluating other device's sensor values
+    newDev = DevicePtr(new EvaluatorDevice(this, aDeviceConfig));
   }
   else if (aDeviceType=="spark") {
     // spark core based device

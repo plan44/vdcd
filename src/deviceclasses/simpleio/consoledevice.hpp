@@ -43,6 +43,7 @@ namespace p44 {
       consoleio_button,
       consoleio_rocker,
       consoleio_input,
+      consoleio_sensor,
       consoleio_dimmer,
       consoleio_colordimmer,
       consoleio_valve,
@@ -95,6 +96,7 @@ namespace p44 {
 	private:
 
     void buttonHandler(int aButtonIndex, bool aState, MLMicroSeconds aTimestamp);
+    void sensorHandler(int aButtonIndex, bool aState, MLMicroSeconds aTimestamp);
     void binaryInputHandler(bool aState, MLMicroSeconds aTimeStamp);
     void sensorValueHandler(double aValue, MLMicroSeconds aTimeStamp);
     void sensorJitter(bool aState, MLMicroSeconds aTimeStamp);

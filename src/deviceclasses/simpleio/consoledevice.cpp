@@ -37,6 +37,9 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   StaticDevice((DeviceClassContainer *)aClassContainerP),
   consoleIoType(consoleio_unknown)
 {
+  // Config is:
+  //  <name>:<behaviour type>
+  //  - where first character of name (and possibly next in alphabeth) is also used as console key for inputs
   size_t i = aDeviceConfig.find(":");
   string name = aDeviceConfig;
   if (i!=string::npos) {
@@ -48,6 +51,8 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
       consoleIoType = consoleio_rocker;
     else if (mode=="input")
       consoleIoType = consoleio_input;
+    else if (mode=="sensor")
+      consoleIoType = consoleio_sensor;
     else if (mode=="dimmer")
       consoleIoType = consoleio_dimmer;
     else if (mode=="colordimmer")
@@ -57,6 +62,9 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     else {
       LOG(LOG_ERR, "unknown console IO type: %s", mode.c_str());
     }
+  }
+  else {
+    LOG(LOG_ERR, "missing console IO type");
   }
   // assign name for showing on console and for creating dSUID from
   consoleName = name;
@@ -111,6 +119,21 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
     addBehaviour(b);
+  }
+  else if (consoleIoType==consoleio_sensor) {
+    // Standard device settings without scene table
+    primaryGroup = group_black_joker;
+    installSettings();
+    // Analog sensor value, which can be changed up and down with two keys
+    consoleKey1 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0], name.c_str());
+    consoleKey1->setConsoleKeyHandler(boost::bind(&ConsoleDevice::sensorHandler, this, 0, _1, _2)); // down
+    consoleKey2 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0]+1, name.c_str());
+    consoleKey2->setConsoleKeyHandler(boost::bind(&ConsoleDevice::sensorHandler, this, 1, _1, _2)); // up
+    // - create one sensor input
+    SensorBehaviourPtr s = SensorBehaviourPtr(new SensorBehaviour(*this));
+    s->setHardwareSensorConfig(sensorType_none, usage_undefined, 0, 50, 1, 30*Second, 300*Second);
+    s->setHardwareName("Console simulated Sensor 0..50");
+    addBehaviour(s);
   }
   else if (consoleIoType==consoleio_valve) {
     // simulate heating valve with lo bat (like thermokon SAB02,SAB05 or Kieback+Peter MD15-FTL)
@@ -175,8 +198,9 @@ string ConsoleDevice::modelName()
   string m = "Console ";
   switch (consoleIoType) {
     case consoleio_button: string_format_append(m, "button key:'%c'", consoleKey1->getKeyCode()); break;
-    case consoleio_rocker: string_format_append(m, "rocker keys:'%c'/'%c'", consoleKey1->getKeyCode(), consoleKey2->getKeyCode()+1); break;
+    case consoleio_rocker: string_format_append(m, "rocker keys:'%c'/'%c'", consoleKey1->getKeyCode(), consoleKey2->getKeyCode()); break;
     case consoleio_input: string_format_append(m, "binary input key:'%c'", consoleKey1->getKeyCode()); break;
+    case consoleio_sensor: string_format_append(m, "sensor tunable with keys:'%c'/'%c'", consoleKey1->getKeyCode(), consoleKey2->getKeyCode()); break;
     case consoleio_valve: m += "valve"; break;
     case consoleio_dimmer: m += "dimmer"; break;
     case consoleio_colordimmer: m += "color dimmer"; break;
@@ -193,6 +217,28 @@ void ConsoleDevice::buttonHandler(int aButtonIndex, bool aState, MLMicroSeconds 
 		b->buttonAction(aState);
 	}
 }
+
+
+void ConsoleDevice::sensorHandler(int aButtonIndex, bool aState, MLMicroSeconds aTimestamp)
+{
+  if (aState) {
+    // pressed
+    SensorBehaviourPtr s = boost::dynamic_pointer_cast<SensorBehaviour>(sensors[0]);
+    if (s) {
+      double v = s->getCurrentValue();
+      if (aButtonIndex==0)
+        v -= s->getResolution(); // down
+      else
+        v += s->getResolution(); // down
+      // limit
+      if (v>s->getMax()) v = s->getMax();
+      if (v<s->getMin()) v = s->getMin();
+      // post
+      s->updateSensorValue(v);
+    }
+  }
+}
+
 
 
 
@@ -289,6 +335,10 @@ string ConsoleDevice::description()
     string_format_append(s, "\n- has button which can be switched via console keypresses");
   if (consoleIoType==consoleio_rocker)
     string_format_append(s, "\n- has 2-way-rocker which can be switched via console keypresses");
+  if (consoleIoType==consoleio_input)
+    string_format_append(s, "\n- has binary input can be switched via console keypresses");
+  if (consoleIoType==consoleio_sensor)
+    string_format_append(s, "\n- has sensor input that can be tuned up/down via console keypresses");
   if (consoleIoType==consoleio_valve)
     string_format_append(s, "\n- has valve actuator shown on console, pseudo temperature, battery low via console keypress");
   return s;

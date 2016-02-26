@@ -33,6 +33,10 @@ AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const st
   analogIOType(analogio_unknown),
   transitionTicket(0)
 {
+  // Config is:
+  //  <pin(s) specification>:[<behaviour mode>]
+  //  - where ! before the behaviour mode means inverted operation (in addition to possibly inverted pin specs)
+  //  - where pin specification describes the actual I/Os to be used (see DigitialIO)
   string ioname = aDeviceConfig;
   string mode = "dimmer"; // default to dimmer
   size_t i = aDeviceConfig.find(":");

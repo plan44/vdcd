@@ -116,6 +116,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-k ab:sensor"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-l 7"
             isEnabled = "NO">
          </CommandLineArgument>

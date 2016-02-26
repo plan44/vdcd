@@ -79,6 +79,8 @@ void SensorBehaviour::updateSensorValue(double aValue)
       }
     }
   }
+  // notify listeners
+  notifyListeners(changedValue ? valueevent_changed : valueevent_confirmed);
 }
 
 
@@ -94,7 +96,23 @@ void SensorBehaviour::invalidateSensorValue()
     if (pushBehaviourState()) {
       lastPush = now;
     }
+    // notify listeners
+    notifyListeners(valueevent_changed);
   }
+}
+
+
+string SensorBehaviour::getSourceName()
+{
+  // get device name or dSUID for context
+  string n = device.getAssignedName();
+  if (n.empty()) {
+    // use dSUID instead
+    n = device.getDsUid().getString();
+  }
+  // append behaviour description
+  string_format_append(n, ": %s", getHardwareName().c_str());
+  return n;
 }
 
 

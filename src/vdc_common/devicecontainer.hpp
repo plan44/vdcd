@@ -28,6 +28,7 @@
 
 #include "persistentparams.hpp"
 #include "dsaddressable.hpp"
+#include "valuesource.hpp"
 #include "digitalio.hpp"
 
 #include "vdcapi.hpp"
@@ -200,6 +201,11 @@ namespace p44 {
     /// activity monitor
     /// @param aUserActionCB will be called when the user has performed an action (usually: button press) in a device
     void setUserActionMonitor(DeviceUserActionCB aUserActionCB);
+
+    /// find a value source
+    /// @param aValueSourceID internal, persistent ID of the value source
+    ValueSource *getValueSourceById(string aValueSourceID);
+
 
 
 		/// @name device detection and registration
@@ -432,6 +438,10 @@ namespace p44 {
 
     // getting MAC
     void getMyMac(StatusCB aCompletedCB, bool aFactoryReset);
+
+    /// get all value sources in this vdcd
+    /// @param aApiObjectValue must be an object typed API value, will receive available value sources as valueSourceID/description key/values
+    void createValueSourcesList(ApiValuePtr aApiObjectValue);
 
   };
 
