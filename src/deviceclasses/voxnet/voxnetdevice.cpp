@@ -53,7 +53,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
 {
   // audio device
   primaryGroup = group_cyan_audio;
-  // just color light settings, which include a color scene table
+  // install our specific settings
   installSettings(DeviceSettingsPtr(new VoxnetDeviceSettings(*this)));
   // - add audio device behaviour
   AudioBehaviourPtr a = AudioBehaviourPtr(new AudioBehaviour(*this));

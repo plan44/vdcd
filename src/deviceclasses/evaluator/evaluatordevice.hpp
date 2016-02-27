@@ -32,6 +32,32 @@ namespace p44 {
 
 
   class EvaluatorDeviceContainer;
+  class EvaluatorDevice;
+
+
+  class EvaluatorDeviceSettings : public DeviceSettings
+  {
+    typedef DeviceSettings inherited;
+    friend class EvaluatorDevice;
+
+    string valueDefs; ///< mapping of variable names to ValueSources
+    string onCondition; ///< expression that must evaluate to true for output to get active
+    string offCondition; ///< expression that must evaluate to true for output to get inactive
+
+  protected:
+
+    EvaluatorDeviceSettings(Device &aDevice);
+
+    // persistence implementation
+    virtual const char *tableName();
+    virtual size_t numFieldDefs();
+    virtual const FieldDefinition *getFieldDef(size_t aIndex);
+    virtual void loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP);
+    virtual void bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags);
+
+  };
+  typedef boost::intrusive_ptr<EvaluatorDeviceSettings> EvaluatorDeviceSettingsPtr;
+
 
   class EvaluatorDevice : public Device
   {
@@ -56,10 +82,7 @@ namespace p44 {
 
     Tristate currentState;
 
-    /// configuration strings
-    string valueDefs;
-    string onCondition;
-    string offCondition;
+    EvaluatorDeviceSettingsPtr evaluatorSettings() { return boost::dynamic_pointer_cast<EvaluatorDeviceSettings>(deviceSettings); };
 
   public:
 
@@ -120,12 +143,18 @@ namespace p44 {
 
     void deriveDsUid();
 
+    // property access implementation
+    virtual int numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual PropertyDescriptorPtr getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor);
+    virtual bool accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor);
+
   private:
 
     void forgetValueDefs();
     void parseValueDefs();
 
     void dependentValueNotification(ValueSource &aValueSource, ValueListenerEvent aEvent);
+    void evaluateConditions();
 
     /// expression evaluation
     Tristate evaluateBoolean(string aExpression);

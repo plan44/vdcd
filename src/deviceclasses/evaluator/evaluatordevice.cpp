@@ -46,11 +46,6 @@ EvaluatorDevice::EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, con
   currentState(undefined),
   valueParseTicket(0)
 {
-  #warning "%%% test only"
-  valueDefs = "lux:E5FAAC1FA8905381803BA01AD1C8174C00_S0, test:C0B813EA37CC5161C02D591A7B15627B00_S0";
-  onCondition = "lux<42 & test>4+3*2";
-  offCondition = "lux>44 | test<3*(2+1)";
-
   // Config is:
   //  <behaviour mode>
   if (aEvaluatorConfig=="rocker")
@@ -60,31 +55,33 @@ EvaluatorDevice::EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, con
   else {
     LOG(LOG_ERR, "unknown evaluator type: %s", aEvaluatorConfig.c_str());
   }
-  // create I/O
+  // install our specific settings
+  installSettings(DeviceSettingsPtr(new EvaluatorDeviceSettings(*this)));
+  // create "inputs" that will deliver the evaluator's result
   if (evaluatorType==evaluator_rocker) {
     // Simulate Two-way Rocker Button device
     // - defaults to black (generic button)
     primaryGroup = group_black_joker;
-    // - standard device settings without scene table
-    installSettings();
     // - create down button (index 0)
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 1, true); // counterpart up-button has buttonIndex 1, fixed mode
+    b->setHardwareName("off condition met");
     b->setGroup(group_black_joker); // pre-configure for app button
     addBehaviour(b);
     // - create up button (index 1)
     b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 0, true); // counterpart down-button has buttonIndex 0, fixed mode
+    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0, true); // counterpart down-button has buttonIndex 0, fixed mode
+    b->setHardwareName("on condition met");
     b->setGroup(group_black_joker); // pre-configure for app button
     addBehaviour(b);
   }
   else if (evaluatorType==evaluator_input) {
     // Standard device settings without scene table
     primaryGroup = group_black_joker;
-    installSettings();
     // - create one binary input
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+    b->setHardwareName("evaluation result");
     addBehaviour(b);
   }
   deriveDsUid();
@@ -163,7 +160,9 @@ void EvaluatorDevice::forgetValueDefs()
 
 void EvaluatorDevice::parseValueDefs()
 {
+  MainLoop::currentMainLoop().cancelExecutionTicket(valueParseTicket);
   forgetValueDefs(); // forget previous mappings
+  string &valueDefs = evaluatorSettings()->valueDefs;
   // syntax:
   //  <valuealias>:<valuesourceid> [, <valuealias>:valuesourceid> ...]
   bool foundall = true;
@@ -201,7 +200,7 @@ void EvaluatorDevice::parseValueDefs()
   }
   if (!foundall) {
     // schedule a re-parse later
-    MainLoop::currentMainLoop().executeTicketOnce(valueParseTicket, boost::bind(&EvaluatorDevice::parseValueDefs, this), REPARSE_DELAY);
+    valueParseTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&EvaluatorDevice::parseValueDefs, this), REPARSE_DELAY);
   }
 }
 
@@ -214,35 +213,44 @@ void EvaluatorDevice::dependentValueNotification(ValueSource &aValueSource, Valu
   }
   else {
     ALOG(LOG_INFO, "value source '%s' reports value %f", aValueSource.getSourceName().c_str(), aValueSource.getSourceValue());
-    // evaluate state and report it
-    if (currentState!=yes) {
-      // off or unknown: check for switching on
-      if (evaluateBoolean(onCondition)==yes) currentState=yes;
-    }
-    if (currentState!=no) {
-      // on or unknown: check for switching off
-      if (evaluateBoolean(offCondition)==yes) currentState=no;
-    }
-    if (currentState!=undefined) {
-      // report it
-      switch (evaluatorType) {
-        case evaluator_input : {
-          BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
-          if (b) {
-            b->updateInputState(currentState==yes);
-          }
-          break;
+    evaluateConditions();
+  }
+}
+
+
+void EvaluatorDevice::evaluateConditions()
+{
+  // evaluate state and report it
+  Tristate prevState = currentState;
+  if (currentState!=yes) {
+    // off or unknown: check for switching on
+    if (evaluateBoolean(evaluatorSettings()->onCondition)==yes) currentState=yes;
+  }
+  if (currentState!=no) {
+    // on or unknown: check for switching off
+    if (evaluateBoolean(evaluatorSettings()->offCondition)==yes) currentState=no;
+  }
+  if (currentState!=undefined) {
+    // report it
+    switch (evaluatorType) {
+      case evaluator_input : {
+        BinaryInputBehaviourPtr b = boost::dynamic_pointer_cast<BinaryInputBehaviour>(binaryInputs[0]);
+        if (b) {
+          b->updateInputState(currentState==yes);
         }
-        case evaluator_rocker : {
+        break;
+      }
+      case evaluator_rocker : {
+        if (currentState!=prevState) {
           // virtually click up or down button
           ButtonBehaviourPtr b = boost::dynamic_pointer_cast<ButtonBehaviour>(buttons[currentState==no ? 0 : 1]);
           if (b) {
             b->sendClick(ct_tip_1x);
           }
-          break;
         }
-        default: break;
+        break;
       }
+      default: break;
     }
   }
 }
@@ -483,6 +491,151 @@ string EvaluatorDevice::description()
     string_format_append(s, "\n- evaluation controls binary input");
   return s;
 }
+
+#pragma mark - property access
+
+enum {
+  valueDefs_key,
+  onCondition_key,
+  offCondition_key,
+  numProperties
+};
+
+static char evaluatorDevice_key;
+
+
+int EvaluatorDevice::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  // Note: only add my own count when accessing root level properties!!
+  if (!aParentDescriptor) {
+    // Accessing properties at the Device (root) level, add mine
+    return inherited::numProps(aDomain, aParentDescriptor)+numProperties;
+  }
+  // just return base class' count
+  return inherited::numProps(aDomain, aParentDescriptor);
+}
+
+
+PropertyDescriptorPtr EvaluatorDevice::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+{
+  static const PropertyDescription properties[numProperties] = {
+    { "x-p44-valueDefs", apivalue_string, valueDefs_key, OKEY(evaluatorDevice_key) },
+    { "x-p44-onCondition", apivalue_string, onCondition_key, OKEY(evaluatorDevice_key) },
+    { "x-p44-offCondition", apivalue_string, offCondition_key, OKEY(evaluatorDevice_key) },
+  };
+  if (!aParentDescriptor) {
+    // root level - accessing properties on the Device level
+    int n = inherited::numProps(aDomain, aParentDescriptor);
+    if (aPropIndex<n)
+      return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+    aPropIndex -= n; // rebase to 0 for my own first property
+    return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
+  }
+  else {
+    // other level
+    return inherited::getDescriptorByIndex(aPropIndex, aDomain, aParentDescriptor); // base class' property
+  }
+}
+
+
+// access to all fields
+bool EvaluatorDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+{
+  if (aPropertyDescriptor->hasObjectKey(evaluatorDevice_key)) {
+    if (aMode==access_read) {
+      // read properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case valueDefs_key: aPropValue->setStringValue(evaluatorSettings()->valueDefs); return true;
+        case onCondition_key: aPropValue->setStringValue(evaluatorSettings()->onCondition); return true;
+        case offCondition_key: aPropValue->setStringValue(evaluatorSettings()->offCondition); return true;
+      }
+    }
+    else {
+      // write properties
+      switch (aPropertyDescriptor->fieldKey()) {
+        case valueDefs_key:
+          if (evaluatorSettings()->setPVar(evaluatorSettings()->valueDefs, aPropValue->stringValue()))
+            parseValueDefs(); // changed valueDefs, re-parse them
+          return true;
+        case onCondition_key:
+          if (evaluatorSettings()->setPVar(evaluatorSettings()->onCondition, aPropValue->stringValue()))
+            evaluateConditions();  // changed conditions, re-evaluate output
+          return true;
+        case offCondition_key:
+          if (evaluatorSettings()->setPVar(evaluatorSettings()->offCondition, aPropValue->stringValue()))
+            evaluateConditions();  // changed conditions, re-evaluate output
+          return true;
+      }
+    }
+  }
+  // not my field, let base class handle it
+  return inherited::accessField(aMode, aPropValue, aPropertyDescriptor);
+}
+
+
+#pragma mark - settings
+
+
+EvaluatorDeviceSettings::EvaluatorDeviceSettings(Device &aDevice) :
+  inherited(aDevice)
+{
+}
+
+
+
+const char *EvaluatorDeviceSettings::tableName()
+{
+  return "EvaluatorDeviceSettings";
+}
+
+
+// data field definitions
+
+static const size_t numFields = 3;
+
+size_t EvaluatorDeviceSettings::numFieldDefs()
+{
+  return inherited::numFieldDefs()+numFields;
+}
+
+
+const FieldDefinition *EvaluatorDeviceSettings::getFieldDef(size_t aIndex)
+{
+  static const FieldDefinition dataDefs[numFields] = {
+    { "valueDefs", SQLITE_TEXT },
+    { "onCondition", SQLITE_TEXT },
+    { "offCondition", SQLITE_TEXT },
+  };
+  if (aIndex<inherited::numFieldDefs())
+    return inherited::getFieldDef(aIndex);
+  aIndex -= inherited::numFieldDefs();
+  if (aIndex<numFields)
+    return &dataDefs[aIndex];
+  return NULL;
+}
+
+
+/// load values from passed row
+void EvaluatorDeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+{
+  inherited::loadFromRow(aRow, aIndex, aCommonFlagsP);
+  // get the field values
+  valueDefs.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  onCondition.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  offCondition.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+}
+
+
+// bind values to passed statement
+void EvaluatorDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+{
+  inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
+  // bind the fields
+  aStatement.bind(aIndex++, valueDefs.c_str()); // stable string!
+  aStatement.bind(aIndex++, onCondition.c_str()); // stable string!
+  aStatement.bind(aIndex++, offCondition.c_str()); // stable string!
+}
+
 
 
 #endif // ENABLE_EVALUATORS

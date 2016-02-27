@@ -103,7 +103,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
     consoleKey2 = ConsoleKeyManager::sharedKeyManager()->newConsoleKey(name[0]+1, name.c_str());
     consoleKey2->setConsoleKeyHandler(boost::bind(&ConsoleDevice::buttonHandler, this, 1, _1, _2));
     b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
-    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_down, false, 0, true); // counterpart down-button has buttonIndex 0, fixed mode
+    b->setHardwareButtonConfig(0, buttonType_2way, buttonElement_up, false, 0, true); // counterpart down-button has buttonIndex 0, fixed mode
     b->setGroup(group_yellow_light); // pre-configure for light
     b->setHardwareName(string_format("console key '%c'",consoleKey2->getKeyCode()));
     addBehaviour(b);
