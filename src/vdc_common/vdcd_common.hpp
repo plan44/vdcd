@@ -55,6 +55,7 @@
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
   #define ENABLE_OLA 1
+  #define ENABLE_LEDCHAIN 1
   #define ENABLE_STATIC 1
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EVALUATORS 1
