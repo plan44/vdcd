@@ -1,0 +1,83 @@
+//
+//  Copyright (c) 2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//
+//  Author: Lukas Zeller <luz@plan44.ch>
+//
+//  This file is part of vdcd.
+//
+//  vdcd is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  vdcd is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
+//
+
+#ifndef __vdcd__evaluatordevicecontainer__
+#define __vdcd__evaluatordevicecontainer__
+
+#include "vdcd_common.hpp"
+
+#if ENABLE_EVALUATORS
+
+#include "deviceclasscontainer.hpp"
+#include "evaluatordevice.hpp"
+
+using namespace std;
+
+namespace p44 {
+
+  class EvaluatorDeviceContainer;
+  class EvaluatorDevice;
+
+  /// persistence for static device container
+  class EvaluatorDevicePersistence : public SQLite3Persistence  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
+  typedef boost::intrusive_ptr<EvaluatorDeviceContainer> EvaluatorDeviceContainerPtr;
+  class EvaluatorDeviceContainer : public DeviceClassContainer
+  {
+    typedef DeviceClassContainer inherited;
+    friend class EvaluatorDevice;
+
+    EvaluatorDevicePersistence db;
+
+  public:
+    EvaluatorDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+
+    void initialize(StatusCB aCompletedCB, bool aFactoryReset);
+
+    virtual const char *deviceClassIdentifier() const;
+
+    virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
+
+    /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
+    /// devices.
+    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    virtual bool invisibleWhenEmpty() { return true; }
+
+    /// vdc level methods (p44 specific, JSON only, for configuring evaluator devices)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
+    /// @return human readable, language independent suffix to explain vdc functionality.
+    ///   Will be appended to product name to create modelName() for vdcs
+    virtual string vdcModelSuffix() { return "Sensor Evaluators"; }
+
+  };
+
+} // namespace p44
+
+
+#endif // ENABLE_EVALUATORS
+#endif // __vdcd__evaluatordevicecontainer__

@@ -24,19 +24,21 @@
 
 #include "device.hpp"
 
-#include "staticdevicecontainer.hpp"
+#if ENABLE_EVALUATORS
 
 using namespace std;
 
 namespace p44 {
 
 
-  class StaticDeviceContainer;
-  class EvaluatorDevice;
-  typedef boost::intrusive_ptr<EvaluatorDevice> EvaluatorDevicePtr;
-  class EvaluatorDevice : public StaticDevice
+  class EvaluatorDeviceContainer;
+
+  class EvaluatorDevice : public Device
   {
-    typedef StaticDevice inherited;
+    typedef Device inherited;
+    friend class EvaluatorDeviceContainer;
+
+    long long evaluatorDeviceRowID; ///< the ROWID this device was created from (0=none)
     
     typedef enum {
       evaluator_unknown,
@@ -61,12 +63,30 @@ namespace p44 {
 
   public:
 
-    EvaluatorDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, const string &aEvaluatorID, const string &aEvaluatorConfig);
     virtual ~EvaluatorDevice();
     
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "evaluator"; };
+
+    EvaluatorDeviceContainer &getEvaluatorDeviceContainer();
+
+    /// check if device can be disconnected by software (i.e. Web-UI)
+    /// @return true if device might be disconnectable (deletable) by the user via software (i.e. web UI)
+    /// @note devices returning true here might still refuse disconnection on a case by case basis when
+    ///   operational state does not allow disconnection.
+    /// @note devices returning false here might still be disconnectable using disconnect() triggered
+    ///   by vDC API "remove" method.
+    virtual bool isSoftwareDisconnectable() { return true; };
+
+    /// disconnect device. For static device, this means removing the config from the container's DB. Note that command line
+    /// static devices cannot be disconnected.
+    /// @param aForgetParams if set, not only the connection to the device is removed, but also all parameters related to it
+    ///   such that in case the same device is re-connected later, it will not use previous configuration settings, but defaults.
+    /// @param aDisconnectResultHandler will be called to report true if device could be disconnected,
+    ///   false in case it is certain that the device is still connected to this and only this vDC
+    virtual void disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler);
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object
@@ -113,7 +133,9 @@ namespace p44 {
     ErrorPtr evaluateTerm(const char * &aText, double &aValue);
 
   };
+  typedef boost::intrusive_ptr<EvaluatorDevice> EvaluatorDevicePtr;
 
 } // namespace p44
 
-#endif /* defined(__vdcd__evaluatordevice__) */
+#endif // ENABLE_EVALUATORS
+#endif // __vdcd__evaluatordevice__

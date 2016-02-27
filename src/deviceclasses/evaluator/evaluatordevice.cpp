@@ -24,9 +24,13 @@
 #define ALWAYS_DEBUG 0
 // - set FOCUSLOGLEVEL to non-zero log level (usually, 5,6, or 7==LOG_DEBUG) to get focus (extensive logging) for this file
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
-#define FOCUSLOGLEVEL 6
+#define FOCUSLOGLEVEL 7
 
 #include "evaluatordevice.hpp"
+
+#if ENABLE_EVALUATORS
+
+#include "evaluatordevicecontainer.hpp"
 
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
@@ -34,8 +38,10 @@
 using namespace p44;
 
 
-EvaluatorDevice::EvaluatorDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+EvaluatorDevice::EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, const string &aEvaluatorID, const string &aEvaluatorConfig) :
+  inherited((DeviceClassContainer *)aClassContainerP),
+  evaluatorDeviceRowID(0),
+  evaluatorID(aEvaluatorID),
   evaluatorType(evaluator_unknown),
   currentState(undefined),
   valueParseTicket(0)
@@ -46,23 +52,14 @@ EvaluatorDevice::EvaluatorDevice(StaticDeviceContainer *aClassContainerP, const 
   offCondition = "lux>44 | test<3*(2+1)";
 
   // Config is:
-  //  <id>:<behaviour mode>
-  //  - where id must be an unique string from which the dSUID will be derived
-  size_t i = aDeviceConfig.find(":");
-  string name = aDeviceConfig;
-  if (i!=string::npos) {
-    name = aDeviceConfig.substr(0,i);
-    string mode = aDeviceConfig.substr(i+1,string::npos);
-    if (mode=="rocker")
-      evaluatorType = evaluator_rocker;
-    else if (mode=="input")
-      evaluatorType = evaluator_input;
-    else {
-      LOG(LOG_ERR, "unknown evaluator type: %s", mode.c_str());
-    }
+  //  <behaviour mode>
+  if (aEvaluatorConfig=="rocker")
+    evaluatorType = evaluator_rocker;
+  else if (aEvaluatorConfig=="input")
+    evaluatorType = evaluator_input;
+  else {
+    LOG(LOG_ERR, "unknown evaluator type: %s", aEvaluatorConfig.c_str());
   }
-  // assign name for showing on console and for creating dSUID from
-  evaluatorID = name;
   // create I/O
   if (evaluatorType==evaluator_rocker) {
     // Simulate Two-way Rocker Button device
@@ -98,6 +95,25 @@ EvaluatorDevice::~EvaluatorDevice()
 {
   forgetValueDefs();
 }
+
+
+EvaluatorDeviceContainer &EvaluatorDevice::getEvaluatorDeviceContainer()
+{
+  return *(static_cast<EvaluatorDeviceContainer *>(classContainerP));
+}
+
+
+void EvaluatorDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
+{
+  // clear learn-in data from DB
+  if (evaluatorDeviceRowID) {
+    getEvaluatorDeviceContainer().db.executef("DELETE FROM evaluators WHERE rowid=%d", evaluatorDeviceRowID);
+  }
+  // disconnection is immediate, so we can call inherited right now
+  inherited::disconnect(aForgetParams, aDisconnectResultHandler);
+}
+
+
 
 
 
@@ -467,3 +483,6 @@ string EvaluatorDevice::description()
     string_format_append(s, "\n- evaluation controls binary input");
   return s;
 }
+
+
+#endif // ENABLE_EVALUATORS

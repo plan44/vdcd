@@ -43,6 +43,9 @@
 #if !DISABLE_LEDCHAIN
 #include "ledchaindevicecontainer.hpp"
 #endif
+#if ENABLE_EVALUATORS
+#include "evaluatordevicecontainer.hpp"
+#endif
 #if !DISABLE_STATIC
 #include "staticdevicecontainer.hpp"
 #endif
@@ -328,6 +331,9 @@ public:
       { 0,   "vzughome",      true,  "auto|ip[,ip,...];enable support for V-Zug Home" },
       #endif
       #if !DISABLE_EXTERNAL
+      #if ENABLE_EVALUATORS
+      { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
+      #endif
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
       #endif
@@ -613,6 +619,13 @@ public:
       }
       #endif
       #if !DISABLE_EXTERNAL
+      #if ENABLE_EVALUATORS
+      // - Add evaluator devices
+      if (getOption("evaluators")) {
+        EvaluatorDeviceContainerPtr evaluatorDeviceContainer = EvaluatorDeviceContainerPtr(new EvaluatorDeviceContainer(1, p44VdcHost.get(), 8)); // Tag 8 = evaluators
+        evaluatorDeviceContainer->addClassToDeviceContainer();
+      }
+      #endif
       // - Add support for external devices connecting via socket
       const char *extdevname = getOption("externaldevices");
       if (extdevname) {
