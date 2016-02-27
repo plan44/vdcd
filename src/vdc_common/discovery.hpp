@@ -24,13 +24,11 @@
 
 #include "vdcd_common.hpp"
 
+#if !DISABLE_DISCOVERY
+
 #include "dsuid.hpp"
 #include "devicecontainer.hpp"
 
-
-#ifndef USE_AVAHI_CORE
-#define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
-#endif
 
 // Avahi includes
 #if USE_AVAHI_CORE
@@ -98,12 +96,15 @@ namespace p44 {
     bool noAuto;
     int publishWebPort;
     int publishSshPort;
+    #if ENABLE_AUXVDSM
     // - an optionally running auxiliary vdsm
     DsUidPtr auxVdsmDsUid;
     int auxVdsmPort;
     bool auxVdsmRunning;
     bool vdsmAuxiliary;
     AuxVdsmStatusHandler auxVdsmStatusHandler;
+    #endif // ENABLE_AUXVDSM
+
 
     // state
     enum {
@@ -152,9 +153,12 @@ namespace p44 {
     void startServices();
     void stopServices();
     void restartServices();
+
+    #if ENABLE_AUXVDSM
     void startBrowsingVdms(AvahiService *aService);
     void rescanVdsms(AvahiService *aService);
     void evaluateState();
+    #endif
 
     // callbacks
     static void avahi_log(AvahiLogLevel level, const char *txt);
@@ -167,14 +171,17 @@ namespace p44 {
     static void entry_group_callback(AvahiEntryGroup *g, AvahiEntryGroupState state, void* userdata);
     void avahi_client_callback(AvahiClient *c, AvahiClientState state);
     #endif
-    static void browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
-    static void resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
 
     bool avahi_poll();
     void create_services(AvahiService *aService);
     void avahi_entry_group_callback(AvahiService *aService, AvahiEntryGroup *g, AvahiEntryGroupState state);
+
+    #if ENABLE_AUXVDSM
+    static void browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata);
+    static void resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags, void* userdata);
     void avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags);
     void avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIndex interface, AvahiProtocol protocol, AvahiResolverEvent event, const char *name, const char *type, const char *domain, const char *host_name, const AvahiAddress *a, uint16_t port, AvahiStringList *txt, AvahiLookupResultFlags flags);
+    #endif
   };
 
   typedef boost::intrusive_ptr<DiscoveryManager> DiscoveryManagerPtr;
@@ -182,4 +189,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__discovery__) */
+#endif // !DISABLE_DISCOVERY
+#endif // __vdcd__discovery__

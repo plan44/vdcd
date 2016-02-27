@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevice.hpp"
 #include "enoceansensorhandler.hpp"
 
@@ -184,4 +186,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__enocean4bs__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enocean4bs__

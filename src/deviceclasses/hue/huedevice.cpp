@@ -20,10 +20,10 @@
 //
 
 #include "huedevice.hpp"
+
+#if ENABLE_HUE
+
 #include "huedevicecontainer.hpp"
-
-#include "fnv.hpp"
-
 
 using namespace p44;
 
@@ -505,3 +505,7 @@ string HueDevice::description()
   string_format_append(s, "\n- hue unique ID: %s", uniqueID.c_str());
   return s;
 }
+
+
+#endif // ENABLE_HUE
+

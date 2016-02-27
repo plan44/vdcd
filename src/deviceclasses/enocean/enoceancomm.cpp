@@ -26,9 +26,9 @@
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
 #define FOCUSLOGLEVEL 7
 
-
 #include "enoceancomm.hpp"
 
+#if ENABLE_ENOCEAN
 
 using namespace p44;
 
@@ -1320,6 +1320,8 @@ void EnoceanComm::cmdTimeout()
   // check if more commands in queue to be sent
   checkCmdQueue();
 }
+
+#endif // ENABLE_ENOCEAN
 
 
 

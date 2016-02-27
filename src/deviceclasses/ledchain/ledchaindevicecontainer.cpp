@@ -21,7 +21,7 @@
 
 #include "ledchaindevicecontainer.hpp"
 
-#if !DISABLE_LEDCHAIN
+#if ENABLE_LEDCHAIN
 
 #include "ledchaindevice.hpp"
 
@@ -273,7 +273,7 @@ ErrorPtr LedChainDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const 
   return respErr;
 }
 
-#endif // !DISABLE_LEDCHAIN
+#endif // ENABLE_LEDCHAIN
 
 
 

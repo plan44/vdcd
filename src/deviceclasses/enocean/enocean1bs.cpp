@@ -21,8 +21,9 @@
 
 #include "enocean1bs.hpp"
 
-#include "enoceandevicecontainer.hpp"
+#if ENABLE_ENOCEAN
 
+#include "enoceandevicecontainer.hpp"
 #include "binaryinputbehaviour.hpp"
 
 using namespace p44;
@@ -128,4 +129,7 @@ string SingleContactHandler::shortDesc()
 {
   return "Single Contact";
 }
+
+
+#endif // ENABLE_ENOCEAN
 

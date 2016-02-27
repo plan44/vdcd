@@ -24,7 +24,7 @@
 
 #include "vdcd_common.hpp"
 
-#if !DISABLE_LEDCHAIN
+#if ENABLE_LEDCHAIN
 
 #include <stdint.h>
 #include <stdio.h>
@@ -141,7 +141,6 @@ namespace p44 {
 
 } // namespace p44
 
-#endif // !DISABLE_LEDCHAIN
-
-#endif /* defined(__vdcd__ws281xcomm__) */
+#endif // ENABLE_LEDCHAIN
+#endif // __vdcd__ws281xcomm__
 

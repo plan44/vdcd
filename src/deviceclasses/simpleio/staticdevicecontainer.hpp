@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_STATIC
+
 #include "deviceclasscontainer.hpp"
 #include "device.hpp"
 
@@ -121,4 +123,5 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__vdcd__staticdevicecontainer__) */
+#endif // ENABLE_STATIC
+#endif // __vdcd__staticdevicecontainer__

@@ -31,22 +31,55 @@
 // auto-disable some features depending on platform
 // - No i2c on Mac or DigiESP, but always on RaspberryPi
 #if (defined(__APPLE__) || defined(DIGI_ESP)) && !defined(RASPBERRYPI)
-  #define DISABLE_I2C 1
+  #define DISABLE_I2C 1 // Mac has no i2c
 #endif
-// - No OLA or LED Chains on DIGI_ESP
+#if defined(__APPLE__)
+  #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
+  #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
+#endif
+
+
+// Default build settings for different targets
 #if defined(DIGI_ESP)
-  #define DISABLE_OLA 1
-  #define DISABLE_LEDCHAIN 1
-#endif
-#if !defined(RASPBERRYPI)
-  #define DISABLE_LEDCHAIN 1
+  // P44-DSB-DEH
+  #define ENABLE_DALI 1
+  #define ENABLE_ENOCEAN 1
+  #define ENABLE_HUE 1
+  #define ENABLE_STATIC 1
+  #define ENABLE_EXTERNAL 1
+  #define ENABLE_EVALUATORS 1
+  #define ENABLE_AUXVDSM 1
+  #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+#elif defined(RASPBERRYPI)
+  // P44-DSB-E
+  #define ENABLE_ENOCEAN 1
+  #define ENABLE_HUE 1
+  #define ENABLE_OLA 1
+  #define ENABLE_STATIC 1
+  #define ENABLE_EXTERNAL 1
+  #define ENABLE_EVALUATORS 1
+  #define ENABLE_AUXVDSM 1
+  #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+#else
+  // Default build options unless defined otherwise already
+  #ifndef ENABLE_HUE
+    #define ENABLE_HUE 1
+  #endif
+  #ifndef ENABLE_STATIC
+    #define ENABLE_STATIC 1
+  #endif
+  #ifndef ENABLE_EXTERNAL
+    #define ENABLE_EXTERNAL 1
+  #endif
+  #ifndef ENABLE_EVALUATORS
+    #define ENABLE_EVALUATORS 1
+  #endif
 #endif
 
 
 #include "p44_common.hpp"
 
 #include "application.hpp"
-
 
 
 #endif /* defined(__vdcd__common__) */

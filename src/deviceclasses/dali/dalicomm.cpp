@@ -19,7 +19,6 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-
 // File scope debugging options
 // - Set ALWAYS_DEBUG to 1 to enable DBGLOG output even in non-DEBUG builds of this file
 #define ALWAYS_DEBUG 0
@@ -27,8 +26,9 @@
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
 #define FOCUSLOGLEVEL 7
 
-
 #include "dalicomm.hpp"
+
+#if ENABLE_DALI
 
 using namespace p44;
 
@@ -1413,7 +1413,7 @@ string DaliDeviceInfo::description()
   return s;
 }
 
-
+#endif // ENABLE_DALI
 
 
 

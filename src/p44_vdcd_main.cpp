@@ -28,31 +28,31 @@
 #include "pbufvdcapi.hpp"
 
 // device classes to be used
-#if !DISABLE_DALI
+#if ENABLE_DALI
 #include "dalidevicecontainer.hpp"
 #endif
-#if !DISABLE_ENOCEAN
+#if ENABLE_ENOCEAN
 #include "enoceandevicecontainer.hpp"
 #endif
-#if !DISABLE_HUE
+#if ENABLE_HUE
 #include "huedevicecontainer.hpp"
 #endif
-#if !DISABLE_OLA
-#include "oladevicecontainer.hpp"
+#if ENABLE_STATIC
+#include "staticdevicecontainer.hpp"
 #endif
-#if !DISABLE_LEDCHAIN
-#include "ledchaindevicecontainer.hpp"
+#if ENABLE_EXTERNAL
+#include "externaldevicecontainer.hpp"
 #endif
 #if ENABLE_EVALUATORS
 #include "evaluatordevicecontainer.hpp"
 #endif
-#if !DISABLE_STATIC
-#include "staticdevicecontainer.hpp"
-#endif
-#if !DISABLE_EXTERNAL
-#include "externaldevicecontainer.hpp"
-#endif
 
+#if ENABLE_OLA
+#include "oladevicecontainer.hpp"
+#endif
+#if ENABLE_LEDCHAIN
+#include "ledchaindevicecontainer.hpp"
+#endif
 #if ENABLE_VOXNET
 #include "voxnetdevicecontainer.hpp"
 #endif
@@ -119,7 +119,7 @@ class P44Vdcd : public CmdLineApp
     tempstatus_failure,  // failure/learn-out indication (red blinking)
   } TempStatus;
 
-  #if !DISABLE_STATIC
+  #if ENABLE_STATIC
   // command line defined devices
   DeviceConfigMap staticDeviceConfigs;
   #endif
@@ -270,7 +270,7 @@ public:
 
 
 
-  #if !DISABLE_STATIC
+  #if ENABLE_STATIC
   virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
   {
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
@@ -303,24 +303,24 @@ public:
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
-      #if !DISABLE_DALI
+      #if ENABLE_DALI
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
       { 0  , "dalirxadj",     true,  "adjustment;DALI signal adjustment for receiving" },
       #endif
-      #if !DISABLE_ENOCEAN
+      #if ENABLE_ENOCEAN
       { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       #endif
-      #if !DISABLE_HUE
+      #if ENABLE_HUE
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
       { 0,   "hueapiurl",     true,  "hue API url;use hue bridge API at specific location (disables UPnP/SSDP search)" },
       #endif
-      #if !DISABLE_OLA
+      #if ENABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
-      #if !DISABLE_LEDCHAIN
+      #if ENABLE_LEDCHAIN
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
@@ -330,14 +330,14 @@ public:
       #if ENABLE_VZUGHOME
       { 0,   "vzughome",      true,  "auto|ip[,ip,...];enable support for V-Zug Home" },
       #endif
-      #if !DISABLE_EXTERNAL
       #if ENABLE_EVALUATORS
       { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
       #endif
+      #if ENABLE_EXTERNAL
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
       #endif
-      #if !DISABLE_STATIC
+      #if ENABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
@@ -358,16 +358,18 @@ public:
                                      },
       { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
-      #endif // !DISABLE_STATIC
+      #endif // ENABLE_STATIC
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
       { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
+      #if ENABLE_AUXVDSM
       { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
       { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
       { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
       { 0  , "vdsmnotaux"    ,false, NULL /* can be set to make vdsm non-auxiliary */ },
+      #endif
       { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
       #endif
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
@@ -528,8 +530,9 @@ public:
       }
 
       // Create static container structure
+
+      #if ENABLE_DALI
       // - Add DALI devices class if DALI bridge serialport/host is specified
-      #if !DISABLE_DALI
       const char *daliname = getOption("dali");
       if (daliname) {
         int sec = 0;
@@ -542,7 +545,8 @@ public:
         daliDeviceContainer->addClassToDeviceContainer();
       }
       #endif
-      #if !DISABLE_ENOCEAN
+
+      #if ENABLE_ENOCEAN
       // - Add EnOcean devices class if EnOcean modem serialport/host is specified
       const char *enoceanname = getOption("enocean");
       const char *enoceanresetpin = getOption("enoceanreset");
@@ -553,7 +557,8 @@ public:
         enoceanDeviceContainer->addClassToDeviceContainer();
       }
       #endif
-      #if !DISABLE_HUE
+
+      #if ENABLE_HUE
       // - Add hue support
       if (getOption("huelights")) {
         HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
@@ -564,14 +569,16 @@ public:
         hueDeviceContainer->addClassToDeviceContainer();
       }
       #endif
-      #if !DISABLE_OLA
+
+      #if ENABLE_OLA
       // - Add OLA support
       if (getOption("ola")) {
         OlaDeviceContainerPtr olaDeviceContainer = OlaDeviceContainerPtr(new OlaDeviceContainer(1, p44VdcHost.get(), 5)); // Tag 5 = ola
         olaDeviceContainer->addClassToDeviceContainer();
       }
       #endif
-      #if !DISABLE_LEDCHAIN
+
+      #if ENABLE_LEDCHAIN
       // - Add Led chain support
       int numleds;
       if (getIntOption("ledchain", numleds)) {
@@ -597,6 +604,7 @@ public:
         voxnetDeviceContainer->addClassToDeviceContainer();
       }
       #endif
+
       #if ENABLE_VZUGHOME
       // - Add V-Zug Home support
       string vzugurl;
@@ -609,8 +617,7 @@ public:
       }
       #endif
 
-
-      #if !DISABLE_STATIC
+      #if ENABLE_STATIC
       // - Add static devices if we explictly want it or have collected any config from the command line
       if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
         StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
@@ -618,7 +625,7 @@ public:
         staticDeviceConfigs.clear(); // no longer needed, free memory
       }
       #endif
-      #if !DISABLE_EXTERNAL
+
       #if ENABLE_EVALUATORS
       // - Add evaluator devices
       if (getOption("evaluators")) {
@@ -626,6 +633,8 @@ public:
         evaluatorDeviceContainer->addClassToDeviceContainer();
       }
       #endif
+
+      #if ENABLE_EXTERNAL
       // - Add support for external devices connecting via socket
       const char *extdevname = getOption("externaldevices");
       if (extdevname) {
@@ -633,6 +642,7 @@ public:
         externalDeviceContainer->addClassToDeviceContainer();
       }
       #endif
+
       // install activity monitor
       p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
     }
@@ -887,6 +897,7 @@ public:
       // none specified, create default
       hostname = string_format("plan44-vdcd-%s", p44VdcHost->getDsUid().getString().c_str());
     }
+    #if ENABLE_AUXVDSM
     // - optional auxiliary vdsm
     DsUidPtr auxVdsmDsuid;
     int auxVdsmPort = 0;
@@ -895,6 +906,7 @@ public:
       auxVdsmPort = DEFAULT_DS485_AUXVDSMPORT;
       getIntOption("auxvdsmport", auxVdsmPort);
     }
+    #endif
     int sshPort = 0;
     getIntOption("sshport", sshPort);
     // start discovery manager
@@ -904,17 +916,27 @@ public:
       getOption("noauto"),
       p44VdcHost->webUiPort,
       sshPort,
+      #if ENABLE_AUXVDSM
       auxVdsmDsuid,
       auxVdsmPort,
       getOption("auxvdsmrunning"),
       boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
       getOption("vdsmnotaux")
+      #else
+      DsUidPtr(),
+      0,
+      false,
+      NULL,
+      false
+      #endif // ENABLE_AUXVDSM
     );
     if (!Error::isOK(err)) {
       LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
     }
   }
 
+
+  #if ENABLE_AUXVDSM
 
   void discoveryStatusHandler(bool aAuxVdsmShouldRun)
   {
@@ -930,7 +952,9 @@ public:
     MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, aAuxVdsmShouldRun ? P44_EXIT_START_AUXVDSM : P44_EXIT_STOP_AUXVDSM), 1*Second);
   }
 
-  #endif // discovery enabled
+  #endif // ENABLE_AUXVDSM
+
+  #endif // !DISABLE_DISCOVERY
 
 
 };

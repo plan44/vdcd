@@ -21,7 +21,7 @@
 
 #include "oladevicecontainer.hpp"
 
-#if !DISABLE_OLA
+#if ENABLE_OLA
 
 #include "oladevice.hpp"
 
@@ -234,6 +234,6 @@ ErrorPtr OlaDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const strin
   return respErr;
 }
 
-#endif // !DISABLE_OLA
+#endif // ENABLE_OLA
 
 

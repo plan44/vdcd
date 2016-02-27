@@ -24,7 +24,7 @@
 
 #include "vdcd_common.hpp"
 
-#if !DISABLE_OLA
+#if ENABLE_OLA
 
 #include "deviceclasscontainer.hpp"
 #include "device.hpp"
@@ -112,5 +112,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif // !DISABLE_OLA
-#endif /* defined(__vdcd__oladevicecontainer__) */
+#endif // ENABLE_OLA
+#endif // __vdcd__oladevicecontainer__

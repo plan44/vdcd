@@ -21,6 +21,8 @@
 
 #include "enoceanvld.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevicecontainer.hpp"
 
 
@@ -143,8 +145,4 @@ const ProfileVariantEntry *EnoceanVLDDevice::profileVariantsTable()
 }
 
 
-
-
-
-
-
+#endif // ENABLE_ENOCEAN

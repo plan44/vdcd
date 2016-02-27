@@ -24,7 +24,7 @@
 
 #include "vdcd_common.hpp"
 
-#if !DISABLE_LEDCHAIN
+#if ENABLE_LEDCHAIN
 
 #include "deviceclasscontainer.hpp"
 #include "device.hpp"
@@ -120,6 +120,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif // !DISABLE_LEDCHAIN
-
-#endif /* defined(__vdcd__ledchaindevicecontainer__) */
+#endif // ENABLE_LEDCHAIN
+#endif // __vdcd__ledchaindevicecontainer__

@@ -24,8 +24,9 @@
 
 #include "device.hpp"
 
-#include "colorlightbehaviour.hpp"
+#if ENABLE_HUE
 
+#include "colorlightbehaviour.hpp"
 #include "jsonobject.hpp"
 
 using namespace std;
@@ -156,4 +157,5 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__vdcd__huedevice__) */
+#endif // ENABLE_HUE
+#endif // __vdcd__huedevice__

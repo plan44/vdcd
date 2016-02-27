@@ -21,6 +21,8 @@
 
 #include "enoceansensorhandler.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "sensorbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 
@@ -332,6 +334,8 @@ string EnoceanSensorHandler::sensorDesc(const EnoceanSensorDescriptor &aSensorDe
   }
 }
 
+
+#endif // ENABLE_ENOCEAN
 
 
 

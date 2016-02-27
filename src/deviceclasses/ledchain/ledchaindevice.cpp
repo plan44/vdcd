@@ -21,7 +21,7 @@
 
 #include "ledchaindevice.hpp"
 
-#if !DISABLE_LEDCHAIN
+#if ENABLE_LEDCHAIN
 
 
 #include "lightbehaviour.hpp"
@@ -238,7 +238,7 @@ string LedChainDevice::description()
 }
 
 
-#endif // !DISABLE_LEDCHAIN
+#endif // ENABLE_LEDCHAIN
 
 
 

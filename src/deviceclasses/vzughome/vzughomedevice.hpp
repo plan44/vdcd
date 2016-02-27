@@ -235,5 +235,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_VZUGHOME
-
-#endif /* defined(__vdcd__vzughomedevice__) */
+#endif // __vdcd__vzughomedevice__

@@ -20,8 +20,9 @@
 //
 
 #include "enoceandevice.hpp"
-
 #include "enoceandevicecontainer.hpp"
+
+#if ENABLE_ENOCEAN
 
 #include "buttonbehaviour.hpp"
 #include "sensorbehaviour.hpp"
@@ -593,4 +594,6 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
   // return number of devices created
   return numDevices;
 }
+
+#endif // ENABLE_ENOCEAN
 

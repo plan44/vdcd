@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_HUE
+
 #include "ssdpsearch.hpp"
 #include "jsonwebclient.hpp"
 
@@ -120,4 +122,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__huedevicecontainer__) */
+#endif // ENABLE_HUE
+#endif // __vdcd__huedevicecontainer__

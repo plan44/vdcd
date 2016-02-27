@@ -26,9 +26,9 @@
 //   Note: must be before including "logger.hpp" (or anything that includes "logger.hpp")
 #define FOCUSLOGLEVEL 7
 
-
 #include "discovery.hpp"
 
+#if !DISABLE_DISCOVERY
 
 using namespace p44;
 
@@ -61,8 +61,10 @@ DiscoveryManager::DiscoveryManager() :
   serviceBrowser(NULL),
   entryGroup(NULL),
   debugServiceBrowser(NULL),
+  #if ENABLE_AUXVDSM
   auxVdsmRunning(false),
   vdsmAuxiliary(true),
+  #endif
   noAuto(false),
   publishWebPort(0),
   publishSshPort(0),
@@ -122,11 +124,13 @@ ErrorPtr DiscoveryManager::start(
   noAuto = aNoAuto;
   publishWebPort = aWebPort;
   publishSshPort = aSshPort;
+  #if ENABLE_AUXVDSM
   auxVdsmPort = aAuxVdsmPort;
   auxVdsmDsUid = aAuxVdsmDsUid;
   auxVdsmRunning = aAuxVdsmRunning;
   auxVdsmStatusHandler = aAuxVdsmStatusHandler;
   vdsmAuxiliary = !aNotAuxiliary;
+  #endif // ENABLE_AUXVDSM
   // init state
   dmState = dm_starting; // starting
   // allocate the simple-poll object
@@ -154,6 +158,7 @@ void DiscoveryManager::stopServices()
     entryGroup = NULL;
     LOG(LOG_NOTICE, "discovery: unpublished '%s'.", deviceContainer->publishedDescription().c_str());
   }
+  #if ENABLE_AUXVDSM
   if (serviceBrowser) {
     avahi_service_browser_free(serviceBrowser);
     serviceBrowser = NULL;
@@ -162,6 +167,7 @@ void DiscoveryManager::stopServices()
     avahi_service_browser_free(debugServiceBrowser);
     debugServiceBrowser = NULL;
   }
+  #endif // ENABLE_AUXVDSM
   if (service) {
     #if USE_AVAHI_CORE
     avahi_server_free(service);
@@ -225,7 +231,8 @@ void DiscoveryManager::startServices()
       }
     }
     else {
-      // server created
+      // service created
+      #if ENABLE_AUXVDSM
       // - when debugging, browse for http
       if (FOCUSLOGENABLED) {
         debugServiceBrowser = avahi_s_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, HTTP_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
@@ -233,6 +240,7 @@ void DiscoveryManager::startServices()
           FOCUSLOG("Failed to create debug service browser: %s", avahi_strerror(avahi_server_errno(service)));
         }
       }
+      #endif // ENABLE_AUXVDSM
     }
     #else
     // Use client
@@ -269,6 +277,8 @@ void DiscoveryManager::startServices()
   }
 }
 
+
+#if ENABLE_AUXVDSM
 
 void DiscoveryManager::startBrowsingVdms(AvahiService *aService)
 {
@@ -344,6 +354,8 @@ void DiscoveryManager::evaluateState()
     }
   }
 }
+
+#endif // ENABLE_AUXVDSM
 
 
 #pragma mark - Avahi poll and callbacks
@@ -527,6 +539,7 @@ void DiscoveryManager::create_services(AvahiService *aService)
       goto fail;
     }
   }
+  #if ENABLE_AUXVDSM
   // - advertise the auxiliary vdsm if it is running, vdcd itself otherwise
   if (auxVdsmRunning && auxVdsmDsUid) {
     // The auxiliary vdsm is running, advertise it to the network
@@ -552,7 +565,9 @@ void DiscoveryManager::create_services(AvahiService *aService)
       goto fail;
     }
   }
-  else {
+  else
+  #endif // ENABLE_AUXVDSM
+  {
     // The auxiliary vdsm is NOT running or not present at all, advertise the vdc host (vdcd) to the network
     int vdcPort = 0;
     sscanf(deviceContainer->vdcApiServer->getPort(), "%d", &vdcPort);
@@ -592,15 +607,21 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiService *aService, AvahiE
   // entry group state has changed
   switch (state) {
     case AVAHI_ENTRY_GROUP_ESTABLISHED: {
+      #if ENABLE_AUXVDSM
       LOG(LOG_NOTICE, "discovery: successfully published %s service '%s'.", auxVdsmRunning ? "vdSM" : "vDC", deviceContainer->publishedDescription().c_str());
+      #else
+      LOG(LOG_NOTICE, "discovery: successfully published vDC service '%s'.", deviceContainer->publishedDescription().c_str());
+      #endif
       if (dmState<dm_started)
         dmState = dm_started;
+      #if ENABLE_AUXVDSM
       // start scanning for master vdsms
       if (auxVdsmDsUid) {
         // We have an auxiliary vdsm we need to monitor
         // - create browser to look out for master vdsms
         startBrowsingVdms(aService);
       }
+      #endif // ENABLE_AUXVDSM
       break;
     }
     case AVAHI_ENTRY_GROUP_COLLISION: {
@@ -621,6 +642,7 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiService *aService, AvahiE
 }
 
 
+#if ENABLE_AUXVDSM
 
 void DiscoveryManager::browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
 {
@@ -750,8 +772,9 @@ void DiscoveryManager::avahi_resolve_callback(AvahiServiceResolver *r, AvahiIfIn
   avahi_service_resolver_free(r);
 }
 
+#endif // ENABLE_AUXVDSM
 
-
+#endif // !DISABLE_DISCOVERY
 
 
 

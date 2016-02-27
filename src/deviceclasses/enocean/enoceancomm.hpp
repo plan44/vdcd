@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "serialqueue.hpp"
 #include "digitalio.hpp"
 
@@ -534,5 +536,5 @@ namespace p44 {
 
 } // namespace p44
 
-
-#endif /* defined(__vdcd__enoceancomm__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enoceancomm__

@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceancomm.hpp"
 
 
@@ -346,4 +348,5 @@ namespace p44 {
   
 } // namespace p44
 
-#endif /* defined(__vdcd__enoceandevice__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enoceandevice__

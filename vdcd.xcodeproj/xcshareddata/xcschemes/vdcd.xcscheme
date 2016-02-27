@@ -160,6 +160,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--evaluators"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--staticdevices"
             isEnabled = "YES">
          </CommandLineArgument>

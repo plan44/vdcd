@@ -21,6 +21,8 @@
 
 #include "huedevicecontainer.hpp"
 
+#if ENABLE_HUE
+
 #include "huedevice.hpp"
 
 using namespace p44;
@@ -282,9 +284,4 @@ void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr 
 
 
 
-
-
-
-
-
-
+#endif // ENABLE_HUE

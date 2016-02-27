@@ -28,6 +28,8 @@
 
 #include "enoceanremotecontrol.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "shadowbehaviour.hpp"
 #include "lightbehaviour.hpp"
 #include "enoceandevicecontainer.hpp"
@@ -352,5 +354,4 @@ void EnoceanBlindControlDevice::sendReleaseTelegram(SimpleCB aDoneCB)
 }
 
 
-
-
+#endif // ENABLE_ENOCEAN

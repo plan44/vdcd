@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_DALI
+
 #include "deviceclasscontainer.hpp"
 
 #include "dalicomm.hpp"
@@ -123,5 +125,5 @@ namespace p44 {
 
 } // namespace p44
 
-
-#endif /* defined(__vdcd__dalidevicecontainer__) */
+#endif // ENABLE_DALI
+#endif // __vdcd__dalidevicecontainer__

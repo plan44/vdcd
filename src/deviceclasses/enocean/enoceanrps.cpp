@@ -28,6 +28,8 @@
 
 #include "enoceanrps.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 
@@ -618,3 +620,4 @@ string EnoceanRpsLeakageDetectorHandler::shortDesc()
 }
 
 
+#endif // ENABLE_ENOCEAN

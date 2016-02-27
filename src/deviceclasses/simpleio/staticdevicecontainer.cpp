@@ -21,6 +21,8 @@
 
 #include "staticdevicecontainer.hpp"
 
+#if ENABLE_STATIC
+
 #include "digitaliodevice.hpp"
 #include "analogiodevice.hpp"
 #include "consoledevice.hpp"
@@ -132,10 +134,6 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
     // console based simulated device
     newDev = DevicePtr(new ConsoleDevice(this, aDeviceConfig));
   }
-  else if (aDeviceType=="evaluator") {
-    // virtual input or button evaluating other device's sensor values
-    newDev = DevicePtr(new EvaluatorDevice(this, aDeviceConfig));
-  }
   else if (aDeviceType=="spark") {
     // spark core based device
     newDev = DevicePtr(new SparkIoDevice(this, aDeviceConfig));
@@ -234,3 +232,4 @@ ErrorPtr StaticDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const st
 
 
 
+#endif // ENABLE_STATIC

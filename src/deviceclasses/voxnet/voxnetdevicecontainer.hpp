@@ -93,5 +93,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_VOXNET
-
-#endif /* defined(__vdcd__voxnetdevicecontainer__) */
+#endif // __vdcd__voxnetdevicecontainer__

@@ -21,6 +21,8 @@
 
 #include "enoceandevicecontainer.hpp"
 
+#if ENABLE_ENOCEAN
+
 using namespace p44;
 
 
@@ -561,4 +563,5 @@ void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3Pa
   LOG(LOG_NOTICE, "- enocean test: still waiting for RPS telegram in learn distance");
 }
 
+#endif // ENABLE_ENOCEAN
 

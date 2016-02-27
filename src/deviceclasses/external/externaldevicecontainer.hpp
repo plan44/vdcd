@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_EXTERNAL
+
 #include "deviceclasscontainer.hpp"
 #include "device.hpp"
 #include "jsoncomm.hpp"
@@ -228,4 +230,5 @@ namespace p44 {
 } // namespace p44
 
 
-#endif /* defined(__vdcd__externaldevicecontainer__) */
+#endif // ENABLE_EXTERNAL
+#endif // __vdcd__externaldevicecontainer__

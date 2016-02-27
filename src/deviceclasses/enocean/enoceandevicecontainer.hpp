@@ -24,13 +24,13 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "deviceclasscontainer.hpp"
+#include "sqlite3persistence.hpp"
 
 #include "enoceancomm.hpp"
-
 #include "enoceandevice.hpp"
-
-#include "sqlite3persistence.hpp"
 
 
 using namespace std;
@@ -177,4 +177,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__enoceandevicecontainer__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enoceandevicecontainer__

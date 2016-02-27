@@ -21,7 +21,7 @@
 
 #include "ws281xcomm.hpp"
 
-#if !DISABLE_LEDCHAIN
+#if ENABLE_LEDCHAIN
 
 using namespace p44;
 
@@ -245,5 +245,5 @@ void WS281xComm::getColorXY(uint16_t aX, uint16_t aY, uint8_t &aRed, uint8_t &aG
   #endif
 }
 
-#endif // !DISABLE_LEDCHAIN
+#endif // ENABLE_LEDCHAIN
 

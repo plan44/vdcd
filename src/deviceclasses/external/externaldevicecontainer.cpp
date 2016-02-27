@@ -21,6 +21,8 @@
 
 #include "externaldevicecontainer.hpp"
 
+#if ENABLE_EXTERNAL
+
 #include "movinglightbehaviour.hpp"
 #include "shadowbehaviour.hpp"
 #include "climatecontrolbehaviour.hpp"
@@ -1082,7 +1084,4 @@ void ExternalDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrem
 }
 
 
-
-
-
-
+#endif // ENABLE_EXTERNAL

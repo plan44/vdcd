@@ -33,8 +33,6 @@
 #include <openssl/sha.h>
 #endif
 
-#include "fnv.hpp"
-
 using namespace p44;
 
 

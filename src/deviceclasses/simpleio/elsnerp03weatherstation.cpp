@@ -21,7 +21,7 @@
 
 #include "elsnerp03weatherstation.hpp"
 
-#include "fnv.hpp"
+#if ENABLE_STATIC
 
 using namespace p44;
 
@@ -171,3 +171,7 @@ string ElsnerP03WeatherStation::description()
   string_format_append(s, "\n- drives a Elsner P03 weather station");
   return s;
 }
+
+
+#endif // ENABLE_STATIC
+

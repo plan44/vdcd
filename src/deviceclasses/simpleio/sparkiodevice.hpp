@@ -25,6 +25,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_STATIC
+
 #include "jsonwebclient.hpp"
 #include "colorlightbehaviour.hpp"
 #include "staticdevicecontainer.hpp"
@@ -241,4 +243,6 @@ namespace p44 {
   
 } // namespace p44
 
-#endif /* defined(__vdcd__sparkiodevice__) */
+
+#endif // ENABLE_STATIC
+#endif // __vdcd__sparkiodevice__

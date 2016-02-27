@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevice.hpp"
 
 
@@ -95,7 +97,7 @@ namespace p44 {
   typedef boost::intrusive_ptr<SingleContactHandler> SingleContactHandlerPtr;
 
 
-
 } // namespace p44
 
-#endif /* defined(__vdcd__enocean1bs__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enocean1bs__

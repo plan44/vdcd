@@ -20,10 +20,12 @@
 //
 
 
-#ifndef DALICOMM_H_
-#define DALICOMM_H_
+#ifndef __vdcd__dalicomm__
+#define __vdcd__dalicomm__
 
 #include "vdcd_common.hpp"
+
+#if ENABLE_DALI
 
 #include "serialqueue.hpp"
 
@@ -321,5 +323,5 @@ namespace p44 {
 
 } // namespace p44
 
-
-#endif /* DALICOMM_H_ */
+#endif // ENABLE_DALI
+#endif // __vdcd__dalicomm__

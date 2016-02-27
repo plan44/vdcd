@@ -21,7 +21,7 @@
 
 #include "oladevice.hpp"
 
-#if !DISABLE_OLA
+#if ENABLE_OLA
 
 #include "lightbehaviour.hpp"
 #include "colorlightbehaviour.hpp"
@@ -389,7 +389,7 @@ string OlaDevice::description()
   return s;
 }
 
-#endif // !DISABLE_OLA
+#endif // ENABLE_OLA
 
 
 

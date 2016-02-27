@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_STATIC
+
 #include "digitalio.hpp"
 #include "staticdevicecontainer.hpp"
 
@@ -119,4 +121,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__digitaliodevice__) */
+#endif // ENABLE_STATIC
+#endif // __vdcd__digitaliodevice__

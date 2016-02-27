@@ -21,7 +21,7 @@
 
 #include "consoledevice.hpp"
 
-#include "fnv.hpp"
+#if ENABLE_STATIC
 
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
@@ -343,3 +343,7 @@ string ConsoleDevice::description()
     string_format_append(s, "\n- has valve actuator shown on console, pseudo temperature, battery low via console keypress");
   return s;
 }
+
+
+#endif // ENABLE_STATIC
+

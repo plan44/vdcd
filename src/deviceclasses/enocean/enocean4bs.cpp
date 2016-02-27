@@ -21,6 +21,8 @@
 
 #include "enocean4bs.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevicecontainer.hpp"
 
 #include "sensorbehaviour.hpp"
@@ -778,8 +780,4 @@ string EnoceanA5130XHandler::shortDesc()
 }
 
 
-
-
-
-
-
+#endif // ENABLE_ENOCEAN

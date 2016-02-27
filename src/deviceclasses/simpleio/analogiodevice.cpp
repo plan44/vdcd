@@ -21,6 +21,8 @@
 
 #include "analogiodevice.hpp"
 
+#if ENABLE_STATIC
+
 #include "lightbehaviour.hpp"
 #include "colorlightbehaviour.hpp"
 #include "climatecontrolbehaviour.hpp"
@@ -289,3 +291,5 @@ string AnalogIODevice::description()
   return s;
 }
 
+
+#endif // ENABLE_STATIC

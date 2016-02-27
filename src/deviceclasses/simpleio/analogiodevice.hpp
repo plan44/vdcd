@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_STATIC
+
 #include "analogio.hpp"
 #include "staticdevicecontainer.hpp"
 
@@ -105,4 +107,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__analogiodevice__) */
+#endif // ENABLE_STATIC
+#endif // __vdcd__analogiodevice__

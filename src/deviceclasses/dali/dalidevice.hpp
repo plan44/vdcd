@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_DALI
+
 #include "dalicomm.hpp"
 #include "lightbehaviour.hpp"
 
@@ -480,4 +482,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__dalidevice__) */
+#endif // ENABLE_DALI
+#endif // __vdcd__dalidevice__

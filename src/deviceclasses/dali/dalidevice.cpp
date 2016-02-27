@@ -29,13 +29,14 @@
 
 
 #include "dalidevice.hpp"
+
+#if ENABLE_DALI
+
 #include "dalidevicecontainer.hpp"
-
-#include "fnv.hpp"
-
 #include "colorlightbehaviour.hpp"
 
 #include <math.h>
+
 
 using namespace p44;
 
@@ -944,4 +945,6 @@ string DaliRGBWDevice::description()
   if (dimmer) s.append(dimmer->deviceInfo.description());
   return s;
 }
+
+#endif // ENABLE_DALI
 

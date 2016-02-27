@@ -825,9 +825,4 @@ void VoxnetDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int
 
 
 
-
-
 #endif // ENABLE_VOXNET
-
-
-

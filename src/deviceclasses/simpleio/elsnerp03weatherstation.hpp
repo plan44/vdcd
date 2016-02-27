@@ -24,6 +24,8 @@
 
 #include "device.hpp"
 
+#if ENABLE_STATIC
+
 #include "staticdevicecontainer.hpp"
 #include "serialcomm.hpp"
 
@@ -92,4 +94,6 @@ namespace p44 {
   
 } // namespace p44
 
-#endif /* defined(__vdcd__rs485weather__) */
+
+#endif // ENABLE_STATIC
+#endif // __vdcd__rs485weather__

@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevice.hpp"
 
 /// enocean bit specification to bit number macro
@@ -176,4 +178,5 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__enoceansensorhandler__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enoceansensorhandler__

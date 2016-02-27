@@ -117,6 +117,5 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_VOXNET
-
-#endif /* defined(__vdcd__voxnetcomm__) */
+#endif // __vdcd__voxnetcomm__
 

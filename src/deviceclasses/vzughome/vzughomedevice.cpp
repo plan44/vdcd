@@ -23,7 +23,6 @@
 
 #if ENABLE_VZUGHOME
 
-
 #include "outputbehaviour.hpp"
 
 using namespace p44;

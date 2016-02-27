@@ -23,6 +23,8 @@
 
 #include "dalidevice.hpp"
 
+#if ENABLE_DALI
+
 using namespace p44;
 
 
@@ -704,3 +706,6 @@ void DaliDeviceContainer::testRWResponse(StatusCB aCompletedCB, DaliAddress aSho
     aCompletedCB(aError);
   }
 }
+
+#endif // ENABLE_DALI
+

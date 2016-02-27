@@ -21,8 +21,7 @@
 
 #include "sparkiodevice.hpp"
 
-
-#include "fnv.hpp"
+#if ENABLE_STATIC
 
 #include "buttonbehaviour.hpp"
 #include "lightbehaviour.hpp"
@@ -409,3 +408,6 @@ string SparkIoDevice::description()
   string_format_append(s, "\n- MessageTorch RGB light controlled via spark cloud API");
   return s;
 }
+
+
+#endif // ENABLE_STATIC

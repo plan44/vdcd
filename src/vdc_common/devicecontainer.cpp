@@ -28,7 +28,6 @@
 #include "device.hpp"
 
 #include "macaddress.hpp"
-#include "fnv.hpp"
 
 // for local behaviour
 #include "buttonbehaviour.hpp"

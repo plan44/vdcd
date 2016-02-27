@@ -21,6 +21,8 @@
 
 #include "digitaliodevice.hpp"
 
+#if ENABLE_STATIC
+
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
 #include "lightbehaviour.hpp"
@@ -294,3 +296,7 @@ string DigitalIODevice::description()
     string_format_append(s, "\n Blinds output at Digital IO %s", blindsName().c_str());
   return s;
 }
+
+
+#endif // ENABLE_STATIC
+

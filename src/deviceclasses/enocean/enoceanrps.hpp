@@ -24,6 +24,8 @@
 
 #include "vdcd_common.hpp"
 
+#if ENABLE_ENOCEAN
+
 #include "enoceandevice.hpp"
 
 
@@ -194,7 +196,7 @@ namespace p44 {
   };
   typedef boost::intrusive_ptr<EnoceanRpsLeakageDetectorHandler> EnoceanRpsLeakageDetectorHandlerPtr;
 
-
 }
 
-#endif /* defined(__vdcd__enoceanrps__) */
+#endif // ENABLE_ENOCEAN
+#endif // __vdcd__enoceanrps__
