@@ -279,17 +279,16 @@ bool BinaryInputBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           return true;
         case extendedValue_key+states_key_offset:
           // extended value
-          if (lastUpdate==Never)
-            aPropValue->setNull();
-          else {
-            if (maxExtendedValue()>1) {
-              // this is a multi-state input, show the actual state as "extendedValue"
+          if (maxExtendedValue()>1) {
+            // this is a multi-state input, show the actual state as "extendedValue"
+            if (lastUpdate==Never)
+              aPropValue->setNull();
+            else
               aPropValue->setUint8Value(currentState);
-            }
-            else {
-              // simple binary input, do not show the extended state
-              return false; // property invisible
-            }
+          }
+          else {
+            // simple binary input, do not show the extended state
+            return false; // property invisible
           }
           return true;
         case age_key+states_key_offset:
