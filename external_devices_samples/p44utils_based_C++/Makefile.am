@@ -69,6 +69,8 @@ p44utilsdevice_SOURCES = \
   src/p44utils/fdcomm.hpp \
   src/p44utils/socketcomm.cpp \
   src/p44utils/socketcomm.hpp \
+  src/p44utils/serialcomm.cpp \
+  src/p44utils/serialcomm.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
   src/p44utils/p44_common.hpp \
