@@ -1,0 +1,27 @@
+*~
+
+# XCode specifics
+*.xcuserstate
+xcuserdata/
+p44utilsdevice.xcodeproj/project.xcworkspace/xcshareddata/p44utilsdevice.xcscmblueprint
+
+# Autotools specifics
+*.o
+Makefile
+Makefile.in
+autom4te.cache/
+aclocal.m4
+config.h
+config.h.in
+config.log
+config.status
+configure
+configure_aux/
+.dirstamp
+.deps/
+stamp-h1
+build/
+
+# built binaries
+p44utilsdevice
+
