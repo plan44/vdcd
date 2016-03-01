@@ -97,6 +97,7 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/behaviours \
   -I ${srcdir}/src/deviceclasses/simpleio \
   -I ${srcdir}/src/deviceclasses/external \
+  -I ${srcdir}/src/deviceclasses/evaluator \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
@@ -112,7 +113,7 @@ vdcd_CXXFLAGS = \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
   ${vdcd_EXTRAS} \
-  -D DISABLE_OLA=1
+  -D ENABLE_OLA=0
 
 
 vdcd_SOURCES = \
@@ -194,6 +195,8 @@ vdcd_SOURCES = \
   src/vdc_common/device.hpp \
   src/vdc_common/devicesettings.cpp \
   src/vdc_common/devicesettings.hpp \
+  src/vdc_common/valuesource.cpp \
+  src/vdc_common/valuesource.hpp \
   src/vdc_common/propertycontainer.cpp \
   src/vdc_common/propertycontainer.hpp \
   src/vdc_common/pbufvdcapi.cpp \
@@ -240,8 +243,6 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
   src/deviceclasses/simpleio/sparkiodevice.hpp \
-  src/deviceclasses/simpleio/elsnerp03weatherstation.cpp \
-  src/deviceclasses/simpleio/elsnerp03weatherstation.hpp \
   src/deviceclasses/simpleio/digitaliodevice.cpp \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
   src/deviceclasses/simpleio/analogiodevice.cpp \
@@ -320,6 +321,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/behaviours \
   -I ${srcdir}/src/deviceclasses/simpleio \
   -I ${srcdir}/src/deviceclasses/external \
+  -I ${srcdir}/src/deviceclasses/evaluator \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
@@ -336,7 +338,7 @@ olavdcd_CXXFLAGS = \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
   ${vdcd_EXTRAS} \
-  -D DISABLE_OLA=0
+  -D ENABLE_OLA=1
 
 olavdcd_SOURCES = \
   ${vdcd_SOURCES} \
