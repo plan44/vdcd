@@ -165,6 +165,7 @@ void EvaluatorDevice::parseValueDefs()
   string &valueDefs = evaluatorSettings()->valueDefs;
   // syntax:
   //  <valuealias>:<valuesourceid> [, <valuealias>:valuesourceid> ...]
+  ALOG(LOG_INFO, "Parsing variable definitions");
   bool foundall = true;
   size_t i = 0;
   while(i<valueDefs.size()) {
@@ -183,10 +184,10 @@ void EvaluatorDevice::parseValueDefs()
         vs->addSourceListener(boost::bind(&EvaluatorDevice::dependentValueNotification, this, _1, _2), this);
         // - add source to my map
         valueMap[valuealias] = vs;
-        AFOCUSLOG("Parsed value definition: %s : %s", valuealias.c_str(), vs->getSourceName().c_str());
+        ALOG(LOG_INFO, "- Variable '%s' connected to source '%s'", valuealias.c_str(), vs->getSourceName().c_str());
       }
       else {
-        ALOG(LOG_WARNING, "value source '%s' currently not found", valuesourceid.c_str());
+        ALOG(LOG_WARNING, "Value source id '%s' not found -> variable '%s' currently undefined", valuesourceid.c_str(), valuealias.c_str());
         foundall = false;
       }
       // skip delimiters
@@ -222,15 +223,26 @@ void EvaluatorDevice::evaluateConditions()
 {
   // evaluate state and report it
   Tristate prevState = currentState;
-  if (currentState!=yes) {
+  bool decisionMade = false;
+  if (!decisionMade && currentState!=yes) {
     // off or unknown: check for switching on
-    if (evaluateBoolean(evaluatorSettings()->onCondition)==yes) currentState=yes;
+    Tristate on = evaluateBoolean(evaluatorSettings()->onCondition);
+    ALOG(LOG_INFO, "onCondition '%s' evaluates to %s", evaluatorSettings()->onCondition.c_str(), on==undefined ? "<undefined>" : (on==yes ? "true -> switching ON" : "false"));
+    if (on==yes) {
+      currentState = yes;
+      decisionMade = true;
+    }
   }
-  if (currentState!=no) {
+  if (!decisionMade && currentState!=no) {
     // on or unknown: check for switching off
-    if (evaluateBoolean(evaluatorSettings()->offCondition)==yes) currentState=no;
+    Tristate off = evaluateBoolean(evaluatorSettings()->offCondition);
+    ALOG(LOG_INFO, "offCondition '%s' evaluates to %s", evaluatorSettings()->offCondition.c_str(), off==undefined ? "<undefined>" : (off==yes ? "true -> switching OFF" : "false"));
+    if (off==yes) {
+      currentState = no;
+      decisionMade = true;
+    }
   }
-  if (currentState!=undefined) {
+  if (decisionMade && currentState!=undefined) {
     // report it
     switch (evaluatorType) {
       case evaluator_input : {
@@ -299,12 +311,12 @@ ErrorPtr EvaluatorDevice::evaluateTerm(const char * &aText, double &aValue)
     // must be a variable
     ValueSourcesMap::iterator pos = valueMap.find(term);
     if (pos==valueMap.end()) {
-      return TextError::err("Undefined variable '%s' -> undefined result", term.c_str());
+      return TextError::err("Undefined variable '%s'", term.c_str());
     }
     // value found, get it
     if (pos->second->getSourceAge()==Never) {
       // no value known yet
-      return TextError::err("Variable '%s' has no known value yet -> undefined result", term.c_str());
+      return TextError::err("Variable '%s' has no known value yet", term.c_str());
     }
     else {
       v = pos->second->getSourceValue();
