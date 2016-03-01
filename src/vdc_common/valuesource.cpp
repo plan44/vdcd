@@ -51,8 +51,19 @@ void ValueSource::removeSourceListener(void *aListener)
 
 void ValueSource::notifyListeners(ValueListenerEvent aEvent)
 {
-  for (ListenerMap::iterator pos=listeners.begin(); pos!=listeners.end(); ++pos) {
-    ValueListenerCB cb = pos->second;
-    cb(*this, aEvent);
+  if (aEvent==valueevent_removed) {
+    // neeed to operate on a copy of the map because removal could cause callbacks to add/remove
+    ListenerMap tempMap = listeners;
+    for (ListenerMap::iterator pos=tempMap.begin(); pos!=tempMap.end(); ++pos) {
+      ValueListenerCB cb = pos->second;
+      cb(*this, aEvent);
+    }
+  }
+  else {
+    // optimisation - no need to copy the map
+    for (ListenerMap::iterator pos=listeners.begin(); pos!=listeners.end(); ++pos) {
+      ValueListenerCB cb = pos->second;
+      cb(*this, aEvent);
+    }
   }
 }
