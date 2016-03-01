@@ -352,7 +352,7 @@ public:
               bool rain = telegram[20]=='J';
               reportInput(rainInputIndex, rain);
               // reset index
-              telegramIndex = 0;
+              telegramIndex = -1;
             }
           }
         }
