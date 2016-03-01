@@ -40,7 +40,7 @@ ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const stri
   // Config is:
   //  <name>:<behaviour type>
   //  - where first character of name (and possibly next in alphabeth) is also used as console key for inputs
-  size_t i = aDeviceConfig.find(":");
+  size_t i = aDeviceConfig.rfind(":");
   string name = aDeviceConfig;
   if (i!=string::npos) {
     name = aDeviceConfig.substr(0,i);
