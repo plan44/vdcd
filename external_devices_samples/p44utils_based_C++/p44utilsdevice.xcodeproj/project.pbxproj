@@ -41,7 +41,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		ED5A4D9B1C84398D00C607D5 /* serialcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialcomm.cpp; sourceTree = "<group>"; };
+		ED5A4D9B1C84398D00C607D5 /* serialcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = serialcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5A4D9C1C84398D00C607D5 /* serialcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = serialcomm.hpp; sourceTree = "<group>"; };
 		ED9C22751BBEAD6F006F5F21 /* weatherstation */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = weatherstation; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED9C22781BBEAD6F006F5F21 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };

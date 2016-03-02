@@ -267,7 +267,7 @@ public:
       return;
     }
     // process messages
-    LOG(LOG_NOTICE, "Received message: %s\n", aJsonObject->c_strValue());
+    LOG(LOG_NOTICE, "Received message: %s", aJsonObject->c_strValue());
     // Note: weather station does not process any messages
   }
 
@@ -275,7 +275,7 @@ public:
 
   void reportSensor(int aIndex, double aValue)
   {
-    LOG(LOG_NOTICE, "Reporting sensor[%d]: %.1f\n", aIndex, aValue);
+    LOG(LOG_NOTICE, "Reporting sensor[%d]: %.1f", aIndex, aValue);
     // create vdcd external device API channel update message
     JsonObjectPtr msg = JsonObject::newObj();
     msg->add("message", JsonObject::newString("sensor"));
@@ -290,7 +290,7 @@ public:
 
   void reportInput(int aIndex, bool aState)
   {
-    LOG(LOG_NOTICE, "Reporting sensor[%d]: %d\n", aIndex, aState);
+    LOG(LOG_NOTICE, "Reporting sensor[%d]: %d", aIndex, aState);
     // create vdcd external device API channel update message
     JsonObjectPtr msg = JsonObject::newObj();
     msg->add("message", JsonObject::newString("sensor"));
@@ -305,21 +305,31 @@ public:
 
   void serialReceiveHandler(ErrorPtr aError)
   {
-    if (Error::isOK(aError)) {
+    if (!Error::isOK(aError)) {
+      LOG(LOG_ERR, "serialReceiveHandler error: %s", aError->description().c_str());
+    }
+    else {
       size_t n = serial->numBytesReady();
-      if (n>0) {
+      LOG(LOG_DEBUG, "serialReceiveHandler sees %zu bytes ready", n);
+      while (n-->0) {
         uint8_t byte;
         serial->receiveBytes(1, &byte, aError);
-        if (Error::isOK(aError)) {
+        if (!Error::isOK(aError)) {
+          LOG(LOG_ERR, "receiveBytes error: %s", aError->description().c_str());
+        }
+        else {
+          LOG(LOG_DEBUG, "- processing byte 0x%02X '%c' ", byte, byte<0x20 || byte>0x7E ? '.' : (char)byte);
           if (telegramIndex<0) {
             // wait for start of telegram
             if (byte=='W') {
               telegramIndex = 0;
+              LOG(LOG_DEBUG, "Found beginning of telegram");
             }
           }
           if (telegramIndex>=0 && telegramIndex<numTelegramBytes) {
             telegram[telegramIndex++] = byte;
             if (telegramIndex>=numTelegramBytes) {
+              LOG(LOG_DEBUG, "Entire telegram (%zu bytes) received - evaluate now", numTelegramBytes);
               // evaluate
               // TODO: checksum
               // - temperature
