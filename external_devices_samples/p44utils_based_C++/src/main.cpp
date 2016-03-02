@@ -228,8 +228,8 @@ public:
     s->add("group", JsonObject::newInt32(1)); // 1=yellow/light
     s->add("hardwarename", JsonObject::newString("Daylight"));
     s->add("min", JsonObject::newDouble(0));
-    s->add("max", JsonObject::newDouble(99000));
-    s->add("resolution", JsonObject::newDouble(100));
+    s->add("max", JsonObject::newDouble(999));
+    s->add("resolution", JsonObject::newDouble(1));
     s->add("updateinterval", JsonObject::newInt32(3)); // updates every 3 seconds
     daylightSensorIndex = sensors->arrayLength();
     sensors->arrayAppend(s);
@@ -240,8 +240,8 @@ public:
     s->add("group", JsonObject::newInt32(3)); // 3=blue/climate
     s->add("hardwarename", JsonObject::newString("Wind Speed"));
     s->add("min", JsonObject::newDouble(0));
-    s->add("max", JsonObject::newDouble(70));
-    s->add("resolution", JsonObject::newDouble(4));
+    s->add("max", JsonObject::newDouble(99));
+    s->add("resolution", JsonObject::newDouble(0.1));
     s->add("updateinterval", JsonObject::newInt32(3)); // updates every 3 seconds
     windSensorIndex = sensors->arrayLength();
     sensors->arrayAppend(s);
@@ -275,7 +275,7 @@ public:
 
   void reportSensor(int aIndex, double aValue)
   {
-    LOG(LOG_NOTICE, "Reporting sensor[%d]: %.1f", aIndex, aValue);
+    LOG(LOG_INFO, "Reporting sensor[%d]: %.1f", aIndex, aValue);
     // create vdcd external device API channel update message
     JsonObjectPtr msg = JsonObject::newObj();
     msg->add("message", JsonObject::newString("sensor"));
@@ -290,10 +290,10 @@ public:
 
   void reportInput(int aIndex, bool aState)
   {
-    LOG(LOG_NOTICE, "Reporting sensor[%d]: %d", aIndex, aState);
+    LOG(LOG_INFO, "Reporting input[%d]: %d", aIndex, aState);
     // create vdcd external device API channel update message
     JsonObjectPtr msg = JsonObject::newObj();
-    msg->add("message", JsonObject::newString("sensor"));
+    msg->add("message", JsonObject::newString("input"));
     // - index
     msg->add("index", JsonObject::newInt32(aIndex));
     // - value
@@ -334,29 +334,29 @@ public:
               // TODO: checksum
               // - temperature
               double temp =
-              (telegram[2]-'0')*10 +
-              (telegram[3]-'0')*1 +
-              (telegram[5]-'0')*0.1;
+                (telegram[2]-'0')*10 +
+                (telegram[3]-'0')*1 +
+                (telegram[5]-'0')*0.1;
               reportSensor(temperatureSensorIndex, temp);
               // - sun
               double sun =
-              (telegram[6]-'0')*10000 +
-              (telegram[7]-'0')*1000;
+                (telegram[6]-'0')*10000 +
+                (telegram[7]-'0')*1000;
               reportSensor(sunlightSensorIndex, sun);
               // - twilight
               bool isTwilight = telegram[12]=='J';
               reportInput(twilightInputIndex, isTwilight);
               // - daylight
               double daylight =
-              (telegram[13]-'0')*10000 +
-              (telegram[14]-'0')*1000 +
-              (telegram[15]-'0')*100;
+                (telegram[13]-'0')*100 +
+                (telegram[14]-'0')*10 +
+                (telegram[15]-'0')*1;
               reportSensor(daylightSensorIndex, daylight);
               // - wind
               double wind =
-              (telegram[16]-'0')*10 +
-              (telegram[17]-'0')*1 +
-              (telegram[19]-'0')*0.1;
+                (telegram[16]-'0')*10 +
+                (telegram[17]-'0')*1 +
+                (telegram[19]-'0')*0.1;
               reportSensor(windSensorIndex, wind);
               // - rain
               bool rain = telegram[20]=='J';
