@@ -23,5 +23,5 @@ stamp-h1
 build/
 
 # built binaries
-p44utilsdevice
+./p44utilsdevice
 
