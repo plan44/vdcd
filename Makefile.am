@@ -172,6 +172,8 @@ vdcd_SOURCES = \
   src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
+  src/p44utils/igmp.cpp \
+  src/p44utils/igmp.hpp \
   src/p44utils/httpcomm.cpp\
   src/p44utils/httpcomm.hpp\
   src/p44utils/jsonwebclient.cpp\

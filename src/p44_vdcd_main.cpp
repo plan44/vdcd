@@ -362,6 +362,7 @@ public:
       { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
+      { 0  , "noigmphelp",    false, "do not send IGMP queries/reports to help snooping switches" },
       { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
       #if ENABLE_AUXVDSM
@@ -916,6 +917,7 @@ public:
       getOption("noauto"),
       p44VdcHost->webUiPort,
       sshPort,
+      !getOption("noigmphelp"),
       #if ENABLE_AUXVDSM
       auxVdsmDsuid,
       auxVdsmPort,

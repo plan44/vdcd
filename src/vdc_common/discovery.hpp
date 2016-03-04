@@ -96,6 +96,7 @@ namespace p44 {
     bool noAuto;
     int publishWebPort;
     int publishSshPort;
+    bool igmpSnoopingHints;
     #if ENABLE_AUXVDSM
     // - an optionally running auxiliary vdsm
     DsUidPtr auxVdsmDsUid;
@@ -119,6 +120,7 @@ namespace p44 {
 
     long rescanTicket;
     long evaluateTicket;
+    long igmpQueryTicket;
 
 
   public:
@@ -135,6 +137,7 @@ namespace p44 {
     /// @param aAuxVdsmRunning must be true if the auxiliary vdsm is running right now, false if not.
     /// @param aAuxVdsmStatusHandler will be called when discovery detects or looses master vdsm
     /// @param aNotAuxiliary if set, vdsm will always run and will not include the "auxiliary" TXT record in the advertisement
+    /// @param aIgmpSnoopingHints if set, some extra IGMP packets will be sent to help IGMP snooping in broken networks
     /// @return error in case discovery manager could not be started
     ErrorPtr start(
       DeviceContainerPtr aDeviceContainer,
@@ -142,6 +145,7 @@ namespace p44 {
       bool aNoAuto,
       int aWebPort,
       int aSshPort,
+      bool aIgmpSnoopingHints,
       DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler, bool aNotAuxiliary
     );
 
@@ -153,6 +157,7 @@ namespace p44 {
     void startServices();
     void stopServices();
     void restartServices();
+    void periodicIgmpQuery();
 
     #if ENABLE_AUXVDSM
     void startBrowsingVdms(AvahiService *aService);

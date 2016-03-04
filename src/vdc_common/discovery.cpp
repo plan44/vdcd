@@ -28,9 +28,12 @@
 
 #include "discovery.hpp"
 
+#include "igmp.hpp"
+
 #if !DISABLE_DISCOVERY
 
 using namespace p44;
+
 
 #define VDSM_SERVICE_TYPE "_ds-vdsm._tcp"
 #define VDC_SERVICE_TYPE "_ds-vdc._tcp"
@@ -54,6 +57,9 @@ using namespace p44;
 #define INITIAL_EVALUATION_DELAY (30*Second) // how long to browse until evaluating state for the first time (only when no auxvdsm is running)
 #define REEVALUATION_DELAY (30*Second) // how long to browse until reevaluating state (only when no auxvdsm is running)
 
+#define IPV4_MCAST_MDNS_ADDR "2224.0.0.251" // for IGMP snooping support
+#define IGMP_QUERY_MAX_RESPONSE_TIME 50 // 0 to issue IGMPv1 queries, >0: time in 1/10sec
+#define IGMP_QUERY_REFRESH_INTERVAL (180*Second) // send a IGMP query once every 3 minutes
 
 DiscoveryManager::DiscoveryManager() :
   simple_poll(NULL),
@@ -66,10 +72,12 @@ DiscoveryManager::DiscoveryManager() :
   vdsmAuxiliary(true),
   #endif
   noAuto(false),
+  igmpSnoopingHints(false),
   publishWebPort(0),
   publishSshPort(0),
   rescanTicket(0),
-  evaluateTicket(0)
+  evaluateTicket(0),
+  igmpQueryTicket(0)
 {
   // register a cleanup handler
   MainLoop::currentMainLoop().registerCleanupHandler(boost::bind(&DiscoveryManager::stop, this));
@@ -113,6 +121,7 @@ ErrorPtr DiscoveryManager::start(
   DeviceContainerPtr aDeviceContainer,
   const char *aHostname, bool aNoAuto,
   int aWebPort, int aSshPort,
+  bool aIgmpSnoopingHints,
   DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler, bool aNotAuxiliary
 ) {
   ErrorPtr err;
@@ -122,6 +131,7 @@ ErrorPtr DiscoveryManager::start(
   deviceContainer = aDeviceContainer;
   hostname = aHostname;
   noAuto = aNoAuto;
+  igmpSnoopingHints = aIgmpSnoopingHints;
   publishWebPort = aWebPort;
   publishSshPort = aSshPort;
   #if ENABLE_AUXVDSM
@@ -275,13 +285,42 @@ void DiscoveryManager::startServices()
   else {
     LOG(LOG_WARNING, "avahi: startService called while service already running");
   }
+  if (igmpSnoopingHints) {
+    // trigger IGMP reports from all hosts to make IGMP snooping switch more likely to pass our advertisement to other hosts
+    sendIGMP(IGMP_MEMBERSHIP_QUERY, IGMP_QUERY_MAX_RESPONSE_TIME, NULL, NULL);
+    // repeat it once in a while
+    MainLoop::currentMainLoop().executeTicketOnce(igmpQueryTicket, boost::bind(&DiscoveryManager::periodicIgmpQuery, this), IGMP_QUERY_REFRESH_INTERVAL);
+  }
 }
+
+
+void DiscoveryManager::periodicIgmpQuery()
+{
+  if (
+    #if ENABLE_AUXVDSM
+    auxVdsmRunning || // with auxvdsm, we don't know when the vdsm is connected, so just repeat the query
+    #endif
+    !deviceContainer->getSessionConnection() // otherwise, query if we don't have a connection
+  ) {
+    sendIGMP(IGMP_MEMBERSHIP_QUERY, IGMP_QUERY_MAX_RESPONSE_TIME, NULL, NULL);
+    // reschedule
+    MainLoop::currentMainLoop().executeTicketOnce(igmpQueryTicket, boost::bind(&DiscoveryManager::periodicIgmpQuery, this), IGMP_QUERY_REFRESH_INTERVAL);
+  }
+}
+
+
 
 
 #if ENABLE_AUXVDSM
 
 void DiscoveryManager::startBrowsingVdms(AvahiService *aService)
 {
+  if (igmpSnoopingHints) {
+    // make sure we're still recognized as member of the group, so IGMP snooping switches will pass other node's advertisements trough
+    sendIGMP(IGMP_V2_MEMBERSHIP_REPORT, 0, IPV4_MCAST_MDNS_ADDR, NULL);
+    // also trigger IGMP reports to make IGMP snooping switch more likely to pass our advertisement to other hosts
+    sendIGMP(IGMP_MEMBERSHIP_QUERY, IGMP_QUERY_MAX_RESPONSE_TIME, IPV4_MCAST_MDNS_ADDR, NULL);
+  }
   // Note: may NOT use global "service" var, because this can be called from within server callback, which might be called before avahi_server_new() returns
   // stop previous, if any
   if (serviceBrowser) {

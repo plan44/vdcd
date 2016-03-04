@@ -45,6 +45,7 @@
 		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
 		ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
 		ED5827261B02378F00B92C74 /* enoceanremotecontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5827241B02378F00B92C74 /* enoceanremotecontrol.cpp */; };
+		ED59D4751C89F7060089E69A /* igmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED59D4731C89F7060089E69A /* igmp.cpp */; };
 		ED5A4D8D1C8048ED00C607D5 /* evaluatordevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */; };
 		ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D921C80509C00C607D5 /* valuesource.cpp */; };
 		ED5A4D991C82133300C607D5 /* evaluatordevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D971C82133300C607D5 /* evaluatordevicecontainer.cpp */; };
@@ -261,6 +262,8 @@
 		ED5576141750B15F00CCC4DD /* jsonobject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonobject.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5827241B02378F00B92C74 /* enoceanremotecontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanremotecontrol.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5827251B02378F00B92C74 /* enoceanremotecontrol.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanremotecontrol.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED59D4731C89F7060089E69A /* igmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = igmp.cpp; sourceTree = "<group>"; };
+		ED59D4741C89F7060089E69A /* igmp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = igmp.hpp; sourceTree = "<group>"; };
 		ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = evaluatordevice.cpp; sourceTree = "<group>"; };
 		ED5A4D8C1C8048ED00C607D5 /* evaluatordevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = evaluatordevice.hpp; sourceTree = "<group>"; };
 		ED5A4D921C80509C00C607D5 /* valuesource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valuesource.cpp; sourceTree = "<group>"; };
@@ -633,6 +636,8 @@
 				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
+				ED59D4731C89F7060089E69A /* igmp.cpp */,
+				ED59D4741C89F7060089E69A /* igmp.hpp */,
 				ED81337717C6C765003982CC /* p44obj.cpp */,
 				ED81337817C6C765003982CC /* p44obj.hpp */,
 				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
@@ -981,6 +986,7 @@
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
 				ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
+				ED59D4751C89F7060089E69A /* igmp.cpp in Sources */,
 				EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
