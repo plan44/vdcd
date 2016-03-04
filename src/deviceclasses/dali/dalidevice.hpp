@@ -319,8 +319,11 @@ namespace p44 {
     /// @return model GUID in URN format to identify hardware model of device as uniquely as possible
     virtual string hardwareModelGUID();
 
-    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    /// @return OEM GUID in URN format to identify OEM hardware INSTANCE as uniquely as possible
     virtual string oemGUID();
+
+    /// @return OEM GUID in URN format to identify OEM hardware MODEL as uniquely as possible
+    virtual string oemModelGUID();
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)
@@ -443,8 +446,11 @@ namespace p44 {
     /// @return model GUID in URN format to identify model of device as uniquely as possible
     virtual string hardwareModelGUID();
 
-    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    /// @return OEM GUID in URN format to identify OEM hardware INSTANCE as uniquely as possible
     virtual string oemGUID();
+
+    /// @return OEM GUID in URN format to identify OEM hardware MODEL as uniquely as possible
+    virtual string oemModelGUID();
 
     /// Get icon data or name
     /// @param aIcon string to put result into (when method returns true)

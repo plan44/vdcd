@@ -202,7 +202,7 @@ namespace p44 {
     /// @return hardware version string or NULL if none
     virtual string hardwareVersion() { return ""; };
 
-    /// @return hardware GUID in URN format to identify hardware as uniquely as possible
+    /// @return hardware GUID in URN format to identify the hardware INSTANCE as uniquely as possible
     /// @note Already defined schemas for hardwareGUID are
     /// - enoceanaddress:XXXXXXXX = 8 hex digits enOcean device address
     /// - gs1:(01)ggggg = GS1 formatted GTIN
@@ -211,7 +211,7 @@ namespace p44 {
     /// - sparkcoreid:ssssss = spark core ID
     virtual string hardwareGUID() { return ""; };
 
-    /// @return model GUID in URN format to identify model of the connected hardware device as uniquely as possible
+    /// @return model GUID in URN format to identify MODEL of the connected hardware device as uniquely as possible
     /// @note model GUID must be equal between all devices of the same model/class/kind, where "same" should be
     ///   focused to the context of functionality relevant for the dS system, if possible. On the other hand,
     ///   identifiers allowing global lookup (such as GTIN) are preferred if available over less generic
@@ -222,8 +222,14 @@ namespace p44 {
     /// - uuid:UUUUUUU = UUID
     virtual string hardwareModelGUID() { return ""; };
 
-    /// @return OEM GUID in URN format to identify hardware as uniquely as possible
+    /// @return OEM GUID in URN format to identify the OEM product INSTANCE (the product that encloses/uses the technical
+    ///   device, such as a particular designer lamp) as uniquely as possible
+    /// @note see hardwareGUID for possible schemas
     virtual string oemGUID() { return ""; };
+
+    /// @return OEM model GUID in URN format to identify the OEM product MODEL hardware as uniquely as possible
+    /// @note see hardwareModelGUID for possible schemas
+    virtual string oemModelGUID() { return ""; };
 
     /// @return Vendor ID in URN format to identify vendor as uniquely as possible
     /// Already defined schemas for vendorId are

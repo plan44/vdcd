@@ -673,6 +673,15 @@ string DaliDimmerDevice::oemGUID()
 }
 
 
+string DaliDimmerDevice::oemModelGUID()
+{
+  if (brightnessDimmer->deviceInfo.oem_gtin==0)
+    return ""; // none
+  // return as GS1 element strings with Application Identifier 01=GTIN
+  return string_format("gs1:(01)%llu", brightnessDimmer->deviceInfo.oem_gtin);
+}
+
+
 string DaliDimmerDevice::description()
 {
   string s = inherited::description();
@@ -936,6 +945,17 @@ string DaliRGBWDevice::oemGUID()
   // return as GS1 element strings with Application Identifiers 01=GTIN and 21=Serial
   return string_format("gs1:(01)%llu(21)%llu", dimmer->deviceInfo.oem_gtin, dimmer->deviceInfo.oem_serialNo);
 }
+
+
+string DaliRGBWDevice::oemModelGUID()
+{
+  DaliBusDevicePtr dimmer = firstBusDevice();
+  if (!dimmer || dimmer->deviceInfo.oem_gtin==0)
+    return ""; // none
+  // return as GS1 element strings with Application Identifier 01=GTIN
+  return string_format("gs1:(01)%llu", dimmer->deviceInfo.oem_gtin);
+}
+
 
 
 string DaliRGBWDevice::description()

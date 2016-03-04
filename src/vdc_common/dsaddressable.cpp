@@ -267,6 +267,7 @@ enum {
   hardwareGUID_key,
   hardwareModelGUID_key,
   oemGUID_key,
+  oemModelGUID_key,
   vendorId_key,
   extraInfo_key,
   objectDescription_key,
@@ -297,6 +298,7 @@ PropertyDescriptorPtr DsAddressable::getDescriptorByIndex(int aPropIndex, int aD
     { "hardwareGuid", apivalue_string, hardwareGUID_key, OKEY(dsAddressable_key) },
     { "hardwareModelGuid", apivalue_string, hardwareModelGUID_key, OKEY(dsAddressable_key) },
     { "oemGuid", apivalue_string, oemGUID_key, OKEY(dsAddressable_key) },
+    { "oemModelGuid", apivalue_string, oemModelGUID_key, OKEY(dsAddressable_key) },
     { "vendorId", apivalue_string, vendorId_key, OKEY(dsAddressable_key) },
     { "x-p44-extraInfo", apivalue_string, extraInfo_key, OKEY(dsAddressable_key) },
     { "x-p44-description", apivalue_string, objectDescription_key, OKEY(dsAddressable_key) },
@@ -331,6 +333,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
         case hardwareGUID_key: if (hardwareGUID().size()>0) { aPropValue->setStringValue(hardwareGUID()); return true; } else return false;
         case hardwareModelGUID_key: if (hardwareModelGUID().size()>0) { aPropValue->setStringValue(hardwareModelGUID()); return true; } else return false;
         case oemGUID_key: if (oemGUID().size()>0) { aPropValue->setStringValue(oemGUID()); return true; } else return false;
+        case oemModelGUID_key: if (oemModelGUID().size()>0) { aPropValue->setStringValue(oemModelGUID()); return true; } else return false;
         case vendorId_key: if (vendorId().size()>0) { aPropValue->setStringValue(vendorId()); return true; } else return false;
         case extraInfo_key: if (getExtraInfo().size()>0) { aPropValue->setStringValue(getExtraInfo()); return true; } else return false;
         case objectDescription_key: aPropValue->setStringValue(description()); return true;
