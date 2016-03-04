@@ -173,7 +173,7 @@ void EvaluatorDevice::parseValueDefs()
     if (e!=string::npos) {
       string valuealias = valueDefs.substr(i,e-i);
       i = e+1;
-      size_t e2 = valueDefs.find_first_of(", \t", i);
+      size_t e2 = valueDefs.find_first_of(", \t\r\x0D", i);
       if (e2==string::npos) e2 = valueDefs.size();
       string valuesourceid = valueDefs.substr(i,e2-i);
       // search source
@@ -191,7 +191,7 @@ void EvaluatorDevice::parseValueDefs()
         foundall = false;
       }
       // skip delimiters
-      i = valueDefs.find_first_not_of(", \t", e2);
+      i = valueDefs.find_first_not_of(", \t\r\x0D", e2);
       if (i==string::npos) i = valueDefs.size();
     }
     else {
