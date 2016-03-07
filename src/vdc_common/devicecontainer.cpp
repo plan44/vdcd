@@ -705,8 +705,8 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
             // Start dimming
             // - minimum scene if not already there
             if (localDimDirection>0 && l->brightness->getChannelValue()==0) {
-              // starting dimming up from 0, first call MIN_S
-              dev->callScene(MIN_S, true);
+              // starting dimming up from minimum
+              l->brightness->setChannelValue(l->brightness->getMinDim(), 0, true);
             }
             // now dim (safety timeout after 10 seconds)
             dev->dimChannelForArea(channeltype, localDimDirection>0 ? dimmode_up : dimmode_down, 0, 10*Second);
