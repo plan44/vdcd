@@ -145,6 +145,64 @@ void EvaluatorDevice::initializeDevice(StatusCB aCompletedCB, bool aFactoryReset
 
 
 
+ErrorPtr EvaluatorDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+{
+  if (aMethod=="x-p44-checkEvaluator") {
+    // Check the evaluator
+    ApiValuePtr checkResult = aRequest->newApiValue();
+    checkResult->setType(apivalue_object);
+    // - value defs
+    parseValueDefs(); // reparse
+    ApiValuePtr valueDefs = checkResult->newObject();
+    for (ValueSourcesMap::iterator pos = valueMap.begin(); pos!=valueMap.end(); ++pos) {
+      ApiValuePtr val = valueDefs->newObject();
+      MLMicroSeconds lastupdate = pos->second->getSourceLastUpdate();
+      val->add("description", val->newString(pos->second->getSourceName()));
+      if (lastupdate==Never) {
+        val->add("age", val->newNull());
+        val->add("value", val->newNull());
+      }
+      else {
+        val->add("age", val->newDouble((double)(MainLoop::now()-lastupdate)/Second));
+        val->add("value", val->newDouble(pos->second->getSourceValue()));
+      }
+      valueDefs->add(pos->first,val); // variable name
+    }
+    checkResult->add("valueDefs", valueDefs);
+    // Conditions
+    ApiValuePtr cond;
+    double v;
+    ErrorPtr err;
+    // - on condition
+    cond = checkResult->newObject();
+    err = evaluateDouble(evaluatorSettings()->onCondition, v);
+    if (Error::isOK(err)) {
+      cond->add("result", cond->newDouble(v));
+    }
+    else {
+      cond->add("error", cond->newString(err->getErrorMessage()));
+    }
+    checkResult->add("onCondition", cond);
+    // - off condition
+    cond = checkResult->newObject();
+    err = evaluateDouble(evaluatorSettings()->offCondition, v);
+    if (Error::isOK(err)) {
+      cond->add("result", cond->newDouble(v));
+    }
+    else {
+      cond->add("error", cond->newString(err->getErrorMessage()));
+    }
+    checkResult->add("offCondition", cond);
+    // return the result
+    aRequest->sendResult(checkResult);
+    return ErrorPtr();
+  }
+  else {
+    return inherited::handleMethod(aRequest, aMethod, aParams);
+  }
+}
+
+
 
 void EvaluatorDevice::forgetValueDefs()
 {
@@ -173,7 +231,7 @@ void EvaluatorDevice::parseValueDefs()
     if (e!=string::npos) {
       string valuealias = valueDefs.substr(i,e-i);
       i = e+1;
-      size_t e2 = valueDefs.find_first_of(", \t\r\x0D", i);
+      size_t e2 = valueDefs.find_first_of(", \t\n\r", i);
       if (e2==string::npos) e2 = valueDefs.size();
       string valuesourceid = valueDefs.substr(i,e2-i);
       // search source
@@ -191,7 +249,7 @@ void EvaluatorDevice::parseValueDefs()
         foundall = false;
       }
       // skip delimiters
-      i = valueDefs.find_first_not_of(", \t\r\x0D", e2);
+      i = valueDefs.find_first_not_of(", \t\n\r", e2);
       if (i==string::npos) i = valueDefs.size();
     }
     else {
@@ -270,11 +328,9 @@ void EvaluatorDevice::evaluateConditions()
 
 Tristate EvaluatorDevice::evaluateBoolean(string aExpression)
 {
-  ErrorPtr err;
-  double v;
-  const char *p = aExpression.c_str();
-  AFOCUSLOG("----- Starting expression evaluation: '%s'", p);
-  err = evaluateExpression(p, v, 0);
+  AFOCUSLOG("----- Starting expression evaluation: '%s'", aExpression.c_str());
+  double v = 0;
+  ErrorPtr err = evaluateDouble(aExpression, v);
   if (Error::isOK(err)) {
     // evaluation successful
     AFOCUSLOG("===== expression result: '%s' = %f = %s", aExpression.c_str(), v, v>0 ? "true" : "false");
@@ -285,6 +341,14 @@ Tristate EvaluatorDevice::evaluateBoolean(string aExpression)
     return undefined;
   }
 }
+
+
+ErrorPtr EvaluatorDevice::evaluateDouble(string &aExpression, double &aResult)
+{
+  const char *p = aExpression.c_str();
+  return evaluateExpression(p, aResult, 0);
+}
+
 
 
 
@@ -314,7 +378,7 @@ ErrorPtr EvaluatorDevice::evaluateTerm(const char * &aText, double &aValue)
       return TextError::err("Undefined variable '%s'", term.c_str());
     }
     // value found, get it
-    if (pos->second->getSourceAge()==Never) {
+    if (pos->second->getSourceLastUpdate()==Never) {
       // no value known yet
       return TextError::err("Variable '%s' has no known value yet", term.c_str());
     }

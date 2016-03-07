@@ -121,8 +121,8 @@ namespace p44 {
     /// get value
     virtual double getSourceValue() { return getCurrentValue(); };
 
-    /// get age
-    virtual MLMicroSeconds getSourceAge() { return lastUpdate; };
+    /// get time of last update
+    virtual MLMicroSeconds getSourceLastUpdate() { return lastUpdate; };
 
     /// @}
 

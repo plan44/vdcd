@@ -62,8 +62,8 @@ namespace p44 {
     /// get value
     virtual double getSourceValue() = 0;
 
-    /// get age
-    virtual MLMicroSeconds getSourceAge() = 0;
+    /// get last update
+    virtual MLMicroSeconds getSourceLastUpdate() = 0;
 
     /// add listener
     /// @param aCallback will be called when value has changed, or disappears

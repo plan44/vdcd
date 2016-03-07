@@ -138,6 +138,8 @@ namespace p44 {
     /// @note implementation should call inherited when complete, so superclasses could chain further activity
     virtual void initializeDevice(StatusCB aCompletedCB, bool aFactoryReset);
 
+    /// device level API methods (p44 specific, JSON only, for debugging evaluators)
+    virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
   protected:
 
@@ -158,6 +160,7 @@ namespace p44 {
 
     /// expression evaluation
     Tristate evaluateBoolean(string aExpression);
+    ErrorPtr evaluateDouble(string &aExpression, double &aResult);
     ErrorPtr evaluateExpression(const char * &aText, double &aValue, int aPrecedence);
     ErrorPtr evaluateTerm(const char * &aText, double &aValue);
 
