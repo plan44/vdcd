@@ -40,6 +40,13 @@ namespace p44 {
     friend class Device;
     friend class DeviceContainer; // for local mode
 
+    typedef enum {
+      statemachine_standard, ///< digitalSTROM standard button state machine
+      statemachine_simple, ///< no dimming, only tips, tolerant to missing a pressed/released event sometimes
+      statemachine_dimmer ///< primarily dimming, does not generate single clicks (e.g. audio volume button)
+    } ButtonStateMachineMode;
+
+
   protected:
 
     /// @name hardware derived parameters (constant during operation)
@@ -63,7 +70,7 @@ namespace p44 {
     bool callsPresent; ///< button should call "present" scene
     DsButtonActionMode buttonActionMode; ///< if set, button clicks directly issue action
     uint8_t buttonActionId; ///< action Id (aka scene number) to trigger when button is clicked
-    bool useSimpleStateMachine; ///< if set, simple state machine is used (no dimming, only tips, tolerant to missing a pressed/released event sometimes)
+    ButtonStateMachineMode stateMachineMode; ///< state machine to use
 
     /// @}
 
@@ -152,7 +159,7 @@ namespace p44 {
       buttonflag_firstflag = 0x0001,
       buttonflag_setsLocalPriority = buttonflag_firstflag<<0,
       buttonflag_callsPresent = buttonflag_firstflag<<1,
-      buttonflag_simpleStateMachine = buttonflag_firstflag<<2,
+      buttonflag_OBSOLETE_simpleStateMachine = buttonflag_firstflag<<2, // legacy, was used only from 1.5.3.2 .. 1.5.3.5
       buttonflag_nextflag = buttonflag_firstflag<<3
     };
         virtual const char *tableName();
@@ -207,10 +214,11 @@ namespace p44 {
     bool isOutputOn();
     DsDimMode twoWayDirection();
     void resetStateMachine();
-    void checkSimpleStateMachine(MLMicroSeconds aNow);
-    void checkStateMachine(bool aButtonChange, MLMicroSeconds aNow);
+    void checkStandardStateMachine(bool aStateChanged, MLMicroSeconds aNow);
+    void checkCustomStateMachine(bool aStateChanged, MLMicroSeconds aNow);
+    void dimRepeat();
     void localSwitchOutput();
-    void localDim(DsDimMode aDirection);
+    void localDim(bool aStart);
 
     /// @}
 

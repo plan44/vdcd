@@ -52,7 +52,7 @@ ButtonBehaviour::ButtonBehaviour(Device &aDevice) :
   callsPresent(false),
   buttonActionMode(buttonActionMode_none),
   buttonActionId(0),
-  useSimpleStateMachine(false)
+  stateMachineMode(statemachine_standard)
 {
   // set default hrdware configuration
   setHardwareButtonConfig(0, buttonType_single, buttonElement_center, false, 0, false);
@@ -91,15 +91,16 @@ void ButtonBehaviour::setHardwareButtonConfig(int aButtonID, DsButtonType aType,
 void ButtonBehaviour::buttonAction(bool aPressed)
 {
   BLOG(LOG_NOTICE, "Button[%zu] '%s' was %s", index, hardwareName.c_str(), aPressed ? "pressed" : "released");
-  buttonPressed = aPressed; // remember state
+  bool stateChanged = aPressed!=buttonPressed;
+  buttonPressed = aPressed; // remember new state
   // check which statemachine to use
-  if (buttonMode==buttonMode_turbo || useSimpleStateMachine) {
-    // use simplified state machine
-    checkSimpleStateMachine(MainLoop::now());
+  if (buttonMode==buttonMode_turbo || stateMachineMode!=statemachine_standard) {
+    // use custom state machine
+    checkCustomStateMachine(stateChanged, MainLoop::now());
   }
   else {
     // use regular state machine
-    checkStateMachine(true, MainLoop::now());
+    checkStandardStateMachine(stateChanged, MainLoop::now());
   }
 }
 
@@ -142,62 +143,108 @@ static const char *stateNames[] = {
 
 // plan44 "turbo" state machine which can tolerate missing a "press" or a "release" event
 // Note: only to be called when button state changes
-void ButtonBehaviour::checkSimpleStateMachine(MLMicroSeconds aNow)
+void ButtonBehaviour::checkCustomStateMachine(bool aStateChanged, MLMicroSeconds aNow)
 {
   MLMicroSeconds timeSinceRef = aNow-timerRef;
   timerRef = aNow;
 
-  FOCUSLOG("simple button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
-  // reset click counter if tip timeout has passed since last event
-  if (timeSinceRef>t_tip_timeout) {
-    clickCounter = 0;
-  }
-  // use Idle and Awaitrelease states only to remember previous button state detected
-  bool isTip = false;
-  if (buttonPressed) {
-    // the button was pressed right now
-    // - always count button press as a tip
-    isTip = true;
-    // - state is now Awaitrelease
-    state = S14_awaitrelease;
-  }
-  else {
-    // the button was released right now
-    // - if we haven't seen a press before, assume the press got lost and act on the release
-    if (state==S0_idle) {
-      isTip = true;
+  if (buttonMode==buttonMode_turbo || stateMachineMode==statemachine_simple) {
+    BFOCUSLOG("simple button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
+    // reset click counter if tip timeout has passed since last event
+    if (timeSinceRef>t_tip_timeout) {
+      clickCounter = 0;
     }
-    // - state is now idle again
-    state = S0_idle;
-  }
-  if (isTip) {
-    if (isLocalButtonEnabled() && clickCounter==0) {
-      // first tip switches local output if local button is enabled
-      localSwitchOutput();
+    // use Idle and Awaitrelease states only to remember previous button state detected
+    bool isTip = false;
+    if (buttonPressed) {
+      // the button was pressed right now
+      // - always count button press as a tip
+      isTip = true;
+      // - state is now Awaitrelease
+      state = S14_awaitrelease;
     }
     else {
-      // other tips are sent upstream
-      sendClick((DsClickType)(ct_tip_1x+clickCounter));
-      clickCounter++;
-      if (clickCounter>=4) clickCounter = 0; // wrap around
+      // the button was released right now
+      // - if we haven't seen a press before, assume the press got lost and act on the release
+      if (state==S0_idle) {
+        isTip = true;
+      }
+      // - state is now idle again
+      state = S0_idle;
     }
+    if (isTip) {
+      if (isLocalButtonEnabled() && clickCounter==0) {
+        // first tip switches local output if local button is enabled
+        localSwitchOutput();
+      }
+      else {
+        // other tips are sent upstream
+        sendClick((DsClickType)(ct_tip_1x+clickCounter));
+        clickCounter++;
+        if (clickCounter>=4) clickCounter = 0; // wrap around
+      }
+    }
+  }
+  else if (stateMachineMode==statemachine_dimmer) {
+    BFOCUSLOG("dimmer button state machine entered");
+    // just issue hold and stop events (e.g. for volume)
+    if (aStateChanged) {
+      if (isLocalButtonEnabled() && isOutputOn()) {
+        // local dimming start/stop
+        localDim(buttonPressed);
+      }
+      else {
+        // not local button mode
+        if (buttonPressed) {
+          BFOCUSLOG("started dimming - sending ct_hold_start");
+          // button just pressed
+          sendClick(ct_hold_start);
+          // schedule hold repeats
+          holdRepeats = 0;
+          MainLoop::currentMainLoop().executeTicketOnce(buttonStateMachineTicket, boost::bind(&ButtonBehaviour::dimRepeat, this), t_dim_repeat_time);
+        }
+        else {
+          // button just released
+          BFOCUSLOG("stopped dimming - sending ct_hold_end");
+          sendClick(ct_hold_end);
+          MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
+        }
+      }
+    }
+  }
+  else {
+    BLOG(LOG_ERR, "invalid stateMachineMode");
+  }
+}
+
+
+void ButtonBehaviour::dimRepeat()
+{
+  buttonStateMachineTicket = 0;
+  // button still pressed
+  BFOCUSLOG("dimming in progress - sending ct_hold_repeat (repeatcount = %d)", holdRepeats);
+  sendClick(ct_hold_repeat);
+  holdRepeats++;
+  if (holdRepeats<max_hold_repeats) {
+    // schedule next repeat
+    buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&ButtonBehaviour::dimRepeat, this), t_dim_repeat_time);
   }
 }
 
 
 
 // standard button state machine
-void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
+void ButtonBehaviour::checkStandardStateMachine(bool aStateChanged, MLMicroSeconds aNow)
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(buttonStateMachineTicket);
   MLMicroSeconds timeSinceRef = aNow-timerRef;
 
-  FOCUSLOG("button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
+  BFOCUSLOG("button state machine entered in state %s at reference time %d and clickCounter=%d", stateNames[state], (int)(timeSinceRef/MilliSecond), clickCounter);
   switch (state) {
 
     case S0_idle :
       timerRef = Never; // no timer running
-      if (aButtonChange && buttonPressed) {
+      if (aStateChanged && buttonPressed) {
         clickCounter = isLocalButtonEnabled() ? 0 : 1;
         timerRef = aNow;
         state = S1_initialpress;
@@ -205,7 +252,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S1_initialpress :
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         timerRef = aNow;
         state = S5_nextPauseWait;
       }
@@ -215,13 +262,13 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S2_holdOrTip:
-      if (aButtonChange && !buttonPressed && clickCounter==0) {
+      if (aStateChanged && !buttonPressed && clickCounter==0) {
         localSwitchOutput();
         timerRef = aNow;
         clickCounter = 1;
         state = S4_nextTipWait;
       }
-      else if (aButtonChange && !buttonPressed && clickCounter>0) {
+      else if (aStateChanged && !buttonPressed && clickCounter>0) {
         sendClick((DsClickType)(ct_tip_1x+clickCounter-1));
         timerRef = aNow;
         state = S4_nextTipWait;
@@ -237,15 +284,14 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
         }
         else if (isLocalButtonEnabled() && isOutputOn()) {
           // local dimming
-          dimmingUp = !dimmingUp; // change direction
-          localDim(dimmingUp ? dimmode_up : dimmode_down); // start dimming
+          localDim(true); // start dimming
           state = S11_localdim;
         }
       }
       break;
 
     case S3_hold:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         // no packet send time, skip S15
         sendClick(ct_hold_end);
         state = S0_idle;
@@ -264,7 +310,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S4_nextTipWait:
-      if (aButtonChange && buttonPressed) {
+      if (aStateChanged && buttonPressed) {
         timerRef = aNow;
         if (clickCounter>=4)
           clickCounter = 2;
@@ -278,7 +324,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S5_nextPauseWait:
-      if (aButtonChange && buttonPressed) {
+      if (aStateChanged && buttonPressed) {
         timerRef = aNow;
         clickCounter = 2;
         state = S6_2ClickWait;
@@ -293,7 +339,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S6_2ClickWait:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         timerRef = aNow;
         state = S9_2pauseWait;
       }
@@ -303,7 +349,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S7_progModeWait:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         sendClick(ct_tip_2x);
         timerRef = aNow;
         state = S4_nextTipWait;
@@ -315,7 +361,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S9_2pauseWait:
-      if (aButtonChange && buttonPressed) {
+      if (aStateChanged && buttonPressed) {
         timerRef = aNow;
         clickCounter = 3;
         state = S12_3clickWait;
@@ -327,7 +373,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S12_3clickWait:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         timerRef = aNow;
         sendClick(ct_click_3x);
         state = S4_nextTipWait;
@@ -338,7 +384,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S13_3pauseWait:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         timerRef = aNow;
         sendClick(ct_tip_3x);
       }
@@ -349,7 +395,7 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
       break;
 
     case S11_localdim:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         state = S0_idle;
         localDim(dimmode_stop); // stop dimming
       }
@@ -357,15 +403,15 @@ void ButtonBehaviour::checkStateMachine(bool aButtonChange, MLMicroSeconds aNow)
 
     case S8_awaitrelease:
     case S14_awaitrelease:
-      if (aButtonChange && !buttonPressed) {
+      if (aStateChanged && !buttonPressed) {
         state = S0_idle;
       }
       break;
   }
-  FOCUSLOG(" -->                       exit state %s with %sfurther timing needed", stateNames[state], timerRef!=Never ? "" : "NO ");
+  BFOCUSLOG(" -->                       exit state %s with %sfurther timing needed", stateNames[state], timerRef!=Never ? "" : "NO ");
   if (timerRef!=Never) {
     // need timing, schedule calling again
-    buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkStateMachine, this, false, _1), aNow+10*MilliSecond);
+    buttonStateMachineTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&ButtonBehaviour::checkStandardStateMachine, this, false, _1), aNow+10*MilliSecond);
   }
 }
 
@@ -428,14 +474,24 @@ void ButtonBehaviour::localSwitchOutput()
 }
 
 
-void ButtonBehaviour::localDim(DsDimMode aDirection)
+void ButtonBehaviour::localDim(bool aStart)
 {
-  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local dim %d", index, hardwareName.c_str(), aDirection);
+  BLOG(LOG_NOTICE, "Button[%zu] '%s': Local dim %s", index, hardwareName.c_str(), aStart ? "START" : "STOP");
   if (device.output) {
-    if (twoWayDirection()!=dimmode_stop && aDirection!=dimmode_stop) {
-      aDirection = twoWayDirection();
+    if (aStart) {
+      // start dimming, determine direction (directly from two-way buttons or via toggling direction for single buttons)
+      DsDimMode dm = twoWayDirection();
+      if (dm==dimmode_stop) {
+        // not two-way, need to toggle direction
+        dimmingUp = !dimmingUp; // change direction
+        dm = dimmingUp ? dimmode_up : dimmode_down;
+      }
+      device.dimChannel(channeltype_default, dm);
     }
-    device.dimChannel(channeltype_default, aDirection);
+    else {
+      // just stop
+      device.dimChannel(channeltype_default, dimmode_stop);
+    }
   }
 }
 
@@ -497,7 +553,7 @@ const char *ButtonBehaviour::tableName()
 
 // data field definitions
 
-static const size_t numFields = 7;
+static const size_t numFields = 8;
 
 size_t ButtonBehaviour::numFieldDefs()
 {
@@ -515,6 +571,7 @@ const FieldDefinition *ButtonBehaviour::getFieldDef(size_t aIndex)
     { "buttonChannel", SQLITE_INTEGER },
     { "buttonActionMode", SQLITE_INTEGER },
     { "buttonActionId", SQLITE_INTEGER },
+    { "buttonSMMode", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -551,10 +608,13 @@ void ButtonBehaviour::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
   aRow->getCastedIfNotNull<DsChannelType, int>(aIndex++, buttonChannel);
   aRow->getCastedIfNotNull<DsButtonActionMode, int>(aIndex++, buttonActionMode);
   aRow->getCastedIfNotNull<uint8_t, int>(aIndex++, buttonActionId);
+  if (!aRow->getCastedIfNotNull<ButtonStateMachineMode, int>(aIndex++, stateMachineMode)) {
+    // no value yet for stateMachineMode -> old simpleStateMachine flag is still valid
+    if (flags & buttonflag_OBSOLETE_simpleStateMachine) stateMachineMode = statemachine_simple; // flag is set, use simple state machine mode
+  }
   // decode the flags
   setsLocalPriority = flags & buttonflag_setsLocalPriority;
   callsPresent = flags & buttonflag_callsPresent;
-  useSimpleStateMachine = flags & buttonflag_simpleStateMachine;
   // pass the flags out to subclasses which call this superclass to get the flags (and decode themselves)
   if (aCommonFlagsP) *aCommonFlagsP = flags;
 }
@@ -568,7 +628,6 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   int flags = 0;
   if (setsLocalPriority) flags |= buttonflag_setsLocalPriority;
   if (callsPresent) flags |= buttonflag_callsPresent;
-  if (useSimpleStateMachine) flags |= buttonflag_simpleStateMachine;
   // bind the fields
   aStatement.bind(aIndex++, buttonGroup);
   aStatement.bind(aIndex++, buttonMode);
@@ -577,6 +636,7 @@ void ButtonBehaviour::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
   aStatement.bind(aIndex++, buttonChannel);
   aStatement.bind(aIndex++, buttonActionMode);
   aStatement.bind(aIndex++, buttonActionId);
+  aStatement.bind(aIndex++, stateMachineMode);
 }
 
 
@@ -620,7 +680,7 @@ enum {
   callsPresent_key,
   buttonActionMode_key,
   buttonActionId_key,
-  simpleSM_key,
+  stateMachineMode_key,
   numSettingsProperties
 };
 
@@ -637,7 +697,7 @@ const PropertyDescriptorPtr ButtonBehaviour::getSettingsDescriptorByIndex(int aP
     { "callsPresent", apivalue_bool, callsPresent_key+settings_key_offset, OKEY(button_key) },
     { "x-p44-buttonActionMode", apivalue_uint64, buttonActionMode_key+settings_key_offset, OKEY(button_key) },
     { "x-p44-buttonActionId", apivalue_uint64, buttonActionId_key+settings_key_offset, OKEY(button_key) },
-    { "x-p44-simpleStateMachine", apivalue_bool, simpleSM_key+settings_key_offset, OKEY(button_key) },
+    { "x-p44-stateMachineMode", apivalue_uint64, stateMachineMode_key+settings_key_offset, OKEY(button_key) },
   };
   return PropertyDescriptorPtr(new StaticPropertyDescriptor(&properties[aPropIndex], aParentDescriptor));
 }
@@ -714,8 +774,8 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case buttonActionId_key+settings_key_offset:
           aPropValue->setUint8Value(buttonActionId);
           return true;
-        case simpleSM_key+settings_key_offset:
-          aPropValue->setBoolValue(useSimpleStateMachine);
+        case stateMachineMode_key+settings_key_offset:
+          aPropValue->setUint8Value(stateMachineMode);
           return true;
         // States properties
         case value_key+states_key_offset:
@@ -782,8 +842,8 @@ bool ButtonBehaviour::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case buttonActionId_key+settings_key_offset:
           setPVar(buttonActionId, aPropValue->uint8Value());
           return true;
-        case simpleSM_key+settings_key_offset:
-          setPVar(useSimpleStateMachine, aPropValue->boolValue());
+        case stateMachineMode_key+settings_key_offset:
+          setPVar(stateMachineMode, (ButtonStateMachineMode)aPropValue->uint8Value());
           return true;
       }
     }
