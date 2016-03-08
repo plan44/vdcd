@@ -43,6 +43,8 @@ namespace p44 {
     string valueDefs; ///< mapping of variable names to ValueSources
     string onCondition; ///< expression that must evaluate to true for output to get active
     string offCondition; ///< expression that must evaluate to true for output to get inactive
+    MLMicroSeconds minOnTime; ///< how long the on condition must be present before triggering the result change
+    MLMicroSeconds minOffTime; ///< how long the on condition must be present before triggering the result change
 
   protected:
 
@@ -81,6 +83,10 @@ namespace p44 {
     long valueParseTicket;
 
     Tristate currentState;
+
+    MLMicroSeconds conditionMetSince; ///< since when do we see condition permanently met
+    bool onConditionMet; ///< true: conditionMetSince relates to ON-condition, false: conditionMetSince relates to OFF-condition
+    long evaluateTicket;
 
     EvaluatorDeviceSettingsPtr evaluatorSettings() { return boost::dynamic_pointer_cast<EvaluatorDeviceSettings>(deviceSettings); };
 

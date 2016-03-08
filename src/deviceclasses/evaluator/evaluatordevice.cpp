@@ -44,6 +44,9 @@ EvaluatorDevice::EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, con
   evaluatorID(aEvaluatorID),
   evaluatorType(evaluator_unknown),
   currentState(undefined),
+  conditionMetSince(Never),
+  onConditionMet(false),
+  evaluateTicket(0),
   valueParseTicket(0)
 {
   // Config is:
@@ -282,22 +285,64 @@ void EvaluatorDevice::evaluateConditions()
   // evaluate state and report it
   Tristate prevState = currentState;
   bool decisionMade = false;
+  MLMicroSeconds now = MainLoop::currentMainLoop().now();
+  MainLoop::currentMainLoop().cancelExecutionTicket(evaluateTicket);
   if (!decisionMade && currentState!=yes) {
     // off or unknown: check for switching on
     Tristate on = evaluateBoolean(evaluatorSettings()->onCondition);
     ALOG(LOG_INFO, "onCondition '%s' evaluates to %s", evaluatorSettings()->onCondition.c_str(), on==undefined ? "<undefined>" : (on==yes ? "true -> switching ON" : "false"));
-    if (on==yes) {
-      currentState = yes;
-      decisionMade = true;
+    if (on!=yes) {
+      // not met now -> reset if we are currently timing this condition
+      if (onConditionMet) conditionMetSince = Never;
+    }
+    else {
+      if (!onConditionMet || conditionMetSince==Never) {
+        // we see this condition newly met now
+        onConditionMet = true; // seen ON condition met
+        conditionMetSince = now;
+      }
+      // check timing
+      MLMicroSeconds metAt = conditionMetSince+evaluatorSettings()->minOnTime;
+      if (now>=metAt) {
+        // condition met long enough
+        currentState = yes;
+        decisionMade = true;
+      }
+      else {
+        // condition not met long enough yet, need to re-check later
+        ALOG(LOG_INFO, "- condition not yet met long enough -> must remain stable another %.2f seconds", (double)(metAt-now)/Second);
+        evaluateTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&EvaluatorDevice::evaluateConditions, this), metAt);
+        return;
+      }
     }
   }
   if (!decisionMade && currentState!=no) {
     // on or unknown: check for switching off
     Tristate off = evaluateBoolean(evaluatorSettings()->offCondition);
     ALOG(LOG_INFO, "offCondition '%s' evaluates to %s", evaluatorSettings()->offCondition.c_str(), off==undefined ? "<undefined>" : (off==yes ? "true -> switching OFF" : "false"));
-    if (off==yes) {
-      currentState = no;
-      decisionMade = true;
+    if (off!=yes) {
+      // not met now -> reset if we are currently timing this condition
+      if (!onConditionMet) conditionMetSince = Never;
+    }
+    else {
+      if (onConditionMet || conditionMetSince==Never) {
+        // we see this condition newly met now
+        onConditionMet = false; // seen OFF condition met
+        conditionMetSince = now;
+      }
+      // check timing
+      MLMicroSeconds metAt = conditionMetSince+evaluatorSettings()->minOffTime;
+      if (now>=metAt) {
+        // condition met long enough
+        currentState = no;
+        decisionMade = true;
+      }
+      else {
+        // condition not met long enough yet, need to re-check later
+        ALOG(LOG_INFO, "- condition not yet met long enough -> must remain stable another %.2f seconds", (double)(metAt-now)/Second);
+        evaluateTicket = MainLoop::currentMainLoop().executeOnceAt(boost::bind(&EvaluatorDevice::evaluateConditions, this), metAt);
+        return;
+      }
     }
   }
   if (decisionMade && currentState!=undefined) {
@@ -574,6 +619,8 @@ enum {
   valueDefs_key,
   onCondition_key,
   offCondition_key,
+  minOnTime_key,
+  minOffTime_key,
   numProperties
 };
 
@@ -598,6 +645,8 @@ PropertyDescriptorPtr EvaluatorDevice::getDescriptorByIndex(int aPropIndex, int 
     { "x-p44-valueDefs", apivalue_string, valueDefs_key, OKEY(evaluatorDevice_key) },
     { "x-p44-onCondition", apivalue_string, onCondition_key, OKEY(evaluatorDevice_key) },
     { "x-p44-offCondition", apivalue_string, offCondition_key, OKEY(evaluatorDevice_key) },
+    { "x-p44-minOnTime", apivalue_double, minOnTime_key, OKEY(evaluatorDevice_key) },
+    { "x-p44-minOffTime", apivalue_double, minOffTime_key, OKEY(evaluatorDevice_key) },
   };
   if (!aParentDescriptor) {
     // root level - accessing properties on the Device level
@@ -624,6 +673,8 @@ bool EvaluatorDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
         case valueDefs_key: aPropValue->setStringValue(evaluatorSettings()->valueDefs); return true;
         case onCondition_key: aPropValue->setStringValue(evaluatorSettings()->onCondition); return true;
         case offCondition_key: aPropValue->setStringValue(evaluatorSettings()->offCondition); return true;
+        case minOnTime_key: aPropValue->setDoubleValue((double)(evaluatorSettings()->minOnTime)/Second); return true;
+        case minOffTime_key: aPropValue->setDoubleValue((double)(evaluatorSettings()->minOffTime)/Second); return true;
       }
     }
     else {
@@ -641,6 +692,12 @@ bool EvaluatorDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
           if (evaluatorSettings()->setPVar(evaluatorSettings()->offCondition, aPropValue->stringValue()))
             evaluateConditions();  // changed conditions, re-evaluate output
           return true;
+        case minOnTime_key:
+          evaluatorSettings()->setPVar(evaluatorSettings()->minOnTime, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
+          return true;
+        case minOffTime_key:
+          evaluatorSettings()->setPVar(evaluatorSettings()->minOffTime, (MLMicroSeconds)(aPropValue->doubleValue()*Second));
+          return true;
       }
     }
   }
@@ -653,7 +710,9 @@ bool EvaluatorDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 
 
 EvaluatorDeviceSettings::EvaluatorDeviceSettings(Device &aDevice) :
-  inherited(aDevice)
+  inherited(aDevice),
+  minOnTime(0), // trigger immediately
+  minOffTime(0) // trigger immediately
 {
 }
 
@@ -667,7 +726,7 @@ const char *EvaluatorDeviceSettings::tableName()
 
 // data field definitions
 
-static const size_t numFields = 3;
+static const size_t numFields = 5;
 
 size_t EvaluatorDeviceSettings::numFieldDefs()
 {
@@ -681,6 +740,8 @@ const FieldDefinition *EvaluatorDeviceSettings::getFieldDef(size_t aIndex)
     { "valueDefs", SQLITE_TEXT },
     { "onCondition", SQLITE_TEXT },
     { "offCondition", SQLITE_TEXT },
+    { "minOnTime", SQLITE_INTEGER },
+    { "minOffTime", SQLITE_INTEGER },
   };
   if (aIndex<inherited::numFieldDefs())
     return inherited::getFieldDef(aIndex);
@@ -699,6 +760,8 @@ void EvaluatorDeviceSettings::loadFromRow(sqlite3pp::query::iterator &aRow, int 
   valueDefs.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
   onCondition.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
   offCondition.assign(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, minOnTime);
+  aRow->getCastedIfNotNull<MLMicroSeconds, long long int>(aIndex++, minOffTime);
 }
 
 
@@ -710,6 +773,8 @@ void EvaluatorDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, 
   aStatement.bind(aIndex++, valueDefs.c_str()); // stable string!
   aStatement.bind(aIndex++, onCondition.c_str()); // stable string!
   aStatement.bind(aIndex++, offCondition.c_str()); // stable string!
+  aStatement.bind(aIndex++, (long long int)minOnTime);
+  aStatement.bind(aIndex++, (long long int)minOffTime);
 }
 
 
