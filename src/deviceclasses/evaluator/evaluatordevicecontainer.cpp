@@ -79,6 +79,17 @@ const char *EvaluatorDeviceContainer::deviceClassIdentifier() const
 }
 
 
+bool EvaluatorDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+{
+  if (getIcon("evaluator", aIcon, aWithData, aResolutionPrefix))
+    return true;
+  else
+    return inherited::getDeviceIcon(aIcon, aWithData, aResolutionPrefix);
+}
+
+
+
+
 /// collect devices from this device class
 /// @param aCompletedCB will be called when device scan for this device class has been completed
 void EvaluatorDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)

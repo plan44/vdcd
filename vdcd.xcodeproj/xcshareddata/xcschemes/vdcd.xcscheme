@@ -208,6 +208,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--externalnonlocal"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
             isEnabled = "NO">
          </CommandLineArgument>
