@@ -102,7 +102,7 @@ namespace p44 {
     virtual const char *getName() { return "color temperature"; };
     virtual double getMin() { return 100; }; // CT goes from 100 to 1000 mired (10000K to 1000K)
     virtual double getMax() { return 1000; };
-    virtual double getDimPerMS() { return 900.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+    virtual double getDimPerMS() { return 900.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
   };
 
 
@@ -118,7 +118,7 @@ namespace p44 {
     virtual const char *getName() { return "CIE X"; };
     virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
     virtual double getMax() { return 1; };
-    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
   };
 
 
@@ -134,7 +134,7 @@ namespace p44 {
     virtual const char *getName() { return "CIE Y"; };
     virtual double getMin() { return 0; }; // CIE x and y have 0..1 range
     virtual double getMax() { return 1; };
-    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be
+    virtual double getDimPerMS() { return 1.0/FULL_SCALE_DIM_TIME_MS; }; // dimming through full scale should be FULL_SCALE_DIM_TIME_MS
   };
 
 

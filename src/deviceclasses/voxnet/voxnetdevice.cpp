@@ -60,6 +60,7 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
   a->setHardwareOutputConfig(outputFunction_dimmer, outputmode_gradual, usage_room, true, -1);
   // - adjust resolution for volume
   a->volume->setResolution(a->volume->getMax()/MAX_VOXNET_VOLUME);
+  a->volume->setDimPerMS(100.0/40/550.0); // one dim step (theory: 300mS, current vdcd implementation: 500mS+50mS safety) should take max a single voxnet step (=100/40)
   a->contentSource->setNumIndices(MAX_VOXNET_CONTENTSOURCES);
   addBehaviour(a);
   // - create dSUID
