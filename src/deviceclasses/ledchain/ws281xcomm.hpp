@@ -34,7 +34,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#if defined(RASPBERRYPI)
+#if P44_BUILD_RPI
 
 // we use the rpi_ws281x library to communicate with the WS2812 chain on RaspberryPi
 
@@ -49,7 +49,7 @@ extern "C" {
 
 }
 
-#endif // RASPBERRYPI
+#endif // P44_BUILD_RPI
 
 
 using namespace std;
@@ -70,7 +70,7 @@ namespace p44 {
 
     bool initialized;
 
-    #if defined(RASPBERRYPI)
+    #if P44_BUILD_RPI
     ws2811_t ledstring; // the descriptor for the rpi_ws2811 library
     #endif
 

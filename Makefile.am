@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-if RASPBERRYPI
+if P44_BUILD_RPI
 bin_PROGRAMS = vdcd olavdcd
 else
 bin_PROGRAMS = vdcd
@@ -36,8 +36,8 @@ else
 vdcd_DEBUG =
 endif
 
-if RASPBERRYPI
-vdcd_PLATFORM = -D RASPBERRYPI=1
+if P44_BUILD_RPI
+vdcd_PLATFORM = -D P44_BUILD_RPI=1
 else
 vdcd_PLATFORM =
 endif
@@ -49,7 +49,7 @@ vdcd_EXTRAS = -D ENABLE_VOXNET=1 -D ENABLE_VZUGHOME=1
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
 
-if RASPBERRYPI
+if P44_BUILD_RPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
@@ -303,7 +303,7 @@ vdcd_SOURCES = \
   src/p44_vdcd_main.cpp
 
 
-if RASPBERRYPI
+if P44_BUILD_RPI
 
 # olavdcd - inherits everything from regular vdcd except compiling with OLA enabled and additionally linking libola+libolacommon+libprotobuf
 

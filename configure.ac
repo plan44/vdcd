@@ -21,15 +21,22 @@ AC_ARG_ENABLE([debug],
 esac],[debug=false])
 AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
 
-AC_ARG_ENABLE([raspberrypi],
-[  --enable-raspberrypi    Turn on special hacks for RPi cross build],
-[case "${enableval}" in
-  yes) raspberrypi=true ;;
-  no)  raspberrypi=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --enable-raspberrypi]) ;;
-esac],[raspberrypi=false])
-AM_CONDITIONAL([RASPBERRYPI], [test x$raspberrypi = xtrue])
-
+P44_BUILD_RPI="no"
+AC_ARG_ENABLE([p44buildrpi],
+    [AC_HELP_STRING([--enable-p44buildrpi],
+                    [plan44 build for Raspberry Pi (default: no)]) ],
+    [
+        if test "x$enableval" = "xno"; then
+            P44_BUILD_RPI="no"
+        elif test "x$enableval" = "xyes"; then
+            P44_BUILD_RPI="yes"
+        fi
+    ]
+)
+if (test "x$P44_BUILD_RPI" = "xyes"); then
+    AC_DEFINE([P44_BUILD_RPI], [1], [plan44 RPi build])
+fi
+AM_CONDITIONAL([P44_BUILD_RPI], [test "x$P44_BUILD_RPI" = "xyes"])
 
 
 
@@ -46,7 +53,7 @@ AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
 
 PKG_PROG_PKG_CONFIG
 
-# AM_COND_IF ([RASPBERRYPI], [
+# AM_COND_IF ([P44_BUILD_RPI], [
 #   # hacked RPi cross build
 #
 # ], [

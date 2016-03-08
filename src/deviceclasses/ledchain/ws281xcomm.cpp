@@ -26,8 +26,7 @@
 using namespace p44;
 
 
-#if defined(RASPBERRYPI)
-
+#if P44_BUILD_RPI
 #define TARGET_FREQ WS2811_TARGET_FREQ // in Hz, default is 800kHz
 #define GPIO_PIN 18 // P1 Pin 12, GPIO 18 (PCM_CLK)
 #define GPIO_INVERT 0 // set to 1 if there is an inverting driver between GPIO 18 and the WS281x LEDs
@@ -52,7 +51,7 @@ WS281xComm::WS281xComm(uint16_t aNumLeds, uint16_t aLedsPerRow, bool aXReversed,
   alternating = aAlternating;
   swapXY = aSwapXY;
   // prepare hardware related stuff
-  #if defined(RASPBERRYPI)
+  #if P44_BUILD_RPI
   // initialize the led string structure
   ledstring.freq = TARGET_FREQ;
   ledstring.dmanum = DMA;
@@ -103,7 +102,7 @@ uint16_t WS281xComm::getSizeY()
 bool WS281xComm::begin()
 {
   if (!initialized) {
-    #if defined(RASPBERRYPI)
+    #if P44_BUILD_RPI
     // initialize library
     initialized = ws2811_init(&ledstring)==0;
     #else
@@ -117,7 +116,7 @@ bool WS281xComm::begin()
 void WS281xComm::end()
 {
   if (initialized) {
-    #if defined(RASPBERRYPI)
+    #if P44_BUILD_RPI
     // deinitialize library
     ws2811_fini(&ledstring);
     #endif
@@ -129,7 +128,7 @@ void WS281xComm::end()
 void WS281xComm::show()
 {
   if (!initialized) return;
-  #if defined(RASPBERRYPI)
+  #if P44_BUILD_RPI
   ws2811_render(&ledstring);
   #endif
 }
@@ -193,7 +192,7 @@ void WS281xComm::setColorXY(uint16_t aX, uint16_t aY, uint8_t aRed, uint8_t aGre
 {
   uint16_t ledindex = ledIndexFromXY(aX,aY);
   if (ledindex>=numLeds) return;
-  #if defined(RASPBERRYPI)
+  #if P44_BUILD_RPI
   ws2811_led_t pixel =
   (pwmtable[aRed] << 16) |
   (pwmtable[aGreen] << 8) |
@@ -237,7 +236,7 @@ void WS281xComm::getColorXY(uint16_t aX, uint16_t aY, uint8_t &aRed, uint8_t &aG
 {
   uint16_t ledindex = ledIndexFromXY(aX,aY);
   if (ledindex>=numLeds) return;
-  #if defined(RASPBERRYPI)
+  #if P44_BUILD_RPI
   ws2811_led_t pixel = ledstring.channel[0].leds[ledindex];
   aRed = brightnesstable[(pixel>>16) & 0xFF];
   aGreen = brightnesstable[(pixel>>8) & 0xFF];

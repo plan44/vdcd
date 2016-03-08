@@ -22,7 +22,7 @@
 #ifndef __vdcd__common__
 #define __vdcd__common__
 
-#if !defined(DIGI_ESP) && !defined(RASPBERRYPI)
+#if !P44_BUILD_DIGI && !P44_BUILD_RPI
   // non official release platform
   #undef ALWAYS_DEBUG // override per-file ALWAYS_DEBUG
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
@@ -30,7 +30,7 @@
 
 // auto-disable some features depending on platform
 // - No i2c on Mac or DigiESP, but always on RaspberryPi
-#if (defined(__APPLE__) || defined(DIGI_ESP)) && !defined(RASPBERRYPI)
+#if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI
   #define DISABLE_I2C 1 // Mac has no i2c
 #endif
 #if defined(__APPLE__)
@@ -40,7 +40,7 @@
 
 
 // Default build settings for different targets
-#if defined(DIGI_ESP)
+#if P44_BUILD_DIGI
   // P44-DSB-DEH
   #define ENABLE_DALI 1
   #define ENABLE_ENOCEAN 1
@@ -50,7 +50,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
-#elif defined(RASPBERRYPI)
+#elif P44_BUILD_RPI
   // P44-DSB-E
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
