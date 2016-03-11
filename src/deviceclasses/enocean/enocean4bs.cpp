@@ -321,11 +321,11 @@ const p44::EnoceanSensorDescriptor enocean4BSdescriptors[] = {
 
   // A5-10-23: Room Panel with Temperature Sensor, Humitity, Set Point, Fan control and Occupancy button
   // - e.g. Thermokon SR06 LCD 4T rh type 2
-  { 0, 0x10, 0x22, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
-  { 0, 0x10, 0x22, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, humText,  humUnit },
-  { 0, 0x10, 0x22, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
-  { 0, 0x10, 0x22, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_fan_speed,   usage_room,  -0.333333,    2, DB(0,7), DB(0,5), 100, 40*60, &stdSensorHandler, fanSpeedText, unityUnit },
-  { 0, 0x10, 0x13, 0, group_blue_heating, group_black_joker,             behaviour_binaryinput, binInpType_presence,    usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
+  { 0, 0x10, 0x23, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_set_point,   usage_user,          0,    1, DB(3,7), DB(3,0), 100, 40*60, &stdSensorHandler, setPointText, unityUnit },
+  { 0, 0x10, 0x23, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_humidity,    usage_room,          0,  102, DB(2,7), DB(2,0), 100, 40*60, &stdSensorHandler, humText,  humUnit },
+  { 0, 0x10, 0x23, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_temperature, usage_room,          0, 40.8, DB(1,7), DB(1,0), 100, 40*60, &stdSensorHandler, tempText, tempUnit },
+  { 0, 0x10, 0x23, 0, group_blue_heating, group_roomtemperature_control, behaviour_sensor,      sensorType_fan_speed,   usage_room,  -0.333333,    2, DB(0,7), DB(0,5), 100, 40*60, &stdSensorHandler, fanSpeedText, unityUnit },
+  { 0, 0x10, 0x23, 0, group_blue_heating, group_black_joker,             behaviour_binaryinput, binInpType_presence,    usage_user,          0,    1, DB(0,0), DB(0,0), 100, 40*60, &stdInputHandler,  occupText, binaryUnit },
 
 
   // A5-12-01: Energy meter
