@@ -57,7 +57,7 @@ using namespace p44;
 #define INITIAL_EVALUATION_DELAY (30*Second) // how long to browse until evaluating state for the first time (only when no auxvdsm is running)
 #define REEVALUATION_DELAY (30*Second) // how long to browse until reevaluating state (only when no auxvdsm is running)
 
-#define IPV4_MCAST_MDNS_ADDR "2224.0.0.251" // for IGMP snooping support
+#define IPV4_MCAST_MDNS_ADDR "224.0.0.251" // for IGMP snooping support
 #define IGMP_QUERY_MAX_RESPONSE_TIME 50 // 0 to issue IGMPv1 queries, >0: time in 1/10sec
 #define IGMP_QUERY_REFRESH_INTERVAL (180*Second) // send a IGMP query once every 3 minutes
 
@@ -303,9 +303,9 @@ void DiscoveryManager::periodicIgmpQuery()
     !deviceContainer->getSessionConnection() // otherwise, query if we don't have a connection
   ) {
     sendIGMP(IGMP_MEMBERSHIP_QUERY, IGMP_QUERY_MAX_RESPONSE_TIME, NULL, NULL);
-    // reschedule
-    MainLoop::currentMainLoop().executeTicketOnce(igmpQueryTicket, boost::bind(&DiscoveryManager::periodicIgmpQuery, this), IGMP_QUERY_REFRESH_INTERVAL);
   }
+  // reschedule
+  MainLoop::currentMainLoop().executeTicketOnce(igmpQueryTicket, boost::bind(&DiscoveryManager::periodicIgmpQuery, this), IGMP_QUERY_REFRESH_INTERVAL);
 }
 
 
