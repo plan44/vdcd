@@ -949,7 +949,7 @@ const char *EnoceanComm::manufacturerName(EnoceanManufacturer aManufacturerCode)
 #pragma mark - EnOcean communication handler
 
 // baudrate for ESP3 on TCM310
-#define ENOCEAN_ESP3_BAUDRATE 57600
+#define ENOCEAN_ESP3_COMMAPARMS "57600,8,N,1"
 
 #define ENOCEAN_ESP3_ALIVECHECK_INTERVAL (30*Second)
 #define ENOCEAN_ESP3_ALIVECHECK_TIMEOUT (3*Second)
@@ -983,7 +983,7 @@ EnoceanComm::~EnoceanComm()
 void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, const char *aEnoceanResetPinName)
 {
   LOG(LOG_DEBUG, "EnoceanComm::setConnectionSpecification: %s", aConnectionSpec);
-  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_BAUDRATE);
+  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_COMMAPARMS);
   // create the EnOcean reset IO pin
   if (aEnoceanResetPinName) {
     // init, initially LO = not reset

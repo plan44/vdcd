@@ -251,7 +251,7 @@ public:
     deviceConnection->sendMessage(initMsg);
     // now initialize hardware
     serial = SerialCommPtr(new SerialComm(MainLoop::currentMainLoop()));
-    serial->setConnectionSpecification(weatherStationSerialPort.c_str(), 2103, 19200);
+    serial->setConnectionSpecification(weatherStationSerialPort.c_str(), 2103, "19200,8,N,1");
     serial->setReceiveHandler(boost::bind(&ExternalDeviceApp::serialReceiveHandler, this, _1));
     serial->establishConnection();
     telegramIndex = -1;

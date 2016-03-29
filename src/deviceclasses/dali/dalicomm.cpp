@@ -34,7 +34,7 @@ using namespace p44;
 
 
 // pseudo baudrate for dali bridge must be 9600bd
-#define DALIBRIDGE_BAUDRATE 9600
+#define DALIBRIDGE_COMMPARAMS "9600,8,N,1"
 
 // default sending and sampling adjustment values
 #define DEFAULT_SENDING_EDGE_ADJUSTMENT 16 // one step (1/16th = 16/256th DALI bit time) delay of rising edge by default is probably better
@@ -151,7 +151,7 @@ static const char *bridgeAckText(uint8_t aResp1, uint8_t aResp2)
 void DaliComm::setConnectionSpecification(const char *aConnectionSpec, uint16_t aDefaultPort, MLMicroSeconds aCloseAfterIdleTime)
 {
   closeAfterIdleTime = aCloseAfterIdleTime;
-  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_BAUDRATE);
+  serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, DALIBRIDGE_COMMPARAMS);
 }
 
 
