@@ -63,12 +63,12 @@ namespace p44 {
 
     long dimRepeaterTicket; ///< DALI dimming repeater ticket
 
-    /// cached status (call syncStatus() to update these)
+    /// cached status (call updateStatus() to update these)
     bool isDummy; ///< set if dummy (not found on bus, but known to be part of a composite device)
     bool isPresent; ///< set if present
     bool lampFailure; ///< set if lamp has failure
 
-    /// cached parameters (call syncParams() to update these)
+    /// cached parameters (call updateParams() to update these)
     Brightness currentBrightness; ///< current brightness
     Brightness minBrightness; ///< currently set minimal brightness
     MLMicroSeconds currentTransitionTime; ///< currently set transition time
@@ -125,6 +125,10 @@ namespace p44 {
     /// @param aBrightness new brightness to set
     void setBrightness(Brightness aBrightness);
 
+    /// save brightness as default for DALI dimmer to use after powerup and at failure
+    /// @param aBrightness new brightness to set, <0 to save current brightness
+    void setDefaultBrightness(Brightness aBrightness);
+
     /// start or stop optimized DALI dimming
     /// @param aDimMode according to DsDimMode: 1=start dimming up, -1=start dimming down, 0=stop dimming
     /// @param aDimPerMS dim speed in brightness value per millsecond
@@ -141,7 +145,6 @@ namespace p44 {
     /// @param aDaliGroupsCB delivers the result
     /// @param aShortAddress which device to query (note: not necessarily myself!)
     void getGroupMemberShip(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress);
-
 
 
   private:
@@ -203,7 +206,6 @@ namespace p44 {
     /// @note reading info from single master dimmer, not group
     virtual uint8_t addressForQuery() { return groupMaster; };
 
-
   private:
 
     void initNextGroupMember(StatusCB aCompletedCB, DaliComm::ShortAddressList::iterator aNextMember);
@@ -239,6 +241,11 @@ namespace p44 {
 
     /// device level API methods (p44 specific, JSON only, for configuring grouped devices)
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
+
+  protected:
+
+    /// save current brightness as default for DALI dimmer to use after powerup and at failure
+    virtual void saveAsDefaultBrightness() = 0;
 
   };
 
@@ -346,6 +353,11 @@ namespace p44 {
 
     /// derive the dSUID from collected device info
     void deriveDsUid();
+
+  protected:
+
+    /// save current brightness as default for DALI dimmer to use after powerup and at failure
+    virtual void saveAsDefaultBrightness();
 
   private:
 
@@ -473,6 +485,11 @@ namespace p44 {
 
     /// derive the dSUID from collected device info
     void deriveDsUid();
+
+  protected:
+
+    /// save current brightness as default for DALI dimmer to use after powerup and at failure
+    virtual void saveAsDefaultBrightness();
 
   private:
 

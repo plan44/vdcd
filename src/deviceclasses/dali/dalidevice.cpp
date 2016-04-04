@@ -309,6 +309,19 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
 }
 
 
+void DaliBusDevice::setDefaultBrightness(Brightness aBrightness)
+{
+  if (isDummy) return;
+  if (aBrightness<0) aBrightness = currentBrightness; // use current brightness
+  uint8_t power = brightnessToArcpower(aBrightness);
+  LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting default/failure brightness = %0.2f, arc power = %d", (int)deviceInfo.shortAddress, aBrightness, (int)power);
+  daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_POWER_ON_LEVEL, power);
+  daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FAILURE_LEVEL, power);
+}
+
+
+
+
 uint8_t DaliBusDevice::brightnessToArcpower(Brightness aBrightness)
 {
   double intensity = (double)aBrightness/100;
@@ -480,6 +493,11 @@ ErrorPtr DaliDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMeth
     // Remove this device from the installation, forget the settings
     return daliDeviceContainer().ungroupDevice(this, aRequest);
   }
+  if (aMethod=="x-p44-saveAsDefault") {
+    // save the current brightness as default DALI brightness (at powerup or failure)
+    saveAsDefaultBrightness();
+    return ErrorPtr();
+  }
   else {
     return inherited::handleMethod(aRequest, aMethod, aParams);
   }
@@ -635,6 +653,15 @@ void DaliDimmerDevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode
     inherited::dimChannel(aChannelType, aDimMode);
   }
 }
+
+
+
+/// save brightness as default for DALI dimmer to use after powerup and at failure
+void DaliDimmerDevice::saveAsDefaultBrightness()
+{
+  brightnessDimmer->setDefaultBrightness(-1);
+}
+
 
 
 
@@ -896,6 +923,17 @@ void DaliRGBWDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   }
   // confirm done
   inherited::applyChannelValues(aDoneCB, aForDimming);
+}
+
+
+/// save brightness as default for DALI dimmer to use after powerup and at failure
+/// @param aBrightness new brightness to set
+void DaliRGBWDevice::saveAsDefaultBrightness()
+{
+  dimmers[dimmer_red]->setDefaultBrightness(-1);
+  dimmers[dimmer_green]->setDefaultBrightness(-1);
+  dimmers[dimmer_blue]->setDefaultBrightness(-1);
+  if (dimmers[dimmer_white]) dimmers[dimmer_white]->setDefaultBrightness(-1);
 }
 
 
