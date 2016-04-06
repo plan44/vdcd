@@ -816,11 +816,11 @@ void VoxnetDeviceSettings::bindToStatement(sqlite3pp::statement &aStatement, int
 {
   inherited::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
-  aStatement.bind(aIndex++, messageSourceID.c_str()); // stable string!
-  aStatement.bind(aIndex++, messageStream.c_str()); // stable string!
+  aStatement.bind(aIndex++, messageSourceID.c_str(), false); // c_str() ist not static in general -> do not rely on it (even if static here)
+  aStatement.bind(aIndex++, messageStream.c_str(), false); // c_str() ist not static in general -> do not rely on it (even if static here)
   aStatement.bind(aIndex++, messageTitleNo);
   aStatement.bind(aIndex++, messageDuration);
-  aStatement.bind(aIndex++, messageShellCommand.c_str()); // stable string!
+  aStatement.bind(aIndex++, messageShellCommand.c_str(), false); // c_str() ist not static in general -> do not rely on it (even if static here)
   aStatement.bind(aIndex++, playToUnmuteDelayMS);
 }
 

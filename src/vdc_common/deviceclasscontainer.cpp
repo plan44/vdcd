@@ -480,7 +480,7 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
   aStatement.bind(aIndex++, vdcFlags);
-  aStatement.bind(aIndex++, getAssignedName().c_str()); // stable string!
+  aStatement.bind(aIndex++, getAssignedName().c_str(), false); // c_str() ist not static in general -> do not rely on it (even if static here)
   aStatement.bind(aIndex++, defaultZoneID);
 }
 
