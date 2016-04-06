@@ -530,7 +530,10 @@ public:
         p44VdcHost->startConfigApi();
       }
 
-      // Create static container structure
+      // Create class containers
+
+      // - first, prepare (make sure dSUID is available)
+      p44VdcHost->prepareForDeviceClasses(false);
 
       #if ENABLE_DALI
       // - Add DALI devices class if DALI bridge serialport/host is specified

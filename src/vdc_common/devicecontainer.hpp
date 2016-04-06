@@ -89,6 +89,7 @@ namespace p44 {
     friend class DsAddressable;
 
     bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
+    bool storedDsuid; ///< set when using stored (DB persisted) dSUID that is not equal to default dSUID 
     uint64_t mac; ///< MAC address as found at startup
 
     DsDeviceMap dSDevices; ///< available devices by API-exposed ID (dSUID or derived dsid)
@@ -187,8 +188,15 @@ namespace p44 {
     /// @return URL for Web-UI (for access from local LAN)
     virtual string webuiURLString() { return ""; /* none by default */ }
 
+    /// prepare device container internals for creating and adding device classes
+    /// In particular, this triggers creating/loading the vdc host dSUID, which serves as a base ID
+    /// for most class containers and many devices.
+    /// @param aFactoryReset if set, database will be reset
+    void prepareForDeviceClasses(bool aFactoryReset);
+
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
+    /// @param aFactoryReset if set, database will be reset
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     /// start running normally
@@ -342,9 +350,8 @@ namespace p44 {
     /// @name vdc host level property persistence
     /// @{
 
-    /// load parameters from persistent DB
-    /// @note this is usually called from the device container when device is added (detected)
-    ErrorPtr load();
+    /// load parameters from persistent DB and determine root (vdc host) dSUID
+    ErrorPtr loadAndFixDsUID();
 
     /// save unsaved parameters to persistent DB
     /// @note this is usually called from the device container in regular intervals

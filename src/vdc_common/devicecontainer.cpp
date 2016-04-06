@@ -60,6 +60,7 @@ DeviceContainer::DeviceContainer() :
   inheritedParams(dsParamStore),
   mac(0),
   externalDsuid(false),
+  storedDsuid(false),
   DsAddressable(this),
   collecting(false),
   lastActivity(0),
@@ -74,7 +75,6 @@ DeviceContainer::DeviceContainer() :
 {
   // obtain MAC address
   mac = macAddress();
-  deriveDsUid(); // make sure we have a vdc host dSUID FROM THE BEGINNING. Usually, setIdMode derives it again, but just in case...
 }
 
 
@@ -114,25 +114,12 @@ string DeviceContainer::ipv4AddressString()
 
 
 
-void DeviceContainer::deriveDsUid()
-{
-  if (!externalDsuid) {
-    // we don't have a fixed external dSUID to base everything on, so create a dSUID of our own:
-    // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
-    // - calculate UUIDv5 based dSUID
-    DsUid vdcNamespace(DSUID_VDC_NAMESPACE_UUID);
-    dSUID.setNameInSpace(macAddressString(), vdcNamespace);
-  }
-}
-
-
 void DeviceContainer::setIdMode(DsUidPtr aExternalDsUid)
 {
   if (aExternalDsUid) {
     externalDsuid = true;
     dSUID = *aExternalDsUid;
   }
-  deriveDsUid(); // derive my dSUID now (again), if necessary
 }
 
 
@@ -275,19 +262,26 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+
+void DeviceContainer::prepareForDeviceClasses(bool aFactoryReset)
 {
   // initialize dsParamsDB database
-	string databaseName = getPersistentDataDir();
-	string_format_append(databaseName, "DsParams.sqlite3");
+  string databaseName = getPersistentDataDir();
+  string_format_append(databaseName, "DsParams.sqlite3");
   ErrorPtr error = dsParamStore.connectAndInitialize(databaseName.c_str(), DSPARAMS_SCHEMA_VERSION, DSPARAMS_SCHEMA_MIN_VERSION, aFactoryReset);
-  // load the vdc host settings
-  load();
+  // load the vdc host settings and determine the dSUID (external > stored > mac-derived)
+  loadAndFixDsUID();
+}
+
+
+void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+{
   // Log start message
   LOG(LOG_NOTICE,
     "\n\n\n*** starting initialisation of vcd host '%s'\n*** dSUID (%s) = %s, MAC: %s, IP = %s\n",
     publishedDescription().c_str(),
-    externalDsuid ? "external" : "MAC-derived", shortDesc().c_str(),
+    externalDsuid ? "external" : "MAC-derived",
+    shortDesc().c_str(),
     macAddressString().c_str(),
     ipv4AddressString().c_str()
   );
@@ -1317,16 +1311,43 @@ ValueSource *DeviceContainer::getValueSourceById(string aValueSourceID)
 
 #pragma mark - persistent vdc host level parameters
 
-ErrorPtr DeviceContainer::load()
+ErrorPtr DeviceContainer::loadAndFixDsUID()
 {
   ErrorPtr err;
-  // load the vdc host settings
+  // generate a default dSUID if no external one is given
+  if (!externalDsuid) {
+    // we don't have a fixed external dSUID to base everything on, so create a dSUID of our own:
+    // single vDC per MAC-Adress scenario: generate UUIDv5 with name = macaddress
+    // - calculate UUIDv5 based dSUID
+    DsUid vdcNamespace(DSUID_VDC_NAMESPACE_UUID);
+    dSUID.setNameInSpace(macAddressString(), vdcNamespace);
+  }
+  DsUid originalDsUid = dSUID;
+  // load the vdc host settings, which might override the default dSUID
   err = loadFromStore(entityType()); // is a singleton, identify by type
   if (!Error::isOK(err)) LOG(LOG_ERR,"Error loading settings for vdc host: %s", err->description().c_str());
   // check for settings from files
   loadSettingsFromFiles();
+  // now check
+  if (!externalDsuid) {
+    if (storedDsuid) {
+      // a dSUID was loaded from DB -> check if different from default
+      if (!(originalDsUid==dSUID)) {
+        // stored dSUID is not same as MAC derived -> we are running a migrated config
+        LOG(LOG_WARNING,"Running a migrated configuration: dSUID collisions with original unit possible");
+        LOG(LOG_WARNING,"- native vDC host dSUID of this instance would be %s", originalDsUid.getString().c_str());
+        LOG(LOG_WARNING,"- if this is not a replacement unit -> factory reset recommended!");
+      }
+    }
+    else {
+      // no stored dSUID was found so far -> we need to save the current one
+      markDirty();
+      save();
+    }
+  }
   return ErrorPtr();
 }
+
 
 
 ErrorPtr DeviceContainer::save()
@@ -1368,7 +1389,7 @@ const char *DeviceContainer::tableName()
 
 // data field definitions
 
-static const size_t numFields = 1;
+static const size_t numFields = 2;
 
 size_t DeviceContainer::numFieldDefs()
 {
@@ -1380,6 +1401,7 @@ const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "vdcHostName", SQLITE_TEXT },
+    { "vdcHostDSUID", SQLITE_TEXT },
   };
   if (aIndex<inheritedParams::numFieldDefs())
     return inheritedParams::getFieldDef(aIndex);
@@ -1394,8 +1416,19 @@ const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
 void DeviceContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
-  // get the field value
+  // get the name
   setName(nonNullCStr(aRow->get<const char *>(aIndex++)));
+  // get the vdc host dSUID
+  if (!externalDsuid) {
+    // only if dSUID is not set externally, we try to load it
+    DsUid loadedDsUid;
+    if (loadedDsUid.setAsString(nonNullCStr(aRow->get<const char *>(aIndex)))) {
+      // dSUID string from DB is valid
+      dSUID = loadedDsUid; // activate it as the vdc host dSUID
+      storedDsuid = true; // we're using a stored dSUID now
+    }
+  }
+  aIndex++;
 }
 
 
@@ -1404,7 +1437,11 @@ void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
-  aStatement.bind(aIndex++, getAssignedName().c_str()); // stable string!
+  aStatement.bind(aIndex++, getAssignedName().c_str(), false); // c_str() ist not static in general -> do not rely on it (even if static here)
+  if (externalDsuid)
+    aStatement.bind(aIndex++); // do not save externally defined dSUIDs
+  else
+    aStatement.bind(aIndex++, dSUID.getString().c_str(), false); // not static, string is local obj
 }
 
 
