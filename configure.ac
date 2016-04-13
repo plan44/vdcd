@@ -11,7 +11,8 @@ AC_PROG_CXX
 
 AC_CONFIG_FILES([Makefile])
 
-# options
+dnl # options
+
 AC_ARG_ENABLE([debug],
 [  --enable-debug    Turn on debugging],
 [case "${enableval}" in
@@ -38,56 +39,72 @@ if (test "x$P44_BUILD_RPI" = "xyes"); then
 fi
 AM_CONDITIONAL([P44_BUILD_RPI], [test "x$P44_BUILD_RPI" = "xyes"])
 
+P44_BUILD_OW="no"
+AC_ARG_ENABLE([p44buildow],
+    [AC_HELP_STRING([--enable-p44buildow],
+                    [plan44 build for OpenWRT (default: no)]) ],
+    [
+        if test "x$enableval" = "xno"; then
+            P44_BUILD_OW="no"
+        elif test "x$enableval" = "xyes"; then
+            P44_BUILD_OW="yes"
+        fi
+    ]
+)
+if (test "x$P44_BUILD_OW" = "xyes"); then
+    AC_DEFINE([P44_BUILD_OW], [1], [plan44 OpenWRT build])
+fi
+AM_CONDITIONAL([P44_BUILD_OW], [test "x$P44_BUILD_OW" = "xyes"])
+
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m)])])
 AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clock_gettime])])
 AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
-#AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
-
-#AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
-#AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
-#AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
 
 
+AM_COND_IF([P44_BUILD_RPI], [], [
+  dnl # can check libs only if not P44_BUILD_RPI
+  AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
+  AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
+  AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
+  AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
+])
 
 PKG_PROG_PKG_CONFIG
 
-# AM_COND_IF ([P44_BUILD_RPI], [
-#   # hacked RPi cross build
-#
-# ], [
-#
-#   # normal Linux build
-#   PKG_CHECK_MODULES([JSONC], [json], [],
-#       [
-#           AC_MSG_ERROR([Missing json-c / libjson0])
-#       ])
-#
-#   PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
-#       [
-#           AC_MSG_ERROR([$JSON_PKG_ERRORS])
-#       ])
-#
-#   PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
-#       [
-#           AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
-#       ])
-#
-#   PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [],
-#       [
-#           AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [],
-#               [
-#                   AC_MSG_ERROR([coult not find protobuf-c headers])
-#               ])
-#
-#           AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [],
-#               [
-#                   AC_MSG_ERROR([coult not find protobuf-c library])
-#               ])
-#       ])
-#
-# ])
+AM_COND_IF([P44_BUILD_RPI], [], [
+  dnl # can check modules only if not P44_BUILD_RPI
+
+  PKG_CHECK_MODULES([JSONC], [json], [],
+      [
+          AC_MSG_ERROR([Missing json-c / libjson0])
+      ])
+
+  PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
+      [
+          AC_MSG_ERROR([$JSON_PKG_ERRORS])
+      ])
+
+  PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
+      [
+          AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
+      ])
+
+  PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [],
+      [
+          AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [],
+              [
+                  AC_MSG_ERROR([coult not find protobuf-c headers])
+              ])
+
+          AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [],
+              [
+                  AC_MSG_ERROR([coult not find protobuf-c library])
+              ])
+      ])
+
+])
 
 
 AC_PATH_PROG(PROTOC, protoc-c, "")

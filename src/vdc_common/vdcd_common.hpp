@@ -31,7 +31,7 @@
 // auto-disable some features depending on platform
 // - No i2c on Mac or DigiESP, but always on RaspberryPi
 #if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI
-  #define DISABLE_I2C 1 // Mac has no i2c
+  #define DISABLE_I2C 1 // No i2c
 #endif
 #if defined(__APPLE__)
   #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
@@ -60,6 +60,17 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+#elif P44_BUILD_OW
+  // P44-DSB-E2
+  #define ENABLE_ENOCEAN 1
+  #define ENABLE_HUE 1
+  #define ENABLE_LEDCHAIN 0
+  #define ENABLE_STATIC 1
+  #define ENABLE_EXTERNAL 1
+  #define ENABLE_EVALUATORS 1
+  #define ENABLE_AUXVDSM 0
+  #define USE_AVAHI_CORE 0 // use avahi client
+  #define DISABLE_I2C 1 // %%% for now
 #else
   // Default build options unless defined otherwise already
   #ifndef ENABLE_HUE

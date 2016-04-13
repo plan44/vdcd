@@ -39,8 +39,13 @@ endif
 if P44_BUILD_RPI
 vdcd_PLATFORM = -D P44_BUILD_RPI=1
 else
+if P44_BUILD_OW
+vdcd_PLATFORM = -D P44_BUILD_OW=1
+else
 vdcd_PLATFORM =
 endif
+endif
+
 
 # enable some extras
 vdcd_EXTRAS = -D ENABLE_VOXNET=1 -D ENABLE_VZUGHOME=1
