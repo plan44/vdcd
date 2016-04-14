@@ -274,7 +274,7 @@ void DiscoveryManager::startServices()
       // client created
       // - when debugging, browse for http
       if (FOCUSLOGENABLED) {
-        debugServiceBrowser = avahi_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, HTTP_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
+        debugServiceBrowser = avahi_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, HTTP_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, debug_browse_callback, this);
         if (!debugServiceBrowser) {
           FOCUSLOG("Failed to create debug service browser: %s", avahi_strerror(avahi_client_errno(service)));
         }
@@ -676,6 +676,30 @@ void DiscoveryManager::avahi_entry_group_callback(AvahiService *aService, AvahiE
     }
     case AVAHI_ENTRY_GROUP_UNCOMMITED:
     case AVAHI_ENTRY_GROUP_REGISTERING:
+      break;
+  }
+}
+
+
+
+void DiscoveryManager::debug_browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags, void* userdata)
+{
+  DiscoveryManager *discoveryManager = static_cast<DiscoveryManager*>(userdata);
+  discoveryManager->avahi_debug_browse_callback(b, interface, protocol, event, name, type, domain, flags);
+}
+
+
+void DiscoveryManager::avahi_debug_browse_callback(AvahiServiceBrowser *b, AvahiIfIndex interface, AvahiProtocol protocol, AvahiBrowserEvent event, const char *name, const char *type, const char *domain, AVAHI_GCC_UNUSED AvahiLookupResultFlags flags)
+{
+  // debug (show http services)
+  switch (event) {
+    case AVAHI_BROWSER_NEW:
+      FOCUSLOG("avahi: new http service '%s' in domain '%s' discovered", name, domain);
+      break;
+    case AVAHI_BROWSER_REMOVE:
+      FOCUSLOG("avahi: http service '%s' in domain '%s' has disappeared", name, domain);
+      break;
+    default:
       break;
   }
 }
