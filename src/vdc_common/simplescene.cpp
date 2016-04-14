@@ -223,7 +223,7 @@ static const DefaultSceneParams defaultScenes[NUMDEFAULTSCENES+1] = {
   {   0, scene_effect_smooth, false, false, scene_cmd_off,           0 }, // 38 : Preset 40 - T4E_S0
   { 100, scene_effect_smooth, false, false, scene_cmd_invoke,        0 }, // 39 : Preset 41 - T4E_S1
   {   0, scene_effect_smooth, false, false, scene_cmd_slow_off,      0 }, // 40 : Fade down to 0 in 1min - AUTO_OFF
-  {   0, scene_effect_smooth, false, true , scene_cmd_none,          0 }, // 41 : Reserved
+  {   0, scene_effect_alert,  false, true , scene_cmd_invoke,        0 }, // 41 : Alert by blinking, but no output change - ALERT_S
   {   0, scene_effect_smooth, true,  false, scene_cmd_decrement,     1 }, // 42 : Area 1 Decrement - T1_DEC
   {   0, scene_effect_smooth, true,  false, scene_cmd_increment,     1 }, // 43 : Area 1 Increment - T1_INC
   {   0, scene_effect_smooth, true,  false, scene_cmd_decrement,     2 }, // 44 : Area 2 Decrement - T2_DEC
