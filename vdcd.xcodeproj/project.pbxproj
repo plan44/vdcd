@@ -1166,6 +1166,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
@@ -1195,6 +1196,7 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",

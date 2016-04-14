@@ -76,12 +76,7 @@ PKG_PROG_PKG_CONFIG
 AM_COND_IF([P44_BUILD_RPI], [], [
   dnl # can check modules only if not P44_BUILD_RPI
 
-  PKG_CHECK_MODULES([JSONC], [json], [],
-      [
-          AC_MSG_ERROR([Missing json-c / libjson0])
-      ])
-
-  PKG_CHECK_MODULES([JSONC], [json >= 0.10 ], [],
+  PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [],
       [
           AC_MSG_ERROR([$JSON_PKG_ERRORS])
       ])
