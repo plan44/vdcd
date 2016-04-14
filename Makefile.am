@@ -55,6 +55,9 @@ nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
 
 if P44_BUILD_RPI
+
+# hacks required for current cross-build environment for RPi, which is not a proper buildroot yet
+
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
@@ -84,11 +87,14 @@ LEDCHAIN_INCLUDES = \
   -I ${srcdir}/src/thirdparty/rpi_ws281x
 
 else
-# automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
-# vdcd_LDADD = $(JSONC_LIBS) $(PTHREAD_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS)
-vdcd_LDADD = $(PTHREAD_LIBS) -lavahi-core -lavahi-common -lprotobuf-c -lsqlite3 -ljson -ldl -lcrypto -lz
+
+# proper buildroot and autotools
+
+vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
+
 # build mongoose into vdcd, no library
 MONGOOSE_SRC = src/thirdparty/mongoose/mongoose.c src/thirdparty/mongoose/mongoose.h
+
 endif
 
 
@@ -111,10 +117,11 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
-  ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
+  ${JSONC_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
+  ${AVAHI_CFLAGS} \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
   ${vdcd_EXTRAS} \

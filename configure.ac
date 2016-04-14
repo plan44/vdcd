@@ -58,17 +58,18 @@ AM_CONDITIONAL([P44_BUILD_OW], [test "x$P44_BUILD_OW" = "xyes"])
 
 
 
-AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m)])])
-AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib for clock_gettime])])
-AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
+AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
+AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib with clock_gettime])])
+AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl with dlopen])])
 
 
 AM_COND_IF([P44_BUILD_RPI], [], [
   dnl # can check libs only if not P44_BUILD_RPI
   AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
-  AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
-  AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
-  AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
+  AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl with TLSv1_client_method])])
+  AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto with SHA1_Init])])
+  AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3 with sqlite3_open])])
+  AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c with protobuf_c_enum_descriptor_get_value_by_name])])
 ])
 
 PKG_PROG_PKG_CONFIG
@@ -79,6 +80,11 @@ AM_COND_IF([P44_BUILD_RPI], [], [
   PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [],
       [
           AC_MSG_ERROR([$JSON_PKG_ERRORS])
+      ])
+
+  PKG_CHECK_MODULES([AVAHI], [avahi-client], [],
+      [
+          AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
       ])
 
   PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
