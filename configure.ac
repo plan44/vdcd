@@ -66,7 +66,7 @@ AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl])])
 AM_COND_IF([P44_BUILD_RPI], [], [
   dnl # can check libs only if not P44_BUILD_RPI
   AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
-  AC_CHECK_LIB(ssl, SSLv2_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
+  AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl])])
   AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3])])
   AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c])])
 ])
