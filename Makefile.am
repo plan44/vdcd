@@ -62,6 +62,9 @@ if P44_BUILD_RPI
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
 vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+# JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set it here
+vdcd_EXTRACFLAGS = -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c
+
 # sources only supported on RPI
 LEDCHAIN_SRC = \
   src/thirdparty/rpi_ws281x/clk.h \
@@ -122,6 +125,7 @@ vdcd_CXXFLAGS = \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${AVAHI_CFLAGS} \
+  ${vdcd_EXTRACFLAGS} \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
   ${vdcd_EXTRAS} \
@@ -349,6 +353,8 @@ olavdcd_CXXFLAGS = \
   ${PTHREAD_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
+  ${AVAHI_CFLAGS} \
+  ${vdcd_EXTRACFLAGS} \
   ${vdcd_DEBUG} \
   ${vdcd_PLATFORM} \
   ${vdcd_EXTRAS} \
