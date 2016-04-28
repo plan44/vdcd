@@ -496,6 +496,8 @@ ErrorPtr DaliDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMeth
   if (aMethod=="x-p44-saveAsDefault") {
     // save the current brightness as default DALI brightness (at powerup or failure)
     saveAsDefaultBrightness();
+    // confirm done
+    aRequest->sendResult(ApiValuePtr());
     return ErrorPtr();
   }
   else {

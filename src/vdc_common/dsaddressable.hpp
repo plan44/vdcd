@@ -136,6 +136,11 @@ namespace p44 {
     /// @param aRequest this is the request to respond to
     /// @param aMethod the method
     /// @param aParams the parameters object
+    /// @return if a non-OK is returned, a error answer will be created and sent back to the caller.
+    ///   However, if no error or ErrorOK is returned, the assumption is that the method has already sent
+    ///   an answer (or will send one later, once the triggered operation has completed). Failing to
+    ///   send a success answer might cause caller's logic to hang or run into timeouts because method calls
+    ///   ALWAYS must return an answer.
     /// @note the parameters object always contains the dSUID parameter which has been
     ///   used already to route the method call to this DsAddressable.
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
