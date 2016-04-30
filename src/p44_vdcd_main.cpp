@@ -359,7 +359,7 @@ public:
       { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
                                      "(for inputs: first char of name=action key)" },
       #endif // ENABLE_STATIC
-      { 0  , "protobufapi",   true,  "enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API" },
+      { 0  , "protobufapi",   true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
       { 0  , "noigmphelp",    false, "do not send IGMP queries/reports to help snooping switches" },

@@ -61,7 +61,8 @@
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
 #elif P44_BUILD_OW
-  // P44-DSB-E2
+  // P44-DSB-OO
+  #define ENABLE_DALI 1
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 0
