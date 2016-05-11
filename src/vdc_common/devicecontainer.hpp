@@ -101,6 +101,7 @@ namespace p44 {
     string productName; ///< the name of the vdcd product (model name) as a a whole
     string productVersion; ///< the version string of the vdcd product as a a whole
     string deviceHardwareId; ///< the device hardware id (such as a serial number) of the vdcd product as a a whole
+    string descriptionTemplate; ///< how to describe the vdcd (e.g. in service announcements)
 
     bool collecting;
     long announcementTicket;
@@ -157,6 +158,15 @@ namespace p44 {
     /// set the the human readable hardware id (such as a serial number) of the vdcd product as a a whole
     /// @param aDeviceHardwareId device serial number or similar id
     void setDeviceHardwareId(const string &aDeviceHardwareId) { deviceHardwareId = aDeviceHardwareId; }
+
+    /// set the the human readable hardware id (such as a serial number) of the vdcd product as a a whole
+    /// @param aDescriptionTemplate template for external device description
+    /// @note the following sequences will be substituted
+    /// - %V : vendor name
+    /// - %V : product model (name)
+    /// - %N : user-assigned name, if any, preceeded by a space and in double quotes
+    /// - %S : device hardware id (if set specifically, otherwise the dSUID is used)
+    void setDescriptionTemplate(const string &aDescriptionTemplate) { descriptionTemplate = aDescriptionTemplate; }
 
     /// Set how dSUIDs are generated
     /// @param aExternalDsUid if specified, this is used directly as dSUID for the device container

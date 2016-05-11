@@ -303,6 +303,8 @@ public:
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
       { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
+      { 0  , "description",   true,  "description(template);used in service announcement, can contain %V,%M,%N,%S to insert vendor/model/name/serial. "
+                                     "When not set or empty, defaults to built-in standard description." },
       #if ENABLE_DALI
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
@@ -489,13 +491,17 @@ public:
       if (getStringOption("productname", s)) {
         p44VdcHost->setProductName(s);
       }
-      // - set product name and version
+      // - set product version
       if (getStringOption("productversion", s)) {
         p44VdcHost->setProductVersion(s);
       }
-      // - set product name and version
+      // - set product device id (e.g. serial)
       if (getStringOption("deviceid", s)) {
         p44VdcHost->setDeviceHardwareId(s);
+      }
+      // - set description (template)
+      if (getStringOption("description", s)) {
+        p44VdcHost->setDescriptionTemplate(s);
       }
 
       // - set custom mainloop statistics output interval

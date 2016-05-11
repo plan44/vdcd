@@ -56,6 +56,10 @@ using namespace p44;
 // default product name
 #define DEFAULT_PRODUCT_NAME "plan44.ch vdcd"
 
+// default description template
+#define DEFAULT_DESCRIPTION_TEMPLATE "%V %M%N #%S"
+
+
 DeviceContainer::DeviceContainer() :
   inheritedParams(dsParamStore),
   mac(0),
@@ -168,20 +172,28 @@ const char *DeviceContainer::getPersistentDataDir()
 string DeviceContainer::publishedDescription()
 {
   // derive the descriptive name
-  // - descriptive name: vendor name + Model name + optional custom name + optional serial
-  string n = vendorName();
-  if (!n.empty()) n+=" ";
-  n += modelName();
-  if (!getName().empty()) {
-    // append custom name
-    string_format_append(n, " \"%s\"", getName().c_str());
+  // "%V %M%N %S"
+  string n = descriptionTemplate;
+  if (n.empty()) n = DEFAULT_DESCRIPTION_TEMPLATE;
+  string s;
+  size_t i;
+  // Vendor
+  while ((i = n.find("%V"))!=string::npos) { n.replace(i, 2, vendorName()); }
+  // Model
+  while ((i = n.find("%M"))!=string::npos) { n.replace(i, 2, modelName()); }
+  // (optional) Name
+  s = getName();
+  if (!s.empty()) {
+    s = " \""+s+"\"";
   }
-  string s = getDeviceHardwareId();
+  while ((i = n.find("%N"))!=string::npos) { n.replace(i, 2, s); }
+  // Serial/hardware ID
+  s = getDeviceHardwareId();
   if (s.empty()) {
     // use dSUID if no other ID is specified
     s = getDsUid().getString();
   }
-  string_format_append(n, " %s", s.c_str());
+  while ((i = n.find("%S"))!=string::npos) { n.replace(i, 2, s); }
   return n;
 }
 

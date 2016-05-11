@@ -76,8 +76,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--deviceid #424242"
+            argument = "--deviceid 424242"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--description &quot;%V %M%N S/N:%S&quot;"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--mainloopstats 0"
@@ -173,7 +177,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.11.39 --daliportidle 10"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2101 --daliportidle 10 --dalitxadj 16"
