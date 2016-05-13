@@ -40,7 +40,7 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   //  <pin(s) specification>:[!]<behaviour mode>
   //  - where ! before the behaviour mode means inverted operation (in addition to possibly inverted pin specs)
   //  - where pin specification describes the actual I/Os to be used (see DigitialIO)
-  // last : separates behaviour from pin specification
+  // last : separates behaviour from pin specification (so pins specs containing colons are possible, such as OW LEDs)
   size_t i = aDeviceConfig.rfind(":");
   string ioname = aDeviceConfig;
   bool inverted = false;

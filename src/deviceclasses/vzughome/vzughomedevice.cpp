@@ -501,9 +501,10 @@ void VZugHomeDevice::processPushMessage(const string aMessage)
       ALOG(LOG_NOTICE, "Trigger text '%s' detected -> executing signalling commands: %s", pos->first.c_str(), pos->second.c_str());
       // parse call: syntax:
       //   <action>[,<action>...]
-      //   action = <directscenecall>|<inputchange>
+      //   action = <directscenecall>|<inputchange>|<click>
       //   directscenecall = [-|!]n, n=scene number, "!" for force call, "-" for undo
       //   inputchange = >[-|+]n, n=input index, "+" to set input, "-" to clear input, no "+"/"-" to pulse input
+      //   click = Cn, n=clicktype
       const char *p = pos->second.c_str();
       while (*p) {
         #if STATUS_BINARY_INPUTS
