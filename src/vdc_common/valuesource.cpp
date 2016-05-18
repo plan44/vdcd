@@ -30,8 +30,10 @@ ValueSource::ValueSource()
 
 ValueSource::~ValueSource()
 {
-  // inform all of the listeners that the value is gone
-  notifyListeners(valueevent_removed);
+  // inform all of the listeners that the value is gone, unless app is about to terminate
+  if (Application::isRunning()) {
+    notifyListeners(valueevent_removed);
+  }
   listeners.clear();
 }
 
