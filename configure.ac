@@ -77,33 +77,33 @@ PKG_PROG_PKG_CONFIG
 AM_COND_IF([P44_BUILD_RPI], [], [
   dnl # can check modules only if not P44_BUILD_RPI
 
-  PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [],
-      [
-          AC_MSG_ERROR([$JSON_PKG_ERRORS])
-      ])
+  PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [], [
+    AC_MSG_ERROR([$JSON_PKG_ERRORS])
+  ])
 
-  PKG_CHECK_MODULES([AVAHI], [avahi-client], [],
-      [
-          AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
-      ])
+  AM_COND_IF([P44_BUILD_OW], [
+    PKG_CHECK_MODULES([AVAHI], [avahi-core], [], [
+      AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
+    ])
+  ], [
+    PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
+      AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
+    ])
+  ])
 
-  PKG_CHECK_MODULES([SQLITE3], [sqlite3], [],
-      [
-          AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
-      ])
+  PKG_CHECK_MODULES([SQLITE3], [sqlite3], [], [
+    AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
+  ])
 
-  PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [],
-      [
-          AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [],
-              [
-                  AC_MSG_ERROR([coult not find protobuf-c headers])
-              ])
+  PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
+    AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [], [
+      AC_MSG_ERROR([coult not find protobuf-c headers])
+    ])
 
-          AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [],
-              [
-                  AC_MSG_ERROR([coult not find protobuf-c library])
-              ])
-      ])
+    AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [], [
+      AC_MSG_ERROR([coult not find protobuf-c library])
+    ])
+  ])
 
 ])
 
