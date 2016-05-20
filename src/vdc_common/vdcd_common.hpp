@@ -70,7 +70,7 @@
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 0
-  #define USE_AVAHI_CORE 0 // use avahi client
+  #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define DISABLE_I2C 1 // %%% for now
 #else
   // Default build options unless defined otherwise already
