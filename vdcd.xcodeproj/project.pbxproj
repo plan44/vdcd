@@ -1163,6 +1163,7 @@
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
+					"ENABLE_LEDCHAIN=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1193,6 +1194,7 @@
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
+					"ENABLE_LEDCHAIN=1",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",

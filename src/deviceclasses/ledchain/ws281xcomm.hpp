@@ -73,6 +73,10 @@ namespace p44 {
     #if P44_BUILD_RPI
     ws2811_t ledstring; // the descriptor for the rpi_ws2811 library
     #endif
+    #if P44_BUILD_OW
+    int ledFd; // the file descriptor for the LED device
+    uint8_t *ledbuffer; // the raw bytes to be sent to the WS2812 device
+    #endif
 
   public:
     /// create driver for a WS2812 LED chain

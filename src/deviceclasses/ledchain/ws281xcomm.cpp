@@ -21,6 +21,7 @@
 
 #include "ws281xcomm.hpp"
 
+
 #if ENABLE_LEDCHAIN
 
 using namespace p44;
@@ -34,9 +35,14 @@ using namespace p44;
 #define MAX_BRIGHTNESS 255 // full brightness range
 #endif
 
+#if P44_BUILD_OW
+#define WS2812_DEVICENAME "/dev/ws2812" // we use the ws2812-draiveris kernel driver to talk to the WS2812 chain(s)
+#endif // P44_BUILD_OW
+
 
 WS281xComm::WS281xComm(uint16_t aNumLeds, uint16_t aLedsPerRow, bool aXReversed, bool aAlternating, bool aSwapXY) :
   initialized(false)
+
 {
   numLeds = aNumLeds;
   if (aLedsPerRow==0) {
@@ -68,6 +74,10 @@ WS281xComm::WS281xComm(uint16_t aNumLeds, uint16_t aLedsPerRow, bool aXReversed,
   ledstring.channel[1].invert = 0;
   ledstring.channel[1].brightness = MAX_BRIGHTNESS;
   ledstring.channel[1].leds = NULL; // will be allocated by the library
+  #endif
+  #if P44_BUILD_OW
+  ledbuffer = NULL;
+  ledFd = -1;
   #endif
   // make sure operation ends when mainloop terminates
   MainLoop::currentMainLoop().registerCleanupHandler(boost::bind(&WS281xComm::end, this));
@@ -105,6 +115,16 @@ bool WS281xComm::begin()
     #if P44_BUILD_RPI
     // initialize library
     initialized = ws2811_init(&ledstring)==0;
+    #elif P44_BUILD_OW
+    ledbuffer = new uint8_t[3*numLeds];
+    ledFd = open(WS2812_DEVICENAME, O_RDWR);
+    if (ledFd>=0) {
+      initialized = true;
+    }
+    else {
+      LOG(LOG_ERR, "Error: Cannot open WS2812 device '%s'",WS2812_DEVICENAME);
+      initialized = false;
+    }
     #else
     initialized = true; // dummy
     #endif
@@ -119,6 +139,15 @@ void WS281xComm::end()
     #if P44_BUILD_RPI
     // deinitialize library
     ws2811_fini(&ledstring);
+    #elif P44_BUILD_OW
+    if (ledbuffer) {
+      delete[] ledbuffer;
+      ledbuffer = NULL;
+    }
+    if (ledFd>=0) {
+      close(ledFd);
+      ledFd = -1;
+    }
     #endif
   }
   initialized = false;
@@ -130,6 +159,8 @@ void WS281xComm::show()
   if (!initialized) return;
   #if P44_BUILD_RPI
   ws2811_render(&ledstring);
+  #elif P44_BUILD_OW
+  write(ledFd, ledbuffer, numLeds*3);
   #endif
 }
 
@@ -198,6 +229,10 @@ void WS281xComm::setColorXY(uint16_t aX, uint16_t aY, uint8_t aRed, uint8_t aGre
   (pwmtable[aGreen] << 8) |
   (pwmtable[aBlue]);
   ledstring.channel[0].leds[ledindex] = pixel;
+  #elif P44_BUILD_OW
+  ledbuffer[3*ledindex] = pwmtable[aRed];
+  ledbuffer[3*ledindex+1] = pwmtable[aGreen];
+  ledbuffer[3*ledindex+2] = pwmtable[aBlue];
   #endif
 }
 
@@ -241,6 +276,10 @@ void WS281xComm::getColorXY(uint16_t aX, uint16_t aY, uint8_t &aRed, uint8_t &aG
   aRed = brightnesstable[(pixel>>16) & 0xFF];
   aGreen = brightnesstable[(pixel>>8) & 0xFF];
   aBlue = brightnesstable[pixel & 0xFF];
+  #elif P44_BUILD_OW
+  aRed = brightnesstable[ledbuffer[3*ledindex]];
+  aGreen = brightnesstable[ledbuffer[3*ledindex+1]];
+  aBlue = brightnesstable[ledbuffer[3*ledindex+2]];
   #endif
 }
 
