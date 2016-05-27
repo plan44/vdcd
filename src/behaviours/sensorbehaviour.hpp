@@ -75,6 +75,17 @@ namespace p44 {
     SensorBehaviour(Device &aDevice);
 
     /// initialisation of hardware-specific constants for this sensor
+    /// @param aType the sensor type (Note: not the same as dS sensor types, needs mapping)
+    /// @param aUsage how this input is normally used (indoor/outdoor etc.)
+    /// @param aMin minimum value)
+    /// @param aMax maximum value)
+    /// @param aResolution resolution (smallest step) of this sensor's value
+    /// @param aUpdateInterval how often an update can be expected from this sensor normally. If 0, this means that no
+    ///   regular updates can be expected.
+    /// @param aAliveSignInterval how often the sensor will send an update in all cases. If 0, this means that no regular
+    ///   update interval can be expected.
+    /// @param aDefaultChangesOnlyInterval the minimum time between two pushes with the same value. If the sensor hardware
+    ///   sends updates more frequently, these are only pushed when the value has actually changed.
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
     void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval, MLMicroSeconds aDefaultChangesOnlyInterval=0);

@@ -72,6 +72,12 @@ namespace p44 {
     BinaryInputBehaviour(Device &aDevice);
 
     /// initialisation of hardware-specific constants for this binary input
+    /// @param aInputType the input type (also called sensor function in classic dS)
+    /// @param aUsage how this input is normally used (indoor/outdoor etc.)
+    /// @param aReportsChanges if set, changes of this input can trigger a push. Inputs that do not have this flag set need
+    ///   to be polled to get the input state. (At this time, this is descriptive only, and has no functionality within vdcd)
+    /// @param aUpdateInterval how often an update can be expected from this input. If 0, this means that no minimal
+    ///   update interval can be expected.
     /// @note this must be called once before the device gets added to the device container. Implementation might
     ///   also derive default values for settings from this information.
     void setHardwareInputConfig(DsBinaryInputType aInputType, DsUsageHint aUsage, bool aReportsChanges, MLMicroSeconds aUpdateInterval);
