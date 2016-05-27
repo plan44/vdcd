@@ -115,11 +115,11 @@ EnoceanManufacturer EnoceanDevice::getEEManufacturer()
 void EnoceanDevice::deriveDsUid()
 {
   // UUID in EnOcean name space
-  //   name = xxxxxxxx:s (x=8 digit enocean hex UPPERCASE address, s=decimal subdevice index, 0..n)
+  //   name = xxxxxxxx (x=8 digit enocean hex UPPERCASE address)
   DsUid enOceanNamespace(DSUID_ENOCEAN_NAMESPACE_UUID);
-  string s = string_format("%08X", getAddress()); // base address comes from
+  string s = string_format("%08X", getAddress()); // hashed part of dSUID comes from unique EnOcean address
   dSUID.setNameInSpace(s, enOceanNamespace);
-  dSUID.setSubdeviceIndex(getSubDevice());
+  dSUID.setSubdeviceIndex(getSubDevice()); // subdevice index is represented in the dSUID subdevice index byte
 }
 
 
