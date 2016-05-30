@@ -78,15 +78,8 @@ LEDCHAIN_SRC = \
   src/thirdparty/rpi_ws281x/mailbox.h \
   src/thirdparty/rpi_ws281x/mailbox.c \
   src/thirdparty/rpi_ws281x/ws2811.h \
-  src/thirdparty/rpi_ws281x/ws2811.c \
-  src/deviceclasses/ledchain/ws281xcomm.hpp \
-  src/deviceclasses/ledchain/ws281xcomm.cpp \
-  src/deviceclasses/ledchain/ledchaindevice.hpp \
-  src/deviceclasses/ledchain/ledchaindevice.cpp \
-  src/deviceclasses/ledchain/ledchaindevicecontainer.hpp \
-  src/deviceclasses/ledchain/ledchaindevicecontainer.cpp
+  src/thirdparty/rpi_ws281x/ws2811.c
 LEDCHAIN_INCLUDES = \
-  -I ${srcdir}/src/deviceclasses/ledchain \
   -I ${srcdir}/src/thirdparty/rpi_ws281x
 
 else
@@ -115,6 +108,7 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  -I ${srcdir}/src/deviceclasses/ledchain \
   -I ${srcdir}/src/deviceclasses/vzughome \
   -I ${srcdir}/src/deviceclasses/voxnet \
   -I ${srcdir}/../libavahi-core \
@@ -304,6 +298,12 @@ vdcd_SOURCES = \
   src/deviceclasses/hue/huedevicecontainer.hpp \
   src/deviceclasses/hue/huedevice.cpp \
   src/deviceclasses/hue/huedevice.hpp \
+  src/deviceclasses/ledchain/ws281xcomm.hpp \
+  src/deviceclasses/ledchain/ws281xcomm.cpp \
+  src/deviceclasses/ledchain/ledchaindevice.hpp \
+  src/deviceclasses/ledchain/ledchaindevice.cpp \
+  src/deviceclasses/ledchain/ledchaindevicecontainer.hpp \
+  src/deviceclasses/ledchain/ledchaindevicecontainer.cpp \
   src/deviceclasses/vzughome/vzughomecomm.cpp \
   src/deviceclasses/vzughome/vzughomecomm.hpp \
   src/deviceclasses/vzughome/vzughomedevice.cpp \
