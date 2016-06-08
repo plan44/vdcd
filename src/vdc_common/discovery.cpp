@@ -242,15 +242,13 @@ void DiscoveryManager::startServices()
     }
     else {
       // service created
-      #if ENABLE_AUXVDSM
       // - when debugging, browse for http
       if (FOCUSLOGENABLED) {
-        debugServiceBrowser = avahi_s_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, HTTP_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, browse_callback, this);
+        debugServiceBrowser = avahi_s_service_browser_new(service, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, HTTP_SERVICE_TYPE, NULL, (AvahiLookupFlags)0, debug_browse_callback, this);
         if (!debugServiceBrowser) {
           FOCUSLOG("Failed to create debug service browser: %s", avahi_strerror(avahi_server_errno(service)));
         }
       }
-      #endif // ENABLE_AUXVDSM
     }
     #else
     // Use client
@@ -718,57 +716,41 @@ void DiscoveryManager::avahi_browse_callback(AvahiServiceBrowser *b, AvahiIfInde
 {
   // Called whenever a new services becomes available on the LAN or is removed from the LAN
   // - may use global "server" var, because browsers are no set up within server callbacks, but only afterwards, when "server" is defined
-  if (b==debugServiceBrowser) {
-    // debug (show http services)
-    switch (event) {
-      case AVAHI_BROWSER_NEW:
-        FOCUSLOG("avahi: new http service '%s' in domain '%s' discovered", name, domain);
-        break;
-      case AVAHI_BROWSER_REMOVE:
-        FOCUSLOG("avahi: http service '%s' in domain '%s' has disappeared", name, domain);
-        break;
-      default:
-        break;
-    }
-  }
-  else {
-    // actual browser for vdsms
-    switch (event) {
-      case AVAHI_BROWSER_FAILURE:
-        LOG(LOG_ERR, "avahi: browser failure: %s", avahi_strerror(avahi_service_errno(service)));
-        restartServices();
-        break;
-      case AVAHI_BROWSER_NEW:
-        LOG(LOG_DEBUG, "avahi: BROWSER_NEW: service '%s' of type '%s' in domain '%s'", name, type, domain);
-        // Note: local vdsm record (my own) is ignored
-        if (strcmp(type, VDSM_SERVICE_TYPE)==0 && (flags & AVAHI_LOOKUP_RESULT_LOCAL)==0) {
-          // new vdsm found. Only for vdsms, we need to resolve to get the TXT records in order to see if we've found a master vdsm
-          LOG(LOG_INFO, "discovery: vdsm '%s' detected", name);
-          // Note: the returned resolver object can be ignored, it is freed in the callback
-          //   if the server terminates before the callback has been executes, the server deletes the resolver.
-          if (!(avahi_service_resolver_new(service, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, (AvahiLookupFlags)0, resolve_callback, this))) {
-            LOG(LOG_ERR, "avahi: failed to resolve service '%s': %s", name, avahi_strerror(avahi_service_errno(service)));
-            break;
-          }
+  switch (event) {
+    case AVAHI_BROWSER_FAILURE:
+      LOG(LOG_ERR, "avahi: browser failure: %s", avahi_strerror(avahi_service_errno(service)));
+      restartServices();
+      break;
+    case AVAHI_BROWSER_NEW:
+      LOG(LOG_DEBUG, "avahi: BROWSER_NEW: service '%s' of type '%s' in domain '%s'", name, type, domain);
+      // Note: local vdsm record (my own) is ignored
+      if (strcmp(type, VDSM_SERVICE_TYPE)==0 && (flags & AVAHI_LOOKUP_RESULT_LOCAL)==0) {
+        // new vdsm found. Only for vdsms, we need to resolve to get the TXT records in order to see if we've found a master vdsm
+        LOG(LOG_INFO, "discovery: vdsm '%s' detected", name);
+        // Note: the returned resolver object can be ignored, it is freed in the callback
+        //   if the server terminates before the callback has been executes, the server deletes the resolver.
+        if (!(avahi_service_resolver_new(service, interface, protocol, name, type, domain, AVAHI_PROTO_UNSPEC, (AvahiLookupFlags)0, resolve_callback, this))) {
+          LOG(LOG_ERR, "avahi: failed to resolve service '%s': %s", name, avahi_strerror(avahi_service_errno(service)));
+          break;
         }
-        break;
-      case AVAHI_BROWSER_REMOVE:
-        LOG(LOG_DEBUG, "avahi: BROWSER_REMOVE: service '%s' of type '%s' in domain '%s'", name, type, domain);
-        if (strcmp(type, VDSM_SERVICE_TYPE)==0) {
-          // a vdsm has disappeared
-          LOG(dmState==dm_lost_vdsm ? LOG_INFO : LOG_NOTICE, "discovery: vdsm '%s' no longer online", name);
-          // we have lost a vdsm (but we don't know if it's master) -> we need to rescan in a while (unless another master appears in the meantime)
-          dmState = dm_lost_vdsm;
-          MainLoop::currentMainLoop().executeTicketOnce(rescanTicket, boost::bind(&DiscoveryManager::rescanVdsms, this, service), VDSM_LOST_RESCAN_DELAY);
-        }
-        break;
-      case AVAHI_BROWSER_ALL_FOR_NOW:
-        LOG(LOG_DEBUG, "avahi: BROWSER_ALL_FOR_NOW");
-        break;
-      case AVAHI_BROWSER_CACHE_EXHAUSTED:
-        LOG(LOG_DEBUG, "avahi: BROWSER_CACHE_EXHAUSTED");
-        break;
-    }
+      }
+      break;
+    case AVAHI_BROWSER_REMOVE:
+      LOG(LOG_DEBUG, "avahi: BROWSER_REMOVE: service '%s' of type '%s' in domain '%s'", name, type, domain);
+      if (strcmp(type, VDSM_SERVICE_TYPE)==0) {
+        // a vdsm has disappeared
+        LOG(dmState==dm_lost_vdsm ? LOG_INFO : LOG_NOTICE, "discovery: vdsm '%s' no longer online", name);
+        // we have lost a vdsm (but we don't know if it's master) -> we need to rescan in a while (unless another master appears in the meantime)
+        dmState = dm_lost_vdsm;
+        MainLoop::currentMainLoop().executeTicketOnce(rescanTicket, boost::bind(&DiscoveryManager::rescanVdsms, this, service), VDSM_LOST_RESCAN_DELAY);
+      }
+      break;
+    case AVAHI_BROWSER_ALL_FOR_NOW:
+      LOG(LOG_DEBUG, "avahi: BROWSER_ALL_FOR_NOW");
+      break;
+    case AVAHI_BROWSER_CACHE_EXHAUSTED:
+      LOG(LOG_DEBUG, "avahi: BROWSER_CACHE_EXHAUSTED");
+      break;
   }
 }
 
