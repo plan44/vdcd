@@ -1,5 +1,5 @@
 # boost.m4: Locate Boost headers and libraries for autoconf-based projects.
-# Copyright (C) 2007, 2008, 2009, 2010, 2011  Benoit Sigoure <tsuna@lrde.epita.fr>
+# Copyright (C) 2007-2011, 2014  Benoit Sigoure <tsuna@lrde.epita.fr>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_define([_BOOST_SERIAL], [m4_translit([
-# serial 16
+# serial 26
 ], [#
 ], [])])
 
@@ -59,7 +59,8 @@ m4_pattern_forbid([^_?(BOOST|Boost)_])
 # It could be useful to turn this into a macro which extracts the
 # value of any macro.
 m4_define([_BOOST_SED_CPP],
-[AC_LANG_PREPROC_REQUIRE()dnl
+[AC_LANG_PUSH([C++])dnl
+AC_LANG_PREPROC_REQUIRE()dnl
 AC_REQUIRE([AC_PROG_SED])dnl
 AC_LANG_CONFTEST([AC_LANG_SOURCE([[$2]])])
 AS_IF([dnl eval is necessary to expand ac_cpp.
@@ -71,13 +72,31 @@ dnl strip `\n' with backquotes, not the `\r'.  This results in
 dnl boost_cv_lib_version='1_37\r' for instance, which breaks
 dnl everything else.
 dnl Cannot use 'dnl' after [$4] because a trailing dnl may break AC_CACHE_CHECK
+dnl
+dnl Beware that GCC 5, when expanding macros, may embed # line directives
+dnl a within single line:
+dnl
+dnl # 1 "conftest.cc"
+dnl # 1 "<built-in>"
+dnl # 1 "<command-line>"
+dnl # 1 "conftest.cc"
+dnl # 1 "/opt/local/include/boost/version.hpp" 1 3
+dnl # 2 "conftest.cc" 2
+dnl boost-lib-version =
+dnl # 2 "conftest.cc" 3
+dnl                    "1_56"
+dnl
+dnl So get rid of the # lines, and glue the remaining ones together.
 (eval "$ac_cpp conftest.$ac_ext") 2>&AS_MESSAGE_LOG_FD |
+  grep -v '#' |
   tr -d '\r' |
+  tr -s '\n' ' ' |
   $SED -n -e "$1" >conftest.i 2>&1],
   [$3],
   [$4])
 rm -rf conftest*
-])# AC_EGREP_CPP
+AC_LANG_POP([C++])dnl
+])# _BOOST_SED_CPP
 
 
 
@@ -91,7 +110,7 @@ rm -rf conftest*
 # On # success, defines HAVE_BOOST.  On failure, calls the optional
 # ACTION-IF-NOT-FOUND action if one was supplied.
 # Otherwise aborts with an error message.
-AC_DEFUN([BOOST_REQUIRE],
+AC_DEFUN_ONCE([BOOST_REQUIRE],
 [AC_REQUIRE([AC_PROG_CXX])dnl
 AC_REQUIRE([AC_PROG_GREP])dnl
 echo "$as_me: this is boost.m4[]_BOOST_SERIAL" >&AS_MESSAGE_LOG_FD
@@ -206,7 +225,7 @@ AC_LANG_POP([C++])dnl
   AC_CACHE_CHECK([for Boost's header version],
     [boost_cv_lib_version],
     [m4_pattern_allow([^BOOST_LIB_VERSION$])dnl
-     _BOOST_SED_CPP([/^boost-lib-version = /{s///;s/\"//g;p;q;}],
+     _BOOST_SED_CPP([[/^boost-lib-version = /{s///;s/[\" ]//g;p;q;}]],
                     [#include <boost/version.hpp>
 boost-lib-version = BOOST_LIB_VERSION],
     [boost_cv_lib_version=`cat conftest.i`])])
@@ -214,12 +233,13 @@ boost-lib-version = BOOST_LIB_VERSION],
     boost_major_version=`echo "$boost_cv_lib_version" | sed 's/_//;s/_.*//'`
     case $boost_major_version in #(
       '' | *[[!0-9]]*)
-        AC_MSG_ERROR([invalid value: boost_major_version=$boost_major_version])
+        AC_MSG_ERROR([invalid value: boost_major_version='$boost_major_version'])
         ;;
     esac
 fi
 CPPFLAGS=$boost_save_CPPFLAGS
 ])# BOOST_REQUIRE
+
 
 # BOOST_STATIC()
 # --------------
@@ -227,10 +247,11 @@ CPPFLAGS=$boost_save_CPPFLAGS
 # on the command line, static versions of the libraries will be looked up.
 AC_DEFUN([BOOST_STATIC],
   [AC_ARG_ENABLE([static-boost],
-     [AC_HELP_STRING([--enable-static-boost],
+     [AS_HELP_STRING([--enable-static-boost],
                [Prefer the static boost libraries over the shared ones [no]])],
      [enable_static_boost=yes],
      [enable_static_boost=no])])# BOOST_STATIC
+
 
 # BOOST_FIND_HEADER([HEADER-NAME], [ACTION-IF-NOT-FOUND], [ACTION-IF-FOUND])
 # --------------------------------------------------------------------------
@@ -264,14 +285,16 @@ fi
 ])# BOOST_FIND_HEADER
 
 
-# BOOST_FIND_LIB([LIB-NAME], [PREFERRED-RT-OPT], [HEADER-NAME], [CXX-TEST],
-#                [CXX-PROLOGUE])
-# -------------------------------------------------------------------------
-# Look for the Boost library LIB-NAME (e.g., LIB-NAME = `thread', for
-# libboost_thread).  Check that HEADER-NAME works and check that
-# libboost_LIB-NAME can link with the code CXX-TEST.  The optional argument
-# CXX-PROLOGUE can be used to include some C++ code before the `main'
-# function.
+# BOOST_FIND_LIBS([COMPONENT-NAME], [CANDIDATE-LIB-NAMES],
+#                 [PREFERRED-RT-OPT], [HEADER-NAME], [CXX-TEST],
+#                 [CXX-PROLOGUE])
+# --------------------------------------------------------------
+# Look for the Boost library COMPONENT-NAME (e.g., `thread', for
+# libboost_thread) under the possible CANDIDATE-LIB-NAMES (e.g.,
+# "thread_win32 thread").  Check that HEADER-NAME works and check that
+# libboost_LIB-NAME can link with the code CXX-TEST.  The optional
+# argument CXX-PROLOGUE can be used to include some C++ code before
+# the `main' function.
 #
 # Invokes BOOST_FIND_HEADER([HEADER-NAME]) (see above).
 #
@@ -285,7 +308,7 @@ fi
 # builds.  Some sample values for PREFERRED-RT-OPT: (nothing), mt, d, mt-d, gdp
 # ...  If you want to make sure you have a specific version of Boost
 # (eg, >= 1.33) you *must* invoke BOOST_REQUIRE before this macro.
-AC_DEFUN([BOOST_FIND_LIB],
+AC_DEFUN([BOOST_FIND_LIBS],
 [AC_REQUIRE([BOOST_REQUIRE])dnl
 AC_REQUIRE([_BOOST_FIND_COMPILER_TAG])dnl
 AC_REQUIRE([BOOST_STATIC])dnl
@@ -299,32 +322,69 @@ AS_VAR_PUSHDEF([Boost_lib], [boost_cv_lib_$1])dnl
 AS_VAR_PUSHDEF([Boost_lib_LDFLAGS], [boost_cv_lib_$1_LDFLAGS])dnl
 AS_VAR_PUSHDEF([Boost_lib_LDPATH], [boost_cv_lib_$1_LDPATH])dnl
 AS_VAR_PUSHDEF([Boost_lib_LIBS], [boost_cv_lib_$1_LIBS])dnl
-BOOST_FIND_HEADER([$3])
+BOOST_FIND_HEADER([$4])
 boost_save_CPPFLAGS=$CPPFLAGS
 CPPFLAGS="$CPPFLAGS $BOOST_CPPFLAGS"
-# Now let's try to find the library.  The algorithm is as follows: first look
-# for a given library name according to the user's PREFERRED-RT-OPT.  For each
-# library name, we prefer to use the ones that carry the tag (toolset name).
-# Each library is searched through the various standard paths were Boost is
-# usually installed.  If we can't find the standard variants, we try to
-# enforce -mt (for instance on MacOSX, libboost_threads.dylib doesn't exist
-# but there's -obviously- libboost_threads-mt.dylib).
 AC_CACHE_CHECK([for the Boost $1 library], [Boost_lib],
-  [Boost_lib=no
-  case "$2" in #(
-    mt | mt-) boost_mt=-mt; boost_rtopt=;; #(
-    mt* | mt-*) boost_mt=-mt; boost_rtopt=`expr "X$2" : 'Xmt-*\(.*\)'`;; #(
-    *) boost_mt=; boost_rtopt=$2;;
+               [_BOOST_FIND_LIBS($@)])
+case $Boost_lib in #(
+  (no) _AC_MSG_LOG_CONFTEST
+    AC_MSG_ERROR([cannot find the flags to link with Boost $1])
+    ;;
+esac
+AC_SUBST(AS_TR_CPP([BOOST_$1_LDFLAGS]), [$Boost_lib_LDFLAGS])dnl
+AC_SUBST(AS_TR_CPP([BOOST_$1_LDPATH]), [$Boost_lib_LDPATH])dnl
+AC_SUBST([BOOST_LDPATH], [$Boost_lib_LDPATH])dnl
+AC_SUBST(AS_TR_CPP([BOOST_$1_LIBS]), [$Boost_lib_LIBS])dnl
+CPPFLAGS=$boost_save_CPPFLAGS
+AS_VAR_POPDEF([Boost_lib])dnl
+AS_VAR_POPDEF([Boost_lib_LDFLAGS])dnl
+AS_VAR_POPDEF([Boost_lib_LDPATH])dnl
+AS_VAR_POPDEF([Boost_lib_LIBS])dnl
+AC_LANG_POP([C++])dnl
+fi
+])
+
+
+# BOOST_FIND_LIB([LIB-NAME],
+#                [PREFERRED-RT-OPT], [HEADER-NAME], [CXX-TEST],
+#                [CXX-PROLOGUE])
+# --------------------------------------------------------------
+# Backward compatibility wrapper for BOOST_FIND_LIBS.
+AC_DEFUN([BOOST_FIND_LIB],
+[BOOST_FIND_LIBS([$1], $@)])
+
+
+# _BOOST_FIND_LIBS([LIB-NAME], [CANDIDATE-LIB-NAMES],
+#                 [PREFERRED-RT-OPT], [HEADER-NAME], [CXX-TEST],
+#                 [CXX-PROLOGUE])
+# --------------------------------------------------------------
+# Real implementation of BOOST_FIND_LIBS: rely on these local macros:
+# Boost_lib, Boost_lib_LDFLAGS, Boost_lib_LDPATH, Boost_lib_LIBS
+#
+# The algorithm is as follows: first look for a given library name
+# according to the user's PREFERRED-RT-OPT.  For each library name, we
+# prefer to use the ones that carry the tag (toolset name).  Each
+# library is searched through the various standard paths were Boost is
+# usually installed.  If we can't find the standard variants, we try
+# to enforce -mt (for instance on MacOSX, libboost_thread.dylib
+# doesn't exist but there's -obviously- libboost_thread-mt.dylib).
+AC_DEFUN([_BOOST_FIND_LIBS],
+[Boost_lib=no
+  case "$3" in #(
+    (mt | mt-) boost_mt=-mt; boost_rtopt=;; #(
+    (mt* | mt-*) boost_mt=-mt; boost_rtopt=`expr "X$3" : 'Xmt-*\(.*\)'`;; #(
+    (*) boost_mt=; boost_rtopt=$3;;
   esac
   if test $enable_static_boost = yes; then
     boost_rtopt="s$boost_rtopt"
   fi
   # Find the proper debug variant depending on what we've been asked to find.
   case $boost_rtopt in #(
-    *d*) boost_rt_d=$boost_rtopt;; #(
-    *[[sgpn]]*) # Insert the `d' at the right place (in between `sg' and `pn')
+    (*d*) boost_rt_d=$boost_rtopt;; #(
+    (*[[sgpn]]*) # Insert the `d' at the right place (in between `sg' and `pn')
       boost_rt_d=`echo "$boost_rtopt" | sed 's/\(s*g*\)\(p*n*\)/\1\2/'`;; #(
-    *) boost_rt_d='-d';;
+    (*) boost_rt_d='-d';;
   esac
   # If the PREFERRED-RT-OPT are not empty, prepend a `-'.
   test -n "$boost_rtopt" && boost_rtopt="-$boost_rtopt"
@@ -335,8 +395,8 @@ AC_CACHE_CHECK([for the Boost $1 library], [Boost_lib],
     AC_MSG_ERROR([the libext variable is empty, did you invoke Libtool?])
   boost_save_ac_objext=$ac_objext
   # Generate the test file.
-  AC_LANG_CONFTEST([AC_LANG_PROGRAM([#include <$3>
-$5], [$4])])
+  AC_LANG_CONFTEST([AC_LANG_PROGRAM([#include <$4>
+$6], [$5])])
 dnl Optimization hacks: compiling C++ is slow, especially with Boost.  What
 dnl we're trying to do here is guess the right combination of link flags
 dnl (LIBS / LDFLAGS) to use a given library.  This can take several
@@ -358,39 +418,42 @@ dnl start the for loops).
     [AC_MSG_ERROR([cannot compile a test that uses Boost $1])])
   ac_objext=$boost_save_ac_objext
   boost_failed_libs=
-# Don't bother to ident the 6 nested for loops, only the 2 innermost ones
-# matter.
+# Don't bother to ident the following nested for loops, only the 2
+# innermost ones matter.
+for boost_lib_ in $2; do
 for boost_tag_ in -$boost_cv_lib_tag ''; do
 for boost_ver_ in -$boost_cv_lib_version ''; do
 for boost_mt_ in $boost_mt -mt ''; do
 for boost_rtopt_ in $boost_rtopt '' -d; do
   for boost_lib in \
-    boost_$1$boost_tag_$boost_mt_$boost_rtopt_$boost_ver_ \
-    boost_$1$boost_tag_$boost_rtopt_$boost_ver_ \
-    boost_$1$boost_tag_$boost_mt_$boost_ver_ \
-    boost_$1$boost_tag_$boost_ver_
+    boost_$boost_lib_$boost_tag_$boost_mt_$boost_rtopt_$boost_ver_ \
+    boost_$boost_lib_$boost_tag_$boost_rtopt_$boost_ver_ \
+    boost_$boost_lib_$boost_tag_$boost_mt_$boost_ver_ \
+    boost_$boost_lib_$boost_tag_$boost_ver_
   do
     # Avoid testing twice the same lib
     case $boost_failed_libs in #(
-      *@$boost_lib@*) continue;;
+      (*@$boost_lib@*) continue;;
     esac
     # If with_boost is empty, we'll search in /lib first, which is not quite
     # right so instead we'll try to a location based on where the headers are.
-    boost_tmp_lib=$with_boost/lib
-    test x"$with_boost" = x && boost_tmp_lib="${boost_cv_inc_path%/include} \
-        /opt/local/lib* /usr/local/lib* /opt/lib* /usr/lib* \
-        "$with_boost" C:/Boost/lib /lib*"
-
-    for boost_ldpath in $boost_tmp_lib
+    boost_tmp_lib=$with_boost
+    test x"$with_boost" = x && boost_tmp_lib=${boost_cv_inc_path%/include}
+    for boost_ldpath in "$boost_tmp_lib/lib" '' \
+             /opt/local/lib* /usr/local/lib* /opt/lib* /usr/lib* \
+             "$with_boost" C:/Boost/lib /lib*
     do
-      test -e "$boost_ldpath" || continue
+      # Don't waste time with directories that don't exist.
+      if test x"$boost_ldpath" != x && test ! -e "$boost_ldpath"; then
+        continue
+      fi
       boost_save_LDFLAGS=$LDFLAGS
       # Are we looking for a static library?
       case $boost_ldpath:$boost_rtopt_ in #(
-        *?*:*s*) # Yes (Non empty boost_ldpath + s in rt opt)
+        (*?*:*s*) # Yes (Non empty boost_ldpath + s in rt opt)
           Boost_lib_LIBS="$boost_ldpath/lib$boost_lib.$libext"
           test -e "$Boost_lib_LIBS" || continue;; #(
-        *) # No: use -lboost_foo to find the shared library.
+        (*) # No: use -lboost_foo to find the shared library.
           Boost_lib_LIBS="-l$boost_lib";;
       esac
       boost_save_LIBS=$LIBS
@@ -404,9 +467,35 @@ dnl generated only once above (before we start the for loops).
       LDFLAGS=$boost_save_LDFLAGS
       LIBS=$boost_save_LIBS
       if test x"$Boost_lib" = xyes; then
-        Boost_lib_LDFLAGS="-L$boost_ldpath -Wl,-rpath $boost_ldpath"
+        # Check or used cached result of whether or not using -R or
+        # -rpath makes sense.  Some implementations of ld, such as for
+        # Mac OSX, require -rpath but -R is the flag known to work on
+        # other systems.  https://github.com/tsuna/boost.m4/issues/19
+        AC_CACHE_VAL([boost_cv_rpath_link_ldflag],
+          [case $boost_ldpath in
+           '') # Nothing to do.
+             boost_cv_rpath_link_ldflag=
+             boost_rpath_link_ldflag_found=yes;;
+           *)
+            for boost_cv_rpath_link_ldflag in -Wl,-R, -Wl,-rpath,; do
+              LDFLAGS="$boost_save_LDFLAGS -L$boost_ldpath $boost_cv_rpath_link_ldflag$boost_ldpath"
+              LIBS="$boost_save_LIBS $Boost_lib_LIBS"
+              _BOOST_AC_LINK_IFELSE([],
+                [boost_rpath_link_ldflag_found=yes
+                break],
+                [boost_rpath_link_ldflag_found=no])
+            done
+            ;;
+          esac
+          AS_IF([test "x$boost_rpath_link_ldflag_found" != "xyes"],
+            [AC_MSG_ERROR([Unable to determine whether to use -R or -rpath])])
+          LDFLAGS=$boost_save_LDFLAGS
+          LIBS=$boost_save_LIBS
+          ])
+        test x"$boost_ldpath" != x &&
+          Boost_lib_LDFLAGS="-L$boost_ldpath $boost_cv_rpath_link_ldflag$boost_ldpath"
         Boost_lib_LDPATH="$boost_ldpath"
-        break 6
+        break 7
       else
         boost_failed_libs="$boost_failed_libs@$boost_lib@"
       fi
@@ -416,25 +505,10 @@ done
 done
 done
 done
+done # boost_lib_
 rm -f conftest.$ac_objext
 ])
-case $Boost_lib in #(
-  no) _AC_MSG_LOG_CONFTEST
-    AC_MSG_ERROR([cannot find the flags to link with Boost $1])
-    ;;
-esac
-AC_SUBST(AS_TR_CPP([BOOST_$1_LDFLAGS]), [$Boost_lib_LDFLAGS])dnl
-AC_SUBST(AS_TR_CPP([BOOST_$1_LDPATH]), [$Boost_lib_LDPATH])dnl
-AC_SUBST([BOOST_LDPATH], [$Boost_lib_LDPATH])dnl
-AC_SUBST(AS_TR_CPP([BOOST_$1_LIBS]), [$Boost_lib_LIBS])dnl
-CPPFLAGS=$boost_save_CPPFLAGS
-AS_VAR_POPDEF([Boost_lib])dnl
-AS_VAR_POPDEF([Boost_lib_LDFLAGS])dnl
-AS_VAR_POPDEF([Boost_lib_LDPATH])dnl
-AS_VAR_POPDEF([Boost_lib_LIBS])dnl
-AC_LANG_POP([C++])dnl
-fi
-])# BOOST_FIND_LIB
+
 
 
 # --------------------------------------- #
@@ -474,11 +548,123 @@ BOOST_DEFUN([Asio],
 BOOST_FIND_HEADER([boost/asio.hpp])])
 
 
+# BOOST_ASSIGN()
+# -------------
+# Look for Boost.Assign
+BOOST_DEFUN([Assign],
+[BOOST_FIND_HEADER([boost/assign.hpp])])
+
+
 # BOOST_BIND()
 # ------------
-# Look for Boost.Bind
+# Look for Boost.Bind.
 BOOST_DEFUN([Bind],
 [BOOST_FIND_HEADER([boost/bind.hpp])])
+
+
+# BOOST_CHRONO()
+# --------------
+# Look for Boost.Chrono.
+BOOST_DEFUN([Chrono],
+[# Do we have to check for Boost.System?  This link-time dependency was
+# added as of 1.35.0.  If we have a version <1.35, we must not attempt to
+# find Boost.System as it didn't exist by then.
+if test $boost_major_version -ge 135; then
+  BOOST_SYSTEM([$1])
+fi # end of the Boost.System check.
+boost_filesystem_save_LIBS=$LIBS
+boost_filesystem_save_LDFLAGS=$LDFLAGS
+m4_pattern_allow([^BOOST_SYSTEM_(LIBS|LDFLAGS)$])dnl
+LIBS="$LIBS $BOOST_SYSTEM_LIBS"
+LDFLAGS="$LDFLAGS $BOOST_SYSTEM_LDFLAGS"
+BOOST_FIND_LIB([chrono], [$1],
+                [boost/chrono.hpp],
+                [boost::chrono::thread_clock d;])
+if test $enable_static_boost = yes && test $boost_major_version -ge 135; then
+  BOOST_CHRONO_LIBS="$BOOST_CHRONO_LIBS $BOOST_SYSTEM_LIBS"
+fi
+LIBS=$boost_filesystem_save_LIBS
+LDFLAGS=$boost_filesystem_save_LDFLAGS
+])# BOOST_CHRONO
+
+
+# BOOST_CONTEXT([PREFERRED-RT-OPT])
+# -----------------------------------
+# Look for Boost.Context.  For the documentation of PREFERRED-RT-OPT, see the
+# documentation of BOOST_FIND_LIB above.
+#
+# * This library was introduced in Boost 1.51.0
+# * The signatures of make_fcontext() and jump_fcontext were changed in 1.56.0
+# * A dependency on boost_thread appears in 1.57.0
+BOOST_DEFUN([Context],
+[boost_context_save_LIBS=$LIBS
+ boost_context_save_LDFLAGS=$LDFLAGS
+if test $boost_major_version -ge 157; then
+  BOOST_THREAD([$1])
+  m4_pattern_allow([^BOOST_THREAD_(LIBS|LDFLAGS)$])dnl
+  LIBS="$LIBS $BOOST_THREAD_LIBS"
+  LDFLAGS="$LDFLAGS $BOOST_THREAD_LDFLAGS"
+fi
+BOOST_FIND_LIB([context], [$1],
+                [boost/context/all.hpp],[[
+
+// creates a stack
+void * stack_pointer = new void*[4096];
+std::size_t const size = sizeof(void*[4096]);
+
+#if BOOST_VERSION <= 105100
+ctx::make_fcontext(&fc, f);
+return ctx::jump_fcontext(&fcm, &fc, 3) == 6;
+
+#else
+
+fc = ctx::make_fcontext(stack_pointer, size, f);
+return ctx::jump_fcontext(&fcm, fc, 3) == 6;
+
+#endif
+
+
+]],[dnl
+
+#include <boost/version.hpp>
+#if BOOST_VERSION <= 105100
+
+namespace ctx = boost::ctx;
+
+static ctx::fcontext_t fcm, fc;
+
+static void f(intptr_t i) {
+    ctx::jump_fcontext(&fc, &fcm, i * 2);
+}
+
+#elif BOOST_VERSION <= 105500
+
+namespace ctx = boost::context;
+
+// context
+static ctx::fcontext_t fcm, *fc;
+
+// context-function
+static void f(intptr_t i) {
+    ctx::jump_fcontext(fc, &fcm, i * 2);
+}
+
+#else
+
+namespace ctx = boost::context;
+
+// context
+static ctx::fcontext_t fcm, fc;
+
+// context-function
+static void f(intptr_t i) {
+    ctx::jump_fcontext(&fc, fcm, i * 2);
+}
+#endif
+])
+LIBS=$boost_context_save_LIBS
+LDFLAGS=$boost_context_save_LDFLAGS
+])# BOOST_CONTEXT
 
 
 # BOOST_CONVERSION()
@@ -488,6 +674,63 @@ BOOST_DEFUN([Conversion],
 [BOOST_FIND_HEADER([boost/cast.hpp])
 BOOST_FIND_HEADER([boost/lexical_cast.hpp])
 ])# BOOST_CONVERSION
+
+
+# BOOST_COROUTINE([PREFERRED-RT-OPT])
+# -----------------------------------
+# Look for Boost.Coroutine.  For the documentation of PREFERRED-RT-OPT, see the
+# documentation of BOOST_FIND_LIB above.  This library was introduced in Boost
+# 1.53.0
+BOOST_DEFUN([Coroutine],
+[
+boost_coroutine_save_LIBS=$LIBS
+boost_coroutine_save_LDFLAGS=$LDFLAGS
+# Link-time dependency from coroutine to context
+BOOST_CONTEXT([$1])
+# Starting from Boost 1.55 a dependency on Boost.System is added
+if test $boost_major_version -ge 155; then
+  BOOST_SYSTEM([$1])
+fi
+m4_pattern_allow([^BOOST_(CONTEXT|SYSTEM)_(LIBS|LDFLAGS)])
+LIBS="$LIBS $BOOST_CONTEXT_LIBS $BOOST_SYSTEM_LIBS"
+LDFLAGS="$LDFLAGS $BOOST_CONTEXT_LDFLAGS"
+
+# in 1.53 coroutine was a header only library
+if test $boost_major_version -eq 153; then
+  BOOST_FIND_HEADER([boost/coroutine/coroutine.hpp])
+else
+  BOOST_FIND_LIB([coroutine], [$1],
+		  [boost/coroutine/coroutine.hpp],
+		  [
+  #include <boost/version.hpp>
+  #if   BOOST_VERSION <= 105500
+  boost::coroutines::coroutine<int(int)> coro; coro.get();
+  #else
+  boost::coroutines::asymmetric_coroutine<int>::pull_type coro; coro.get();
+  #endif
+  ])
+fi
+# Link-time dependency from coroutine to context, existed only in 1.53, in 1.54
+# coroutine doesn't use context from its headers but from its library.
+if test $boost_major_version -eq 153 || test $enable_static_boost = yes && test $boost_major_version -ge 154; then
+  BOOST_COROUTINE_LIBS="$BOOST_COROUTINE_LIBS $BOOST_CONTEXT_LIBS"
+  BOOST_COROUTINE_LDFLAGS="$BOOST_COROUTINE_LDFLAGS $BOOST_CONTEXT_LDFLAGS"
+fi
+if test $enable_static_boost = yes && test $boost_major_version -ge 155; then
+  BOOST_COROUTINE_LIBS="$BOOST_COROUTINE_LIBS $BOOST_SYSTEM_LIBS"
+  BOOST_COROUTINE_LDFLAGS="$BOOST_COROUTINE_LDFLAGS $BOOST_SYSTEM_LDFLAGS"
+fi
+LIBS=$boost_coroutine_save_LIBS
+LDFLAGS=$boost_coroutine_save_LDFLAGS
+])# BOOST_COROUTINE
+
+
+# BOOST_CRC()
+# -----------
+# Look for Boost.CRC
+BOOST_DEFUN([CRC],
+[BOOST_FIND_HEADER([boost/crc.hpp])
+])# BOOST_CRC
 
 
 # BOOST_DATE_TIME([PREFERRED-RT-OPT])
@@ -512,7 +755,7 @@ BOOST_DEFUN([Filesystem],
 # added as of 1.35.0.  If we have a version <1.35, we must not attempt to
 # find Boost.System as it didn't exist by then.
 if test $boost_major_version -ge 135; then
-BOOST_SYSTEM([$1])
+  BOOST_SYSTEM([$1])
 fi # end of the Boost.System check.
 boost_filesystem_save_LIBS=$LIBS
 boost_filesystem_save_LDFLAGS=$LDFLAGS
@@ -522,23 +765,34 @@ LDFLAGS="$LDFLAGS $BOOST_SYSTEM_LDFLAGS"
 BOOST_FIND_LIB([filesystem], [$1],
                 [boost/filesystem/path.hpp], [boost::filesystem::path p;])
 if test $enable_static_boost = yes && test $boost_major_version -ge 135; then
-    AC_SUBST([BOOST_FILESYSTEM_LIBS], ["$BOOST_FILESYSTEM_LIBS $BOOST_SYSTEM_LIBS"])
+  BOOST_FILESYSTEM_LIBS="$BOOST_FILESYSTEM_LIBS $BOOST_SYSTEM_LIBS"
 fi
 LIBS=$boost_filesystem_save_LIBS
 LDFLAGS=$boost_filesystem_save_LDFLAGS
 ])# BOOST_FILESYSTEM
 
 
+# BOOST_FLYWEIGHT()
+# -----------------
+# Look for Boost.Flyweight.
+BOOST_DEFUN([Flyweight],
+[dnl There's a hidden dependency on pthreads.
+AC_REQUIRE([_BOOST_PTHREAD_FLAG])dnl
+BOOST_FIND_HEADER([boost/flyweight.hpp])
+AC_SUBST([BOOST_FLYWEIGHT_LIBS], [$boost_cv_pthread_flag])
+])
+
+
 # BOOST_FOREACH()
 # ---------------
-# Look for Boost.Foreach
+# Look for Boost.Foreach.
 BOOST_DEFUN([Foreach],
 [BOOST_FIND_HEADER([boost/foreach.hpp])])
 
 
 # BOOST_FORMAT()
 # --------------
-# Look for Boost.Format
+# Look for Boost.Format.
 # Note: we can't check for boost/format/format_fwd.hpp because the header isn't
 # standalone.  It can't be compiled because it triggers the following error:
 # boost/format/detail/config_macros.hpp:88: error: 'locale' in namespace 'std'
@@ -554,13 +808,32 @@ BOOST_DEFUN([Function],
 [BOOST_FIND_HEADER([boost/function.hpp])])
 
 
+# BOOST_GEOMETRY()
+# ----------------
+# Look for Boost.Geometry (new since 1.47.0).
+BOOST_DEFUN([Geometry],
+[BOOST_FIND_HEADER([boost/geometry.hpp])
+])# BOOST_GEOMETRY
+
+
 # BOOST_GRAPH([PREFERRED-RT-OPT])
 # -------------------------------
 # Look for Boost.Graphs.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.
 BOOST_DEFUN([Graph],
-[BOOST_FIND_LIB([graph], [$1],
+[boost_graph_save_LIBS=$LIBS
+boost_graph_save_LDFLAGS=$LDFLAGS
+# Link-time dependency from graph to regex was added as of 1.40.0.
+if test $boost_major_version -ge 140; then
+  BOOST_REGEX([$1])
+  m4_pattern_allow([^BOOST_REGEX_(LIBS|LDFLAGS)$])dnl
+  LIBS="$LIBS $BOOST_REGEX_LIBS"
+  LDFLAGS="$LDFLAGS $BOOST_REGEX_LDFLAGS"
+fi
+BOOST_FIND_LIB([graph], [$1],
                 [boost/graph/adjacency_list.hpp], [boost::adjacency_list<> g;])
+LIBS=$boost_graph_save_LIBS
+LDFLAGS=$boost_graph_save_LDFLAGS
 ])# BOOST_GRAPH
 
 
@@ -589,26 +862,64 @@ BOOST_DEFUN([Lambda],
 [BOOST_FIND_HEADER([boost/lambda/lambda.hpp])])
 
 
+# BOOST_LOCALE()
+# --------------
+# Look for Boost.Locale
+BOOST_DEFUN([Locale],
+[
+boost_locale_save_LIBS=$LIBS
+boost_locale_save_LDFLAGS=$LDFLAGS
+# require SYSTEM for boost-1.50.0 and up
+if test $boost_major_version -ge 150; then
+  BOOST_SYSTEM([$1])
+  m4_pattern_allow([^BOOST_SYSTEM_(LIBS|LDFLAGS)$])dnl
+  LIBS="$LIBS $BOOST_SYSTEM_LIBS"
+  LDFLAGS="$LDFLAGS $BOOST_SYSTEM_LDFLAGS"
+fi # end of the Boost.System check.
+BOOST_FIND_LIB([locale], [$1],
+    [boost/locale.hpp],
+    [[boost::locale::generator gen; std::locale::global(gen(""));]])
+LIBS=$boost_locale_save_LIBS
+LDFLAGS=$boost_locale_save_LDFLAGS
+])# BOOST_LOCALE
+
 # BOOST_LOG([PREFERRED-RT-OPT])
 # -----------------------------
-# Look for Boost.Log For the documentation of PREFERRED-RT-OPT, see the
+# Look for Boost.Log.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.
 BOOST_DEFUN([Log],
-[BOOST_FIND_LIB([log], [$1],
+[boost_log_save_LIBS=$LIBS
+boost_log_save_LDFLAGS=$LDFLAGS
+BOOST_SYSTEM([$1])
+BOOST_FILESYSTEM([$1])
+BOOST_DATE_TIME([$1])
+m4_pattern_allow([^BOOST_(SYSTEM|FILESYSTEM|DATE_TIME)_(LIBS|LDFLAGS)$])dnl
+LIBS="$LIBS $BOOST_DATE_TIME_LIBS $BOOST_FILESYSTEM_LIBS $BOOST_SYSTEM_LIBS"
+LDFLAGS="$LDFLAGS $BOOST_DATE_TIME_LDFLAGS $BOOST_FILESYSTEM_LDFLAGS $BOOST_SYSTEM_LDFLAGS"
+BOOST_FIND_LIB([log], [$1],
     [boost/log/core/core.hpp],
     [boost::log::attribute a; a.get_value();])
+LIBS=$boost_log_save_LIBS
+LDFLAGS=$boost_log_save_LDFLAGS
 ])# BOOST_LOG
 
 
 # BOOST_LOG_SETUP([PREFERRED-RT-OPT])
 # -----------------------------------
-# Look for Boost.Log For the documentation of PREFERRED-RT-OPT, see the
+# Look for Boost.Log.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.
 BOOST_DEFUN([Log_Setup],
-[AC_REQUIRE([BOOST_LOG])dnl
+[boost_log_setup_save_LIBS=$LIBS
+boost_log_setup_save_LDFLAGS=$LDFLAGS
+BOOST_LOG([$1])
+m4_pattern_allow([^BOOST_LOG_(LIBS|LDFLAGS)$])dnl
+LIBS="$LIBS $BOOST_LOG_LIBS"
+LDFLAGS="$LDFLAGS $BOOST_LOG_LDFLAGS"
 BOOST_FIND_LIB([log_setup], [$1],
-    [boost/log/utility/init/from_settings.hpp],
+    [boost/log/utility/setup/from_settings.hpp],
     [boost::log::basic_settings<char> bs; bs.empty();])
+LIBS=$boost_log_setup_save_LIBS
+LDFLAGS=$boost_log_setup_save_LDFLAGS
 ])# BOOST_LOG_SETUP
 
 
@@ -624,11 +935,42 @@ BOOST_DEFUN([Math],
 [BOOST_FIND_HEADER([boost/math/special_functions.hpp])])
 
 
+# BOOST_MPI([PREFERRED-RT-OPT])
+# -------------------------------
+# Look for Boost MPI.  For the documentation of PREFERRED-RT-OPT, see the
+# documentation of BOOST_FIND_LIB above.  Uses MPICXX variable if it is
+# set, otherwise tries CXX
+#
+BOOST_DEFUN([MPI],
+[boost_save_CXX=${CXX}
+boost_save_CXXCPP=${CXXCPP}
+if test x"${MPICXX}" != x; then
+  CXX=${MPICXX}
+  CXXCPP="${MPICXX} -E"
+fi
+BOOST_FIND_LIB([mpi], [$1],
+               [boost/mpi.hpp],
+               [int argc = 0;
+                char **argv = 0;
+                boost::mpi::environment env(argc,argv);])
+CXX=${boost_save_CXX}
+CXXCPP=${boost_save_CXXCPP}
+])# BOOST_MPI
+
+
 # BOOST_MULTIARRAY()
 # ------------------
 # Look for Boost.MultiArray
 BOOST_DEFUN([MultiArray],
 [BOOST_FIND_HEADER([boost/multi_array.hpp])])
+
+
+# BOOST_NUMERIC_UBLAS()
+# --------------------------
+# Look for Boost.NumericUblas (Basic Linear Algebra)
+BOOST_DEFUN([Numeric_Ublas],
+[BOOST_FIND_HEADER([boost/numeric/ublas/vector.hpp])
+])# BOOST_NUMERIC_UBLAS
 
 
 # BOOST_NUMERIC_CONVERSION()
@@ -652,6 +994,12 @@ BOOST_DEFUN([Optional],
 BOOST_DEFUN([Preprocessor],
 [BOOST_FIND_HEADER([boost/preprocessor/repeat.hpp])])
 
+
+# BOOST_RANGE()
+# --------------------
+# Look for Boost.Range
+BOOST_DEFUN([Range],
+[BOOST_FIND_HEADER([boost/range/adaptors.hpp])])
 
 # BOOST_UNORDERED()
 # -----------------
@@ -699,9 +1047,9 @@ BOOST_DEFUN([Python],
 _BOOST_PYTHON_CONFIG([LDFLAGS],   [ldflags])
 _BOOST_PYTHON_CONFIG([LIBS],      [libs])
 m4_pattern_allow([^BOOST_PYTHON_MODULE$])dnl
-BOOST_FIND_LIB([python], [$1],
-               [boost/python.hpp],
-               [], [BOOST_PYTHON_MODULE(empty) {}])
+BOOST_FIND_LIBS([python], [python python3], [$1],
+                [boost/python.hpp],
+                [], [BOOST_PYTHON_MODULE(empty) {}])
 CPPFLAGS=$boost_python_save_CPPFLAGS
 LDFLAGS=$boost_python_save_LDFLAGS
 LIBS=$boost_python_save_LIBS
@@ -747,6 +1095,14 @@ BOOST_DEFUN([Signals],
                 [boost/signal.hpp],
                 [boost::signal<void ()> s;])
 ])# BOOST_SIGNALS
+
+
+# BOOST_SIGNALS2()
+# ----------------
+# Look for Boost.Signals2 (new since 1.39.0).
+BOOST_DEFUN([Signals2],
+[BOOST_FIND_HEADER([boost/signals2.hpp])
+])# BOOST_SIGNALS2
 
 
 # BOOST_SMART_PTR()
@@ -799,32 +1155,54 @@ BOOST_FIND_LIB([unit_test_framework], [$1],
 ])# BOOST_TEST
 
 
-# BOOST_THREADS([PREFERRED-RT-OPT])
+# BOOST_THREAD([PREFERRED-RT-OPT])
 # ---------------------------------
 # Look for Boost.Thread.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.
-# FIXME: Provide an alias "BOOST_THREAD".
-BOOST_DEFUN([Threads],
+BOOST_DEFUN([Thread],
 [dnl Having the pthread flag is required at least on GCC3 where
 dnl boost/thread.hpp would complain if we try to compile without
 dnl -pthread on GNU/Linux.
 AC_REQUIRE([_BOOST_PTHREAD_FLAG])dnl
-boost_threads_save_LIBS=$LIBS
-boost_threads_save_CPPFLAGS=$CPPFLAGS
-LIBS="$LIBS $boost_cv_pthread_flag"
-# Yes, we *need* to put the -pthread thing in CPPFLAGS because with GCC3,
-# boost/thread.hpp will trigger a #error if -pthread isn't used:
-#   boost/config/requires_threads.hpp:47:5: #error "Compiler threading support
-#   is not turned on. Please set the correct command line options for
-#   threading: -pthread (Linux), -pthreads (Solaris) or -mthreads (Mingw32)"
+boost_thread_save_LIBS=$LIBS
+boost_thread_save_LDFLAGS=$LDFLAGS
+boost_thread_save_CPPFLAGS=$CPPFLAGS
+# Link-time dependency from thread to system was added as of 1.49.0.
+if test $boost_major_version -ge 149; then
+BOOST_SYSTEM([$1])
+fi # end of the Boost.System check.
+m4_pattern_allow([^BOOST_SYSTEM_(LIBS|LDFLAGS)$])dnl
+LIBS="$LIBS $BOOST_SYSTEM_LIBS $boost_cv_pthread_flag"
+LDFLAGS="$LDFLAGS $BOOST_SYSTEM_LDFLAGS"
 CPPFLAGS="$CPPFLAGS $boost_cv_pthread_flag"
-BOOST_FIND_LIB([thread], [$1],
-               [boost/thread.hpp], [boost::thread t; boost::mutex m;])
-BOOST_THREAD_LIBS="$BOOST_THREAD_LIBS $boost_cv_pthread_flag"
+
+# When compiling for the Windows platform, the threads library is named
+# differently.  This suffix doesn't exist in new versions of Boost, or
+# possibly new versions of GCC on mingw I am assuming it's Boost's change for
+# now and I am setting version to 1.48, for lack of knowledge as to when this
+# change occurred.
+if test $boost_major_version -lt 148; then
+  case $host_os in
+    (*mingw*) boost_thread_lib_ext=_win32;;
+  esac
+fi
+BOOST_FIND_LIBS([thread], [thread$boost_thread_lib_ext],
+                [$1],
+                [boost/thread.hpp], [boost::thread t; boost::mutex m;])
+
+case $host_os in
+  (*mingw*) boost_thread_w32_socket_link=-lws2_32;;
+esac
+
+BOOST_THREAD_LIBS="$BOOST_THREAD_LIBS $BOOST_SYSTEM_LIBS $boost_cv_pthread_flag $boost_thread_w32_socket_link"
+BOOST_THREAD_LDFLAGS="$BOOST_SYSTEM_LDFLAGS"
 BOOST_CPPFLAGS="$BOOST_CPPFLAGS $boost_cv_pthread_flag"
-LIBS=$boost_threads_save_LIBS
-CPPFLAGS=$boost_threads_save_CPPFLAGS
-])# BOOST_THREADS
+LIBS=$boost_thread_save_LIBS
+LDFLAGS=$boost_thread_save_LDFLAGS
+CPPFLAGS=$boost_thread_save_CPPFLAGS
+])# BOOST_THREAD
+
+AU_ALIAS([BOOST_THREADS], [BOOST_THREAD])
 
 
 # BOOST_TOKENIZER()
@@ -873,10 +1251,23 @@ BOOST_DEFUN([Variant],
 BOOST_FIND_HEADER([boost/variant.hpp])])
 
 
+# BOOST_POINTER_CONTAINER()
+# ------------------------
+# Look for Boost.PointerContainer
+BOOST_DEFUN([Pointer_Container],
+[BOOST_FIND_HEADER([boost/ptr_container/ptr_deque.hpp])
+BOOST_FIND_HEADER([boost/ptr_container/ptr_list.hpp])
+BOOST_FIND_HEADER([boost/ptr_container/ptr_vector.hpp])
+BOOST_FIND_HEADER([boost/ptr_container/ptr_array.hpp])
+BOOST_FIND_HEADER([boost/ptr_container/ptr_set.hpp])
+BOOST_FIND_HEADER([boost/ptr_container/ptr_map.hpp])
+])# BOOST_POINTER_CONTAINER
+
+
 # BOOST_WAVE([PREFERRED-RT-OPT])
 # ------------------------------
 # NOTE: If you intend to use Wave/Spirit with thread support, make sure you
-# call BOOST_THREADS first.
+# call BOOST_THREAD first.
 # Look for Boost.Wave.  For the documentation of PREFERRED-RT-OPT, see the
 # documentation of BOOST_FIND_LIB above.
 BOOST_DEFUN([Wave],
@@ -911,8 +1302,16 @@ BOOST_DEFUN([Xpressive],
 
 # _BOOST_PTHREAD_FLAG()
 # ---------------------
-# Internal helper for BOOST_THREADS.  Based on ACX_PTHREAD:
-# http://autoconf-archive.cryp.to/acx_pthread.html
+# Internal helper for BOOST_THREAD.  Computes boost_cv_pthread_flag
+# which must be used in CPPFLAGS and LIBS.
+#
+# Yes, we *need* to put the -pthread thing in CPPFLAGS because with GCC3,
+# boost/thread.hpp will trigger a #error if -pthread isn't used:
+#   boost/config/requires_threads.hpp:47:5: #error "Compiler threading support
+#   is not turned on. Please set the correct command line options for
+#   threading: -pthread (Linux), -pthreads (Solaris) or -mthreads (Mingw32)"
+#
+# Based on ACX_PTHREAD: http://autoconf-archive.cryp.to/acx_pthread.html
 AC_DEFUN([_BOOST_PTHREAD_FLAG],
 [AC_REQUIRE([AC_PROG_CXX])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
@@ -980,6 +1379,14 @@ AC_LANG_POP([C++])dnl
 m4_define([_BOOST_gcc_test],
 ["defined __GNUC__ && __GNUC__ == $1 && __GNUC_MINOR__ == $2 && !defined __ICC @ gcc$1$2"])dnl
 
+# _BOOST_mingw_test(MAJOR, MINOR)
+# -----------------------------
+# Internal helper for _BOOST_FIND_COMPILER_TAG.
+m4_define([_BOOST_mingw_test],
+["defined __GNUC__ && __GNUC__ == $1 && __GNUC_MINOR__ == $2 && !defined __ICC && \
+  (defined WIN32 || defined WINNT || defined _WIN32 || defined __WIN32 \
+         || defined __WIN32__ || defined __WINNT || defined __WINNT__) @ mgw$1$2"])dnl
+
 
 # _BOOST_FIND_COMPILER_TAG()
 # --------------------------
@@ -989,7 +1396,8 @@ m4_define([_BOOST_gcc_test],
 AC_DEFUN([_BOOST_FIND_COMPILER_TAG],
 [AC_REQUIRE([AC_PROG_CXX])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
-AC_CACHE_CHECK([for the toolset name used by Boost for $CXX], [boost_cv_lib_tag],
+AC_CACHE_CHECK([for the toolset name used by Boost for $CXX],
+               [boost_cv_lib_tag],
 [boost_cv_lib_tag=unknown
 if test x$boost_cv_inc_path != xno; then
   AC_LANG_PUSH([C++])dnl
@@ -1007,12 +1415,35 @@ if test x$boost_cv_inc_path != xno; then
   # I'm not sure about my test for `il' (be careful: Intel's ICC pre-defines
   # the same defines as GCC's).
   for i in \
+    _BOOST_mingw_test(5, 3) \
+    _BOOST_gcc_test(5, 3) \
+    _BOOST_mingw_test(5, 2) \
+    _BOOST_gcc_test(5, 2) \
+    _BOOST_mingw_test(5, 1) \
+    _BOOST_gcc_test(5, 1) \
+    _BOOST_mingw_test(5, 0) \
+    _BOOST_gcc_test(5, 0) \
+    _BOOST_mingw_test(4, 10) \
+    _BOOST_gcc_test(4, 10) \
+    _BOOST_mingw_test(4, 9) \
+    _BOOST_gcc_test(4, 9) \
+    _BOOST_mingw_test(4, 8) \
+    _BOOST_gcc_test(4, 8) \
+    _BOOST_mingw_test(4, 7) \
+    _BOOST_gcc_test(4, 7) \
+    _BOOST_mingw_test(4, 6) \
     _BOOST_gcc_test(4, 6) \
+    _BOOST_mingw_test(4, 5) \
     _BOOST_gcc_test(4, 5) \
+    _BOOST_mingw_test(4, 4) \
     _BOOST_gcc_test(4, 4) \
+    _BOOST_mingw_test(4, 3) \
     _BOOST_gcc_test(4, 3) \
+    _BOOST_mingw_test(4, 2) \
     _BOOST_gcc_test(4, 2) \
+    _BOOST_mingw_test(4, 1) \
     _BOOST_gcc_test(4, 1) \
+    _BOOST_mingw_test(4, 0) \
     _BOOST_gcc_test(4, 0) \
     "defined __GNUC__ && __GNUC__ == 3 && !defined __ICC \
      && (defined WIN32 || defined WINNT || defined _WIN32 || defined __WIN32 \
@@ -1078,6 +1509,7 @@ fi])dnl end of AC_CACHE_CHECK
 # Thread) flavors of Boost.  Sets boost_guess_use_mt accordingly.
 AC_DEFUN([_BOOST_GUESS_WHETHER_TO_USE_MT],
 [# Check whether we do better use `mt' even though we weren't ask to.
+AC_LANG_PUSH([C++])dnl
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if defined _REENTRANT || defined _MT || defined __MT__
 /* use -mt */
@@ -1085,6 +1517,7 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 # error MT not needed
 #endif
 ]])], [boost_guess_use_mt=:], [boost_guess_use_mt=false])
+AC_LANG_POP([C++])dnl
 ])
 
 # _BOOST_AC_LINK_IFELSE(PROGRAM, [ACTION-IF-TRUE], [ACTION-IF-FALSE])
@@ -1108,11 +1541,11 @@ boost_use_source=:
 test -f conftest.$ac_objext && ac_ext=$ac_objext && boost_use_source=false &&
   _AS_ECHO_LOG([re-using the existing conftest.$ac_objext])
 AS_IF([_AC_DO_STDERR($ac_link) && {
-     test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
-     test ! -s conftest.err
+         test -z "$ac_[]_AC_LANG_ABBREV[]_werror_flag" ||
+         test ! -s conftest.err
        } && test -s conftest$ac_exeext && {
-     test "$cross_compiling" = yes ||
-     $as_executable_p conftest$ac_exeext
+         test "$cross_compiling" = yes ||
+         $as_executable_p conftest$ac_exeext
 dnl FIXME: use AS_TEST_X instead when 2.61 is widespread enough.
        }],
       [$2],
@@ -1132,881 +1565,3 @@ rm -f core conftest.err conftest_ipa8_conftest.oo \
 # Local Variables:
 # mode: autoconf
 # End:
-
-###############################################################################
-#
-# ====================================================================
-# ACX_PTHREAD
-# ====================================================================
-#
-# This script has been downloaded from
-# http://autoconf-archive.cryp.to/acx_pthread.html
-#
-# Copyright © 2006 Steven G. Johnson <stevenj@alum.mit.edu>
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
-# USA.
-#
-# As a special exception, the respective Autoconf Macro's copyright
-# owner gives unlimited permission to copy, distribute and modify the
-# configure scripts that are the output of Autoconf when processing the
-# Macro. You need not follow the terms of the GNU General Public
-# License when using or distributing such scripts, even though portions
-# of the text of the Macro appear in them. The GNU General Public
-# License (GPL) does govern all other use of the material that
-# constitutes the Autoconf Macro.
-#
-# This special exception to the GPL applies to versions of the
-# Autoconf Macro released by the Autoconf Macro Archive. When you make
-# and distribute a modified version of the Autoconf Macro, you may
-# extend this special exception to the GPL to apply to your modified
-# version as well.
-
-AC_DEFUN([ACX_PTHREAD], [
-AC_REQUIRE([AC_CANONICAL_HOST])
-AC_LANG_SAVE
-AC_LANG_C
-acx_pthread_ok=no
-
-# We used to check for pthread.h first, but this fails if pthread.h
-# requires special compiler flags (e.g. on True64 or Sequent).
-# It gets checked for in the link test anyway.
-
-# First of all, check if the user has set any of the PTHREAD_LIBS,
-# etcetera environment variables, and if threads linking works using
-# them:
-if test x"$PTHREAD_LIBS$PTHREAD_CFLAGS" != x; then
-        save_CFLAGS="$CFLAGS"
-        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-        save_LIBS="$LIBS"
-        LIBS="$PTHREAD_LIBS $LIBS"
-        AC_MSG_CHECKING([for pthread_join in LIBS=$PTHREAD_LIBS with CFLAGS=$PTHREAD_CFLAGS])
-        AC_TRY_LINK_FUNC(pthread_join, acx_pthread_ok=yes)
-        AC_MSG_RESULT($acx_pthread_ok)
-        if test x"$acx_pthread_ok" = xno; then
-                PTHREAD_LIBS=""
-                PTHREAD_CFLAGS=""
-        fi
-        LIBS="$save_LIBS"
-        CFLAGS="$save_CFLAGS"
-fi
-
-# We must check for the threads library under a number of different
-# names; the ordering is very important because some systems
-# (e.g. DEC) have both -lpthread and -lpthreads, where one of the
-# libraries is broken (non-POSIX).
-
-# Create a list of thread flags to try.  Items starting with a "-" are
-# C compiler flags, and other items are library names, except for "none"
-# which indicates that we try without any flags at all, and "pthread-config"
-# which is a program returning the flags for the Pth emulation library.
-
-acx_pthread_flags="pthreads none -Kthread -kthread lthread -pthread -pthreads -mthreads pthread --thread-safe -mt pthread-config"
-
-# The ordering *is* (sometimes) important.  Some notes on the
-# individual items follow:
-
-# pthreads: AIX (must check this before -lpthread)
-# none: in case threads are in libc; should be tried before -Kthread and
-#       other compiler flags to prevent continual compiler warnings
-# -Kthread: Sequent (threads in libc, but -Kthread needed for pthread.h)
-# -kthread: FreeBSD kernel threads (preferred to -pthread since SMP-able)
-# lthread: LinuxThreads port on FreeBSD (also preferred to -pthread)
-# -pthread: Linux/gcc (kernel threads), BSD/gcc (userland threads)
-# -pthreads: Solaris/gcc
-# -mthreads: Mingw32/gcc, Lynx/gcc
-# -mt: Sun Workshop C (may only link SunOS threads [-lthread], but it
-#      doesn't hurt to check since this sometimes defines pthreads too;
-#      also defines -D_REENTRANT)
-#      ... -mt is also the pthreads flag for HP/aCC
-# pthread: Linux, etcetera
-# --thread-safe: KAI C++
-# pthread-config: use pthread-config program (for GNU Pth library)
-
-case "${host_cpu}-${host_os}" in
-        *solaris*)
-
-        # On Solaris (at least, for some versions), libc contains stubbed
-        # (non-functional) versions of the pthreads routines, so link-based
-        # tests will erroneously succeed.  (We need to link with -pthreads/-mt/
-        # -lpthread.)  (The stubs are missing pthread_cleanup_push, or rather
-        # a function called by this macro, so we could check for that, but
-        # who knows whether they'll stub that too in a future libc.)  So,
-        # we'll just look for -pthreads and -lpthread first:
-
-        acx_pthread_flags="-pthreads pthread -mt -pthread $acx_pthread_flags"
-        ;;
-esac
-
-if test x"$acx_pthread_ok" = xno; then
-for flag in $acx_pthread_flags; do
-
-        case $flag in
-                none)
-                AC_MSG_CHECKING([whether pthreads work without any flags])
-                ;;
-
-                -*)
-                AC_MSG_CHECKING([whether pthreads work with $flag])
-                PTHREAD_CFLAGS="$flag"
-                ;;
-
-                pthread-config)
-                AC_CHECK_PROG(acx_pthread_config, pthread-config, yes, no)
-                if test x"$acx_pthread_config" = xno; then continue; fi
-                PTHREAD_CFLAGS="`pthread-config --cflags`"
-                PTHREAD_LIBS="`pthread-config --ldflags` `pthread-config --libs`"
-                ;;
-
-                *)
-                AC_MSG_CHECKING([for the pthreads library -l$flag])
-                PTHREAD_LIBS="-l$flag"
-                ;;
-        esac
-
-        save_LIBS="$LIBS"
-        save_CFLAGS="$CFLAGS"
-        LIBS="$PTHREAD_LIBS $LIBS"
-        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-
-        # Check for various functions.  We must include pthread.h,
-        # since some functions may be macros.  (On the Sequent, we
-        # need a special flag -Kthread to make this header compile.)
-        # We check for pthread_join because it is in -lpthread on IRIX
-        # while pthread_create is in libc.  We check for pthread_attr_init
-        # due to DEC craziness with -lpthreads.  We check for
-        # pthread_cleanup_push because it is one of the few pthread
-        # functions on Solaris that doesn't have a non-functional libc stub.
-        # We try pthread_create on general principles.
-        AC_TRY_LINK([#include <pthread.h>],
-                    [pthread_t th; pthread_join(th, 0);
-                     pthread_attr_init(0); pthread_cleanup_push(0, 0);
-                     pthread_create(0,0,0,0); pthread_cleanup_pop(0); ],
-                    [acx_pthread_ok=yes])
-
-        LIBS="$save_LIBS"
-        CFLAGS="$save_CFLAGS"
-
-        AC_MSG_RESULT($acx_pthread_ok)
-        if test "x$acx_pthread_ok" = xyes; then
-                break;
-        fi
-
-        PTHREAD_LIBS=""
-        PTHREAD_CFLAGS=""
-done
-fi
-
-# Various other checks:
-if test "x$acx_pthread_ok" = xyes; then
-        save_LIBS="$LIBS"
-        LIBS="$PTHREAD_LIBS $LIBS"
-        save_CFLAGS="$CFLAGS"
-        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-
-        # Detect AIX lossage: JOINABLE attribute is called UNDETACHED.
-        AC_MSG_CHECKING([for joinable pthread attribute])
-        attr_name=unknown
-        for attr in PTHREAD_CREATE_JOINABLE PTHREAD_CREATE_UNDETACHED; do
-            AC_TRY_LINK([#include <pthread.h>], [int attr=$attr; return attr;],
-                        [attr_name=$attr; break])
-        done
-        AC_MSG_RESULT($attr_name)
-        if test "$attr_name" != PTHREAD_CREATE_JOINABLE; then
-            AC_DEFINE_UNQUOTED(PTHREAD_CREATE_JOINABLE, $attr_name,
-                               [Define to necessary symbol if this constant
-                                uses a non-standard name on your system.])
-        fi
-
-        AC_MSG_CHECKING([if more special flags are required for pthreads])
-        flag=no
-        case "${host_cpu}-${host_os}" in
-            *-aix* | *-freebsd* | *-darwin*) flag="-D_THREAD_SAFE";;
-            *solaris* | *-osf* | *-hpux*) flag="-D_REENTRANT";;
-        esac
-        AC_MSG_RESULT(${flag})
-        if test "x$flag" != xno; then
-            PTHREAD_CFLAGS="$flag $PTHREAD_CFLAGS"
-        fi
-
-        LIBS="$save_LIBS"
-        CFLAGS="$save_CFLAGS"
-
-        # More AIX lossage: must compile with xlc_r or cc_r
-        if test x"$GCC" != xyes; then
-          AC_CHECK_PROGS(PTHREAD_CC, xlc_r cc_r, ${CC})
-        else
-          PTHREAD_CC=$CC
-        fi
-else
-        PTHREAD_CC="$CC"
-fi
-
-AC_SUBST(PTHREAD_LIBS)
-AC_SUBST(PTHREAD_CFLAGS)
-AC_SUBST(PTHREAD_CC)
-
-# Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
-if test x"$acx_pthread_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_PTHREAD,1,[Define if you have POSIX threads libraries and header files.]),[$1])
-        :
-else
-        acx_pthread_ok=no
-        $2
-fi
-AC_LANG_RESTORE
-])dnl ACX_PTHREAD
-
-# ##########################################################################
-
-# sets the search path which is used by MT_HAVE_PACKAGE
-AC_DEFUN([MT_SET_SEARCHPATH],
-[
-    AC_REQUIRE([AC_CANONICAL_HOST])
-
-    MT_SEARCHPATH="/usr/local"
-    case $host in
-        *-*-darwin*)
-            MT_SEARCHPATH="/opt/local"
-        ;;
-    esac
-
-    AC_ARG_WITH(search,
-        AC_HELP_STRING([--with-search=DIR], [additionally search for packages in DIR]),
-        [
-            MT_SEARCHPATH=$withval
-            AC_MSG_NOTICE([Will also search for packages in ${MT_SEARCHPATH}])
-        ]
-    )
-
-    MT_SEARCHPATH_HEADERS="${MT_SEARCHPATH}/include"
-    MT_SEARCHPATH_LIBS="${MT_SEARCHPATH}/lib"
-    MT_SEARCHPATH_PROGS="${MT_SEARCHPATH}/bin"
-    MT_SEARCHPATH_PKGCONFIG="${MT_SEARCHPATH}/lib/pkgconfig"
-
-    AC_SUBST(MT_SEARCHPATH)
-    AC_SUBST(MT_SEARCHPATH_HEADERS)
-    AC_SUBST(MT_SEARCHPATH_LIBS)
-    AC_SUBST(MT_SEARCHPATH_PROGS)
-    AC_SUBST(MT_SEARCHPATH_PKGCONFIG)
-])
-
-
-# $1 with parameter/package name
-# $2 library name
-# $3 function name
-# $4 "pass" if requested option failed
-# $5 other libraries
-#
-# returns:
-#   mt_$1_library_status
-#   mt_$1_libs
-#   mt_$1_ldflags
-
-AC_DEFUN([MT_CHECK_LIBRARY_INTERNAL],
-[
-    mt_[]translit($1, `/.-', `___')_arg_default=yes
-    mt_[]translit($1, `/.-', `___')_library_status=yes
-
-    LIBS_SAVE=$LIBS
-    LDFLAGS_SAVE=$LDFLAGS
-    CFLAGS_SAVE=$CFLAGS
-    CXXFLAGS_SAVE=$CXXFLAGS
-    CPPFLAGS_SAVE=$CPPFLAGS
-
-    AC_ARG_WITH($1-libs,
-        AC_HELP_STRING([--with-$1-libs=DIR], [search for $1 libraries in DIR]),
-        [
-            mt_[]translit($1, `/.-', `___')_search_libs="$withval"
-            AC_MSG_NOTICE([Will search for $1 libs in $withval])
-        ]
-    )
-
-    if test "$mt_[]translit($1, `/.-', `___')_search_libs" ; then
-        unset ac_cv_lib_[]translit($2, `/.-', `___')_$3
-        LDFLAGS="$LDFLAGS -L$mt_[]translit($1, `/.-', `___')_search_libs"
-        AC_CHECK_LIB($2, $3,
-            [
-                mt_[]translit($1, `/.-', `___')_libs="-l$2 $5"
-                mt_[]translit($1, `/.-', `___')_ldflags="-L$mt_[]translit($1, `/.-', `___')_search_libs"
-            ],
-            [
-                mt_[]translit($1, `/.-', `___')_library_status=missing
-                if test "$4" = "pass"; then
-                    AC_MSG_NOTICE([$1 library not found in requested location $mt_$1_search_libs])
-                else
-                    AC_MSG_ERROR([$1 library not found in requested location $mt_$1_search_libs])
-                fi
-            ],
-            [
-                $5
-            ]
-        )
-    else
-        unset ac_cv_lib_[]translit($2, `/.-', `___')_$3
-        AC_CHECK_LIB($2, $3,
-            [
-                mt_[]translit($1, `/.-', `___')_libs="-l$2 $5"
-            ],
-            [
-                LDFLAGS="$LDFLAGS -L$MT_SEARCHPATH_LIBS"
-                unset ac_cv_lib_[]translit($2, `/.-', `___')_$3
-                AC_CHECK_LIB($2, $3,
-                    [
-                        mt_[]translit($1, `/.-', `___')_libs="-l$2 $5"
-                        mt_[]translit($1, `/.-', `___')_ldflags="-L$MT_SEARCHPATH_LIBS" 
-                    ],
-                    [
-                        mt_[]translit($1, `/.-', `___')_library_status=missing
-                    ],
-                    [
-                        $5
-                    ]
-                )
-            ],
-            [
-                $5
-            ]
-
-        )
-    fi
-
-    if test "x$mt_[]translit($1, `/.-', `___')_library_status" != xyes; then
-        mt_[]translit($1, `/.-', `___')_libs=""
-        mt_[]translit($1, `/.-', `___')_ldflags=""
-    fi
-
-    LIBS=$LIBS_SAVE
-    LDFLAGS=$LDFLAGS_SAVE
-    CFLAGS=$CFLAGS_SAVE
-    CXXFLAGS=$CXXFLAGS_SAVE
-    CPPFLAGS=$CPPFLAGS_SAVE
-])
-
-# $1 with parameter / library name
-# $2 header without .h extension
-# $3 fail / pass
-#
-# returns:
-#   mt_$1_header_status
-#   mt_$1_cxxflags
-
-AC_DEFUN([MT_CHECK_HEADER_INTERNAL],
-[
-    LIBS_SAVE=$LIBS
-    LDFLAGS_SAVE=$LDFLAGS
-    CFLAGS_SAVE=$CFLAGS
-    CXXFLAGS_SAVE=$CXXFLAGS
-    CPPFLAGS_SAVE=$CPPFLAGS
-
-    mt_[]translit($1, `/.-', `___')_header_status=yes
-
-    AC_ARG_WITH($1-h,
-        AC_HELP_STRING([--with-$1-h=DIR], [search for $1 headers in DIR]),
-        [
-            mt_[]translit($1, `/.-', `___')_search_headers="$withval"
-            AC_MSG_NOTICE([Will search for $1 headers in $withval])
-        ]
-    )
-
-    if test "$mt_[]translit($1, `/.-', `___')_search_headers" ; then
-        unset translit(ac_cv_header_$2_h, `/.-', `___')
-        CFLAGS="$CFLAGS -I${mt_[]translit($1, `/.-', `___')_search_headers}"
-        CXXFLAGS="$CXXFLAGS -I${mt_[]translit($1, `/.-', `___')_search_headers}"
-        CPPFLAGS="$CPPFLAGS -I${mt_[]translit($1, `/.-', `___')_search_headers}"
-        AC_CHECK_HEADER($mt_[]translit($1, `/.-', `___')_search_headers/$2.h,
-            [
-                mt_[]translit($1, `/.-', `___')_cxxflags="-I${mt_[]translit($1, `/.-', `___')_search_headers}"
-            ],
-            [
-                mt_[]translit($1, `/.-', `___')_header_status=missing
-                if test "$3" = "pass"; then
-                    AC_MSG_NOTICE([$1 headers not found in requested location $mt_$1_search_headers])
-                else
-                    AC_MSG_ERROR([$1 headers not found in requested location $mt_$1_search_headers])
-                fi
-            ]
-        )
-    else
-        unset translit(ac_cv_header_$2_h, `/.-', `___')
-        AC_CHECK_HEADER($2.h,
-            [],
-            [
-                CFLAGS="$CFLAGS -I$MT_SEARCHPATH_HEADERS"
-                CXXFLAGS="$CXXFLAGS -I$MT_SEARCHPATH_HEADERS"
-                CPPFLAGS="$CPPFLAGS -I$MT_SEARCHPATH_HEADERS"
-                unset translit(ac_cv_header_$2_h, `/.-', `___')
-                AC_CHECK_HEADER($MT_SEARCHPATH_HEADERS/$2.h,
-                    [
-                        mt_[]translit($1, `/.-', `___')_cxxflags="-I${MT_SEARCHPATH_HEADERS}"
-                    ],
-                    [
-                        mt_[]translit($1, `/.-', `___')_header_status=missing
-                        if test "$3" = "pass"; then
-                            AC_MSG_NOTICE([$1 headers not found in requested location $mt_$1_search_headers])
-                        else
-                            AC_MSG_ERROR([$1 headers not found in requested location $mt_$1_search_headers])
-                        fi
-                    ]
-                )
-            ]
-        )
-    fi
-
-    if test "x$mt_[]translit($1, `/.-', `___')_header_status" != xyes; then
-        mt_[]translit($1, `/.-', `___')_cxxflags=""
-    fi
-
-    LIBS=$LIBS_SAVE
-    LDFLAGS=$LDFLAGS_SAVE
-    CFLAGS=$CFLAGS_SAVE
-    CXXFLAGS=$CXXFLAGS_SAVE
-    CPPFLAGS=$CPPFLAGS_SAVE
-])
-
-
-# $1 package name
-# $2 header name (without .h extension)
-# $3 library name
-# $4 function name
-# $5 "pass" if requested options failed
-# $6 additional LDFLAGS
-#
-# returns:
-#   mt_$1_package_status
-#   $1_CFLAGS
-#   $1_LIBS
-#   $1_LDFLAGS
-   
-AC_DEFUN([MT_CHECK_PACKAGE_INTERNAL],
-[
-    MT_CHECK_HEADER_INTERNAL([$1], [$2], [$5])
-    mt_[]translit($1, `/.-', `___')_package_status=${mt_[]translit($1, `/.-', `___')_header_status}
-  
-    if test "x$mt_[]translit($1, `/.-', `___')_package_status" = xyes; then 
-        MT_CHECK_LIBRARY_INTERNAL([$1], [$3], [$4], [$5], [$6])
-        mt_[]translit($1, `/.-', `___')_package_status=${mt_[]translit($1, `/.-', `___')_library_status}
-    fi
-    
-    if test "x$mt_[]translit($1, `/.-', `___')_package_status" = xyes; then
-        translit($1, `a-z/.-', `A-Z___')_CFLAGS=${mt_[]translit($1, `/.-', `___')_cxxflags}
-        translit($1, `a-z/.-', `A-Z___')_LIBS=${mt_[]translit($1, `/.-', `___')_libs}
-        translit($1, `a-z/.-', `A-Z___')_LDFLAGS=${mt_[]translit($1, `/.-', `___')_ldflags}
-    fi 
-])
-
-# $1 option name
-# $2 enable/disable
-# $3 help text
-# $4 action if enabled
-# $5 action if disabled
-#
-# returns:
-#   $1_OPTION_ENABLED
-#   $1_OPTION_REQUESTED
-
-AC_DEFUN([MT_OPTION],
-[
-
-    translit(mt_$1_option_enabled, `/.-', `___')=
-    translit(mt_$1_option_requested, `/.-', `___')=no
-    if test "x$2" = xdisable; then
-        translit(mt_$1_option_enabled, `/.-', `___')=yes
-    else
-        translit(mt_$1_option_enabled, `/.-', `___')=no
-    fi
-
-    AC_ARG_ENABLE([$1],
-        AC_HELP_STRING([--$2-$1], [$3]),
-        [
-            translit(mt_$1_option_enabled, `/.-', `___')=$enableval
-            translit(mt_$1_option_requested, `/.-', `___')=yes
-        ]
-    )
-
-    translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED=${translit(mt_$1_option_enabled,`/.-', `___')}
-    translit($1, `a-z/.-', `A-Z___')_OPTION_REQUESTED=${translit(mt_$1_option_requested, `/.-', `___')}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_OPTION_REQUESTED)
-
-    AS_IF([test "x${translit(mt_$1_option_enabled,`/.-', `___')}" = xyes], [$4], [$5])[]dnl
-])
-
-# $1 package name
-# $2 enable/disable
-# $3 enable/disable help string
-# $4 header name (without .h)
-# $5 library name
-# $6 function name
-# $7 "pass" on requested options
-# $8 additional LDFLAGS
-# returns substed:
-#   $1_STATUS
-#   $1_LDFLAGS
-#   $1_LIBS
-#   $1_CFLAGS
-
-AC_DEFUN([MT_CHECK_OPTIONAL_PACKAGE], 
-[
-    mt_[]translit($1, `/.-', `___')_status=yes
-
-    MT_OPTION([$1], [$2], [$3],[],[])
-
-    if test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED}" = xyes; then
-        MT_CHECK_PACKAGE_INTERNAL([$1], [$4], [$5], [$6], [$7], [$8])
-        mt_[]translit($1, `/.-', `___')_status=${mt_[]translit($1, `/.-', `___')_package_status}
-    else
-        mt_[]translit($1, `/.-', `___')_status=disabled
-    fi
-    
-    if ((test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED}" = xyes) &&
-        (test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_REQUESTED}" = xyes) &&
-        (test "x$mt_[]translit($1, `/.-', `___')_status" != xyes) && (test "$7" != "pass")); then
-        AC_MSG_ERROR([unable to configure $1 support])
-    fi
-
-    if test "x$mt_[]translit($1, `/.-', `___')_status" = xyes; then
-        AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-    fi
-    
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_[]translit($1, `/.-', `___')_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LDFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 package name
-# $2 header name (without .h)
-# $3 library name
-# $4 function name
-# $5 additional ldflags
-#
-# returns substed:
-#   $1_STATUS
-#   $1_LDFLAGS
-#   $1_LIBS
-#   $1_CFLAGS
-
-
-AC_DEFUN([MT_CHECK_REQUIRED_PACKAGE],
-[
-    MT_CHECK_PACKAGE_INTERNAL([$1], [$2], [$3], [$4], [], [$5])
-    if test "x$mt_[]translit($1, `/.-', `___')_package_status" != xyes; then
-        AC_MSG_ERROR([unable to configure required package $1])
-    fi
-
-    AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-    
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_[]translit($1, `/.-', `___')_package_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LDFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 with parameter name
-# $2 library name
-# $3 function to check
-AC_DEFUN([MT_CHECK_LIBRARY],
-[
-    MT_CHECK_LIBRARY_INTERNAL([$1], [$2], [$3])
-
-    translit($1, `a-z/.-', `A-Z___')_LIBS=${mt_$1_libs}
-    translit($1, `a-z/.-', `A-Z___')_LDFLAGS=${mt_$1_ldflags}
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_$1_library_status}
-    
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LDFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 with parameter name
-# $2 header to check
-# $3 fail or pass in case a path parameter was specified and the header missing
-#    empty: fail
-AC_DEFUN([MT_CHECK_HEADER],
-[
-    MT_CHECK_HEADER_INTERNAL($1, $2, $3)
-    
-    translit($1, `a-z/.-', `A-Z___')_CFLAGS=${mt_$1_cxxflags}
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_$1_header_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 package name
-# $2 config file name
-# $3 headers
-# $4 library name
-# $5 function name
-# $6 optional library command
-#
-#  returns substed:
-#    $mt_$1_package_status
-#    $1_LDFLAGS
-#    $1_LIBS
-#    $1_CFLAGS
-
-AC_DEFUN([MT_CHECK_BINCONFIG_INTERNAL],
-[
-    LIBS_SAVE=$LIBS
-    LDFLAGS_SAVE=$LDFLAGS
-    CFLAGS_SAVE=$CFLAGS
-    CXXFLAGS_SAVE=$CXXFLAGS
-    CPPFLAGS_SAVE=$CPPFLAGS
-
-
-    mt_$1_config=none
-    mt_$1_package_status=yes
-
-    AC_ARG_WITH($1-cfg,
-        AC_HELP_STRING([--with-$1-cfg=$2], [absolute path/name of $2]),
-        [
-            mt_$1_search_config="$withval"
-            AC_MSG_NOTICE([Will search for $1 config in $withval])
-        ]
-    )
-
-    if test -n "$mt_$1_search_config"; then
-        AC_MSG_NOTICE([You specified ${mt_$1_search_config} for $2])
-        if test -f "$mt_$1_search_config"; then
-            mt_$1_config=${mt_$1_search_config}
-        else
-            AC_MSG_ERROR([${mt_$1_search_config} not found])
-        fi
-
-        mt_$1_version=`${mt_$1_config} --version 2>/dev/null`
-        if test -z "$mt_$1_version"; then
-            AC_MSG_ERROR([${mt_$1_search_config} could not be executed or returned invalid values])
-        fi
-    else
-        AC_PATH_PROG(mt_$1_config, $2, none)
-        if test "x$mt_$1_config" = xnone; then
-            unset ac_cv_path_mt_$1_config
-            AC_PATH_PROG(mt_$1_config, $2, none, $MT_SEARCHPATH_PROGS)
-            if test "x$mt_$1_config" = xnone; then
-                mt_$1_package_status=missing
-                AC_MSG_RESULT([$2 not found, please install the $1 devel package])
-            fi
-        fi
-       
-        mt_$1_version=`${mt_$1_config} --version 2>/dev/null`
-        if test -z "$mt_$1_version"; then
-            AC_MSG_NOTICE([${mt_$1_config} could not be executed or returned invalid values])
-            mt_$1_package_status=missing
-        fi
-    fi
-    if test "x$mt_$1_package_status" = xyes; then
-        AC_MSG_CHECKING([$1 cflags])
-        mt_$1_cxxflags=`${mt_$1_config} --cflags`
-        AC_MSG_RESULT([$mt_$1_cxxflags])
-        mt_$1_libs=
-        AC_MSG_CHECKING([$1 libs])
-        if test -z "$6";  then
-            mt_$1_libs=`${mt_$1_config} --libs`
-        else
-            mt_$1_libs=`${mt_$1_config} $6`
-        fi
-        AC_MSG_RESULT([$mt_$1_libs])
-    fi
-
-    if test "x$mt_$1_package_status" = xyes; then
-        CPPFLAGS="$CPPFLAGS $mt_$1_cxxflags"
-        CXXFLAGS="$CXXFLAGS $mt_$1_cxxflags"
-        CFLAGS="$CFLAGS $mt_$1_cxxflags"
-        for mt_u_header in translit($3, `/.-', `___'); do
-            unset ac_cv_header_${mt_u_header}
-        done
-        AC_CHECK_HEADERS($3, [], [mt_$1_package_status=missing])
-    fi
-
-    if test "x$mt_$1_package_status" = xyes; then
-        LIBS="$mt_$1_libs $LIBS"
-        if test -z "$4"; then
-            unset ac_cv_func_$5
-            AC_CHECK_FUNCS($5, [], [mt_$1_package_status=missing])
-        else
-            unset ac_cv_lib_$4_$5
-            AC_CHECK_LIB($4, $5, [], [mt_$1_package_status=missing])
-        fi
-    fi
-
-    if test "x$mt_$1_package_status" = xyes; then
-        translit($1, `a-z/.-', `A-Z___')_CFLAGS=${mt_$1_cxxflags}
-        translit($1, `a-z/.-', `A-Z___')_LIBS=${mt_$1_libs}
-        translit($1, `a-z/.-', `A-Z___')_VERSION=${mt_$1_version}
-    fi 
-
-
-    LIBS=$LIBS_SAVE
-    LDFLAGS=$LDFLAGS_SAVE
-    CFLAGS=$CFLAGS_SAVE
-    CXXFLAGS=$CXXFLAGS_SAVE
-    CPPFLAGS=$CPPFLAGS_SAVE
-])
-
-# $1 package name
-# $2 enable/disable
-# $3 enable/disable help string
-# $4 config file name
-# $5 headers
-# $6 library name
-# $7 function name
-# $8 custom lib parameter
-#
-# returns:
-#   mt_$1_package_status
-#   $1_CFLAGS
-#   $1_LIBS
-#   $1_VERSION
-
-AC_DEFUN([MT_CHECK_OPTIONAL_PACKAGE_CFG],
-[
-    mt_$1_status=yes
-    mt_$1_requested=no
-
-    MT_OPTION([$1], [$2], [$3],[],[])
-
-    if test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED}" = xyes; then
-        MT_CHECK_BINCONFIG_INTERNAL($1, $4, $5, $6, $7, $8)
-        mt_$1_status=${mt_$1_package_status}
-    else
-        mt_$1_status=disabled
-    fi
- 
-    if ((test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_ENABLED}" = xyes) &&
-        (test "x${translit($1, `a-z/.-', `A-Z___')_OPTION_REQUESTED}" = xyes) &&
-        (test "x$mt_$1_status" != xyes)); then
-        AC_MSG_ERROR([unable to configure $1 support])
-    fi
-   
-    if test "x$mt_$1_status" = xyes; then
-        AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-    fi
-
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_$1_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_VERSION)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-
-
-#    AS_IF([test x"$mt_$1_status" = xyes], [$8], [$9])[]dnl
-])
-
-# $1 package name
-# $2 config file name
-# $3 headers
-# $4 library name
-# $5 function name
-#
-#  returns substed:
-#    $mt_$1_package_status
-#    $1_LDFLAGS
-#    $1_LIBS
-#    $1_CFLAGS
-
-AC_DEFUN([MT_CHECK_REQUIRED_PACKAGE_CFG],
-[
-    MT_CHECK_BINCONFIG_INTERNAL($1, $2, $3, $4, $5)
-    if test "x$mt_$1_package_status" != xyes; then
-        AC_MSG_ERROR([unable to configure required package $1])
-    fi
-    
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_$1_package_status}
-        
-    AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_VERSION)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 package name
-# $2 config file name
-# $3 headers
-# $4 library name
-# $5 function name
-#
-#  returns substed:
-#    $mt_$1_package_status
-#    $1_LDFLAGS
-#    $1_LIBS
-#    $1_CFLAGS
-
-
-AC_DEFUN([MT_CHECK_PACKAGE_CFG],
-[
-    mt_$1_status=yes
-
-    if test "x$mt_$1_status" = xyes; then
-        MT_CHECK_BINCONFIG_INTERNAL($1, $2, $3, $4, $5)
-        mt_$1_status=${mt_$1_package_status}
-    fi
-    
-    if test "x$mt_$1_status" = xyes; then
-        AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-    fi
-
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_$1_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_VERSION)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-# $1 package name
-# $2 headers
-# $3 library name
-# $4 function name
-# $5 additional LDFLAGS
-#
-#  returns substed:
-#    $mt_$1_package_status
-#    $1_LDFLAGS
-#    $1_LIBS
-#    $1_CFLAGS
-
-
-AC_DEFUN([MT_CHECK_PACKAGE],
-[
-    mt_[]translit($1, `/.-', `___')_status=yes
-
-    if test "x$mt_[]translit($1, `/.-', `___')_status" = xyes; then
-        MT_CHECK_PACKAGE_INTERNAL([$1], [$2], [$3], [$4], [], [$5])
-        mt_[]translit($1, `/.-', `___')_status=${mt_[]translit($1, `/.-', `___')_package_status}
-    fi
-
-    if test "x$mt_[]translit($1, `/.-', `___')_status" = xyes; then
-        AC_DEFINE(translit(HAVE_$1, `a-z/.-', `A-Z___'), [1], [$1 library presence])
-    fi
-
-    translit($1, `a-z/.-', `A-Z___')_STATUS=${mt_[]translit($1, `/.-', `___')_status}
-
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_CFLAGS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_LIBS)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_VERSION)
-    AC_SUBST(translit($1, `a-z/.-', `A-Z___')_STATUS)
-])
-
-
