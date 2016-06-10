@@ -148,6 +148,8 @@ vdcd_SOURCES = \
   src/p44utils/gpio.hpp \
   src/p44utils/i2c.cpp \
   src/p44utils/i2c.hpp \
+  src/p44utils/spi.cpp \
+  src/p44utils/spi.hpp \
   src/p44utils/iopin.cpp \
   src/p44utils/iopin.hpp \
   src/p44utils/jsoncomm.cpp \
@@ -343,6 +345,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/deviceclasses/enocean \
   -I ${srcdir}/src/deviceclasses/dali \
   -I ${srcdir}/src/deviceclasses/hue \
+  -I ${srcdir}/src/deviceclasses/ledchain \
   -I ${srcdir}/src/deviceclasses/ola \
   -I ${srcdir}/src/deviceclasses/vzughome \
   -I ${srcdir}/src/deviceclasses/voxnet \

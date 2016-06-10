@@ -342,19 +342,24 @@ public:
       #if ENABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
       { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
-      { 'g', "digitalio",     true,  "iospec:[!](button|light|relay);add static digital input or output device\n"
+      { 'g', "digitalio",     true,  "iospec:[!][+](button|light|relay);add static digital input or output device\n"
                                      "Use ! for inverted polarity (default is noninverted input)\n"
+                                     "Use + to enable pullup (if pin supports it)\n"
                                      "iospec is of form [bus.[device.]]pin:"
                                      "\n- gpio.gpionumber : generic Linux GPIO"
       #if !DISABLE_I2C
-                                     "\n- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
-                                     "(supported for DEVICE : TCA9555, PCF8574)"
+                                     "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                     "(supported for DEVICE : TCA9555, PCF8574, MCP23017)"
+      #endif
+      #if !DISABLE_SPI
+                                     "\n- spiXY.DEVICE[-OPT]@spiaddr.pinNumber : numbered pin of device at spiaddr on spi interface X chipselect Y"
+                                     "(supported for DEVICE : MCP23S17)"
       #endif
                                      },
       { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
                                      "iospec is of form [bus.[device.]]pin:"
       #if !DISABLE_I2C
-                                     "\n- i2cN.DEVICE@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                     "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
                                      "(supported for DEVICE : PCA9685)"
       #endif
                                      },
