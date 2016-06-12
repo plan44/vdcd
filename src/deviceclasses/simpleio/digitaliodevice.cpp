@@ -37,22 +37,16 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   digitalIoType(digitalio_unknown)
 {
   // Config is:
-  //  <pin(s) specification>:[!]<behaviour mode>
-  //  - where ! before the behaviour mode means inverted operation (in addition to possibly inverted pin specs)
+  //  <pin(s) specification>:<behaviour mode>
   //  - where pin specification describes the actual I/Os to be used (see DigitialIO)
   // last : separates behaviour from pin specification (so pins specs containing colons are possible, such as OW LEDs)
   size_t i = aDeviceConfig.rfind(":");
   string ioname = aDeviceConfig;
-  bool inverted = false;
   string upName;
   string downName;
   if (i!=string::npos) {
     ioname = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
-    if (mode[0]=='!') {
-      inverted = true;
-      mode.erase(0,1);
-    }
     if (mode=="button")
       digitalIoType = digitalio_button;
     else if (mode=="input")
@@ -82,11 +76,12 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Standard device settings without scene table
     installSettings();
     // Digital input as button
-    buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str(), inverted));
+    buttonInput = ButtonInputPtr(new ButtonInput(ioname.c_str()));
     buttonInput->setButtonHandler(boost::bind(&DigitalIODevice::buttonHandler, this, _1, _2), true);
     // - create one button input
     ButtonBehaviourPtr b = ButtonBehaviourPtr(new ButtonBehaviour(*this));
     b->setHardwareButtonConfig(0, buttonType_undefined, buttonElement_center, false, 0, false); // mode not restricted
+    b->setHardwareName("digitalin");
     b->setGroup(group_yellow_light); // pre-configure for light
     addBehaviour(b);
   }
@@ -95,22 +90,24 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // Standard device settings without scene table
     installSettings();
     // Digital input as binary input (AKM, automation block type)
-    digitalInput = DigitalIoPtr(new DigitalIo(ioname.c_str(), inverted));
+    digitalInput = DigitalIoPtr(new DigitalIo(ioname.c_str(), false));
     digitalInput->setInputChangedHandler(boost::bind(&DigitalIODevice::inputHandler, this, _1), INPUT_DEBOUNCE_TIME, 0); // edge detection if possible, mainloop idle poll otherwise
     // - create one binary input
     BinaryInputBehaviourPtr b = BinaryInputBehaviourPtr(new BinaryInputBehaviour(*this));
     b->setHardwareInputConfig(binInpType_none, usage_undefined, true, Never);
+    b->setHardwareName("digitalin");
     addBehaviour(b);
   }
   else if (digitalIoType==digitalio_light) {
     // Digital output as light on/off switch
     primaryGroup = group_yellow_light;
-    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
+    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), false));
     // - use light settings, which include a scene table
     installSettings(DeviceSettingsPtr(new LightDeviceSettings(*this)));
     // - add simple single-channel light behaviour
     LightBehaviourPtr l = LightBehaviourPtr(new LightBehaviour(*this));
     l->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
+    l->setHardwareName("digitalout");
     addBehaviour(l);
   }
   else if (digitalIoType==digitalio_relay) {
@@ -118,10 +115,11 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
     // - standard device settings with scene table
     installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*this)));
     // Digital output
-    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), inverted, false));
+    indicatorOutput = IndicatorOutputPtr(new IndicatorOutput(ioname.c_str(), false));
     // - add generic output behaviour
     OutputBehaviourPtr o = OutputBehaviourPtr(new OutputBehaviour(*this));
     o->setHardwareOutputConfig(outputFunction_switch, outputmode_binary, usage_undefined, false, -1);
+    o->setHardwareName("digitalout");
     o->setGroupMembership(group_black_joker, true); // put into joker group by default
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
     addBehaviour(o);
@@ -129,10 +127,10 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   else if (digitalIoType==digitalio_blind) {
     primaryGroup = group_grey_shadow;
     installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*this)));
-    blindsOutputUp = DigitalIoPtr(new DigitalIo(upName.c_str(), true, inverted, false));
-    blindsOutputDown = DigitalIoPtr(new DigitalIo(downName.c_str(), true, inverted, false));
+    blindsOutputUp = DigitalIoPtr(new DigitalIo(upName.c_str(), true, false));
+    blindsOutputDown = DigitalIoPtr(new DigitalIo(downName.c_str(), true, false));
     ShadowBehaviourPtr s = ShadowBehaviourPtr(new ShadowBehaviour(*this));
-    s->setHardwareName("blind");
+    s->setHardwareName("dual_digitalout");
     s->setHardwareOutputConfig(outputFunction_positional, outputmode_gradual, usage_room, false, -1);
     s->setDeviceParams(shadowdevice_rollerblind, false, 500*MilliSecond);
     s->position->setFullRangeTime(40*Second);

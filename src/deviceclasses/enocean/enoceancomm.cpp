@@ -986,8 +986,8 @@ void EnoceanComm::setConnectionSpecification(const char *aConnectionSpec, uint16
   serialComm->setConnectionSpecification(aConnectionSpec, aDefaultPort, ENOCEAN_ESP3_COMMAPARMS);
   // create the EnOcean reset IO pin
   if (aEnoceanResetPinName) {
-    // init, initially LO = not reset
-    enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false, false));
+    // init, initially inactive = not reset
+    enoceanResetPin = DigitalIoPtr(new DigitalIo(aEnoceanResetPinName, true, false));
   }
 	// open connection so we can receive
 	serialComm->requestConnection();
