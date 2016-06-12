@@ -47,6 +47,11 @@ DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const 
   if (i!=string::npos) {
     ioname = aDeviceConfig.substr(0,i);
     string mode = aDeviceConfig.substr(i+1,string::npos);
+    // Still handle old-style inverting with !-prefixed mode (because Web-UI created those, we don't want to break them)
+    if (mode[0]=='!') {
+      ioname.insert(0, "/");
+      mode.erase(0,1);
+    }
     if (mode=="button")
       digitalIoType = digitalio_button;
     else if (mode=="input")
