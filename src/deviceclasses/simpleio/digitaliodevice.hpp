@@ -57,6 +57,11 @@ namespace p44 {
     DigitalIoPtr blindsOutputDown;
 
     DigitalIoType digitalIoType;
+    
+    int movingDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
+    long commandTicket;
+    int nextDirection; ///< currently moving direction 0=stopped, -1=moving down, +1=moving up
+    SimpleCB moveCB;
 
   public:
     DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -116,6 +121,8 @@ namespace p44 {
     void buttonHandler(bool aNewState, MLMicroSeconds aTimestamp);
     void inputHandler(bool aNewState);
     string blindsName() const;
+    void delayedBlindAction();
+    void applyBlind(int aNewDirection);
 
   };
 

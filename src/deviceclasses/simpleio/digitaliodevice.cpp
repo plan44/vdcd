@@ -34,7 +34,11 @@ using namespace p44;
 
 DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
-  digitalIoType(digitalio_unknown)
+  digitalIoType(digitalio_unknown),
+  movingDirection(0),
+  commandTicket(0),
+  nextDirection(0),
+  moveCB(NULL)
 {
   // Config is:
   //  <pin(s) specification>:[!]<behaviour mode>
@@ -174,7 +178,7 @@ void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
   }
   else if (shadowBehaviour) {
     // ask shadow behaviour to start movement sequence
-    shadowBehaviour->applyBlindChannels(boost::bind(&DigitalIODevice::changeMovement, *this, _1, _2), aDoneCB, aForDimming);
+    shadowBehaviour->applyBlindChannels(boost::bind(&DigitalIODevice::changeMovement, this, _1, _2), aDoneCB, aForDimming);
     return;
   }
   else if (output) {
@@ -205,14 +209,61 @@ void DigitalIODevice::dimChannel(DsChannelType aChannelType, DsDimMode aDimMode)
   ShadowBehaviourPtr sb = boost::dynamic_pointer_cast<ShadowBehaviour>(output);
   if (sb) {
     // no channel check, there's only global dimming of the blind, no separate position/angle
-    sb->dimBlind(boost::bind(&DigitalIODevice::changeMovement, *this, _1, _2), aDimMode);
+    sb->dimBlind(boost::bind(&DigitalIODevice::changeMovement, this, _1, _2), aDimMode);
   } else {
     inherited::dimChannel(aChannelType, aDimMode);
   }
 }
 
+#define DEAD_TIME (2000*MilliSecond)
 
 void DigitalIODevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
+{
+  if (aNewDirection != movingDirection) {
+    if (aNewDirection == 0) {
+      movingDirection = aNewDirection;
+      applyBlind(aNewDirection);
+      nextDirection = 0;
+      moveCB = NULL;
+      commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DigitalIODevice::delayedBlindAction, this), DEAD_TIME);
+    } else {
+      if (movingDirection == 0) {
+        if (commandTicket) {
+          nextDirection = aNewDirection;
+          moveCB = aDoneCB;
+          return;
+        } else {
+          movingDirection = aNewDirection;
+          applyBlind(aNewDirection);
+        }
+      } else {
+        movingDirection = 0;
+        applyBlind(0);
+        nextDirection = aNewDirection;
+        moveCB = aDoneCB;
+        if (!commandTicket) {
+          commandTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DigitalIODevice::delayedBlindAction, this), DEAD_TIME);
+        }
+        return;
+      }
+    }
+  }
+  if (aDoneCB) {
+    aDoneCB();
+  }
+}
+
+void DigitalIODevice::delayedBlindAction()
+{
+  commandTicket = 0;
+  if (moveCB) {
+    applyBlind(nextDirection);
+    movingDirection = nextDirection;
+    moveCB();
+  }
+}
+
+void DigitalIODevice::applyBlind(int aNewDirection)
 {
   if (aNewDirection == 0) {
     // stop
@@ -224,9 +275,6 @@ void DigitalIODevice::changeMovement(SimpleCB aDoneCB, int aNewDirection)
   } else {
     blindsOutputUp->set(false);
     blindsOutputDown->set(true);
-  }
-  if (aDoneCB) {
-    aDoneCB();
   }
 }
 
