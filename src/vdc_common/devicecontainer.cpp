@@ -82,6 +82,13 @@ DeviceContainer::DeviceContainer() :
 }
 
 
+void DeviceContainer::setEventMonitor(VdchostEventCB aEventCB)
+{
+  eventMonitorHandler = aEventCB;
+}
+
+
+
 void DeviceContainer::setName(const string &aName)
 {
   if (aName!=getAssignedName()) {
@@ -89,6 +96,10 @@ void DeviceContainer::setName(const string &aName)
     inherited::setName(aName);
     // make sure it will be saved
     markDirty();
+    // is a global event - might need re-advertising services
+    if (eventMonitorHandler) {
+      eventMonitorHandler(vdchost_descriptionchanged);
+    }
   }
 }
 
@@ -540,17 +551,11 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 #pragma mark - activity monitoring
 
 
-void DeviceContainer::setActivityMonitor(SimpleCB aActivityCB)
-{
-  activityHandler = aActivityCB;
-}
-
-
 void DeviceContainer::signalActivity()
 {
   lastActivity = MainLoop::now();
-  if (activityHandler) {
-    activityHandler();
+  if (eventMonitorHandler) {
+    eventMonitorHandler(vdchost_activitysignal);
   }
 }
 

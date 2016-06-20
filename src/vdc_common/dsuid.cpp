@@ -205,7 +205,7 @@ void DsUid::setNameInSpace(const string &aName, const DsUid &aNameSpace)
   // - hash the name space UUID
   SHA1_Update(&sha_context, &aNameSpace.raw, uuidBytes);
   // - hash the name
-  SHA1_Update(&sha_context, aName.c_str(), aName.size());
+  SHA1_Update(&sha_context, aName.c_str(), (unsigned int)aName.size());
   SHA1_Final(sha1, &sha_context);
   // Now make UUID of it
   // - Set octets zero through 3 of the time_low field to octets zero through 3 of the hash.

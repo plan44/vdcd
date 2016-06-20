@@ -55,6 +55,14 @@ namespace p44 {
   /// @param aDevice device that was activated
   typedef boost::function<void (DevicePtr aDevice, bool aRegular)> DeviceUserActionCB;
 
+  /// Callback for other global device activity
+  typedef enum {
+    vdchost_activitysignal, ///< user-relevant activity, can be used to trigger flashing an activity LED.
+    vdchost_descriptionchanged ///< user-visible description of the device (such as vdchost name) has changed.
+  } VdchostEvent;
+  typedef boost::function<void (VdchostEvent aActivity)> VdchostEventCB;
+
+
 
   /// persistence for digitalSTROM paramters
   class DsParamStore : public ParamStore
@@ -118,8 +126,8 @@ namespace p44 {
     // user action monitor (learn)buttons
     DeviceUserActionCB deviceUserActionHandler;
 
-    // activity monitor
-    SimpleCB activityHandler;
+    // global event monitor
+    VdchostEventCB eventMonitorHandler;
 
     // mainloop statistics
     int mainloopStatsInterval; ///< 0=none, N=every PERIODIC_TASK_INTERVAL*N seconds
@@ -213,8 +221,8 @@ namespace p44 {
     void startRunning();
 
     /// activity monitor
-    /// @param aActivityCB will be called when there is user-relevant activity. Can be used to trigger flashing an activity LED.
-    void setActivityMonitor(SimpleCB aActivityCB);
+    /// @param aActivityCB will be called for globally relevant events.
+    void setEventMonitor(VdchostEventCB aEventCB);
 
     /// activity monitor
     /// @param aUserActionCB will be called when the user has performed an action (usually: button press) in a device

@@ -258,9 +258,16 @@ public:
     }
   }
 
-  void activitySignal()
+  void eventMonitor(VdchostEvent aEvent)
   {
-    indicateTempStatus(tempstatus_activityflash);
+    switch (aEvent) {
+      case vdchost_activitysignal:
+        indicateTempStatus(tempstatus_activityflash);
+        break;
+      case vdchost_descriptionchanged:
+        DiscoveryManager::sharedDiscoveryManager().refreshAdvertisingDS();
+        break;
+    }
   }
 
 
@@ -656,8 +663,8 @@ public:
         }
         #endif
 
-        // install activity monitor
-        p44VdcHost->setActivityMonitor(boost::bind(&P44Vdcd::activitySignal, this));
+        // install event monitor
+        p44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
       }
     } // if !terminated
     // app now ready to run (or cleanup when already terminated)
@@ -725,7 +732,7 @@ public:
         setAppStatus(status_error);
         LOG(LOG_WARNING, "Very long button press detected -> clean exit(%d) in 2 seconds", P44_EXIT_LOCALMODE);
         button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
@@ -741,7 +748,7 @@ public:
         setAppStatus(status_busy);
         LOG(LOG_WARNING, "Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS", P44_EXIT_FIRMWAREUPDATE);
         button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost->setActivityMonitor(NULL); // no activity monitoring any more
+        p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
       }

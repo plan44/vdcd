@@ -108,7 +108,6 @@
 		EDB4062017D4D99D003783CE /* huedevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */; };
 		EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4062117D4D9B5003783CE /* huedevice.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
-		EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDBC78541818227000A3E46C /* libcrypto.dylib */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */; };
@@ -408,7 +407,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EDBC78551818227000A3E46C /* libcrypto.dylib in Frameworks */,
 				ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */,
 				EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */,
 				ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */,

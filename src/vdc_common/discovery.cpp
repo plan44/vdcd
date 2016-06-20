@@ -945,7 +945,7 @@ ServiceBrowser::ServiceBrowser(const char *aServiceType, ServiceDiscoveryCB aSer
 {
   AvahiService *s = DiscoveryManager::sharedDiscoveryManager().service;
   avahiServiceBrowser = avahi_service_browser_new(s, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC, aServiceType, NULL, (AvahiLookupFlags)0, avahi_browse_callback, this);
-  if (avahiServiceBrowser) {
+  if (!avahiServiceBrowser) {
     LOG(LOG_ERR, "ServiceBrowser: Failed to create browser for type '%s': %s", aServiceType, avahi_strerror(avahi_server_errno(s)));
   }
 }
