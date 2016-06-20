@@ -143,11 +143,6 @@ class P44Vdcd : public CmdLineApp
   // learning
   long learningTimerTicket;
 
-  // discovery
-  #if !DISABLE_DISCOVERY
-  DiscoveryManagerPtr discoveryManager;
-  #endif
-
 
 public:
 
@@ -864,9 +859,7 @@ public:
       // Initialized ok and not testing
       #if !DISABLE_DISCOVERY
       // - initialize discovery
-      if (!getOption("nodiscovery")) {
-        initDiscovery();
-      }
+      initDiscovery();
       #endif
       // - start running normally
       p44VdcHost->startRunning();
@@ -907,7 +900,6 @@ public:
 
   void initDiscovery()
   {
-    discoveryManager = DiscoveryManagerPtr(new DiscoveryManager);
     // get discovery params
     // - host name
     string s;
@@ -916,41 +908,50 @@ public:
       // none specified, create default
       hostname = string_format("plan44-vdcd-%s", p44VdcHost->getDsUid().getString().c_str());
     }
-    #if ENABLE_AUXVDSM
-    // - optional auxiliary vdsm
-    DsUidPtr auxVdsmDsuid;
-    int auxVdsmPort = 0;
-    if (getStringOption("auxvdsmdsuid", s)) {
-      auxVdsmDsuid = DsUidPtr(new DsUid(s));
-      auxVdsmPort = DEFAULT_DS485_AUXVDSMPORT;
-      getIntOption("auxvdsmport", auxVdsmPort);
-    }
-    #endif
-    int sshPort = 0;
-    getIntOption("sshport", sshPort);
-    // start discovery manager
-    ErrorPtr err = discoveryManager->start(
-      p44VdcHost,
+    // start the basic service
+    ErrorPtr err = DiscoveryManager::sharedDiscoveryManager().start(
       hostname.c_str(),
-      getOption("noauto"),
-      p44VdcHost->webUiPort,
-      sshPort,
-      !getOption("noigmphelp"),
-      #if ENABLE_AUXVDSM
-      auxVdsmDsuid,
-      auxVdsmPort,
-      getOption("auxvdsmrunning"),
-      boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
-      getOption("vdsmnotaux")
-      #else
-      DsUidPtr(),
-      0,
-      false,
-      NULL,
-      false
-      #endif // ENABLE_AUXVDSM
+      !getOption("noigmphelp")
     );
-    if (!Error::isOK(err)) {
+    if (Error::isOK(err)) {
+      // start DS advertising if not disabled
+      if (!getOption("nodiscovery")) {
+        // started ok, set discovery params
+        #if ENABLE_AUXVDSM
+        // - optional auxiliary vdsm
+        DsUidPtr auxVdsmDsuid;
+        int auxVdsmPort = 0;
+        if (getStringOption("auxvdsmdsuid", s)) {
+          auxVdsmDsuid = DsUidPtr(new DsUid(s));
+          auxVdsmPort = DEFAULT_DS485_AUXVDSMPORT;
+          getIntOption("auxvdsmport", auxVdsmPort);
+        }
+        #endif
+        int sshPort = 0;
+        getIntOption("sshport", sshPort);
+        // start discovery manager
+        DiscoveryManager::sharedDiscoveryManager().advertiseDS(
+          p44VdcHost,
+          getOption("noauto"),
+          p44VdcHost->webUiPort,
+          sshPort,
+          #if ENABLE_AUXVDSM
+          auxVdsmDsuid,
+          auxVdsmPort,
+          getOption("auxvdsmrunning"),
+          boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
+          getOption("vdsmnotaux")
+          #else
+          DsUidPtr(),
+          0,
+          false,
+          NULL,
+          false
+          #endif // ENABLE_AUXVDSM
+        );
+      }
+    }
+    else {
       LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
     }
   }
