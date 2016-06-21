@@ -109,9 +109,7 @@ string DeviceContainer::macAddressString()
 {
   string macStr;
   if (mac!=0) {
-    for (int i=0; i<6; ++i) {
-      string_format_append(macStr, "%02llX",(mac>>((5-i)*8)) & 0xFF);
-    }
+    macStr = macAddressToString(mac);
   }
   else {
     macStr = "UnknownMACAddress";

@@ -320,7 +320,7 @@ ErrorPtr EnoceanDeviceContainer::simulatePacket(VdcApiRequestPtr aRequest, ApiVa
   respErr = checkParam(aParams, "data", o); // ESP packet data, no need for matching CRCs
   if (Error::isOK(respErr)) {
     Esp3PacketPtr simPacket = Esp3PacketPtr(new Esp3Packet);
-    // input string is hex bytes, optionally separated by spaces or dashes
+    // input string is hex bytes, optionally separated by spaces, colons or dashes
     string dataStr = o->stringValue();
     string bs = hexToBinaryString(dataStr.c_str(), true);
     // process with no CRC checks
