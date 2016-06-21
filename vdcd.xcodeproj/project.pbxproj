@@ -58,25 +58,12 @@
 		ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B29391749446200334C71 /* lightbehaviour.cpp */; };
 		ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */; };
 		ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */; };
-		ED5C8E9A17CF3908002CC15F /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
-		ED5C8E9B17CF3908002CC15F /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
-		ED5C8E9C17CF3908002CC15F /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
-		ED5C8E9D17CF3908002CC15F /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
-		ED5C8E9E17CF3908002CC15F /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
-		ED5C8EA017CF3908002CC15F /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
-		ED5C8EA117CF3908002CC15F /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
-		ED5C8EA217CF3908002CC15F /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
-		ED5C8EA417CF3908002CC15F /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
-		ED5C8EA517CF3908002CC15F /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
-		ED5C8EA617CF3908002CC15F /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
-		ED5C8EA717CF3908002CC15F /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
-		ED5C8EA817CF3908002CC15F /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
-		ED5C8EB717CF395A002CC15F /* enoceantool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5C8EB317CF393E002CC15F /* enoceantool.cpp */; };
-		ED5C8EB817CF396F002CC15F /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
-		ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
+		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
+		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
+		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -165,7 +152,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		ED5C8EAE17CF3908002CC15F /* CopyFiles */ = {
+		ED6CCD411D198FA000C78A0D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -287,8 +274,6 @@
 		ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsaddressable.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = propertycontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = propertycontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED5C8EB217CF3908002CC15F /* enoceantool */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = enoceantool; sourceTree = BUILT_PRODUCTS_DIR; };
-		ED5C8EB317CF393E002CC15F /* enoceantool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceantool.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D486619ED502F000DF5A5 /* analogio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = analogio.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D486719ED502F000DF5A5 /* analogio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogio.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = analogiodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -296,6 +281,11 @@
 		ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externaldevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3EA1BB294D7003C86C7 /* externaldevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externaldevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		ED6CCD3A1D198ACD00C78A0D /* catch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
+		ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_utils.cpp; sourceTree = "<group>"; };
+		ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = p44utils_tester.cpp; sourceTree = "<group>"; };
+		ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vdcd_tester.cpp; sourceTree = "<group>"; };
+		ED6CCD431D198FA000C78A0D /* vdcd_tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd_tests; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -629,6 +619,7 @@
 		ED3699B5178DA83800376405 /* p44utils */ = {
 			isa = PBXGroup;
 			children = (
+				ED6CCD361D198A9500C78A0D /* tests */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
@@ -736,6 +727,24 @@
 			path = external;
 			sourceTree = "<group>";
 		};
+		ED6CCD361D198A9500C78A0D /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				ED6CCD3A1D198ACD00C78A0D /* catch.hpp */,
+				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
+				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
+		ED6CCD3D1D198EB200C78A0D /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
@@ -753,7 +762,7 @@
 			isa = PBXGroup;
 			children = (
 				ED6D7BDB1716B63A005DED18 /* vdcd */,
-				ED5C8EB217CF3908002CC15F /* enoceantool */,
+				ED6CCD431D198FA000C78A0D /* vdcd_tests */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -767,8 +776,8 @@
 				ED31268518311BD300FAF28B /* vdc_common */,
 				ED3126881831225600FAF28B /* behaviours */,
 				ED3126891831228D00FAF28B /* deviceclasses */,
+				ED6CCD3D1D198EB200C78A0D /* tests */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
-				ED5C8EB317CF393E002CC15F /* enoceantool.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -826,21 +835,21 @@
 /* End PBXLegacyTarget section */
 
 /* Begin PBXNativeTarget section */
-		ED5C8E9617CF3908002CC15F /* enoceantool */ = {
+		ED6CCD421D198FA000C78A0D /* vdcd_tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = ED5C8EAF17CF3908002CC15F /* Build configuration list for PBXNativeTarget "enoceantool" */;
+			buildConfigurationList = ED6CCD471D198FA000C78A0D /* Build configuration list for PBXNativeTarget "vdcd_tests" */;
 			buildPhases = (
-				ED5C8E9717CF3908002CC15F /* Sources */,
-				ED5C8EAC17CF3908002CC15F /* Frameworks */,
-				ED5C8EAE17CF3908002CC15F /* CopyFiles */,
+				ED6CCD3F1D198FA000C78A0D /* Sources */,
+				ED6CCD401D198FA000C78A0D /* Frameworks */,
+				ED6CCD411D198FA000C78A0D /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = enoceantool;
-			productName = jsonrpctool;
-			productReference = ED5C8EB217CF3908002CC15F /* enoceantool */;
+			name = vdcd_tests;
+			productName = vdcd_tests;
+			productReference = ED6CCD431D198FA000C78A0D /* vdcd_tests */;
 			productType = "com.apple.product-type.tool";
 		};
 		ED6D7BDA1716B63A005DED18 /* vdcd */ = {
@@ -869,6 +878,12 @@
 			attributes = {
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = plan44.ch;
+				TargetAttributes = {
+					ED6CCD421D198FA000C78A0D = {
+						CreatedOnToolsVersion = 8.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
 			};
 			buildConfigurationList = ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -894,7 +909,7 @@
 			targets = (
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
 				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
-				ED5C8E9617CF3908002CC15F /* enoceantool */,
+				ED6CCD421D198FA000C78A0D /* vdcd_tests */,
 			);
 		};
 /* End PBXProject section */
@@ -924,26 +939,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
-		ED5C8E9717CF3908002CC15F /* Sources */ = {
+		ED6CCD3F1D198FA000C78A0D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED5C8E9A17CF3908002CC15F /* gpio.cpp in Sources */,
-				ED5C8E9B17CF3908002CC15F /* mainloop.cpp in Sources */,
-				ED5C8EBA17CF3E11002CC15F /* p44obj.cpp in Sources */,
-				ED5C8E9C17CF3908002CC15F /* consolekey.cpp in Sources */,
-				ED5C8EB817CF396F002CC15F /* enoceancomm.cpp in Sources */,
-				ED5C8E9D17CF3908002CC15F /* serialqueue.cpp in Sources */,
-				ED5C8E9E17CF3908002CC15F /* utils.cpp in Sources */,
-				ED5C8EB717CF395A002CC15F /* enoceantool.cpp in Sources */,
-				ED5C8EA017CF3908002CC15F /* serialcomm.cpp in Sources */,
-				ED5C8EA117CF3908002CC15F /* fnv.cpp in Sources */,
-				ED5C8EA217CF3908002CC15F /* logger.cpp in Sources */,
-				ED5C8EA417CF3908002CC15F /* fdcomm.cpp in Sources */,
-				ED5C8EA517CF3908002CC15F /* operationqueue.cpp in Sources */,
-				ED5C8EA617CF3908002CC15F /* socketcomm.cpp in Sources */,
-				ED5C8EA717CF3908002CC15F /* application.cpp in Sources */,
-				ED5C8EA817CF3908002CC15F /* error.cpp in Sources */,
+				ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */,
+				ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */,
+				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1054,40 +1056,60 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		ED5C8EB017CF3908002CC15F /* Debug */ = {
+		ED6CCD481D198FA000C78A0D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				PRODUCT_NAME = enoceantool;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
-		ED5C8EB117CF3908002CC15F /* Release */ = {
+		ED6CCD491D198FA000C78A0D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
-				PRODUCT_NAME = enoceantool;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -1243,14 +1265,13 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		ED5C8EAF17CF3908002CC15F /* Build configuration list for PBXNativeTarget "enoceantool" */ = {
+		ED6CCD471D198FA000C78A0D /* Build configuration list for PBXNativeTarget "vdcd_tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				ED5C8EB017CF3908002CC15F /* Debug */,
-				ED5C8EB117CF3908002CC15F /* Release */,
+				ED6CCD481D198FA000C78A0D /* Debug */,
+				ED6CCD491D198FA000C78A0D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
 		};
 		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */ = {
 			isa = XCConfigurationList;
