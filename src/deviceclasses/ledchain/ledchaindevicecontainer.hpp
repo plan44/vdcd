@@ -28,6 +28,7 @@
 
 #include "deviceclasscontainer.hpp"
 #include "device.hpp"
+#include "colorlightbehaviour.hpp"
 
 #include "ws281xcomm.hpp"
 
@@ -87,6 +88,10 @@ namespace p44 {
     /// power supply overload
     /// @param aMaxOutValue max output value, 0..255.
     void setMaxOutValue(uint8_t aMaxOutValue) { maxOutValue = aMaxOutValue; };
+
+    /// get minimum brigthness for dimming
+    /// @return minimum brightness that will just barely keep the LEDs on
+    Brightness getMinBrightness();
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.

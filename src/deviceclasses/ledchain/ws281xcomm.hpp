@@ -101,6 +101,9 @@ namespace p44 {
     /// with setColor() and/or setColorDimmed()
     void show();
 
+    /// get minimal color intensity that does not completely switch off the color channel of the LED
+    /// @return minimum r,g,b value
+    uint8_t getMinVisibleColorIntensity();
 
     /// set color of one LED
     /// @param aRed intensity of red component, 0..255

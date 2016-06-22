@@ -201,6 +201,15 @@ const uint8_t brightnesstable[256] = {
 };
 
 
+uint8_t WS281xComm::getMinVisibleColorIntensity()
+{
+  // return highest brightness that still produces lowest non-zero output.
+  // (which is: lowest brightness that produces 2, minus 1)
+  // we take the upper limit so the chance of seeing something even for not pure r,g,b combinations is better
+  return brightnesstable[2]-1;
+}
+
+
 uint16_t WS281xComm::ledIndexFromXY(uint16_t aX, uint16_t aY)
 {
   if (swapXY) { uint16_t tmp=aY; aY=aX; aX=tmp; }

@@ -85,6 +85,8 @@ LedChainDevice::LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16
   installSettings(DeviceSettingsPtr(new ColorLightDeviceSettings(*this)));
   // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
   RGBColorLightBehaviourPtr l = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
+  // - set minimum brightness
+  l->initMinBrightness(getLedChainDeviceContainer().getMinBrightness());
   addBehaviour(l);
   // - create dSUID
   deriveDsUid();

@@ -66,7 +66,7 @@ LedChainDeviceContainer::LedChainDeviceContainer(int aInstanceNumber, int aNumLe
   renderStart(0),
   renderEnd(0),
   renderTicket(0),
-  maxOutValue(128)
+  maxOutValue(128) // by default, allow only half of max intensity (for full intensity a ~200 LED chain needs 70W power supply!)
 {
 }
 
@@ -108,6 +108,13 @@ void LedChainDeviceContainer::triggerRenderingRange(uint16_t aFirst, uint16_t aN
 }
 
 
+Brightness LedChainDeviceContainer::getMinBrightness()
+{
+  // scale up according to scaled down maximum, and make it 0..100
+  return ws281xcomm->getMinVisibleColorIntensity()*100.0/(double)maxOutValue;
+}
+
+
 static inline void increase(uint8_t &aByte, uint8_t aAmount, uint8_t aMax = 255)
 {
   uint16_t r = aByte+aAmount;
@@ -134,7 +141,7 @@ void LedChainDeviceContainer::render()
         increase(bv, opacity*b);
       }
     }
-    ws281xcomm->setColorDimmed(i, rv, gv, bv, maxOutValue); // only half brightness for full area color
+    ws281xcomm->setColorDimmed(i, rv, gv, bv, maxOutValue); // not more than maximum brightness allowed
   }
   // transfer to hardware
   ws281xcomm->show();
