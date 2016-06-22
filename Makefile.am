@@ -257,6 +257,8 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/consoledevice.hpp \
   src/deviceclasses/simpleio/sparkiodevice.cpp \
   src/deviceclasses/simpleio/sparkiodevice.hpp \
+  src/deviceclasses/simpleio/mystromdevice.cpp \
+  src/deviceclasses/simpleio/mystromdevice.hpp \
   src/deviceclasses/simpleio/digitaliodevice.cpp \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
   src/deviceclasses/simpleio/analogiodevice.cpp \

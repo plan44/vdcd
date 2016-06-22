@@ -64,6 +64,7 @@
 		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
+		ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -381,12 +382,14 @@
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = macaddress.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = climatecontrolbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mystromdevice.cpp; sourceTree = "<group>"; };
+		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mystromdevice.hpp; sourceTree = "<group>"; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean1bs.cpp; sourceTree = "<group>"; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean1bs.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		ED5C8EAC17CF3908002CC15F /* Frameworks */ = {
+		ED6CCD401D198FA000C78A0D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -612,6 +615,8 @@
 				ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */,
 				EDCF05C3188D764E00B47526 /* sparkiodevice.cpp */,
 				EDCF05C4188D764E00B47526 /* sparkiodevice.hpp */,
+				EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */,
+				EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */,
 			);
 			path = simpleio;
 			sourceTree = "<group>";
@@ -996,6 +1001,7 @@
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDD304341D09C10E0005E6D9 /* spi.cpp in Sources */,
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
+				ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */,
 				ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */,
 				ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
