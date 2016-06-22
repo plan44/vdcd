@@ -126,6 +126,13 @@ double ChannelBehaviour::getChannelValue()
 }
 
 
+bool ChannelBehaviour::getChannelValueBool()
+{
+  return getChannelValue() >= (getMax()-getMin())/2;
+}
+
+
+
 double ChannelBehaviour::getTransitionalValue()
 {
   if (inTransition()) {
@@ -165,6 +172,15 @@ void ChannelBehaviour::syncChannelValue(double aActualChannelValue, bool aAlways
     channelLastSync = MainLoop::now(); // value is current
   }
 }
+
+
+void ChannelBehaviour::syncChannelValueBool(bool aValue, bool aAlwaysSync)
+{
+  if (aValue!=getChannelValueBool()) {
+    syncChannelValue(aValue ? getMax() : getMin(), aAlwaysSync);
+  }
+}
+
 
 
 

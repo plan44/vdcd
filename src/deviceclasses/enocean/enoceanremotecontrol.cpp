@@ -228,7 +228,7 @@ void EnoceanRelayControlDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDi
   if (output) {
     ChannelBehaviourPtr ch = output->getChannelByType(channeltype_default);
     if (ch->needsApplying()) {
-      bool up = ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2;
+      bool up = ch->getChannelValueBool();
       buttonAction(false, up, true);
       MainLoop::currentMainLoop().executeOnce(boost::bind(&EnoceanRelayControlDevice::sendReleaseTelegram, this, aDoneCB, up), BUTTON_PRESS_TIME);
       ch->channelValueApplied();

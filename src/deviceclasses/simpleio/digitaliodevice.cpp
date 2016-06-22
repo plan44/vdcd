@@ -184,7 +184,7 @@ void DigitalIODevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
     // simple switch output, activates at 50% of possible output range
     ChannelBehaviourPtr ch = output->getChannelByIndex(0);
     if (ch->needsApplying()) {
-      indicatorOutput->set(ch->getChannelValue() >= (ch->getMax()-ch->getMin())/2);
+      indicatorOutput->set(ch->getChannelValueBool());
       ch->channelValueApplied();
     }
   }

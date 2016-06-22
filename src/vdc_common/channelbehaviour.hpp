@@ -106,6 +106,13 @@ namespace p44 {
     ///   NOT to be used to change the hardware output value!
     void syncChannelValue(double aActualChannelValue, bool aAlwaysSync=false);
 
+    /// sync from boolean value
+    /// @param aValue value to sync back to channel value
+    /// @param aAlwaysSync if set, value is synchronized even if current value is still pending to be applied
+    /// @note standard behaviour is not changing channel value when getChannelValueBool() already matches,
+    ///   otherwise setting max() for aValue true, min() for false.
+    virtual void syncChannelValueBool(bool aValue, bool aAlwaysSync=false);
+
     /// set new channel value and transition time to be applied with next device-level applyChannelValues()
     /// @param aNewValue the new output value
     /// @param aTransitionTime time in microseconds to be spent on transition from current to new channel value
@@ -134,6 +141,11 @@ namespace p44 {
     /// @note does not trigger a device read, but returns chached value
     //   (initialized from actual value only at startup via initChannelValue(), updated when using setChannelValue)
     double getChannelValue();
+
+    /// get as boolean value
+    /// @return true when channel indicates "on" state
+    /// @note standard behaviour is returning true when value is at 50% or more of the available range
+    virtual bool getChannelValueBool();
 
     /// get current value of channel, which might be a calculated intermediate value between a previous value and getChannelValue()
     /// @note does not trigger a device read, but returns chached value
