@@ -54,6 +54,20 @@ void SensorBehaviour::setHardwareSensorConfig(DsSensorType aType, DsUsageHint aU
 
 
 
+string SensorBehaviour::sensorDescriptionFrom(const char *aTypeText, const char *aUnitText, double aMin, double aMax, double aResolution)
+{
+  int fracDigits = (int)(-log(aResolution)/log(10)+0.99);
+  if (fracDigits<0) fracDigits=0;
+  return string_format("%s, %0.*f..%0.*f %s", aTypeText, fracDigits, aMin, fracDigits, aMax, aUnitText);
+}
+
+
+void SensorBehaviour::setSensorNameFrom(const char *aTypeText, const char *aUnitText)
+{
+  setHardwareName(sensorDescriptionFrom(aTypeText, aUnitText, min, max, resolution));
+}
+
+
 
 void SensorBehaviour::updateEngineeringValue(long aEngineeringValue)
 {
@@ -82,6 +96,15 @@ void SensorBehaviour::updateSensorValue(double aValue)
   // notify listeners
   notifyListeners(changedValue ? valueevent_changed : valueevent_confirmed);
 }
+
+
+bool SensorBehaviour::hasCurrentValue(MLMicroSeconds aMaxAge)
+{
+  if (lastUpdate==Never) return false; // no value at all
+  MLMicroSeconds now = MainLoop::now();
+  return now < lastUpdate+aMaxAge;
+}
+
 
 
 void SensorBehaviour::invalidateSensorValue()

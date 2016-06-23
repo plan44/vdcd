@@ -319,7 +319,6 @@ string EnoceanSensorHandler::shortDesc()
 
 string EnoceanSensorHandler::sensorDesc(const EnoceanSensorDescriptor &aSensorDescriptor)
 {
-  const char *unitText = aSensorDescriptor.unitText;
   if (aSensorDescriptor.behaviourType==behaviour_binaryinput) {
     // binary input
     return string_format("%s", aSensorDescriptor.typeText);
@@ -328,9 +327,7 @@ string EnoceanSensorHandler::sensorDesc(const EnoceanSensorDescriptor &aSensorDe
     // sensor with a value
     int numBits = (aSensorDescriptor.msBit-aSensorDescriptor.lsBit)+1; // number of bits
     double resolution = (aSensorDescriptor.max-aSensorDescriptor.min) / ((1<<numBits)-1); // units per LSB
-    int fracDigits = (int)(-log(resolution)/log(10)+0.99);
-    if (fracDigits<0) fracDigits=0;
-    return string_format("%s, %0.*f..%0.*f %s", aSensorDescriptor.typeText, fracDigits, aSensorDescriptor.min, fracDigits, aSensorDescriptor.max, unitText);
+    return SensorBehaviour::sensorDescriptionFrom(aSensorDescriptor.typeText, aSensorDescriptor.unitText, aSensorDescriptor.min, aSensorDescriptor.max, resolution);
   }
 }
 

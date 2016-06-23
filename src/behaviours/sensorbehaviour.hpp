@@ -90,6 +90,15 @@ namespace p44 {
     ///   also derive default values for settings from this information.
     void setHardwareSensorConfig(DsSensorType aType, DsUsageHint aUsage, double aMin, double aMax, double aResolution, MLMicroSeconds aUpdateInterval, MLMicroSeconds aAliveSignInterval, MLMicroSeconds aDefaultChangesOnlyInterval=0);
 
+    /// create a hardware name including a sensor type text, the range (max/min/resolution) and the physical unit text
+    /// @param aTypeText the sensor type (like "temperature", "humidity")
+    /// @param aUnitText the physical unit (like "°C", "%")
+    void setSensorNameFrom(const char *aTypeText, const char *aUnitText);
+
+    /// Utility function for getting sensor description text (as used in setSensorNameFrom()) from out of sensorbehaviour context
+    static string sensorDescriptionFrom(const char *aTypeText, const char *aUnitText, double aMin, double aMax, double aResolution);
+
+
     /// set group
     virtual void setGroup(DsGroup aGroup) { sensorGroup = aGroup; };
 
@@ -98,6 +107,7 @@ namespace p44 {
 
     /// current value and range
     double getCurrentValue() { return currentValue; };
+    MLMicroSeconds getLastUpdateTimestamp() { return lastUpdate; };
     double getMax() { return max; };
     double getMin() { return min; };
     double getResolution() { return resolution; };
@@ -105,6 +115,11 @@ namespace p44 {
     /// get sensor type
     /// @return the sensor type
     DsSensorType getSensorType() { return sensorType; };
+
+    /// check if we have a recent value
+    /// @param aMaxAge how old a value we consider still "valid"
+    /// @return true if the sensor has a value not older than aMaxAge
+    bool hasCurrentValue(MLMicroSeconds aMaxAge);
 
     /// invalidate sensor value, i.e. indicate that current value is not known
     void invalidateSensorValue();
@@ -133,7 +148,7 @@ namespace p44 {
     virtual double getSourceValue() { return getCurrentValue(); };
 
     /// get time of last update
-    virtual MLMicroSeconds getSourceLastUpdate() { return lastUpdate; };
+    virtual MLMicroSeconds getSourceLastUpdate() { return getLastUpdateTimestamp(); };
 
     /// @}
 
