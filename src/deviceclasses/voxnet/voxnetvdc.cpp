@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "voxnetdevicecontainer.hpp"
+#include "voxnetvdc.hpp"
 
 #if ENABLE_VOXNET
 
@@ -32,23 +32,23 @@ using namespace p44;
 #pragma mark - DB and initialisation
 
 
-VoxnetDeviceContainer::VoxnetDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
+VoxnetVdc::VoxnetVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag)
 {
   voxnetComm = VoxnetCommPtr(new VoxnetComm);
 }
 
 
-void VoxnetDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void VoxnetVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // set the status handler
-  voxnetComm->setVoxnetStatusHandler(boost::bind(&VoxnetDeviceContainer::voxnetStatusHandler, this, _1, _2));
+  voxnetComm->setVoxnetStatusHandler(boost::bind(&VoxnetVdc::voxnetStatusHandler, this, _1, _2));
   // initialize the communication
   voxnetComm->initialize(aCompletedCB);
 }
 
 
-bool VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
+bool VoxnetVdc::voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus)
 {
   bool needFullStatus = false;
   // dispatch status to all devices
@@ -64,7 +64,7 @@ bool VoxnetDeviceContainer::voxnetStatusHandler(const string aVoxnetID, const st
 
 
 
-bool VoxnetDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool VoxnetVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("voxnet", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -73,15 +73,15 @@ bool VoxnetDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const c
 }
 
 
-// device class name
-const char *VoxnetDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *VoxnetVdc::vdcClassIdentifier() const
 {
   return "Voxnet_Device_Container";
 }
 
 
 
-VoxnetDevicePtr VoxnetDeviceContainer::addVoxnetDevice(const string aID, const string aName)
+VoxnetDevicePtr VoxnetVdc::addVoxnetDevice(const string aID, const string aName)
 {
   VoxnetDevicePtr newDev = VoxnetDevicePtr(new VoxnetDevice(this, aID));
   if (newDev) {
@@ -97,7 +97,7 @@ VoxnetDevicePtr VoxnetDeviceContainer::addVoxnetDevice(const string aID, const s
 }
 
 
-void VoxnetDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void VoxnetVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting devices makes no sense.
   if (!aIncremental) {
@@ -119,7 +119,7 @@ void VoxnetDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremen
 }
 
 
-ErrorPtr VoxnetDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr VoxnetVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   //  if (aMethod=="x-p44-addDevice") {

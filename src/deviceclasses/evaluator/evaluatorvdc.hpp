@@ -19,21 +19,21 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__evaluatordevicecontainer__
-#define __vdcd__evaluatordevicecontainer__
+#ifndef __vdcd__evaluatorvdc__
+#define __vdcd__evaluatorvdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_EVALUATORS
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "evaluatordevice.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class EvaluatorDeviceContainer;
+  class EvaluatorVdc;
   class EvaluatorDevice;
 
   /// persistence for static device container
@@ -45,26 +45,26 @@ namespace p44 {
   };
 
 
-  typedef boost::intrusive_ptr<EvaluatorDeviceContainer> EvaluatorDeviceContainerPtr;
-  class EvaluatorDeviceContainer : public DeviceClassContainer
+  typedef boost::intrusive_ptr<EvaluatorVdc> EvaluatorVdcPtr;
+  class EvaluatorVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
     friend class EvaluatorDevice;
 
     EvaluatorDevicePersistence db;
 
   public:
-    EvaluatorDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    EvaluatorVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring evaluator devices)
@@ -88,4 +88,4 @@ namespace p44 {
 
 
 #endif // ENABLE_EVALUATORS
-#endif // __vdcd__evaluatordevicecontainer__
+#endif // __vdcd__evaluatorvdc__

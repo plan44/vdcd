@@ -19,9 +19,9 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "devicecontainer.hpp"
+#include "vdchost.hpp"
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 
 #include <string.h>
 
@@ -60,7 +60,7 @@ using namespace p44;
 #define DEFAULT_DESCRIPTION_TEMPLATE "%V %M%N #%S"
 
 
-DeviceContainer::DeviceContainer() :
+VdcHost::VdcHost() :
   inheritedParams(dsParamStore),
   mac(0),
   externalDsuid(false),
@@ -82,14 +82,14 @@ DeviceContainer::DeviceContainer() :
 }
 
 
-void DeviceContainer::setEventMonitor(VdchostEventCB aEventCB)
+void VdcHost::setEventMonitor(VdchostEventCB aEventCB)
 {
   eventMonitorHandler = aEventCB;
 }
 
 
 
-void DeviceContainer::setName(const string &aName)
+void VdcHost::setName(const string &aName)
 {
   if (aName!=getAssignedName()) {
     // has changed
@@ -105,7 +105,7 @@ void DeviceContainer::setName(const string &aName)
 
 
 
-string DeviceContainer::macAddressString()
+string VdcHost::macAddressString()
 {
   string macStr;
   if (mac!=0) {
@@ -118,7 +118,7 @@ string DeviceContainer::macAddressString()
 }
 
 
-string DeviceContainer::ipv4AddressString()
+string VdcHost::ipv4AddressString()
 {
   uint32_t ip = ipv4Address();
   string ipStr = string_format("%d.%d.%d.%d", (ip>>24) & 0xFF, (ip>>16) & 0xFF, (ip>>8) & 0xFF, ip & 0xFF);
@@ -127,7 +127,7 @@ string DeviceContainer::ipv4AddressString()
 
 
 
-void DeviceContainer::setIdMode(DsUidPtr aExternalDsUid)
+void VdcHost::setIdMode(DsUidPtr aExternalDsUid)
 {
   if (aExternalDsUid) {
     externalDsuid = true;
@@ -137,14 +137,14 @@ void DeviceContainer::setIdMode(DsUidPtr aExternalDsUid)
 
 
 
-void DeviceContainer::addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr)
+void VdcHost::addVdc(VdcPtr aVdcPtr)
 {
-  deviceClassContainers[aDeviceClassContainerPtr->getDsUid()] = aDeviceClassContainerPtr;
+  vdcs[aVdcPtr->getDsUid()] = aVdcPtr;
 }
 
 
 
-void DeviceContainer::setIconDir(const char *aIconDir)
+void VdcHost::setIconDir(const char *aIconDir)
 {
 	iconDir = nonNullCStr(aIconDir);
 	if (!iconDir.empty() && iconDir[iconDir.length()-1]!='/') {
@@ -153,7 +153,7 @@ void DeviceContainer::setIconDir(const char *aIconDir)
 }
 
 
-const char *DeviceContainer::getIconDir()
+const char *VdcHost::getIconDir()
 {
 	return iconDir.c_str();
 }
@@ -162,7 +162,7 @@ const char *DeviceContainer::getIconDir()
 
 
 
-void DeviceContainer::setPersistentDataDir(const char *aPersistentDataDir)
+void VdcHost::setPersistentDataDir(const char *aPersistentDataDir)
 {
 	persistentDataDir = nonNullCStr(aPersistentDataDir);
 	if (!persistentDataDir.empty() && persistentDataDir[persistentDataDir.length()-1]!='/') {
@@ -171,14 +171,14 @@ void DeviceContainer::setPersistentDataDir(const char *aPersistentDataDir)
 }
 
 
-const char *DeviceContainer::getPersistentDataDir()
+const char *VdcHost::getPersistentDataDir()
 {
 	return persistentDataDir.c_str();
 }
 
 
 
-string DeviceContainer::publishedDescription()
+string VdcHost::publishedDescription()
 {
   // derive the descriptive name
   // "%V %M%N %S"
@@ -211,42 +211,42 @@ string DeviceContainer::publishedDescription()
 #pragma mark - initializisation of DB and containers
 
 
-class DeviceClassInitializer
+class VdcInitializer
 {
   StatusCB callback;
-  ContainerMap::iterator nextContainer;
-  DeviceContainer &deviceContainer;
+  VdcMap::iterator nextVdc;
+  VdcHost &vdcHost;
   bool factoryReset;
 public:
-  static void initialize(DeviceContainer &aDeviceContainer, StatusCB aCallback, bool aFactoryReset)
+  static void initialize(VdcHost &aVdcHost, StatusCB aCallback, bool aFactoryReset)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassInitializer(aDeviceContainer, aCallback, aFactoryReset);
+    new VdcInitializer(aVdcHost, aCallback, aFactoryReset);
   };
 private:
-  DeviceClassInitializer(DeviceContainer &aDeviceContainer, StatusCB aCallback, bool aFactoryReset) :
+  VdcInitializer(VdcHost &aVdcHost, StatusCB aCallback, bool aFactoryReset) :
 		callback(aCallback),
-		deviceContainer(aDeviceContainer),
+		vdcHost(aVdcHost),
     factoryReset(aFactoryReset)
   {
-    nextContainer = deviceContainer.deviceClassContainers.begin();
-    initNextContainer(ErrorPtr());
+    nextVdc = vdcHost.vdcs.begin();
+    initNextVdc(ErrorPtr());
   }
 
 
-  void initNextContainer(ErrorPtr aError)
+  void initNextVdc(ErrorPtr aError)
   {
-    if ((!aError || factoryReset) && nextContainer!=deviceContainer.deviceClassContainers.end())
-      nextContainer->second->initialize(boost::bind(&DeviceClassInitializer::containerInitialized, this, _1), factoryReset);
+    if ((!aError || factoryReset) && nextVdc!=vdcHost.vdcs.end())
+      nextVdc->second->initialize(boost::bind(&VdcInitializer::vdcInitialized, this, _1), factoryReset);
     else
       completed(aError);
   }
 
-  void containerInitialized(ErrorPtr aError)
+  void vdcInitialized(ErrorPtr aError)
   {
     // check next
-    ++nextContainer;
-    initNextContainer(aError);
+    ++nextVdc;
+    initNextVdc(aError);
   }
 
   void completed(ErrorPtr aError)
@@ -274,7 +274,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
     // create DB from scratch
 		// - use standard globs table for schema version
     sql = inherited::dbSchemaUpgradeSQL(aFromVersion, aToVersion);
-		// - no devicecontainer level table to create at this time
+		// - no vdchost level table to create at this time
     //   (PersistentParams create and update their tables as needed)
     // reached final version in one step
     aToVersion = DSPARAMS_SCHEMA_VERSION;
@@ -284,7 +284,7 @@ string DsParamStore::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 
 
 
-void DeviceContainer::prepareForDeviceClasses(bool aFactoryReset)
+void VdcHost::prepareForVdcs(bool aFactoryReset)
 {
   // initialize dsParamsDB database
   string databaseName = getPersistentDataDir();
@@ -295,7 +295,7 @@ void DeviceContainer::prepareForDeviceClasses(bool aFactoryReset)
 }
 
 
-void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void VdcHost::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // Log start message
   LOG(LOG_NOTICE,
@@ -308,18 +308,18 @@ void DeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
   );
   // start the API server
   if (vdcApiServer) {
-    vdcApiServer->setConnectionStatusHandler(boost::bind(&DeviceContainer::vdcApiConnectionStatusHandler, this, _1, _2));
+    vdcApiServer->setConnectionStatusHandler(boost::bind(&VdcHost::vdcApiConnectionStatusHandler, this, _1, _2));
     vdcApiServer->start();
   }
   // start initialisation of class containers
-  DeviceClassInitializer::initialize(*this, aCompletedCB, aFactoryReset);
+  VdcInitializer::initialize(*this, aCompletedCB, aFactoryReset);
 }
 
 
-void DeviceContainer::startRunning()
+void VdcHost::startRunning()
 {
   // start periodic tasks needed during normal running like announcement checking and saving parameters
-  MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, deviceContainerP, _1), 1*Second);
+  MainLoop::currentMainLoop().executeOnce(boost::bind(&VdcHost::periodicTask, deviceContainerP, _1), 1*Second);
 }
 
 
@@ -329,62 +329,62 @@ void DeviceContainer::startRunning()
 namespace p44 {
 
 /// collects and initializes all devices
-class DeviceClassCollector
+class VdcCollector
 {
   StatusCB callback;
   bool exhaustive;
   bool incremental;
   bool clear;
-  ContainerMap::iterator nextContainer;
-  DeviceContainer *deviceContainerP;
+  VdcMap::iterator nextVdc;
+  VdcHost *deviceContainerP;
   DsDeviceMap::iterator nextDevice;
 public:
-  static void collectDevices(DeviceContainer *aDeviceContainerP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings)
+  static void collectDevices(VdcHost *aVdcHostP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings)
   {
     // create new instance, deletes itself when finished
-    new DeviceClassCollector(aDeviceContainerP, aCallback, aIncremental, aExhaustive, aClearSettings);
+    new VdcCollector(aVdcHostP, aCallback, aIncremental, aExhaustive, aClearSettings);
   };
 private:
-  DeviceClassCollector(DeviceContainer *aDeviceContainerP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings) :
+  VdcCollector(VdcHost *aVdcHostP, StatusCB aCallback, bool aIncremental, bool aExhaustive, bool aClearSettings) :
     callback(aCallback),
-    deviceContainerP(aDeviceContainerP),
+    deviceContainerP(aVdcHostP),
     incremental(aIncremental),
     exhaustive(aExhaustive),
     clear(aClearSettings)
   {
-    nextContainer = deviceContainerP->deviceClassContainers.begin();
-    queryNextContainer(ErrorPtr());
+    nextVdc = deviceContainerP->vdcs.begin();
+    queryNextVdc(ErrorPtr());
   }
 
 
-  void queryNextContainer(ErrorPtr aError)
+  void queryNextVdc(ErrorPtr aError)
   {
-    if (!aError && nextContainer!=deviceContainerP->deviceClassContainers.end()) {
-      DeviceClassContainerPtr vdc = nextContainer->second;
+    if (!aError && nextVdc!=deviceContainerP->vdcs.end()) {
+      VdcPtr vdc = nextVdc->second;
       LOG(LOG_NOTICE,
         "=== collecting devices from vdc %s (%s #%d)",
         vdc->shortDesc().c_str(),
-        vdc->deviceClassIdentifier(),
+        vdc->vdcClassIdentifier(),
         vdc->getInstanceNumber()
       );
-      nextContainer->second->collectDevices(boost::bind(&DeviceClassCollector::containerQueried, this, _1), incremental, exhaustive, clear);
+      nextVdc->second->collectDevices(boost::bind(&VdcCollector::vdcQueried, this, _1), incremental, exhaustive, clear);
     }
     else
-      collectedAll(aError);
+      collectedAllVdcs(aError);
   }
 
-  void containerQueried(ErrorPtr aError)
+  void vdcQueried(ErrorPtr aError)
   {
     // load persistent params
-    nextContainer->second->load();
-    LOG(LOG_NOTICE, "=== done collecting from %s\n", nextContainer->second->shortDesc().c_str());
+    nextVdc->second->load();
+    LOG(LOG_NOTICE, "=== done collecting from %s\n", nextVdc->second->shortDesc().c_str());
     // check next
-    ++nextContainer;
-    queryNextContainer(aError);
+    ++nextVdc;
+    queryNextVdc(aError);
   }
 
 
-  void collectedAll(ErrorPtr aError)
+  void collectedAllVdcs(ErrorPtr aError)
   {
     // now have each of them initialized
     nextDevice = deviceContainerP->dSDevices.begin();
@@ -396,7 +396,7 @@ private:
   {
     if (!aError && nextDevice!=deviceContainerP->dSDevices.end())
       // TODO: now never doing factory reset init, maybe parametrize later
-      nextDevice->second->initializeDevice(boost::bind(&DeviceClassCollector::deviceInitialized, this, _1), false);
+      nextDevice->second->initializeDevice(boost::bind(&VdcCollector::deviceInitialized, this, _1), false);
     else
       completed(aError);
   }
@@ -423,7 +423,7 @@ private:
 
 
 
-void DeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void VdcHost::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   if (!collecting) {
     collecting = true;
@@ -437,7 +437,7 @@ void DeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, b
       }
       dSDevices.clear(); // forget existing ones
     }
-    DeviceClassCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive, aClearSettings);
+    VdcCollector::collectDevices(this, aCompletedCB, aIncremental, aExhaustive, aClearSettings);
   }
 }
 
@@ -450,7 +450,7 @@ void DeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, b
 
 
 // add a new device, replaces possibly existing one based on dSUID
-bool DeviceContainer::addDevice(DevicePtr aDevice)
+bool VdcHost::addDevice(DevicePtr aDevice)
 {
   if (!aDevice)
     return false; // no device, nothing added
@@ -468,12 +468,12 @@ bool DeviceContainer::addDevice(DevicePtr aDevice)
   // if not collecting, initialize device right away.
   // Otherwise, initialisation will be done when collecting is complete
   if (!collecting) {
-    aDevice->initializeDevice(boost::bind(&DeviceContainer::deviceInitialized, this, aDevice), false);
+    aDevice->initializeDevice(boost::bind(&VdcHost::deviceInitialized, this, aDevice), false);
   }
   return true;
 }
 
-void DeviceContainer::deviceInitialized(DevicePtr aDevice)
+void VdcHost::deviceInitialized(DevicePtr aDevice)
 {
   LOG(LOG_NOTICE, "--- initialized device: %s",aDevice->description().c_str());
   // trigger announcing when initialized (no problem when called while already announcing)
@@ -484,7 +484,7 @@ void DeviceContainer::deviceInitialized(DevicePtr aDevice)
 
 
 // remove a device from container list (but does not disconnect it!)
-void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
+void VdcHost::removeDevice(DevicePtr aDevice, bool aForget)
 {
   if (aForget) {
     // permanently remove from DB
@@ -501,22 +501,22 @@ void DeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 
 
 
-void DeviceContainer::startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck)
+void VdcHost::startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck)
 {
   // enable learning in all class containers
   learnHandler = aLearnHandler;
   learningMode = true;
   LOG(LOG_NOTICE, "=== start learning%s", aDisableProximityCheck ? " with proximity check disabled" : "");
-  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+  for (VdcMap::iterator pos = vdcs.begin(); pos != vdcs.end(); ++pos) {
     pos->second->setLearnMode(true, aDisableProximityCheck);
   }
 }
 
 
-void DeviceContainer::stopLearning()
+void VdcHost::stopLearning()
 {
   // disable learning in all class containers
-  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos != deviceClassContainers.end(); ++pos) {
+  for (VdcMap::iterator pos = vdcs.begin(); pos != vdcs.end(); ++pos) {
     pos->second->setLearnMode(false, false);
   }
   LOG(LOG_NOTICE, "=== stopped learning");
@@ -525,7 +525,7 @@ void DeviceContainer::stopLearning()
 }
 
 
-void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
+void VdcHost::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     if (aLearnIn) {
@@ -549,7 +549,7 @@ void DeviceContainer::reportLearnEvent(bool aLearnIn, ErrorPtr aError)
 #pragma mark - activity monitoring
 
 
-void DeviceContainer::signalActivity()
+void VdcHost::signalActivity()
 {
   lastActivity = MainLoop::now();
   if (eventMonitorHandler) {
@@ -559,13 +559,13 @@ void DeviceContainer::signalActivity()
 
 
 
-void DeviceContainer::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
+void VdcHost::setUserActionMonitor(DeviceUserActionCB aUserActionCB)
 {
   deviceUserActionHandler = aUserActionCB;
 }
 
 
-bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
+bool VdcHost::signalDeviceUserAction(Device &aDevice, bool aRegular)
 {
   LOG(LOG_INFO, "vdSD %s: reports %s user action", aDevice.shortDesc().c_str(), aRegular ? "regular" : "identification");
   if (deviceUserActionHandler) {
@@ -595,7 +595,7 @@ bool DeviceContainer::signalDeviceUserAction(Device &aDevice, bool aRegular)
 
 #define ACTIVITY_PAUSE_INTERVAL (1*Second)
 
-void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
+void VdcHost::periodicTask(MLMicroSeconds aCycleStartTime)
 {
   // cancel any pending executions
   MainLoop::currentMainLoop().cancelExecutionTicket(periodicTaskTicket);
@@ -612,7 +612,7 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
       // - myself
       save();
       // - device containers
-      for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+      for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
         pos->second->save();
       }
       // - devices
@@ -633,14 +633,14 @@ void DeviceContainer::periodicTask(MLMicroSeconds aCycleStartTime)
     }
   }
   // schedule next run
-  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
+  periodicTaskTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VdcHost::periodicTask, this, _1), PERIODIC_TASK_INTERVAL);
 }
 
 
 #pragma mark - local operation mode
 
 
-void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
+void VdcHost::checkForLocalClickHandling(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
   if (!activeSessionConnection) {
     // not connected to a vdSM, handle clicks locally
@@ -649,7 +649,7 @@ void DeviceContainer::checkForLocalClickHandling(ButtonBehaviour &aButtonBehavio
 }
 
 
-void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
+void VdcHost::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsClickType aClickType)
 {
   // TODO: Not really conforming to ds-light yet...
   int scene = -1; // none
@@ -737,7 +737,7 @@ void DeviceContainer::handleClickLocally(ButtonBehaviour &aButtonBehaviour, DsCl
 #pragma mark - vDC API
 
 
-bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
+bool VdcHost::sendApiRequest(const string &aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
   if (activeSessionConnection) {
     signalActivity();
@@ -748,11 +748,11 @@ bool DeviceContainer::sendApiRequest(const string &aMethod, ApiValuePtr aParams,
 }
 
 
-void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConnection, ErrorPtr &aError)
+void VdcHost::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConnection, ErrorPtr &aError)
 {
   if (Error::isOK(aError)) {
     // new connection, set up reequest handler
-    aApiConnection->setRequestHandler(boost::bind(&DeviceContainer::vdcApiRequestHandler, this, _1, _2, _3, _4));
+    aApiConnection->setRequestHandler(boost::bind(&VdcHost::vdcApiRequestHandler, this, _1, _2, _3, _4));
   }
   else {
     // error or connection closed
@@ -772,7 +772,7 @@ void DeviceContainer::vdcApiConnectionStatusHandler(VdcApiConnectionPtr aApiConn
 }
 
 
-void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+void VdcHost::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   signalActivity();
@@ -852,7 +852,7 @@ void DeviceContainer::vdcApiRequestHandler(VdcApiConnectionPtr aApiConnection, V
 /// 2 : cleanup, no official JSON support any more, added MOC extensions
 #define VDC_API_VERSION 2
 
-ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+ErrorPtr VdcHost::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   ApiValuePtr v;
@@ -900,7 +900,7 @@ ErrorPtr DeviceContainer::helloHandler(VdcApiRequestPtr aRequest, ApiValuePtr aP
 }
 
 
-ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+ErrorPtr VdcHost::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   // always confirm Bye, even out-of-session, so using aJsonRpcComm directly to answer (jsonSessionComm might not be ready)
   aRequest->sendResult(ApiValuePtr());
@@ -912,7 +912,7 @@ ErrorPtr DeviceContainer::byeHandler(VdcApiRequestPtr aRequest, ApiValuePtr aPar
 
 
 
-DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiValuePtr aParams)
+DsAddressablePtr VdcHost::addressableForParams(const DsUid &aDsUid, ApiValuePtr aParams)
 {
   if (aDsUid.empty()) {
     // not addressing by dSUID, check for alternative addressing methods
@@ -922,7 +922,7 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
       if(query.find("vdc:")==0) {
         // starts with "vdc:" -> look for vdc by class identifier and instance no
         query.erase(0, 4); // remove "vdc:" prefix
-        // ccccccc[:ii] cccc=deviceClassIdentifier(), ii=instance
+        // ccccccc[:ii] cccc=vdcClassIdentifier(), ii=instance
         size_t i=query.find(':');
         int instanceNo = 1; // default to first instance
         if (i!=string::npos) {
@@ -930,13 +930,13 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
           instanceNo = atoi(query.c_str()+i+1);
           query.erase(i); // cut off :iii part
         }
-        for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-          DeviceClassContainerPtr c = pos->second;
+        for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
+          VdcPtr c = pos->second;
           if (
-            strcmp(c->deviceClassIdentifier(), query.c_str())==0 &&
+            strcmp(c->vdcClassIdentifier(), query.c_str())==0 &&
             c->getInstanceNumber()==instanceNo
           ) {
-            // found - return this device class container
+            // found - return this vDC container
             return c;
           }
         }
@@ -961,8 +961,8 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
     }
     else {
       // is not a device, try deviceClassContainer
-      ContainerMap::iterator pos = deviceClassContainers.find(aDsUid);
-      if (pos!=deviceClassContainers.end()) {
+      VdcMap::iterator pos = vdcs.find(aDsUid);
+      if (pos!=vdcs.end()) {
         return pos->second;
       }
     }
@@ -973,7 +973,7 @@ DsAddressablePtr DeviceContainer::addressableForParams(const DsUid &aDsUid, ApiV
 
 
 
-ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
+ErrorPtr VdcHost::handleMethodForDsUid(const string &aMethod, VdcApiRequestPtr aRequest, const DsUid &aDsUid, ApiValuePtr aParams)
 {
   DsAddressablePtr addressable = addressableForParams(aDsUid, aParams);
   if (addressable) {
@@ -993,7 +993,7 @@ ErrorPtr DeviceContainer::handleMethodForDsUid(const string &aMethod, VdcApiRequ
 
 
 
-void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
+void VdcHost::handleNotificationForDsUid(const string &aMethod, const DsUid &aDsUid, ApiValuePtr aParams)
 {
   DsAddressablePtr addressable = addressableForParams(aDsUid, aParams);
   if (addressable) {
@@ -1009,17 +1009,17 @@ void DeviceContainer::handleNotificationForDsUid(const string &aMethod, const Ds
 #pragma mark - vDC level methods and notifications
 
 
-ErrorPtr DeviceContainer::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice)
+ErrorPtr VdcHost::removeHandler(VdcApiRequestPtr aRequest, DevicePtr aDevice)
 {
   // dS system wants to disconnect this device from this vDC. Try it and report back success or failure
   // Note: as disconnect() removes device from all containers, only aDevice may keep it alive until disconnection is complete.
   //   That's why we are passing aDevice to the handler, so we can be certain the device lives long enough
-  aDevice->disconnect(true, boost::bind(&DeviceContainer::removeResultHandler, this, aDevice, aRequest, _1));
+  aDevice->disconnect(true, boost::bind(&VdcHost::removeResultHandler, this, aDevice, aRequest, _1));
   return ErrorPtr();
 }
 
 
-void DeviceContainer::removeResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, bool aDisconnected)
+void VdcHost::removeResultHandler(DevicePtr aDevice, VdcApiRequestPtr aRequest, bool aDisconnected)
 {
   if (aDisconnected)
     aRequest->sendResult(ApiValuePtr()); // disconnected successfully
@@ -1037,7 +1037,7 @@ void DeviceContainer::removeResultHandler(DevicePtr aDevice, VdcApiRequestPtr aR
 
 
 /// reset announcing devices (next startAnnouncing will restart from beginning)
-void DeviceContainer::resetAnnouncing()
+void VdcHost::resetAnnouncing()
 {
   // end pending announcement
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
@@ -1048,8 +1048,8 @@ void DeviceContainer::resetAnnouncing()
     dev->announcing = Never;
   }
   // end all vdc sessions
-  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-    DeviceClassContainerPtr vdc = pos->second;
+  for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
+    VdcPtr vdc = pos->second;
     vdc->announced = Never;
     vdc->announcing = Never;
   }
@@ -1058,7 +1058,7 @@ void DeviceContainer::resetAnnouncing()
 
 
 /// start announcing all not-yet announced entities to the vdSM
-void DeviceContainer::startAnnouncing()
+void VdcHost::startAnnouncing()
 {
   if (!collecting && announcementTicket==0 && activeSessionConnection) {
     announceNext();
@@ -1066,14 +1066,14 @@ void DeviceContainer::startAnnouncing()
 }
 
 
-void DeviceContainer::announceNext()
+void VdcHost::announceNext()
 {
   if (collecting) return; // prevent announcements during collect.
   // cancel re-announcing
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // announce vdcs first
-  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
-    DeviceClassContainerPtr vdc = pos->second;
+  for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
+    VdcPtr vdc = pos->second;
     if (
       vdc->announced==Never &&
       (vdc->announcing==Never || MainLoop::now()>vdc->announcing+ANNOUNCE_RETRY_TIMEOUT) &&
@@ -1085,7 +1085,7 @@ void DeviceContainer::announceNext()
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
       params->add("dSUID", params->newBinary(vdc->getDsUid().getBinary()));
-      if (!sendApiRequest("announcevdc", params, boost::bind(&DeviceContainer::announceResultHandler, this, vdc, _2, _3, _4))) {
+      if (!sendApiRequest("announcevdc", params, boost::bind(&VdcHost::announceResultHandler, this, vdc, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send vdc announcement message for %s %s", vdc->entityType(), vdc->shortDesc().c_str());
         vdc->announcing = Never; // not registering
       }
@@ -1093,7 +1093,7 @@ void DeviceContainer::announceNext()
         LOG(LOG_NOTICE, "Sent vdc announcement for %s %s", vdc->entityType(), vdc->shortDesc().c_str());
       }
       // schedule a retry
-      announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
+      announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VdcHost::announceNext, this), ANNOUNCE_TIMEOUT);
       // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
       return;
     }
@@ -1103,7 +1103,7 @@ void DeviceContainer::announceNext()
     DevicePtr dev = pos->second;
     if (
       dev->isPublicDS() && // only public ones
-      (dev->classContainerP->announced!=Never) && // class container must have already completed an announcement
+      (dev->vdcP->announced!=Never) && // class container must have already completed an announcement
       dev->announced==Never &&
       (dev->announcing==Never || MainLoop::now()>dev->announcing+ANNOUNCE_RETRY_TIMEOUT)
     ) {
@@ -1113,8 +1113,8 @@ void DeviceContainer::announceNext()
       ApiValuePtr params = getSessionConnection()->newApiValue();
       params->setType(apivalue_object);
       // include link to vdc for device announcements
-      params->add("vdc_dSUID", params->newBinary(dev->classContainerP->getDsUid().getBinary()));
-      if (!dev->sendRequest("announcedevice", params, boost::bind(&DeviceContainer::announceResultHandler, this, dev, _2, _3, _4))) {
+      params->add("vdc_dSUID", params->newBinary(dev->vdcP->getDsUid().getBinary()));
+      if (!dev->sendRequest("announcedevice", params, boost::bind(&VdcHost::announceResultHandler, this, dev, _2, _3, _4))) {
         LOG(LOG_ERR, "Could not send device announcement message for %s %s", dev->entityType(), dev->shortDesc().c_str());
         dev->announcing = Never; // not registering
       }
@@ -1122,7 +1122,7 @@ void DeviceContainer::announceNext()
         LOG(LOG_NOTICE, "Sent device announcement for %s %s", dev->entityType(), dev->shortDesc().c_str());
       }
       // schedule a retry
-      announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_TIMEOUT);
+      announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VdcHost::announceNext, this), ANNOUNCE_TIMEOUT);
       // done for now, continues after ANNOUNCE_TIMEOUT or when registration acknowledged
       return;
     }
@@ -1130,7 +1130,7 @@ void DeviceContainer::announceNext()
 }
 
 
-void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData)
+void VdcHost::announceResultHandler(DsAddressablePtr aAddressable, VdcApiRequestPtr aRequest, ErrorPtr &aError, ApiValuePtr aResultOrErrorData)
 {
   if (Error::isOK(aError)) {
     // set device announced successfully
@@ -1141,19 +1141,19 @@ void DeviceContainer::announceResultHandler(DsAddressablePtr aAddressable, VdcAp
   // cancel retry timer
   MainLoop::currentMainLoop().cancelExecutionTicket(announcementTicket);
   // try next announcement, after a pause
-  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&DeviceContainer::announceNext, this), ANNOUNCE_PAUSE);
+  announcementTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&VdcHost::announceNext, this), ANNOUNCE_PAUSE);
 }
 
 
 #pragma mark - DsAddressable API implementation
 
-ErrorPtr DeviceContainer::handleMethod(VdcApiRequestPtr aRequest,  const string &aMethod, ApiValuePtr aParams)
+ErrorPtr VdcHost::handleMethod(VdcApiRequestPtr aRequest,  const string &aMethod, ApiValuePtr aParams)
 {
   return inherited::handleMethod(aRequest, aMethod, aParams);
 }
 
 
-void DeviceContainer::handleNotification(const string &aMethod, ApiValuePtr aParams)
+void VdcHost::handleNotification(const string &aMethod, ApiValuePtr aParams)
 {
   inherited::handleNotification(aMethod, aParams);
 }
@@ -1178,17 +1178,17 @@ enum {
 
 
 
-int DeviceContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+int VdcHost::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
-    return (int)deviceClassContainers.size();
+    return (int)vdcs.size();
   }
   return inherited::numProps(aDomain, aParentDescriptor)+numDeviceContainerProperties;
 }
 
 
 // note: is only called when getDescriptorByName does not resolve the name
-PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+PropertyDescriptorPtr VdcHost::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   static const PropertyDescription properties[numDeviceContainerProperties] = {
     { "x-p44-vdcs", apivalue_object+propflag_container, vdcs_key, OKEY(vdc_container_key) },
@@ -1203,7 +1203,7 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByIndex(int aPropIndex, int 
 }
 
 
-PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+PropertyDescriptorPtr VdcHost::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(vdc_container_key)) {
     // accessing one of the vdcs by numeric index
@@ -1217,7 +1217,7 @@ PropertyDescriptorPtr DeviceContainer::getDescriptorByName(string aPropMatch, in
 }
 
 
-PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+PropertyContainerPtr VdcHost::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
 {
   if (aPropertyDescriptor->isArrayContainer()) {
     // local container
@@ -1226,7 +1226,7 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
   else if (aPropertyDescriptor->hasObjectKey(vdc_key)) {
     // - just iterate into map, we'll never have more than a few logical vdcs!
     int i = 0;
-    for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+    for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
       if (i==aPropertyDescriptor->fieldKey()) {
         // found
         aPropertyDescriptor.reset(); // next level is "root" again (is a DsAddressable)
@@ -1240,7 +1240,7 @@ PropertyContainerPtr DeviceContainer::getContainer(PropertyDescriptorPtr &aPrope
 }
 
 
-bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+bool VdcHost::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   if (aPropertyDescriptor->hasObjectKey(devicecontainer_key)) {
     if (aMode==access_read) {
@@ -1262,7 +1262,7 @@ bool DeviceContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropVal
 
 #pragma mark - value sources
 
-void DeviceContainer::createValueSourcesList(ApiValuePtr aApiObjectValue)
+void VdcHost::createValueSourcesList(ApiValuePtr aApiObjectValue)
 {
   // iterate through all devices and all of their sensors and inputs
   for (DsDeviceMap::iterator pos = dSDevices.begin(); pos!=dSDevices.end(); ++pos) {
@@ -1287,7 +1287,7 @@ void DeviceContainer::createValueSourcesList(ApiValuePtr aApiObjectValue)
 }
 
 
-ValueSource *DeviceContainer::getValueSourceById(string aValueSourceID)
+ValueSource *VdcHost::getValueSourceById(string aValueSourceID)
 {
   ValueSource *valueSource = NULL;
   // value source ID is
@@ -1326,7 +1326,7 @@ ValueSource *DeviceContainer::getValueSourceById(string aValueSourceID)
 
 #pragma mark - persistent vdc host level parameters
 
-ErrorPtr DeviceContainer::loadAndFixDsUID()
+ErrorPtr VdcHost::loadAndFixDsUID()
 {
   ErrorPtr err;
   // generate a default dSUID if no external one is given
@@ -1365,7 +1365,7 @@ ErrorPtr DeviceContainer::loadAndFixDsUID()
 
 
 
-ErrorPtr DeviceContainer::save()
+ErrorPtr VdcHost::save()
 {
   ErrorPtr err;
   // save the vdc settings
@@ -1374,7 +1374,7 @@ ErrorPtr DeviceContainer::save()
 }
 
 
-ErrorPtr DeviceContainer::forget()
+ErrorPtr VdcHost::forget()
 {
   // delete the vdc settings
   deleteFromStore();
@@ -1383,7 +1383,7 @@ ErrorPtr DeviceContainer::forget()
 
 
 
-void DeviceContainer::loadSettingsFromFiles()
+void VdcHost::loadSettingsFromFiles()
 {
   // try to open config file
   string fn = getPersistentDataDir();
@@ -1396,7 +1396,7 @@ void DeviceContainer::loadSettingsFromFiles()
 #pragma mark - persistence implementation
 
 // SQLIte3 table name to store these parameters to
-const char *DeviceContainer::tableName()
+const char *VdcHost::tableName()
 {
   return "VdcHostSettings";
 }
@@ -1406,13 +1406,13 @@ const char *DeviceContainer::tableName()
 
 static const size_t numFields = 2;
 
-size_t DeviceContainer::numFieldDefs()
+size_t VdcHost::numFieldDefs()
 {
   return inheritedParams::numFieldDefs()+numFields;
 }
 
 
-const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
+const FieldDefinition *VdcHost::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "vdcHostName", SQLITE_TEXT },
@@ -1428,7 +1428,7 @@ const FieldDefinition *DeviceContainer::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void DeviceContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+void VdcHost::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the name
@@ -1448,7 +1448,7 @@ void DeviceContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex,
 
 
 // bind values to passed statement
-void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+void VdcHost::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
@@ -1463,10 +1463,10 @@ void DeviceContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIn
 
 #pragma mark - description
 
-string DeviceContainer::description()
+string VdcHost::description()
 {
-  string d = string_format("DeviceContainer with %lu device classes:", deviceClassContainers.size());
-  for (ContainerMap::iterator pos = deviceClassContainers.begin(); pos!=deviceClassContainers.end(); ++pos) {
+  string d = string_format("VdcHost with %lu vDCs:", vdcs.size());
+  for (VdcMap::iterator pos = vdcs.begin(); pos!=vdcs.end(); ++pos) {
     d.append("\n");
     d.append(pos->second->description());
   }

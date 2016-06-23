@@ -23,7 +23,7 @@
 
 #if ENABLE_ENOCEAN
 
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 
 
 using namespace p44;
@@ -84,22 +84,22 @@ const p44::EnoceanSensorDescriptor enoceanVLDdescriptors[] = {
 #pragma mark - EnoceanVLDDevice
 
 
-EnoceanVLDDevice::EnoceanVLDDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
+EnoceanVLDDevice::EnoceanVLDDevice(EnoceanVdc *aVdcP) :
+  inherited(aVdcP)
 {
 }
 
 
 // static device creator function
-EnoceanDevicePtr createVLDDeviceFunc(EnoceanDeviceContainer *aClassContainerP)
+EnoceanDevicePtr createVLDDeviceFunc(EnoceanVdc *aVdcP)
 {
-  return EnoceanDevicePtr(new EnoceanVLDDevice(aClassContainerP));
+  return EnoceanDevicePtr(new EnoceanVLDDevice(aVdcP));
 }
 
 
 // static factory method
 EnoceanDevicePtr EnoceanVLDDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -110,13 +110,13 @@ EnoceanDevicePtr EnoceanVLDDevice::newDevice(
 //  if (EEP_PURE(aEEProfile)==0xA52001) {
 //    // Note: Profile has variants (with and without temperature sensor)
 //    // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
-//    newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+//    newDev = EnoceanA52001Handler::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
 //  }
 //  else
   {
     // check table based sensors, might create more than one device
 #warning "%%% no real profiles yet"
-//    newDev = EnoceanSensorHandler::newDevice(aClassContainerP, createVLDDeviceFunc, enoceanVLDdescriptors, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+//    newDev = EnoceanSensorHandler::newDevice(aVdcP, createVLDDeviceFunc, enoceanVLDdescriptors, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   return newDev;
 }

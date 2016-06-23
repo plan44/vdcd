@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2013-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2015-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //
@@ -19,71 +19,55 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__oladevicecontainer__
-#define __vdcd__oladevicecontainer__
+#ifndef __vdcd__vzughomevdc__
+#define __vdcd__vzughomevdc__
 
 #include "vdcd_common.hpp"
 
-#if ENABLE_OLA
+#if ENABLE_VZUGHOME
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 
-#include <ola/DmxBuffer.h>
-#include <ola/Logging.h>
-#include <ola/client/StreamingClient.h>
+#include "vzughomecomm.hpp"
+
 
 using namespace std;
 
 namespace p44 {
 
-  typedef uint16_t DmxChannel;
-  typedef uint8_t DmxValue;
-  const DmxChannel dmxNone = 0; // no channel
-
-  class OlaDeviceContainer;
-  class OlaDevice;
-  typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;
 
 
-  /// persistence for ola device container
-  class OlaDevicePersistence : public SQLite3Persistence  {
-    typedef SQLite3Persistence inherited;
-  protected:
-    /// Get DB Schema creation/upgrade SQL statements
-    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
-  };
+  class VZugHomeVdc;
+  class VZugHomeDevice;
+  typedef boost::intrusive_ptr<VZugHomeDevice> VZugHomeDevicePtr;
+  typedef boost::intrusive_ptr<VZugHomeVdc> VZugHomeVdcPtr;
 
-
-	typedef std::multimap<string, string> DeviceConfigMap;
-	
-  typedef boost::intrusive_ptr<OlaDeviceContainer> OlaDeviceContainerPtr;
-  class OlaDeviceContainer : public DeviceClassContainer
+  class VZugHomeVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
-    friend class OlaDevice;
+    typedef Vdc inherited;
+    friend class VZugHomeDevice;
 
-    OlaDevicePersistence db;
-
-    // OLA Thread
-    ChildThreadWrapperPtr olaThread;
-    pthread_mutex_t olaBufferAccess;
-    ola::DmxBuffer *dmxBufferP;
-    ola::client::StreamingClient *olaClientP;
-
+    StringList baseURLs;
 
   public:
-    OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+  
+    VZugHomeVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    /// Switch to manual API URL specification (disables discovery)
+    /// @param aVzugApiBaseURLs one or multiple semicolon separated VZug home device API base URLs
+    void addVzugApiBaseURLs(const string aVzugApiBaseURLs);
+
+
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
@@ -99,18 +83,17 @@ namespace p44 {
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
-    virtual string vdcModelSuffix() { return "OLA/DMX512"; }
+    virtual string vdcModelSuffix() { return "V-Zug Home"; }
 
   private:
 
-    OlaDevicePtr addOlaDevice(string aDeviceType, string aDeviceConfig);
-
-    void olaThreadRoutine(ChildThreadWrapper &aThread);
-    void setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue);
+    void discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError);
+    void addNextDevice(StringList::iterator aNext, StatusCB aCompletedCB);
+    void gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringList::iterator aNext, StatusCB aCompletedCB);
 
   };
 
 } // namespace p44
 
-#endif // ENABLE_OLA
-#endif // __vdcd__oladevicecontainer__
+#endif // ENABLE_VZUGHOME
+#endif // __vdcd__vzughomevdc__

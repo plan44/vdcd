@@ -19,55 +19,52 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__vzughomedevicecontainer__
-#define __vdcd__vzughomedevicecontainer__
+#ifndef __vdcd__voxnetvdc__
+#define __vdcd__voxnetvdc__
 
 #include "vdcd_common.hpp"
 
-#if ENABLE_VZUGHOME
+#if ENABLE_VOXNET
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 
-#include "vzughomecomm.hpp"
+#include "voxnetcomm.hpp"
 
 
 using namespace std;
 
 namespace p44 {
 
+  class VoxnetVdc;
+  class VoxnetDevice;
+  typedef boost::intrusive_ptr<VoxnetDevice> VoxnetDevicePtr;
+  typedef boost::intrusive_ptr<VoxnetVdc> VoxnetVdcPtr;
 
-
-  class VZugHomeDeviceContainer;
-  class VZugHomeDevice;
-  typedef boost::intrusive_ptr<VZugHomeDevice> VZugHomeDevicePtr;
-  typedef boost::intrusive_ptr<VZugHomeDeviceContainer> VZugHomeDeviceContainerPtr;
-
-  class VZugHomeDeviceContainer : public DeviceClassContainer
+  class VoxnetVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
-    friend class VZugHomeDevice;
+    typedef Vdc inherited;
+    friend class VoxnetDevice;
 
-    StringList baseURLs;
+    typedef map<string, VoxnetDevicePtr> VoxnetDeviceMap;
+
+    VoxnetDeviceMap voxnetDevices;
 
   public:
-  
-    VZugHomeDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+
+    VoxnetCommPtr voxnetComm;
+
+    VoxnetVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    /// Switch to manual API URL specification (disables discovery)
-    /// @param aVzugApiBaseURLs one or multiple semicolon separated VZug home device API base URLs
-    void addVzugApiBaseURLs(const string aVzugApiBaseURLs);
-
-
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
@@ -83,17 +80,17 @@ namespace p44 {
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
-    virtual string vdcModelSuffix() { return "V-Zug Home"; }
+    virtual string vdcModelSuffix() { return "Voxnet"; }
 
   private:
 
-    void discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError);
-    void addNextDevice(StringList::iterator aNext, StatusCB aCompletedCB);
-    void gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringList::iterator aNext, StatusCB aCompletedCB);
+    VoxnetDevicePtr addVoxnetDevice(const string aID, const string aName);
+    bool voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus);
+
 
   };
 
 } // namespace p44
 
-#endif // ENABLE_VZUGHOME
-#endif // __vdcd__vzughomedevicecontainer__
+#endif // ENABLE_VOXNET
+#endif // __vdcd__voxnetvdc__

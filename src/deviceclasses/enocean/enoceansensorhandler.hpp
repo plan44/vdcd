@@ -117,13 +117,13 @@ namespace p44 {
   public:
 
     /// device creator function
-    typedef EnoceanDevicePtr (*CreateDeviceFunc)(EnoceanDeviceContainer *aClassContainerP);
+    typedef EnoceanDevicePtr (*CreateDeviceFunc)(EnoceanVdc *aVdcP);
 
     /// the sensor channel descriptor
     const EnoceanSensorDescriptor *sensorChannelDescriptorP;
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
-    /// @param aClassContainerP the class container
+    /// @param aVdcP the class container
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
     ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
@@ -132,7 +132,7 @@ namespace p44 {
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
     static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanVdc *aVdcP,
       CreateDeviceFunc aCreateDeviceFunc,
       const EnoceanSensorDescriptor *aDescriptorTable,
       EnoceanAddress aAddress,

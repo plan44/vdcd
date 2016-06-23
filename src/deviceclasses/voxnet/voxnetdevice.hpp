@@ -27,13 +27,13 @@
 #if ENABLE_VOXNET
 
 #include "audiobehaviour.hpp"
-#include "voxnetdevicecontainer.hpp"
+#include "voxnetvdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class VoxnetDeviceContainer;
+  class VoxnetVdc;
   class VoxnetDevice;
 
 
@@ -68,7 +68,7 @@ namespace p44 {
   class VoxnetDevice : public Device
   {
     typedef Device inherited;
-    friend class VoxnetDeviceContainer;
+    friend class VoxnetVdc;
 
     string voxnetRoomID;
 
@@ -92,7 +92,7 @@ namespace p44 {
 
   public:
 
-    VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID);
+    VoxnetDevice(VoxnetVdc *aVdcP, const string aVoxnetRoomID);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -130,7 +130,7 @@ namespace p44 {
 
     /// @}
 
-    VoxnetDeviceContainer &getVoxnetDeviceContainer();
+    VoxnetVdc &getVoxnetVdc();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

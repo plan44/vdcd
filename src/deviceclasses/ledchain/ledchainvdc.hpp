@@ -19,14 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__ledchaindevicecontainer__
-#define __vdcd__ledchaindevicecontainer__
+#ifndef __vdcd__ledchainvdc__
+#define __vdcd__ledchainvdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_LEDCHAIN
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 #include "colorlightbehaviour.hpp"
 
@@ -37,7 +37,7 @@ using namespace std;
 
 namespace p44 {
 
-  class LedChainDeviceContainer;
+  class LedChainVdc;
   class LedChainDevice;
   typedef boost::intrusive_ptr<LedChainDevice> LedChainDevicePtr;
 
@@ -53,10 +53,10 @@ namespace p44 {
 
 	typedef std::multimap<string, string> DeviceConfigMap;
 	
-  typedef boost::intrusive_ptr<LedChainDeviceContainer> LedChainDeviceContainerPtr;
-  class LedChainDeviceContainer : public DeviceClassContainer
+  typedef boost::intrusive_ptr<LedChainVdc> LedChainVdcPtr;
+  class LedChainVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
     friend class LedChainDevice;
 
     LedChainDevicePersistence db;
@@ -74,11 +74,11 @@ namespace p44 {
 
   public:
   
-    LedChainDeviceContainer(int aInstanceNumber, int aNumLedsInChain, DeviceContainer *aDeviceContainerP, int aTag);
+    LedChainVdc(int aInstanceNumber, int aNumLedsInChain, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
@@ -95,7 +95,7 @@ namespace p44 {
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
@@ -126,4 +126,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_LEDCHAIN
-#endif // __vdcd__ledchaindevicecontainer__
+#endif // __vdcd__ledchainvdc__

@@ -27,13 +27,13 @@
 #if ENABLE_STATIC
 
 #include "consolekey.hpp"
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class StaticDeviceContainer;
+  class StaticVdc;
   class ConsoleDevice;
   typedef boost::intrusive_ptr<ConsoleDevice> ConsoleDevicePtr;
   class ConsoleDevice : public StaticDevice
@@ -57,7 +57,7 @@ namespace p44 {
     string consoleName;
 
   public:
-    ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    ConsoleDevice(StaticVdc *aVdcP, const string &aDeviceConfig);
     
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

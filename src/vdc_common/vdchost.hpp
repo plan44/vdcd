@@ -19,8 +19,8 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__devicecontainer__
-#define __vdcd__devicecontainer__
+#ifndef __vdcd__vdchost__
+#define __vdcd__vdchost__
 
 #include "vdcd_common.hpp"
 
@@ -38,12 +38,12 @@ using namespace std;
 
 namespace p44 {
 
-  class DeviceClassContainer;
+  class Vdc;
   class Device;
   class ButtonBehaviour;
   class DsUid;
 
-  typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
+  typedef boost::intrusive_ptr<Vdc> VdcPtr;
   typedef boost::intrusive_ptr<Device> DevicePtr;
 
   /// Callback for learn events
@@ -75,25 +75,25 @@ namespace p44 {
 
 
 
-  class DeviceContainer;
-  typedef boost::intrusive_ptr<DeviceContainer> DeviceContainerPtr;
-  typedef map<DsUid, DeviceClassContainerPtr> ContainerMap;
+  class VdcHost;
+  typedef boost::intrusive_ptr<VdcHost> VdcHostPtr;
+  typedef map<DsUid, VdcPtr> VdcMap;
   typedef map<DsUid, DevicePtr> DsDeviceMap;
 
 
   /// container for all devices hosted by this application
   /// In dS terminology, this object represents the vDC host (a program/daemon hosting one or multiple virtual device connectors).
   /// - is the connection point to a vDSM
-  /// - contains one or multiple device class containers
+  /// - contains one or multiple vDC containers
   ///   (each representing a specific class of devices, e.g. different bus types etc.)
-  class DeviceContainer : public DsAddressable, public PersistentParams
+  class VdcHost : public DsAddressable, public PersistentParams
   {
     typedef DsAddressable inherited;
     typedef PersistentParams inheritedParams;
 
-    friend class DeviceClassCollector;
-    friend class DeviceClassInitializer;
-    friend class DeviceClassContainer;
+    friend class VdcCollector;
+    friend class VdcInitializer;
+    friend class Vdc;
     friend class DsAddressable;
 
     bool externalDsuid; ///< set when dSUID is set to a external value (usually UUIDv1 based)
@@ -140,10 +140,10 @@ namespace p44 {
 
   public:
 
-    DeviceContainer();
+    VdcHost();
 
     /// the list of containers by API-exposed ID (dSUID or derived dsid)
-    ContainerMap deviceClassContainers;
+    VdcMap vdcs;
 
     /// API for vdSM
     VdcApiServerPtr vdcApiServer;
@@ -206,11 +206,11 @@ namespace p44 {
     /// @return URL for Web-UI (for access from local LAN)
     virtual string webuiURLString() { return ""; /* none by default */ }
 
-    /// prepare device container internals for creating and adding device classes
+    /// prepare device container internals for creating and adding vDCs
     /// In particular, this triggers creating/loading the vdc host dSUID, which serves as a base ID
     /// for most class containers and many devices.
     /// @param aFactoryReset if set, database will be reset
-    void prepareForDeviceClasses(bool aFactoryReset);
+    void prepareForVdcs(bool aFactoryReset);
 
 		/// initialize
     /// @param aCompletedCB will be called when the entire container is initialized or has been aborted with a fatal error
@@ -237,7 +237,7 @@ namespace p44 {
 		/// @name device detection and registration
     /// @{
 
-    /// collect devices from all device classes, and have each of them initialized
+    /// collect devices from all vDCs, and have each of them initialized
     /// @param aCompletedCB will be called when all device scans have completed
     /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices
     ///   might not get detected this way
@@ -250,7 +250,7 @@ namespace p44 {
     ///   and thus cannot remove any settings, either)
     void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
-    /// Put device class controllers into learn-in mode
+    /// Put vDC controllers into learn-in mode
     /// @param aCompletedCB handler to call when a learn-in action occurs
     /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
     void startLearning(LearnCB aLearnHandler, bool aDisableProximityCheck = false);
@@ -300,7 +300,7 @@ namespace p44 {
     /// @name methods for DeviceClassContainers
     /// @{
 
-    /// called by device class containers to report learn event
+    /// called by vDC containers to report learn event
     /// @param aLearnIn true if new device learned in, false if device learned out
     /// @param aError error occurred during learn-in
     void reportLearnEvent(bool aLearnIn, ErrorPtr aError);
@@ -311,7 +311,7 @@ namespace p44 {
     /// @return true if normal user action processing should be suppressed
     bool signalDeviceUserAction(Device &aDevice, bool aRegular);
 
-    /// called by device class containers to add devices to the container-wide devices list
+    /// called by vDC containers to add devices to the container-wide devices list
     /// @param aDevice a device object which has a valid dSUID
     /// @return false if aDevice's dSUID is already known.
     /// @note aDevice is added *only if no device is already known with this dSUID*
@@ -319,7 +319,7 @@ namespace p44 {
     ///   by other means than a scan/collect operation
     bool addDevice(DevicePtr aDevice);
 
-    /// called by device class containers to remove devices from the container-wide list
+    /// called by vDC containers to remove devices from the container-wide list
     /// @param aDevice a device object which has a valid dSUID
     /// @param aForget if set, parameters stored for the device will be deleted
     void removeDevice(DevicePtr aDevice, bool aForget);
@@ -386,10 +386,10 @@ namespace p44 {
 
   protected:
 
-    /// add a device class container
-    /// @param aDeviceClassContainerPtr a intrusive_ptr to a device class container
+    /// add a vDC container
+    /// @param aVdcPtr a intrusive_ptr to a vDC container
     /// @note this is a one-time initialisation. Device class containers are not meant to be removed at runtime
-    void addDeviceClassContainer(DeviceClassContainerPtr aDeviceClassContainerPtr);
+    void addVdc(VdcPtr aVdcPtr);
 
 
     /// @name method for friend classes to send API messages
@@ -472,4 +472,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__devicecontainer__) */
+#endif /* defined(__vdcd__vdchost__) */

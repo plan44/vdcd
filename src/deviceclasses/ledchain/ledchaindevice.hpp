@@ -26,18 +26,18 @@
 
 #if ENABLE_LEDCHAIN
 
-#include "ledchaindevicecontainer.hpp"
+#include "ledchainvdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class LedChainDeviceContainer;
+  class LedChainVdc;
 
   class LedChainDevice : public Device
   {
     typedef Device inherited;
-    friend class LedChainDeviceContainer;
+    friend class LedChainVdc;
 
     uint16_t firstLED;
     uint16_t numLEDs;
@@ -62,7 +62,7 @@ namespace p44 {
 
   public:
 
-    LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16_t aFirstLED, uint16_t aNumLEDs, const string &aDeviceConfig);
+    LedChainDevice(LedChainVdc *aVdcP, uint16_t aFirstLED, uint16_t aNumLEDs, const string &aDeviceConfig);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -90,7 +90,7 @@ namespace p44 {
 
     /// @}
 
-    LedChainDeviceContainer &getLedChainDeviceContainer();
+    LedChainVdc &getLedChainVdc();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

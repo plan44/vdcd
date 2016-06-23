@@ -32,7 +32,7 @@
 #include "colorlightbehaviour.hpp"
 #include "sensorbehaviour.hpp"
 
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 
 using namespace std;
@@ -52,7 +52,7 @@ namespace p44 {
     long powerPollTicket;
 
   public:
-    MyStromDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    MyStromDevice(StaticVdc *aVdcP, const string &aDeviceConfig);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

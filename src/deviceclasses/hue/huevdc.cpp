@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "huedevicecontainer.hpp"
+#include "huevdc.hpp"
 
 #if ENABLE_HUE
 
@@ -28,21 +28,21 @@
 using namespace p44;
 
 
-HueDeviceContainer::HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  inherited(aInstanceNumber, aDeviceContainerP, aTag),
+HueVdc::HueVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  inherited(aInstanceNumber, aVdcHostP, aTag),
   hueComm()
 {
 }
 
 
 
-const char *HueDeviceContainer::deviceClassIdentifier() const
+const char *HueVdc::vdcClassIdentifier() const
 {
   return "hue_Lights_Container";
 }
 
 
-bool HueDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool HueVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vdc_hue", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -51,7 +51,7 @@ bool HueDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char
 }
 
 
-string HueDeviceContainer::getExtraInfo()
+string HueVdc::getExtraInfo()
 {
   return string_format("hue api: %s", hueComm.baseURL.c_str());
 }
@@ -84,10 +84,10 @@ string HuePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void HueDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void HueVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
-	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+	string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), HUE_SCHEMA_VERSION, HUE_SCHEMA_MIN_VERSION, aFactoryReset);
 	aCompletedCB(error); // return status of DB init
 }
@@ -97,14 +97,14 @@ void HueDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 #pragma mark - collect devices
 
 
-int HueDeviceContainer::getRescanModes() const
+int HueVdc::getRescanModes() const
 {
   // normal and incremental make sense, no exhaustive mode
   return rescanmode_incremental+rescanmode_normal;
 }
 
 
-void HueDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void HueVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   collectedHandler = aCompletedCB;
   if (!aIncremental) {
@@ -124,7 +124,7 @@ void HueDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental
     // we know a bridge by UUID, try to refind it
     hueComm.uuid = bridgeUuid;
     hueComm.userName = bridgeUserName;
-    hueComm.refindBridge(boost::bind(&HueDeviceContainer::refindResultHandler, this, _1));
+    hueComm.refindBridge(boost::bind(&HueVdc::refindResultHandler, this, _1));
   }
   else {
     // no bridge known, can't collect anything at this time
@@ -135,7 +135,7 @@ void HueDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental
 
 
 
-void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
+void HueVdc::refindResultHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // found already registered bridge again
@@ -160,13 +160,13 @@ void HueDeviceContainer::refindResultHandler(ErrorPtr aError)
 }
 
 
-void HueDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
+void HueVdc::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
 {
   if (aEnableLearning) {
     hueComm.findNewBridge(
-      string_format("%s#%s", getDeviceContainer().modelName().c_str(), getDeviceContainer().getDeviceHardwareId().c_str()).c_str(),
+      string_format("%s#%s", getVdc().modelName().c_str(), getVdc().getDeviceHardwareId().c_str()).c_str(),
       15*Second, // try to login for 15 secs
-      boost::bind(&HueDeviceContainer::searchResultHandler, this, _1)
+      boost::bind(&HueVdc::searchResultHandler, this, _1)
     );
   }
   else {
@@ -176,7 +176,7 @@ void HueDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximi
 }
 
 
-void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
+void HueVdc::searchResultHandler(ErrorPtr aError)
 {
   if (Error::isOK(aError)) {
     // found and authenticated bridge
@@ -222,7 +222,7 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
       collectLights();
     }
     // report successful learn event
-    getDeviceContainer().reportLearnEvent(learnIn, ErrorPtr());
+    getVdc().reportLearnEvent(learnIn, ErrorPtr());
   }
   else {
     // not found (usually timeout)
@@ -231,16 +231,16 @@ void HueDeviceContainer::searchResultHandler(ErrorPtr aError)
 }
 
 
-void HueDeviceContainer::collectLights()
+void HueVdc::collectLights()
 {
   // Note: can be used to incrementally search additional lights
   // issue lights query
   LOG(LOG_INFO, "Querying hue bridge for available lights...");
-  hueComm.apiQuery("/lights", boost::bind(&HueDeviceContainer::collectedLightsHandler, this, _1, _2));
+  hueComm.apiQuery("/lights", boost::bind(&HueVdc::collectedLightsHandler, this, _1, _2));
 }
 
 
-void HueDeviceContainer::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError)
+void HueVdc::collectedLightsHandler(JsonObjectPtr aResult, ErrorPtr aError)
 {
   LOG(LOG_INFO, "hue bridge reports lights = \n%s", aResult ? aResult->c_strValue() : "<none>");
   if (aResult) {

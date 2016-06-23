@@ -30,8 +30,8 @@
 using namespace p44;
 
 
-AnalogIODevice::AnalogIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+AnalogIODevice::AnalogIODevice(StaticVdc *aVdcP, const string &aDeviceConfig) :
+  StaticDevice((Vdc *)aVdcP),
   analogIOType(analogio_unknown),
   transitionTicket(0)
 {
@@ -246,7 +246,7 @@ void AnalogIODevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::ioname[:ioname ...]
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   string_format_append(s, ":%d:", (int)analogIOType);
   if (analogIO) { s += ":"; s += analogIO->getName(); }
   if (analogIO2) { s += ":"; s += analogIO2->getName(); }

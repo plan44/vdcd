@@ -67,7 +67,7 @@ void BinaryInputBehaviour::updateInputState(InputState aNewState)
   // input state change is considered a (regular!) user action, have it checked globally first
   bool changedState = aNewState!=currentState;
   if (changedState) {
-    device.getDeviceContainer().signalDeviceUserAction(device, true);
+    device.getVdc().signalDeviceUserAction(device, true);
     // Note: even if global identify handler processes this, still report state changes (otherwise upstream could get out of sync)
   }
   BLOG(changedState ? LOG_NOTICE : LOG_INFO, "BinaryInput[%zu] '%s' reports %s state = %d", index, hardwareName.c_str(), changedState ? "NEW" : "same", aNewState);

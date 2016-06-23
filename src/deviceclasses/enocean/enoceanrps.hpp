@@ -41,7 +41,7 @@ namespace p44 {
   public:
 
     /// constructor
-    EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP);
+    EnoceanRPSDevice(EnoceanVdc *aVdcP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -53,7 +53,7 @@ namespace p44 {
 
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
-    /// @param aClassContainerP the class container
+    /// @param aVdcP the class container
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
     ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
@@ -62,7 +62,7 @@ namespace p44 {
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
     static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanVdc *aVdcP,
       EnoceanAddress aAddress,
       EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,

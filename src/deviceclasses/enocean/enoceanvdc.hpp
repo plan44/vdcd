@@ -19,14 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__enoceandevicecontainer__
-#define __vdcd__enoceandevicecontainer__
+#ifndef __vdcd__enoceanvdc__
+#define __vdcd__enoceanvdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_ENOCEAN
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "sqlite3persistence.hpp"
 
 #include "enoceancomm.hpp"
@@ -75,12 +75,12 @@ namespace p44 {
   };
 
 
-  class EnoceanDeviceContainer;
-  typedef boost::intrusive_ptr<EnoceanDeviceContainer> EnoceanDeviceContainerPtr;
-  class EnoceanDeviceContainer : public DeviceClassContainer
+  class EnoceanVdc;
+  typedef boost::intrusive_ptr<EnoceanVdc> EnoceanVdcPtr;
+  class EnoceanVdc : public Vdc
   {
     friend class EnoceanDevice;
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
 
     bool learningMode;
     bool disableProximityCheck;
@@ -94,14 +94,14 @@ namespace p44 {
 
   public:
 
-    EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    EnoceanVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 		
 		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     // the Enocean communication object
     EnoceanComm enoceanComm;
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
@@ -154,7 +154,7 @@ namespace p44 {
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
     /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
-    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on VdcHost.
     virtual void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck);
 
   protected:
@@ -178,4 +178,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_ENOCEAN
-#endif // __vdcd__enoceandevicecontainer__
+#endif // __vdcd__enoceanvdc__

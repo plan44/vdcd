@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "oladevicecontainer.hpp"
+#include "olavdc.hpp"
 
 #if ENABLE_OLA
 
@@ -61,8 +61,8 @@ string OlaDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersio
 
 
 
-OlaDeviceContainer::OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
+OlaVdc::OlaVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag)
 {
 }
 
@@ -72,22 +72,22 @@ OlaDeviceContainer::OlaDeviceContainer(int aInstanceNumber, DeviceContainer *aDe
 #define OLA_SETUP_RETRY_INTERVAL (30*Second)
 #define DMX512_UNIVERSE 42
 
-void OlaDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void OlaVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   ErrorPtr err;
   // initialize database
   string databaseName = getPersistentDataDir();
-  string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   err = db.connectAndInitialize(databaseName.c_str(), OLADEVICES_SCHEMA_VERSION, OLADEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
   // launch OLA thread
   pthread_mutex_init(&olaBufferAccess, NULL);
-  olaThread = MainLoop::currentMainLoop().executeInThread(boost::bind(&OlaDeviceContainer::olaThreadRoutine, this, _1), NULL);
+  olaThread = MainLoop::currentMainLoop().executeInThread(boost::bind(&OlaVdc::olaThreadRoutine, this, _1), NULL);
   // done
   aCompletedCB(ErrorPtr());
 }
 
 
-void OlaDeviceContainer::olaThreadRoutine(ChildThreadWrapper &aThread)
+void OlaVdc::olaThreadRoutine(ChildThreadWrapper &aThread)
 {
   // turn on OLA logging when loglevel is debugging, otherwise off
   ola::InitLogging(LOGENABLED(LOG_DEBUG) ? ola::OLA_LOG_WARN : ola::OLA_LOG_NONE, ola::OLA_LOG_STDERR);
@@ -122,7 +122,7 @@ void OlaDeviceContainer::olaThreadRoutine(ChildThreadWrapper &aThread)
 }
 
 
-void OlaDeviceContainer::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
+void OlaVdc::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
 {
   if (dmxBufferP && aChannel>=1 && aChannel<=512) {
     pthread_mutex_lock(&olaBufferAccess);
@@ -132,7 +132,7 @@ void OlaDeviceContainer::setDMXChannel(DmxChannel aChannel, DmxValue aChannelVal
 }
 
 
-bool OlaDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool OlaVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vdc_ola", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -141,14 +141,14 @@ bool OlaDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char
 }
 
 
-// device class name
-const char *OlaDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *OlaVdc::vdcClassIdentifier() const
 {
   return "OLA_Device_Container";
 }
 
 
-OlaDevicePtr OlaDeviceContainer::addOlaDevice(string aDeviceType, string aDeviceConfig)
+OlaDevicePtr OlaVdc::addOlaDevice(string aDeviceType, string aDeviceConfig)
 {
   DevicePtr newDev;
   // TODO: for now, all devices are OlaDevice
@@ -167,9 +167,9 @@ OlaDevicePtr OlaDeviceContainer::addOlaDevice(string aDeviceType, string aDevice
 }
 
 
-/// collect devices from this device class
-/// @param aCompletedCB will be called when device scan for this device class has been completed
-void OlaDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+/// collect devices from this vDC
+/// @param aCompletedCB will be called when device scan for this vDC has been completed
+void OlaVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
@@ -189,7 +189,7 @@ void OlaDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental
 }
 
 
-ErrorPtr OlaDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr OlaVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addDevice") {

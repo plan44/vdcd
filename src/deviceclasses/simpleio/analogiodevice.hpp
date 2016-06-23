@@ -27,13 +27,13 @@
 #if ENABLE_STATIC
 
 #include "analogio.hpp"
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class StaticDeviceContainer;
+  class StaticVdc;
   class AnalogIODevice;
   typedef boost::intrusive_ptr<AnalogIODevice> AnalogIODevicePtr;
 
@@ -58,7 +58,7 @@ namespace p44 {
     long transitionTicket;
 
   public:
-    AnalogIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    AnalogIODevice(StaticVdc *aVdcP, const string &aDeviceConfig);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)

@@ -8,9 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
-		ED026CFC171E8D6200AD5FD6 /* devicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */; };
-		ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */; };
-		ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */; };
+		ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFA171E8D6200AD5FD6 /* vdchost.cpp */; };
+		ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFD171E8EC100AD5FD6 /* vdc.cpp */; };
+		ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalivdc.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED07E25A17D786DC00889CC3 /* libmongoose.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED07E25917D786A000889CC3 /* libmongoose.dylib */; };
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
@@ -19,10 +19,10 @@
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED0FDE121BF223AB00857282 /* voxnetcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */; };
 		ED0FDE131BF223AB00857282 /* voxnetdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */; };
-		ED0FDE141BF223AB00857282 /* voxnetdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */; };
+		ED0FDE141BF223AB00857282 /* voxnetvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */; };
 		ED0FDE1B1BF223C000857282 /* vzughomecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE151BF223C000857282 /* vzughomecomm.cpp */; };
 		ED0FDE1C1BF223C000857282 /* vzughomedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE171BF223C000857282 /* vzughomedevice.cpp */; };
-		ED0FDE1D1BF223C000857282 /* vzughomedevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */; };
+		ED0FDE1D1BF223C000857282 /* vzughomevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0FDE191BF223C000857282 /* vzughomevdc.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
 		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
@@ -37,7 +37,7 @@
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
 		ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
 		ED36999E178DA01E00376405 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
-		ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */; };
+		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
 		ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */; };
 		ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5133BB19F6A6B70027999E /* simplescene.cpp */; };
 		ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
@@ -48,9 +48,9 @@
 		ED59D4751C89F7060089E69A /* igmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED59D4731C89F7060089E69A /* igmp.cpp */; };
 		ED5A4D8D1C8048ED00C607D5 /* evaluatordevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */; };
 		ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D921C80509C00C607D5 /* valuesource.cpp */; };
-		ED5A4D991C82133300C607D5 /* evaluatordevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D971C82133300C607D5 /* evaluatordevicecontainer.cpp */; };
+		ED5A4D991C82133300C607D5 /* evaluatorvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D971C82133300C607D5 /* evaluatorvdc.cpp */; };
 		ED5AF915174182E700689E4B /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED5AF914174182E700689E4B /* libsqlite3.dylib */; };
-		ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */; };
+		ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B2905173935AF00334C71 /* enoceanvdc.cpp */; };
 		ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B290817393A0700334C71 /* enoceandevice.cpp */; };
 		ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291D1740E72200334C71 /* sqlite3pp.cpp */; };
 		ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5B291F1740E72200334C71 /* sqlite3ppext.cpp */; };
@@ -60,7 +60,7 @@
 		ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */; };
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
-		ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */; };
+		ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */; };
 		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
@@ -82,7 +82,7 @@
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
 		ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */; };
 		ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */; };
-		ED911D2E1B11D97700B18624 /* ledchaindevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */; };
+		ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchainvdc.cpp */; };
 		ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D291B11D97700B18624 /* ledchaindevice.cpp */; };
 		ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */; };
 		ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */; };
@@ -93,7 +93,7 @@
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
 		EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284481733B59500EAE5DE /* serialcomm.cpp */; };
 		EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
-		EDB4062017D4D99D003783CE /* huedevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */; };
+		EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4061E17D4D99D003783CE /* huevdc.cpp */; };
 		EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4062117D4D9B5003783CE /* huedevice.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
@@ -107,7 +107,7 @@
 		EDD304341D09C10E0005E6D9 /* spi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD304321D09C10E0005E6D9 /* spi.cpp */; };
 		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
 		EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */; };
-		EDDDD5531A125FBC007D2ABE /* oladevicecontainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */; };
+		EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* olavdc.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
@@ -176,12 +176,12 @@
 /* Begin PBXFileReference section */
 		ED026CF7171D9CAB00AD5FD6 /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = utils.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED026CF8171D9CAB00AD5FD6 /* utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = utils.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = devicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = devicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = deviceclasscontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = deviceclasscontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalidevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalidevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026CFA171E8D6200AD5FD6 /* vdchost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vdchost.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026CFB171E8D6200AD5FD6 /* vdchost.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vdchost.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026CFD171E8EC100AD5FD6 /* vdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026CFE171E8EC200AD5FD6 /* vdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026D00171E91EB00AD5FD6 /* dalivdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalivdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED026D01171E91EB00AD5FD6 /* dalivdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalivdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED026D03171E94D700AD5FD6 /* error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = error.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = error.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED07E25417D786A000889CC3 /* mongoose.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = mongoose.xcodeproj; path = ../libmongoose/mongoose.xcodeproj; sourceTree = "<group>"; };
@@ -199,14 +199,14 @@
 		ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetcomm.hpp; path = voxnet/voxnetcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetdevice.cpp; path = voxnet/voxnetdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetdevice.hpp; path = voxnet/voxnetdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetdevicecontainer.cpp; path = voxnet/voxnetdevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE111BF223AB00857282 /* voxnetdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetdevicecontainer.hpp; path = voxnet/voxnetdevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetvdc.cpp; path = voxnet/voxnetvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE111BF223AB00857282 /* voxnetvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetvdc.hpp; path = voxnet/voxnetvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE151BF223C000857282 /* vzughomecomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomecomm.cpp; path = vzughome/vzughomecomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE161BF223C000857282 /* vzughomecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomecomm.hpp; path = vzughome/vzughomecomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE171BF223C000857282 /* vzughomedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomedevice.cpp; path = vzughome/vzughomedevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0FDE181BF223C000857282 /* vzughomedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomedevice.hpp; path = vzughome/vzughomedevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomedevicecontainer.cpp; path = vzughome/vzughomedevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE1A1BF223C000857282 /* vzughomedevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomedevicecontainer.hpp; path = vzughome/vzughomedevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE191BF223C000857282 /* vzughomevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomevdc.cpp; path = vzughome/vzughomevdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE1A1BF223C000857282 /* vzughomevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomevdc.hpp; path = vzughome/vzughomevdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -234,8 +234,8 @@
 		ED36999C178DA01D00376405 /* i2c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = i2c.cpp; sourceTree = "<group>"; };
 		ED36999D178DA01E00376405 /* i2c.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = i2c.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED36999F178DA0A300376405 /* p44_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44_common.hpp; sourceTree = "<group>"; };
-		ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = staticdevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = staticdevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED4C143F174EB8D20037ED0C /* staticvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = staticvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED4C1441174EB8E80037ED0C /* staticvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = staticvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitaliodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitaliodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5133BB19F6A6B70027999E /* simplescene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = simplescene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -252,15 +252,15 @@
 		ED5827251B02378F00B92C74 /* enoceanremotecontrol.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanremotecontrol.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED59D4731C89F7060089E69A /* igmp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = igmp.cpp; sourceTree = "<group>"; };
 		ED59D4741C89F7060089E69A /* igmp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = igmp.hpp; sourceTree = "<group>"; };
-		ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = evaluatordevice.cpp; sourceTree = "<group>"; };
-		ED5A4D8C1C8048ED00C607D5 /* evaluatordevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = evaluatordevice.hpp; sourceTree = "<group>"; };
+		ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = evaluatordevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5A4D8C1C8048ED00C607D5 /* evaluatordevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = evaluatordevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5A4D921C80509C00C607D5 /* valuesource.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valuesource.cpp; sourceTree = "<group>"; };
 		ED5A4D931C80509C00C607D5 /* valuesource.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valuesource.hpp; sourceTree = "<group>"; };
-		ED5A4D971C82133300C607D5 /* evaluatordevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = evaluatordevicecontainer.cpp; sourceTree = "<group>"; };
-		ED5A4D981C82133300C607D5 /* evaluatordevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = evaluatordevicecontainer.hpp; sourceTree = "<group>"; };
+		ED5A4D971C82133300C607D5 /* evaluatorvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = evaluatorvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5A4D981C82133300C607D5 /* evaluatorvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = evaluatorvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5AF914174182E700689E4B /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
-		ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceandevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceandevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5B2905173935AF00334C71 /* enoceanvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5B2906173935AF00334C71 /* enoceanvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5B290817393A0700334C71 /* enoceandevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceandevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5B290917393A0700334C71 /* enoceandevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceandevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5B291D1740E72200334C71 /* sqlite3pp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = sqlite3pp.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -279,8 +279,8 @@
 		ED5D486719ED502F000DF5A5 /* analogio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogio.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = analogiodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externaldevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED5DA3EA1BB294D7003C86C7 /* externaldevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externaldevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externalvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externalvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED6CCD3A1D198ACD00C78A0D /* catch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
 		ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_utils.cpp; sourceTree = "<group>"; };
@@ -298,8 +298,8 @@
 		ED6D7BF717180766005DED18 /* serialqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = serialqueue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanrps.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6FCC7C17CB493400267E43 /* enoceanrps.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanrps.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean4bs.cpp; sourceTree = "<group>"; };
-		ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean4bs.hpp; sourceTree = "<group>"; };
+		ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean4bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6FCC7F17CB495400267E43 /* enocean4bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean4bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dalidefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED74563E1731B813001C9565 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = mainloop.cpp; sourceTree = "<group>"; };
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; };
@@ -319,12 +319,12 @@
 		ED81338117C72F87003982CC /* sensorbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = sensorbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceansensorhandler.cpp; sourceTree = "<group>"; };
-		ED8F6DB71C56855200176CA9 /* enoceansensorhandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceansensorhandler.hpp; sourceTree = "<group>"; };
-		ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enoceanvld.cpp; sourceTree = "<group>"; };
-		ED8F6DBD1C5685A300176CA9 /* enoceanvld.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enoceanvld.hpp; sourceTree = "<group>"; };
-		ED911D271B11D97700B18624 /* ledchaindevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ledchaindevicecontainer.hpp; path = ledchain/ledchaindevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ledchaindevicecontainer.cpp; path = ledchain/ledchaindevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceansensorhandler.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED8F6DB71C56855200176CA9 /* enoceansensorhandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceansensorhandler.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanvld.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED8F6DBD1C5685A300176CA9 /* enoceanvld.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanvld.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D271B11D97700B18624 /* ledchainvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ledchainvdc.hpp; path = ledchain/ledchainvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D281B11D97700B18624 /* ledchainvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ledchainvdc.cpp; path = ledchain/ledchainvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D291B11D97700B18624 /* ledchaindevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ledchaindevice.cpp; path = ledchain/ledchaindevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ledchaindevice.hpp; path = ledchain/ledchaindevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ws281xcomm.cpp; path = ledchain/ws281xcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -343,8 +343,8 @@
 		EDB284491733B59500EAE5DE /* serialcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = serialcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB2844B1733DE2900EAE5DE /* gpio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = gpio.cpp; sourceTree = "<group>"; };
 		EDB2844C1733DE2A00EAE5DE /* gpio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = gpio.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = huedevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDB4061F17D4D99D003783CE /* huedevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = huedevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDB4061E17D4D99D003783CE /* huevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = huevdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDB4061F17D4D99D003783CE /* huevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = huevdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB4062117D4D9B5003783CE /* huedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = huedevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB4062217D4D9B5003783CE /* huedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = huedevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB5BC1917B50E79004DB38D /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = fdcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -376,16 +376,16 @@
 		EDD304331D09C10E0005E6D9 /* spi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = spi.hpp; sourceTree = "<group>"; };
 		EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = oladevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = oladevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = oladevicecontainer.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDDD5511A125FBC007D2ABE /* oladevicecontainer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = oladevicecontainer.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD5501A125FBC007D2ABE /* olavdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = olavdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD5511A125FBC007D2ABE /* olavdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = olavdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42BC17F35419005B97A0 /* macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = macaddress.cpp; sourceTree = "<group>"; };
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = macaddress.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = climatecontrolbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mystromdevice.cpp; sourceTree = "<group>"; };
-		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mystromdevice.hpp; sourceTree = "<group>"; };
-		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = enocean1bs.cpp; sourceTree = "<group>"; };
-		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = enocean1bs.hpp; sourceTree = "<group>"; };
+		EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = mystromdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -434,8 +434,8 @@
 				ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */,
 				ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */,
 				ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */,
-				ED0FDE101BF223AB00857282 /* voxnetdevicecontainer.cpp */,
-				ED0FDE111BF223AB00857282 /* voxnetdevicecontainer.hpp */,
+				ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */,
+				ED0FDE111BF223AB00857282 /* voxnetvdc.hpp */,
 			);
 			name = voxnet;
 			sourceTree = "<group>";
@@ -447,8 +447,8 @@
 				ED0FDE161BF223C000857282 /* vzughomecomm.hpp */,
 				ED0FDE171BF223C000857282 /* vzughomedevice.cpp */,
 				ED0FDE181BF223C000857282 /* vzughomedevice.hpp */,
-				ED0FDE191BF223C000857282 /* vzughomedevicecontainer.cpp */,
-				ED0FDE1A1BF223C000857282 /* vzughomedevicecontainer.hpp */,
+				ED0FDE191BF223C000857282 /* vzughomevdc.cpp */,
+				ED0FDE1A1BF223C000857282 /* vzughomevdc.hpp */,
 			);
 			name = vzughome;
 			sourceTree = "<group>";
@@ -481,10 +481,10 @@
 				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
 				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
 				ED5BDAA717BBA54400DBC19A /* dsaddressable.hpp */,
-				ED026CFA171E8D6200AD5FD6 /* devicecontainer.cpp */,
-				ED026CFB171E8D6200AD5FD6 /* devicecontainer.hpp */,
-				ED026CFD171E8EC100AD5FD6 /* deviceclasscontainer.cpp */,
-				ED026CFE171E8EC200AD5FD6 /* deviceclasscontainer.hpp */,
+				ED026CFA171E8D6200AD5FD6 /* vdchost.cpp */,
+				ED026CFB171E8D6200AD5FD6 /* vdchost.hpp */,
+				ED026CFD171E8EC100AD5FD6 /* vdc.cpp */,
+				ED026CFE171E8EC200AD5FD6 /* vdc.hpp */,
 				EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */,
 				EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */,
 				ED81337A17C72F45003982CC /* outputbehaviour.cpp */,
@@ -556,8 +556,8 @@
 				ED70716E171D428A00752E4D /* dalidefs.h */,
 				ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */,
 				ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */,
-				ED026D00171E91EB00AD5FD6 /* dalidevicecontainer.cpp */,
-				ED026D01171E91EB00AD5FD6 /* dalidevicecontainer.hpp */,
+				ED026D00171E91EB00AD5FD6 /* dalivdc.cpp */,
+				ED026D01171E91EB00AD5FD6 /* dalivdc.hpp */,
 				EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */,
 				EDCFE859171FE8A1001D35F3 /* dalidevice.hpp */,
 			);
@@ -569,8 +569,8 @@
 			children = (
 				EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */,
 				EDB284461733B4ED00EAE5DE /* enoceancomm.hpp */,
-				ED5B2905173935AF00334C71 /* enoceandevicecontainer.cpp */,
-				ED5B2906173935AF00334C71 /* enoceandevicecontainer.hpp */,
+				ED5B2905173935AF00334C71 /* enoceanvdc.cpp */,
+				ED5B2906173935AF00334C71 /* enoceanvdc.hpp */,
 				ED5B290817393A0700334C71 /* enoceandevice.cpp */,
 				ED5B290917393A0700334C71 /* enoceandevice.hpp */,
 				ED5827241B02378F00B92C74 /* enoceanremotecontrol.cpp */,
@@ -594,8 +594,8 @@
 			children = (
 				ED07E26417DB204200889CC3 /* huecomm.cpp */,
 				ED07E26517DB204200889CC3 /* huecomm.hpp */,
-				EDB4061E17D4D99D003783CE /* huedevicecontainer.cpp */,
-				EDB4061F17D4D99D003783CE /* huedevicecontainer.hpp */,
+				EDB4061E17D4D99D003783CE /* huevdc.cpp */,
+				EDB4061F17D4D99D003783CE /* huevdc.hpp */,
 				EDB4062117D4D9B5003783CE /* huedevice.cpp */,
 				EDB4062217D4D9B5003783CE /* huedevice.hpp */,
 			);
@@ -605,8 +605,8 @@
 		ED31268E183122F600FAF28B /* simpleio */ = {
 			isa = PBXGroup;
 			children = (
-				ED4C143F174EB8D20037ED0C /* staticdevicecontainer.cpp */,
-				ED4C1441174EB8E80037ED0C /* staticdevicecontainer.hpp */,
+				ED4C143F174EB8D20037ED0C /* staticvdc.cpp */,
+				ED4C1441174EB8E80037ED0C /* staticvdc.hpp */,
 				EDC1166A177EDC0800F27115 /* consoledevice.cpp */,
 				EDC1166B177EDC1800F27115 /* consoledevice.hpp */,
 				ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */,
@@ -693,8 +693,8 @@
 		ED5A4D961C8212E600C607D5 /* evaluator */ = {
 			isa = PBXGroup;
 			children = (
-				ED5A4D971C82133300C607D5 /* evaluatordevicecontainer.cpp */,
-				ED5A4D981C82133300C607D5 /* evaluatordevicecontainer.hpp */,
+				ED5A4D971C82133300C607D5 /* evaluatorvdc.cpp */,
+				ED5A4D981C82133300C607D5 /* evaluatorvdc.hpp */,
 				ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */,
 				ED5A4D8C1C8048ED00C607D5 /* evaluatordevice.hpp */,
 			);
@@ -726,8 +726,8 @@
 		ED5DA3E61BB294D7003C86C7 /* external */ = {
 			isa = PBXGroup;
 			children = (
-				ED5DA3E91BB294D7003C86C7 /* externaldevicecontainer.cpp */,
-				ED5DA3EA1BB294D7003C86C7 /* externaldevicecontainer.hpp */,
+				ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */,
+				ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */,
 			);
 			path = external;
 			sourceTree = "<group>";
@@ -794,8 +794,8 @@
 				ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */,
 				ED911D291B11D97700B18624 /* ledchaindevice.cpp */,
 				ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */,
-				ED911D281B11D97700B18624 /* ledchaindevicecontainer.cpp */,
-				ED911D271B11D97700B18624 /* ledchaindevicecontainer.hpp */,
+				ED911D281B11D97700B18624 /* ledchainvdc.cpp */,
+				ED911D271B11D97700B18624 /* ledchainvdc.hpp */,
 			);
 			name = ledchain;
 			sourceTree = "<group>";
@@ -814,8 +814,8 @@
 			children = (
 				EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */,
 				EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */,
-				EDDDD5501A125FBC007D2ABE /* oladevicecontainer.cpp */,
-				EDDDD5511A125FBC007D2ABE /* oladevicecontainer.hpp */,
+				EDDDD5501A125FBC007D2ABE /* olavdc.cpp */,
+				EDDDD5511A125FBC007D2ABE /* olavdc.hpp */,
 			);
 			path = ola;
 			sourceTree = "<group>";
@@ -971,16 +971,16 @@
 				ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
-				ED026CFC171E8D6200AD5FD6 /* devicecontainer.cpp in Sources */,
+				ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */,
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
 				ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */,
 				ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */,
-				ED026CFF171E8EC200AD5FD6 /* deviceclasscontainer.cpp in Sources */,
-				ED026D02171E91EB00AD5FD6 /* dalidevicecontainer.cpp in Sources */,
+				ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */,
+				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED5827261B02378F00B92C74 /* enoceanremotecontrol.cpp in Sources */,
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
-				EDDDD5531A125FBC007D2ABE /* oladevicecontainer.cpp in Sources */,
+				EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
@@ -1016,42 +1016,42 @@
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
-				ED5B2907173935B000334C71 /* enoceandevicecontainer.cpp in Sources */,
+				ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */,
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
 				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
 				ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
-				ED5A4D991C82133300C607D5 /* evaluatordevicecontainer.cpp in Sources */,
+				ED5A4D991C82133300C607D5 /* evaluatorvdc.cpp in Sources */,
 				ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED0FDE1B1BF223C000857282 /* vzughomecomm.cpp in Sources */,
-				ED0FDE1D1BF223C000857282 /* vzughomedevicecontainer.cpp in Sources */,
+				ED0FDE1D1BF223C000857282 /* vzughomevdc.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
 				ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
-				EDB4062017D4D99D003783CE /* huedevicecontainer.cpp in Sources */,
+				EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */,
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
-				ED5DA3ED1BB294D7003C86C7 /* externaldevicecontainer.cpp in Sources */,
+				ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */,
 				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,
 				ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */,
 				ED5A4D8D1C8048ED00C607D5 /* evaluatordevice.cpp in Sources */,
-				ED911D2E1B11D97700B18624 /* ledchaindevicecontainer.cpp in Sources */,
+				ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
 				ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */,
 				ED0FDE121BF223AB00857282 /* voxnetcomm.cpp in Sources */,
-				ED0FDE141BF223AB00857282 /* voxnetdevicecontainer.cpp in Sources */,
+				ED0FDE141BF223AB00857282 /* voxnetvdc.cpp in Sources */,
 				ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */,
-				ED4C1440174EB8D20037ED0C /* staticdevicecontainer.cpp in Sources */,
+				ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */,
 				EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
@@ -1278,6 +1278,7 @@
 				ED6CCD491D198FA000C78A0D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		ED6D7BD61716B63A005DED18 /* Build configuration list for PBXProject "vdcd" */ = {
 			isa = XCConfigurationList;

@@ -32,8 +32,8 @@ using namespace p44;
 
 #define INPUT_DEBOUNCE_TIME (25*MilliSecond)
 
-DigitalIODevice::DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+DigitalIODevice::DigitalIODevice(StaticVdc *aVdcP, const string &aDeviceConfig) :
+  StaticDevice((Vdc *)aVdcP),
   digitalIoType(digitalio_unknown)
 {
   // Config is:
@@ -247,7 +247,7 @@ void DigitalIODevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::ioname[:ioname ...]
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   s += ':';
   if (buttonInput) { s += ":"; s += buttonInput->getName(); }
   if (indicatorOutput) { s += ":"; s += indicatorOutput->getName(); }

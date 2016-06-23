@@ -40,8 +40,8 @@ using namespace p44;
 // maximum number of content sources (titles in an album/playlist, radio stations)
 #define MAX_VOXNET_CONTENTSOURCES 50
 
-VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string aVoxnetRoomID) :
-  inherited(aClassContainerP),
+VoxnetDevice::VoxnetDevice(VoxnetVdc *aVdcP, const string aVoxnetRoomID) :
+  inherited(aVdcP),
   voxnetRoomID(aVoxnetRoomID),
   knownMuted(false),
   playIsOnlyUnmute(false),
@@ -69,9 +69,9 @@ VoxnetDevice::VoxnetDevice(VoxnetDeviceContainer *aClassContainerP, const string
 
 
 
-VoxnetDeviceContainer &VoxnetDevice::getVoxnetDeviceContainer()
+VoxnetVdc &VoxnetDevice::getVoxnetVdc()
 {
-  return *(static_cast<VoxnetDeviceContainer *>(classContainerP));
+  return *(static_cast<VoxnetVdc *>(vdcP));
 }
 
 
@@ -338,7 +338,7 @@ void VoxnetDevice::applyChannelValues(SimpleCB aDoneCB, bool aForDimming)
 
 void VoxnetDevice::sendVoxnetText(const string aVoxnetText)
 {
-  getVoxnetDeviceContainer().voxnetComm->sendVoxnetText(aVoxnetText);
+  getVoxnetVdc().voxnetComm->sendVoxnetText(aVoxnetText);
 }
 
 
@@ -486,7 +486,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
           //   (and Voxnet 219 does not have a deep off)
           ab->powerState->syncChannelValue(v=="$unknown" ? dsAudioPower_power_save : dsAudioPower_on);
           // try to resolve source
-          getVoxnetDeviceContainer().voxnetComm->resolveVoxnetRef(v);
+          getVoxnetVdc().voxnetComm->resolveVoxnetRef(v);
           // - check if streaming a user (i.e. we'd need further resolving)
           if (v.size()>1 && v[1]=='U') {
             // this is a user reference
@@ -553,7 +553,7 @@ bool VoxnetDevice::processVoxnetStatus(const string aVoxnetID, const string aVox
         // extract state
         if (k=="selected") {
           // source of current user changed
-          getVoxnetDeviceContainer().voxnetComm->resolveVoxnetRef(v);
+          getVoxnetVdc().voxnetComm->resolveVoxnetRef(v);
           if (v!=currentSource) {
             currentSource = v;
             ALOG(LOG_NOTICE,"Source changed: %s (via user %s)", v.c_str(), currentUser.c_str());

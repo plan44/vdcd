@@ -19,12 +19,12 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__deviceclasscontainer__
-#define __vdcd__deviceclasscontainer__
+#ifndef __vdcd__vdc__
+#define __vdcd__vdc__
 
 #include "vdcd_common.hpp"
 
-#include "devicecontainer.hpp"
+#include "vdchost.hpp"
 
 #include "dsuid.hpp"
 
@@ -34,17 +34,17 @@ namespace p44 {
 
   // Errors
   typedef enum {
-    DeviceClassErrorOK,
-    DeviceClassErrorInitialize,
-  } DeviceClassErrors;
+    VdcErrorOK,
+    VdcErrorInitialize,
+  } VdcErrors;
 	
-  class DeviceClassError : public Error
+  class VdcError : public Error
   {
   public:
     static const char *domain() { return "DeviceClass"; }
-    virtual const char *getErrorDomain() const { return DeviceClassError::domain(); };
-    DeviceClassError(DeviceClassErrors aError) : Error(ErrorCode(aError)) {};
-    DeviceClassError(DeviceClassErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
+    virtual const char *getErrorDomain() const { return VdcError::domain(); };
+    VdcError(VdcErrors aError) : Error(ErrorCode(aError)) {};
+    VdcError(VdcErrors aError, std::string aErrorMessage) : Error(ErrorCode(aError), aErrorMessage) {};
   };
 	
 	
@@ -54,14 +54,14 @@ namespace p44 {
   typedef boost::intrusive_ptr<Device> DevicePtr;
 
 
-  class DeviceClassContainer;
-  typedef boost::intrusive_ptr<DeviceClassContainer> DeviceClassContainerPtr;
+  class Vdc;
+  typedef boost::intrusive_ptr<Vdc> VdcPtr;
   typedef std::vector<DevicePtr> DeviceVector;
 
 
   /// This is the base class for a "class" (usually: type of hardware) of virtual devices.
   /// In dS terminology, this object represents a vDC (virtual device connector).
-  class DeviceClassContainer : public PersistentParams, public DsAddressable
+  class Vdc : public PersistentParams, public DsAddressable
   {
     typedef DsAddressable inherited;
     typedef PersistentParams inheritedParams;
@@ -82,18 +82,18 @@ namespace p44 {
 
     /// @param aInstanceNumber index which uniquely (and as stable as possible) identifies a particular instance
     ///   of this class container. This is used when generating dsuids for devices that don't have their own
-    ///   unique ID, by using a hashOf(DeviceContainer's id, deviceClassIdentifier(), aInstanceNumber)
-    /// @param aDeviceContainerP device container this device class is contained in
+    ///   unique ID, by using a hashOf(DeviceContainer's id, vdcClassIdentifier(), aInstanceNumber)
+    /// @param aVdcHostP device container this vDC is contained in
     /// @param numeric tag for this device container (e.g. for blinking self test error messages)
-    DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    Vdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
-    /// add device class to device container.
-    void addClassToDeviceContainer();
+    /// add this vDC to vDC host.
+    void addVdcToVdcHost();
 
 		/// initialize
 		/// @param aCompletedCB will be called when initialisation is complete
-		///   callback will return an error if initialisation has failed and the device class is not functional
-		/// @param aFactoryReset if set, also perform factory reset for data persisted for this device class
+		///   callback will return an error if initialisation has failed and the vDC is not functional
+		/// @param aFactoryReset if set, also perform factory reset for data persisted for this vDC
     virtual void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 		
     /// @name persistence
@@ -117,9 +117,9 @@ namespace p44 {
 
     /// deviceclass identifier
 		/// @return constant identifier for this container class (no spaces, filename-safe)
-    virtual const char *deviceClassIdentifier() const = 0;
+    virtual const char *vdcClassIdentifier() const = 0;
 		
-    /// Instance number (to differentiate multiple device class containers of the same class)
+    /// Instance number (to differentiate multiple vDC containers of the same class)
 		/// @return instance index number
 		int getInstanceNumber() const;
 
@@ -129,18 +129,18 @@ namespace p44 {
     /// get a sufficiently unique identifier for this class container
     /// @return ID that identifies this container running on a specific hardware
     ///   the ID should not be dependent on the software version
-    ///   the ID must differ for each of multiple device class containers run on the same hardware
+    ///   the ID must differ for each of multiple vDC containers run on the same hardware
     ///   the ID MUST change when same software runs on different hardware
     /// @note Current implementation derives this from the devicecontainer's dSUID,
     ///   the deviceClassIdentitfier and the instance number in the form "class:instanceIndex@devicecontainerDsUid"
-    string deviceClassContainerInstanceIdentifier() const;
+    string vdcInstanceIdentifier() const;
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return false; }
 
-    /// get user assigned name of the device class container, or if there is none, a synthesized default name
+    /// get user assigned name of the vDC container, or if there is none, a synthesized default name
     /// @return name string
     virtual string getName();
 
@@ -164,13 +164,13 @@ namespace p44 {
       rescanmode_normal = 0x02, ///< normal rescan supported
       rescanmode_exhaustive = 0x04 ///< exhaustive rescan supported
     };
-    /// get supported rescan modes for this device class. This indicates (usually to a web-UI) which
-    /// of the flags to collectDevices() make sense for this device class.
+    /// get supported rescan modes for this vDC. This indicates (usually to a web-UI) which
+    /// of the flags to collectDevices() make sense for this vDC.
     /// @return a combination of rescanmode_xxx bits
     virtual int getRescanModes() const { return rescanmode_none; }; // by default, assume not rescannable
 
-    /// collect devices from this device classes for normal operation
-    /// @param aCompletedCB will be called when device scan for this device class has been completed
+    /// collect devices from this vDCs for normal operation
+    /// @param aCompletedCB will be called when device scan for this vDC has been completed
     /// @param aIncremental if set, search is only made for additional new devices. Disappeared devices
     ///   might not get detected this way
     /// @param aExhaustive if set, device search is made exhaustive (may include longer lasting procedures to
@@ -198,13 +198,13 @@ namespace p44 {
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
     /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
-    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on VdcHost.
     virtual void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck) { /* NOP in base class */ }
 
     /// @}
 
 
-    /// @name services for actual device class controller implementations
+    /// @name services for actual vDC controller implementations
     /// @{
 
     /// Add device collected from hardware side (bus scan, etc.)
@@ -251,13 +251,13 @@ namespace p44 {
 
     /// @return human readable, language independent model name/short description
     /// @note base class will construct this from global product name and vdcModelSuffix()
-    virtual string modelName() { return string_format("%s %s", getDeviceContainer().productName.c_str(), vdcModelSuffix().c_str()); }
+    virtual string modelName() { return string_format("%s %s", getVdc().productName.c_str(), vdcModelSuffix().c_str()); }
 
     /// @return human readable model name/short description
     virtual string vdcModelSuffix() = 0;
 
     /// @return human readable product version string
-    virtual string modelVersion() { return getDeviceContainer().modelVersion(); /* same as entire vdc host */ }
+    virtual string modelVersion() { return getVdc().modelVersion(); /* same as entire vdc host */ }
 
     /// @return unique ID for the functional model of this entity
     virtual string modelUID();
@@ -320,4 +320,4 @@ namespace p44 {
 
 } // namespace p44
 
-#endif /* defined(__vdcd__deviceclasscontainer__) */
+#endif /* defined(__vdcd__vdc__) */

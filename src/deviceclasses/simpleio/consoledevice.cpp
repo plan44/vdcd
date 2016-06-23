@@ -33,8 +33,8 @@
 using namespace p44;
 
 
-ConsoleDevice::ConsoleDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+ConsoleDevice::ConsoleDevice(StaticVdc *aVdcP, const string &aDeviceConfig) :
+  StaticDevice((Vdc *)aVdcP),
   consoleIoType(consoleio_unknown)
 {
   // Config is:
@@ -320,7 +320,7 @@ void ConsoleDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::consoledevicename
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   s += "::" + consoleName;
   dSUID.setNameInSpace(s, vdcNamespace);
 }

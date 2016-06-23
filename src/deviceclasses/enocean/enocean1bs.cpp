@@ -23,7 +23,7 @@
 
 #if ENABLE_ENOCEAN
 
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 #include "binaryinputbehaviour.hpp"
 
 using namespace p44;
@@ -31,14 +31,14 @@ using namespace p44;
 
 #pragma mark - Enocean1BSDevice
 
-Enocean1BSDevice::Enocean1BSDevice(EnoceanDeviceContainer *aClassContainerP) :
-inherited(aClassContainerP)
+Enocean1BSDevice::Enocean1BSDevice(EnoceanVdc *aVdcP) :
+inherited(aVdcP)
 {
 }
 
 
 EnoceanDevicePtr Enocean1BSDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -53,7 +53,7 @@ EnoceanDevicePtr Enocean1BSDevice::newDevice(
     // single input contact, always consists of a single device
     if (aSubDeviceIndex<1) {
       // create device
-      newDev = EnoceanDevicePtr(new Enocean1BSDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new Enocean1BSDevice(aVdcP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address

@@ -19,14 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__dalidevicecontainer__
-#define __vdcd__dalidevicecontainer__
+#ifndef __vdcd__dalivdc__
+#define __vdcd__dalivdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_DALI
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 
 #include "dalicomm.hpp"
 #include "dalidevice.hpp"
@@ -35,8 +35,8 @@ using namespace std;
 
 namespace p44 {
 
-  class DaliDeviceContainer;
-  typedef boost::intrusive_ptr<DaliDeviceContainer> DaliDeviceContainerPtr;
+  class DaliVdc;
+  typedef boost::intrusive_ptr<DaliVdc> DaliVdcPtr;
 
   typedef std::list<DaliBusDevicePtr> DaliBusDeviceList;
   typedef boost::shared_ptr<DaliBusDeviceList> DaliBusDeviceListPtr;
@@ -52,27 +52,27 @@ namespace p44 {
   };
 
 
-  class DaliDeviceContainer : public DeviceClassContainer
+  class DaliVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
 
 		DaliPersistence db;
 
   public:
-    DaliDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    DaliVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
 		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
     // the DALI communication object
     DaliCommPtr daliComm;
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     /// perform self test
     /// @param aCompletedCB will be called when self test is done, returning ok or error
     virtual void selfTest(StatusCB aCompletedCB);
 
-    /// get supported rescan modes for this device class
+    /// get supported rescan modes for this vDC
     /// @return a combination of rescanmode_xxx bits
     virtual int getRescanModes() const;
 
@@ -126,4 +126,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_DALI
-#endif // __vdcd__dalidevicecontainer__
+#endif // __vdcd__dalivdc__

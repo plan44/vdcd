@@ -89,8 +89,8 @@ void VZugHomeScene::setDefaultSceneValues(SceneNo aSceneNo)
 
 #define DEVICE_COLOR group_magenta_video
 
-VZugHomeDevice::VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL) :
-  inherited(aClassContainerP),
+VZugHomeDevice::VZugHomeDevice(VZugHomeVdc *aVdcP, const string aBaseURL) :
+  inherited(aVdcP),
   deviceModel(model_unknown),
   mostRecentPush(0),
   programTemp(0),
@@ -449,7 +449,7 @@ ErrorPtr VZugHomeDevice::load()
   ErrorPtr err = inherited::load();
   // load triggers
   pushMessageTriggers.clear();
-  string dir = getDeviceContainer().getPersistentDataDir();
+  string dir = getVdc().getPersistentDataDir();
   const int numLevels = 3;
   string levelids[numLevels];
   // Level strategy: most specialized will be active, unless lower levels specify explicit override
@@ -579,9 +579,9 @@ void VZugHomeDevice::scheduleNextStatePoll(ErrorPtr aError)
 
 
 
-VZugHomeDeviceContainer &VZugHomeDevice::getVZugHomeDeviceContainer()
+VZugHomeVdc &VZugHomeDevice::getVZugHomeVdc()
 {
-  return *(static_cast<VZugHomeDeviceContainer *>(classContainerP));
+  return *(static_cast<VZugHomeVdc *>(vdcP));
 }
 
 
@@ -688,9 +688,9 @@ void VZugHomeDevice::sentTurnOff(SimpleCB aDoneCB, bool aForDimming, ErrorPtr aE
 void VZugHomeDevice::deriveDsUid()
 {
   // vDC implementation specific UUID:
-  // UUIDv5 with name = deviceClassIdentifier:modelid:serialno
+  // UUIDv5 with name = vdcClassIdentifier:modelid:serialno
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassIdentifier();
+  string s = vdcP->vdcClassIdentifier();
   string_format_append(s, "%s:%s", modelId.c_str(), serialNo.c_str());
   dSUID.setNameInSpace(s, vdcNamespace);
 }

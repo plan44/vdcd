@@ -38,7 +38,7 @@ namespace p44 {
     typedef DsBehaviour inherited;
 
     friend class Device;
-    friend class DeviceContainer; // for local mode
+    friend class VdcHost; // for local mode
 
     typedef enum {
       statemachine_standard, ///< digitalSTROM standard button state machine

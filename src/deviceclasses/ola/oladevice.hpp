@@ -26,18 +26,18 @@
 
 #if ENABLE_OLA
 
-#include "oladevicecontainer.hpp"
+#include "olavdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class OlaDeviceContainer;
+  class OlaVdc;
 
   class OlaDevice : public Device
   {
     typedef Device inherited;
-    friend class OlaDeviceContainer;
+    friend class OlaVdc;
 
     typedef enum {
       ola_unknown,
@@ -63,7 +63,7 @@ namespace p44 {
 
   public:
 
-    OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    OlaDevice(OlaVdc *aVdcP, const string &aDeviceConfig);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -83,7 +83,7 @@ namespace p44 {
 
     /// @}
 
-    OlaDeviceContainer &getOlaDeviceContainer();
+    OlaVdc &getOlaVdc();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

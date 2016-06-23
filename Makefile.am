@@ -223,10 +223,10 @@ vdcd_SOURCES = \
   src/vdc_common/apivalue.hpp \
   src/vdc_common/dsaddressable.cpp \
   src/vdc_common/dsaddressable.hpp \
-  src/vdc_common/deviceclasscontainer.cpp \
-  src/vdc_common/deviceclasscontainer.hpp \
-  src/vdc_common/devicecontainer.cpp \
-  src/vdc_common/devicecontainer.hpp \
+  src/vdc_common/vdc.cpp \
+  src/vdc_common/vdc.hpp \
+  src/vdc_common/vdchost.cpp \
+  src/vdc_common/vdchost.hpp \
   src/vdc_common/discovery.cpp \
   src/vdc_common/discovery.hpp \
   src/vdc_common/p44_vdcd_host.cpp \
@@ -263,12 +263,12 @@ vdcd_SOURCES = \
   src/deviceclasses/simpleio/digitaliodevice.hpp \
   src/deviceclasses/simpleio/analogiodevice.cpp \
   src/deviceclasses/simpleio/analogiodevice.hpp \
-  src/deviceclasses/simpleio/staticdevicecontainer.cpp \
-  src/deviceclasses/simpleio/staticdevicecontainer.hpp \
-  src/deviceclasses/external/externaldevicecontainer.cpp \
-  src/deviceclasses/external/externaldevicecontainer.hpp \
-  src/deviceclasses/evaluator/evaluatordevicecontainer.cpp \
-  src/deviceclasses/evaluator/evaluatordevicecontainer.hpp \
+  src/deviceclasses/simpleio/staticvdc.cpp \
+  src/deviceclasses/simpleio/staticvdc.hpp \
+  src/deviceclasses/external/externalvdc.cpp \
+  src/deviceclasses/external/externalvdc.hpp \
+  src/deviceclasses/evaluator/evaluatorvdc.cpp \
+  src/deviceclasses/evaluator/evaluatorvdc.hpp \
   src/deviceclasses/evaluator/evaluatordevice.cpp \
   src/deviceclasses/evaluator/evaluatordevice.hpp \
   src/deviceclasses/enocean/enoceancomm.cpp \
@@ -287,39 +287,39 @@ vdcd_SOURCES = \
   src/deviceclasses/enocean/enocean1bs.hpp \
   src/deviceclasses/enocean/enoceanvld.cpp \
   src/deviceclasses/enocean/enoceanvld.hpp \
-  src/deviceclasses/enocean/enoceandevicecontainer.cpp \
-  src/deviceclasses/enocean/enoceandevicecontainer.hpp \
+  src/deviceclasses/enocean/enoceanvdc.cpp \
+  src/deviceclasses/enocean/enoceanvdc.hpp \
   src/deviceclasses/dali/dalicomm.cpp \
   src/deviceclasses/dali/dalicomm.hpp \
   src/deviceclasses/dali/dalidefs.h \
   src/deviceclasses/dali/dalidevice.cpp \
   src/deviceclasses/dali/dalidevice.hpp \
-  src/deviceclasses/dali/dalidevicecontainer.cpp \
-  src/deviceclasses/dali/dalidevicecontainer.hpp \
+  src/deviceclasses/dali/dalivdc.cpp \
+  src/deviceclasses/dali/dalivdc.hpp \
   src/deviceclasses/hue/huecomm.cpp \
   src/deviceclasses/hue/huecomm.hpp \
-  src/deviceclasses/hue/huedevicecontainer.cpp \
-  src/deviceclasses/hue/huedevicecontainer.hpp \
+  src/deviceclasses/hue/huevdc.cpp \
+  src/deviceclasses/hue/huevdc.hpp \
   src/deviceclasses/hue/huedevice.cpp \
   src/deviceclasses/hue/huedevice.hpp \
   src/deviceclasses/ledchain/ws281xcomm.hpp \
   src/deviceclasses/ledchain/ws281xcomm.cpp \
   src/deviceclasses/ledchain/ledchaindevice.hpp \
   src/deviceclasses/ledchain/ledchaindevice.cpp \
-  src/deviceclasses/ledchain/ledchaindevicecontainer.hpp \
-  src/deviceclasses/ledchain/ledchaindevicecontainer.cpp \
+  src/deviceclasses/ledchain/ledchainvdc.hpp \
+  src/deviceclasses/ledchain/ledchainvdc.cpp \
   src/deviceclasses/vzughome/vzughomecomm.cpp \
   src/deviceclasses/vzughome/vzughomecomm.hpp \
   src/deviceclasses/vzughome/vzughomedevice.cpp \
   src/deviceclasses/vzughome/vzughomedevice.hpp \
-  src/deviceclasses/vzughome/vzughomedevicecontainer.cpp \
-  src/deviceclasses/vzughome/vzughomedevicecontainer.hpp \
+  src/deviceclasses/vzughome/vzughomevdc.cpp \
+  src/deviceclasses/vzughome/vzughomevdc.hpp \
   src/deviceclasses/voxnet/voxnetcomm.cpp \
   src/deviceclasses/voxnet/voxnetcomm.hpp \
   src/deviceclasses/voxnet/voxnetdevice.cpp \
   src/deviceclasses/voxnet/voxnetdevice.hpp \
-  src/deviceclasses/voxnet/voxnetdevicecontainer.cpp \
-  src/deviceclasses/voxnet/voxnetdevicecontainer.hpp \
+  src/deviceclasses/voxnet/voxnetvdc.cpp \
+  src/deviceclasses/voxnet/voxnetvdc.hpp \
   src/p44_vdcd_main.cpp
 
 
@@ -369,8 +369,8 @@ olavdcd_SOURCES = \
   ${vdcd_SOURCES} \
   src/deviceclasses/ola/oladevice.cpp \
   src/deviceclasses/ola/oladevice.hpp \
-  src/deviceclasses/ola/oladevicecontainer.cpp \
-  src/deviceclasses/ola/oladevicecontainer.hpp
+  src/deviceclasses/ola/olavdc.cpp \
+  src/deviceclasses/ola/olavdc.hpp
 
 endif
 

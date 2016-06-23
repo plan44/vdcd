@@ -19,8 +19,8 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__huedevicecontainer__
-#define __vdcd__huedevicecontainer__
+#ifndef __vdcd__huevdc__
+#define __vdcd__huevdc__
 
 #include "vdcd_common.hpp"
 
@@ -30,14 +30,14 @@
 #include "jsonwebclient.hpp"
 
 #include "huecomm.hpp"
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
 
-  class HueDeviceContainer;
+  class HueVdc;
   class HueDevice;
 
   /// persistence for enocean device container
@@ -50,10 +50,10 @@ namespace p44 {
   };
 
 
-  typedef boost::intrusive_ptr<HueDeviceContainer> HueDeviceContainerPtr;
-  class HueDeviceContainer : public DeviceClassContainer
+  typedef boost::intrusive_ptr<HueVdc> HueVdcPtr;
+  class HueVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
     friend class HueDevice;
 
     HuePersistence db;
@@ -70,15 +70,15 @@ namespace p44 {
 
   public:
 
-    HueDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    HueVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
     HueComm hueComm;
 
 		void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
-    /// get supported rescan modes for this device class
+    /// get supported rescan modes for this vDC
     /// @return a combination of rescanmode_xxx bits
     virtual int getRescanModes() const;
 
@@ -88,7 +88,7 @@ namespace p44 {
     /// set container learn mode
     /// @param aEnableLearning true to enable learning mode
     /// @param aDisableProximityCheck true to disable proximity check (e.g. minimal RSSI requirement for some EnOcean devices)
-    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on DeviceContainer.
+    /// @note learn events (new devices found or devices removed) must be reported by calling reportLearnEvent() on VdcHost.
     void setLearnMode(bool aEnableLearning, bool aDisableProximityCheck);
 
     /// @return human readable, language independent suffix to explain vdc functionality.
@@ -123,4 +123,4 @@ namespace p44 {
 } // namespace p44
 
 #endif // ENABLE_HUE
-#endif // __vdcd__huedevicecontainer__
+#endif // __vdcd__huevdc__

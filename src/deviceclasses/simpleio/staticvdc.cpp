@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 #if ENABLE_STATIC
 
@@ -37,8 +37,8 @@ using namespace p44;
 #pragma mark - StaticDevice
 
 
-StaticDevice::StaticDevice(DeviceClassContainer *aClassContainerP) :
-  Device(aClassContainerP), staticDeviceRowID(0)
+StaticDevice::StaticDevice(Vdc *aVdcP) :
+  Device(aVdcP), staticDeviceRowID(0)
 {
 }
 
@@ -48,9 +48,9 @@ bool StaticDevice::isSoftwareDisconnectable()
   return staticDeviceRowID>0; // disconnectable by software if it was created from DB entry (and not on the command line)
 }
 
-StaticDeviceContainer &StaticDevice::getStaticDeviceContainer()
+StaticVdc &StaticDevice::getStaticVdc()
 {
-  return *(static_cast<StaticDeviceContainer *>(classContainerP));
+  return *(static_cast<StaticVdc *>(vdcP));
 }
 
 
@@ -58,7 +58,7 @@ void StaticDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResult
 {
   // clear learn-in data from DB
   if (staticDeviceRowID) {
-    getStaticDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", staticDeviceRowID);
+    getStaticVdc().db.executef("DELETE FROM devConfigs WHERE rowid=%d", staticDeviceRowID);
   }
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
@@ -95,31 +95,31 @@ string StaticDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVer
 
 
 
-StaticDeviceContainer::StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
+StaticVdc::StaticVdc(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag),
 	deviceConfigs(aDeviceConfigs)
 {
 }
 
 
-void StaticDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void StaticVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   string databaseName = getPersistentDataDir();
-  string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), STATICDEVICES_SCHEMA_VERSION, STATICDEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
   aCompletedCB(error); // return status of DB init
 }
 
 
 
-// device class name
-const char *StaticDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *StaticVdc::vdcClassIdentifier() const
 {
   return "Static_Device_Container";
 }
 
 
-StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, string aDeviceConfig)
+StaticDevicePtr StaticVdc::addStaticDevice(string aDeviceType, string aDeviceConfig)
 {
   DevicePtr newDev;
   if (aDeviceType=="digitalio") {
@@ -153,9 +153,9 @@ StaticDevicePtr StaticDeviceContainer::addStaticDevice(string aDeviceType, strin
 }
 
 
-/// collect devices from this device class
-/// @param aCompletedCB will be called when device scan for this device class has been completed
-void StaticDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+/// collect devices from this vDC
+/// @param aCompletedCB will be called when device scan for this vDC has been completed
+void StaticVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
@@ -185,7 +185,7 @@ void StaticDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremen
 }
 
 
-ErrorPtr StaticDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr StaticVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addDevice") {

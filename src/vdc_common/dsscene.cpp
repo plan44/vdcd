@@ -584,7 +584,7 @@ ErrorPtr SceneDeviceSettings::deleteChildren()
 
 void SceneDeviceSettings::loadScenesFromFiles()
 {
-  string dir = device.getDeviceContainer().getPersistentDataDir();
+  string dir = device.getVdc().getPersistentDataDir();
   const int numLevels = 4;
   string levelids[numLevels];
   // Level strategy: most specialized will be active, unless lower levels specify explicit override
@@ -592,11 +592,11 @@ void SceneDeviceSettings::loadScenesFromFiles()
   // - Level 0 are settings related to the device instance (dSUID)
   // - Level 1 are settings related to the device type (deviceTypeIdentifier())
   // - Level 2 are settings related to the behaviour (behaviourTypeIdentifier())
-  // - Level 3 are settings related to the device class (deviceClassIdentifier())
+  // - Level 3 are settings related to the vDC (vdcClassIdentifier())
   levelids[0] = "vdsd_" + device.getDsUid().getString();
   levelids[1] = string(device.deviceTypeIdentifier()) + "_device";
   levelids[2] = string(device.output->behaviourTypeIdentifier()) + "_behaviour";
-  levelids[3] = device.classContainerP->deviceClassIdentifier();
+  levelids[3] = device.vdcP->vdcClassIdentifier();
   for(int i=0; i<numLevels; ++i) {
     // try to open config file
     string fn = dir+"scenes_"+levelids[i]+".csv";

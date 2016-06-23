@@ -19,14 +19,14 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__externaldevicecontainer__
-#define __vdcd__externaldevicecontainer__
+#ifndef __vdcd__externalvdc__
+#define __vdcd__externalvdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_EXTERNAL
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 #include "jsoncomm.hpp"
 
@@ -37,7 +37,7 @@ using namespace std;
 namespace p44 {
 
   class ExternalDeviceConnector;
-  class ExternalDeviceContainer;
+  class ExternalVdc;
   class ExternalDevice;
 
 
@@ -47,7 +47,7 @@ namespace p44 {
   class ExternalDevice : public Device
   {
     typedef Device inherited;
-    friend class ExternalDeviceContainer;
+    friend class ExternalVdc;
     friend class ExternalDeviceConnector;
 
     ExternalDeviceConnectorPtr deviceConnector;
@@ -64,10 +64,10 @@ namespace p44 {
 
   public:
 
-    ExternalDevice(DeviceClassContainer *aClassContainerP, ExternalDeviceConnectorPtr aDeviceConnector, string aTag);
+    ExternalDevice(Vdc *aVdcP, ExternalDeviceConnectorPtr aDeviceConnector, string aTag);
     virtual ~ExternalDevice();
 
-    ExternalDeviceContainer &getExternalDeviceContainer();
+    ExternalVdc &getExternalVdc();
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -158,7 +158,7 @@ namespace p44 {
   {
     friend class ExternalDevice;
 
-    ExternalDeviceContainer &externalDeviceContainer;
+    ExternalVdc &externalVdc;
 
     bool simpletext; ///< if set, device communication uses very simple text messages rather than JSON
 
@@ -167,7 +167,7 @@ namespace p44 {
 
   public:
 
-    ExternalDeviceConnector(ExternalDeviceContainer &aExternalDeviceContainer, JsonCommPtr aDeviceConnection);
+    ExternalDeviceConnector(ExternalVdc &aExternalVdc, JsonCommPtr aDeviceConnection);
     virtual ~ExternalDeviceConnector();
 
   private:
@@ -189,23 +189,23 @@ namespace p44 {
   
 
 
-  typedef boost::intrusive_ptr<ExternalDeviceContainer> ExternalDeviceContainerPtr;
-  class ExternalDeviceContainer : public DeviceClassContainer
+  typedef boost::intrusive_ptr<ExternalVdc> ExternalVdcPtr;
+  class ExternalVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
     friend class ExternalDevice;
 
     SocketCommPtr externalDeviceApiServer;
 
   public:
-    ExternalDeviceContainer(int aInstanceNumber, const string &aSocketPathOrPort, bool aNonLocal, DeviceContainer *aDeviceContainerP, int aTag);
+    ExternalVdc(int aInstanceNumber, const string &aSocketPathOrPort, bool aNonLocal, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
-    /// collect devices from this device class
-    /// @param aCompletedCB will be called when device scan for this device class has been completed
+    /// collect devices from this vDC
+    /// @param aCompletedCB will be called when device scan for this vDC has been completed
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// @return human readable, language independent suffix to explain vdc functionality.
@@ -213,11 +213,11 @@ namespace p44 {
     virtual string vdcModelSuffix() { return "external"; }
 
     /// External device container should not be announced when it has no devices
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
-    /// get supported rescan modes for this device class. This indicates (usually to a web-UI) which
-    /// of the flags to collectDevices() make sense for this device class.
+    /// get supported rescan modes for this vDC. This indicates (usually to a web-UI) which
+    /// of the flags to collectDevices() make sense for this vDC.
     /// @return a combination of rescanmode_xxx bits
     virtual int getRescanModes() const { return rescanmode_exhaustive; }; // only exhaustive makes sense
 
@@ -231,4 +231,4 @@ namespace p44 {
 
 
 #endif // ENABLE_EXTERNAL
-#endif // __vdcd__externaldevicecontainer__
+#endif // __vdcd__externalvdc__

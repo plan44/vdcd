@@ -33,7 +33,7 @@ using namespace std;
 
 namespace p44 {
 
-  class HueDeviceContainer;
+  class HueVdc;
   class HueDevice;
   class HueComm;
 
@@ -56,13 +56,13 @@ namespace p44 {
     bool repeatApplyAtEnd;
 
   public:
-    HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor, const string &aUniqueID);
+    HueDevice(HueVdc *aVdcP, const string &aLightID, bool aIsColor, const string &aUniqueID);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "hue"; };
 
-    HueDeviceContainer &hueDeviceContainer();
+    HueVdc &hueVdc();
     HueComm &hueComm();
 
     /// description of object, mainly for debug and logging

@@ -27,7 +27,7 @@ using namespace p44;
 
 
 DeviceSettings::DeviceSettings(Device &aDevice) :
-  inherited(aDevice.getDeviceContainer().getDsParamStore()),
+  inherited(aDevice.getVdc().getDsParamStore()),
   device(aDevice),
   deviceFlags(0),
   zoneID(0)

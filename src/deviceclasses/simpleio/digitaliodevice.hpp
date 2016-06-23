@@ -27,13 +27,13 @@
 #if ENABLE_STATIC
 
 #include "digitalio.hpp"
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class StaticDeviceContainer;
+  class StaticVdc;
   class DigitalIODevice;
   typedef boost::intrusive_ptr<DigitalIODevice> DigitalIODevicePtr;
   class DigitalIODevice : public StaticDevice
@@ -59,7 +59,7 @@ namespace p44 {
     DigitalIoType digitalIoType;
 
   public:
-    DigitalIODevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    DigitalIODevice(StaticVdc *aVdcP, const string &aDeviceConfig);
     
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

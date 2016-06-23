@@ -23,7 +23,7 @@
 
 #if ENABLE_HUE
 
-#include "huedevicecontainer.hpp"
+#include "huevdc.hpp"
 
 using namespace p44;
 
@@ -55,8 +55,8 @@ using namespace p44;
 #pragma mark - HueDevice
 
 
-HueDevice::HueDevice(HueDeviceContainer *aClassContainerP, const string &aLightID, bool aIsColor, const string &aUniqueID) :
-  inherited(aClassContainerP),
+HueDevice::HueDevice(HueVdc *aVdcP, const string &aLightID, bool aIsColor, const string &aUniqueID) :
+  inherited(aVdcP),
   lightID(aLightID),
   uniqueID(aUniqueID),
   pendingApplyCB(NULL),
@@ -98,15 +98,15 @@ string HueDevice::getExtraInfo()
 
 
 
-HueDeviceContainer &HueDevice::hueDeviceContainer()
+HueVdc &HueDevice::hueVdc()
 {
-  return *(static_cast<HueDeviceContainer *>(classContainerP));
+  return *(static_cast<HueVdc *>(vdcP));
 }
 
 
 HueComm &HueDevice::hueComm()
 {
-  return (static_cast<HueDeviceContainer *>(classContainerP))->hueComm;
+  return (static_cast<HueVdc *>(vdcP))->hueComm;
 }
 
 
@@ -486,8 +486,8 @@ void HueDevice::deriveDsUid()
   string s;
   if (uniqueID.empty()) {
     // we don't have an unique ID, identify relative to bridge's UUID
-    s = classContainerP->deviceClassContainerInstanceIdentifier();
-    s += "::" + hueDeviceContainer().bridgeUuid;
+    s = vdcP->vdcInstanceIdentifier();
+    s += "::" + hueVdc().bridgeUuid;
     s += ":" + lightID;
   }
   else {

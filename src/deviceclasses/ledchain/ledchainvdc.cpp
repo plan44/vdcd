@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "ledchaindevicecontainer.hpp"
+#include "ledchainvdc.hpp"
 
 #if ENABLE_LEDCHAIN
 
@@ -60,8 +60,8 @@ string LedChainDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToV
 
 
 
-LedChainDeviceContainer::LedChainDeviceContainer(int aInstanceNumber, int aNumLedsInChain, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
+LedChainVdc::LedChainVdc(int aInstanceNumber, int aNumLedsInChain, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag),
   numLedsInChain(aNumLedsInChain),
   renderStart(0),
   renderEnd(0),
@@ -71,12 +71,12 @@ LedChainDeviceContainer::LedChainDeviceContainer(int aInstanceNumber, int aNumLe
 }
 
 
-void LedChainDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void LedChainVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   ErrorPtr err;
   // initialize database
   string databaseName = getPersistentDataDir();
-  string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   err = db.connectAndInitialize(databaseName.c_str(), LEDCHAINDEVICES_SCHEMA_VERSION, LEDCHAINDEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
   // Initialize chain driver
   ws281xcomm = WS281xCommPtr(new WS281xComm(numLedsInChain));
@@ -90,7 +90,7 @@ void LedChainDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRes
 
 #define MIN_RENDER_INTERVAL (5*MilliSecond)
 
-void LedChainDeviceContainer::triggerRenderingRange(uint16_t aFirst, uint16_t aNum)
+void LedChainVdc::triggerRenderingRange(uint16_t aFirst, uint16_t aNum)
 {
   if (!renderTicket) {
     // no rendering pending, initialize range
@@ -103,12 +103,12 @@ void LedChainDeviceContainer::triggerRenderingRange(uint16_t aFirst, uint16_t aN
     if (aFirst+aNum>renderEnd) renderEnd = aFirst+aNum;
   }
   if (!renderTicket) {
-    renderTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LedChainDeviceContainer::render, this), MIN_RENDER_INTERVAL);
+    renderTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&LedChainVdc::render, this), MIN_RENDER_INTERVAL);
   }
 }
 
 
-Brightness LedChainDeviceContainer::getMinBrightness()
+Brightness LedChainVdc::getMinBrightness()
 {
   // scale up according to scaled down maximum, and make it 0..100
   return ws281xcomm->getMinVisibleColorIntensity()*100.0/(double)maxOutValue;
@@ -125,7 +125,7 @@ static inline void increase(uint8_t &aByte, uint8_t aAmount, uint8_t aMax = 255)
 }
 
 
-void LedChainDeviceContainer::render()
+void LedChainVdc::render()
 {
   renderTicket = 0; // done
   for (uint16_t i=renderStart; i<renderEnd; i++) {
@@ -148,7 +148,7 @@ void LedChainDeviceContainer::render()
 }
 
 
-bool LedChainDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool LedChainVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vdc_rgbchain", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -157,8 +157,8 @@ bool LedChainDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const
 }
 
 
-// device class name
-const char *LedChainDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *LedChainVdc::vdcClassIdentifier() const
 {
   return "LedChain_Device_Container";
 }
@@ -167,13 +167,13 @@ const char *LedChainDeviceContainer::deviceClassIdentifier() const
 // Binary predicate that, taking two values of the same type of those contained in the list,
 // returns true if the first argument goes before the second argument in the strict weak ordering
 // it defines, and false otherwise.
-bool LedChainDeviceContainer::segmentCompare(LedChainDevicePtr aFirst, LedChainDevicePtr aSecond)
+bool LedChainVdc::segmentCompare(LedChainDevicePtr aFirst, LedChainDevicePtr aSecond)
 {
   return aFirst->firstLED < aSecond->firstLED;
 }
 
 
-LedChainDevicePtr LedChainDeviceContainer::addLedChainDevice(uint16_t aFirstLED, uint16_t aNumLEDs, string aDeviceConfig)
+LedChainDevicePtr LedChainVdc::addLedChainDevice(uint16_t aFirstLED, uint16_t aNumLEDs, string aDeviceConfig)
 {
   LedChainDevicePtr newDev;
   newDev = LedChainDevicePtr(new LedChainDevice(this, aFirstLED, aNumLEDs, aDeviceConfig));
@@ -191,7 +191,7 @@ LedChainDevicePtr LedChainDeviceContainer::addLedChainDevice(uint16_t aFirstLED,
 }
 
 
-void LedChainDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
+void LedChainVdc::removeDevice(DevicePtr aDevice, bool aForget)
 {
   LedChainDevicePtr dev = boost::dynamic_pointer_cast<LedChainDevice>(aDevice);
   if (dev) {
@@ -209,7 +209,7 @@ void LedChainDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 }
 
 
-void LedChainDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void LedChainVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
@@ -229,7 +229,7 @@ void LedChainDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrem
 }
 
 
-ErrorPtr LedChainDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr LedChainVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addDevice") {

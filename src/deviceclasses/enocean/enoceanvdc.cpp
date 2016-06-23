@@ -19,15 +19,15 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 
 #if ENABLE_ENOCEAN
 
 using namespace p44;
 
 
-EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag),
+EnoceanVdc::EnoceanVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag),
   learningMode(false),
   selfTesting(false),
   disableProximityCheck(false),
@@ -37,13 +37,13 @@ EnoceanDeviceContainer::EnoceanDeviceContainer(int aInstanceNumber, DeviceContai
 
 
 
-const char *EnoceanDeviceContainer::deviceClassIdentifier() const
+const char *EnoceanVdc::vdcClassIdentifier() const
 {
   return "EnOcean_Bus_Container";
 }
 
 
-bool EnoceanDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool EnoceanVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vdc_enocean", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -94,10 +94,10 @@ string EnoceanPersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion)
 }
 
 
-void EnoceanDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void EnoceanVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
 	string databaseName = getPersistentDataDir();
-	string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+	string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), ENOCEAN_SCHEMA_VERSION, ENOCEAN_SCHEMA_MIN_VERSION, aFactoryReset);
   if (!Error::isOK(error)) {
     // failed DB, no point in starting communication
@@ -114,7 +114,7 @@ void EnoceanDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRese
 
 #pragma mark - collect devices
 
-void EnoceanDeviceContainer::removeDevices(bool aForget)
+void EnoceanVdc::removeDevices(bool aForget)
 {
   inherited::removeDevices(aForget);
   enoceanDevices.clear();
@@ -122,11 +122,11 @@ void EnoceanDeviceContainer::removeDevices(bool aForget)
 
 
 
-void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void EnoceanVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // install standard packet handler
-  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleRadioPacket, this, _1, _2));
-  enoceanComm.setEventPacketHandler(boost::bind(&EnoceanDeviceContainer::handleEventPacket, this, _1, _2));
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanVdc::handleRadioPacket, this, _1, _2));
+  enoceanComm.setEventPacketHandler(boost::bind(&EnoceanVdc::handleEventPacket, this, _1, _2));
   // incrementally collecting EnOcean devices makes no sense as the set of devices is defined by learn-in (DB state)
   if (!aIncremental) {
     // start with zero
@@ -161,7 +161,7 @@ void EnoceanDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncreme
 }
 
 
-bool EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
+bool EnoceanVdc::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
 {
   if (inherited::addDevice(aEnoceanDevice)) {
     // not a duplicate, actually added - add to my own list
@@ -173,7 +173,7 @@ bool EnoceanDeviceContainer::addKnownDevice(EnoceanDevicePtr aEnoceanDevice)
 
 
 
-bool EnoceanDeviceContainer::addAndRememberDevice(EnoceanDevicePtr aEnoceanDevice)
+bool EnoceanVdc::addAndRememberDevice(EnoceanDevicePtr aEnoceanDevice)
 {
   if (addKnownDevice(aEnoceanDevice)) {
     // save enocean ID to DB
@@ -191,7 +191,7 @@ bool EnoceanDeviceContainer::addAndRememberDevice(EnoceanDevicePtr aEnoceanDevic
 }
 
 
-void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
+void EnoceanVdc::removeDevice(DevicePtr aDevice, bool aForget)
 {
   EnoceanDevicePtr ed = boost::dynamic_pointer_cast<EnoceanDevice>(aDevice);
   if (ed) {
@@ -211,7 +211,7 @@ void EnoceanDeviceContainer::removeDevice(DevicePtr aDevice, bool aForget)
 }
 
 
-void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams, EnoceanSubDevice aFromIndex, EnoceanSubDevice aNumIndices)
+void EnoceanVdc::unpairDevicesByAddress(EnoceanAddress aEnoceanAddress, bool aForgetParams, EnoceanSubDevice aFromIndex, EnoceanSubDevice aNumIndices)
 {
   // remove all logical devices with same physical EnOcean address
   typedef list<EnoceanDevicePtr> TbdList;
@@ -234,7 +234,7 @@ void EnoceanDeviceContainer::unpairDevicesByAddress(EnoceanAddress aEnoceanAddre
 #pragma mark - EnOcean specific methods
 
 
-ErrorPtr EnoceanDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr EnoceanVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addProfile") {
@@ -253,7 +253,7 @@ ErrorPtr EnoceanDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const s
 
 
 
-ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+ErrorPtr EnoceanVdc::addProfile(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   // add an EnOcean profile
   ErrorPtr respErr;
@@ -313,7 +313,7 @@ ErrorPtr EnoceanDeviceContainer::addProfile(VdcApiRequestPtr aRequest, ApiValueP
 }
 
 
-ErrorPtr EnoceanDeviceContainer::simulatePacket(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
+ErrorPtr EnoceanVdc::simulatePacket(VdcApiRequestPtr aRequest, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   ApiValuePtr o;
@@ -357,7 +357,7 @@ ErrorPtr EnoceanDeviceContainer::simulatePacket(VdcApiRequestPtr aRequest, ApiVa
 // -50 = for v2 bridge 223: very close to device, about 10-20cm
 // -55 = for v2 bridge 223: within approx one meter of the TCM310
 
-Tristate EnoceanDeviceContainer::processLearn(EnoceanAddress aDeviceAddress, EnoceanProfile aEEProfile, EnoceanManufacturer aManufacturer)
+Tristate EnoceanVdc::processLearn(EnoceanAddress aDeviceAddress, EnoceanProfile aEEProfile, EnoceanManufacturer aManufacturer)
 {
   // no learn/unlearn actions detected so far
   // - check if we know that device address already. If so, it is a learn-out
@@ -368,7 +368,7 @@ Tristate EnoceanDeviceContainer::processLearn(EnoceanAddress aDeviceAddress, Eno
     if (numNewDevices>0) {
       // successfully learned at least one device
       // - update learn status (device learned)
-      getDeviceContainer().reportLearnEvent(true, ErrorPtr());
+      getVdc().reportLearnEvent(true, ErrorPtr());
       return yes; // learned in
     }
     return undefined; // failure - could not learn a device with this profile
@@ -377,13 +377,13 @@ Tristate EnoceanDeviceContainer::processLearn(EnoceanAddress aDeviceAddress, Eno
     // device learned out, un-pair all logical dS devices it has represented
     // but keep dS level config in case it is reconnected
     unpairDevicesByAddress(aDeviceAddress, false);
-    getDeviceContainer().reportLearnEvent(false, ErrorPtr());
+    getVdc().reportLearnEvent(false, ErrorPtr());
     return no; // always successful learn out
   }
 }
 
 
-void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanVdc::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (aError) {
     LOG(LOG_INFO, "Radio packet error: %s", aError->description().c_str());
@@ -418,7 +418,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
         // learning packet in non-learn mode -> report as non-regular user action, might be attempt to identify a device
         // Note: RPS devices are excluded because for these all telegrams are regular user actions.
         // signalDeviceUserAction() will be called from button and binary input behaviours
-        if (getDeviceContainer().signalDeviceUserAction(*(pos->second), false)) {
+        if (getVdc().signalDeviceUserAction(*(pos->second), false)) {
           // consumed for device identification purposes, suppress further processing
           break;
         }
@@ -436,7 +436,7 @@ void EnoceanDeviceContainer::handleRadioPacket(Esp3PacketPtr aEsp3PacketPtr, Err
 
 #define SMART_ACK_RESPONSE_TIME_MS 100
 
-void EnoceanDeviceContainer::handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanVdc::handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   if (aError) {
     LOG(LOG_INFO, "Event packet error: %s", aError->description().c_str());
@@ -521,7 +521,7 @@ void EnoceanDeviceContainer::handleEventPacket(Esp3PacketPtr aEsp3PacketPtr, Err
 
 
 
-void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
+void EnoceanVdc::setLearnMode(bool aEnableLearning, bool aDisableProximityCheck)
 {
   // put normal radio packet evaluator into learn mode
   learningMode = aEnableLearning;
@@ -533,16 +533,16 @@ void EnoceanDeviceContainer::setLearnMode(bool aEnableLearning, bool aDisablePro
 
 #pragma mark - Self test
 
-void EnoceanDeviceContainer::selfTest(StatusCB aCompletedCB)
+void EnoceanVdc::selfTest(StatusCB aCompletedCB)
 {
   // install test packet handler
-  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanDeviceContainer::handleTestRadioPacket, this, aCompletedCB, _1, _2));
+  enoceanComm.setRadioPacketHandler(boost::bind(&EnoceanVdc::handleTestRadioPacket, this, aCompletedCB, _1, _2));
   // start watchdog
   enoceanComm.initialize(NULL);
 }
 
 
-void EnoceanDeviceContainer::handleTestRadioPacket(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
+void EnoceanVdc::handleTestRadioPacket(StatusCB aCompletedCB, Esp3PacketPtr aEsp3PacketPtr, ErrorPtr aError)
 {
   // ignore packets with error
   if (Error::isOK(aError)) {

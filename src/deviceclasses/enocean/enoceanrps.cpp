@@ -38,8 +38,8 @@ using namespace p44;
 
 #pragma mark - EnoceanRPSDevice
 
-EnoceanRPSDevice::EnoceanRPSDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
+EnoceanRPSDevice::EnoceanRPSDevice(EnoceanVdc *aVdcP) :
+  inherited(aVdcP)
 {
 }
 
@@ -70,7 +70,7 @@ const ProfileVariantEntry *EnoceanRPSDevice::profileVariantsTable()
 
 
 EnoceanDevicePtr EnoceanRPSDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -87,7 +87,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
       // Custom variant: up and down are treated as separate buttons -> max 4 or 8 dsDevices
       if (aSubDeviceIndex<numSubDevices) {
         // create EnoceanRPSDevice device
-        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
         // standard device settings without scene table
         newDev->installSettings();
         // assign channel and address
@@ -119,7 +119,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
       // Standard: Up+Down together form a  2-way rocker
       if (aSubDeviceIndex<numSubDevices) {
         // create EnoceanRPSDevice device
-        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+        newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
         // standard device settings without scene table
         newDev->installSettings();
         // assign channel and address
@@ -162,7 +162,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
     // F6-10-00/01 : Window handle = single device
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address
@@ -215,7 +215,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
     // Note: F6-04-C0 is custom pseudo-EEP for not officially defined Eltako FKC/FKF card switches
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address
@@ -255,7 +255,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
     // F6-05-01 - Liquid Leakage Detector
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address
@@ -285,7 +285,7 @@ EnoceanDevicePtr EnoceanRPSDevice::newDevice(
     // F6-05-C0 - custom pseudo-EEP for not yet defined smoke alarm profile (Eltako FRW and alphaEOS GUARD)
     if (aSubDeviceIndex<1) {
       // create EnoceanRPSDevice device
-      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aClassContainerP));
+      newDev = EnoceanDevicePtr(new EnoceanRPSDevice(aVdcP));
       // standard device settings without scene table
       newDev->installSettings();
       // assign channel and address

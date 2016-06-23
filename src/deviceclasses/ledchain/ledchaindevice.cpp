@@ -34,8 +34,8 @@ using namespace p44;
 #pragma mark - LedChainDevice
 
 
-LedChainDevice::LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16_t aFirstLED, uint16_t aNumLEDs, const string &aDeviceConfig) :
-  inherited(aClassContainerP),
+LedChainDevice::LedChainDevice(LedChainVdc *aVdcP, uint16_t aFirstLED, uint16_t aNumLEDs, const string &aDeviceConfig) :
+  inherited(aVdcP),
   firstLED(aFirstLED),
   numLEDs(aNumLEDs),
   transitionTicket(0),
@@ -86,7 +86,7 @@ LedChainDevice::LedChainDevice(LedChainDeviceContainer *aClassContainerP, uint16
   // - add multi-channel color light behaviour (which adds a number of auxiliary channels)
   RGBColorLightBehaviourPtr l = RGBColorLightBehaviourPtr(new RGBColorLightBehaviour(*this));
   // - set minimum brightness
-  l->initMinBrightness(getLedChainDeviceContainer().getMinBrightness());
+  l->initMinBrightness(getLedChainVdc().getMinBrightness());
   addBehaviour(l);
   // - create dSUID
   deriveDsUid();
@@ -99,9 +99,9 @@ bool LedChainDevice::isSoftwareDisconnectable()
   return true; // these are always software disconnectable
 }
 
-LedChainDeviceContainer &LedChainDevice::getLedChainDeviceContainer()
+LedChainVdc &LedChainDevice::getLedChainVdc()
 {
-  return *(static_cast<LedChainDeviceContainer *>(classContainerP));
+  return *(static_cast<LedChainVdc *>(vdcP));
 }
 
 
@@ -109,7 +109,7 @@ void LedChainDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResu
 {
   // clear learn-in data from DB
   if (ledChainDeviceRowID) {
-    getLedChainDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", ledChainDeviceRowID);
+    getLedChainVdc().db.executef("DELETE FROM devConfigs WHERE rowid=%d", ledChainDeviceRowID);
   }
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
@@ -150,7 +150,7 @@ void LedChainDevice::applyChannelValueSteps(bool aForDimming, double aStepSize)
   // RGB lamp, get components for rendering loop
   cl->getRGB(r, g, b, 255); // get brightness per R,G,B channel
   // trigger rendering the LEDs soon
-  getLedChainDeviceContainer().triggerRenderingRange(firstLED, numLEDs);
+  getLedChainVdc().triggerRenderingRange(firstLED, numLEDs);
   // next step
   if (cl->colorTransitionStep(aStepSize)) {
     ALOG(LOG_DEBUG, "LED chain transitional values R=%d, G=%d, B=%d", (int)r, (int)g, (int)b);
@@ -198,7 +198,7 @@ void LedChainDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::ledchainType:firstLED:lastLED
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   string_format_append(s, "%d:%d:%d", ledchainType, firstLED, numLEDs);
   dSUID.setNameInSpace(s, vdcNamespace);
 }

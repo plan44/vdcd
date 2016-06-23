@@ -26,7 +26,7 @@
 
 #if ENABLE_VZUGHOME
 
-#include "vzughomedevicecontainer.hpp"
+#include "vzughomevdc.hpp"
 
 #include "binaryinputbehaviour.hpp"
 #include "sensorbehaviour.hpp"
@@ -46,7 +46,7 @@ namespace p44 {
 
   typedef map<string, string> StringStringMap;
 
-  class VZugHomeDeviceContainer;
+  class VZugHomeVdc;
 
 
   class VZugHomeDeviceSettings : public CmdSceneDeviceSettings
@@ -89,7 +89,7 @@ namespace p44 {
   class VZugHomeDevice : public Device
   {
     typedef Device inherited;
-    friend class VZugHomeDeviceContainer;
+    friend class VZugHomeVdc;
 
     VZugHomeComm vzugHomeComm;
     string modelId;
@@ -119,7 +119,7 @@ namespace p44 {
 
   public:
 
-    VZugHomeDevice(VZugHomeDeviceContainer *aClassContainerP, const string aBaseURL);
+    VZugHomeDevice(VZugHomeVdc *aVdcP, const string aBaseURL);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -145,7 +145,7 @@ namespace p44 {
 
     /// @}
 
-    VZugHomeDeviceContainer &getVZugHomeDeviceContainer();
+    VZugHomeVdc &getVZugHomeVdc();
 
     /// description of object, mainly for debug and logging
     /// @return textual description of object

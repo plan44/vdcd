@@ -19,16 +19,16 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 
 #include "device.hpp"
 
 using namespace p44;
 
 
-DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  inherited(aDeviceContainerP),
-  inheritedParams(aDeviceContainerP->getDsParamStore()),
+Vdc::Vdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  inherited(aVdcHostP),
+  inheritedParams(aVdcHostP->getDsParamStore()),
   instanceNumber(aInstanceNumber),
   defaultZoneID(0),
   vdcFlags(0),
@@ -38,25 +38,25 @@ DeviceClassContainer::DeviceClassContainer(int aInstanceNumber, DeviceContainer 
 
 
 
-string DeviceClassContainer::modelUID()
+string Vdc::modelUID()
 {
-  // use device class identifier as modelID
+  // use vDC identifier as modelID
   DsUid vdcNamespace(DSUID_P44VDC_MODELUID_UUID);
   // now make UUIDv5 type dSUID out of it
   DsUid modelUID;
-  modelUID.setNameInSpace(deviceClassIdentifier(), vdcNamespace);
+  modelUID.setNameInSpace(vdcClassIdentifier(), vdcNamespace);
   return modelUID.getString();
 }
 
 
-string DeviceClassContainer::getName()
+string Vdc::getName()
 {
   if (inherited::getName().empty()) {
     // no name set for this vdc
     // - check if vdc host has a name
-    if (!getDeviceContainer().getName().empty()) {
+    if (!getVdc().getName().empty()) {
       // there is a custom name set for the entire vdc host, use it as base for default names
-      return string_format("%s %s", getDeviceContainer().getName().c_str(), vdcModelSuffix().c_str());
+      return string_format("%s %s", getVdc().getName().c_str(), vdcModelSuffix().c_str());
     }
   }
   // just use assigned name
@@ -64,7 +64,7 @@ string DeviceClassContainer::getName()
 }
 
 
-void DeviceClassContainer::setName(const string &aName)
+void Vdc::setName(const string &aName)
 {
   if (aName!=getAssignedName()) {
     // has changed
@@ -75,18 +75,18 @@ void DeviceClassContainer::setName(const string &aName)
 }
 
 
-ErrorPtr DeviceClassContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr Vdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-collectDevices") {
-    // (re)collect devices of this particular device class
+    // (re)collect devices of this particular vDC
     bool incremental = true;
     bool exhaustive = false;
     bool clear = false;
     checkBoolParam(aParams, "incremental", incremental);
     checkBoolParam(aParams, "exhaustive", exhaustive);
     checkBoolParam(aParams, "clear", clear);
-    collectDevices(boost::bind(&DeviceClassContainer::collectDevicesMethodComplete, this, aRequest, _1), incremental, exhaustive, clear);
+    collectDevices(boost::bind(&Vdc::collectDevicesMethodComplete, this, aRequest, _1), incremental, exhaustive, clear);
   }
   else {
     respErr = inherited::handleMethod(aRequest, aMethod, aParams);
@@ -95,7 +95,7 @@ ErrorPtr DeviceClassContainer::handleMethod(VdcApiRequestPtr aRequest, const str
 }
 
 
-void DeviceClassContainer::collectDevicesMethodComplete(VdcApiRequestPtr aRequest, ErrorPtr aError)
+void Vdc::collectDevicesMethodComplete(VdcApiRequestPtr aRequest, ErrorPtr aError)
 {
   // devices re-collected, return ok (empty response)
   if (Error::isOK(aError)) {
@@ -110,61 +110,61 @@ void DeviceClassContainer::collectDevicesMethodComplete(VdcApiRequestPtr aReques
 
 
 
-void DeviceClassContainer::addClassToDeviceContainer()
+void Vdc::addVdcToVdcHost()
 {
   // derive dSUID first, as it will be mapped by dSUID in the device container 
   deriveDsUid();
   // add to container
-  getDeviceContainer().addDeviceClassContainer(DeviceClassContainerPtr(this));
+  getVdc().addVdc(VdcPtr(this));
 }
 
 
 
 
-void DeviceClassContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void Vdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // done
 	aCompletedCB(ErrorPtr()); // default to error-free initialisation
 }
 
 
-void DeviceClassContainer::selfTest(StatusCB aCompletedCB)
+void Vdc::selfTest(StatusCB aCompletedCB)
 {
   // by default, assume everything ok
   aCompletedCB(ErrorPtr());
 }
 
 
-const char *DeviceClassContainer::getPersistentDataDir()
+const char *Vdc::getPersistentDataDir()
 {
 	return deviceContainerP->getPersistentDataDir();
 }
 
 
-int DeviceClassContainer::getInstanceNumber() const
+int Vdc::getInstanceNumber() const
 {
 	return instanceNumber;
 }
 
 
-void DeviceClassContainer::deriveDsUid()
+void Vdc::deriveDsUid()
 {
   // class containers have v5 UUIDs based on the device container's master UUID as namespace
-  string name = string_format("%s.%d", deviceClassIdentifier(), getInstanceNumber()); // name is class identifier plus instance number: classID.instNo
-  dSUID.setNameInSpace(name, getDeviceContainer().dSUID); // domain is dSUID of device container
+  string name = string_format("%s.%d", vdcClassIdentifier(), getInstanceNumber()); // name is class identifier plus instance number: classID.instNo
+  dSUID.setNameInSpace(name, getVdc().dSUID); // domain is dSUID of device container
 }
 
 
-string DeviceClassContainer::deviceClassContainerInstanceIdentifier() const
+string Vdc::vdcInstanceIdentifier() const
 {
-  string s(deviceClassIdentifier());
+  string s(vdcClassIdentifier());
   string_format_append(s, ".%d@", getInstanceNumber());
   s.append(deviceContainerP->dSUID.getString());
   return s;
 }
 
 
-bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool Vdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vdc", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -173,7 +173,7 @@ bool DeviceClassContainer::getDeviceIcon(string &aIcon, bool aWithData, const ch
 }
 
 
-string DeviceClassContainer::vendorName()
+string Vdc::vendorName()
 {
   // default to same vendor as vdc host (device container)
   return deviceContainerP->vendorName();
@@ -182,7 +182,7 @@ string DeviceClassContainer::vendorName()
 
 
 // add a device
-bool DeviceClassContainer::addDevice(DevicePtr aDevice)
+bool Vdc::addDevice(DevicePtr aDevice)
 {
   // let device consider its internal structure and dSUID for the last time
   aDevice->willBeAdded();
@@ -200,7 +200,7 @@ bool DeviceClassContainer::addDevice(DevicePtr aDevice)
 
 
 // remove a device
-void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
+void Vdc::removeDevice(DevicePtr aDevice, bool aForget)
 {
 	// find and remove from my list.
 	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
@@ -214,7 +214,7 @@ void DeviceClassContainer::removeDevice(DevicePtr aDevice, bool aForget)
 }
 
 
-void DeviceClassContainer::removeDevices(bool aForget)
+void Vdc::removeDevices(bool aForget)
 {
 	for (DeviceVector::iterator pos = devices.begin(); pos!=devices.end(); ++pos) {
     DevicePtr dev = *pos;
@@ -232,7 +232,7 @@ void DeviceClassContainer::removeDevices(bool aForget)
 #pragma mark - persistent vdc level params
 
 
-ErrorPtr DeviceClassContainer::load()
+ErrorPtr Vdc::load()
 {
   ErrorPtr err;
   // load the vdc settings
@@ -243,7 +243,7 @@ ErrorPtr DeviceClassContainer::load()
 }
 
 
-ErrorPtr DeviceClassContainer::save()
+ErrorPtr Vdc::save()
 {
   ErrorPtr err;
   // save the vdc settings
@@ -252,7 +252,7 @@ ErrorPtr DeviceClassContainer::save()
 }
 
 
-ErrorPtr DeviceClassContainer::forget()
+ErrorPtr Vdc::forget()
 {
   // delete the vdc settings
   deleteFromStore();
@@ -260,17 +260,17 @@ ErrorPtr DeviceClassContainer::forget()
 }
 
 
-void DeviceClassContainer::loadSettingsFromFiles()
+void Vdc::loadSettingsFromFiles()
 {
-  string dir = getDeviceContainer().getPersistentDataDir();
+  string dir = getVdc().getPersistentDataDir();
   const int numLevels = 2;
   string levelids[numLevels];
   // Level strategy: most specialized will be active, unless lower levels specify explicit override
   // - Baselines are hardcoded defaults plus settings (already) loaded from persistent store
   // - Level 0 are settings related to the device instance (dSUID)
-  // - Level 1 are settings related to the device class (deviceClassIdentifier())
+  // - Level 1 are settings related to the vDC (vdcClassIdentifier())
   levelids[0] = getDsUid().getString();
-  levelids[1] = deviceClassIdentifier();
+  levelids[1] = vdcClassIdentifier();
   for(int i=0; i<numLevels; ++i) {
     // try to open config file
     string fn = dir+"vdcsettings_"+levelids[i]+".csv";
@@ -306,7 +306,7 @@ enum {
 
 
 
-int DeviceClassContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
+int Vdc::numProps(int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
     return (int)devices.size();
@@ -318,7 +318,7 @@ int DeviceClassContainer::numProps(int aDomain, PropertyDescriptorPtr aParentDes
 }
 
 
-PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+PropertyDescriptorPtr Vdc::getDescriptorByName(string aPropMatch, int &aStartIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(device_container_key)) {
     // accessing one of the devices by numeric index
@@ -332,7 +332,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByName(string aPropMatc
 }
 
 
-PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
+PropertyContainerPtr Vdc::getContainer(PropertyDescriptorPtr &aPropertyDescriptor, int &aDomain)
 {
   if (aPropertyDescriptor->isArrayContainer()) {
     // local container
@@ -351,7 +351,7 @@ PropertyContainerPtr DeviceClassContainer::getContainer(PropertyDescriptorPtr &a
 
 
 // note: is only called when getDescriptorByName does not resolve the name
-PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
+PropertyDescriptorPtr Vdc::getDescriptorByIndex(int aPropIndex, int aDomain, PropertyDescriptorPtr aParentDescriptor)
 {
   if (aParentDescriptor && aParentDescriptor->hasObjectKey(capabilities_container_key)) {
     // capabilities level
@@ -382,7 +382,7 @@ PropertyDescriptorPtr DeviceClassContainer::getDescriptorByIndex(int aPropIndex,
 
 
 
-bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
+bool Vdc::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)
 {
   if (aPropertyDescriptor->hasObjectKey(deviceclass_key)) {
     // vdc level properties
@@ -396,7 +396,7 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
           aPropValue->setUint16Value(defaultZoneID);
           return true;
         case deviceclassidentifier_key:
-          aPropValue->setStringValue(deviceClassIdentifier());
+          aPropValue->setStringValue(vdcClassIdentifier());
           return true;
         case instancenumber_key:
           aPropValue->setUint32Value(getInstanceNumber());
@@ -431,7 +431,7 @@ bool DeviceClassContainer::accessField(PropertyAccessMode aMode, ApiValuePtr aPr
 #pragma mark - persistence implementation
 
 // SQLIte3 table name to store these parameters to
-const char *DeviceClassContainer::tableName()
+const char *Vdc::tableName()
 {
   return "VdcSettings";
 }
@@ -441,13 +441,13 @@ const char *DeviceClassContainer::tableName()
 
 static const size_t numFields = 3;
 
-size_t DeviceClassContainer::numFieldDefs()
+size_t Vdc::numFieldDefs()
 {
   return inheritedParams::numFieldDefs()+numFields;
 }
 
 
-const FieldDefinition *DeviceClassContainer::getFieldDef(size_t aIndex)
+const FieldDefinition *Vdc::getFieldDef(size_t aIndex)
 {
   static const FieldDefinition dataDefs[numFields] = {
     { "vdcFlags", SQLITE_INTEGER },
@@ -464,7 +464,7 @@ const FieldDefinition *DeviceClassContainer::getFieldDef(size_t aIndex)
 
 
 /// load values from passed row
-void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
+void Vdc::loadFromRow(sqlite3pp::query::iterator &aRow, int &aIndex, uint64_t *aCommonFlagsP)
 {
   inheritedParams::loadFromRow(aRow, aIndex, aCommonFlagsP);
   // get the field value
@@ -475,7 +475,7 @@ void DeviceClassContainer::loadFromRow(sqlite3pp::query::iterator &aRow, int &aI
 
 
 // bind values to passed statement
-void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
+void Vdc::bindToStatement(sqlite3pp::statement &aStatement, int &aIndex, const char *aParentIdentifier, uint64_t aCommonFlags)
 {
   inheritedParams::bindToStatement(aStatement, aIndex, aParentIdentifier, aCommonFlags);
   // bind the fields
@@ -487,9 +487,9 @@ void DeviceClassContainer::bindToStatement(sqlite3pp::statement &aStatement, int
 #pragma mark - description/shortDesc
 
 
-string DeviceClassContainer::description()
+string Vdc::description()
 {
-  string d = string_format("%s #%d: %s (%ld devices)", deviceClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
+  string d = string_format("%s #%d: %s (%ld devices)", vdcClassIdentifier(), getInstanceNumber(), shortDesc().c_str(), (long)devices.size());
   return d;
 }
 

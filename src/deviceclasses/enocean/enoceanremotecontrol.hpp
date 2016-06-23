@@ -50,7 +50,7 @@ namespace p44 {
 
     /// constructor
     /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
-    EnoceanRemoteControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
+    EnoceanRemoteControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep = 1);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -67,7 +67,7 @@ namespace p44 {
     virtual void markUsedBaseOffsets(string &aUsedOffsetsMap);
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
-    /// @param aClassContainerP the class container
+    /// @param aVdcP the class container
     /// @param aSubDeviceIndex subdevice number (multiple logical EnoceanDevices might exists for the same EnoceanAddress)
     ///   upon exit, this will be incremented by the number of subdevice indices the device occupies in the index space
     ///   (usually 1, but some profiles might reserve extra space, such as up/down buttons)
@@ -76,7 +76,7 @@ namespace p44 {
     /// @param aSendTeachInResponse enable sending teach-in response for this device
     /// @return returns NULL if no device can be created for the given aSubDeviceIndex, new device otherwise
     static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanVdc *aVdcP,
       EnoceanAddress aAddress,
       EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -110,7 +110,7 @@ namespace p44 {
 
     /// constructor
     /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
-    EnoceanRelayControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
+    EnoceanRelayControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep = 1);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)
@@ -138,7 +138,7 @@ namespace p44 {
 
     /// constructor
     /// @param aDsuidIndexStep step between dSUID subdevice indices (default is 1, historically 2 for dual 2-way rocker switches)
-    EnoceanBlindControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep = 1);
+    EnoceanBlindControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep = 1);
 
     /// device type identifier
     /// @return constant identifier for this type of device (one container might contain more than one type)

@@ -32,7 +32,7 @@
 
 #include "shadowbehaviour.hpp"
 #include "lightbehaviour.hpp"
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 
 using namespace p44;
 
@@ -41,8 +41,8 @@ using namespace p44;
 #define TEACH_IN_TIME (300*MilliSecond) // how long the teach-in simulated button press should last
 
 
-EnoceanRemoteControlDevice::EnoceanRemoteControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
-  inherited(aClassContainerP)
+EnoceanRemoteControlDevice::EnoceanRemoteControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep) :
+  inherited(aVdcP)
 {
 }
 
@@ -86,7 +86,7 @@ void EnoceanRemoteControlDevice::buttonAction(bool aRight, bool aUp, bool aPress
     packet->setRadioStatus(status_T21); // released
   }
   packet->setRadioSender(getAddress()); // my own ID base derived address that is learned into this actor
-  getEnoceanDeviceContainer().enoceanComm.sendCommand(packet, NULL);
+  getEnoceanVdc().enoceanComm.sendCommand(packet, NULL);
 }
 
 
@@ -118,7 +118,7 @@ void EnoceanRemoteControlDevice::markUsedBaseOffsets(string &aUsedOffsetsMap)
 
 
 EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -131,7 +131,7 @@ EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
       // device using F6 RPS messages to control actors
       if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_ON_OFF) {
         // simple on/off relay device
-        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aClassContainerP));
+        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aVdcP));
         // standard single-value scene table (SimpleScene)
         newDev->installSettings(DeviceSettingsPtr(new SceneDeviceSettings(*newDev)));
         // assign channel and address
@@ -156,7 +156,7 @@ EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
       }
       else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_SWITCHED_LIGHT) {
         // simple on/off relay device
-        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aClassContainerP));
+        newDev = EnoceanDevicePtr(new EnoceanRelayControlDevice(aVdcP));
         // light device scene
         newDev->installSettings(DeviceSettingsPtr(new LightDeviceSettings(*newDev)));
         // assign channel and address
@@ -179,7 +179,7 @@ EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
       }
       else if (EEP_TYPE(aEEProfile)==PSEUDO_TYPE_BLIND) {
         // full-featured blind controller
-        newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aClassContainerP));
+        newDev = EnoceanDevicePtr(new EnoceanBlindControlDevice(aVdcP));
         // standard single-value scene table (SimpleScene) with Shadow defaults
         newDev->installSettings(DeviceSettingsPtr(new ShadowDeviceSettings(*newDev)));
         // assign channel and address
@@ -215,8 +215,8 @@ EnoceanDevicePtr EnoceanRemoteControlDevice::newDevice(
 #pragma mark - relay device
 
 
-EnoceanRelayControlDevice::EnoceanRelayControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
-  inherited(aClassContainerP, aDsuidIndexStep)
+EnoceanRelayControlDevice::EnoceanRelayControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep) :
+  inherited(aVdcP, aDsuidIndexStep)
 {
 }
 
@@ -253,8 +253,8 @@ void EnoceanRelayControlDevice::sendReleaseTelegram(SimpleCB aDoneCB, bool aUp)
 #pragma mark - time controlled blind device
 
 
-EnoceanBlindControlDevice::EnoceanBlindControlDevice(EnoceanDeviceContainer *aClassContainerP, uint8_t aDsuidIndexStep) :
-  inherited(aClassContainerP, aDsuidIndexStep),
+EnoceanBlindControlDevice::EnoceanBlindControlDevice(EnoceanVdc *aVdcP, uint8_t aDsuidIndexStep) :
+  inherited(aVdcP, aDsuidIndexStep),
   movingDirection(0),
   commandTicket(0),
   missedUpdate(false)

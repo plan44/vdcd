@@ -42,13 +42,13 @@ namespace p44 {
 
   /// base class representing a virtual digitalSTROM device.
   /// For each type of subsystem (EnOcean, DALI, ...) this class is subclassed to implement
-  /// the device class' specifics, in particular the interface with the hardware.
+  /// the vDC' specifics, in particular the interface with the hardware.
   class Device : public DsAddressable
   {
     typedef DsAddressable inherited;
 
-    friend class DeviceContainer;
-    friend class DeviceClassCollector;
+    friend class VdcHost;
+    friend class VdcCollector;
     friend class DsBehaviour;
     friend class DsScene;
     friend class SceneChannels;
@@ -58,7 +58,7 @@ namespace p44 {
   protected:
 
     /// the class container
-    DeviceClassContainer *classContainerP;
+    Vdc *vdcP;
 
     /// @name behaviours
     /// @{
@@ -99,7 +99,7 @@ namespace p44 {
     long serializerWatchdogTicket; ///< watchdog terminating non-responding hardware requests
 
   public:
-    Device(DeviceClassContainer *aClassContainerP);
+    Device(Vdc *aVdcP);
     virtual ~Device();
 
     /// @name identification and invariable properties of the device (can be overriden in subclasses)
@@ -172,7 +172,7 @@ namespace p44 {
     virtual void setName(const string &aName);
 
     /// get reference to device container
-    DeviceContainer &getDeviceContainer() { return classContainerP->getDeviceContainer(); };
+    VdcHost &getVdc() { return vdcP->getVdc(); };
 
     /// install specific or standard device settings
     /// @param aDeviceSettings specific device settings, if NULL, standard minimal settings will be used

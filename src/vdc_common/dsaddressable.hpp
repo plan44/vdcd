@@ -44,7 +44,7 @@ namespace p44 {
   #define VDC_API_DOMAIN 0x0000
   #define VDC_CFG_DOMAIN 0x1000
 
-  class DeviceContainer;
+  class VdcHost;
 
   /// base class representing a entity which is addressable with a dSUID
   /// dS devices are most obvious addressables, but vDCs and the vDC host itself is also addressable and uses this base class
@@ -52,7 +52,7 @@ namespace p44 {
   {
     typedef PropertyContainer inherited;
 
-    friend class DeviceContainer;
+    friend class VdcHost;
 
     /// the user-assignable name
     string name;
@@ -62,20 +62,20 @@ namespace p44 {
     MLMicroSeconds announcing; ///< set when announcement has been started (but not yet confirmed)
 
   protected:
-    DeviceContainer *deviceContainerP;
+    VdcHost *deviceContainerP;
 
     /// the actual (modern) dSUID
     DsUid dSUID;
 
   public:
-    DsAddressable(DeviceContainer *aDeviceContainerP);
+    DsAddressable(VdcHost *aVdcHostP);
     virtual ~DsAddressable();
 
     /// the real (always modern, 34 hex) dSUID
     const DsUid &getDsUid() { return dSUID; };
 
     /// get reference to device container
-    DeviceContainer &getDeviceContainer() { return *deviceContainerP; };
+    VdcHost &getVdc() { return *deviceContainerP; };
 
     /// get user assigned name of the addressable
     /// @return name string
@@ -132,7 +132,7 @@ namespace p44 {
     /// @return returns error if not parameter named aParamName exists in aParams
     static ErrorPtr checkDsuidParam(ApiValuePtr aParams, const char *aParamName, DsUid &aDsUid);
 
-    /// called by DeviceContainer to handle methods directed to a dSUID
+    /// called by VdcHost to handle methods directed to a dSUID
     /// @param aRequest this is the request to respond to
     /// @param aMethod the method
     /// @param aParams the parameters object
@@ -145,7 +145,7 @@ namespace p44 {
     ///   used already to route the method call to this DsAddressable.
     virtual ErrorPtr handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams);
 
-    /// called by DeviceContainer to handle notifications directed to a dSUID
+    /// called by VdcHost to handle notifications directed to a dSUID
     /// @param aMethod the notification
     /// @param aParams the parameters object
     /// @note the parameters object always contains the dSUID parameter which has been
@@ -287,7 +287,7 @@ namespace p44 {
     /// @param aWithData if set, aIcon will be set to the icon's PNG data, otherwise aIcon will be set to the icon name
     /// @param aResolutionPrefix subfolder within icondir to look for files. Usually "icon16".
     /// @return true if icon data or name could be obtained, false otherwise
-    /// @note when icondir (in devicecontainer) is set, the method will check in this dir if a file with aIconName exists
+    /// @note when icondir (in vdchost) is set, the method will check in this dir if a file with aIconName exists
     ///   in the subdirectory specified by aResolutionPrefix - even if only querying for icon name. This allows for
     ///   implementations of getDeviceIcon to start with the most specific icon name, and falling back to more
     ///   generic icons defined by superclass when specific icons don't exist.

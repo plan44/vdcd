@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "vzughomedevicecontainer.hpp"
+#include "vzughomevdc.hpp"
 
 #if ENABLE_VZUGHOME
 
@@ -32,13 +32,13 @@ using namespace p44;
 #pragma mark - DB and initialisation
 
 
-VZugHomeDeviceContainer::VZugHomeDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
+VZugHomeVdc::VZugHomeVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag)
 {
 }
 
 
-void VZugHomeDeviceContainer::addVzugApiBaseURLs(const string aVzugApiBaseURLs)
+void VZugHomeVdc::addVzugApiBaseURLs(const string aVzugApiBaseURLs)
 {
   size_t e = 0, i = 0;
   do {
@@ -50,7 +50,7 @@ void VZugHomeDeviceContainer::addVzugApiBaseURLs(const string aVzugApiBaseURLs)
 
 
 
-void VZugHomeDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void VZugHomeVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // done
   aCompletedCB(ErrorPtr());
@@ -58,7 +58,7 @@ void VZugHomeDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryRes
 
 
 
-bool VZugHomeDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool VZugHomeVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("vzughome", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -67,15 +67,15 @@ bool VZugHomeDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const
 }
 
 
-// device class name
-const char *VZugHomeDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *VZugHomeVdc::vdcClassIdentifier() const
 {
   return "VZugHome_Device_Container";
 }
 
 
 
-void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void VZugHomeVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting static devices makes no sense. The devices are "static"!
   if (!aIncremental) {
@@ -88,13 +88,13 @@ void VZugHomeDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncrem
   }
   else {
     VZugHomeDiscoveryPtr discovery = VZugHomeDiscoveryPtr(new VZugHomeDiscovery);
-    discovery->discover(boost::bind(&VZugHomeDeviceContainer::discoveryStatusHandler, this, discovery, aCompletedCB, _1), 15*Second);
+    discovery->discover(boost::bind(&VZugHomeVdc::discoveryStatusHandler, this, discovery, aCompletedCB, _1), 15*Second);
   }
 }
 
 
 
-void VZugHomeDeviceContainer::discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError)
+void VZugHomeVdc::discoveryStatusHandler(VZugHomeDiscoveryPtr aDiscovery, StatusCB aCompletedCB, ErrorPtr aError)
 {
   baseURLs = aDiscovery->baseURLs; // copy URLs
   StringList::iterator pos = baseURLs.begin();
@@ -108,12 +108,12 @@ void VZugHomeDeviceContainer::discoveryStatusHandler(VZugHomeDiscoveryPtr aDisco
 
 
 
-void VZugHomeDeviceContainer::addNextDevice(StringList::iterator aNext, StatusCB aCompletedCB)
+void VZugHomeVdc::addNextDevice(StringList::iterator aNext, StatusCB aCompletedCB)
 {
   if (aNext!=baseURLs.end()) {
     LOG(LOG_NOTICE, "V-Zug home device with API at %s", aNext->c_str());
     VZugHomeDevicePtr newDev = VZugHomeDevicePtr(new VZugHomeDevice(this, *aNext));
-    newDev->queryDeviceInfos(boost::bind(&VZugHomeDeviceContainer::gotDeviceInfos, this, newDev, aNext, aCompletedCB));
+    newDev->queryDeviceInfos(boost::bind(&VZugHomeVdc::gotDeviceInfos, this, newDev, aNext, aCompletedCB));
   }
   else {
     // all collected
@@ -122,7 +122,7 @@ void VZugHomeDeviceContainer::addNextDevice(StringList::iterator aNext, StatusCB
 }
 
 
-void VZugHomeDeviceContainer::gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringList::iterator aNext, StatusCB aCompletedCB)
+void VZugHomeVdc::gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringList::iterator aNext, StatusCB aCompletedCB)
 {
   if (aNewDev) {
     if (addDevice(aNewDev)) {
@@ -137,7 +137,7 @@ void VZugHomeDeviceContainer::gotDeviceInfos(VZugHomeDevicePtr aNewDev, StringLi
 
 
 
-ErrorPtr VZugHomeDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr VZugHomeVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
 //  if (aMethod=="x-p44-addDevice") {

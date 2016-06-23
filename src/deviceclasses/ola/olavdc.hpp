@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2015-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2013-2016 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //
@@ -19,52 +19,71 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__voxnetdevicecontainer__
-#define __vdcd__voxnetdevicecontainer__
+#ifndef __vdcd__olavdc__
+#define __vdcd__olavdc__
 
 #include "vdcd_common.hpp"
 
-#if ENABLE_VOXNET
+#if ENABLE_OLA
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 
-#include "voxnetcomm.hpp"
-
+#include <ola/DmxBuffer.h>
+#include <ola/Logging.h>
+#include <ola/client/StreamingClient.h>
 
 using namespace std;
 
 namespace p44 {
 
-  class VoxnetDeviceContainer;
-  class VoxnetDevice;
-  typedef boost::intrusive_ptr<VoxnetDevice> VoxnetDevicePtr;
-  typedef boost::intrusive_ptr<VoxnetDeviceContainer> VoxnetDeviceContainerPtr;
+  typedef uint16_t DmxChannel;
+  typedef uint8_t DmxValue;
+  const DmxChannel dmxNone = 0; // no channel
 
-  class VoxnetDeviceContainer : public DeviceClassContainer
+  class OlaVdc;
+  class OlaDevice;
+  typedef boost::intrusive_ptr<OlaDevice> OlaDevicePtr;
+
+
+  /// persistence for ola device container
+  class OlaDevicePersistence : public SQLite3Persistence  {
+    typedef SQLite3Persistence inherited;
+  protected:
+    /// Get DB Schema creation/upgrade SQL statements
+    virtual string dbSchemaUpgradeSQL(int aFromVersion, int &aToVersion);
+  };
+
+
+	typedef std::multimap<string, string> DeviceConfigMap;
+	
+  typedef boost::intrusive_ptr<OlaVdc> OlaVdcPtr;
+  class OlaVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
-    friend class VoxnetDevice;
+    typedef Vdc inherited;
+    friend class OlaDevice;
 
-    typedef map<string, VoxnetDevicePtr> VoxnetDeviceMap;
+    OlaDevicePersistence db;
 
-    VoxnetDeviceMap voxnetDevices;
+    // OLA Thread
+    ChildThreadWrapperPtr olaThread;
+    pthread_mutex_t olaBufferAccess;
+    ola::DmxBuffer *dmxBufferP;
+    ola::client::StreamingClient *olaClientP;
+
 
   public:
-
-    VoxnetCommPtr voxnetComm;
-
-    VoxnetDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag);
+    OlaVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
@@ -80,17 +99,18 @@ namespace p44 {
 
     /// @return human readable, language independent suffix to explain vdc functionality.
     ///   Will be appended to product name to create modelName() for vdcs
-    virtual string vdcModelSuffix() { return "Voxnet"; }
+    virtual string vdcModelSuffix() { return "OLA/DMX512"; }
 
   private:
 
-    VoxnetDevicePtr addVoxnetDevice(const string aID, const string aName);
-    bool voxnetStatusHandler(const string aVoxnetID, const string aVoxnetStatus);
+    OlaDevicePtr addOlaDevice(string aDeviceType, string aDeviceConfig);
 
+    void olaThreadRoutine(ChildThreadWrapper &aThread);
+    void setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue);
 
   };
 
 } // namespace p44
 
-#endif // ENABLE_VOXNET
-#endif // __vdcd__voxnetdevicecontainer__
+#endif // ENABLE_OLA
+#endif // __vdcd__olavdc__

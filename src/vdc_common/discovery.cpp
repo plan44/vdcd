@@ -260,7 +260,7 @@ void DiscoveryManager::periodicIgmpQuery()
     #if ENABLE_AUXVDSM
     auxVdsmRunning || // with auxvdsm, we don't know when the vdsm is connected, so just repeat the query
     #endif
-    !deviceContainer->getSessionConnection() // otherwise, query if we don't have a connection
+    !vdcHost->getSessionConnection() // otherwise, query if we don't have a connection
   ) {
     sendIGMP(IGMP_MEMBERSHIP_QUERY, IGMP_QUERY_MAX_RESPONSE_TIME, NULL, NULL);
   }
@@ -453,7 +453,7 @@ void DiscoveryManager::startAdvertising(AvahiServer *aService)
 
 
 void DiscoveryManager::advertiseDS(
-  DeviceContainerPtr aDeviceContainer,
+  VdcHostPtr aVdcHost,
   bool aNoAuto,
   int aWebPort, int aSshPort,
   DsUidPtr aAuxVdsmDsUid, int aAuxVdsmPort, bool aAuxVdsmRunning, AuxVdsmStatusHandler aAuxVdsmStatusHandler, bool aNotAuxiliary
@@ -463,7 +463,7 @@ void DiscoveryManager::advertiseDS(
   // stop advertising current information
   stopAdvertisingDS();
   // store the new params
-  deviceContainer = aDeviceContainer;
+  vdcHost = aVdcHost;
   noAuto = aNoAuto;
   publishWebPort = aWebPort;
   publishSshPort = aSshPort;
@@ -517,7 +517,7 @@ void DiscoveryManager::startAdvertisingDS(AvahiServer *aService)
 {
   if (dmState==dm_requeststart && serviceRunning(aService)) {
     // create entry group now
-    string descriptiveName = deviceContainer->publishedDescription();
+    string descriptiveName = vdcHost->publishedDescription();
     // create entry group if needed
     if (!(dSEntryGroup = avahi_entry_group_new(aService, ds_entry_group_callback, this))) {
       LOG(LOG_ERR, "avahi_entry_group_new() failed: %s", avahi_strerror(avahi_service_errno(aService)));
@@ -592,8 +592,8 @@ void DiscoveryManager::startAdvertisingDS(AvahiServer *aService)
     {
       // The auxiliary vdsm is NOT running or not present at all, advertise the vdc host (vdcd) to the network
       int vdcPort = 0;
-      sscanf(deviceContainer->vdcApiServer->getPort(), "%d", &vdcPort);
-      string txt_dsuid = string_format("dSUID=%s", deviceContainer->getDsUid().getString().c_str());
+      sscanf(vdcHost->vdcApiServer->getPort(), "%d", &vdcPort);
+      string txt_dsuid = string_format("dSUID=%s", vdcHost->getDsUid().getString().c_str());
       if ((avahiErr = avahi_add_service(
         aService,
         dSEntryGroup,
@@ -656,7 +656,7 @@ void DiscoveryManager::avahi_ds_entry_group_callback(AvahiService *aService, Ava
       if (dmState<dm_started)
         dmState = dm_started;
       #if ENABLE_AUXVDSM
-      LOG(LOG_NOTICE, "discovery: successfully published %s service '%s'.", auxVdsmRunning ? "vdSM" : "vDC", deviceContainer->publishedDescription().c_str());
+      LOG(LOG_NOTICE, "discovery: successfully published %s service '%s'.", auxVdsmRunning ? "vdSM" : "vDC", vdcHost->publishedDescription().c_str());
       // start scanning for master vdsms
       if (auxVdsmDsUid) {
         // We have an auxiliary vdsm we need to monitor
@@ -664,14 +664,14 @@ void DiscoveryManager::avahi_ds_entry_group_callback(AvahiService *aService, Ava
         startBrowsingVdms(aService);
       }
       #else
-      LOG(LOG_NOTICE, "discovery: successfully published vDC service '%s'.", deviceContainer->publishedDescription().c_str());
+      LOG(LOG_NOTICE, "discovery: successfully published vDC service '%s'.", vdcHost->publishedDescription().c_str());
       #endif
       break;
     }
     case AVAHI_ENTRY_GROUP_COLLISION: {
       // service name collision detected
       // Note: we don't handle this as it can't really happen (publishedName contains the deviceId or the vdcHost dSUID which MUST be unique)
-      LOG(LOG_CRIT, "avahi: service name collision, '%s' is apparently not unique", deviceContainer->publishedDescription().c_str());
+      LOG(LOG_CRIT, "avahi: service name collision, '%s' is apparently not unique", vdcHost->publishedDescription().c_str());
       break;
     }
     case AVAHI_ENTRY_GROUP_FAILURE: {
@@ -735,7 +735,7 @@ void DiscoveryManager::rescanVdsms(AvahiService *aService)
 void DiscoveryManager::evaluateState()
 {
   MainLoop::currentMainLoop().cancelExecutionTicket(evaluateTicket);
-  FOCUSLOG("evaluateState: auxVdsmRunning=%d, dmState=%d, sessionConnection=%d", auxVdsmRunning, (int)dmState, deviceContainer->getSessionConnection()!=NULL);
+  FOCUSLOG("evaluateState: auxVdsmRunning=%d, dmState=%d, sessionConnection=%d", auxVdsmRunning, (int)dmState, vdcHost->getSessionConnection()!=NULL);
   if (dmState>=dm_started && auxVdsmDsUid) {
     // avahi up and we are managing an auxiliary vdsm
     if (auxVdsmRunning) {
@@ -753,7 +753,7 @@ void DiscoveryManager::evaluateState()
     else {
       // we don't have a auxiliary vdsm running and must decide whether we should start one
       // - only start auxiliary vdsm if our vdc API is not connected
-      if (!deviceContainer->getSessionConnection()) {
+      if (!vdcHost->getSessionConnection()) {
         // no active session
         if ((dmState!=dm_detected_master && dmState!=dm_previously_detected_master && dmState!=dm_auxvdsm_needs_change) || !vdsmAuxiliary) {
           // ...and we haven't detected a master vdsm recently or our vdsm is not auxiliary (but meant to run all the time)

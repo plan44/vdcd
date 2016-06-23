@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "evaluatordevicecontainer.hpp"
+#include "evaluatorvdc.hpp"
 #include "evaluatordevice.hpp"
 
 #if ENABLE_EVALUATORS
@@ -56,30 +56,30 @@ string EvaluatorDevicePersistence::dbSchemaUpgradeSQL(int aFromVersion, int &aTo
 
 
 
-EvaluatorDeviceContainer::EvaluatorDeviceContainer(int aInstanceNumber, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
+EvaluatorVdc::EvaluatorVdc(int aInstanceNumber, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag)
 {
 }
 
 
-void EvaluatorDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void EvaluatorVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   string databaseName = getPersistentDataDir();
-  string_format_append(databaseName, "%s_%d.sqlite3", deviceClassIdentifier(), getInstanceNumber());
+  string_format_append(databaseName, "%s_%d.sqlite3", vdcClassIdentifier(), getInstanceNumber());
   ErrorPtr error = db.connectAndInitialize(databaseName.c_str(), EVALUATORDEVICES_SCHEMA_VERSION, EVALUATORDEVICES_SCHEMA_MIN_VERSION, aFactoryReset);
   aCompletedCB(error); // return status of DB init
 }
 
 
 
-// device class name
-const char *EvaluatorDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *EvaluatorVdc::vdcClassIdentifier() const
 {
   return "Evaluator_Device_Container";
 }
 
 
-bool EvaluatorDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
+bool EvaluatorVdc::getDeviceIcon(string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   if (getIcon("evaluator", aIcon, aWithData, aResolutionPrefix))
     return true;
@@ -90,9 +90,9 @@ bool EvaluatorDeviceContainer::getDeviceIcon(string &aIcon, bool aWithData, cons
 
 
 
-/// collect devices from this device class
-/// @param aCompletedCB will be called when device scan for this device class has been completed
-void EvaluatorDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+/// collect devices from this vDC
+/// @param aCompletedCB will be called when device scan for this vDC has been completed
+void EvaluatorVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // incrementally collecting configured devices makes no sense. The devices are "static"!
   if (!aIncremental) {
@@ -115,7 +115,7 @@ void EvaluatorDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncre
 }
 
 
-ErrorPtr EvaluatorDeviceContainer::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
+ErrorPtr EvaluatorVdc::handleMethod(VdcApiRequestPtr aRequest, const string &aMethod, ApiValuePtr aParams)
 {
   ErrorPtr respErr;
   if (aMethod=="x-p44-addDevice") {

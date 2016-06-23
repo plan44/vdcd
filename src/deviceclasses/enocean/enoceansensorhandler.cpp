@@ -167,7 +167,7 @@ bool EnoceanSensorHandler::isAlive()
 
 // static factory method
 EnoceanDevicePtr EnoceanSensorHandler::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   CreateDeviceFunc aCreateDeviceFunc,
   const EnoceanSensorDescriptor *aDescriptorTable,
   EnoceanAddress aAddress,
@@ -202,7 +202,7 @@ EnoceanDevicePtr EnoceanSensorHandler::newDevice(
     // more channels to create for this subdevice number
     if (!newDev) {
       // device not yet created, create it now
-      newDev = aCreateDeviceFunc(aClassContainerP);
+      newDev = aCreateDeviceFunc(aVdcP);
       // sensor devices don't need scenes
       newDev->installSettings(); // no scenes
       // assign channel and address

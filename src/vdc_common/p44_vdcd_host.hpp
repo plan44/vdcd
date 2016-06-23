@@ -22,7 +22,7 @@
 #ifndef __vdcd__p44_vdcd_host__
 #define __vdcd__p44_vdcd_host__
 
-#include "devicecontainer.hpp"
+#include "vdchost.hpp"
 
 #include "jsoncomm.hpp"
 
@@ -82,9 +82,9 @@ namespace p44 {
 
 
   /// plan44 specific implementation of a vdc host, with a separate API used by WebUI components.
-  class P44VdcHost : public DeviceContainer
+  class P44VdcHost : public VdcHost
   {
-    typedef DeviceContainer inherited;
+    typedef VdcHost inherited;
     friend class P44JsonApiRequest;
 
     long learnIdentifyTicket;

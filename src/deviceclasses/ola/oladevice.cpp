@@ -65,8 +65,8 @@ static bool nextChannelSpec(string &aConfig, size_t &aStartPos, char &aChannelTy
 }
 
 
-OlaDevice::OlaDevice(OlaDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  inherited(aClassContainerP),
+OlaDevice::OlaDevice(OlaVdc *aVdcP, const string &aDeviceConfig) :
+  inherited(aVdcP),
   olaType(ola_unknown),
   whiteChannel(dmxNone),
   redChannel(dmxNone),
@@ -156,9 +156,9 @@ bool OlaDevice::isSoftwareDisconnectable()
   return olaDeviceRowID>0; // disconnectable by software if it was created from DB entry (and not on the command line)
 }
 
-OlaDeviceContainer &OlaDevice::getOlaDeviceContainer()
+OlaVdc &OlaDevice::getOlaVdc()
 {
-  return *(static_cast<OlaDeviceContainer *>(classContainerP));
+  return *(static_cast<OlaVdc *>(vdcP));
 }
 
 
@@ -166,7 +166,7 @@ void OlaDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHan
 {
   // clear learn-in data from DB
   if (olaDeviceRowID) {
-    getOlaDeviceContainer().db.executef("DELETE FROM devConfigs WHERE rowid=%d", olaDeviceRowID);
+    getOlaVdc().db.executef("DELETE FROM devConfigs WHERE rowid=%d", olaDeviceRowID);
   }
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
@@ -175,7 +175,7 @@ void OlaDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHan
 
 void OlaDevice::setDMXChannel(DmxChannel aChannel, DmxValue aChannelValue)
 {
-  getOlaDeviceContainer().setDMXChannel(aChannel, aChannelValue);
+  getOlaVdc().setDMXChannel(aChannel, aChannelValue);
 }
 
 
@@ -318,7 +318,7 @@ void OlaDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::olaType:white[:red:green:blue][:amber]
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   string_format_append(s, ":%d:%d", (int)olaType, whiteChannel);
   if (olaType==ola_fullcolordimmer)
     string_format_append(s, ":%d:%d:%d", redChannel, greenChannel, blueChannel);

@@ -20,7 +20,7 @@
 //
 
 #include "enoceandevice.hpp"
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 
 #if ENABLE_ENOCEAN
 
@@ -49,8 +49,8 @@ EnoceanChannelHandler::EnoceanChannelHandler(EnoceanDevice &aDevice) :
 
 #pragma mark - EnoceanDevice
 
-EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
-  Device(aClassContainerP),
+EnoceanDevice::EnoceanDevice(EnoceanVdc *aVdcP) :
+  Device(aVdcP),
   eeProfile(eep_profile_unknown),
   eeManufacturer(manufacturer_unknown),
   alwaysUpdateable(false),
@@ -67,9 +67,9 @@ EnoceanDevice::EnoceanDevice(EnoceanDeviceContainer *aClassContainerP) :
 }
 
 
-EnoceanDeviceContainer &EnoceanDevice::getEnoceanDeviceContainer()
+EnoceanVdc &EnoceanDevice::getEnoceanVdc()
 {
-  return *(static_cast<EnoceanDeviceContainer *>(classContainerP));
+  return *(static_cast<EnoceanVdc *>(vdcP));
 }
 
 
@@ -176,7 +176,7 @@ bool EnoceanDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aRe
 void EnoceanDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandler)
 {
   // clear learn-in data from DB
-  getEnoceanDeviceContainer().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND subdevice=%d", getAddress(), getSubDevice());
+  getEnoceanVdc().db.executef("DELETE FROM knownDevices WHERE enoceanAddress=%d AND subdevice=%d", getAddress(), getSubDevice());
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
 }
@@ -240,7 +240,7 @@ void EnoceanDevice::sendOutgoingUpdate()
       outgoingEsp3Packet->finalize();
       ALOG(LOG_INFO, "sending outgoing EnOcean packet:\n%s", outgoingEsp3Packet->description().c_str());
       // send it
-      getEnoceanDeviceContainer().enoceanComm.sendCommand(outgoingEsp3Packet, NULL);
+      getEnoceanVdc().enoceanComm.sendCommand(outgoingEsp3Packet, NULL);
     }
   }
 }
@@ -393,13 +393,13 @@ void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, cons
   }
   // have devices related to current profile deleted, including settings
   // Note: this removes myself from container, and deletes the config (which is valid for the previous profile, i.e. a different type of device)
-  getEnoceanDeviceContainer().unpairDevicesByAddress(getAddress(), true, rangestart, rangesize);
+  getEnoceanVdc().unpairDevicesByAddress(getAddress(), true, rangestart, rangesize);
   // - create new ones, with same address and manufacturer, but new profile
   EnoceanSubDevice subDeviceIndex = rangestart;
   while (rangesize==0 || subDeviceIndex<rangestart+rangesize) {
     // create devices until done
     EnoceanDevicePtr newDev = newDevice(
-      &getEnoceanDeviceContainer(),
+      &getEnoceanVdc(),
       getAddress(), // same address as current device
       subDeviceIndex, // index to create a device for
       aToVariant.eep, // the new EEP variant
@@ -421,7 +421,7 @@ void EnoceanDevice::switchProfiles(const ProfileVariantEntry &aFromVariant, cons
       newDev->deviceSettings->zoneID = deviceSettings->zoneID;
     }
     // - add it to the container
-    getEnoceanDeviceContainer().addAndRememberDevice(newDev);
+    getEnoceanVdc().addAndRememberDevice(newDev);
     // - make it dirty if we have set zone or name
     if (hasNameOrZone && newDev->deviceSettings) {
       newDev->deviceSettings->markDirty(); // make sure name and/or zone are saved permanently
@@ -533,7 +533,7 @@ bool EnoceanDevice::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 
 
 EnoceanDevicePtr EnoceanDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -544,20 +544,20 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
   // dispatch to factory according to RORG
   switch ((int)rorg) {
     case rorg_RPS:
-      newDev = EnoceanRPSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = EnoceanRPSDevice::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_1BS:
-      newDev = Enocean1BSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = Enocean1BSDevice::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_4BS:
-      newDev = Enocean4BSDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = Enocean4BSDevice::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     case rorg_VLD:
-      newDev = EnoceanVLDDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = EnoceanVLDDevice::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     // pseudo RORGs (internal encoding of non-standard devices)
     case PSEUDO_RORG_REMOTECONTROL:
-      newDev = EnoceanRemoteControlDevice::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+      newDev = EnoceanRemoteControlDevice::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
       break;
     default:
       LOG(LOG_WARNING, "EnoceanDevice::newDevice: unknown RORG = 0x%02X", rorg);
@@ -568,14 +568,14 @@ EnoceanDevicePtr EnoceanDevice::newDevice(
 }
 
 
-int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer)
+int EnoceanDevice::createDevicesFromEEP(EnoceanVdc *aVdcP, EnoceanAddress aAddress, EnoceanProfile aProfile, EnoceanManufacturer aManufacturer)
 {
   EnoceanSubDevice subDeviceIndex = 0; // start at index zero
   int numDevices = 0; // number of devices
   while (true) {
     // create devices until done
     EnoceanDevicePtr newDev = newDevice(
-      aClassContainerP,
+      aVdcP,
       aAddress,
       subDeviceIndex, // index to create a device for
       aProfile, aManufacturer,
@@ -588,7 +588,7 @@ int EnoceanDevice::createDevicesFromEEP(EnoceanDeviceContainer *aClassContainerP
     // created device
     numDevices++;
     // - add it to the container
-    aClassContainerP->addAndRememberDevice(newDev);
+    aVdcP->addAndRememberDevice(newDev);
     // Note: subDeviceIndex is incremented according to device's index space requirements by newDevice() implementation
   }
   // return number of devices created

@@ -37,8 +37,8 @@
 using namespace p44;
 
 
-MyStromDevice::MyStromDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+MyStromDevice::MyStromDevice(StaticVdc *aVdcP, const string &aDeviceConfig) :
+  StaticDevice((Vdc *)aVdcP),
   myStromComm(MainLoop::currentMainLoop()),
   powerPollTicket(0)
 {
@@ -246,7 +246,7 @@ void MyStromDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::mystromhost_xxxx where xxxx=IP address or host name
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   s += "::mystromhost_" + deviceHostName;
   dSUID.setNameInSpace(s, vdcNamespace);
 }

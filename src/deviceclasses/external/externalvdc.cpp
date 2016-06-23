@@ -19,7 +19,7 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#include "externaldevicecontainer.hpp"
+#include "externalvdc.hpp"
 
 #if ENABLE_EXTERNAL
 
@@ -37,8 +37,8 @@ using namespace p44;
 #pragma mark - External Device
 
 
-ExternalDevice::ExternalDevice(DeviceClassContainer *aClassContainerP, ExternalDeviceConnectorPtr aDeviceConnector, string aTag) :
-  Device(aClassContainerP),
+ExternalDevice::ExternalDevice(Vdc *aVdcP, ExternalDeviceConnectorPtr aDeviceConnector, string aTag) :
+  Device(aVdcP),
   deviceConnector(aDeviceConnector),
   tag(aTag),
   useMovement(false), // no movement by default
@@ -85,9 +85,9 @@ bool ExternalDevice::getDeviceIcon(string &aIcon, bool aWithData, const char *aR
 
 
 
-ExternalDeviceContainer &ExternalDevice::getExternalDeviceContainer()
+ExternalVdc &ExternalDevice::getExternalVdc()
 {
-  return *(static_cast<ExternalDeviceContainer *>(classContainerP));
+  return *(static_cast<ExternalVdc *>(vdcP));
 }
 
 
@@ -95,7 +95,7 @@ ExternalDeviceContainer &ExternalDevice::getExternalDeviceContainer()
 void ExternalDevice::handleDeviceApiJsonMessage(JsonObjectPtr aMessage)
 {
   ErrorPtr err;
-  LOG(LOG_INFO, "device -> externalDeviceContainer (JSON) message received: %s", aMessage->c_strValue());
+  LOG(LOG_INFO, "device -> externalVdc (JSON) message received: %s", aMessage->c_strValue());
   // extract message type
   JsonObjectPtr o = aMessage->get("message");
   if (o) {
@@ -114,7 +114,7 @@ void ExternalDevice::handleDeviceApiJsonMessage(JsonObjectPtr aMessage)
 void ExternalDevice::handleDeviceApiSimpleMessage(string aMessage)
 {
   ErrorPtr err;
-  LOG(LOG_INFO, "device -> externalDeviceContainer (simple) message received: %s", aMessage.c_str());
+  LOG(LOG_INFO, "device -> externalVdc (simple) message received: %s", aMessage.c_str());
   // extract message type
   string msg;
   string val;
@@ -138,7 +138,7 @@ void ExternalDevice::sendDeviceApiJsonMessage(JsonObjectPtr aMessage)
     aMessage->add("tag", JsonObject::newString(tag));
   }
   // now show and send
-  LOG(LOG_INFO, "device <- externalDeviceContainer (JSON) message sent: %s", aMessage->c_strValue());
+  LOG(LOG_INFO, "device <- externalVdc (JSON) message sent: %s", aMessage->c_strValue());
   deviceConnector->deviceConnection->sendMessage(aMessage);
 }
 
@@ -149,7 +149,7 @@ void ExternalDevice::sendDeviceApiSimpleMessage(string aMessage)
   if (!tag.empty()) {
     aMessage = tag+":"+aMessage;
   }
-  LOG(LOG_INFO, "device <- externalDeviceContainer (simple) message sent: %s", aMessage.c_str());
+  LOG(LOG_INFO, "device <- externalVdc (simple) message sent: %s", aMessage.c_str());
   aMessage += "\n";
   deviceConnector->deviceConnection->sendRaw(aMessage);
 }
@@ -488,7 +488,7 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
     // not suitable dSUID or UUID syntax, create hashed dSUID
     DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
     //   UUIDv5 with name = classcontainerinstanceid:uniqueid
-    string s = classContainerP->deviceClassContainerInstanceIdentifier();
+    string s = vdcP->vdcInstanceIdentifier();
     s += ':';
     s += o->stringValue();
     dSUID.setNameInSpace(s, vdcNamespace);
@@ -715,8 +715,8 @@ ErrorPtr ExternalDevice::configureDevice(JsonObjectPtr aInitParams)
 
 #pragma mark - external device connector
 
-ExternalDeviceConnector::ExternalDeviceConnector(ExternalDeviceContainer &aExternalDeviceContainer, JsonCommPtr aDeviceConnection) :
-  externalDeviceContainer(aExternalDeviceContainer),
+ExternalDeviceConnector::ExternalDeviceConnector(ExternalVdc &aExternalVdc, JsonCommPtr aDeviceConnection) :
+  externalVdc(aExternalVdc),
   deviceConnection(aDeviceConnection),
   simpletext(false)
 {
@@ -779,7 +779,7 @@ void ExternalDeviceConnector::sendDeviceApiJsonMessage(JsonObjectPtr aMessage, c
     aMessage->add("tag", JsonObject::newString(aTag));
   }
   // now show and send
-  LOG(LOG_INFO, "device <- externalDeviceContainer (JSON) message sent: %s", aMessage->c_strValue());
+  LOG(LOG_INFO, "device <- externalVdc (JSON) message sent: %s", aMessage->c_strValue());
   deviceConnection->sendMessage(aMessage);
 }
 
@@ -791,7 +791,7 @@ void ExternalDeviceConnector::sendDeviceApiSimpleMessage(string aMessage, const 
     aMessage.insert(0, ":");
     aMessage.insert(0, aTag);
   }
-  LOG(LOG_INFO, "device <- externalDeviceContainer (simple) message sent: %s", aMessage.c_str());
+  LOG(LOG_INFO, "device <- externalVdc (simple) message sent: %s", aMessage.c_str());
   aMessage += "\n";
   deviceConnection->sendRaw(aMessage);
 }
@@ -866,7 +866,7 @@ void ExternalDeviceConnector::handleDeviceApiJsonMessage(ErrorPtr aError, JsonOb
   ExternalDevicePtr extDev;
   if (Error::isOK(aError)) {
     // not JSON level error, try to process
-    LOG(LOG_INFO, "device -> externalDeviceContainer (JSON) message received: %s", aMessage->c_strValue());
+    LOG(LOG_INFO, "device -> externalVdc (JSON) message received: %s", aMessage->c_strValue());
     // JSON array can carry multiple messages
     if (aMessage->arrayLength()>0) {
       for (int i=0; i<aMessage->arrayLength(); ++i) {
@@ -933,13 +933,13 @@ ErrorPtr ExternalDeviceConnector::handleDeviceApiJsonSubMessage(JsonObjectPtr aM
       }
       if (Error::isOK(err)) {
         // ok to create new device
-        extDev = ExternalDevicePtr(new ExternalDevice(&externalDeviceContainer, this, tag));
+        extDev = ExternalDevicePtr(new ExternalDevice(&externalVdc, this, tag));
         // - let it initalize
         err = extDev->configureDevice(aMessage);
       }
       if (Error::isOK(err)) {
         // device configured, add it now
-        if (!externalDeviceContainer.addDevice(extDev)) {
+        if (!externalVdc.addDevice(extDev)) {
           err = TextError::err("device could not be added (duplicate uniqueid could be a reason, see vdcd log)");
           extDev.reset(); // forget it
         }
@@ -958,7 +958,7 @@ ErrorPtr ExternalDeviceConnector::handleDeviceApiJsonSubMessage(JsonObjectPtr aM
       if (o) {
         DsAddressablePtr a = findDeviceByTag(tag, true);
         if (a) { LOG(logLevel,"External Device %s: %s", a->shortDesc().c_str(), o->c_strValue()); }
-        else { LOG(logLevel,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), o->c_strValue()); }
+        else { LOG(logLevel,"External Device vDC %s: %s", externalVdc.shortDesc().c_str(), o->c_strValue()); }
       }
     }
     else {
@@ -986,7 +986,7 @@ void ExternalDeviceConnector::handleDeviceApiSimpleMessage(ErrorPtr aError, stri
   if (Error::isOK(aError)) {
     // not connection level error, try to process
     aMessage = trimWhiteSpace(aMessage);
-    LOG(LOG_INFO, "device -> externalDeviceContainer (simple) message received: %s", aMessage.c_str());
+    LOG(LOG_INFO, "device -> externalVdc (simple) message received: %s", aMessage.c_str());
     // extract message type
     string taggedmsg;
     string val;
@@ -1007,7 +1007,7 @@ void ExternalDeviceConnector::handleDeviceApiSimpleMessage(ErrorPtr aError, stri
       sscanf(msg.c_str()+1, "%d", &level);
       DsAddressablePtr a = findDeviceByTag(tag, true);
       if (a) { LOG(level,"External Device %s: %s", a->shortDesc().c_str(), val.c_str()); }
-      else { LOG(level,"External Device vDC %s: %s", externalDeviceContainer.shortDesc().c_str(), val.c_str()); }
+      else { LOG(level,"External Device vDC %s: %s", externalVdc.shortDesc().c_str(), val.c_str()); }
     }
     else {
       extDev = findDeviceByTag(tag, false);
@@ -1036,8 +1036,8 @@ void ExternalDeviceConnector::handleDeviceApiSimpleMessage(ErrorPtr aError, stri
 
 
 
-ExternalDeviceContainer::ExternalDeviceContainer(int aInstanceNumber, const string &aSocketPathOrPort, bool aNonLocal, DeviceContainer *aDeviceContainerP, int aTag) :
-  DeviceClassContainer(aInstanceNumber, aDeviceContainerP, aTag)
+ExternalVdc::ExternalVdc(int aInstanceNumber, const string &aSocketPathOrPort, bool aNonLocal, VdcHost *aVdcHostP, int aTag) :
+  Vdc(aInstanceNumber, aVdcHostP, aTag)
 {
   // create device API server and set connection specifications
   externalDeviceApiServer = SocketCommPtr(new SocketComm(MainLoop::currentMainLoop()));
@@ -1046,15 +1046,15 @@ ExternalDeviceContainer::ExternalDeviceContainer(int aInstanceNumber, const stri
 }
 
 
-void ExternalDeviceContainer::initialize(StatusCB aCompletedCB, bool aFactoryReset)
+void ExternalVdc::initialize(StatusCB aCompletedCB, bool aFactoryReset)
 {
   // start device API server
-  ErrorPtr err = externalDeviceApiServer->startServer(boost::bind(&ExternalDeviceContainer::deviceApiConnectionHandler, this, _1), 10);
+  ErrorPtr err = externalDeviceApiServer->startServer(boost::bind(&ExternalVdc::deviceApiConnectionHandler, this, _1), 10);
   aCompletedCB(err); // return status of starting server
 }
 
 
-SocketCommPtr ExternalDeviceContainer::deviceApiConnectionHandler(SocketCommPtr aServerSocketCommP)
+SocketCommPtr ExternalVdc::deviceApiConnectionHandler(SocketCommPtr aServerSocketCommP)
 {
   JsonCommPtr conn = JsonCommPtr(new JsonComm(MainLoop::currentMainLoop()));
   // new connection means new device connector (which will add devices to container once it has received proper init message(s))
@@ -1064,14 +1064,14 @@ SocketCommPtr ExternalDeviceContainer::deviceApiConnectionHandler(SocketCommPtr 
 
 
 
-// device class name
-const char *ExternalDeviceContainer::deviceClassIdentifier() const
+// vDC name
+const char *ExternalVdc::vdcClassIdentifier() const
 {
   return "External_Device_Container";
 }
 
 
-void ExternalDeviceContainer::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
+void ExternalVdc::collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings)
 {
   // we have no real collecting process (devices just connect when possibl),
   // but we force all devices to re-connect when a exhaustive collect is requested (mainly for debug purposes)

@@ -27,37 +27,37 @@
 #include "jsonvdcapi.hpp"
 #include "pbufvdcapi.hpp"
 
-// device classes to be used
+// vDCs to be used
 #if ENABLE_DALI
-#include "dalidevicecontainer.hpp"
+#include "dalivdc.hpp"
 #endif
 #if ENABLE_ENOCEAN
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 #endif
 #if ENABLE_HUE
-#include "huedevicecontainer.hpp"
+#include "huevdc.hpp"
 #endif
 #if ENABLE_STATIC
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 #endif
 #if ENABLE_EXTERNAL
-#include "externaldevicecontainer.hpp"
+#include "externalvdc.hpp"
 #endif
 #if ENABLE_EVALUATORS
-#include "evaluatordevicecontainer.hpp"
+#include "evaluatorvdc.hpp"
 #endif
 
 #if ENABLE_OLA
-#include "oladevicecontainer.hpp"
+#include "olavdc.hpp"
 #endif
 #if ENABLE_LEDCHAIN
-#include "ledchaindevicecontainer.hpp"
+#include "ledchainvdc.hpp"
 #endif
 #if ENABLE_VOXNET
-#include "voxnetdevicecontainer.hpp"
+#include "voxnetvdc.hpp"
 #endif
 #if ENABLE_VZUGHOME
-#include "vzughomedevicecontainer.hpp"
+#include "vzughomevdc.hpp"
 #endif
 
 
@@ -549,7 +549,7 @@ public:
         // Create class containers
 
         // - first, prepare (make sure dSUID is available)
-        p44VdcHost->prepareForDeviceClasses(false);
+        p44VdcHost->prepareForVdcs(false);
 
         #if ENABLE_DALI
         // - Add DALI devices class if DALI bridge serialport/host is specified
@@ -557,12 +557,12 @@ public:
         if (daliname) {
           int sec = 0;
           getIntOption("daliportidle", sec);
-          DaliDeviceContainerPtr daliDeviceContainer = DaliDeviceContainerPtr(new DaliDeviceContainer(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
-          daliDeviceContainer->daliComm->setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+          DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
+          daliVdc->daliComm->setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
           int adj;
-          if (getIntOption("dalitxadj", adj)) daliDeviceContainer->daliComm->setDaliSendAdj(adj);
-          if (getIntOption("dalirxadj", adj)) daliDeviceContainer->daliComm->setDaliSampleAdj(adj);
-          daliDeviceContainer->addClassToDeviceContainer();
+          if (getIntOption("dalitxadj", adj)) daliVdc->daliComm->setDaliSendAdj(adj);
+          if (getIntOption("dalirxadj", adj)) daliVdc->daliComm->setDaliSampleAdj(adj);
+          daliVdc->addVdcToVdcHost();
         }
         #endif
 
@@ -571,30 +571,30 @@ public:
         const char *enoceanname = getOption("enocean");
         const char *enoceanresetpin = getOption("enoceanreset");
         if (enoceanname) {
-          EnoceanDeviceContainerPtr enoceanDeviceContainer = EnoceanDeviceContainerPtr(new EnoceanDeviceContainer(1, p44VdcHost.get(), 2)); // Tag 2 = EnOcean
-          enoceanDeviceContainer->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
+          EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, p44VdcHost.get(), 2)); // Tag 2 = EnOcean
+          enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
           // add
-          enoceanDeviceContainer->addClassToDeviceContainer();
+          enoceanVdc->addVdcToVdcHost();
         }
         #endif
 
         #if ENABLE_HUE
         // - Add hue support
         if (getOption("huelights")) {
-          HueDeviceContainerPtr hueDeviceContainer = HueDeviceContainerPtr(new HueDeviceContainer(1, p44VdcHost.get(), 3)); // Tag 3 = hue
+          HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, p44VdcHost.get(), 3)); // Tag 3 = hue
           string apiurl;
           if (getStringOption("hueapiurl", apiurl)) {
-            hueDeviceContainer->hueComm.fixedBaseURL = apiurl;
+            hueVdc->hueComm.fixedBaseURL = apiurl;
           }
-          hueDeviceContainer->addClassToDeviceContainer();
+          hueVdc->addVdcToVdcHost();
         }
         #endif
 
         #if ENABLE_OLA
         // - Add OLA support
         if (getOption("ola")) {
-          OlaDeviceContainerPtr olaDeviceContainer = OlaDeviceContainerPtr(new OlaDeviceContainer(1, p44VdcHost.get(), 5)); // Tag 5 = ola
-          olaDeviceContainer->addClassToDeviceContainer();
+          OlaVdcPtr olaVdc = OlaVdcPtr(new OlaVdc(1, p44VdcHost.get(), 5)); // Tag 5 = ola
+          olaVdc->addVdcToVdcHost();
         }
         #endif
 
@@ -603,11 +603,11 @@ public:
         int numleds;
         if (getIntOption("ledchain", numleds)) {
           if (numleds>0) {
-            LedChainDeviceContainerPtr ledChainDeviceContainer = LedChainDeviceContainerPtr(new LedChainDeviceContainer(1, numleds, p44VdcHost.get(), 6)); // Tag 6 = led chain
-            ledChainDeviceContainer->addClassToDeviceContainer();
+            LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, numleds, p44VdcHost.get(), 6)); // Tag 6 = led chain
+            ledChainVdc->addVdcToVdcHost();
             int maxOutValue;
             if (getIntOption("ledchainmax", maxOutValue)) {
-              ledChainDeviceContainer->setMaxOutValue(maxOutValue);
+              ledChainVdc->setMaxOutValue(maxOutValue);
             }
           }
         }
@@ -617,11 +617,11 @@ public:
         // - Add Voxnet support
         string voxip;
         if (getStringOption("voxnet", voxip)) {
-          VoxnetDeviceContainerPtr voxnetDeviceContainer = VoxnetDeviceContainerPtr(new VoxnetDeviceContainer(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
+          VoxnetVdcPtr voxnetVdc = VoxnetVdcPtr(new VoxnetVdc(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
           if (voxip!="auto") {
-            voxnetDeviceContainer->voxnetComm->setConnectionSpecification(voxip.c_str());
+            voxnetVdc->voxnetComm->setConnectionSpecification(voxip.c_str());
           }
-          voxnetDeviceContainer->addClassToDeviceContainer();
+          voxnetVdc->addVdcToVdcHost();
         }
         #endif
 
@@ -629,19 +629,19 @@ public:
         // - Add V-Zug Home support
         string vzugurl;
         if (getStringOption("vzughome", vzugurl)) {
-          VZugHomeDeviceContainerPtr vzughomeDeviceContainer = VZugHomeDeviceContainerPtr(new VZugHomeDeviceContainer(1, p44VdcHost.get(), 51)); // Tag 51 = VZugHome
+          VZugHomeVdcPtr vzughomeVdc = VZugHomeVdcPtr(new VZugHomeVdc(1, p44VdcHost.get(), 51)); // Tag 51 = VZugHome
           if (vzugurl!="auto") {
-            vzughomeDeviceContainer->addVzugApiBaseURLs(vzugurl.c_str());
+            vzughomeVdc->addVzugApiBaseURLs(vzugurl.c_str());
           }
-          vzughomeDeviceContainer->addClassToDeviceContainer();
+          vzughomeVdc->addVdcToVdcHost();
         }
         #endif
 
         #if ENABLE_STATIC
         // - Add static devices if we explictly want it or have collected any config from the command line
         if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
-          StaticDeviceContainerPtr staticDeviceContainer = StaticDeviceContainerPtr(new StaticDeviceContainer(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
-          staticDeviceContainer->addClassToDeviceContainer();
+          StaticVdcPtr staticVdc = StaticVdcPtr(new StaticVdc(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
+          staticVdc->addVdcToVdcHost();
           staticDeviceConfigs.clear(); // no longer needed, free memory
         }
         #endif
@@ -649,8 +649,8 @@ public:
         #if ENABLE_EVALUATORS
         // - Add evaluator devices
         if (getOption("evaluators")) {
-          EvaluatorDeviceContainerPtr evaluatorDeviceContainer = EvaluatorDeviceContainerPtr(new EvaluatorDeviceContainer(1, p44VdcHost.get(), 8)); // Tag 8 = evaluators
-          evaluatorDeviceContainer->addClassToDeviceContainer();
+          EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, p44VdcHost.get(), 8)); // Tag 8 = evaluators
+          evaluatorVdc->addVdcToVdcHost();
         }
         #endif
 
@@ -658,8 +658,8 @@ public:
         // - Add support for external devices connecting via socket
         const char *extdevname = getOption("externaldevices");
         if (extdevname) {
-          ExternalDeviceContainerPtr externalDeviceContainer = ExternalDeviceContainerPtr(new ExternalDeviceContainer(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
-          externalDeviceContainer->addClassToDeviceContainer();
+          ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
+          externalVdc->addVdcToVdcHost();
         }
         #endif
 

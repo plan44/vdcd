@@ -32,7 +32,7 @@
 
 #if ENABLE_DALI
 
-#include "dalidevicecontainer.hpp"
+#include "dalivdc.hpp"
 #include "colorlightbehaviour.hpp"
 
 #include <math.h>
@@ -43,8 +43,8 @@ using namespace p44;
 
 #pragma mark - DaliBusDevice
 
-DaliBusDevice::DaliBusDevice(DaliDeviceContainer &aDaliDeviceContainer) :
-  daliDeviceContainer(aDaliDeviceContainer),
+DaliBusDevice::DaliBusDevice(DaliVdc &aDaliVdc) :
+  daliVdc(aDaliVdc),
   dimRepeaterTicket(0),
   isDummy(false),
   isPresent(false),
@@ -85,13 +85,13 @@ void DaliBusDevice::deriveDsUid()
     // but only actually use it if there is no device entry for the shortaddress-based dSUID with a non-zero name
     // (as this means the device has been already actively used/configured with the shortaddr-dSUID)
     // - calculate the short address based dSUID
-    s = daliDeviceContainer.deviceClassContainerInstanceIdentifier();
+    s = daliVdc.vdcInstanceIdentifier();
     string_format_append(s, "::%d", deviceInfo.shortAddress);
     DsUid shortAddrBasedDsUid;
     shortAddrBasedDsUid.setNameInSpace(s, vdcNamespace);
     // - check for named device in database consisting of this dimmer with shortaddr based dSUID
     //   Note that only single dimmer device are checked for, composite devices will not have this compatibility mechanism
-    sqlite3pp::query qry(daliDeviceContainer.getDeviceContainer().getDsParamStore());
+    sqlite3pp::query qry(daliVdc.getVdc().getDsParamStore());
     // Note: this is a bit ugly, as it has the device settings table name hard coded
     string sql = string_format("SELECT deviceName FROM DeviceSettings WHERE parentID='%s'", shortAddrBasedDsUid.getString().c_str());
     if (qry.prepare(sql.c_str())==SQLITE_OK) {
@@ -121,7 +121,7 @@ void DaliBusDevice::deriveDsUid()
     // not uniquely identified by devInf (or shortaddr based version already in use):
     // - generate id in vDC namespace
     //   UUIDv5 with name = classcontainerinstanceid::daliShortAddrDecimal
-    s = daliDeviceContainer.deviceClassContainerInstanceIdentifier();
+    s = daliVdc.vdcInstanceIdentifier();
     string_format_append(s, "::%d", deviceInfo.shortAddress);
   }
   dSUID.setNameInSpace(s, vdcNamespace);
@@ -131,7 +131,7 @@ void DaliBusDevice::deriveDsUid()
 
 void DaliBusDevice::getGroupMemberShip(DaliGroupsCB aDaliGroupsCB, DaliAddress aShortAddress)
 {
-  daliDeviceContainer.daliComm->daliSendQuery(
+  daliVdc.daliComm->daliSendQuery(
     aShortAddress,
     DALICMD_QUERY_GROUPS_0_TO_7,
     boost::bind(&DaliBusDevice::queryGroup0to7Response,this, aDaliGroupsCB, aShortAddress, _1, _2, _3)
@@ -146,7 +146,7 @@ void DaliBusDevice::queryGroup0to7Response(DaliGroupsCB aDaliGroupsCB, DaliAddre
     groupBitMask = aResponse;
   }
   // anyway, query other half
-  daliDeviceContainer.daliComm->daliSendQuery(
+  daliVdc.daliComm->daliSendQuery(
     aShortAddress,
     DALICMD_QUERY_GROUPS_8_TO_15,
     boost::bind(&DaliBusDevice::queryGroup8to15Response,this, aDaliGroupsCB, aShortAddress, groupBitMask, _1, _2, _3)
@@ -189,7 +189,7 @@ void DaliBusDevice::groupMembershipResponse(StatusCB aCompletedCB, uint16_t aUse
       if (aUsedGroupsMask & aGroups & (1<<g)) {
         // single device is member of a group in use -> remove it
         LOG(LOG_INFO, "- removing single DALI bus device with shortaddr %d from group %d", aShortAddress, g);
-        daliDeviceContainer.daliComm->daliSendConfigCommand(aShortAddress, DALICMD_REMOVE_FROM_GROUP|g);
+        daliVdc.daliComm->daliSendConfigCommand(aShortAddress, DALICMD_REMOVE_FROM_GROUP|g);
       }
     }
   }
@@ -202,7 +202,7 @@ void DaliBusDevice::updateParams(StatusCB aCompletedCB)
 {
   if (isDummy) aCompletedCB(ErrorPtr());
   // query actual arc power level
-  daliDeviceContainer.daliComm->daliSendQuery(
+  daliVdc.daliComm->daliSendQuery(
     addressForQuery(),
     DALICMD_QUERY_ACTUAL_LEVEL,
     boost::bind(&DaliBusDevice::queryActualLevelResponse,this, aCompletedCB, _1, _2, _3)
@@ -220,7 +220,7 @@ void DaliBusDevice::queryActualLevelResponse(StatusCB aCompletedCB, bool aNoOrTi
     LOG(LOG_DEBUG, "DaliBusDevice: retrieved current dimming level: arc power = %d, brightness = %0.1f", aResponse, currentBrightness);
   }
   // next: query the minimum dimming level
-  daliDeviceContainer.daliComm->daliSendQuery(
+  daliVdc.daliComm->daliSendQuery(
     addressForQuery(),
     DALICMD_QUERY_MIN_LEVEL,
     boost::bind(&DaliBusDevice::queryMinLevelResponse,this, aCompletedCB, _1, _2, _3)
@@ -249,7 +249,7 @@ void DaliBusDevice::updateStatus(StatusCB aCompletedCB)
     return;
   }
   // query the device for status
-  daliDeviceContainer.daliComm->daliSendQuery(
+  daliVdc.daliComm->daliSendQuery(
     addressForQuery(),
     DALICMD_QUERY_STATUS,
     boost::bind(&DaliBusDevice::queryStatusResponse, this, aCompletedCB, _1, _2, _3)
@@ -289,7 +289,7 @@ void DaliBusDevice::setTransitionTime(MLMicroSeconds aTransitionTime)
     }
     if (tr!=currentFadeTime || currentTransitionTime==Infinite) {
       LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_TIME to %d", (int)tr);
-      daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
+      daliVdc.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_TIME, tr);
       currentFadeTime = tr;
     }
     currentTransitionTime = aTransitionTime;
@@ -304,7 +304,7 @@ void DaliBusDevice::setBrightness(Brightness aBrightness)
     currentBrightness = aBrightness;
     uint8_t power = brightnessToArcpower(aBrightness);
     LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting new brightness = %0.2f, arc power = %d", (int)deviceInfo.shortAddress, aBrightness, (int)power);
-    daliDeviceContainer.daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
+    daliVdc.daliComm->daliSendDirectPower(deviceInfo.shortAddress, power);
   }
 }
 
@@ -315,8 +315,8 @@ void DaliBusDevice::setDefaultBrightness(Brightness aBrightness)
   if (aBrightness<0) aBrightness = currentBrightness; // use current brightness
   uint8_t power = brightnessToArcpower(aBrightness);
   LOG(LOG_INFO, "Dali dimmer at shortaddr=%d: setting default/failure brightness = %0.2f, arc power = %d", (int)deviceInfo.shortAddress, aBrightness, (int)power);
-  daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_POWER_ON_LEVEL, power);
-  daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FAILURE_LEVEL, power);
+  daliVdc.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_POWER_ON_LEVEL, power);
+  daliVdc.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FAILURE_LEVEL, power);
 }
 
 
@@ -347,7 +347,7 @@ void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
   // Use DALI UP/DOWN dimming commands
   if (aDimMode==dimmode_stop) {
     // stop dimming - send MASK
-    daliDeviceContainer.daliComm->daliSendDirectPower(deviceInfo.shortAddress, DALIVALUE_MASK);
+    daliVdc.daliComm->daliSendDirectPower(deviceInfo.shortAddress, DALIVALUE_MASK);
   }
   else {
     // start dimming
@@ -361,7 +361,7 @@ void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
       LOG(LOG_DEBUG, "DaliDevice: new dimming rate = %f Steps/second, calculated FADE_RATE setting = %f (rounded %d)", currentDimPerMS*1000, h, fr);
       if (fr!=currentFadeRate) {
         LOG(LOG_DEBUG, "DaliDevice: setting DALI FADE_RATE to %d", fr);
-        daliDeviceContainer.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_RATE, fr);
+        daliVdc.daliComm->daliSendDtrAndConfigCommand(deviceInfo.shortAddress, DALICMD_STORE_DTR_AS_FADE_RATE, fr);
         currentFadeRate = fr;
       }
     }
@@ -373,7 +373,7 @@ void DaliBusDevice::dim(DsDimMode aDimMode, double aDimPerMS)
 
 void DaliBusDevice::dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMicroSeconds aCycleStartTime)
 {
-  daliDeviceContainer.daliComm->daliSendCommand(aDaliAddress, aCommand);
+  daliVdc.daliComm->daliSendCommand(aDaliAddress, aCommand);
   // schedule next command
   // - DALI UP and DOWN run 200mS, but can be repeated earlier, so we use 150mS to make sure we don't have hickups
   //   Note: DALI bus speed limits commands to 120Bytes/sec max, i.e. about 20 per 150mS, i.e. max 10 lamps dimming
@@ -385,8 +385,8 @@ void DaliBusDevice::dimRepeater(DaliAddress aDaliAddress, uint8_t aCommand, MLMi
 #pragma mark - DaliBusDeviceGroup (multiple DALI devices, addressed as a group, forming single channel dimmer)
 
 
-DaliBusDeviceGroup::DaliBusDeviceGroup(DaliDeviceContainer &aDaliDeviceContainer, uint8_t aGroupNo) :
-  inherited(aDaliDeviceContainer),
+DaliBusDeviceGroup::DaliBusDeviceGroup(DaliVdc &aDaliVdc, uint8_t aGroupNo) :
+  inherited(aDaliVdc),
   groupMaster(DaliBroadcast)
 {
   mixID.erase(); // no members yet
@@ -441,7 +441,7 @@ void DaliBusDeviceGroup::groupMembershipResponse(StatusCB aCompletedCB, DaliComm
   if ((aGroups & (1<<groupNo))==0) {
     // is not yet member of this group -> add it
     LOG(LOG_INFO, "- making DALI bus device with shortaddr %d member of group %d", *aNextMember, groupNo);
-    daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_ADD_TO_GROUP|groupNo);
+    daliVdc.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_ADD_TO_GROUP|groupNo);
   }
   // remove from all other groups
   aGroups &= ~(1<<groupNo); // do not remove again from target group
@@ -449,7 +449,7 @@ void DaliBusDeviceGroup::groupMembershipResponse(StatusCB aCompletedCB, DaliComm
     if (aGroups & (1<<groupNo)) {
       // device is member of a group it shouldn't be in -> remove it
       LOG(LOG_INFO, "- removing DALI bus device with shortaddr %d from group %d", *aNextMember, groupNo);
-      daliDeviceContainer.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_REMOVE_FROM_GROUP|groupNo);
+      daliVdc.daliComm->daliSendConfigCommand(*aNextMember, DALICMD_REMOVE_FROM_GROUP|groupNo);
     }
   }
   // done adding this member to group
@@ -473,17 +473,17 @@ void DaliBusDeviceGroup::deriveDsUid()
 #pragma mark - DaliDevice (base class)
 
 
-DaliDevice::DaliDevice(DaliDeviceContainer *aClassContainerP) :
-  Device((DeviceClassContainer *)aClassContainerP)
+DaliDevice::DaliDevice(DaliVdc *aVdcP) :
+  Device((Vdc *)aVdcP)
 {
   // DALI devices are always light (in this implementation, at least)
   setPrimaryGroup(group_yellow_light);
 }
 
 
-DaliDeviceContainer &DaliDevice::daliDeviceContainer()
+DaliVdc &DaliDevice::daliVdc()
 {
-  return *(static_cast<DaliDeviceContainer *>(classContainerP));
+  return *(static_cast<DaliVdc *>(vdcP));
 }
 
 
@@ -491,7 +491,7 @@ ErrorPtr DaliDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMeth
 {
   if (aMethod=="x-p44-ungroupDevice") {
     // Remove this device from the installation, forget the settings
-    return daliDeviceContainer().ungroupDevice(this, aRequest);
+    return daliVdc().ungroupDevice(this, aRequest);
   }
   if (aMethod=="x-p44-saveAsDefault") {
     // save the current brightness as default DALI brightness (at powerup or failure)
@@ -510,8 +510,8 @@ ErrorPtr DaliDevice::handleMethod(VdcApiRequestPtr aRequest, const string &aMeth
 #pragma mark - DaliDimmerDevice (single channel)
 
 
-DaliDimmerDevice::DaliDimmerDevice(DaliDeviceContainer *aClassContainerP) :
-  DaliDevice(aClassContainerP)
+DaliDimmerDevice::DaliDimmerDevice(DaliVdc *aVdcP) :
+  DaliDevice(aVdcP)
 {
 }
 
@@ -722,8 +722,8 @@ string DaliDimmerDevice::description()
 #pragma mark - DaliRGBWDevice (multi-channel color lamp)
 
 
-DaliRGBWDevice::DaliRGBWDevice(DaliDeviceContainer *aClassContainerP) :
-  DaliDevice(aClassContainerP)
+DaliRGBWDevice::DaliRGBWDevice(DaliVdc *aVdcP) :
+  DaliDevice(aVdcP)
 {
 }
 

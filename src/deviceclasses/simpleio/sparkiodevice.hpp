@@ -29,7 +29,7 @@
 
 #include "jsonwebclient.hpp"
 #include "colorlightbehaviour.hpp"
-#include "staticdevicecontainer.hpp"
+#include "staticvdc.hpp"
 
 
 using namespace std;
@@ -57,7 +57,7 @@ namespace p44 {
   };
 
 
-  class StaticDeviceContainer;
+  class StaticVdc;
   class SparkIoDevice;
 
   class SparkLightScene : public ColorLightScene
@@ -168,7 +168,7 @@ namespace p44 {
     int apiVersion;
 
   public:
-    SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
+    SparkIoDevice(StaticVdc *aVdcP, const string &aDeviceConfig);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)

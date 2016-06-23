@@ -30,14 +30,14 @@
 
 #include "dsaddressable.hpp"
 
-#include "devicecontainer.hpp"
+#include "vdchost.hpp"
 
 using namespace p44;
 
 
 
-DsAddressable::DsAddressable(DeviceContainer *aDeviceContainerP) :
-  deviceContainerP(aDeviceContainerP),
+DsAddressable::DsAddressable(VdcHost *aVdcHostP) :
+  deviceContainerP(aVdcHostP),
   announced(Never),
   announcing(Never)
 {
@@ -51,7 +51,7 @@ DsAddressable::~DsAddressable()
 
 string DsAddressable::modelVersion()
 {
-  return getDeviceContainer().modelVersion();
+  return getVdc().modelVersion();
 }
 
 
@@ -216,7 +216,7 @@ void DsAddressable::handleNotification(const string &aMethod, ApiValuePtr aParam
 
 bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApiResponseCB aResponseHandler)
 {
-  VdcApiConnectionPtr api = getDeviceContainer().getSessionConnection();
+  VdcApiConnectionPtr api = getVdc().getSessionConnection();
   if (api) {
     if (!aParams) {
       // create params object because we need it for the dSUID
@@ -224,7 +224,7 @@ bool DsAddressable::sendRequest(const char *aMethod, ApiValuePtr aParams, VdcApi
       aParams->setType(apivalue_object);
     }
     aParams->add("dSUID", aParams->newBinary(getDsUid().getBinary()));
-    return getDeviceContainer().sendApiRequest(aMethod, aParams, aResponseHandler);
+    return getVdc().sendApiRequest(aMethod, aParams, aResponseHandler);
   }
   return false; // no connection
 }
@@ -354,7 +354,7 @@ bool DsAddressable::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue
 bool DsAddressable::getIcon(const char *aIconName, string &aIcon, bool aWithData, const char *aResolutionPrefix)
 {
   DBGLOG(LOG_DEBUG, "Trying to load icon named '%s/%s' for dSUID %s", aResolutionPrefix, aIconName, dSUID.getString().c_str());
-  const char *iconDir = getDeviceContainer().getIconDir();
+  const char *iconDir = getVdc().getIconDir();
   if (iconDir && *iconDir) {
     string iconPath = string_format("%s%s/%s.png", iconDir, aResolutionPrefix, aIconName);
     // TODO: maybe add cache lookup here

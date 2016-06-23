@@ -193,8 +193,8 @@ DsScenePtr SparkDeviceSettings::newDefaultScene(SceneNo aSceneNo)
 
 #pragma mark - SparkIoDevice
 
-SparkIoDevice::SparkIoDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
-  StaticDevice((DeviceClassContainer *)aClassContainerP),
+SparkIoDevice::SparkIoDevice(StaticVdc *aVdcP, const string &aDeviceConfig) :
+  StaticDevice((Vdc *)aVdcP),
   sparkCloudComm(MainLoop::currentMainLoop()),
   apiVersion(0)
 {
@@ -395,7 +395,7 @@ void SparkIoDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::SparkCoreID
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   s += "::" + sparkCoreID;
   dSUID.setNameInSpace(s, vdcNamespace);
 }

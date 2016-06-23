@@ -19,21 +19,21 @@
 //  along with vdcd. If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef __vdcd__staticdevicecontainer__
-#define __vdcd__staticdevicecontainer__
+#ifndef __vdcd__staticvdc__
+#define __vdcd__staticvdc__
 
 #include "vdcd_common.hpp"
 
 #if ENABLE_STATIC
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 
 using namespace std;
 
 namespace p44 {
 
-  class StaticDeviceContainer;
+  class StaticVdc;
 
   /// persistence for static device container
   class StaticDevicePersistence : public SQLite3Persistence  {
@@ -47,19 +47,19 @@ namespace p44 {
   class StaticDevice : public Device
   {
     typedef Device inherited;
-    friend class StaticDeviceContainer;
+    friend class StaticVdc;
 
     long long staticDeviceRowID; ///< the ROWID this device was created from (0=none)
 
   public:
 
-    StaticDevice(DeviceClassContainer *aClassContainerP);
+    StaticDevice(Vdc *aVdcP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
     virtual const char *deviceTypeIdentifier() { return "static"; };
 
-    StaticDeviceContainer &getStaticDeviceContainer();
+    StaticVdc &getStaticVdc();
 
     /// check if device can be disconnected by software (i.e. Web-UI)
     /// @return true if device might be disconnectable by the user via software (i.e. web UI)
@@ -83,10 +83,10 @@ namespace p44 {
 
 	typedef std::multimap<string, string> DeviceConfigMap;
 	
-  typedef boost::intrusive_ptr<StaticDeviceContainer> StaticDeviceContainerPtr;
-  class StaticDeviceContainer : public DeviceClassContainer
+  typedef boost::intrusive_ptr<StaticVdc> StaticVdcPtr;
+  class StaticVdc : public Vdc
   {
-    typedef DeviceClassContainer inherited;
+    typedef Vdc inherited;
     friend class StaticDevice;
 
 		DeviceConfigMap deviceConfigs;
@@ -94,17 +94,17 @@ namespace p44 {
     StaticDevicePersistence db;
 
   public:
-    StaticDeviceContainer(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, DeviceContainer *aDeviceContainerP, int aTag);
+    StaticVdc(int aInstanceNumber, DeviceConfigMap aDeviceConfigs, VdcHost *aVdcHostP, int aTag);
 
     void initialize(StatusCB aCompletedCB, bool aFactoryReset);
 
-    virtual const char *deviceClassIdentifier() const;
+    virtual const char *vdcClassIdentifier() const;
 
     virtual void collectDevices(StatusCB aCompletedCB, bool aIncremental, bool aExhaustive, bool aClearSettings);
 
     /// some containers (statically defined devices for example) should be invisible for the dS system when they have no
     /// devices.
-    /// @return if true, this device class should not be announced towards the dS system when it has no devices
+    /// @return if true, this vDC should not be announced towards the dS system when it has no devices
     virtual bool invisibleWhenEmpty() { return true; }
 
     /// vdc level methods (p44 specific, JSON only, for configuring static devices)
@@ -124,4 +124,4 @@ namespace p44 {
 
 
 #endif // ENABLE_STATIC
-#endif // __vdcd__staticdevicecontainer__
+#endif // __vdcd__staticvdc__

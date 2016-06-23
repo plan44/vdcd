@@ -23,7 +23,7 @@
 
 #if ENABLE_ENOCEAN
 
-#include "enoceandevicecontainer.hpp"
+#include "enoceanvdc.hpp"
 
 #include "sensorbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
@@ -342,8 +342,8 @@ const p44::EnoceanSensorDescriptor enocean4BSdescriptors[] = {
 #pragma mark - Enocean4BSDevice
 
 
-Enocean4BSDevice::Enocean4BSDevice(EnoceanDeviceContainer *aClassContainerP) :
-  inherited(aClassContainerP)
+Enocean4BSDevice::Enocean4BSDevice(EnoceanVdc *aVdcP) :
+  inherited(aVdcP)
 {
 }
 
@@ -391,22 +391,22 @@ void Enocean4BSDevice::sendTeachInResponse()
     responsePacket->setRadioDestination(getAddress());
     // now send
     LOG(LOG_INFO, "Sending 4BS teach-in response for EEP %06X", EEP_PURE(getEEProfile()));
-    getEnoceanDeviceContainer().enoceanComm.sendCommand(responsePacket, NULL);
+    getEnoceanVdc().enoceanComm.sendCommand(responsePacket, NULL);
   }
 }
 
 
 
 // static device creator function
-EnoceanDevicePtr create4BSDeviceFunc(EnoceanDeviceContainer *aClassContainerP)
+EnoceanDevicePtr create4BSDeviceFunc(EnoceanVdc *aVdcP)
 {
-  return EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
+  return EnoceanDevicePtr(new Enocean4BSDevice(aVdcP));
 }
 
 
 // static factory method
 EnoceanDevicePtr Enocean4BSDevice::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex,
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -417,15 +417,15 @@ EnoceanDevicePtr Enocean4BSDevice::newDevice(
   if (EEP_PURE(aEEProfile)==0xA52001) {
     // Note: Profile has variants (with and without temperature sensor)
     // use specialized handler for output functions of heating valve (valve value, summer/winter, prophylaxis)
-    newDev = EnoceanA52001Handler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+    newDev = EnoceanA52001Handler::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   else if (aEEProfile==0xA51301) {
     // use specialized handler for multi-telegram sensor
-    newDev = EnoceanA5130XHandler::newDevice(aClassContainerP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+    newDev = EnoceanA5130XHandler::newDevice(aVdcP, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   else {
     // check table based sensors, might create more than one device
-    newDev = EnoceanSensorHandler::newDevice(aClassContainerP, create4BSDeviceFunc, enocean4BSdescriptors, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
+    newDev = EnoceanSensorHandler::newDevice(aVdcP, create4BSDeviceFunc, enocean4BSdescriptors, aAddress, aSubDeviceIndex, aEEProfile, aEEManufacturer, aSendTeachInResponse);
   }
   return newDev;
 }
@@ -464,7 +464,7 @@ EnoceanA52001Handler::EnoceanA52001Handler(EnoceanDevice &aDevice) :
 
 // static factory method
 EnoceanDevicePtr EnoceanA52001Handler::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -481,7 +481,7 @@ EnoceanDevicePtr EnoceanA52001Handler::newDevice(
   EnoceanDevicePtr newDev; // none so far
   if (aSubDeviceIndex<1) {
     // only one device
-    newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
+    newDev = EnoceanDevicePtr(new Enocean4BSDevice(aVdcP));
     // valve needs climate control scene table (ClimateControlScene)
     newDev->installSettings(DeviceSettingsPtr(new ClimateDeviceSettings(*newDev)));
     // assign channel and address
@@ -686,7 +686,7 @@ EnoceanA5130XHandler::EnoceanA5130XHandler(EnoceanDevice &aDevice) :
 
 // static factory method
 EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
-  EnoceanDeviceContainer *aClassContainerP,
+  EnoceanVdc *aVdcP,
   EnoceanAddress aAddress,
   EnoceanSubDevice &aSubDeviceIndex, // current subdeviceindex, factory returns NULL when no device can be created for this subdevice index
   EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -698,7 +698,7 @@ EnoceanDevicePtr EnoceanA5130XHandler::newDevice(
   EnoceanDevicePtr newDev; // none so far
   if (aSubDeviceIndex<1) {
     // only one device
-    newDev = EnoceanDevicePtr(new Enocean4BSDevice(aClassContainerP));
+    newDev = EnoceanDevicePtr(new Enocean4BSDevice(aVdcP));
     // sensor only, standard settings without scene table
     newDev->installSettings();
     // assign channel and address

@@ -35,7 +35,7 @@ namespace p44 {
 
   typedef uint64_t EnoceanDeviceID;
 
-  class EnoceanDeviceContainer;
+  class EnoceanVdc;
   class EnoceanChannelHandler;
   class EnoceanDevice;
 
@@ -137,7 +137,7 @@ namespace p44 {
   public:
 
     /// constructor, create device in container
-    EnoceanDevice(EnoceanDeviceContainer *aClassContainerP);
+    EnoceanDevice(EnoceanVdc *aVdcP);
 
     /// device type identifier
 		/// @return constant identifier for this type of device (one container might contain more than one type)
@@ -157,7 +157,7 @@ namespace p44 {
     virtual void checkPresence(PresenceCB aPresenceResultHandler);
 
     /// get typed container reference
-    EnoceanDeviceContainer &getEnoceanDeviceContainer();
+    EnoceanVdc &getEnoceanVdc();
 
     /// factory: (re-)create logical device from address|channel|profile|manufacturer tuple
     /// @param aAddress 32bit enocean device address/ID
@@ -169,7 +169,7 @@ namespace p44 {
     /// @param aSendTeachInResponse if this is set, a teach-in response will be sent for profiles that need one
     ///   (This is set to false when re-creating logical devices from DB)
     static EnoceanDevicePtr newDevice(
-      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanVdc *aVdcP,
       EnoceanAddress aAddress,
       EnoceanSubDevice &aSubDeviceIndex,
       EnoceanProfile aEEProfile, EnoceanManufacturer aEEManufacturer,
@@ -197,13 +197,13 @@ namespace p44 {
     virtual void applyChannelValues(SimpleCB aDoneCB, bool aForDimming);
 
     /// factory: create appropriate logical devices for a given EEP
-    /// @param aClassContainerP the EnoceanDeviceContainer to create the devices in
+    /// @param aVdcP the EnoceanVdc to create the devices in
     /// @param aAddress the EnOcean address
     /// @param aProfile the EPP
     /// @param aManufacturer the manufacturer code
     /// @return number of devices created
     static int createDevicesFromEEP(
-      EnoceanDeviceContainer *aClassContainerP,
+      EnoceanVdc *aVdcP,
       EnoceanAddress aAddress,
       EnoceanProfile aProfile,
       EnoceanManufacturer aManufacturer

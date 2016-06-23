@@ -27,7 +27,7 @@
 #if !DISABLE_DISCOVERY
 
 #include "dsuid.hpp"
-#include "devicecontainer.hpp"
+#include "vdchost.hpp"
 
 
 // Avahi includes
@@ -148,7 +148,7 @@ namespace p44 {
     string hostname;
     bool igmpSnoopingHints;
     // - for dS service advertising
-    DeviceContainerPtr deviceContainer;
+    VdcHostPtr vdcHost;
     bool noAuto;
     int publishWebPort;
     int publishSshPort;
@@ -209,7 +209,7 @@ namespace p44 {
 
     /// advertise vdcd (or the vdsm, if same platform hosts a auxiliary vdsm and no master vdsm is found)
     /// @note can be called repeatedly to update information
-    /// @param aDeviceContainer the device container to be published
+    /// @param aVdcHost the device container to be published
     /// @param aNoAuto if set, the published vdsm or vdc will not be automatically connected (only when explicitly whitelisted)
     /// @param aAuxVdsmDsUid if not NULL, discovery manager will also manage advertising of the vdsm
     /// @param aAuxVdsmPort port to connect the vdsm from ds485p
@@ -218,7 +218,7 @@ namespace p44 {
     /// @param aNotAuxiliary if set, vdsm will always run and will not include the "auxiliary" TXT record in the advertisement
     /// @return error in case discovery manager could not be started
     void advertiseDS(
-      DeviceContainerPtr aDeviceContainer,
+      VdcHostPtr aVdcHost,
       bool aNoAuto,
       int aWebPort,
       int aSshPort,

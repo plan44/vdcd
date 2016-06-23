@@ -22,7 +22,7 @@
 #ifndef __vdcd__dsbehaviour__
 #define __vdcd__dsbehaviour__
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 
 #include "dsuid.hpp"
 #include "dsdefs.h"

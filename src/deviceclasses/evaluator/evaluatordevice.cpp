@@ -30,7 +30,7 @@
 
 #if ENABLE_EVALUATORS
 
-#include "evaluatordevicecontainer.hpp"
+#include "evaluatorvdc.hpp"
 
 #include "buttonbehaviour.hpp"
 #include "binaryinputbehaviour.hpp"
@@ -38,8 +38,8 @@
 using namespace p44;
 
 
-EvaluatorDevice::EvaluatorDevice(EvaluatorDeviceContainer *aClassContainerP, const string &aEvaluatorID, const string &aEvaluatorConfig) :
-  inherited((DeviceClassContainer *)aClassContainerP),
+EvaluatorDevice::EvaluatorDevice(EvaluatorVdc *aVdcP, const string &aEvaluatorID, const string &aEvaluatorConfig) :
+  inherited((Vdc *)aVdcP),
   evaluatorDeviceRowID(0),
   evaluatorID(aEvaluatorID),
   evaluatorType(evaluator_unknown),
@@ -97,9 +97,9 @@ EvaluatorDevice::~EvaluatorDevice()
 }
 
 
-EvaluatorDeviceContainer &EvaluatorDevice::getEvaluatorDeviceContainer()
+EvaluatorVdc &EvaluatorDevice::getEvaluatorVdc()
 {
-  return *(static_cast<EvaluatorDeviceContainer *>(classContainerP));
+  return *(static_cast<EvaluatorVdc *>(vdcP));
 }
 
 
@@ -107,7 +107,7 @@ void EvaluatorDevice::disconnect(bool aForgetParams, DisconnectCB aDisconnectRes
 {
   // clear learn-in data from DB
   if (evaluatorDeviceRowID) {
-    getEvaluatorDeviceContainer().db.executef("DELETE FROM evaluators WHERE rowid=%d", evaluatorDeviceRowID);
+    getEvaluatorVdc().db.executef("DELETE FROM evaluators WHERE rowid=%d", evaluatorDeviceRowID);
   }
   // disconnection is immediate, so we can call inherited right now
   inherited::disconnect(aForgetParams, aDisconnectResultHandler);
@@ -238,7 +238,7 @@ void EvaluatorDevice::parseValueDefs()
       if (e2==string::npos) e2 = valueDefs.size();
       string valuesourceid = valueDefs.substr(i,e2-i);
       // search source
-      ValueSource *vs = getDeviceContainer().getValueSourceById(valuesourceid);
+      ValueSource *vs = getVdc().getValueSourceById(valuesourceid);
       if (vs) {
         // value source exists
         // - add myself as listener
@@ -597,7 +597,7 @@ void EvaluatorDevice::deriveDsUid()
   // vDC implementation specific UUID:
   //   UUIDv5 with name = classcontainerinstanceid::evaluatorID
   DsUid vdcNamespace(DSUID_P44VDC_NAMESPACE_UUID);
-  string s = classContainerP->deviceClassContainerInstanceIdentifier();
+  string s = vdcP->vdcInstanceIdentifier();
   s += "::" + evaluatorID;
   dSUID.setNameInSpace(s, vdcNamespace);
 }

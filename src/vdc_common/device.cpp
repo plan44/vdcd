@@ -41,7 +41,7 @@ using namespace p44;
 #pragma mark - Device
 
 
-Device::Device(DeviceClassContainer *aClassContainerP) :
+Device::Device(Vdc *aVdcP) :
   progMode(false),
   isDimming(false),
   dimHandlerTicket(0),
@@ -50,8 +50,8 @@ Device::Device(DeviceClassContainer *aClassContainerP) :
   currentDimChannel(channeltype_default),
   areaDimmed(0),
   areaDimMode(dimmode_stop),
-  classContainerP(aClassContainerP),
-  DsAddressable(&aClassContainerP->getDeviceContainer()),
+  vdcP(aVdcP),
+  DsAddressable(&aVdcP->getVdc()),
   primaryGroup(group_black_joker),
   applyInProgress(false),
   missedApplyAttempts(0),
@@ -94,7 +94,7 @@ Device::~Device()
 string Device::vendorName()
 {
   // default to same vendor as class container
-  return classContainerP->vendorName();
+  return vdcP->vendorName();
 }
 
 
@@ -557,7 +557,7 @@ void Device::disconnect(bool aForgetParams, DisconnectCB aDisconnectResultHandle
 {
   // remove from container management
   DevicePtr dev = DevicePtr(this);
-  classContainerP->removeDevice(dev, aForgetParams);
+  vdcP->removeDevice(dev, aForgetParams);
   // that's all for the base class
   if (aDisconnectResultHandler)
     aDisconnectResultHandler(true);
@@ -1400,17 +1400,17 @@ ErrorPtr Device::forget()
 
 void Device::loadSettingsFromFiles()
 {
-  string dir = getDeviceContainer().getPersistentDataDir();
+  string dir = getVdc().getPersistentDataDir();
   const int numLevels = 3;
   string levelids[numLevels];
   // Level strategy: most specialized will be active, unless lower levels specify explicit override
   // - Baselines are hardcoded defaults plus settings (already) loaded from persistent store
   // - Level 0 are settings related to the device instance (dSUID)
   // - Level 1 are settings related to the device type (deviceTypeIdentifier())
-  // - Level 2 are settings related to the device class (deviceClassIdentifier())
+  // - Level 2 are settings related to the vDC (vdcClassIdentifier())
   levelids[0] = getDsUid().getString();
   levelids[1] = string(deviceTypeIdentifier());
-  levelids[2] = classContainerP->deviceClassIdentifier();
+  levelids[2] = vdcP->vdcClassIdentifier();
   for(int i=0; i<numLevels; ++i) {
     // try to open config file
     string fn = dir+"devicesettings_"+levelids[i]+".csv";

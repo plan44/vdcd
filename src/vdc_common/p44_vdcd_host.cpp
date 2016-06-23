@@ -21,7 +21,7 @@
 
 #include "p44_vdcd_host.hpp"
 
-#include "deviceclasscontainer.hpp"
+#include "vdc.hpp"
 #include "device.hpp"
 
 #include "jsonvdcapi.hpp"
@@ -76,44 +76,44 @@ ApiValuePtr P44JsonApiRequest::newApiValue()
 class SelfTestRunner
 {
   StatusCB completedCB;
-  ContainerMap::iterator nextContainer;
-  DeviceContainer &deviceContainer;
+  VdcMap::iterator nextVdc;
+  VdcHost &vdcHost;
   ButtonInputPtr button;
   IndicatorOutputPtr redLED;
   IndicatorOutputPtr greenLED;
   long errorReportTicket;
   ErrorPtr globalError;
 public:
-  static void initialize(DeviceContainer &aDeviceContainer, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
+  static void initialize(VdcHost &aVdcHost, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED)
   {
     // create new instance, deletes itself when finished
-    new SelfTestRunner(aDeviceContainer, aCompletedCB, aButton, aRedLED, aGreenLED);
+    new SelfTestRunner(aVdcHost, aCompletedCB, aButton, aRedLED, aGreenLED);
   };
 private:
-  SelfTestRunner(DeviceContainer &aDeviceContainer, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED) :
+  SelfTestRunner(VdcHost &aVdcHost, StatusCB aCompletedCB, ButtonInputPtr aButton, IndicatorOutputPtr aRedLED, IndicatorOutputPtr aGreenLED) :
   completedCB(aCompletedCB),
-  deviceContainer(aDeviceContainer),
+  vdcHost(aVdcHost),
   button(aButton),
   redLED(aRedLED),
   greenLED(aGreenLED),
   errorReportTicket(0)
   {
     // start testing
-    nextContainer = deviceContainer.deviceClassContainers.begin();
+    nextVdc = vdcHost.vdcs.begin();
     testNextContainer();
   }
 
 
   void testNextContainer()
   {
-    if (nextContainer!=deviceContainer.deviceClassContainers.end()) {
+    if (nextVdc!=vdcHost.vdcs.end()) {
       // ok, test next
       // - start green/yellow blinking = test in progress
       greenLED->steadyOn();
       redLED->blinkFor(Infinite, 600*MilliSecond, 50);
       // - run the test
-      LOG(LOG_WARNING, "Starting Test of %s (Tag=%d, %s)", nextContainer->second->deviceClassIdentifier(), nextContainer->second->getTag(), nextContainer->second->shortDesc().c_str());
-      nextContainer->second->selfTest(boost::bind(&SelfTestRunner::containerTested, this, _1));
+      LOG(LOG_WARNING, "Starting Test of %s (Tag=%d, %s)", nextVdc->second->vdcClassIdentifier(), nextVdc->second->getTag(), nextVdc->second->shortDesc().c_str());
+      nextVdc->second->selfTest(boost::bind(&SelfTestRunner::containerTested, this, _1));
     }
     else
       testCompleted(); // done
@@ -124,12 +124,12 @@ private:
   {
     if (!Error::isOK(aError)) {
       // test failed
-      LOG(LOG_ERR, "****** Test of '%s' FAILED with error: %s", nextContainer->second->deviceClassIdentifier(), aError->description().c_str());
+      LOG(LOG_ERR, "****** Test of '%s' FAILED with error: %s", nextVdc->second->vdcClassIdentifier(), aError->description().c_str());
       // remember
       globalError = aError;
-      // morse out tag number of device class failing self test until button is pressed
+      // morse out tag number of vDC failing self test until button is pressed
       greenLED->steadyOff();
-      int numBlinks = nextContainer->second->getTag();
+      int numBlinks = nextVdc->second->getTag();
       redLED->blinkFor(300*MilliSecond*numBlinks, 300*MilliSecond, 50);
       // call myself again later
       errorReportTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&SelfTestRunner::containerTested, this, aError), 300*MilliSecond*numBlinks+2*Second);
@@ -138,9 +138,9 @@ private:
     }
     else {
       // test was ok
-      LOG(LOG_ERR, "------ Test of '%s' OK", nextContainer->second->deviceClassIdentifier());
+      LOG(LOG_ERR, "------ Test of '%s' OK", nextVdc->second->vdcClassIdentifier());
       // check next
-      ++nextContainer;
+      ++nextVdc;
       testNextContainer();
     }
   }
@@ -153,7 +153,7 @@ private:
     greenLED->steadyOff();
     MainLoop::currentMainLoop().cancelExecutionTicket(errorReportTicket);
     // test next (if any)
-    ++nextContainer;
+    ++nextVdc;
     testNextContainer();
   }
 
