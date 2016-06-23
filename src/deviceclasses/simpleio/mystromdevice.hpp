@@ -28,7 +28,10 @@
 #if ENABLE_STATIC
 
 #include "jsonwebclient.hpp"
+
 #include "colorlightbehaviour.hpp"
+#include "sensorbehaviour.hpp"
+
 #include "staticdevicecontainer.hpp"
 
 
@@ -44,6 +47,9 @@ namespace p44 {
     string deviceHostName;
     string deviceToken;
     JsonWebClient myStromComm;
+
+    SensorBehaviourPtr powerSensor;
+    long powerPollTicket;
 
   public:
     MyStromDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig);
@@ -110,7 +116,8 @@ namespace p44 {
     bool myStromApiAction(HttpCommCB aResponseCB, string aPathAndArgs);
 
     void initialStateReceived(StatusCB aCompletedCB, bool aFactoryReset, JsonObjectPtr aJsonResponse, ErrorPtr aError);
-    void presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aDeviceInfo, ErrorPtr aError);
+    void sampleState();
+    void stateReceived(JsonObjectPtr aJsonResponse, ErrorPtr aError);
 
     void channelValuesSent(SimpleCB aDoneCB, string aResponse, ErrorPtr aError);
     void channelValuesReceived(SimpleCB aDoneCB, JsonObjectPtr aJsonResponse, ErrorPtr aError);

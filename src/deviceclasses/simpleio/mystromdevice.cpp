@@ -30,15 +30,17 @@
 
 #if ENABLE_STATIC
 
-#include "lightbehaviour.hpp"
 
+// interval for polling current state and power consumption
+#define STATE_POLL_INTERVAL (30*Second)
 
 using namespace p44;
 
 
 MyStromDevice::MyStromDevice(StaticDeviceContainer *aClassContainerP, const string &aDeviceConfig) :
   StaticDevice((DeviceClassContainer *)aClassContainerP),
-  myStromComm(MainLoop::currentMainLoop())
+  myStromComm(MainLoop::currentMainLoop()),
+  powerPollTicket(0)
 {
   // config must be: mystromdevicehost[:token]:(light|relay)
   size_t i = aDeviceConfig.rfind(":");
@@ -79,6 +81,11 @@ MyStromDevice::MyStromDevice(StaticDeviceContainer *aClassContainerP, const stri
     o->addChannel(ChannelBehaviourPtr(new DigitalChannel(*o)));
     addBehaviour(o);
   }
+  // Power sensor
+  powerSensor = SensorBehaviourPtr(new SensorBehaviour(*this));
+  powerSensor->setHardwareSensorConfig(sensorType_power, usage_undefined, 0, 2300, 0.01, STATE_POLL_INTERVAL, 10*STATE_POLL_INTERVAL);
+  powerSensor->setSensorNameFrom("Power", "W");
+  addBehaviour(powerSensor);
   // dsuid
 	deriveDsUid();
 }
@@ -121,31 +128,46 @@ void MyStromDevice::initialStateReceived(StatusCB aCompletedCB, bool aFactoryRes
       output->getChannelByIndex(0)->syncChannelValue(o->boolValue() ? 100 : 0);
     }
   }
+  // set up regular polling
+  powerPollTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&MyStromDevice::sampleState, this), 1*Second);
   // anyway, consider initialized
   inherited::initializeDevice(aCompletedCB, aFactoryReset);
 }
 
 
-void MyStromDevice::checkPresence(PresenceCB aPresenceResultHandler)
+void MyStromDevice::sampleState()
 {
-  if (applyInProgress) {
-    // cannot query now, update in progress, assume still present
-    aPresenceResultHandler(true);
-    return;
+  MainLoop::currentMainLoop().cancelExecutionTicket(powerPollTicket);
+  if (!myStromApiQuery(boost::bind(&MyStromDevice::stateReceived, this, _1, _2), "report")) {
+    // error, try again later (after pausing 10 normal poll periods)
+    powerPollTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&MyStromDevice::sampleState, this), 10*STATE_POLL_INTERVAL);
   }
-  // query the device
-  myStromApiQuery(boost::bind(&MyStromDevice::presenceStateReceived, this, aPresenceResultHandler, _1, _2), "report");
+}
+
+
+void MyStromDevice::stateReceived(JsonObjectPtr aJsonResponse, ErrorPtr aError)
+{
+  if (Error::isOK(aError) && aJsonResponse) {
+    JsonObjectPtr o = aJsonResponse->get("power");
+    if (o) {
+      powerSensor->updateSensorValue(o->doubleValue());
+    }
+    o = aJsonResponse->get("relay");
+    if (o) {
+      output->getChannelByIndex(0)->syncChannelValueBool(o->boolValue());
+    }
+  }
+  // schedule next poll
+  powerPollTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&MyStromDevice::sampleState, this), STATE_POLL_INTERVAL);
 }
 
 
 
-void MyStromDevice::presenceStateReceived(PresenceCB aPresenceResultHandler, JsonObjectPtr aJsonResponse, ErrorPtr aError)
+
+void MyStromDevice::checkPresence(PresenceCB aPresenceResultHandler)
 {
-  bool reachable = false;
-  if (Error::isOK(aError) && aJsonResponse) {
-    reachable = true;
-  }
-  aPresenceResultHandler(reachable);
+  // assume present if we had a recent succesful poll
+  aPresenceResultHandler(powerSensor->hasCurrentValue(STATE_POLL_INTERVAL*1.2));
 }
 
 
@@ -185,6 +207,8 @@ void MyStromDevice::channelValuesSent(SimpleCB aDoneCB, string aResponse, ErrorP
 {
   if (Error::isOK(aError)) {
     output->getChannelByIndex(0)->channelValueApplied();
+    // sample the state and power
+    sampleState();
   }
   else {
     FOCUSLOG("myStrom API error: %s", aError->description().c_str());
