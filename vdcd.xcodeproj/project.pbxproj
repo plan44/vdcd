@@ -223,8 +223,8 @@
 		ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8308185099F300339A22 /* pbufvdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = pbufvdcapi.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8309185099F300339A22 /* pbufvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = pbufvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/libp44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/libp44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = audiobehaviour.hpp; sourceTree = "<group>"; };
 		ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiobehaviour.cpp; sourceTree = "<group>"; };
 		ED369996178D5BD600376405 /* digitalio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitalio.cpp; sourceTree = "<group>"; };
@@ -746,7 +746,7 @@
 			path = tests;
 			sourceTree = "<group>";
 		};
-		ED6CCD5E1D1D32FE00C78A0D /* libp44vdc */ = {
+		ED6CCD5E1D1D32FE00C78A0D /* p44vdc */ = {
 			isa = PBXGroup;
 			children = (
 				ED0DE305184E3821001ADB5E /* pbuf */,
@@ -755,7 +755,7 @@
 				ED3126881831225600FAF28B /* behaviours */,
 				ED3126891831228D00FAF28B /* deviceclasses */,
 			);
-			path = libp44vdc;
+			path = p44vdc;
 			sourceTree = "<group>";
 		};
 		ED6CCD621D1D338A00C78A0D /* deviceclasses */ = {
@@ -793,7 +793,7 @@
 			isa = PBXGroup;
 			children = (
 				ED6CCD621D1D338A00C78A0D /* deviceclasses */,
-				ED6CCD5E1D1D32FE00C78A0D /* libp44vdc */,
+				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED3699B5178DA83800376405 /* p44utils */,
 				ED6CCD3D1D198EB200C78A0D /* tests */,
 				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
@@ -1217,7 +1217,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/libp44vdc/thirdparty",
+					"$(PROJECT_DIR)/src/p44vdc/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
@@ -1248,7 +1248,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/libp44vdc/thirdparty",
+					"$(PROJECT_DIR)/src/p44vdc/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (

@@ -1,3 +1,6 @@
 [submodule "src/p44utils"]
 	path = src/p44utils
 	url = ../p44utils.git
+[submodule "src/p44vdc"]
+	path = src/p44vdc
+	url = ../p44vdc.git

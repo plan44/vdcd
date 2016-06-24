@@ -16,6 +16,8 @@ vdcd however is not limited to the set of features listed above - is based on a 
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
+This framework is called [**p44vdc**](https://github.com/plan44/p44vdc) and is included as a submodule into this project, as well is a set of general C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils).
+
 If you like this, please don't forget to flattr it :-)
 
 - Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
@@ -40,7 +42,7 @@ Features
 - Supports Philips hue lights via the hue bridge and its JSON API
 - Supports WS2812 LED chip based RGB LED chains on Raspberry Pi (just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18), thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git)
 - Allows to use Linux GPIO pins (e.g. on RaspberryPi) as button inputs or on/off outputs
-- Allows to use i2c peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685) for digital I/O as well as PWM outputs
+- Allows to use i2c and spi peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685, MCP23017, MCP23S17) for digital I/O as well as PWM outputs
 - Implements interface to [Open Lighting Architecture - OLA](http://www.openlighting.org/) to control DMX512 based lights (single channel, RGB, RGBW, RGBWA, moving head)
 
 
@@ -63,7 +65,7 @@ Getting Started
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
   - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E, P44-DSB-DEH)
 
-- check out the /docs folder: For building the vdcd, see *"How to build vdsm and vdcd on Linux - in particular Raspian on P44-DSB-X.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
+- consult the */docs* folder: For building the vdcd, see *"How to build vdsm and vdcd on Linux - in particular Raspian on P44-DSB-X.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
 
 
 Supporting vdcd
@@ -74,7 +76,7 @@ Supporting vdcd
 3. build cool new device integrations and contribute those
 4. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
 
-(c) 2013-2015 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)
+*(c) 2013-2016 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 
