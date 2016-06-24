@@ -195,18 +195,18 @@
 		ED0DE309184E385A001ADB5E /* vdcapi.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vdcapi.proto; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetcomm.cpp; path = voxnet/voxnetcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetcomm.hpp; path = voxnet/voxnetcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetdevice.cpp; path = voxnet/voxnetdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetdevice.hpp; path = voxnet/voxnetdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = voxnetvdc.cpp; path = voxnet/voxnetvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE111BF223AB00857282 /* voxnetvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = voxnetvdc.hpp; path = voxnet/voxnetvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE151BF223C000857282 /* vzughomecomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomecomm.cpp; path = vzughome/vzughomecomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE161BF223C000857282 /* vzughomecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomecomm.hpp; path = vzughome/vzughomecomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE171BF223C000857282 /* vzughomedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomedevice.cpp; path = vzughome/vzughomedevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE181BF223C000857282 /* vzughomedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomedevice.hpp; path = vzughome/vzughomedevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE191BF223C000857282 /* vzughomevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = vzughomevdc.cpp; path = vzughome/vzughomevdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED0FDE1A1BF223C000857282 /* vzughomevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = vzughomevdc.hpp; path = vzughome/vzughomevdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE0C1BF223AB00857282 /* voxnetcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = voxnetcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE0D1BF223AB00857282 /* voxnetcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = voxnetcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE0E1BF223AB00857282 /* voxnetdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = voxnetdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE0F1BF223AB00857282 /* voxnetdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = voxnetdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = voxnetvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE111BF223AB00857282 /* voxnetvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = voxnetvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE151BF223C000857282 /* vzughomecomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vzughomecomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE161BF223C000857282 /* vzughomecomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vzughomecomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE171BF223C000857282 /* vzughomedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vzughomedevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE181BF223C000857282 /* vzughomedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vzughomedevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE191BF223C000857282 /* vzughomevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vzughomevdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0FDE1A1BF223C000857282 /* vzughomevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = vzughomevdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -223,8 +223,8 @@
 		ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8308185099F300339A22 /* pbufvdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = pbufvdcapi.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8309185099F300339A22 /* pbufvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = pbufvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/libp44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/libp44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = audiobehaviour.hpp; sourceTree = "<group>"; };
 		ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = audiobehaviour.cpp; sourceTree = "<group>"; };
 		ED369996178D5BD600376405 /* digitalio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitalio.cpp; sourceTree = "<group>"; };
@@ -323,12 +323,12 @@
 		ED8F6DB71C56855200176CA9 /* enoceansensorhandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceansensorhandler.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanvld.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DBD1C5685A300176CA9 /* enoceanvld.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceanvld.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D271B11D97700B18624 /* ledchainvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ledchainvdc.hpp; path = ledchain/ledchainvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D281B11D97700B18624 /* ledchainvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ledchainvdc.cpp; path = ledchain/ledchainvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D291B11D97700B18624 /* ledchaindevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ledchaindevice.cpp; path = ledchain/ledchaindevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ledchaindevice.hpp; path = ledchain/ledchaindevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = ws281xcomm.cpp; path = ledchain/ws281xcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = ws281xcomm.hpp; path = ledchain/ws281xcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D271B11D97700B18624 /* ledchainvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ledchainvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D281B11D97700B18624 /* ledchainvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchainvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D291B11D97700B18624 /* ledchaindevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaindevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ledchaindevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ws281xcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ws281xcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D3C1B14BFB900B18624 /* shadowbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = shadowbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = shadowbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = apivalue.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -437,7 +437,7 @@
 				ED0FDE101BF223AB00857282 /* voxnetvdc.cpp */,
 				ED0FDE111BF223AB00857282 /* voxnetvdc.hpp */,
 			);
-			name = voxnet;
+			path = voxnet;
 			sourceTree = "<group>";
 		};
 		ED0FDE0B1BF1D83800857282 /* vzughome */ = {
@@ -450,7 +450,7 @@
 				ED0FDE191BF223C000857282 /* vzughomevdc.cpp */,
 				ED0FDE1A1BF223C000857282 /* vzughomevdc.hpp */,
 			);
-			name = vzughome;
+			path = vzughome;
 			sourceTree = "<group>";
 		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
@@ -494,8 +494,6 @@
 				ED6D7BEB1716B6B1005DED18 /* vdcd_common.hpp */,
 				ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */,
 				ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */,
-				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
-				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 			);
 			path = vdc_common;
 			sourceTree = "<group>";
@@ -536,8 +534,6 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
-				ED0FDE0B1BF1D83800857282 /* vzughome */,
-				ED0FDE071BF1D82C00857282 /* voxnet */,
 				ED5DA3E61BB294D7003C86C7 /* external */,
 				ED5A4D961C8212E600C607D5 /* evaluator */,
 				ED911D251B11D73A00B18624 /* ledchain */,
@@ -750,6 +746,27 @@
 			path = tests;
 			sourceTree = "<group>";
 		};
+		ED6CCD5E1D1D32FE00C78A0D /* libp44vdc */ = {
+			isa = PBXGroup;
+			children = (
+				ED0DE305184E3821001ADB5E /* pbuf */,
+				ED312687183121FF00FAF28B /* thirdparty */,
+				ED31268518311BD300FAF28B /* vdc_common */,
+				ED3126881831225600FAF28B /* behaviours */,
+				ED3126891831228D00FAF28B /* deviceclasses */,
+			);
+			path = libp44vdc;
+			sourceTree = "<group>";
+		};
+		ED6CCD621D1D338A00C78A0D /* deviceclasses */ = {
+			isa = PBXGroup;
+			children = (
+				ED0FDE0B1BF1D83800857282 /* vzughome */,
+				ED0FDE071BF1D82C00857282 /* voxnet */,
+			);
+			path = deviceclasses;
+			sourceTree = "<group>";
+		};
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
@@ -775,13 +792,12 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				ED0DE305184E3821001ADB5E /* pbuf */,
-				ED312687183121FF00FAF28B /* thirdparty */,
+				ED6CCD621D1D338A00C78A0D /* deviceclasses */,
+				ED6CCD5E1D1D32FE00C78A0D /* libp44vdc */,
 				ED3699B5178DA83800376405 /* p44utils */,
-				ED31268518311BD300FAF28B /* vdc_common */,
-				ED3126881831225600FAF28B /* behaviours */,
-				ED3126891831228D00FAF28B /* deviceclasses */,
 				ED6CCD3D1D198EB200C78A0D /* tests */,
+				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
+				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 			);
 			path = src;
@@ -797,7 +813,7 @@
 				ED911D281B11D97700B18624 /* ledchainvdc.cpp */,
 				ED911D271B11D97700B18624 /* ledchainvdc.hpp */,
 			);
-			name = ledchain;
+			path = ledchain;
 			sourceTree = "<group>";
 		};
 		EDAEE43B1B8B144F0035F8ED /* Products */ = {
@@ -1201,7 +1217,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/thirdparty",
+					"$(PROJECT_DIR)/src/libp44vdc/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
@@ -1232,7 +1248,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/thirdparty",
+					"$(PROJECT_DIR)/src/libp44vdc/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (

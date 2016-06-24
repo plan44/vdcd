@@ -10,10 +10,10 @@ endif
 # common stuff for protobuf - NOTE: need to "make all" to get BUILT_SOURCES made
 
 PROTOBUF_GENERATED = \
-  src/pbuf/gen/messages.pb-c.h \
-  src/pbuf/gen/messages.pb-c.c \
-  src/pbuf/gen/vdcapi.pb-c.h \
-  src/pbuf/gen/vdcapi.pb-c.c
+  src/libp44vdc/pbuf/gen/messages.pb-c.h \
+  src/libp44vdc/pbuf/gen/messages.pb-c.c \
+  src/libp44vdc/pbuf/gen/vdcapi.pb-c.h \
+  src/libp44vdc/pbuf/gen/vdcapi.pb-c.c
 
 #dist_noinst_DATA = messages.proto vdcapi.proto
 
@@ -21,11 +21,11 @@ MOSTLYCLEANFILES = $(PROTOBUF_GENERATED)
 
 BUILT_SOURCES = $(PROTOBUF_GENERATED)
 
-src/pbuf/gen/messages.pb-c.h src/pbuf/gen/messages.pb-c.c:	src/pbuf/messages.proto
-	$(PROTOC) --proto_path=src/pbuf --c_out=src/pbuf/gen src/pbuf/messages.proto
+src/libp44vdc/pbuf/gen/messages.pb-c.h src/libp44vdc/pbuf/gen/messages.pb-c.c:	src/libp44vdc/pbuf/messages.proto
+	$(PROTOC) --proto_path=src/libp44vdc/pbuf --c_out=src/libp44vdc/pbuf/gen src/libp44vdc/pbuf/messages.proto
 
-src/pbuf/gen/vdcapi.pb-c.h src/pbuf/gen/vdcapi.pb-c.c:	src/pbuf/vdcapi.proto
-	$(PROTOC) --proto_path=src/pbuf --c_out=src/pbuf/gen src/pbuf/vdcapi.proto
+src/libp44vdc/pbuf/gen/vdcapi.pb-c.h src/libp44vdc/pbuf/gen/vdcapi.pb-c.c:	src/libp44vdc/pbuf/vdcapi.proto
+	$(PROTOC) --proto_path=src/libp44vdc/pbuf --c_out=src/libp44vdc/pbuf/gen src/libp44vdc/pbuf/vdcapi.proto
 
 
 # vdcd
@@ -62,25 +62,29 @@ if P44_BUILD_RPI
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
 vdcd_LDADD = $(PTHREAD_LIBS) -lmongoose -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
-# JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set it here
-vdcd_EXTRACFLAGS = -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c
+# JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
+# AVAHI_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
+vdcd_EXTRACFLAGS = \
+  -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c \
+  -I ${srcdir}/../libavahi-core
+
 
 # sources only supported on RPI
 LEDCHAIN_SRC = \
-  src/thirdparty/rpi_ws281x/clk.h \
-  src/thirdparty/rpi_ws281x/gpio.h \
-  src/thirdparty/rpi_ws281x/dma.h \
-  src/thirdparty/rpi_ws281x/dma.c \
-  src/thirdparty/rpi_ws281x/pwm.h \
-  src/thirdparty/rpi_ws281x/pwm.c \
-  src/thirdparty/rpi_ws281x/board_info.h \
-  src/thirdparty/rpi_ws281x/board_info.c \
-  src/thirdparty/rpi_ws281x/mailbox.h \
-  src/thirdparty/rpi_ws281x/mailbox.c \
-  src/thirdparty/rpi_ws281x/ws2811.h \
-  src/thirdparty/rpi_ws281x/ws2811.c
+  src/libp44vdc/thirdparty/rpi_ws281x/clk.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/gpio.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/dma.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/dma.c \
+  src/libp44vdc/thirdparty/rpi_ws281x/pwm.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/pwm.c \
+  src/libp44vdc/thirdparty/rpi_ws281x/board_info.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/board_info.c \
+  src/libp44vdc/thirdparty/rpi_ws281x/mailbox.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/mailbox.c \
+  src/libp44vdc/thirdparty/rpi_ws281x/ws2811.h \
+  src/libp44vdc/thirdparty/rpi_ws281x/ws2811.c
 LEDCHAIN_INCLUDES = \
-  -I ${srcdir}/src/thirdparty/rpi_ws281x
+  -I ${srcdir}/src/libp44vdc/thirdparty/rpi_ws281x
 
 else
 
@@ -89,7 +93,7 @@ else
 vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
 
 # build mongoose into vdcd, no library
-MONGOOSE_SRC = src/thirdparty/mongoose/mongoose.c src/thirdparty/mongoose/mongoose.h
+MONGOOSE_SRC = src/libp44vdc/thirdparty/mongoose/mongoose.c src/libp44vdc/thirdparty/mongoose/mongoose.h
 
 endif
 
@@ -97,21 +101,20 @@ endif
 vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src \
-  -I ${srcdir}/src/thirdparty/mongoose \
-  -I ${srcdir}/src/thirdparty \
-  -I ${srcdir}/src/pbuf/gen \
-  -I ${srcdir}/src/vdc_common \
-  -I ${srcdir}/src/behaviours \
-  -I ${srcdir}/src/deviceclasses/simpleio \
-  -I ${srcdir}/src/deviceclasses/external \
-  -I ${srcdir}/src/deviceclasses/evaluator \
-  -I ${srcdir}/src/deviceclasses/enocean \
-  -I ${srcdir}/src/deviceclasses/dali \
-  -I ${srcdir}/src/deviceclasses/hue \
-  -I ${srcdir}/src/deviceclasses/ledchain \
+  -I ${srcdir}/src/libp44vdc/thirdparty/mongoose \
+  -I ${srcdir}/src/libp44vdc/thirdparty \
+  -I ${srcdir}/src/libp44vdc/pbuf/gen \
+  -I ${srcdir}/src/libp44vdc/vdc_common \
+  -I ${srcdir}/src/libp44vdc/behaviours \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/simpleio \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/external \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/evaluator \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/enocean \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/dali \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/hue \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/ledchain \
   -I ${srcdir}/src/deviceclasses/vzughome \
   -I ${srcdir}/src/deviceclasses/voxnet \
-  -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
@@ -191,123 +194,121 @@ vdcd_SOURCES = \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44_common.hpp \
-  src/thirdparty/sqlite3pp/sqlite3pp.cpp \
-  src/thirdparty/sqlite3pp/sqlite3pp.h \
-  src/thirdparty/sqlite3pp/sqlite3ppext.cpp \
-  src/thirdparty/sqlite3pp/sqlite3ppext.h \
-  src/vdc_common/dsbehaviour.cpp \
-  src/vdc_common/dsbehaviour.hpp \
-  src/vdc_common/outputbehaviour.cpp \
-  src/vdc_common/outputbehaviour.hpp \
-  src/vdc_common/channelbehaviour.cpp \
-  src/vdc_common/channelbehaviour.hpp \
-  src/vdc_common/dsscene.cpp \
-  src/vdc_common/dsscene.hpp \
-  src/vdc_common/simplescene.cpp \
-  src/vdc_common/simplescene.hpp \
-  src/vdc_common/device.cpp \
-  src/vdc_common/device.hpp \
-  src/vdc_common/devicesettings.cpp \
-  src/vdc_common/devicesettings.hpp \
-  src/vdc_common/valuesource.cpp \
-  src/vdc_common/valuesource.hpp \
-  src/vdc_common/propertycontainer.cpp \
-  src/vdc_common/propertycontainer.hpp \
-  src/vdc_common/pbufvdcapi.cpp \
-  src/vdc_common/pbufvdcapi.hpp \
-  src/vdc_common/jsonvdcapi.cpp \
-  src/vdc_common/jsonvdcapi.hpp \
-  src/vdc_common/vdcapi.cpp \
-  src/vdc_common/vdcapi.hpp \
-  src/vdc_common/apivalue.cpp \
-  src/vdc_common/apivalue.hpp \
-  src/vdc_common/dsaddressable.cpp \
-  src/vdc_common/dsaddressable.hpp \
-  src/vdc_common/vdc.cpp \
-  src/vdc_common/vdc.hpp \
-  src/vdc_common/vdchost.cpp \
-  src/vdc_common/vdchost.hpp \
-  src/vdc_common/discovery.cpp \
-  src/vdc_common/discovery.hpp \
-  src/vdc_common/p44_vdcd_host.cpp \
-  src/vdc_common/p44_vdcd_host.hpp \
-  src/vdc_common/dsdefs.h \
-  src/vdc_common/dsuid.cpp \
-  src/vdc_common/dsuid.hpp \
-  src/vdc_common/vdcd_common.hpp \
-  src/behaviours/climatecontrolbehaviour.cpp \
-  src/behaviours/climatecontrolbehaviour.hpp \
-  src/behaviours/audiobehaviour.cpp \
-  src/behaviours/audiobehaviour.hpp \
-  src/behaviours/shadowbehaviour.cpp \
-  src/behaviours/shadowbehaviour.hpp \
-  src/behaviours/buttonbehaviour.hpp \
-  src/behaviours/buttonbehaviour.cpp \
-  src/behaviours/sensorbehaviour.hpp \
-  src/behaviours/sensorbehaviour.cpp \
-  src/behaviours/binaryinputbehaviour.hpp \
-  src/behaviours/binaryinputbehaviour.cpp \
-  src/behaviours/lightbehaviour.cpp \
-  src/behaviours/lightbehaviour.hpp \
-  src/behaviours/colorlightbehaviour.cpp \
-  src/behaviours/colorlightbehaviour.hpp \
-  src/behaviours/movinglightbehaviour.cpp \
-  src/behaviours/movinglightbehaviour.hpp \
-  src/deviceclasses/simpleio/consoledevice.cpp \
-  src/deviceclasses/simpleio/consoledevice.hpp \
-  src/deviceclasses/simpleio/sparkiodevice.cpp \
-  src/deviceclasses/simpleio/sparkiodevice.hpp \
-  src/deviceclasses/simpleio/mystromdevice.cpp \
-  src/deviceclasses/simpleio/mystromdevice.hpp \
-  src/deviceclasses/simpleio/digitaliodevice.cpp \
-  src/deviceclasses/simpleio/digitaliodevice.hpp \
-  src/deviceclasses/simpleio/analogiodevice.cpp \
-  src/deviceclasses/simpleio/analogiodevice.hpp \
-  src/deviceclasses/simpleio/staticvdc.cpp \
-  src/deviceclasses/simpleio/staticvdc.hpp \
-  src/deviceclasses/external/externalvdc.cpp \
-  src/deviceclasses/external/externalvdc.hpp \
-  src/deviceclasses/evaluator/evaluatorvdc.cpp \
-  src/deviceclasses/evaluator/evaluatorvdc.hpp \
-  src/deviceclasses/evaluator/evaluatordevice.cpp \
-  src/deviceclasses/evaluator/evaluatordevice.hpp \
-  src/deviceclasses/enocean/enoceancomm.cpp \
-  src/deviceclasses/enocean/enoceancomm.hpp \
-  src/deviceclasses/enocean/enoceandevice.cpp \
-  src/deviceclasses/enocean/enoceandevice.hpp \
-  src/deviceclasses/enocean/enoceanremotecontrol.cpp \
-  src/deviceclasses/enocean/enoceanremotecontrol.hpp \
-  src/deviceclasses/enocean/enoceansensorhandler.cpp \
-  src/deviceclasses/enocean/enoceansensorhandler.hpp \
-  src/deviceclasses/enocean/enoceanrps.cpp \
-  src/deviceclasses/enocean/enoceanrps.hpp \
-  src/deviceclasses/enocean/enocean4bs.cpp \
-  src/deviceclasses/enocean/enocean4bs.hpp \
-  src/deviceclasses/enocean/enocean1bs.cpp \
-  src/deviceclasses/enocean/enocean1bs.hpp \
-  src/deviceclasses/enocean/enoceanvld.cpp \
-  src/deviceclasses/enocean/enoceanvld.hpp \
-  src/deviceclasses/enocean/enoceanvdc.cpp \
-  src/deviceclasses/enocean/enoceanvdc.hpp \
-  src/deviceclasses/dali/dalicomm.cpp \
-  src/deviceclasses/dali/dalicomm.hpp \
-  src/deviceclasses/dali/dalidefs.h \
-  src/deviceclasses/dali/dalidevice.cpp \
-  src/deviceclasses/dali/dalidevice.hpp \
-  src/deviceclasses/dali/dalivdc.cpp \
-  src/deviceclasses/dali/dalivdc.hpp \
-  src/deviceclasses/hue/huecomm.cpp \
-  src/deviceclasses/hue/huecomm.hpp \
-  src/deviceclasses/hue/huevdc.cpp \
-  src/deviceclasses/hue/huevdc.hpp \
-  src/deviceclasses/hue/huedevice.cpp \
-  src/deviceclasses/hue/huedevice.hpp \
-  src/deviceclasses/ledchain/ws281xcomm.hpp \
-  src/deviceclasses/ledchain/ws281xcomm.cpp \
-  src/deviceclasses/ledchain/ledchaindevice.hpp \
-  src/deviceclasses/ledchain/ledchaindevice.cpp \
-  src/deviceclasses/ledchain/ledchainvdc.hpp \
-  src/deviceclasses/ledchain/ledchainvdc.cpp \
+  src/libp44vdc/thirdparty/sqlite3pp/sqlite3pp.cpp \
+  src/libp44vdc/thirdparty/sqlite3pp/sqlite3pp.h \
+  src/libp44vdc/thirdparty/sqlite3pp/sqlite3ppext.cpp \
+  src/libp44vdc/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/libp44vdc/vdc_common/dsbehaviour.cpp \
+  src/libp44vdc/vdc_common/dsbehaviour.hpp \
+  src/libp44vdc/vdc_common/outputbehaviour.cpp \
+  src/libp44vdc/vdc_common/outputbehaviour.hpp \
+  src/libp44vdc/vdc_common/channelbehaviour.cpp \
+  src/libp44vdc/vdc_common/channelbehaviour.hpp \
+  src/libp44vdc/vdc_common/dsscene.cpp \
+  src/libp44vdc/vdc_common/dsscene.hpp \
+  src/libp44vdc/vdc_common/simplescene.cpp \
+  src/libp44vdc/vdc_common/simplescene.hpp \
+  src/libp44vdc/vdc_common/device.cpp \
+  src/libp44vdc/vdc_common/device.hpp \
+  src/libp44vdc/vdc_common/devicesettings.cpp \
+  src/libp44vdc/vdc_common/devicesettings.hpp \
+  src/libp44vdc/vdc_common/valuesource.cpp \
+  src/libp44vdc/vdc_common/valuesource.hpp \
+  src/libp44vdc/vdc_common/propertycontainer.cpp \
+  src/libp44vdc/vdc_common/propertycontainer.hpp \
+  src/libp44vdc/vdc_common/pbufvdcapi.cpp \
+  src/libp44vdc/vdc_common/pbufvdcapi.hpp \
+  src/libp44vdc/vdc_common/jsonvdcapi.cpp \
+  src/libp44vdc/vdc_common/jsonvdcapi.hpp \
+  src/libp44vdc/vdc_common/vdcapi.cpp \
+  src/libp44vdc/vdc_common/vdcapi.hpp \
+  src/libp44vdc/vdc_common/apivalue.cpp \
+  src/libp44vdc/vdc_common/apivalue.hpp \
+  src/libp44vdc/vdc_common/dsaddressable.cpp \
+  src/libp44vdc/vdc_common/dsaddressable.hpp \
+  src/libp44vdc/vdc_common/vdc.cpp \
+  src/libp44vdc/vdc_common/vdc.hpp \
+  src/libp44vdc/vdc_common/vdchost.cpp \
+  src/libp44vdc/vdc_common/vdchost.hpp \
+  src/libp44vdc/vdc_common/discovery.cpp \
+  src/libp44vdc/vdc_common/discovery.hpp \
+  src/libp44vdc/vdc_common/dsdefs.h \
+  src/libp44vdc/vdc_common/dsuid.cpp \
+  src/libp44vdc/vdc_common/dsuid.hpp \
+  src/libp44vdc/vdc_common/vdcd_common.hpp \
+  src/libp44vdc/behaviours/climatecontrolbehaviour.cpp \
+  src/libp44vdc/behaviours/climatecontrolbehaviour.hpp \
+  src/libp44vdc/behaviours/audiobehaviour.cpp \
+  src/libp44vdc/behaviours/audiobehaviour.hpp \
+  src/libp44vdc/behaviours/shadowbehaviour.cpp \
+  src/libp44vdc/behaviours/shadowbehaviour.hpp \
+  src/libp44vdc/behaviours/buttonbehaviour.hpp \
+  src/libp44vdc/behaviours/buttonbehaviour.cpp \
+  src/libp44vdc/behaviours/sensorbehaviour.hpp \
+  src/libp44vdc/behaviours/sensorbehaviour.cpp \
+  src/libp44vdc/behaviours/binaryinputbehaviour.hpp \
+  src/libp44vdc/behaviours/binaryinputbehaviour.cpp \
+  src/libp44vdc/behaviours/lightbehaviour.cpp \
+  src/libp44vdc/behaviours/lightbehaviour.hpp \
+  src/libp44vdc/behaviours/colorlightbehaviour.cpp \
+  src/libp44vdc/behaviours/colorlightbehaviour.hpp \
+  src/libp44vdc/behaviours/movinglightbehaviour.cpp \
+  src/libp44vdc/behaviours/movinglightbehaviour.hpp \
+  src/libp44vdc/deviceclasses/simpleio/consoledevice.cpp \
+  src/libp44vdc/deviceclasses/simpleio/consoledevice.hpp \
+  src/libp44vdc/deviceclasses/simpleio/sparkiodevice.cpp \
+  src/libp44vdc/deviceclasses/simpleio/sparkiodevice.hpp \
+  src/libp44vdc/deviceclasses/simpleio/mystromdevice.cpp \
+  src/libp44vdc/deviceclasses/simpleio/mystromdevice.hpp \
+  src/libp44vdc/deviceclasses/simpleio/digitaliodevice.cpp \
+  src/libp44vdc/deviceclasses/simpleio/digitaliodevice.hpp \
+  src/libp44vdc/deviceclasses/simpleio/analogiodevice.cpp \
+  src/libp44vdc/deviceclasses/simpleio/analogiodevice.hpp \
+  src/libp44vdc/deviceclasses/simpleio/staticvdc.cpp \
+  src/libp44vdc/deviceclasses/simpleio/staticvdc.hpp \
+  src/libp44vdc/deviceclasses/external/externalvdc.cpp \
+  src/libp44vdc/deviceclasses/external/externalvdc.hpp \
+  src/libp44vdc/deviceclasses/evaluator/evaluatorvdc.cpp \
+  src/libp44vdc/deviceclasses/evaluator/evaluatorvdc.hpp \
+  src/libp44vdc/deviceclasses/evaluator/evaluatordevice.cpp \
+  src/libp44vdc/deviceclasses/evaluator/evaluatordevice.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceancomm.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceancomm.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceandevice.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceandevice.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanremotecontrol.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanremotecontrol.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceansensorhandler.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceansensorhandler.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanrps.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanrps.hpp \
+  src/libp44vdc/deviceclasses/enocean/enocean4bs.cpp \
+  src/libp44vdc/deviceclasses/enocean/enocean4bs.hpp \
+  src/libp44vdc/deviceclasses/enocean/enocean1bs.cpp \
+  src/libp44vdc/deviceclasses/enocean/enocean1bs.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanvld.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanvld.hpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanvdc.cpp \
+  src/libp44vdc/deviceclasses/enocean/enoceanvdc.hpp \
+  src/libp44vdc/deviceclasses/dali/dalicomm.cpp \
+  src/libp44vdc/deviceclasses/dali/dalicomm.hpp \
+  src/libp44vdc/deviceclasses/dali/dalidefs.h \
+  src/libp44vdc/deviceclasses/dali/dalidevice.cpp \
+  src/libp44vdc/deviceclasses/dali/dalidevice.hpp \
+  src/libp44vdc/deviceclasses/dali/dalivdc.cpp \
+  src/libp44vdc/deviceclasses/dali/dalivdc.hpp \
+  src/libp44vdc/deviceclasses/hue/huecomm.cpp \
+  src/libp44vdc/deviceclasses/hue/huecomm.hpp \
+  src/libp44vdc/deviceclasses/hue/huevdc.cpp \
+  src/libp44vdc/deviceclasses/hue/huevdc.hpp \
+  src/libp44vdc/deviceclasses/hue/huedevice.cpp \
+  src/libp44vdc/deviceclasses/hue/huedevice.hpp \
+  src/libp44vdc/deviceclasses/ledchain/ws281xcomm.hpp \
+  src/libp44vdc/deviceclasses/ledchain/ws281xcomm.cpp \
+  src/libp44vdc/deviceclasses/ledchain/ledchaindevice.hpp \
+  src/libp44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
+  src/libp44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
+  src/libp44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
   src/deviceclasses/vzughome/vzughomecomm.cpp \
   src/deviceclasses/vzughome/vzughomecomm.hpp \
   src/deviceclasses/vzughome/vzughomedevice.cpp \
@@ -320,6 +321,8 @@ vdcd_SOURCES = \
   src/deviceclasses/voxnet/voxnetdevice.hpp \
   src/deviceclasses/voxnet/voxnetvdc.cpp \
   src/deviceclasses/voxnet/voxnetvdc.hpp \
+  src/p44_vdcd_host.cpp \
+  src/p44_vdcd_host.hpp \
   src/p44_vdcd_main.cpp
 
 
@@ -336,22 +339,21 @@ olavdcd_LDADD = ${vdcd_LDADD} -lola -lolacommon -lprotobuf
 olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src \
-  -I ${srcdir}/src/thirdparty/mongoose \
-  -I ${srcdir}/src/thirdparty \
-  -I ${srcdir}/src/pbuf/gen \
-  -I ${srcdir}/src/vdc_common \
-  -I ${srcdir}/src/behaviours \
-  -I ${srcdir}/src/deviceclasses/simpleio \
-  -I ${srcdir}/src/deviceclasses/external \
-  -I ${srcdir}/src/deviceclasses/evaluator \
-  -I ${srcdir}/src/deviceclasses/enocean \
-  -I ${srcdir}/src/deviceclasses/dali \
-  -I ${srcdir}/src/deviceclasses/hue \
-  -I ${srcdir}/src/deviceclasses/ledchain \
-  -I ${srcdir}/src/deviceclasses/ola \
+  -I ${srcdir}/src/libp44vdc/thirdparty/mongoose \
+  -I ${srcdir}/src/libp44vdc/thirdparty \
+  -I ${srcdir}/src/libp44vdc/pbuf/gen \
+  -I ${srcdir}/src/libp44vdc/vdc_common \
+  -I ${srcdir}/src/libp44vdc/behaviours \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/simpleio \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/external \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/evaluator \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/enocean \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/dali \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/hue \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/ledchain \
+  -I ${srcdir}/src/libp44vdc/deviceclasses/ola \
   -I ${srcdir}/src/deviceclasses/vzughome \
   -I ${srcdir}/src/deviceclasses/voxnet \
-  -I ${srcdir}/../libavahi-core \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
@@ -367,10 +369,10 @@ olavdcd_CXXFLAGS = \
 
 olavdcd_SOURCES = \
   ${vdcd_SOURCES} \
-  src/deviceclasses/ola/oladevice.cpp \
-  src/deviceclasses/ola/oladevice.hpp \
-  src/deviceclasses/ola/olavdc.cpp \
-  src/deviceclasses/ola/olavdc.hpp
+  src/libp44vdc/deviceclasses/ola/oladevice.cpp \
+  src/libp44vdc/deviceclasses/ola/oladevice.hpp \
+  src/libp44vdc/deviceclasses/ola/olavdc.cpp \
+  src/libp44vdc/deviceclasses/ola/olavdc.hpp
 
 endif
 
