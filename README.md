@@ -12,17 +12,22 @@ This vdcd has ready-to-use implementation for various **EnOcean** devices, **DAL
 
 In addition to the built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
 
-vdcd however is not limited to the set of features listed above - is based on a generic C++ framework designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the digitalSTROM vDC API and the standard behaviour expected from digitalSTROM buttons, inputs, (possibly dimming) outputs and various sensors.
+vdcd however is not limited to the set of features listed above - is based on a generic C++ framework called [**p44vdc**](https://github.com/plan44/p44vdc) which is included as a submodule into this project.
+
+**p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the digitalSTROM vDC API and the standard behaviour expected from digitalSTROM buttons, inputs, (possibly dimming) outputs and various sensors.
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
-This framework is called [**p44vdc**](https://github.com/plan44/p44vdc) and is included as a submodule into this project, as well is a set of general C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils).
+vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils), which provides basic mechanisms for mainloop-based, nonblocking I/O driven automation daemons. p44utils is also included as a submodule into this project.
 
-If you like this, please don't forget to flattr it :-)
+
+If you like this project you might want to...
 
 - Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
-- See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44utils submodule is also [on github](https://github.com/plan44/p44utils))
+- See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
 - See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
+- not forget to flattr it :-)
+
 
 License
 -------

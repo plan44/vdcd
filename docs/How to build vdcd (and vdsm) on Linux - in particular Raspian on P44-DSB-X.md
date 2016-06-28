@@ -10,13 +10,14 @@ This How-To assumes you have
   or a regular [Raspian](http://www.raspbian.org) on a RaspberryPi. Model 2 recommended, or
   you'll have to waaaait a lot! 
 
-- or a [Ubuntu 14.04.2 LTS desktop](http://www.ubuntu.com/download/desktop) - other Linux will probably do as well, but Ubuntu is what I just tested (fresh copy in VMWare)
+- or a [Ubuntu 16.04.2 LTS desktop](http://www.ubuntu.com/download/desktop) - other Linux will probably do as well, but Ubuntu is what I just tested (fresh copy in VMWare)
 
-On Unbuntu, we work from a user account and use "sudo" when needed
+**On Unbuntu**, we work from a user account and use "sudo" when needed
 
-On the P44-DSB-X Minibian, there's only the "root" user, so we login as root there (user:root, password:eXperiment).
+**On the P44-DSB-X Minibian**, there's only the "root" user, so we login as root there (user:root, password:eXperiment).
+Therefore, we do not need (nor can't) use "sudo".
 
-Therefore, we do not need (nor can't) use "sudo". To generalize the following instructions for both platforms, we'll define a shell var *$SUPER* to prefix commands that need root rights below. So you can 1:1 copy and use the command lines as shown below on both platforms.
+To generalize the following instructions for both platforms, we'll define a shell var *$SUPER* to prefix commands that need root rights below. So you can 1:1 copy and use the command lines as shown below on both platforms.
 
 On the other hand, on RPi we need to make sure the entire space of the SD card (>=4GB recommended) is ready to be used, which means that the originally small (800MB) P44-DSB-X partition must be expanded.
 
@@ -53,14 +54,14 @@ To put all projects into, we create a *ds* subdirectory and set the *$DSROOT* sh
 
 	mkdir ~/ds
 	cd ~/ds
-	DSROOT=`pwd`
+	DSROOT=$(pwd)
 
 
 ## build plan44.ch's vdcd
 
 ### install libraries needed for vdcd only
 
-	$SUPER apt-get install libboost-dev libi2c-dev libssl-dev libavahi-core-dev
+	$SUPER apt-get install libboost-dev libi2c-dev libssl-dev libavahi-core-dev libavahi-client-dev
 	
 ### Checkout vdcd sources
 
@@ -73,7 +74,7 @@ If you want the last beta release, check out *testing*, for the last production 
 
 	git checkout testing
 	
-vdcd uses the [p44utils](https://github.com/plan44/vdcd) which are now located in a separate git repository. To get the matching version of p44utils:
+vdcd uses the [p44vdc](https://github.com/plan44/p44vdc) and [p44utils](https://github.com/plan44/p44utils) frameworks, which are located in a separate git repositories. To get the matching versions of these submodules:
 
     git submodule init
     git submodule update
@@ -88,8 +89,7 @@ vdcd uses the [p44utils](https://github.com/plan44/vdcd) which are now located i
 	make clean
 	# note: First build must be make all, because otherwise *.proto
 	# derived sources are not generated.
-	# this builds vdcd, demovdc and jsonrpctool
-	# to rebuild after changes later, just type "make vdcd" or "make demovdc"
+	# to rebuild after changes later, just type "make" or "make vdcd"
 	make all
 	
 	

@@ -25,7 +25,7 @@ Go to [http://brew.sh](http://brew.sh) and follow instructions
 vdcd will be created as a subfolder of this folder
 
 
-### clone the git repositories (and the p44utils submodule)
+### clone the git repositories (and the p44utils/p44vdc submodules)
 
 	git clone https://github.com/plan44/vdcd.git
 	git clone https://github.com/plan44/libmongoose.git
