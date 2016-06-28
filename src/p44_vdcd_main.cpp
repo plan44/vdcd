@@ -53,12 +53,6 @@
 #if ENABLE_LEDCHAIN
 #include "ledchainvdc.hpp"
 #endif
-#if ENABLE_VOXNET
-#include "voxnetvdc.hpp"
-#endif
-#if ENABLE_VZUGHOME
-#include "vzughomevdc.hpp"
-#endif
 
 
 #if !DISABLE_DISCOVERY
@@ -327,12 +321,6 @@ public:
       #if ENABLE_LEDCHAIN
       { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
-      #endif
-      #if ENABLE_VOXNET
-      { 0,   "voxnet",        true,  "auto|serverip;enable support for Revox Voxnet" },
-      #endif
-      #if ENABLE_VZUGHOME
-      { 0,   "vzughome",      true,  "auto|ip[,ip,...];enable support for V-Zug Home" },
       #endif
       #if ENABLE_EVALUATORS
       { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
@@ -610,30 +598,6 @@ public:
               ledChainVdc->setMaxOutValue(maxOutValue);
             }
           }
-        }
-        #endif
-
-        #if ENABLE_VOXNET
-        // - Add Voxnet support
-        string voxip;
-        if (getStringOption("voxnet", voxip)) {
-          VoxnetVdcPtr voxnetVdc = VoxnetVdcPtr(new VoxnetVdc(1, p44VdcHost.get(), 50)); // Tag 50 = Voxnet
-          if (voxip!="auto") {
-            voxnetVdc->voxnetComm->setConnectionSpecification(voxip.c_str());
-          }
-          voxnetVdc->addVdcToVdcHost();
-        }
-        #endif
-
-        #if ENABLE_VZUGHOME
-        // - Add V-Zug Home support
-        string vzugurl;
-        if (getStringOption("vzughome", vzugurl)) {
-          VZugHomeVdcPtr vzughomeVdc = VZugHomeVdcPtr(new VZugHomeVdc(1, p44VdcHost.get(), 51)); // Tag 51 = VZugHome
-          if (vzugurl!="auto") {
-            vzughomeVdc->addVzugApiBaseURLs(vzugurl.c_str());
-          }
-          vzughomeVdc->addVdcToVdcHost();
         }
         #endif
 

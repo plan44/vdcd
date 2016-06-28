@@ -113,8 +113,6 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
-  -I ${srcdir}/src/deviceclasses/vzughome \
-  -I ${srcdir}/src/deviceclasses/voxnet \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
@@ -309,18 +307,6 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
-  src/deviceclasses/vzughome/vzughomecomm.cpp \
-  src/deviceclasses/vzughome/vzughomecomm.hpp \
-  src/deviceclasses/vzughome/vzughomedevice.cpp \
-  src/deviceclasses/vzughome/vzughomedevice.hpp \
-  src/deviceclasses/vzughome/vzughomevdc.cpp \
-  src/deviceclasses/vzughome/vzughomevdc.hpp \
-  src/deviceclasses/voxnet/voxnetcomm.cpp \
-  src/deviceclasses/voxnet/voxnetcomm.hpp \
-  src/deviceclasses/voxnet/voxnetdevice.cpp \
-  src/deviceclasses/voxnet/voxnetdevice.hpp \
-  src/deviceclasses/voxnet/voxnetvdc.cpp \
-  src/deviceclasses/voxnet/voxnetvdc.hpp \
   src/p44_vdcd_host.cpp \
   src/p44_vdcd_host.hpp \
   src/p44_vdcd_main.cpp
@@ -352,8 +338,6 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
   -I ${srcdir}/src/p44vdc/deviceclasses/ola \
-  -I ${srcdir}/src/deviceclasses/vzughome \
-  -I ${srcdir}/src/deviceclasses/voxnet \
   ${LEDCHAIN_INCLUDES} \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
