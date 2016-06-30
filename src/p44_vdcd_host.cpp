@@ -29,7 +29,7 @@
 using namespace p44;
 
 
-#pragma mark - config API - P44JsonApiRequest
+// MARK: ===== config API - P44JsonApiRequest
 
 
 P44JsonApiRequest::P44JsonApiRequest(JsonCommPtr aJsonComm)
@@ -70,7 +70,7 @@ ApiValuePtr P44JsonApiRequest::newApiValue()
 }
 
 
-#pragma mark - perform self test
+// MARK: ===== perform self test
 
 
 class SelfTestRunner
@@ -196,7 +196,7 @@ string P44VdcHost::webuiURLString()
 
 
 
-#pragma mark - Config API
+// MARK: ===== Config API
 
 
 P44VdcHost::P44VdcHost() :
@@ -495,7 +495,7 @@ void P44VdcHost::identifyHandler(JsonCommPtr aJsonComm, DevicePtr aDevice)
 }
 
 
-#pragma mark - self test procedure
+// MARK: ===== self test procedure
 
 
 
