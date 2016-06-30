@@ -329,7 +329,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/thirdparty/mongoose \
   -I ${srcdir}/src/p44vdc/thirdparty \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
-  -I ${srcdir}/src/p44vdc/p44vdc_common \
+  -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
   -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
   -I ${srcdir}/src/p44vdc/deviceclasses/external \
