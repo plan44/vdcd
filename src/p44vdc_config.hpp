@@ -36,6 +36,7 @@
 #endif
 #if defined(__APPLE__)
   #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
+  #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
 #endif
 

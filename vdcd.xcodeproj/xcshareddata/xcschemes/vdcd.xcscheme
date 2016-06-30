@@ -96,6 +96,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--vdsmnotaux"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--auxvdsmrunning"
             isEnabled = "NO">
          </CommandLineArgument>

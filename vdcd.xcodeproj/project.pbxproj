@@ -730,8 +730,8 @@
 				ED6CCD3D1D198EB200C78A0D /* tests */,
 				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
 				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
-				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 				ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */,
+				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 			);
 			path = src;
 			sourceTree = "<group>";
