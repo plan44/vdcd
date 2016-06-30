@@ -9,22 +9,23 @@ else
 p44utilsdevice_DEBUG =
 endif
 
-if RASPBERRYPI
-p44utilsdevice_PLATFORM = -D RASPBERRYPI=1
+if P44_BUILD_RPI
+p44utilsdevice_PLATFORM = -D P44_BUILD_RPI=1
 else
 p44utilsdevice_PLATFORM =
 endif
 
 
-if RASPBERRYPI
+if P44_BUILD_RPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
 p44utilsdevice_LDADD = $(PTHREAD_LIBS) -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf
+# JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
+p44utilsdevice_EXTRACFLAGS = \
+  -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c
 else
-# automatic libs does not work right now due to commented out checks in autoconf.ac, so specify -l directly
-# p44utilsdevice_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) -ldl
-p44utilsdevice_LDADD = $(PTHREAD_LIBS) -ljson -ldl
+p44utilsdevice_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) -ldl
 endif
 
 
@@ -34,6 +35,7 @@ p44utilsdevice_CXXFLAGS = \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
+  ${p44utilsdevice_EXTRACFLAGS} \
   ${p44utilsdevice_DEBUG} \
   ${p44utilsdevice_PLATFORM}
 
@@ -55,6 +57,8 @@ p44utilsdevice_SOURCES = \
   src/p44utils/gpio.hpp \
   src/p44utils/i2c.cpp \
   src/p44utils/i2c.hpp \
+  src/p44utils/spi.cpp \
+  src/p44utils/spi.hpp \
   src/p44utils/iopin.cpp \
   src/p44utils/iopin.hpp \
   src/p44utils/jsoncomm.cpp \
