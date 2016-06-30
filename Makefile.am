@@ -233,7 +233,7 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/dsdefs.h \
   src/p44vdc/vdc_common/dsuid.cpp \
   src/p44vdc/vdc_common/dsuid.hpp \
-  src/p44vdc/vdc_common/vdcd_common.hpp \
+  src/p44vdc/vdc_common/p44vdc_common.hpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.cpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.hpp \
   src/p44vdc/behaviours/audiobehaviour.cpp \
@@ -307,6 +307,7 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
+  src/p44vdc_config.hpp \
   src/p44_vdcd_host.cpp \
   src/p44_vdcd_host.hpp \
   src/p44_vdcd_main.cpp
@@ -328,7 +329,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/thirdparty/mongoose \
   -I ${srcdir}/src/p44vdc/thirdparty \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
-  -I ${srcdir}/src/p44vdc/vdc_common \
+  -I ${srcdir}/src/p44vdc/p44vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
   -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
   -I ${srcdir}/src/p44vdc/deviceclasses/external \
