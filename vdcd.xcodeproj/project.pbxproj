@@ -435,6 +435,8 @@
 				ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */,
 				ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */,
 				ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */,
+				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
+				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 				ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */,
 			);
 			path = vdc_common;
@@ -728,8 +730,6 @@
 				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED3699B5178DA83800376405 /* p44utils */,
 				ED6CCD3D1D198EB200C78A0D /* tests */,
-				EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */,
-				EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */,
 				ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 			);

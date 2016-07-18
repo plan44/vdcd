@@ -233,6 +233,8 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/dsdefs.h \
   src/p44vdc/vdc_common/dsuid.cpp \
   src/p44vdc/vdc_common/dsuid.hpp \
+  src/p44vdc/vdc_common/p44_vdcd_host.cpp \
+  src/p44vdc/vdc_common/p44_vdcd_host.hpp \
   src/p44vdc/vdc_common/p44vdc_common.hpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.cpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.hpp \
@@ -308,8 +310,6 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
   src/p44vdc_config.hpp \
-  src/p44_vdcd_host.cpp \
-  src/p44_vdcd_host.hpp \
   src/p44_vdcd_main.cpp
 
 
