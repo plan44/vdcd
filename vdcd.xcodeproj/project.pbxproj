@@ -727,11 +727,11 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED3699B5178DA83800376405 /* p44utils */,
-				ED6CCD3D1D198EB200C78A0D /* tests */,
+				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
+				ED6CCD3D1D198EB200C78A0D /* tests */,
 			);
 			path = src;
 			sourceTree = "<group>";
