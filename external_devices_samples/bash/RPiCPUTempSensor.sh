@@ -11,7 +11,7 @@
 # connect to external device class container
 exec 3<>/dev/tcp/localhost/8999
 # announce single temperature sensor device
-echo "{'message':'init','group':3,'protocol':'simple','name':'RPi CPU temp.','  uniqueid':'externalDeviceRPiCPUTemp','sensors':[{'sensortype':1,'usage':1,'hardwarename':'RPiCPU','min':0,'max':100,'resolution':1,'updateinterval':20}]}" >&3
+echo "{'message':'init','group':3,'protocol':'simple','name':'RPi CPU temp.','uniqueid':'externalDeviceRPiCPUTemp','sensors':[{'sensortype':1,'usage':1,'hardwarename':'RPiCPU','min':0,'max':100,'resolution':1,'updateinterval':20}]}" >&3
 
 # every 20 seconds, send the raspberry pi's CPU temperature
 while :; do

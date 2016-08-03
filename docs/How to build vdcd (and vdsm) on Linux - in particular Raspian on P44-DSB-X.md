@@ -114,6 +114,7 @@ But still, here are the instructions how to compile a vdSM if you need to:
 
 	$SUPER apt-get install cmake python
 	$SUPER apt-get install libossp-uuid-dev libavahi-client-dev uthash-dev libconfig-dev
+	$SUPER apt-get install libboost-chrono-dev libboost-system-dev libboost-thread-dev
 	
 ### Checkout vdsm sources
 
@@ -186,7 +187,7 @@ But still, here are the instructions how to compile a vdSM if you need to:
 	# So, just run ldconfig once to make sure lib path config is up to date.
 	ldconfig
 	
-	src/vdSM -h
+	~/ds/vdsm/build/vdSM -h
 	
 Should output the usage text explaining the vdsm command line options.
 
@@ -251,6 +252,6 @@ p44maintd is not available on a standard Raspian or Ubuntu. But standard UUIDs a
 
 Now, start the vdsm with output to the console
 
-	~/ds/vdsm/src/vdSM -B -b 8441 -s ~/ds/data/vdsm.db -m ${VDSMID} localhost:8340
+	~/ds/vdsm/build/vdSM -B -b 8441 -s ~/ds/data/vdsm.db -m ${VDSMID} localhost:8340
 
 The vdsm will start trying to connect the vdc host on port 8340 (which is the vdcd you started above, so you'll see some communication between the two immediately)
