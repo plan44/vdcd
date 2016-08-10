@@ -80,6 +80,8 @@
 		ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */; };
 		ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */; };
 		ED93DFED1D25638D00D6AF0A /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = ED93DFEB1D25638D00D6AF0A /* mongoose.c */; };
+		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
+		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
@@ -308,6 +310,7 @@
 		ED93DFEC1D25638D00D6AF0A /* mongoose.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mongoose.h; sourceTree = "<group>"; };
 		ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_common.hpp; sourceTree = "<group>"; };
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44vdc_common.hpp; sourceTree = "<group>"; };
+		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_macaddress.cpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = apivalue.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDADCADA1846373300297214 /* apivalue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = apivalue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ssdpsearch.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -679,6 +682,7 @@
 				ED6CCD3A1D198ACD00C78A0D /* catch.hpp */,
 				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
+				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -896,7 +900,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */,
+				EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */,
 				ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */,
+				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
