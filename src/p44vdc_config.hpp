@@ -54,6 +54,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+  #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_RPI
   // P44-DSB-E
   #define ENABLE_ENOCEAN 1
@@ -64,6 +65,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+  #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_OW
   // P44-DSB-E2 etc.
   #define ENABLE_DALI 1
@@ -76,6 +78,7 @@
   #define ENABLE_AUXVDSM 0
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define DISABLE_I2C 1 // %%% for now
+  #define SELFTESTING_ENABLED 1
 #else
   // Default build options unless defined otherwise already
   #ifndef ENABLE_HUE

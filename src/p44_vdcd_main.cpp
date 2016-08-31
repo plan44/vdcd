@@ -61,7 +61,6 @@
 
 #include "digitalio.hpp"
 
-
 #define DEFAULT_USE_PROTOBUF_API 1 // 0: no, 1: yes
 
 #define DEFAULT_DALIPORT 2101
