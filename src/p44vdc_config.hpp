@@ -41,7 +41,7 @@
 #endif
 
 // general defaults
-#define ENABLE_LOCAL_BEHAVIOUR 1 // enabled local (minimalistic) light/button operations when no vdsm is connected  
+#define ENABLE_LOCAL_BEHAVIOUR 1 // enabled local (minimalistic) light/button operations when no vdsm is connected
 
 // Default build settings for different targets
 #if P44_BUILD_DIGI
@@ -49,7 +49,7 @@
   #define ENABLE_DALI 1
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
-  #define ENABLE_STATIC 1
+  #define ENABLE_STATIC 0 // FIXME: disabled because of footprint
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
