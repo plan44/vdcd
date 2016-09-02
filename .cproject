@@ -37,6 +37,7 @@
 <listOptionValue builtIn="false" value="../src/p44vdc/pbuf/gen"/>
 </option>
 <option id="gnu.c.compiler.option.debugging.prof.957957389" name="Generate prof information (-p)" superClass="gnu.c.compiler.option.debugging.prof" value="false" valueType="boolean"/>
+<option id="gnu.c.compiler.option.warnings.allwarn.1667080616" name="All warnings (-Wall)" superClass="gnu.c.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.365296998" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.debug.55912524" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.debug">
@@ -70,6 +71,8 @@
 <listOptionValue builtIn="false" value="P44_BUILD_DIGI=1"/>
 <listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
+<option id="gnu.cpp.compiler.option.warnings.allwarn.365046732" name="All warnings (-Wall)" superClass="gnu.cpp.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.other.other.1377741207" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.1587132294" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.debug.351995787" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.debug"/>
@@ -2183,6 +2186,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/mongoose}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/pbuf/gen"/>
 </option>
+<option id="gnu.c.compiler.option.warnings.allwarn.1358377803" name="All warnings (-Wall)" superClass="gnu.c.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
 <inputType id="com.digi.lxnetes.managedbuild.c.compiler.input.1924285062" superClass="com.digi.lxnetes.managedbuild.c.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.cpp.compiler.release.1529185694" name="GCC C++ Cross-Compiler" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.release">
@@ -2216,6 +2220,8 @@
 <listOptionValue builtIn="false" value="P44_BUILD_DIGI=1"/>
 <listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
+<option id="gnu.cpp.compiler.option.warnings.allwarn.1809747641" name="All warnings (-Wall)" superClass="gnu.cpp.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
+<option id="gnu.cpp.compiler.option.other.other.701928276" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.219824697" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.release.1472974067" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.release"/>
