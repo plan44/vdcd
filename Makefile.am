@@ -21,11 +21,11 @@ MOSTLYCLEANFILES = $(PROTOBUF_GENERATED)
 
 BUILT_SOURCES = $(PROTOBUF_GENERATED)
 
-src/p44vdc/pbuf/gen/messages.pb-c.h src/p44vdc/pbuf/gen/messages.pb-c.c:	src/p44vdc/pbuf/messages.proto
-	$(PROTOC) --proto_path=src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen src/p44vdc/pbuf/messages.proto
+src/p44vdc/pbuf/gen/messages.pb-c.h src/p44vdc/pbuf/gen/messages.pb-c.c:	$(top_srcdir)/src/p44vdc/pbuf/messages.proto
+	$(PROTOC) --proto_path=$(top_srcdir)/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen $(top_srcdir)/src/p44vdc/pbuf/messages.proto
 
-src/p44vdc/pbuf/gen/vdcapi.pb-c.h src/p44vdc/pbuf/gen/vdcapi.pb-c.c:	src/p44vdc/pbuf/vdcapi.proto
-	$(PROTOC) --proto_path=src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen src/p44vdc/pbuf/vdcapi.proto
+src/p44vdc/pbuf/gen/vdcapi.pb-c.h src/p44vdc/pbuf/gen/vdcapi.pb-c.c:	$(top_srcdir)/src/p44vdc/pbuf/vdcapi.proto
+	$(PROTOC) --proto_path=$(top_srcdir)/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen $(top_srcdir)/src/p44vdc/pbuf/vdcapi.proto
 
 
 # vdcd
