@@ -12,6 +12,9 @@
 		ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CFD171E8EC100AD5FD6 /* vdc.cpp */; };
 		ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D00171E91EB00AD5FD6 /* dalivdc.cpp */; };
 		ED026D05171E94D700AD5FD6 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
+		ED0441201D755FFC00AAB662 /* eldatdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411B1D755FFC00AAB662 /* eldatdevice.cpp */; };
+		ED0441211D755FFC00AAB662 /* eldatvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411C1D755FFC00AAB662 /* eldatvdc.cpp */; };
+		ED0441221D755FFC00AAB662 /* eldatcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411E1D755FFC00AAB662 /* eldatcomm.cpp */; };
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */; };
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
@@ -173,6 +176,12 @@
 		ED026D01171E91EB00AD5FD6 /* dalivdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalivdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED026D03171E94D700AD5FD6 /* error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = error.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED026D04171E94D700AD5FD6 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = error.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED04411A1D755FFC00AAB662 /* eldatdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = eldatdevice.hpp; sourceTree = "<group>"; };
+		ED04411B1D755FFC00AAB662 /* eldatdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eldatdevice.cpp; sourceTree = "<group>"; };
+		ED04411C1D755FFC00AAB662 /* eldatvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eldatvdc.cpp; sourceTree = "<group>"; };
+		ED04411D1D755FFC00AAB662 /* eldatvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = eldatvdc.hpp; sourceTree = "<group>"; };
+		ED04411E1D755FFC00AAB662 /* eldatcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eldatcomm.cpp; sourceTree = "<group>"; };
+		ED04411F1D755FFC00AAB662 /* eldatcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = eldatcomm.hpp; sourceTree = "<group>"; };
 		ED07E25B17D7878D00889CC3 /* httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = httpcomm.cpp; sourceTree = "<group>"; };
 		ED07E25C17D7878D00889CC3 /* httpcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = httpcomm.hpp; sourceTree = "<group>"; };
 		ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonwebclient.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -388,6 +397,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		ED0441171D755FE000AAB662 /* eldat */ = {
+			isa = PBXGroup;
+			children = (
+				ED04411E1D755FFC00AAB662 /* eldatcomm.cpp */,
+				ED04411F1D755FFC00AAB662 /* eldatcomm.hpp */,
+				ED04411B1D755FFC00AAB662 /* eldatdevice.cpp */,
+				ED04411A1D755FFC00AAB662 /* eldatdevice.hpp */,
+				ED04411C1D755FFC00AAB662 /* eldatvdc.cpp */,
+				ED04411D1D755FFC00AAB662 /* eldatvdc.hpp */,
+			);
+			path = eldat;
+			sourceTree = "<group>";
+		};
 		ED0DE305184E3821001ADB5E /* pbuf */ = {
 			isa = PBXGroup;
 			children = (
@@ -489,6 +511,7 @@
 				ED31268E183122F600FAF28B /* simpleio */,
 				ED31268D183122E900FAF28B /* hue */,
 				ED31268C183122D600FAF28B /* enocean */,
+				ED0441171D755FE000AAB662 /* eldat */,
 				ED31268B183122C800FAF28B /* dali */,
 			);
 			path = deviceclasses;
@@ -931,6 +954,7 @@
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED5827261B02378F00B92C74 /* enoceanremotecontrol.cpp in Sources */,
+				ED0441221D755FFC00AAB662 /* eldatcomm.cpp in Sources */,
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
 				EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
@@ -966,6 +990,7 @@
 				EDCF05C5188D764E00B47526 /* sparkiodevice.cpp in Sources */,
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
+				ED0441211D755FFC00AAB662 /* eldatvdc.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */,
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
@@ -977,6 +1002,7 @@
 				ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
+				ED0441201D755FFC00AAB662 /* eldatdevice.cpp in Sources */,
 				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
 				ED5B2935174124D500334C71 /* sqlite3persistence.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
@@ -1153,6 +1179,7 @@
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
+					"ENABLE_ELDAT=1",
 					"ENABLE_LEDCHAIN=1",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -1182,6 +1209,7 @@
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
+					"ENABLE_ELDAT=1",
 					"ENABLE_LEDCHAIN=1",
 				);
 				HEADER_SEARCH_PATHS = (

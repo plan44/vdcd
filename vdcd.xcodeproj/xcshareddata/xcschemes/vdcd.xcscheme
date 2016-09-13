@@ -109,23 +109,23 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k rocker:rocker"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testout:dimmer"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-k ab:sensor"
-            isEnabled = "YES">
+            argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -176,8 +176,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.233 --daliportidle 10 --dalitxadj 16"
-            isEnabled = "YES">
+            argument = "--dali 192.168.59.113 --daliportidle 10 --dalitxadj 16"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.11.39 --daliportidle 10"
@@ -194,6 +194,10 @@
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--eldat 192.168.59.84"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet auto"
@@ -213,7 +217,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"

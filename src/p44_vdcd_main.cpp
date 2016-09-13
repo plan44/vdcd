@@ -34,6 +34,9 @@
 #if ENABLE_ENOCEAN
 #include "enoceanvdc.hpp"
 #endif
+#if ENABLE_ELDAT
+#include "eldatvdc.hpp"
+#endif
 #if ENABLE_HUE
 #include "huevdc.hpp"
 #endif
@@ -65,6 +68,7 @@
 
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
+#define DEFAULT_ELDATPORT 2103
 #define DEFAULT_JSON_VDSMSERVICE "8440"
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
@@ -324,6 +328,9 @@ public:
       #if ENABLE_EVALUATORS
       { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
       #endif
+      #if ENABLE_ELDAT
+      { 0,   "eldat",         true,  "interface;ELDAT interface serial port device or proxy host[:port]" },
+      #endif
       #if ENABLE_EXTERNAL
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
@@ -562,6 +569,17 @@ public:
           enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
           // add
           enoceanVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_ELDAT
+        // - Add Eldat devices class if EnOcean modem serialport/host is specified
+        const char *eldatname = getOption("eldat");
+        if (eldatname) {
+          EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, p44VdcHost.get(), 2)); // Tag 9 = ELDAT
+          eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
+          // add
+          eldatVdc->addVdcToVdcHost();
         }
         #endif
 
