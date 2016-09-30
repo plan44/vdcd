@@ -209,6 +209,8 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/simplescene.hpp \
   src/p44vdc/vdc_common/device.cpp \
   src/p44vdc/vdc_common/device.hpp \
+  src/p44vdc/vdc_common/singledevice.cpp \
+  src/p44vdc/vdc_common/singledevice.hpp \
   src/p44vdc/vdc_common/devicesettings.cpp \
   src/p44vdc/vdc_common/devicesettings.hpp \
   src/p44vdc/vdc_common/valuesource.cpp \
