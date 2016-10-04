@@ -164,8 +164,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain 240"
-            isEnabled = "NO">
+            argument = "--ledchain SK6812:240"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
@@ -197,7 +197,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--voxnet auto"

@@ -322,7 +322,9 @@ public:
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
       #if ENABLE_LEDCHAIN
-      { 0,   "ledchain",      true,  "numleds;enable support for LED chains forming one or multiple RGB lights" },
+      { 0,   "ledchain",      true,  "[chaintype:]numleds;enable support for LED chains forming one or multiple RGB lights"
+                                     "\n- chaintype can be WS2812 (default), SK6812"
+                                     },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
       #if ENABLE_EVALUATORS
@@ -605,15 +607,13 @@ public:
 
         #if ENABLE_LEDCHAIN
         // - Add Led chain support
-        int numleds;
-        if (getIntOption("ledchain", numleds)) {
-          if (numleds>0) {
-            LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, numleds, p44VdcHost.get(), 6)); // Tag 6 = led chain
-            ledChainVdc->addVdcToVdcHost();
-            int maxOutValue;
-            if (getIntOption("ledchainmax", maxOutValue)) {
-              ledChainVdc->setMaxOutValue(maxOutValue);
-            }
+        string chainspec;
+        if (getStringOption("ledchain", chainspec)) {
+          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, chainspec, p44VdcHost.get(), 6)); // Tag 6 = led chain
+          ledChainVdc->addVdcToVdcHost();
+          int maxOutValue;
+          if (getIntOption("ledchainmax", maxOutValue)) {
+            ledChainVdc->setMaxOutValue(maxOutValue);
           }
         }
         #endif
