@@ -49,8 +49,9 @@
   #define ENABLE_DALI 1
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
-  #define ENABLE_STATIC 0 // FIXME: disabled because of footprint
+  #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_EXTERNAL 1
+  #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
@@ -63,6 +64,7 @@
   #define ENABLE_ELDAT 1
   #define ENABLE_STATIC 1
   #define ENABLE_EXTERNAL 1
+  #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
@@ -76,6 +78,7 @@
   #define ENABLE_ELDAT 1
   #define ENABLE_STATIC 1
   #define ENABLE_EXTERNAL 1
+  #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 0
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
