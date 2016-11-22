@@ -48,7 +48,7 @@ endif
 
 
 # enable some extras
-vdcd_EXTRAS = -D ENABLE_VOXNET=1 -D ENABLE_VZUGHOME=1
+vdcd_EXTRAS =
 
 
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
