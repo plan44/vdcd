@@ -70,7 +70,7 @@
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_OW
-  // P44-DSB-E2 etc.
+  // P44-DSB-xx2
   #define ENABLE_DALI 1
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1

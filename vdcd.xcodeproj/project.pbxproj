@@ -58,6 +58,7 @@
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */; };
+		ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6894681DF3260200E5245F /* ledchaincomm.cpp */; };
 		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
@@ -81,7 +82,6 @@
 		ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */; };
 		ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchainvdc.cpp */; };
 		ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D291B11D97700B18624 /* ledchaindevice.cpp */; };
-		ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */; };
 		ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */; };
 		ED93DFED1D25638D00D6AF0A /* mongoose.c in Sources */ = {isa = PBXBuildFile; fileRef = ED93DFEB1D25638D00D6AF0A /* mongoose.c */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
@@ -268,6 +268,8 @@
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externalvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externalvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ledchaincomm.cpp; sourceTree = "<group>"; };
+		ED6894691DF3260200E5245F /* ledchaincomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ledchaincomm.hpp; sourceTree = "<group>"; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED6CCD3A1D198ACD00C78A0D /* catch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
 		ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_utils.cpp; sourceTree = "<group>"; };
@@ -313,8 +315,6 @@
 		ED911D281B11D97700B18624 /* ledchainvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchainvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D291B11D97700B18624 /* ledchaindevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaindevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ledchaindevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ws281xcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ws281xcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D3C1B14BFB900B18624 /* shadowbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = shadowbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = shadowbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44vdc_config.hpp; sourceTree = "<group>"; };
@@ -623,6 +623,8 @@
 				ED36999D178DA01E00376405 /* i2c.hpp */,
 				EDD304321D09C10E0005E6D9 /* spi.cpp */,
 				EDD304331D09C10E0005E6D9 /* spi.hpp */,
+				ED6894681DF3260200E5245F /* ledchaincomm.cpp */,
+				ED6894691DF3260200E5245F /* ledchaincomm.hpp */,
 				ED369998178D6A2C00376405 /* iopin.cpp */,
 				ED369999178D6A2C00376405 /* iopin.hpp */,
 				ED369996178D5BD600376405 /* digitalio.cpp */,
@@ -771,8 +773,6 @@
 		ED911D251B11D73A00B18624 /* ledchain */ = {
 			isa = PBXGroup;
 			children = (
-				ED911D2C1B11D97700B18624 /* ws281xcomm.cpp */,
-				ED911D2D1B11D97700B18624 /* ws281xcomm.hpp */,
 				ED911D291B11D97700B18624 /* ledchaindevice.cpp */,
 				ED911D2A1B11D97700B18624 /* ledchaindevice.hpp */,
 				ED911D281B11D97700B18624 /* ledchainvdc.cpp */,
@@ -952,6 +952,7 @@
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */,
+				ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */,
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
 				ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */,
 				ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */,
@@ -984,7 +985,6 @@
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
 				ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */,
 				ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */,
-				ED911D311B11D97700B18624 /* ws281xcomm.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,

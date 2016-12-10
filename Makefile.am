@@ -152,6 +152,8 @@ vdcd_SOURCES = \
   src/p44utils/i2c.hpp \
   src/p44utils/spi.cpp \
   src/p44utils/spi.hpp \
+  src/p44utils/ledchaincomm.cpp \
+  src/p44utils/ledchaincomm.hpp \
   src/p44utils/iopin.cpp \
   src/p44utils/iopin.hpp \
   src/p44utils/jsoncomm.cpp \
@@ -312,8 +314,6 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/hue/huevdc.hpp \
   src/p44vdc/deviceclasses/hue/huedevice.cpp \
   src/p44vdc/deviceclasses/hue/huedevice.hpp \
-  src/p44vdc/deviceclasses/ledchain/ws281xcomm.hpp \
-  src/p44vdc/deviceclasses/ledchain/ws281xcomm.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \

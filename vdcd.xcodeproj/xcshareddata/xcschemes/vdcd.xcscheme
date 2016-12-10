@@ -129,11 +129,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -164,8 +164,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain SK6812:240"
-            isEnabled = "NO">
+            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
