@@ -71,20 +71,20 @@ vdcd_EXTRACFLAGS = \
 
 # sources only supported on RPI
 LEDCHAIN_SRC = \
-  src/p44vdc/thirdparty/rpi_ws281x/clk.h \
-  src/p44vdc/thirdparty/rpi_ws281x/gpio.h \
-  src/p44vdc/thirdparty/rpi_ws281x/dma.h \
-  src/p44vdc/thirdparty/rpi_ws281x/dma.c \
-  src/p44vdc/thirdparty/rpi_ws281x/pwm.h \
-  src/p44vdc/thirdparty/rpi_ws281x/pwm.c \
-  src/p44vdc/thirdparty/rpi_ws281x/board_info.h \
-  src/p44vdc/thirdparty/rpi_ws281x/board_info.c \
-  src/p44vdc/thirdparty/rpi_ws281x/mailbox.h \
-  src/p44vdc/thirdparty/rpi_ws281x/mailbox.c \
-  src/p44vdc/thirdparty/rpi_ws281x/ws2811.h \
-  src/p44vdc/thirdparty/rpi_ws281x/ws2811.c
+  src/p44utils/thirdparty/rpi_ws281x/clk.h \
+  src/p44utils/thirdparty/rpi_ws281x/gpio.h \
+  src/p44utils/thirdparty/rpi_ws281x/dma.h \
+  src/p44utils/thirdparty/rpi_ws281x/dma.c \
+  src/p44utils/thirdparty/rpi_ws281x/pwm.h \
+  src/p44utils/thirdparty/rpi_ws281x/pwm.c \
+  src/p44utils/thirdparty/rpi_ws281x/board_info.h \
+  src/p44utils/thirdparty/rpi_ws281x/board_info.c \
+  src/p44utils/thirdparty/rpi_ws281x/mailbox.h \
+  src/p44utils/thirdparty/rpi_ws281x/mailbox.c \
+  src/p44utils/thirdparty/rpi_ws281x/ws2811.h \
+  src/p44utils/thirdparty/rpi_ws281x/ws2811.c
 LEDCHAIN_INCLUDES = \
-  -I ${srcdir}/src/p44vdc/thirdparty/rpi_ws281x
+  -I ${srcdir}/src/p44utils/thirdparty/rpi_ws281x
 
 else
 
@@ -93,16 +93,16 @@ else
 vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
 
 # build mongoose into vdcd, no library
-MONGOOSE_SRC = src/p44vdc/thirdparty/mongoose/mongoose.c src/p44vdc/thirdparty/mongoose/mongoose.h
+MONGOOSE_SRC = src/p44utils/thirdparty/mongoose/mongoose.c src/p44vdc/thirdparty/mongoose/mongoose.h
 
 endif
 
 
 vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src/p44utils/thirdparty/mongoose \
+  -I ${srcdir}/src/p44utils/thirdparty \
   -I ${srcdir}/src \
-  -I ${srcdir}/src/p44vdc/thirdparty/mongoose \
-  -I ${srcdir}/src/p44vdc/thirdparty \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
@@ -195,10 +195,10 @@ vdcd_SOURCES = \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44_common.hpp \
-  src/p44vdc/thirdparty/sqlite3pp/sqlite3pp.cpp \
-  src/p44vdc/thirdparty/sqlite3pp/sqlite3pp.h \
-  src/p44vdc/thirdparty/sqlite3pp/sqlite3ppext.cpp \
-  src/p44vdc/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/p44utils/thirdparty/sqlite3pp/sqlite3pp.cpp \
+  src/p44utils/thirdparty/sqlite3pp/sqlite3pp.h \
+  src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.cpp \
+  src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.h \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \
@@ -334,9 +334,9 @@ olavdcd_LDADD = ${vdcd_LDADD} -lola -lolacommon -lprotobuf
 
 olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src/p44utils/thirdparty/mongoose \
+  -I ${srcdir}/src/p44utils/thirdparty \
   -I ${srcdir}/src \
-  -I ${srcdir}/src/p44vdc/thirdparty/mongoose \
-  -I ${srcdir}/src/p44vdc/thirdparty \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \

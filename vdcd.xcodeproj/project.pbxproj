@@ -596,6 +596,7 @@
 		ED3699B5178DA83800376405 /* p44utils */ = {
 			isa = PBXGroup;
 			children = (
+				ED312687183121FF00FAF28B /* thirdparty */,
 				ED6CCD361D198A9500C78A0D /* tests */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
@@ -729,7 +730,6 @@
 			isa = PBXGroup;
 			children = (
 				ED0DE305184E3821001ADB5E /* pbuf */,
-				ED312687183121FF00FAF28B /* thirdparty */,
 				ED31268518311BD300FAF28B /* vdc_common */,
 				ED3126881831225600FAF28B /* behaviours */,
 				ED3126891831228D00FAF28B /* deviceclasses */,
@@ -1192,7 +1192,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/p44vdc/thirdparty",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
@@ -1222,7 +1222,7 @@
 					"$(inherited)",
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/../libmongoose",
-					"$(PROJECT_DIR)/src/p44vdc/thirdparty",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 				);
 				OTHER_LDFLAGS = (
