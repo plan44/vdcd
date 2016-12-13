@@ -108,6 +108,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--button simpin.a"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -162,10 +166,6 @@
          <CommandLineArgument
             argument = "--ola"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"

@@ -81,7 +81,7 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 0
-  #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
+  #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define DISABLE_I2C 1 // %%% for now
   #define SELFTESTING_ENABLED 1
 #else
