@@ -88,6 +88,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--nodiscovery"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--productname P44-DSB-Mac"
             isEnabled = "YES">
          </CommandLineArgument>
