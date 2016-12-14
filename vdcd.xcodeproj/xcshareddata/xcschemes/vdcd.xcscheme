@@ -88,6 +88,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--nodiscovery"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--productname P44-DSB-Mac"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -105,6 +109,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /tmp/vdcd"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -162,10 +170,6 @@
          <CommandLineArgument
             argument = "--ola"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"

@@ -896,14 +896,14 @@ public:
       // none specified, create default
       hostname = string_format("plan44-vdcd-%s", p44VdcHost->getDsUid().getString().c_str());
     }
-    // start the basic service
-    ErrorPtr err = DiscoveryManager::sharedDiscoveryManager().start(
-      hostname.c_str(),
-      !getOption("noigmphelp")
-    );
-    if (Error::isOK(err)) {
-      // start DS advertising if not disabled
-      if (!getOption("nodiscovery")) {
+    // start DS advertising if not disabled
+    if (!getOption("nodiscovery")) {
+      // start the basic service
+      ErrorPtr err = DiscoveryManager::sharedDiscoveryManager().start(
+        hostname.c_str(),
+        !getOption("noigmphelp")
+      );
+      if (Error::isOK(err)) {
         // started ok, set discovery params
         #if ENABLE_AUXVDSM
         // - optional auxiliary vdsm
@@ -938,9 +938,9 @@ public:
           #endif // ENABLE_AUXVDSM
         );
       }
-    }
-    else {
-      LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
+      else {
+        LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
+      }
     }
   }
 

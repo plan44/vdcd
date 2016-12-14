@@ -81,14 +81,8 @@ AM_COND_IF([P44_BUILD_RPI], [], [
     AC_MSG_ERROR([$JSON_PKG_ERRORS])
   ])
 
-  AM_COND_IF([P44_BUILD_OW], [
-    PKG_CHECK_MODULES([AVAHI], [avahi-core], [], [
-      AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
-    ])
-  ], [
-    PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
-      AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
-    ])
+  PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
+    AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
   ])
 
   PKG_CHECK_MODULES([SQLITE3], [sqlite3], [], [
