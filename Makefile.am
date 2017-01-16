@@ -93,7 +93,7 @@ else
 vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
 
 # build mongoose into vdcd, no library
-MONGOOSE_SRC = src/p44utils/thirdparty/mongoose/mongoose.c src/p44vdc/thirdparty/mongoose/mongoose.h
+MONGOOSE_SRC = src/p44utils/thirdparty/mongoose/mongoose.c src/p44utils/thirdparty/mongoose/mongoose.h
 
 endif
 
@@ -194,7 +194,7 @@ vdcd_SOURCES = \
   src/p44utils/httpcomm.hpp\
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
-  src/p44utils/p44_common.hpp \
+  src/p44utils/p44utils_common.hpp \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.cpp \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.cpp \
