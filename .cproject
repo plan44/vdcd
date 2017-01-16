@@ -55,7 +55,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/behaviours"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/vdc_common"/>
-<listOptionValue builtIn="false" value="../src/p44vdc/thirdparty"/>
+<listOptionValue builtIn="false" value="../src/p44utils/thirdparty"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/dali"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/hue"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/enocean"/>
@@ -72,7 +72,7 @@
 <listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
 <option id="gnu.cpp.compiler.option.warnings.allwarn.365046732" name="All warnings (-Wall)" superClass="gnu.cpp.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.other.other.1377741207" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
+<option id="gnu.cpp.compiler.option.other.other.1377741207" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.1587132294" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.debug.351995787" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.debug"/>
@@ -2204,7 +2204,7 @@
 <listOptionValue builtIn="false" value="&quot;${workspace_loc:/libavahi-core}&quot;"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/behaviours"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/vdc_common"/>
-<listOptionValue builtIn="false" value="../src/p44vdc/thirdparty"/>
+<listOptionValue builtIn="false" value="../src/p44utils/thirdparty"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/dali"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/hue"/>
 <listOptionValue builtIn="false" value="../src/p44vdc/deviceclasses/enocean"/>
@@ -2221,7 +2221,7 @@
 <listOptionValue builtIn="false" value="BOOST_DISABLE_THREADS=1"/>
 </option>
 <option id="gnu.cpp.compiler.option.warnings.allwarn.1809747641" name="All warnings (-Wall)" superClass="gnu.cpp.compiler.option.warnings.allwarn" value="true" valueType="boolean"/>
-<option id="gnu.cpp.compiler.option.other.other.701928276" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
+<option id="gnu.cpp.compiler.option.other.other.701928276" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wno-reorder" valueType="string"/>
 <inputType id="com.digi.lxnetes.managedbuild.cpp.compiler.input.219824697" superClass="com.digi.lxnetes.managedbuild.cpp.compiler.input"/>
 </tool>
 <tool id="com.digi.lxnetes.managedbuild.c.linker.release.1472974067" name="GCC C Cross-Linker" superClass="com.digi.lxnetes.managedbuild.c.linker.release"/>
