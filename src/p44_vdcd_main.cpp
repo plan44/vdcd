@@ -458,7 +458,10 @@ public:
 
       // Check for factory reset as very first action, to avoid that corrupt data might already crash the daemon
       // before we can do the factory reset
+      // Note: we do this even for BUTTON_NOT_AVAILABLE_AT_START mode, because it gives the opportunity
+      //   to prevent crashing the daemon with a little bit of timing (wait until uboot done, then press)
       if (button->isSet()) {
+        LOG(LOG_WARNING, "Button held at startup -> enter factory reset wait mode");
         // started with button pressed - go into factory reset wait mode
         factoryResetWait = true;
         indicateTempStatus(tempstatus_factoryresetwait);
@@ -692,9 +695,24 @@ public:
 
 
 
+  #define UPGRADE_CHECK_HOLD_TIME (5*Second)
+  #define FACTORY_RESET_MODE_TIME (20*Second)
+  #if BUTTON_NOT_AVAILABLE_AT_START
+  #define FACTORY_RESET_HOLD_TIME (FACTORY_RESET_MODE_TIME+20*Second) // 20 seconds to enter factory reset mode, 20 more to actually trigger it
+  #else
+  #define FACTORY_RESET_HOLD_TIME (20*Second) // pressed-at start enters factory reset mode, only 20 secs until trigger
+  #endif
+  #define FACTORY_RESET_MAX_HOLD_TIME (FACTORY_RESET_HOLD_TIME+10*Second)
+
+
+
   virtual bool buttonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d", aState, aHasChanged);
+    LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d, timeSincePreviousChange=%.1f", aState, aHasChanged, (double)aTimeSincePreviousChange/Second);
+    // different handling if we are waiting for factory reset
+    if (factoryResetWait) {
+      return factoryResetButtonHandler(aState, aHasChanged, aTimeSincePreviousChange);
+    }
     // LED yellow as long as button pressed
     if (aHasChanged) {
       if (aState) indicateTempStatus(tempstatus_buttonpressed);
@@ -702,16 +720,21 @@ public:
     }
     if (aState==true && !aHasChanged) {
       // keypress reported again
-      if (aTimeSincePreviousChange>=5*Second) {
-        // visually acknowledge long keypress by turning LED red
-        indicateTempStatus(tempstatus_buttonpressedlong);
-        LOG(LOG_WARNING, "Button held for >5 seconds now...");
-      }
-      // check for very long keypress
-      if (aTimeSincePreviousChange>=15*Second) {
-        // very long press (labelled "Factory reset" on the case)
+      // - first check for very long keypress
+      if (aTimeSincePreviousChange>=FACTORY_RESET_MODE_TIME) {
+        // very long button press
+        #if BUTTON_NOT_AVAILABLE_AT_START
+        // - E2, DEH2: button is not available at system startup (has uboot functionality) -> use very long press for factory reset.
+        //   Button is not exposed (ball pen hole) so is highly unlikely to get stuck accidentally.
+        LOG(LOG_WARNING, "Button held for >%.1f seconds -> enter factory reset wait mode", (double)FACTORY_RESET_MODE_TIME/Second);
+        factoryResetWait = true;
+        indicateTempStatus(tempstatus_factoryresetwait);
+        return true;
+        #else
+        // - E, DEHv3..5: button is exposed and might be stuck accidentally -> very long press just exits vdcd.
+        //   needs long press present from startup for factory reset
         setAppStatus(status_error);
-        LOG(LOG_WARNING, "Very long button press detected -> clean exit(%d) in 2 seconds", P44_EXIT_LOCALMODE);
+        LOG(LOG_WARNING, "Button held for >%.1f seconds -> clean exit(%d) in 2 seconds", (double)FACTORY_RESET_MODE_TIME/Second, P44_EXIT_LOCALMODE);
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
@@ -720,6 +743,12 @@ public:
         // give mainloop some time to close down API connections
         MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
         return true;
+        #endif
+      }
+      else if (aTimeSincePreviousChange>=UPGRADE_CHECK_HOLD_TIME) {
+        // visually acknowledge long keypress by turning LED red
+        indicateTempStatus(tempstatus_buttonpressedlong);
+        LOG(LOG_WARNING, "Button held for >%.1f seconds -> upgrade check if released now", (double)UPGRADE_CHECK_HOLD_TIME/Second);
       }
     }
     if (aState==false) {
@@ -751,14 +780,13 @@ public:
   }
 
 
-  virtual bool fromStartButtonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
+  virtual bool factoryResetButtonHandler(bool aState, bool aHasChanged, MLMicroSeconds aTimeSincePreviousChange)
   {
-    LOG(LOG_NOTICE, "Device button pressed from start event: state=%d, hasChanged=%d", aState, aHasChanged);
     if (aHasChanged && aState==false) {
       // released
-      if (factoryResetWait && aTimeSincePreviousChange>20*Second) {
-        // held in waiting-for-reset state more than 20 seconds -> FACTORY RESET
-        LOG(LOG_WARNING, "Button pressed at startup and 20-30 seconds beyond -> FACTORY RESET = clean exit(%d) in 2 seconds", P44_EXIT_FACTORYRESET);
+      if (aTimeSincePreviousChange>FACTORY_RESET_HOLD_TIME && aTimeSincePreviousChange<FACTORY_RESET_MAX_HOLD_TIME) {
+        // released after being in waiting-for-reset state lomng enough -> FACTORY RESET
+        LOG(LOG_WARNING, "Button pressed long enough for factory reset -> FACTORY RESET = clean exit(%d) in 2 seconds", P44_EXIT_FACTORYRESET);
         // indicate red "error/danger" state
         redLED->steadyOn();
         greenLED->steadyOff();
@@ -767,8 +795,8 @@ public:
         return true;
       }
       else {
-        // held in waiting-for-reset state less than 20 seconds or more than 30 seconds -> just restart
-        LOG(LOG_WARNING, "Button pressed at startup but less than 20 or more than 30 seconds -> normal restart = clean exit(0) in 0.5 seconds");
+        // held in waiting-for-reset state non long enough or too long -> just restart
+        LOG(LOG_WARNING, "Button not held long enough or too long for factory reset -> normal restart = clean exit(0) in 0.5 seconds");
         // indicate yellow "busy" state
         redLED->steadyOn();
         greenLED->steadyOn();
@@ -779,16 +807,17 @@ public:
     }
     // if button is stuck, turn nervously yellow to indicate: something needs to be done
     if (factoryResetWait && !aHasChanged && aState) {
-      if (aTimeSincePreviousChange>30*Second) {
-        // end factory reset wait, assume button stuck or something
-        factoryResetWait = false;
-        // fast yellow blinking
+      if (aTimeSincePreviousChange>FACTORY_RESET_MAX_HOLD_TIME) {
+        LOG(LOG_WARNING, "Button pressed too long -> releasing now will do normal restart");
+        // held too long -> fast yellow blinking
         greenLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
         redLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
         // when button is released, a normal restart will occur, otherwise we'll remain in this state
       }
-      else if (aTimeSincePreviousChange>20*Second) {
-        // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode
+      else if (aTimeSincePreviousChange>FACTORY_RESET_HOLD_TIME) {
+        LOG(LOG_WARNING, "Button pressed long enough for factory reset -> releasing now will do factory reset");
+        // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode)
+        // - just indicate it
         redLED->steadyOn();
         greenLED->steadyOff();
       }
@@ -806,17 +835,14 @@ public:
       // - initialize the device container
       p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
-    else if (factoryResetWait) {
-      // button held during startup, check for factory reset
-      // - connect special button hander
-      button->setButtonHandler(boost::bind(&P44Vdcd::fromStartButtonHandler, this, _1, _2, _3), true, 1*Second);
-    }
     else {
-      // normal init
       // - connect button
       button->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
-      // - initialize the device container
-      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
+      // - if not already in factory reset wait, initialize normally
+      if (!factoryResetWait) {
+        // - initialize the device container
+        p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
+      }
     }
   }
 

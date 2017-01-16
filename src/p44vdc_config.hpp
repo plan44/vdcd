@@ -31,13 +31,14 @@
 
 // auto-disable some features depending on platform
 // - No i2c on Mac or DigiESP, but always on RaspberryPi
-#if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI
+#if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI && !P44_BUILD_OW
   #define DISABLE_I2C 1 // No i2c
 #endif
 #if defined(__APPLE__)
   #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
+  #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
 #endif
 
 // general defaults
@@ -82,6 +83,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
+  #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
   #define SELFTESTING_ENABLED 1
 #else
   // Default build options unless defined otherwise already

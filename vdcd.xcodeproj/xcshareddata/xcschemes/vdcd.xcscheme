@@ -113,10 +113,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--button simpin.a:a"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--button simpin.a"
+            argument = "--redled simpin.R --greenled simpin.G"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -161,7 +165,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--hueapiurl http://192.168.1.148:80/api"
