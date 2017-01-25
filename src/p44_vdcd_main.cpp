@@ -37,6 +37,9 @@
 #if ENABLE_ELDAT
 #include "eldatvdc.hpp"
 #endif
+#if ENABLE_ELDAT
+#include "zfvdc.hpp"
+#endif
 #if ENABLE_HUE
 #include "huevdc.hpp"
 #endif
@@ -69,6 +72,7 @@
 #define DEFAULT_DALIPORT 2101
 #define DEFAULT_ENOCEANPORT 2102
 #define DEFAULT_ELDATPORT 2103
+#define DEFAULT_ZFPORT 2104
 #define DEFAULT_JSON_VDSMSERVICE "8440"
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
@@ -333,6 +337,9 @@ public:
       #if ENABLE_ELDAT
       { 0,   "eldat",         true,  "interface;ELDAT interface serial port device or proxy host[:port]" },
       #endif
+      #if ENABLE_ZF
+      { 0,   "zf",            true,  "interface;ZF interface serial port device or proxy host[:port]" },
+      #endif
       #if ENABLE_EXTERNAL
       { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
@@ -566,7 +573,7 @@ public:
         #endif
 
         #if ENABLE_ENOCEAN
-        // - Add EnOcean devices class if EnOcean modem serialport/host is specified
+        // - Add EnOcean devices class if modem serialport/host is specified
         const char *enoceanname = getOption("enocean");
         const char *enoceanresetpin = getOption("enoceanreset");
         if (enoceanname) {
@@ -578,13 +585,24 @@ public:
         #endif
 
         #if ENABLE_ELDAT
-        // - Add Eldat devices class if EnOcean modem serialport/host is specified
+        // - Add Eldat devices class if modem serialport/host is specified
         const char *eldatname = getOption("eldat");
         if (eldatname) {
           EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, p44VdcHost.get(), 2)); // Tag 9 = ELDAT
           eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
           // add
           eldatVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_ZF
+        // - Add ZF devices class if modem serialport/host is specified
+        const char *zfname = getOption("zf");
+        if (zfname) {
+          ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, p44VdcHost.get(), 2)); // Tag 10 = ZF
+          zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
+          // add
+          zfVdc->addVdcToVdcHost();
         }
         #endif
 

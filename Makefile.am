@@ -111,6 +111,7 @@ vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
+  -I ${srcdir}/src/p44vdc/deviceclasses/zf \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
@@ -301,6 +302,12 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/eldat/eldatdevice.hpp \
   src/p44vdc/deviceclasses/eldat/eldatvdc.cpp \
   src/p44vdc/deviceclasses/eldat/eldatvdc.hpp \
+  src/p44vdc/deviceclasses/zf/zfcomm.cpp \
+  src/p44vdc/deviceclasses/zf/zfcomm.hpp \
+  src/p44vdc/deviceclasses/zf/zfdevice.cpp \
+  src/p44vdc/deviceclasses/zf/zfdevice.hpp \
+  src/p44vdc/deviceclasses/zf/zfvdc.cpp \
+  src/p44vdc/deviceclasses/zf/zfvdc.hpp \
   src/p44vdc/deviceclasses/dali/dalicomm.cpp \
   src/p44vdc/deviceclasses/dali/dalicomm.hpp \
   src/p44vdc/deviceclasses/dali/dalidefs.h \
@@ -345,6 +352,7 @@ olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
+  -I ${srcdir}/src/p44vdc/deviceclasses/zf \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \

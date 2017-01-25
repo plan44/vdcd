@@ -96,24 +96,12 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--auxvdsmdsuid 198C033E330755E78015F97AD093DD1C00 --noauto --hostname p44-dsb-mac --deviceid 007"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vdsmnotaux"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--auxvdsmrunning"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--sqlitedir /tmp/vdcd"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
-            isEnabled = "NO">
+            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/installdata/usr/share/www/icons"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--button simpin.a:a"
@@ -164,8 +152,12 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--hueapiurl http://192.168.1.148:80/api"
@@ -184,7 +176,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.113 --daliportidle 10 --dalitxadj 16"
+            argument = "--dali 192.168.59.195 --daliportidle 10"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -208,20 +200,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--voxnet auto"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--voxnet 192.168.24.11"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vzughome auto"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vzughome http://localhost/vzug.php"
-            isEnabled = "NO">
+            argument = "--zf /dev/cu.usbserial-FTG9KO99"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
@@ -234,10 +214,6 @@
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/installdata/usr/share/www/icons"
-            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
