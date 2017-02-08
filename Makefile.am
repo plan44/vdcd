@@ -244,6 +244,8 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/p44vdc_common.hpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.cpp \
   src/p44vdc/behaviours/climatecontrolbehaviour.hpp \
+  src/p44vdc/behaviours/ventilationbehaviour.cpp \
+  src/p44vdc/behaviours/ventilationbehaviour.hpp \
   src/p44vdc/behaviours/audiobehaviour.cpp \
   src/p44vdc/behaviours/audiobehaviour.hpp \
   src/p44vdc/behaviours/shadowbehaviour.cpp \
