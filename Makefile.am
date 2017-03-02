@@ -7,6 +7,8 @@ else
 bin_PROGRAMS = vdcd
 endif
 
+EXTRA_PROGRAMS = tests
+
 # common stuff for protobuf - NOTE: need to "make all" to get BUILT_SOURCES made
 
 PROTOBUF_GENERATED = \
@@ -380,4 +382,30 @@ olavdcd_SOURCES = \
   src/p44vdc/deviceclasses/ola/olavdc.hpp
 
 endif
+
+# tests
+
+tests_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
+
+tests_CXXFLAGS = \
+  -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src/p44utils/tests \
+  -I ${srcdir}/src/p44utils/thirdparty/mongoose \
+  -I ${srcdir}/src/p44utils/thirdparty \
+  ${BOOST_CPPFLAGS} \
+  ${PTHREAD_CFLAGS} \
+  ${JSONC_CFLAGS} \
+  ${SQLITE3_CFLAGS} \
+  ${PROTOBUFC_CFLAGS} \
+  ${AVAHI_CFLAGS}
+
+tests_SOURCES = \
+  src/p44utils/tests/catch.hpp \
+  src/p44utils/utils.cpp \
+  src/p44utils/utils.hpp \
+  src/p44utils/tests/test_utils.cpp \
+  src/p44utils/macaddress.cpp \
+  src/p44utils/macaddress.hpp \
+  src/p44utils/tests/test_macaddress.cpp \
+  src/tests/vdcd_tester.cpp
 
