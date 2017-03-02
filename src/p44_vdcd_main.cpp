@@ -302,6 +302,8 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
+      { 0  , "ifnameformac",  true,  "network if;set network interface to get MAC address from" },
+      { 0  , "ifnameforconn", true,  "network if;set network interface to get IP from and check for connectivity" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
@@ -501,7 +503,14 @@ public:
           externalDsUid->setGTIN(gcp, itemref, part);
           externalDsUid->setSerial(serial);
         }
-        p44VdcHost->setIdMode(externalDsUid);
+        string macif;
+        getStringOption("ifnameformac", macif);
+        p44VdcHost->setIdMode(externalDsUid, macif);
+
+        // - network interface
+        if (getStringOption("ifnameforconn", s)) {
+          p44VdcHost->setNetworkIf(s);
+        }
 
         // - set product name and version
         if (getStringOption("productname", s)) {
@@ -912,7 +921,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental, false, false); // no forced full scan (only if needed), no settings clearing
+    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental ? rescanmode_incremental : rescanmode_normal); // no forced full scan (only if needed), no settings clearing
   }
 
 
