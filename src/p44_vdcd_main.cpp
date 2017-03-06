@@ -132,6 +132,11 @@ class P44Vdcd : public CmdLineApp
   long tempStatusTicket;
   bool selfTesting;
 
+  #if ENABLE_AUXVDSM
+  int scheduledExitCode;
+  bool collecting;
+  #endif
+
   // the device container
   // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
   P44VdcHostPtr p44VdcHost;
@@ -153,6 +158,10 @@ public:
     factoryResetWait(false),
     tempStatusTicket(0),
     learningTimerTicket(0),
+    #if ENABLE_AUXVDSM
+    scheduledExitCode(0),
+    collecting(false),
+    #endif
     selfTesting(false)
   {
   }
@@ -921,6 +930,9 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
+    #if ENABLE_AUXVDSM
+    collecting = true;
+    #endif
     p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental ? rescanmode_incremental : rescanmode_normal); // no forced full scan (only if needed), no settings clearing
   }
 
@@ -929,10 +941,22 @@ public:
   {
     if (Error::isOK(aError)) {
       setAppStatus(status_ok);
-      DBGLOG(LOG_INFO, "%s", p44VdcHost->description().c_str());
     }
-    else
+    else {
       setAppStatus(status_error);
+    }
+    #if ENABLE_AUXVDSM
+    collecting = false;
+    if (scheduledExitCode) {
+      // termination was scheduled (usually by discovery) during collect -> execute now
+      // - needs to switch vdsms, means device is busy
+      setAppStatus(status_busy);
+      // - give mainloop some time to close down API connections
+      LOG(LOG_WARNING, "***** auxiliary vdSM switch -> will exit(%d) in 1 second", scheduledExitCode);
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, scheduledExitCode), 1*Second);
+      scheduledExitCode = 0;
+    }
+    #endif
   }
 
 
@@ -1002,16 +1026,25 @@ public:
 
   void discoveryStatusHandler(bool aAuxVdsmShouldRun)
   {
+    int exitCode = 0;
     if (aAuxVdsmShouldRun) {
-      LOG(LOG_WARNING, "***** auxiliary vdSM should start -> clean exit(%d) in 1 seconds", P44_EXIT_START_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should start -> will exit(%d) cleanly soon", P44_EXIT_START_AUXVDSM);
+      exitCode = P44_EXIT_START_AUXVDSM;
     }
     else {
-      LOG(LOG_WARNING, "***** auxiliary vdSM should stop -> clean exit(%d) in 1 seconds", P44_EXIT_STOP_AUXVDSM);
+      LOG(LOG_WARNING, "***** auxiliary vdSM should stop -> will exit(%d) cleanly soon", P44_EXIT_STOP_AUXVDSM);
+      exitCode = P44_EXIT_STOP_AUXVDSM;
     }
-    // needs to switch vdsms, means device is busy
-    setAppStatus(status_busy);
-    // give mainloop some time to close down API connections
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, aAuxVdsmShouldRun ? P44_EXIT_START_AUXVDSM : P44_EXIT_STOP_AUXVDSM), 1*Second);
+    if (collecting) {
+      // do not exit while still collecting
+      scheduledExitCode = exitCode;
+    }
+    else {
+      // needs to switch vdsms, means device is busy
+      setAppStatus(status_busy);
+      // give mainloop some time to close down API connections
+      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, exitCode), 1*Second);
+    }
   }
 
   #endif // ENABLE_AUXVDSM

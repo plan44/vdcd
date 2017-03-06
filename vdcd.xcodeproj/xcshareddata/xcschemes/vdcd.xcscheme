@@ -156,6 +156,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--vdsmnotaux"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200 --ledchainmax 255"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -185,7 +189,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2101 --daliportidle 10 --dalitxadj 16"
