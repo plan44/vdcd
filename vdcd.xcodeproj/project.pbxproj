@@ -71,6 +71,9 @@
 		ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
+		ED77A4751E78B9C5004D8303 /* slre.c in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4731E78B9C5004D8303 /* slre.c */; };
+		ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
+		ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4781E78B9D2004D8303 /* regexp.cpp */; };
 		ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
 		ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337417C65F7E003982CC /* devicesettings.cpp */; };
@@ -297,6 +300,12 @@
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = colorlightbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = colorlightbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED77A4731E78B9C5004D8303 /* slre.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = slre.c; sourceTree = "<group>"; };
+		ED77A4741E78B9C5004D8303 /* slre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = slre.h; sourceTree = "<group>"; };
+		ED77A4761E78B9D2004D8303 /* expressions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = expressions.cpp; sourceTree = "<group>"; };
+		ED77A4771E78B9D2004D8303 /* expressions.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = expressions.hpp; sourceTree = "<group>"; };
+		ED77A4781E78B9D2004D8303 /* regexp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = regexp.cpp; sourceTree = "<group>"; };
+		ED77A4791E78B9D2004D8303 /* regexp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = regexp.hpp; sourceTree = "<group>"; };
 		ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = movinglightbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = movinglightbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81337117C644AE003982CC /* dsscene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsscene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -487,6 +496,7 @@
 		ED312687183121FF00FAF28B /* thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				ED77A4701E78B9A6004D8303 /* slre */,
 				ED93DFEA1D25636F00D6AF0A /* mongoose */,
 				ED5B291C1740E72100334C71 /* sqlite3pp */,
 			);
@@ -617,6 +627,10 @@
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				ED77A4761E78B9D2004D8303 /* expressions.cpp */,
+				ED77A4771E78B9D2004D8303 /* expressions.hpp */,
+				ED77A4781E78B9D2004D8303 /* regexp.cpp */,
+				ED77A4791E78B9D2004D8303 /* regexp.hpp */,
 				ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */,
 				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
@@ -783,6 +797,15 @@
 				ED6CCD3D1D198EB200C78A0D /* tests */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		ED77A4701E78B9A6004D8303 /* slre */ = {
+			isa = PBXGroup;
+			children = (
+				ED77A4731E78B9C5004D8303 /* slre.c */,
+				ED77A4741E78B9C5004D8303 /* slre.h */,
+			);
+			path = slre;
 			sourceTree = "<group>";
 		};
 		ED911D251B11D73A00B18624 /* ledchain */ = {
@@ -970,8 +993,10 @@
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
 				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
 				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
+				ED77A4751E78B9C5004D8303 /* slre.c in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
+				ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
 				ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */,
@@ -997,6 +1022,7 @@
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
+				ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
 				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,

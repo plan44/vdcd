@@ -103,6 +103,7 @@ endif
 vdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/thirdparty/mongoose \
+  -I ${srcdir}/src/p44utils/thirdparty/slre \
   -I ${srcdir}/src/p44utils/thirdparty \
   -I ${srcdir}/src \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
@@ -187,6 +188,10 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/regexp.cpp \
+  src/p44utils/regexp.hpp \
+  src/p44utils/expressions.cpp \
+  src/p44utils/expressions.hpp \
   src/p44utils/colorutils.cpp \
   src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
@@ -198,6 +203,8 @@ vdcd_SOURCES = \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44utils_common.hpp \
+  src/p44utils/thirdparty/slre/slre.c \
+  src/p44utils/thirdparty/slre/slre.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.cpp \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.cpp \
@@ -346,6 +353,7 @@ olavdcd_LDADD = ${vdcd_LDADD} -lola -lolacommon -lprotobuf
 olavdcd_CXXFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/thirdparty/mongoose \
+  -I ${srcdir}/src/p44utils/thirdparty/slre \
   -I ${srcdir}/src/p44utils/thirdparty \
   -I ${srcdir}/src \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
