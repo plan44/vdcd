@@ -406,6 +406,7 @@ public:
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
+      { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
 
@@ -490,6 +491,11 @@ public:
         const char *dbdir = DEFAULT_DBDIR;
         getStringOption("sqlitedir", dbdir);
         p44VdcHost->setPersistentDataDir(dbdir);
+
+        // - set conf dir
+        const char *confdir = dbdir;
+        getStringOption("configdir", confdir);
+        p44VdcHost->setConfigDir(confdir);
 
         // - set icon directory
         const char *icondir = NULL;
