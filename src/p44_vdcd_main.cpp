@@ -319,6 +319,8 @@ public:
       { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
       { 0  , "description",   true,  "description(template);used in service announcement, can contain %V,%M,%N,%S to insert vendor/model/name/serial. "
                                      "When not set or empty, defaults to built-in standard description." },
+      { 0  , "vdcdescription",true,  "vdcmodelname(template);can contain %V,%M,%m,%S to insert vendor/productname/modelsuffix/serial. "
+                                     "When not set or empty, defaults to built-in standard description." },
       #if ENABLE_DALI
       { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
       { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
@@ -542,6 +544,10 @@ public:
         // - set description (template)
         if (getStringOption("description", s)) {
           p44VdcHost->setDescriptionTemplate(s);
+        }
+        // - set vdc modelName (template)
+        if (getStringOption("vdcdescription", s)) {
+          p44VdcHost->setVdcModelNameTemplate(s);
         }
 
         // - set custom mainloop statistics output interval
