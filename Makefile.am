@@ -192,6 +192,8 @@ vdcd_SOURCES = \
   src/p44utils/regexp.hpp \
   src/p44utils/expressions.cpp \
   src/p44utils/expressions.hpp \
+  src/p44utils/valueunits.cpp \
+  src/p44utils/valueunits.hpp \
   src/p44utils/colorutils.cpp \
   src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
