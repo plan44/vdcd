@@ -387,7 +387,7 @@ public:
       { 0  , "protobufapi",   true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
-      { 0  , "noigmphelp",    false, "do not send IGMP queries/reports to help snooping switches" },
+      { 0  , "noigmphelp",    false, NULL /* FIXME: kept as dummy to avoid breaking manually configured installations */ },
       { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
       #if ENABLE_AUXVDSM
@@ -989,8 +989,7 @@ public:
     if (!getOption("nodiscovery")) {
       // start the basic service
       ErrorPtr err = DiscoveryManager::sharedDiscoveryManager().start(
-        hostname.c_str(),
-        !getOption("noigmphelp")
+        hostname.c_str()
       );
       if (Error::isOK(err)) {
         // started ok, set discovery params
