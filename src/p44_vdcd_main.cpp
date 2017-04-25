@@ -736,8 +736,8 @@ public:
     MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
     setAppStatus(status_ok);
     if (aFromTimeout) {
-      // letting learn run into timeout will re-collect all devices
-      collectDevices(true);
+      // letting learn run into timeout will re-collect all devices incrementally
+      collectDevices(rescanmode_incremental);
     }
   }
 
@@ -926,7 +926,7 @@ public:
       // - start running normally
       p44VdcHost->startRunning();
       // - collect devices
-      collectDevices(false);
+      collectDevices(rescanmode_normal);
     }
   }
 
@@ -938,14 +938,14 @@ public:
   }
 
 
-  virtual void collectDevices(bool aIncremental)
+  virtual void collectDevices(RescanMode aRescanMode)
   {
     // initiate device collection
     setAppStatus(status_busy);
     #if ENABLE_AUXVDSM
     collecting = true;
     #endif
-    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aIncremental ? rescanmode_incremental : rescanmode_normal); // no forced full scan (only if needed), no settings clearing
+    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aRescanMode);
   }
 
 
