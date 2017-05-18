@@ -333,7 +333,7 @@ public:
       #endif
       #if ENABLE_HUE
       { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
-      { 0,   "hueapiurl",     true,  "hue API url;use hue bridge API at specific location (disables UPnP/SSDP search)" },
+      { 0,   "hueapiurl",     true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
       #endif
       #if ENABLE_OLA
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
@@ -640,10 +640,6 @@ public:
         // - Add hue support
         if (getOption("huelights")) {
           HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, p44VdcHost.get(), 3)); // Tag 3 = hue
-          string apiurl;
-          if (getStringOption("hueapiurl", apiurl)) {
-            hueVdc->hueComm.fixedBaseURL = apiurl;
-          }
           hueVdc->addVdcToVdcHost();
         }
         #endif
