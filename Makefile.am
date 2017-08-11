@@ -152,6 +152,8 @@ vdcd_SOURCES = \
   src/p44utils/gpio.cpp \
   src/p44utils/gpio.h \
   src/p44utils/gpio.hpp \
+  src/p44utils/pwm.cpp \
+  src/p44utils/pwm.hpp \
   src/p44utils/i2c.cpp \
   src/p44utils/i2c.hpp \
   src/p44utils/spi.cpp \

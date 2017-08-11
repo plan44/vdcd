@@ -364,6 +364,7 @@
 		EDBC784F181821EA00A3E46C /* libssl.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.dylib; path = usr/lib/libssl.dylib; sourceTree = SDKROOT; };
 		EDBC78521818225500A3E46C /* libssl.0.9.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.0.9.8.dylib; path = usr/lib/libssl.0.9.8.dylib; sourceTree = SDKROOT; };
 		EDBC78541818227000A3E46C /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = usr/lib/libcrypto.dylib; sourceTree = SDKROOT; };
+		EDBCDBF31F3E383700DA85CF /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = consoledevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -781,6 +782,7 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
 				ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,
