@@ -94,10 +94,6 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--mainloopstats 0"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--nodiscovery"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -114,12 +110,12 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--button simpin.a:a"
+            argument = "--button simpin.button:a"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled simpin.R --greenled simpin.G"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
@@ -135,7 +131,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -148,6 +144,18 @@
          <CommandLineArgument
             argument = "-l 5"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--mainloopstats 3"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--deltatstamps"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--dontlogerrors"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--vdsmnonlocal"

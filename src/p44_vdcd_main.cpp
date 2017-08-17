@@ -81,10 +81,6 @@
 
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
-
-#define MAINLOOP_CYCLE_TIME_uS 33333 // 33mS
-
-
 #define P44_EXIT_LOCALMODE 2 // request daemon restart in "local mode"
 #define P44_EXIT_FIRMWAREUPDATE 3 // request check for new firmware, installation if available, platform restart
 #define P44_EXIT_FACTORYRESET 42 // request a factory reset and platform restart
@@ -129,7 +125,7 @@ class P44Vdcd : public CmdLineApp
   bool factoryResetWait;
   AppStatus appStatus;
   TempStatus currentTempStatus;
-  long tempStatusTicket;
+  MLTicket tempStatusTicket;
   bool selfTesting;
 
   #if ENABLE_AUXVDSM
@@ -147,7 +143,7 @@ class P44Vdcd : public CmdLineApp
   ButtonInputPtr button;
 
   // learning
-  long learningTimerTicket;
+  MLTicket learningTimerTicket;
 
 
 public:
@@ -277,6 +273,8 @@ public:
       case vdchost_descriptionchanged:
         DiscoveryManager::sharedDiscoveryManager().refreshAdvertisingDS();
         break;
+      default:
+        break;
     }
   }
 
@@ -405,6 +403,7 @@ public:
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
       { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
+      { 0  , "deltatstamps",  false, "show timestamp delta between log lines" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
@@ -446,6 +445,7 @@ public:
       int errlevel = selfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
       getIntOption("errlevel", errlevel);
       SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
+      SETDELTATIME(getOption("deltatstamps"));
 
       // startup delay?
       int startupDelay = 0; // no delay
@@ -1070,8 +1070,6 @@ int main(int argc, char **argv)
   // prevent debug output before application.main scans command line
   SETLOGLEVEL(LOG_EMERG);
   SETERRLEVEL(LOG_EMERG, false); // messages, if any, go to stderr
-  // create the mainloop
-  MainLoop::currentMainLoop().setLoopCycleTime(MAINLOOP_CYCLE_TIME_uS);
   // create app with current mainloop
   static P44Vdcd application;
   // pass control
