@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>vdcd doxygen.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>vdcd.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>vdcd_tests.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>ED31269818318CC100FAF28B</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>ED5C8E9617CF3908002CC15F</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>ED6CCD421D198FA000C78A0D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>ED6D7BDA1716B63A005DED18</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>EDB5BBFB17B4ED31004DB38D</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>EDCFE861172125F7001D35F3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>

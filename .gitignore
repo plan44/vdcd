@@ -7,8 +7,8 @@ Debug/
 Release/
 
 # XCode specifics
-*.xcuserstate
-xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/*.xcuserdatad/UserInterfaceState.xcuserstate
+*.xcodeproj/project.xcworkspace/xcshareddata/*.xcscmblueprint
 
 # Autotools specifics
 *.o
@@ -32,6 +32,5 @@ olavdcd
 jsonrpctool
 demovdc
 tests
-vdcd.xcodeproj/project.xcworkspace/xcshareddata/vdcd.xcscmblueprint
 external_devices_samples/plain C/externalButton.xcodeproj/project.xcworkspace/contents.xcworkspacedata
 external_devices_samples/plain C/externalButton.xcodeproj/project.xcworkspace/xcshareddata/externalButton.xcscmblueprint
