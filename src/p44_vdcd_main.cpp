@@ -399,6 +399,7 @@ public:
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
+      { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
@@ -455,6 +456,13 @@ public:
       int webUiPort = 0;
       getIntOption("webuiport", webUiPort);
       p44VdcHost->webUiPort = webUiPort;
+
+      // max API version
+      int maxApiVersion = 0; // no limit
+      if (getIntOption("maxapiversion", maxApiVersion)) {
+        p44VdcHost->setMaxApiVersion(maxApiVersion);
+      }
+
 
       // before starting anything, delay
       if (startupDelay>0) {
