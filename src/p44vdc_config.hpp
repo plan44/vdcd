@@ -48,6 +48,7 @@
 #if P44_BUILD_DIGI
   // P44-DSB-DEH
   #define ENABLE_DALI 1
+  #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
   #define ENABLE_STATIC 0 // disabled because of footprint
@@ -74,6 +75,7 @@
 #elif P44_BUILD_OW
   // P44-DSB-xx2
   #define ENABLE_DALI 1
+  #define ENABLE_DALI_INPUTS 1
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 1

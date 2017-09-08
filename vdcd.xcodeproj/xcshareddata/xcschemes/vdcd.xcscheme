@@ -110,7 +110,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/installdata/usr/share/www/icons"
+            argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/p44dsb-webui/build/tmp/www/icons"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -191,15 +191,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.195 --daliportidle 10"
-            isEnabled = "NO">
+            argument = "--dali 192.168.59.195"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"

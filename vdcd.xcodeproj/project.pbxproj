@@ -1264,6 +1264,7 @@
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
+					"ENABLE_DALI_INPUTS=1",
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
@@ -1295,6 +1296,7 @@
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
+					"ENABLE_DALI_INPUTS=1",
 					"ENABLE_DALI=1",
 					"ENABLE_ENOCEAN=1",
 					"ENABLE_HUE=1",
