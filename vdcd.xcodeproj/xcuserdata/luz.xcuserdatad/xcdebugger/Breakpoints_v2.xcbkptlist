@@ -145,12 +145,12 @@
                   moduleName = "vdcd"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/vdcd/src/p44utils/application.cpp"
-                  timestampString = "526576677.004409"
+                  timestampString = "527615335.757103"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "62"
                   endingLineNumber = "62"
-                  offsetFromSymbolStart = "20">
+                  offsetFromSymbolStart = "74">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -160,12 +160,12 @@
                   moduleName = "vdcd"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/vdcd/src/p44utils/application.cpp"
-                  timestampString = "526576677.007313"
+                  timestampString = "527615335.759304"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "62"
                   endingLineNumber = "62"
-                  offsetFromSymbolStart = "20">
+                  offsetFromSymbolStart = "74">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -175,12 +175,12 @@
                   moduleName = "vdcd"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/vdcd/src/p44utils/application.cpp"
-                  timestampString = "526576677.0108"
+                  timestampString = "527615335.761627"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "69"
                   endingLineNumber = "69"
-                  offsetFromSymbolStart = "16">
+                  offsetFromSymbolStart = "70">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
@@ -190,14 +190,30 @@
                   moduleName = "vdcd"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/vdcd/src/p44utils/application.cpp"
-                  timestampString = "526576677.013061"
+                  timestampString = "527615335.763998"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "69"
                   endingLineNumber = "69"
-                  offsetFromSymbolStart = "16">
+                  offsetFromSymbolStart = "70">
                </Location>
             </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "src/p44vdc/vdc_common/device.cpp"
+            timestampString = "527515691.289516"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1966"
+            endingLineNumber = "1966"
+            landmarkName = "Device::accessField(PropertyAccessMode aMode, ApiValuePtr aPropValue, PropertyDescriptorPtr aPropertyDescriptor)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>
