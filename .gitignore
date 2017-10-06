@@ -9,6 +9,7 @@ Release/
 # XCode specifics
 *.xcodeproj/project.xcworkspace/xcuserdata/*.xcuserdatad/UserInterfaceState.xcuserstate
 *.xcodeproj/project.xcworkspace/xcshareddata/*.xcscmblueprint
+*.xcodeproj/xcuserdata
 
 # Autotools specifics
 *.o
