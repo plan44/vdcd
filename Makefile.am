@@ -247,6 +247,8 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/vdc.hpp \
   src/p44vdc/vdc_common/vdchost.cpp \
   src/p44vdc/vdc_common/vdchost.hpp \
+  src/p44vdc/vdc_common/localcontroller.cpp \
+  src/p44vdc/vdc_common/localcontroller.hpp \
   src/p44vdc/vdc_common/discovery.cpp \
   src/p44vdc/vdc_common/discovery.hpp \
   src/p44vdc/vdc_common/dsdefs.h \

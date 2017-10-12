@@ -140,11 +140,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -184,7 +184,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"

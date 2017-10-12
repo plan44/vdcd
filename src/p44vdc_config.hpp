@@ -39,6 +39,7 @@
   #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
+  #define ENABLE_LOCALCONTROLLER 1
 #endif
 
 // general defaults
