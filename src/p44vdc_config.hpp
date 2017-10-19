@@ -90,6 +90,7 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_AUXVDSM 1
+  #define ENABLE_LOCALCONTROLLER 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
   #define SELFTESTING_ENABLED 1

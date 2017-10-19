@@ -383,6 +383,9 @@ public:
                                      "(for inputs: first char of name=action key)" },
       #endif // ENABLE_STATIC
       { 0  , "protobufapi",   true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
+      #if ENABLE_LOCALCONTROLLER
+      { 0  , "localcontroller",false,"enable local controller (offline) features" },
+      #endif
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
       { 0  , "noigmphelp",    false, NULL /* FIXME: kept as dummy to avoid breaking manually configured installations */ },
@@ -397,6 +400,7 @@ public:
       { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
       #endif
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      { 0  , "novdcapi",      false, "disable vDC API (and advertisement of it)" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
@@ -434,7 +438,7 @@ public:
     if (!isTerminated()) {
 
       // create the root object
-      p44VdcHost = P44VdcHostPtr(new P44VdcHost);
+      p44VdcHost = P44VdcHostPtr(new P44VdcHost(getOption("localcontroller")));
 
       // test or operation
       selfTesting = getOption("selftest");
@@ -564,23 +568,24 @@ public:
           p44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
         }
 
-        // - set API
-        int protobufapi = DEFAULT_USE_PROTOBUF_API;
-        getIntOption("protobufapi", protobufapi);
-        const char *vdcapiservice;
-        if (protobufapi) {
-          p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
-          vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
+        // - set API (if not disabled)
+        if (!getOption("novdcapi")) {
+          int protobufapi = DEFAULT_USE_PROTOBUF_API;
+          getIntOption("protobufapi", protobufapi);
+          const char *vdcapiservice;
+          if (protobufapi) {
+            p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+            vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
+          }
+          else {
+            p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+            vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
+          }
+          // set up server for vdSM to connect to
+          getStringOption("vdsmport", vdcapiservice);
+          p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
+          p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
         }
-        else {
-          p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
-          vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
-        }
-        // set up server for vdSM to connect to
-        getStringOption("vdsmport", vdcapiservice);
-        p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
-        p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
-
 
         // Create Web configuration JSON API server
         const char *configApiPort = getOption("cfgapiport");
