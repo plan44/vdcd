@@ -587,12 +587,10 @@ public:
           p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
         }
 
-        // Create Web configuration JSON API server
+        // Prepare Web configuration JSON API server
         const char *configApiPort = getOption("cfgapiport");
         if (configApiPort) {
-          p44VdcHost->configApiServer->setConnectionParams(NULL, configApiPort, SOCK_STREAM, AF_INET);
-          p44VdcHost->configApiServer->setAllowNonlocalConnections(getOption("cfgapinonlocal"));
-          p44VdcHost->startConfigApi();
+          p44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
         }
 
         // Create class containers
