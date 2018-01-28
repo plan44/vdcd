@@ -91,6 +91,8 @@
 		ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
 		ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
+		ED8A9987201E6E2D0069EBF6 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */; };
+		ED8A9988201E6E2D0069EBF6 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */; };
 		ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */; };
 		ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */; };
 		ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchainvdc.cpp */; };
@@ -243,7 +245,7 @@
 		ED3701EC20015F0C00A1BD67 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libssl.a; sourceTree = "<group>"; };
 		ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
-		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; };
+		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
@@ -347,6 +349,8 @@
 		ED8A997D2019F5080069EBF6 /* sha1.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sha1.inl; sourceTree = "<group>"; };
 		ED8A997E2019F5330069EBF6 /* hostcheck.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = hostcheck.inl; sourceTree = "<group>"; };
 		ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = openssl_hostname_validation.inl; sourceTree = "<group>"; };
+		ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
+		ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
 		ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceansensorhandler.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DB71C56855200176CA9 /* enoceansensorhandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceansensorhandler.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanvld.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -358,8 +362,6 @@
 		ED911D3C1B14BFB900B18624 /* shadowbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = shadowbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = shadowbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_config.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED93DFEB1D25638D00D6AF0A /* mongoose.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mongoose.c; sourceTree = "<group>"; };
-		ED93DFEC1D25638D00D6AF0A /* mongoose.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mongoose.h; sourceTree = "<group>"; };
 		ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44utils_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -435,6 +437,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED8A9987201E6E2D0069EBF6 /* libcrypto.1.1.dylib in Frameworks */,
+				ED8A9988201E6E2D0069EBF6 /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -732,6 +736,8 @@
 		ED3701EA20015F0B00A1BD67 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */,
+				ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */,
 				ED8A99772018FEAF0069EBF6 /* libcrypto.1.0.0.dylib */,
 				ED8A99782018FEAF0069EBF6 /* libssl.1.0.0.dylib */,
 				ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */,
@@ -877,8 +883,6 @@
 				ED8A997D2019F5080069EBF6 /* sha1.inl */,
 				ED8A997E2019F5330069EBF6 /* hostcheck.inl */,
 				ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */,
-				ED93DFEB1D25638D00D6AF0A /* mongoose.c */,
-				ED93DFEC1D25638D00D6AF0A /* mongoose.h */,
 			);
 			path = civetweb;
 			sourceTree = "<group>";
@@ -1182,11 +1186,24 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"OPENSSL_API_1_1=1",
+					"USE_SSL_HEADERS=1",
+					"NO_SSL_DL=1",
+				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/lib",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1214,6 +1231,14 @@
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/lib",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1250,13 +1275,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
-					/usr/local/Cellar/openssl/1.0.2k/include,
 					"$(PROJECT_DIR)/src",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"\"/usr/local/lib\"",
-					"\"/usr/local/Cellar/openssl/1.0.2k/lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ljson-c";
@@ -1292,13 +1313,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
-					/usr/local/Cellar/openssl/1.0.2k/include,
 					"$(PROJECT_DIR)/src",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"\"/usr/local/lib\"",
-					"\"/usr/local/Cellar/openssl/1.0.2k/lib\"",
-				);
+				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				OTHER_LDFLAGS = "-ljson-c";
 				SDKROOT = macosx;
@@ -1321,9 +1338,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/include/json-c",
-					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
+					/usr/local/Cellar/openssl/1.0.2k/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/openssl/1.0.2k/lib,
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1353,9 +1374,13 @@
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/include/json-c",
-					"$(PROJECT_DIR)/../libmongoose",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
+					/usr/local/Cellar/openssl/1.0.2k/include,
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/openssl/1.0.2k/lib,
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
