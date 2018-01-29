@@ -63,7 +63,7 @@ if P44_BUILD_RPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lcivetweb -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_LDADD = $(PTHREAD_LIBS) -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
 # JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 # AVAHI_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 vdcd_EXTRACFLAGS = \
@@ -93,9 +93,6 @@ else
 # proper buildroot and autotools
 
 vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
-
-# build civetweb into vdcd, no library
-CIVETWEB_SRC = src/p44utils/thirdparty/civetweb/civetweb.c src/p44utils/thirdparty/civetweb/civetweb.h
 
 endif
 
@@ -133,7 +130,6 @@ vdcd_CXXFLAGS = \
 
 
 vdcd_SOURCES = \
-  ${CIVETWEB_SRC} \
   ${LEDCHAIN_SRC} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
@@ -213,6 +209,13 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.cpp \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/p44utils/thirdparty/civetweb/civetweb.c \
+  src/p44utils/thirdparty/civetweb/civetweb.h \
+  src/p44utils/thirdparty/civetweb/handle_form.inl \
+  src/p44utils/thirdparty/civetweb/md5.inl \
+  src/p44utils/thirdparty/civetweb/sha1.inl \
+  src/p44utils/thirdparty/civetweb/hostcheck.inl \
+  src/p44utils/thirdparty/civetweb/openssl_hostname_validation.inl \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \
