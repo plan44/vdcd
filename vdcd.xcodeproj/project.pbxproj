@@ -813,8 +813,8 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
-				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
 				ED7C5B5A1F97F35700239034 /* configure.ac */,
+				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
 				ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,

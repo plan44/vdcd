@@ -63,7 +63,7 @@ if P44_BUILD_RPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = $(PTHREAD_LIBS) -lavahi-core  -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lz
+vdcd_LDADD = -lpthread -lavahi-core -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/usr/lib/arm-linux-gnueabihf -lcrypto -lssl -lz
 # JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 # AVAHI_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 vdcd_EXTRACFLAGS = \
@@ -90,14 +90,15 @@ LEDCHAIN_INCLUDES = \
 
 else
 
-# proper buildroot and autotools
+# proper buildroot and autotools, no programmatic SSL lib loading in civetweb (NO_SSL_DL)
 
 vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
+vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 endif
 
 
-vdcd_CXXFLAGS = \
+vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
   -I ${srcdir}/src/p44utils/thirdparty/slre \
@@ -359,7 +360,7 @@ nodist_olavdcd_SOURCES = ${nodist_vdcd_SOURCES}
 
 olavdcd_LDADD = ${vdcd_LDADD} -lola -lolacommon -lprotobuf
 
-olavdcd_CXXFLAGS = \
+olavdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
   -I ${srcdir}/src/p44utils/thirdparty/slre \
@@ -404,7 +405,7 @@ endif
 
 tests_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
 
-tests_CXXFLAGS = \
+tests_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/tests \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
