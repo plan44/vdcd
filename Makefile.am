@@ -63,7 +63,7 @@ if P44_BUILD_RPI
 # This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
 # Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
 TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = -lpthread -lavahi-core -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/usr/lib/arm-linux-gnueabihf -lcrypto -lssl -lz
+vdcd_LDADD = -lpthread -lavahi-core -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lssl -lz
 # JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 # AVAHI_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
 vdcd_EXTRACFLAGS = \
