@@ -48,7 +48,7 @@ Now the platform is ready to install & build!
 	$SUPER apt-get install git automake libtool autoconf g++ make
 
 	# common libraries for both vdcd and vdsm
-	$SUPER apt-get install libjson0-dev libsqlite3-dev protobuf-c-compiler libprotobuf-c0-dev
+	$SUPER apt-get install libjson-c-dev libsqlite3-dev protobuf-c-compiler libprotobuf-c-dev openssl-dev
 
 To put all projects into, we create a *ds* subdirectory and set the *$DSROOT* shell var to point to it:
 
