@@ -245,7 +245,7 @@
 		ED3701EC20015F0C00A1BD67 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libssl.a; sourceTree = "<group>"; };
 		ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
-		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
+		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 1; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
@@ -1187,7 +1187,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
+					"${inherited}",
 					"OPENSSL_API_1_1=1",
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
@@ -1227,6 +1227,12 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"${inherited}",
+					"OPENSSL_API_1_1=1",
+					"USE_SSL_HEADERS=1",
+					"NO_SSL_DL=1",
+				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
@@ -1266,6 +1272,7 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;

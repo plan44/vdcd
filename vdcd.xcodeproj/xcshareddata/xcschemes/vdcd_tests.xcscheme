@@ -66,7 +66,7 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "[http],[https]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[macaddress]"
