@@ -49,11 +49,56 @@ endif
 endif
 
 
-# enable some extras
-vdcd_EXTRAS =
-
-
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
+
+
+# WS281x LED chain support on Raspberry Pi (direct PWM hardware access)
+if ENABLE_RPIWS281X
+
+RPIWS281X_SOURCES = \
+  src/p44utils/thirdparty/rpi_ws281x/clk.h \
+  src/p44utils/thirdparty/rpi_ws281x/gpio.h \
+  src/p44utils/thirdparty/rpi_ws281x/dma.h \
+  src/p44utils/thirdparty/rpi_ws281x/dma.c \
+  src/p44utils/thirdparty/rpi_ws281x/pwm.h \
+  src/p44utils/thirdparty/rpi_ws281x/pwm.c \
+  src/p44utils/thirdparty/rpi_ws281x/board_info.h \
+  src/p44utils/thirdparty/rpi_ws281x/board_info.c \
+  src/p44utils/thirdparty/rpi_ws281x/mailbox.h \
+  src/p44utils/thirdparty/rpi_ws281x/mailbox.c \
+  src/p44utils/thirdparty/rpi_ws281x/ws2811.h \
+  src/p44utils/thirdparty/rpi_ws281x/ws2811.c
+RPIWS281X_FLAGS = \
+  -D ENABLE_RPIWS281X=1 \
+  -I ${srcdir}/src/p44utils/thirdparty/rpi_ws281x
+
+else
+
+RPIWS281X_FLAGS = \
+  -D ENABLE_RPIWS281X=0
+
+endif
+
+# OLA support via libola
+if ENABLE_OLA
+
+OLA_SOURCES = \
+  src/p44vdc/deviceclasses/ola/oladevice.cpp \
+  src/p44vdc/deviceclasses/ola/oladevice.hpp \
+  src/p44vdc/deviceclasses/ola/olavdc.cpp \
+  src/p44vdc/deviceclasses/ola/olavdc.hpp
+OLA_FLAGS = \
+  -D ENABLE_OLA=1 \
+  -I ${srcdir}/src/p44vdc/deviceclasses/ola
+OLA_LIBS = \
+  -lola -lolacommon -lprotobuf
+
+else
+
+OLA_FLAGS = \
+  -D ENABLE_OLA=0
+
+endif
 
 
 if P44_BUILD_RPI
@@ -70,29 +115,11 @@ vdcd_EXTRACFLAGS = \
   -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c \
   -I ${srcdir}/../libavahi-core
 
-
-# sources only supported on RPI
-LEDCHAIN_SRC = \
-  src/p44utils/thirdparty/rpi_ws281x/clk.h \
-  src/p44utils/thirdparty/rpi_ws281x/gpio.h \
-  src/p44utils/thirdparty/rpi_ws281x/dma.h \
-  src/p44utils/thirdparty/rpi_ws281x/dma.c \
-  src/p44utils/thirdparty/rpi_ws281x/pwm.h \
-  src/p44utils/thirdparty/rpi_ws281x/pwm.c \
-  src/p44utils/thirdparty/rpi_ws281x/board_info.h \
-  src/p44utils/thirdparty/rpi_ws281x/board_info.c \
-  src/p44utils/thirdparty/rpi_ws281x/mailbox.h \
-  src/p44utils/thirdparty/rpi_ws281x/mailbox.c \
-  src/p44utils/thirdparty/rpi_ws281x/ws2811.h \
-  src/p44utils/thirdparty/rpi_ws281x/ws2811.c
-LEDCHAIN_INCLUDES = \
-  -I ${srcdir}/src/p44utils/thirdparty/rpi_ws281x
-
 else
 
 # proper buildroot and autotools, no programmatic SSL lib loading in civetweb (NO_SSL_DL)
 
-vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
+vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS) $(OLA_LIBS) $(RPIWS281X_LIBS)
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 endif
@@ -116,7 +143,8 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
-  ${LEDCHAIN_INCLUDES} \
+  ${RPIWS281X_FLAGS} \
+  ${OLA_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
@@ -125,13 +153,12 @@ vdcd_CPPFLAGS = \
   ${AVAHI_CFLAGS} \
   ${vdcd_EXTRACFLAGS} \
   ${vdcd_DEBUG} \
-  ${vdcd_PLATFORM} \
-  ${vdcd_EXTRAS} \
-  -D ENABLE_OLA=0
+  ${vdcd_PLATFORM}
 
 
 vdcd_SOURCES = \
-  ${LEDCHAIN_SRC} \
+  ${RPIWS281X_SOURCES} \
+  ${OLA_SOURCES} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
@@ -379,7 +406,8 @@ olavdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
   -I ${srcdir}/src/p44vdc/deviceclasses/ola \
-  ${LEDCHAIN_INCLUDES} \
+  ${RPIWS281X_FLAGS} \
+  -D ENABLE_OLA=1 \
   ${BOOST_CPPFLAGS} \
   ${JSONC_CFLAGS} \
   ${PTHREAD_CFLAGS} \
@@ -388,9 +416,7 @@ olavdcd_CPPFLAGS = \
   ${AVAHI_CFLAGS} \
   ${vdcd_EXTRACFLAGS} \
   ${vdcd_DEBUG} \
-  ${vdcd_PLATFORM} \
-  ${vdcd_EXTRAS} \
-  -D ENABLE_OLA=1
+  ${vdcd_PLATFORM}
 
 olavdcd_SOURCES = \
   ${vdcd_SOURCES} \

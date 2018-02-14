@@ -11,56 +11,47 @@ AC_PROG_CXX
 
 AC_CONFIG_FILES([Makefile])
 
-dnl # options
+##### OPTIONS
 
-AC_ARG_ENABLE([debug],
-[  --enable-debug    Turn on debugging],
-[case "${enableval}" in
-  yes) debug=true ;;
-  no)  debug=false ;;
-  *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-esac],[debug=false])
-AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
-
-P44_BUILD_RPI="no"
-AC_ARG_ENABLE([p44buildrpi],
-    [AC_HELP_STRING([--enable-p44buildrpi],
-                    [plan44 build for Raspberry Pi (default: no)]) ],
-    [
-        if test "x$enableval" = "xno"; then
-            P44_BUILD_RPI="no"
-        elif test "x$enableval" = "xyes"; then
-            P44_BUILD_RPI="yes"
-        fi
-    ]
+AC_ARG_ENABLE(
+  [debug],
+  [AC_HELP_STRING([--enable-debug], [Debug build with extra debugging code])]
 )
-if (test "x$P44_BUILD_RPI" = "xyes"); then
-    AC_DEFINE([P44_BUILD_RPI], [1], [plan44 RPi build])
-fi
-AM_CONDITIONAL([P44_BUILD_RPI], [test "x$P44_BUILD_RPI" = "xyes"])
+AM_CONDITIONAL([DEBUG], [test "x$enable_debug" = xyes])
 
-P44_BUILD_OW="no"
-AC_ARG_ENABLE([p44buildow],
-    [AC_HELP_STRING([--enable-p44buildow],
-                    [plan44 build for OpenWRT (default: no)]) ],
-    [
-        if test "x$enableval" = "xno"; then
-            P44_BUILD_OW="no"
-        elif test "x$enableval" = "xyes"; then
-            P44_BUILD_OW="yes"
-        fi
-    ]
+AC_ARG_ENABLE(
+  [p44buildrpi],
+  [AC_HELP_STRING([--enable-p44buildrpi], [plan44 special legacy cross-compiling build for Raspberry Pi])]
 )
-if (test "x$P44_BUILD_OW" = "xyes"); then
-    AC_DEFINE([P44_BUILD_OW], [1], [plan44 OpenWRT build])
-fi
-AM_CONDITIONAL([P44_BUILD_OW], [test "x$P44_BUILD_OW" = "xyes"])
+AM_CONDITIONAL([P44_BUILD_RPI], [test "x$enable_p44buildrpi" = xyes])
+
+AC_ARG_ENABLE(
+  [p44buildow],
+  [AC_HELP_STRING([--enable-p44buildow], [plan44 build for openwrt targets])]
+)
+AM_CONDITIONAL([P44_BUILD_OW], [test "x$enable_p44buildow" = xyes])
+
+AC_ARG_ENABLE(
+  [ola],
+  [AS_HELP_STRING([--enable-ola], [Enable OLA support (requires libola)])]
+)
+AM_CONDITIONAL([ENABLE_OLA], [test "x$enable_ola" = xyes])
+
+AC_ARG_ENABLE(
+  [rpiws281x],
+  [AS_HELP_STRING([--enable-rpiws281x], [Enable WS281x Ledchain support on RaspberryPi ])]
+)
+AM_CONDITIONAL([ENABLE_RPIWS281X], [test "x$enable_rpiws281x" = xyes])
 
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
 AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib with clock_gettime])])
 AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl with dlopen])])
+
+AM_COND_IF([ENABLE_OLA], [
+  AC_CHECK_LIB(ola, ola_new_dmxbuffer, [], [AC_MSG_ERROR([Could not find libola with ola_new_dmxbuffer])])
+], [])
 
 
 AM_COND_IF([P44_BUILD_RPI], [], [
