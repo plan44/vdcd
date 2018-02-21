@@ -115,6 +115,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--productversion 1.0.0.42"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--sqlitedir /tmp/vdcd"
             isEnabled = "YES">
          </CommandLineArgument>
