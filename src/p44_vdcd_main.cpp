@@ -404,6 +404,7 @@ public:
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
       { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
+      { 0  , "allowcloud",    false, "allow use of non-explicitly configured/expected cloud services such as N-UPnP" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
       { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
       { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
@@ -451,6 +452,9 @@ public:
       getIntOption("errlevel", errlevel);
       SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
       SETDELTATIME(getOption("deltatstamps"));
+
+      // use of non-explicitly configured cloud services (e.g. N-UPnP)
+      p44VdcHost->setAllowCloud(getOption("allowcloud"));
 
       // startup delay?
       int startupDelay = 0; // no delay

@@ -199,6 +199,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--allowcloud"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--ola"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -212,7 +216,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195 --daliportidle 10"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.2.6 --daliportidle 10"
@@ -232,7 +236,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
