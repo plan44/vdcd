@@ -81,7 +81,7 @@ Supporting vdcd
 3. build cool new device integrations and contribute those
 4. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
 
-*(c) 2013-2016 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
+*(c) 2013-2018 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 

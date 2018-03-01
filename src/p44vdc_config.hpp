@@ -23,7 +23,7 @@
 #define __p44vdc__config__
 
 
-#if !P44_BUILD_DIGI && !P44_BUILD_RPI
+#if !P44_BUILD_DIGI && !P44_BUILD_RPI && !P44_BUILD_OW
   // non official release platform
   #undef ALWAYS_DEBUG // override per-file ALWAYS_DEBUG
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
@@ -47,7 +47,7 @@
 
 // Default build settings for different targets
 #if P44_BUILD_DIGI
-  // P44-DSB-DEH
+  // DigiConnect based P44-DSB-DEH
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
   #define ENABLE_ENOCEAN 1
@@ -61,7 +61,7 @@
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_RPI
-  // P44-DSB-E
+  // Minibian/Raspian based P44-DSB-E,X,STC-dS
   #define ENABLE_ENOCEAN 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 1
@@ -77,7 +77,7 @@
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_OW
-  // P44-DSB-xx2
+  // P44-DSB-xx2 and P44-DSB-Rpi,Rpi-2,Rpi-3
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 1
   #define ENABLE_ENOCEAN 1
