@@ -52,7 +52,7 @@ endif
 nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
 
 
-# WS281x LED chain support on Raspberry Pi (direct PWM hardware access)
+# WS281x LED chain support on Raspberry Pi (direct PWM/PCM hardware access)
 if ENABLE_RPIWS281X
 
 RPIWS281X_SOURCES = \
@@ -60,10 +60,12 @@ RPIWS281X_SOURCES = \
   src/p44utils/thirdparty/rpi_ws281x/gpio.h \
   src/p44utils/thirdparty/rpi_ws281x/dma.h \
   src/p44utils/thirdparty/rpi_ws281x/dma.c \
+  src/p44utils/thirdparty/rpi_ws281x/pcm.h \
+  src/p44utils/thirdparty/rpi_ws281x/pcm.c \
   src/p44utils/thirdparty/rpi_ws281x/pwm.h \
   src/p44utils/thirdparty/rpi_ws281x/pwm.c \
-  src/p44utils/thirdparty/rpi_ws281x/board_info.h \
-  src/p44utils/thirdparty/rpi_ws281x/board_info.c \
+  src/p44utils/thirdparty/rpi_ws281x/rpihw.h \
+  src/p44utils/thirdparty/rpi_ws281x/rpihw.c \
   src/p44utils/thirdparty/rpi_ws281x/mailbox.h \
   src/p44utils/thirdparty/rpi_ws281x/mailbox.c \
   src/p44utils/thirdparty/rpi_ws281x/ws2811.h \
