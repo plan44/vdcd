@@ -19,15 +19,15 @@ PROTOBUF_GENERATED = \
 
 #dist_noinst_DATA = messages.proto vdcapi.proto
 
-MOSTLYCLEANFILES = $(PROTOBUF_GENERATED)
+MOSTLYCLEANFILES = ${PROTOBUF_GENERATED}
 
-BUILT_SOURCES = $(PROTOBUF_GENERATED)
+BUILT_SOURCES = ${PROTOBUF_GENERATED}
 
-src/p44vdc/pbuf/gen/messages.pb-c.h src/p44vdc/pbuf/gen/messages.pb-c.c:	$(top_srcdir)/src/p44vdc/pbuf/messages.proto
-	$(PROTOC) --proto_path=$(top_srcdir)/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen $(top_srcdir)/src/p44vdc/pbuf/messages.proto
+src/p44vdc/pbuf/gen/messages.pb-c.h src/p44vdc/pbuf/gen/messages.pb-c.c:	${top_srcdir}/src/p44vdc/pbuf/messages.proto
+	${PROTOC} --proto_path=${top_srcdir}/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen ${top_srcdir}/src/p44vdc/pbuf/messages.proto
 
-src/p44vdc/pbuf/gen/vdcapi.pb-c.h src/p44vdc/pbuf/gen/vdcapi.pb-c.c:	$(top_srcdir)/src/p44vdc/pbuf/vdcapi.proto
-	$(PROTOC) --proto_path=$(top_srcdir)/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen $(top_srcdir)/src/p44vdc/pbuf/vdcapi.proto
+src/p44vdc/pbuf/gen/vdcapi.pb-c.h src/p44vdc/pbuf/gen/vdcapi.pb-c.c:	${top_srcdir}/src/p44vdc/pbuf/vdcapi.proto
+	${PROTOC} --proto_path=${top_srcdir}/src/p44vdc/pbuf --c_out=src/p44vdc/pbuf/gen ${top_srcdir}/src/p44vdc/pbuf/vdcapi.proto
 
 
 # vdcd
@@ -49,7 +49,7 @@ endif
 endif
 
 
-nodist_vdcd_SOURCES = $(PROTOBUF_GENERATED)
+nodist_vdcd_SOURCES = ${PROTOBUF_GENERATED}
 
 
 # WS281x LED chain support on Raspberry Pi (direct PWM/PCM hardware access)
@@ -121,11 +121,10 @@ else
 
 # proper buildroot and autotools, no programmatic SSL lib loading in civetweb (NO_SSL_DL)
 
-vdcd_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS) $(OLA_LIBS) $(RPIWS281X_LIBS)
+vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${RPIWS281X_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 endif
-
 
 vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
@@ -431,7 +430,7 @@ endif
 
 # tests
 
-tests_LDADD = $(PTHREAD_LIBS) $(JSONC_LIBS) $(SQLITE3_LIBS) $(PROTOBUFC_LIBS) $(AVAHI_LIBS)
+tests_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS}
 
 tests_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
