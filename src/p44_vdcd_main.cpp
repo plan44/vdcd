@@ -337,8 +337,9 @@ public:
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
       #if ENABLE_LEDCHAIN
-      { 0,   "ledchain",      true,  "[chaintype:]numleds;enable support for LED chains forming one or multiple RGB lights"
-                                     "\n- chaintype can be WS2812 (default), SK6812"
+      { 0,   "ledchain",      true,  "[chaintype:[leddev:]]numleds;enable support for LED chains forming one or multiple RGB lights"
+                                     "\n- chaintype can be WS2812 (GRB, default), SK6812 (RGBW), P9823 (RGB)"
+                                     "\n- leddev can be a device name when chain is driven by a kernel module"
                                      },
       { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
       #endif
