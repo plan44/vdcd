@@ -424,6 +424,20 @@
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; };
+		EDEC0CDB204FDEE100CD3C27 /* ws2811.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ws2811.h; sourceTree = "<group>"; };
+		EDEC0CDC204FDEE100CD3C27 /* gpio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
+		EDEC0CDD204FDEE100CD3C27 /* pcm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcm.c; sourceTree = "<group>"; };
+		EDEC0CDE204FDEE100CD3C27 /* pcm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pcm.h; sourceTree = "<group>"; };
+		EDEC0CDF204FDEE100CD3C27 /* dma.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dma.h; sourceTree = "<group>"; };
+		EDEC0CE0204FDEE200CD3C27 /* rpihw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rpihw.h; sourceTree = "<group>"; };
+		EDEC0CE1204FDEE200CD3C27 /* clk.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = clk.h; sourceTree = "<group>"; };
+		EDEC0CE2204FDEE200CD3C27 /* rpihw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rpihw.c; sourceTree = "<group>"; };
+		EDEC0CE3204FDEE200CD3C27 /* pwm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pwm.h; sourceTree = "<group>"; };
+		EDEC0CE5204FDEE200CD3C27 /* dma.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dma.c; sourceTree = "<group>"; };
+		EDEC0CE6204FDEE200CD3C27 /* mailbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mailbox.h; sourceTree = "<group>"; };
+		EDEC0CE7204FDEE200CD3C27 /* pwm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pwm.c; sourceTree = "<group>"; };
+		EDEC0CE9204FDF2600CD3C27 /* mailbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mailbox.c; sourceTree = "<group>"; };
 		EDF032F01E3903180011D79E /* zfdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = zfdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDF032F11E3903180011D79E /* zfcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zfcomm.cpp; sourceTree = "<group>"; };
 		EDF032F21E3903180011D79E /* zfcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = zfcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -534,6 +548,7 @@
 				ED77A4701E78B9A6004D8303 /* slre */,
 				ED93DFEA1D25636F00D6AF0A /* civetweb */,
 				ED5B291C1740E72100334C71 /* sqlite3pp */,
+				EDEC0CE8204FDEE800CD3C27 /* rpi_ws281x */,
 			);
 			path = thirdparty;
 			sourceTree = "<group>";
@@ -905,6 +920,27 @@
 				EDDDD5511A125FBC007D2ABE /* olavdc.hpp */,
 			);
 			path = ola;
+			sourceTree = "<group>";
+		};
+		EDEC0CE8204FDEE800CD3C27 /* rpi_ws281x */ = {
+			isa = PBXGroup;
+			children = (
+				EDEC0CE9204FDF2600CD3C27 /* mailbox.c */,
+				EDEC0CE1204FDEE200CD3C27 /* clk.h */,
+				EDEC0CE5204FDEE200CD3C27 /* dma.c */,
+				EDEC0CDF204FDEE100CD3C27 /* dma.h */,
+				EDEC0CDC204FDEE100CD3C27 /* gpio.h */,
+				EDEC0CE6204FDEE200CD3C27 /* mailbox.h */,
+				EDEC0CDD204FDEE100CD3C27 /* pcm.c */,
+				EDEC0CDE204FDEE100CD3C27 /* pcm.h */,
+				EDEC0CE7204FDEE200CD3C27 /* pwm.c */,
+				EDEC0CE3204FDEE200CD3C27 /* pwm.h */,
+				EDEC0CE2204FDEE200CD3C27 /* rpihw.c */,
+				EDEC0CE0204FDEE200CD3C27 /* rpihw.h */,
+				EDEC0CD8204FDEE100CD3C27 /* ws2811.c */,
+				EDEC0CDB204FDEE100CD3C27 /* ws2811.h */,
+			);
+			path = rpi_ws281x;
 			sourceTree = "<group>";
 		};
 		EDF032EF1E3903180011D79E /* zf */ = {
