@@ -401,6 +401,7 @@ public:
       { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
       #endif
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
+      { 0  , "webuipath",     true,  "path;file path for webui (must start with /, defaults to none)" },
       { 0  , "novdcapi",      false, "disable vDC API (and advertisement of it)" },
       { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
@@ -465,6 +466,7 @@ public:
       int webUiPort = 0;
       getIntOption("webuiport", webUiPort);
       p44VdcHost->webUiPort = webUiPort;
+      getStringOption("webuipath", p44VdcHost->webUiPath);
 
       // max API version
       int maxApiVersion = 0; // no limit
@@ -1022,6 +1024,7 @@ public:
           p44VdcHost,
           getOption("noauto"),
           p44VdcHost->webUiPort,
+          p44VdcHost->webUiPath,
           sshPort,
           #if ENABLE_AUXVDSM
           auxVdsmDsuid,
