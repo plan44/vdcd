@@ -43,6 +43,12 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL([ENABLE_RPIWS281X], [test "x$enable_rpiws281x" = xyes])
 
+AC_ARG_ENABLE(
+  [rrdb],
+  [AS_HELP_STRING([--enable-rrdb], [Enable librrd usage for logging sensor data])]
+)
+AM_CONDITIONAL([ENABLE_RRDB], [test "x$enable_rrdb" = xyes])
+
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
@@ -52,6 +58,11 @@ AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl with dlopen])])
 AM_COND_IF([ENABLE_OLA], [
   AC_CHECK_LIB(ola, ola_new_dmxbuffer, [], [AC_MSG_ERROR([Could not find libola with ola_new_dmxbuffer])])
 ], [])
+
+AM_COND_IF([ENABLE_RRDB], [
+  AC_CHECK_LIB(rrd, rrd_create, [], [AC_MSG_ERROR([Could not find librrd with rrd_create])])
+], [])
+
 
 
 AM_COND_IF([P44_BUILD_RPI], [], [

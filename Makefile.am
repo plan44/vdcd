@@ -76,8 +76,7 @@ RPIWS281X_FLAGS = \
 
 else
 
-RPIWS281X_FLAGS = \
-  -D ENABLE_RPIWS281X=0
+RPIWS281X_FLAGS = -D ENABLE_RPIWS281X=0
 
 endif
 
@@ -97,10 +96,25 @@ OLA_LIBS = \
 
 else
 
-OLA_FLAGS = \
-  -D ENABLE_OLA=0
+OLA_FLAGS = -D ENABLE_OLA=0
 
 endif
+
+
+# rrdb support for logging sensor data
+if ENABLE_RRDB
+
+RRDB_FLAGS = -D ENABLE_RRDB=1 ${RRD_FLAGS}
+RRDB_LIBS = ${RRD_LIBS}
+
+else
+
+RRDB_FLAGS = -D ENABLE_RRDB=0
+
+endif
+
+
+
 
 
 if P44_BUILD_RPI
@@ -121,7 +135,7 @@ else
 
 # proper buildroot and autotools, no programmatic SSL lib loading in civetweb (NO_SSL_DL)
 
-vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${RPIWS281X_LIBS}
+vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 endif
@@ -144,6 +158,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
+  ${RRDB_FLAGS} \
   ${RPIWS281X_FLAGS} \
   ${OLA_FLAGS} \
   ${BOOST_CPPFLAGS} \
