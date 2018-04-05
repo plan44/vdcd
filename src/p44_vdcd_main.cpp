@@ -413,6 +413,7 @@ public:
       { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
       { 0  , "deltatstamps",  false, "show timestamp delta between log lines" },
       { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
+      { 'd', "datapath",      true,  "path;path to r/w data such as RRD files" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
       { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
