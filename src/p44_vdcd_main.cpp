@@ -309,6 +309,7 @@ public:
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
+      { 0  , "instance",      true,  "instancenumber;set instance number (default 0, use 1,2,... for multiple vdchosts on same host/mac)" },
       { 0  , "ifnameformac",  true,  "network if;set network interface to get MAC address from" },
       { 0  , "ifnameforconn", true,  "network if;set network interface to get IP from and check for connectivity" },
       { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
@@ -540,9 +541,11 @@ public:
           externalDsUid->setGTIN(gcp, itemref, part);
           externalDsUid->setSerial(serial);
         }
+        int instance = 0;
         string macif;
         getStringOption("ifnameformac", macif);
-        p44VdcHost->setIdMode(externalDsUid, macif);
+        getIntOption("instance", instance);
+        p44VdcHost->setIdMode(externalDsUid, macif, instance);
 
         // - network interface
         if (getStringOption("ifnameforconn", s)) {
