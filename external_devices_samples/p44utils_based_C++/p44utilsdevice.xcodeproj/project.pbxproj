@@ -26,6 +26,8 @@
 		ED9C22B11BBEAF5B006F5F21 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9C22A01BBEAF5B006F5F21 /* utils.cpp */; };
 		ED9C22B41BBEBDDC006F5F21 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9C22B21BBEBDDC006F5F21 /* analogio.cpp */; };
 		ED9C22B71BBEBE60006F5F21 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9C22B51BBEBE60006F5F21 /* i2c.cpp */; };
+		EDCB77A2207F870900EDAD95 /* spi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCB77A0207F870800EDAD95 /* spi.cpp */; };
+		EDCB77A3207F870900EDAD95 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCB77A1207F870800EDAD95 /* pwm.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -55,7 +57,7 @@
 		ED9C22891BBEAF5B006F5F21 /* digitalio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = digitalio.hpp; sourceTree = "<group>"; };
 		ED9C228A1BBEAF5B006F5F21 /* error.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = error.cpp; sourceTree = "<group>"; };
 		ED9C228B1BBEAF5B006F5F21 /* error.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = error.hpp; sourceTree = "<group>"; };
-		ED9C228C1BBEAF5B006F5F21 /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fdcomm.cpp; sourceTree = "<group>"; };
+		ED9C228C1BBEAF5B006F5F21 /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fdcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED9C228D1BBEAF5B006F5F21 /* fdcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = fdcomm.hpp; sourceTree = "<group>"; };
 		ED9C228E1BBEAF5B006F5F21 /* gpio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = gpio.cpp; sourceTree = "<group>"; };
 		ED9C228F1BBEAF5B006F5F21 /* gpio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
@@ -65,22 +67,26 @@
 		ED9C22931BBEAF5B006F5F21 /* jsoncomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsoncomm.cpp; sourceTree = "<group>"; };
 		ED9C22941BBEAF5B006F5F21 /* jsoncomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsoncomm.hpp; sourceTree = "<group>"; };
 		ED9C22951BBEAF5B006F5F21 /* jsonobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jsonobject.cpp; sourceTree = "<group>"; };
-		ED9C22961BBEAF5B006F5F21 /* jsonobject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonobject.hpp; sourceTree = "<group>"; };
+		ED9C22961BBEAF5B006F5F21 /* jsonobject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = jsonobject.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED9C22971BBEAF5B006F5F21 /* logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = logger.cpp; sourceTree = "<group>"; };
 		ED9C22981BBEAF5B006F5F21 /* logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = logger.hpp; sourceTree = "<group>"; };
-		ED9C22991BBEAF5B006F5F21 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mainloop.cpp; sourceTree = "<group>"; };
+		ED9C22991BBEAF5B006F5F21 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mainloop.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED9C229A1BBEAF5B006F5F21 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = mainloop.hpp; sourceTree = "<group>"; };
-		ED9C229B1BBEAF5B006F5F21 /* p44_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44_common.hpp; sourceTree = "<group>"; };
 		ED9C229C1BBEAF5B006F5F21 /* p44obj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p44obj.cpp; sourceTree = "<group>"; };
 		ED9C229D1BBEAF5B006F5F21 /* p44obj.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44obj.hpp; sourceTree = "<group>"; };
 		ED9C229E1BBEAF5B006F5F21 /* socketcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = socketcomm.cpp; sourceTree = "<group>"; };
-		ED9C229F1BBEAF5B006F5F21 /* socketcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = socketcomm.hpp; sourceTree = "<group>"; };
+		ED9C229F1BBEAF5B006F5F21 /* socketcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = socketcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED9C22A01BBEAF5B006F5F21 /* utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
 		ED9C22A11BBEAF5B006F5F21 /* utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
 		ED9C22B21BBEBDDC006F5F21 /* analogio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = analogio.cpp; sourceTree = "<group>"; };
 		ED9C22B31BBEBDDC006F5F21 /* analogio.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = analogio.hpp; sourceTree = "<group>"; };
 		ED9C22B51BBEBE60006F5F21 /* i2c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = i2c.cpp; sourceTree = "<group>"; };
 		ED9C22B61BBEBE60006F5F21 /* i2c.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = i2c.hpp; sourceTree = "<group>"; };
+		EDCB779D207F870700EDAD95 /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = p44utils_common.hpp; path = ../../../../src/p44utils/p44utils_common.hpp; sourceTree = "<group>"; };
+		EDCB779E207F870700EDAD95 /* spi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = spi.hpp; path = ../../../../src/p44utils/spi.hpp; sourceTree = "<group>"; };
+		EDCB779F207F870800EDAD95 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = pwm.hpp; path = ../../../../src/p44utils/pwm.hpp; sourceTree = "<group>"; };
+		EDCB77A0207F870800EDAD95 /* spi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = spi.cpp; path = ../../../../src/p44utils/spi.cpp; sourceTree = "<group>"; };
+		EDCB77A1207F870800EDAD95 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pwm.cpp; path = ../../../../src/p44utils/pwm.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +128,11 @@
 		ED9C227F1BBEAEFE006F5F21 /* p44utils */ = {
 			isa = PBXGroup;
 			children = (
+				EDCB779D207F870700EDAD95 /* p44utils_common.hpp */,
+				EDCB77A1207F870800EDAD95 /* pwm.cpp */,
+				EDCB779F207F870800EDAD95 /* pwm.hpp */,
+				EDCB77A0207F870800EDAD95 /* spi.cpp */,
+				EDCB779E207F870700EDAD95 /* spi.hpp */,
 				ED9C22B51BBEBE60006F5F21 /* i2c.cpp */,
 				ED9C22B61BBEBE60006F5F21 /* i2c.hpp */,
 				ED9C22B21BBEBDDC006F5F21 /* analogio.cpp */,
@@ -153,7 +164,6 @@
 				ED9C22981BBEAF5B006F5F21 /* logger.hpp */,
 				ED9C22991BBEAF5B006F5F21 /* mainloop.cpp */,
 				ED9C229A1BBEAF5B006F5F21 /* mainloop.hpp */,
-				ED9C229B1BBEAF5B006F5F21 /* p44_common.hpp */,
 				ED9C229C1BBEAF5B006F5F21 /* p44obj.cpp */,
 				ED9C229D1BBEAF5B006F5F21 /* p44obj.hpp */,
 				ED9C229E1BBEAF5B006F5F21 /* socketcomm.cpp */,
@@ -223,6 +233,7 @@
 				ED9C22B71BBEBE60006F5F21 /* i2c.cpp in Sources */,
 				ED9C22AC1BBEAF5B006F5F21 /* jsonobject.cpp in Sources */,
 				ED9C22B11BBEAF5B006F5F21 /* utils.cpp in Sources */,
+				EDCB77A3207F870900EDAD95 /* pwm.cpp in Sources */,
 				ED9C22791BBEAD6F006F5F21 /* main.cpp in Sources */,
 				ED9C22B41BBEBDDC006F5F21 /* analogio.cpp in Sources */,
 				ED9C22A81BBEAF5B006F5F21 /* fdcomm.cpp in Sources */,
@@ -236,6 +247,7 @@
 				ED9C22AB1BBEAF5B006F5F21 /* jsoncomm.cpp in Sources */,
 				ED9C22A61BBEAF5B006F5F21 /* digitalio.cpp in Sources */,
 				ED9C22AE1BBEAF5B006F5F21 /* mainloop.cpp in Sources */,
+				EDCB77A2207F870900EDAD95 /* spi.cpp in Sources */,
 				ED9C22A71BBEAF5B006F5F21 /* error.cpp in Sources */,
 				ED9C22A41BBEAF5B006F5F21 /* colorutils.cpp in Sources */,
 				ED9C22AA1BBEAF5B006F5F21 /* iopin.cpp in Sources */,
@@ -333,6 +345,10 @@
 		ED9C227D1BBEAD6F006F5F21 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/include/json-c",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -340,6 +356,10 @@
 		ED9C227E1BBEAD6F006F5F21 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/include/json-c",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
