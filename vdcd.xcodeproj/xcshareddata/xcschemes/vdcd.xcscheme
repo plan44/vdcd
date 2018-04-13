@@ -198,7 +198,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
@@ -254,7 +254,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
