@@ -36,7 +36,6 @@
 #endif
 #if defined(__APPLE__)
   #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
-  #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1
@@ -57,7 +56,6 @@
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
-  #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_RPI
@@ -73,7 +71,6 @@
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
-  #define ENABLE_AUXVDSM 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_OW
@@ -90,7 +87,6 @@
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
-  #define ENABLE_AUXVDSM 1
   #define ENABLE_LOCALCONTROLLER 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset

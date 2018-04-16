@@ -70,7 +70,7 @@ Getting Started
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
   - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E, P44-DSB-DEH)
 
-- consult the */docs* folder: For building the vdcd, see *"How to build vdsm and vdcd on Linux - in particular Raspian on P44-DSB-X.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
+- consult the */docs* folder: For building the vdcd, see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
 
 
 Supporting vdcd

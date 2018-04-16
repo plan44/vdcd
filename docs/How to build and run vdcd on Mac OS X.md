@@ -5,7 +5,7 @@ Here's what you need to do if you want to build vdcd in XCode on OS X
 
 ## Prepare
 
-### install XCode 7.x
+### install XCode 7.x or newer
 Just from Mac App Store or see [https://developer.apple.com/xcode/](https://developer.apple.com/xcode/)
 
 ### install (home)brew

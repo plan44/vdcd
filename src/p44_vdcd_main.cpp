@@ -77,16 +77,11 @@
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
 #define DEFAULT_DBDIR "/tmp"
 
-#define DEFAULT_DS485_AUXVDSMPORT 8441
-
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
 #define P44_EXIT_LOCALMODE 2 // request daemon restart in "local mode"
 #define P44_EXIT_FIRMWAREUPDATE 3 // request check for new firmware, installation if available, platform restart
 #define P44_EXIT_FACTORYRESET 42 // request a factory reset and platform restart
-#define P44_EXIT_START_AUXVDSM 4 // exit, start auxiliary vdsm, and restart daemon
-#define P44_EXIT_STOP_AUXVDSM 5 // exit, stop auxiliary vdsm, and restart daemon
-
 
 
 using namespace p44;
@@ -128,11 +123,6 @@ class P44Vdcd : public CmdLineApp
   MLTicket tempStatusTicket;
   bool selfTesting;
 
-  #if ENABLE_AUXVDSM
-  int scheduledExitCode;
-  bool collecting;
-  #endif
-
   // the device container
   // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
   P44VdcHostPtr p44VdcHost;
@@ -154,10 +144,6 @@ public:
     factoryResetWait(false),
     tempStatusTicket(0),
     learningTimerTicket(0),
-    #if ENABLE_AUXVDSM
-    scheduledExitCode(0),
-    collecting(false),
-    #endif
     selfTesting(false)
   {
   }
@@ -393,12 +379,6 @@ public:
       { 0  , "noigmphelp",    false, NULL /* FIXME: kept as dummy to avoid breaking manually configured installations */ },
       { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
-      #if ENABLE_AUXVDSM
-      { 0  , "auxvdsmdsuid",  true,  NULL /* dSUID; dsuid of auxiliary vdsm to be managed */ },
-      { 0  , "auxvdsmport",   true,  NULL /* port; port of auxiliary vdsm's ds485 server */ },
-      { 0  , "auxvdsmrunning",false, NULL /* must be set when auxiliary vdsm is running */ },
-      { 0  , "vdsmnotaux"    ,false, NULL /* can be set to make vdsm non-auxiliary */ },
-      #endif
       { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
       #endif
       { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
@@ -960,9 +940,6 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    #if ENABLE_AUXVDSM
-    collecting = true;
-    #endif
     p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aRescanMode);
   }
 
@@ -975,18 +952,6 @@ public:
     else {
       setAppStatus(status_error);
     }
-    #if ENABLE_AUXVDSM
-    collecting = false;
-    if (scheduledExitCode) {
-      // termination was scheduled (usually by discovery) during collect -> execute now
-      // - needs to switch vdsms, means device is busy
-      setAppStatus(status_busy);
-      // - give mainloop some time to close down API connections
-      LOG(LOG_WARNING, "***** auxiliary vdSM switch -> will exit(%d) in 1 second", scheduledExitCode);
-      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, scheduledExitCode), 1*Second);
-      scheduledExitCode = 0;
-    }
-    #endif
   }
 
 
@@ -1011,16 +976,6 @@ public:
       );
       if (Error::isOK(err)) {
         // started ok, set discovery params
-        #if ENABLE_AUXVDSM
-        // - optional auxiliary vdsm
-        DsUidPtr auxVdsmDsuid;
-        int auxVdsmPort = 0;
-        if (getStringOption("auxvdsmdsuid", s)) {
-          auxVdsmDsuid = DsUidPtr(new DsUid(s));
-          auxVdsmPort = DEFAULT_DS485_AUXVDSMPORT;
-          getIntOption("auxvdsmport", auxVdsmPort);
-        }
-        #endif
         int sshPort = 0;
         getIntOption("sshport", sshPort);
         // start discovery manager
@@ -1029,20 +984,7 @@ public:
           getOption("noauto"),
           p44VdcHost->webUiPort,
           p44VdcHost->webUiPath,
-          sshPort,
-          #if ENABLE_AUXVDSM
-          auxVdsmDsuid,
-          auxVdsmPort,
-          getOption("auxvdsmrunning"),
-          boost::bind(&P44Vdcd::discoveryStatusHandler, this, _1),
-          getOption("vdsmnotaux")
-          #else
-          DsUidPtr(),
-          0,
-          false,
-          NULL,
-          false
-          #endif // ENABLE_AUXVDSM
+          sshPort
         );
       }
       else {
@@ -1050,34 +992,6 @@ public:
       }
     }
   }
-
-
-  #if ENABLE_AUXVDSM
-
-  void discoveryStatusHandler(bool aAuxVdsmShouldRun)
-  {
-    int exitCode = 0;
-    if (aAuxVdsmShouldRun) {
-      LOG(LOG_WARNING, "***** auxiliary vdSM should start -> will exit(%d) cleanly soon", P44_EXIT_START_AUXVDSM);
-      exitCode = P44_EXIT_START_AUXVDSM;
-    }
-    else {
-      LOG(LOG_WARNING, "***** auxiliary vdSM should stop -> will exit(%d) cleanly soon", P44_EXIT_STOP_AUXVDSM);
-      exitCode = P44_EXIT_STOP_AUXVDSM;
-    }
-    if (collecting) {
-      // do not exit while still collecting
-      scheduledExitCode = exitCode;
-    }
-    else {
-      // needs to switch vdsms, means device is busy
-      setAppStatus(status_busy);
-      // give mainloop some time to close down API connections
-      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, exitCode), 1*Second);
-    }
-  }
-
-  #endif // ENABLE_AUXVDSM
 
   #endif // !DISABLE_DISCOVERY
 
