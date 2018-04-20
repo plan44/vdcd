@@ -20,6 +20,7 @@
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
+		ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED124EC0208A42DC001DED3A /* test_mainloop.cpp */; };
 		ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED12605B1D9E51650049E8D8 /* singledevice.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
 		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
@@ -216,6 +217,7 @@
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED124EC0208A42DC001DED3A /* test_mainloop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_mainloop.cpp; sourceTree = "<group>"; };
 		ED12605B1D9E51650049E8D8 /* singledevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = singledevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED12605C1D9E51650049E8D8 /* singledevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = singledevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED17F4C61769F51D0076B47C /* persistentparams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = persistentparams.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -805,6 +807,7 @@
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
+				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -1083,6 +1086,7 @@
 				ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */,
 				ED3701FA2007B47700A1BD67 /* mainloop.cpp in Sources */,
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
+				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
