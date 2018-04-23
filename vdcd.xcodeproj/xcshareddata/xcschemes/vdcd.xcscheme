@@ -146,7 +146,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testout:colordimmer"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
@@ -250,7 +250,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
