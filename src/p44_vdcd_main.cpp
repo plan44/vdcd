@@ -134,7 +134,7 @@ class P44Vdcd : public CmdLineApp
 
   // learning
   MLTicket learningTimerTicket;
-
+  MLTicket shutDownTicket;
 
 public:
 
@@ -142,8 +142,6 @@ public:
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
     factoryResetWait(false),
-    tempStatusTicket(0),
-    learningTimerTicket(0),
     selfTesting(false)
   {
   }
@@ -160,7 +158,7 @@ public:
     if (aStatus>=currentTempStatus) {
       // higher priority than current temp status, apply
       currentTempStatus = aStatus; // overrides app status updates for now
-      MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
+      tempStatusTicket.cancel();
       // initiate
       MLMicroSeconds timer = Never;
       switch (aStatus) {
@@ -205,7 +203,7 @@ public:
           break;
       }
       if (timer!=Never) {
-        tempStatusTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
+        tempStatusTicket.executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
       }
     }
   }
@@ -213,7 +211,7 @@ public:
 
   void endTempStatus()
   {
-    MainLoop::currentMainLoop().cancelExecutionTicket(tempStatusTicket);
+    tempStatusTicket.cancel();
     currentTempStatus = tempstatus_none;
     showAppStatus();
   }
@@ -710,7 +708,7 @@ public:
     // back to normal...
     stopLearning(false);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
-    MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
+    shutDownTicket.executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isOK(aError)) {
       if (aLearnIn) {
@@ -731,7 +729,7 @@ public:
   void stopLearning(bool aFromTimeout)
   {
     p44VdcHost->stopLearning();
-    MainLoop::currentMainLoop().cancelExecutionTicket(learningTimerTicket);
+    learningTimerTicket.cancel();
     setAppStatus(status_ok);
     if (aFromTimeout) {
       // letting learn run into timeout will re-collect all devices incrementally
@@ -787,7 +785,7 @@ public:
         redLED->steadyOff();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
+        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
         return true;
         #endif
       }
@@ -806,14 +804,14 @@ public:
         button->setButtonHandler(NULL, true); // disconnect button
         p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
+        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
         if (!learningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket = MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
+          learningTimerTicket.executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
           p44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
         }
         else {
@@ -837,7 +835,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOff();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FACTORYRESET), 2*Second);
+        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FACTORYRESET), 2*Second);
         return true;
       }
       else {
@@ -847,7 +845,7 @@ public:
         redLED->steadyOn();
         greenLED->steadyOn();
         // give mainloop some time to close down API connections
-        MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateApp, this, EXIT_SUCCESS), 500*MilliSecond);
+        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, EXIT_SUCCESS), 500*MilliSecond);
         return true;
       }
     }
@@ -912,7 +910,7 @@ public:
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
       LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->description().c_str());
-      MainLoop::currentMainLoop().executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
+      shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
       return;
     }
     else {
