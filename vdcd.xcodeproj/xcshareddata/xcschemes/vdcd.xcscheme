@@ -141,6 +141,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-k input:input"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-k rocker:rocker"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -237,7 +241,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.59.195"
+            argument = "--enocean 192.168.11.221"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
