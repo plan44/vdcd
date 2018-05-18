@@ -138,11 +138,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k input:input"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k rocker:rocker"
