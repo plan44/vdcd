@@ -76,6 +76,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[time]"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[ssl]"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -84,7 +88,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--success"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--list-tests"
