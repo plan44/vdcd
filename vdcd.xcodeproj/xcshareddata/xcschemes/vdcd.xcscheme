@@ -158,11 +158,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -202,7 +202,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
@@ -214,7 +214,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
@@ -239,6 +239,10 @@
          <CommandLineArgument
             argument = "--dali localhost:2102 --daliportidle 10 --dalitxadj 16"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--enocean 192.168.59.195"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.11.221"
