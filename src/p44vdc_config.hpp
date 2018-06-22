@@ -51,7 +51,7 @@
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
   #define ENABLE_ENOCEAN 1
-  #define ENABLE_ENOCEAN_SECURE 1
+  #define ENABLE_ENOCEAN_SECURE 0 // disabled because of footprint
   #define ENABLE_HUE 1
   #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_FCU_SUPPORT 0 // disable because of footprint
