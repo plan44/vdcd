@@ -51,6 +51,7 @@
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
   #define ENABLE_ENOCEAN 1
+  #define ENABLE_ENOCEAN_SECURE 1
   #define ENABLE_HUE 1
   #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_FCU_SUPPORT 0 // disable because of footprint
@@ -62,6 +63,7 @@
 #elif P44_BUILD_RPI
   // Minibian/Raspian based P44-DSB-E,X,STC-dS
   #define ENABLE_ENOCEAN 1
+  #define ENABLE_ENOCEAN_SECURE 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 1
   #define ENABLE_RPIWS281X 1
@@ -79,6 +81,7 @@
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 1
   #define ENABLE_ENOCEAN 1
+  #define ENABLE_ENOCEAN_SECURE 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 1
   #define ENABLE_ELDAT 1

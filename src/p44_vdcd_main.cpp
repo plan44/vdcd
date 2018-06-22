@@ -435,21 +435,6 @@ public:
       SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
       SETDELTATIME(getOption("deltatstamps"));
 
-
-      #if ENABLE_ENOCEAN_SECURE
-      #define TEST_SEC 0
-      #if !DEBUG
-      #error "experimental code"
-      #endif
-      #if TEST_SEC
-      EnoceanComm::secExperiment();
-      EnoceanComm::secExperiment_OLD();
-      terminateApp(EXIT_SUCCESS);
-      #endif
-      #endif
-
-
-
       // use of non-explicitly configured cloud services (e.g. N-UPnP)
       p44VdcHost->setAllowCloud(getOption("allowcloud"));
 
