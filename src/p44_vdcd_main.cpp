@@ -403,6 +403,7 @@ public:
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
       { 0,   "selftest",      false, "run in self test mode" },
+      { 'V', "version",       false, "show version" },
       { 'h', "help",          false, "show this text" },
       { 0, NULL } // list terminator
     };
