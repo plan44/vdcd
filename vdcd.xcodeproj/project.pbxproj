@@ -1401,7 +1401,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2k/lib,
+					/usr/local/Cellar/openssl/1.0.2p/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
@@ -1439,7 +1439,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2k/lib,
+					/usr/local/Cellar/openssl/1.0.2p/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
