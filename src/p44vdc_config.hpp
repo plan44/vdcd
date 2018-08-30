@@ -51,15 +51,16 @@
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
   #define ENABLE_ENOCEAN 1
-  #define ENABLE_ENOCEAN_SECURE 0 // disabled because of footprint
+  #define ENABLE_ENOCEAN_SECURE 0 // disabled because of footprint and insufficient modem firmware
   #define ENABLE_HUE 1
   #define ENABLE_STATIC 0 // disabled because of footprint
-  #define ENABLE_FCU_SUPPORT 0 // disable because of footprint
+  #define ENABLE_FCU_SUPPORT 0 // disabled because of footprint
   #define ENABLE_EXTERNAL 1
   #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
+  #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
-  #define SELFTESTING_ENABLED 1
+  #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
 #elif P44_BUILD_RPI
   // Minibian/Raspian based P44-DSB-E,X,STC-dS
   #define ENABLE_ENOCEAN 1
