@@ -121,7 +121,10 @@ class P44Vdcd : public CmdLineApp
   AppStatus appStatus;
   TempStatus currentTempStatus;
   MLTicket tempStatusTicket;
+
+  #if SELFTESTING_ENABLED
   bool selfTesting;
+  #endif
 
   // the device container
   // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
@@ -139,10 +142,12 @@ class P44Vdcd : public CmdLineApp
 public:
 
   P44Vdcd() :
+    #if SELFTESTING_ENABLED
+    selfTesting(false),
+    #endif
     appStatus(status_busy),
     currentTempStatus(tempstatus_none),
-    factoryResetWait(false),
-    selfTesting(false)
+    factoryResetWait(false)
   {
   }
 
@@ -402,7 +407,9 @@ public:
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
+      #if SELFTESTING_ENABLED
       { 0,   "selftest",      false, "run in self test mode" },
+      #endif
       { 'V', "version",       false, "show version" },
       { 'h', "help",          false, "show this text" },
       { 0, NULL } // list terminator
@@ -424,14 +431,18 @@ public:
       // create the root object
       p44VdcHost = P44VdcHostPtr(new P44VdcHost(getOption("localcontroller")));
 
+      #if SELFTESTING_ENABLED
       // test or operation
       selfTesting = getOption("selftest");
+      int errlevel = selfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
+      #else
+      int errlevel = LOG_ERR;
+      #endif
 
       // log level?
       int loglevel = DEFAULT_LOGLEVEL;
       getIntOption("loglevel", loglevel);
       SETLOGLEVEL(loglevel);
-      int errlevel = selfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
       getIntOption("errlevel", errlevel);
       SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
       SETDELTATIME(getOption("deltatstamps"));
@@ -875,12 +886,15 @@ public:
 
   virtual void initialize()
   {
+    #if SELFTESTING_ENABLED
     if (selfTesting) {
       // self testing
       // - initialize the device container
       p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
-    else {
+    else
+    #endif
+    {
       // - connect button
       button->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
       // - if not already in factory reset wait, initialize normally
@@ -895,6 +909,7 @@ public:
 
   virtual void initialized(ErrorPtr aError)
   {
+    #if SELFTESTING_ENABLED
     if (selfTesting) {
       // self test mode
       if (Error::isOK(aError)) {
@@ -906,7 +921,9 @@ public:
         selfTestDone(aError);
       }
     }
-    else if (!Error::isOK(aError)) {
+    else
+    #endif // SELFTESTING_ENABLED
+    if (!Error::isOK(aError)) {
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
@@ -927,12 +944,13 @@ public:
     }
   }
 
-
+  #if SELFTESTING_ENABLED
   void selfTestDone(ErrorPtr aError)
   {
     // test done, exit with success or failure
     terminateApp(Error::isOK(aError) ? EXIT_SUCCESS : EXIT_FAILURE);
   }
+  #endif
 
 
   virtual void collectDevices(RescanMode aRescanMode)
