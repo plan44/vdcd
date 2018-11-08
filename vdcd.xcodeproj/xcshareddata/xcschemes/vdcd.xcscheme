@@ -138,7 +138,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k input:input"
@@ -242,7 +242,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.59.195"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.11.221"
