@@ -55,7 +55,7 @@
   #define ENABLE_HUE 1
   #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_FCU_SUPPORT 0 // disabled because of footprint
-  #define ENABLE_EXTERNAL 1
+  #define ENABLE_EXTERNAL 0 // disabled because of footprint
   #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
