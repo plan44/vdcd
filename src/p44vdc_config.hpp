@@ -40,6 +40,7 @@
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_ENOCEAN_SECURE 1
+  #define SELFTESTING_ENABLED 1
 #endif
 
 // general defaults

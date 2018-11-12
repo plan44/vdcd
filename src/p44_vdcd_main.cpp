@@ -630,7 +630,7 @@ public:
         // - Add Eldat devices class if modem serialport/host is specified
         const char *eldatname = getOption("eldat");
         if (eldatname) {
-          EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, p44VdcHost.get(), 2)); // Tag 9 = ELDAT
+          EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, p44VdcHost.get(), 9)); // Tag 9 = ELDAT
           eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
           // add
           eldatVdc->addVdcToVdcHost();
@@ -641,7 +641,7 @@ public:
         // - Add ZF devices class if modem serialport/host is specified
         const char *zfname = getOption("zf");
         if (zfname) {
-          ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, p44VdcHost.get(), 2)); // Tag 10 = ZF
+          ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, p44VdcHost.get(), 10)); // Tag 10 = ZF
           zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
           // add
           zfVdc->addVdcToVdcHost();

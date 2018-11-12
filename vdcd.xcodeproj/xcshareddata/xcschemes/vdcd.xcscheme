@@ -85,6 +85,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--selftest"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--maxapiversion 2"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -242,7 +246,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.59.195"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.11.221"
