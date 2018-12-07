@@ -226,7 +226,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.2.6 --daliportidle 10"
@@ -258,7 +258,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--zf /dev/cu.usbserial-FTG9KO99"
