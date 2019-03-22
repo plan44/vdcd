@@ -682,10 +682,19 @@
 			children = (
 				ED312687183121FF00FAF28B /* thirdparty */,
 				ED6CCD361D198A9500C78A0D /* tests */,
+				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
+				ED81337717C6C765003982CC /* p44obj.cpp */,
+				ED81337817C6C765003982CC /* p44obj.hpp */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
+				ED026D03171E94D700AD5FD6 /* error.cpp */,
+				ED026D04171E94D700AD5FD6 /* error.hpp */,
+				ED74563E1731B813001C9565 /* mainloop.cpp */,
+				ED74563F1731B813001C9565 /* mainloop.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				ED0E441C1732FE4F00C4C283 /* application.cpp */,
+				ED0E441D1732FE4F00C4C283 /* application.hpp */,
 				ED77A4761E78B9D2004D8303 /* expressions.cpp */,
 				ED77A4771E78B9D2004D8303 /* expressions.hpp */,
 				ED493DB81E9823C8008860E8 /* valueunits.cpp */,
@@ -698,16 +707,8 @@
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED59D4731C89F7060089E69A /* igmp.cpp */,
 				ED59D4741C89F7060089E69A /* igmp.hpp */,
-				ED81337717C6C765003982CC /* p44obj.cpp */,
-				ED81337817C6C765003982CC /* p44obj.hpp */,
 				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
 				EDCFE85F17203E47001D35F3 /* fnv.hpp */,
-				ED026D03171E94D700AD5FD6 /* error.cpp */,
-				ED026D04171E94D700AD5FD6 /* error.hpp */,
-				ED74563E1731B813001C9565 /* mainloop.cpp */,
-				ED74563F1731B813001C9565 /* mainloop.hpp */,
-				ED0E441C1732FE4F00C4C283 /* application.cpp */,
-				ED0E441D1732FE4F00C4C283 /* application.hpp */,
 				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
 				EDB2844C1733DE2A00EAE5DE /* gpio.hpp */,
 				EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */,
@@ -752,7 +753,6 @@
 				ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */,
 				ED5576131750B15E00CCC4DD /* jsonobject.cpp */,
 				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
-				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
 			);
 			path = p44utils;
 			sourceTree = "<group>";
@@ -1397,11 +1397,11 @@
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2k/include,
+					/usr/local/Cellar/openssl/1.0.2q/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2p/lib,
+					/usr/local/Cellar/openssl/1.0.2q/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
@@ -1435,11 +1435,11 @@
 					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2k/include,
+					/usr/local/Cellar/openssl/1.0.2q/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2p/lib,
+					/usr/local/Cellar/openssl/1.0.2q/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (

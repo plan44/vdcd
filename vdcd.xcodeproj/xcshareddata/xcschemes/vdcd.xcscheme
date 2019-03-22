@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--novdcapi"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--description &quot;%V %M%N S/N:%S&quot;"
@@ -126,7 +126,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/plan44/hacking+devdocs/xcode-vdcd-data"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/p44dsb-webui/build/tmp/www/icons"
@@ -142,23 +142,23 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testin:button"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k input:input"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k rocker:rocker"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k testout:colordimmer"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
@@ -218,15 +218,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.2.6 --daliportidle 10"
@@ -258,7 +258,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--zf /dev/cu.usbserial-FTG9KO99"
@@ -266,7 +266,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
