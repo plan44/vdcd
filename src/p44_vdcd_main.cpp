@@ -260,7 +260,9 @@ public:
         indicateTempStatus(tempstatus_activityflash);
         break;
       case vdchost_descriptionchanged:
+        #if !DISABLE_DISCOVERY
         DiscoveryManager::sharedDiscoveryManager().refreshAdvertisingDS();
+        #endif
         break;
       default:
         break;

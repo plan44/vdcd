@@ -35,7 +35,7 @@
   #define DISABLE_I2C 1 // No i2c
 #endif
 #if defined(__APPLE__)
-  #define DISABLE_DISCOVERY 0 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
+  #define DISABLE_DISCOVERY 1 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1

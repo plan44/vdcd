@@ -105,7 +105,6 @@
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
-		EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
@@ -151,23 +150,6 @@
 			script = "/usr/local/bin/protoc-c -I=${INPUT_FILE_DIR} --c_out=${INPUT_FILE_DIR}/gen ${INPUT_FILE_PATH}";
 		};
 /* End PBXBuildRule section */
-
-/* Begin PBXContainerItemProxy section */
-		EDAEE43F1B8B144F0035F8ED /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = ED07E28717E09E8900889CC3;
-			remoteInfo = "avahi-core";
-		};
-		EDAEE4411B8B144F0035F8ED /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = ED07E36617E0AB0800889CC3;
-			remoteInfo = "p44dsb-publish";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		ED6CCD411D198FA000C78A0D /* CopyFiles */ = {
@@ -226,7 +208,6 @@
 		ED17F4C71769F51D0076B47C /* persistentparams.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = persistentparams.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = discovery.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1C3DE01B7E19FB00779DA8 /* discovery.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = discovery.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "avahi-core.xcodeproj"; path = "../libavahi-core/avahi-core.xcodeproj"; sourceTree = "<group>"; };
 		ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = colorutils.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = colorutils.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F82FA184E43B600339A22 /* gen */ = {isa = PBXFileReference; lastKnownFileType = folder; path = gen; sourceTree = "<group>"; };
@@ -470,7 +451,6 @@
 				EDD772D820629BD400C28195 /* librrd.8.dylib in Frameworks */,
 				ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */,
 				ED4B313420D3FF220056F725 /* libcrypto.1.0.0.dylib in Frameworks */,
-				EDAEE4491B8B155D0035F8ED /* libavahi-core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -842,7 +822,6 @@
 				ED7C5B5A1F97F35700239034 /* configure.ac */,
 				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
-				ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */,
 				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
@@ -911,15 +890,6 @@
 				ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */,
 			);
 			path = civetweb;
-			sourceTree = "<group>";
-		};
-		EDAEE43B1B8B144F0035F8ED /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */,
-				EDAEE4421B8B144F0035F8ED /* p44dsb-publish */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		EDDDD54D1A125F8E007D2ABE /* ola */ = {
@@ -1047,12 +1017,6 @@
 			mainGroup = ED6D7BD21716B63A005DED18;
 			productRefGroup = ED6D7BDC1716B63A005DED18 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = EDAEE43B1B8B144F0035F8ED /* Products */;
-					ProjectRef = ED1C3DE41B7E1BF400779DA8 /* avahi-core.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
@@ -1061,23 +1025,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		EDAEE4401B8B144F0035F8ED /* libavahi-core.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.dylib";
-			path = "libavahi-core.dylib";
-			remoteRef = EDAEE43F1B8B144F0035F8ED /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		EDAEE4421B8B144F0035F8ED /* p44dsb-publish */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "p44dsb-publish";
-			remoteRef = EDAEE4411B8B144F0035F8ED /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		ED6CCD3F1D198FA000C78A0D /* Sources */ = {
