@@ -376,6 +376,7 @@ public:
                                      "(for inputs: first char of name=action key)" },
       #endif // ENABLE_STATIC
       { 0  , "protobufapi",   true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
+      { 0  , "saveoutputs",   false, "save/restore output (channel) states by default" },
       #if ENABLE_LOCALCONTROLLER
       { 0  , "localcontroller",false,"enable local controller (offline) features" },
       #endif
@@ -431,7 +432,7 @@ public:
     if (!isTerminated()) {
 
       // create the root object
-      p44VdcHost = P44VdcHostPtr(new P44VdcHost(getOption("localcontroller")));
+      p44VdcHost = P44VdcHostPtr(new P44VdcHost(getOption("localcontroller"), getOption("saveoutputs")));
 
       #if SELFTESTING_ENABLED
       // test or operation

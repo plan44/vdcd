@@ -101,6 +101,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--saveoutputs"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--novdcapi"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -125,8 +129,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/plan44/hacking+devdocs/xcode-vdcd-data"
-            isEnabled = "NO">
+            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/Projekte/plan44dalibridge/open/p44-dsb-e-RPi/p44dsb-webui/build/tmp/www/icons"
