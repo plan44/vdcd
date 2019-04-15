@@ -71,6 +71,7 @@
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */; };
+		ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6865DB22609EC40030AAE3 /* ubus.cpp */; };
 		ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6894681DF3260200E5245F /* ledchaincomm.cpp */; };
 		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
@@ -282,6 +283,8 @@
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externalvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externalvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6865DB22609EC40030AAE3 /* ubus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ubus.cpp; sourceTree = "<group>"; };
+		ED6865DC22609EC40030AAE3 /* ubus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ubus.hpp; sourceTree = "<group>"; };
 		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaincomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6894691DF3260200E5245F /* ledchaincomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ledchaincomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -733,6 +736,8 @@
 				ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */,
 				ED5576131750B15E00CCC4DD /* jsonobject.cpp */,
 				ED5576141750B15F00CCC4DD /* jsonobject.hpp */,
+				ED6865DB22609EC40030AAE3 /* ubus.cpp */,
+				ED6865DC22609EC40030AAE3 /* ubus.hpp */,
 			);
 			path = p44utils;
 			sourceTree = "<group>";
@@ -1012,6 +1017,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = ED6D7BD21716B63A005DED18;
@@ -1108,6 +1114,7 @@
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
+				ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */,
 				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
@@ -1341,10 +1348,10 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 					/usr/local/Cellar/openssl/1.0.2q/include,
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1379,10 +1386,10 @@
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/include/json-c",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
 					/usr/local/Cellar/openssl/1.0.2q/include,
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

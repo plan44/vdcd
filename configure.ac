@@ -20,12 +20,6 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([DEBUG], [test "x$enable_debug" = xyes])
 
 AC_ARG_ENABLE(
-  [p44buildrpi],
-  [AC_HELP_STRING([--enable-p44buildrpi], [plan44 special legacy cross-compiling build for Raspberry Pi])]
-)
-AM_CONDITIONAL([P44_BUILD_RPI], [test "x$enable_p44buildrpi" = xyes])
-
-AC_ARG_ENABLE(
   [p44buildow],
   [AC_HELP_STRING([--enable-p44buildow], [plan44 build for openwrt targets])]
 )
@@ -36,6 +30,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-ola], [Enable OLA support (requires libola)])]
 )
 AM_CONDITIONAL([ENABLE_OLA], [test "x$enable_ola" = xyes])
+
+AC_ARG_ENABLE(
+  [ubus],
+  [AS_HELP_STRING([--enable-ubus], [Enable ubus API support (requires libubus)])]
+)
+AM_CONDITIONAL([ENABLE_UBUS], [test "x$enable_ubus" = xyes])
 
 AC_ARG_ENABLE(
   [rpiws281x],
@@ -59,48 +59,46 @@ AM_COND_IF([ENABLE_OLA], [
   AC_CHECK_LIB(ola, ola_new_dmxbuffer, [], [AC_MSG_ERROR([Could not find libola with ola_new_dmxbuffer])])
 ], [])
 
+AM_COND_IF([ENABLE_UBUS], [
+  AC_CHECK_LIB(ubus, ubus_connect_ctx, [], [AC_MSG_ERROR([Could not find libubus with ubus_connect_ctx])])
+  AC_CHECK_LIB(ubox, uloop_init, [], [AC_MSG_ERROR([Could not find libubox with uloop_init])])
+  AC_CHECK_LIB(blobmsg_json, blobmsg_add_object, [], [AC_MSG_ERROR([Could not find libblobmsg_json with blobmsg_add_object])])
+], [])
+
 AM_COND_IF([ENABLE_RRDB], [
   AC_CHECK_LIB(rrd, rrd_create, [], [AC_MSG_ERROR([Could not find librrd with rrd_create])])
 ], [])
 
 
 
-AM_COND_IF([P44_BUILD_RPI], [], [
-  dnl # can check libs only if not P44_BUILD_RPI
-  AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
-  AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl with TLSv1_client_method])])
-  AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto with SHA1_Init])])
-  AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3 with sqlite3_open])])
-  AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c with protobuf_c_enum_descriptor_get_value_by_name])])
-])
+AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
+AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl with TLSv1_client_method])])
+AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto with SHA1_Init])])
+AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3 with sqlite3_open])])
+AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c with protobuf_c_enum_descriptor_get_value_by_name])])
 
 PKG_PROG_PKG_CONFIG
 
-AM_COND_IF([P44_BUILD_RPI], [], [
-  dnl # can check modules only if not P44_BUILD_RPI
+PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [], [
+  AC_MSG_ERROR([$JSON_PKG_ERRORS])
+])
 
-  PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [], [
-    AC_MSG_ERROR([$JSON_PKG_ERRORS])
+PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
+  AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
+])
+
+PKG_CHECK_MODULES([SQLITE3], [sqlite3], [], [
+  AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
+])
+
+PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
+  AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [], [
+    AC_MSG_ERROR([coult not find protobuf-c headers])
   ])
 
-  PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
-    AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
+  AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [], [
+    AC_MSG_ERROR([coult not find protobuf-c library])
   ])
-
-  PKG_CHECK_MODULES([SQLITE3], [sqlite3], [], [
-    AC_MSG_ERROR([$SQLITE3_PKG_ERRORS])
-  ])
-
-  PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
-    AC_CHECK_HEADERS([google/protobuf-c/protobuf-c.h], [], [
-      AC_MSG_ERROR([coult not find protobuf-c headers])
-    ])
-
-    AC_CHECK_LIB([protobuf-c], [protobuf_c_message_unpack], [], [
-      AC_MSG_ERROR([coult not find protobuf-c library])
-    ])
-  ])
-
 ])
 
 

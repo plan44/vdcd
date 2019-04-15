@@ -404,9 +404,13 @@ public:
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
       { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
+      #if ENABLE_JSONCFGAPI
       { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
-
+      #endif
+      #if ENABLE_UBUS
+      { 0  , "ubusapi"       ,false, "enable ubus API" },
+      #endif
       { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
@@ -592,10 +596,19 @@ public:
         }
 
         // Prepare Web configuration JSON API server
+        #if ENABLE_JSONCFGAPI
         const char *configApiPort = getOption("cfgapiport");
         if (configApiPort) {
           p44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
         }
+        #endif
+
+        #if ENABLE_UBUS
+        // Prepare ubus API
+        if (getOption("ubusapi")) {
+          p44VdcHost->enableUbusApi();
+        }
+        #endif
 
         // Create class containers
 

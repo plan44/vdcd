@@ -41,6 +41,9 @@
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_ENOCEAN_SECURE 1
   #define SELFTESTING_ENABLED 1
+  #define ENABLE_JSONCFGAPI 1
+  #define ENABLE_LEGACY_P44CFGAPI 0
+  #define ENABLE_UBUS 0
 #endif
 
 // general defaults
@@ -62,22 +65,6 @@
   #define ENABLE_EVALUATORS 1
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
-#elif P44_BUILD_RPI
-  // Minibian/Raspian based P44-DSB-E,X,STC-dS
-  #define ENABLE_ENOCEAN 1
-  #define ENABLE_ENOCEAN_SECURE 1
-  #define ENABLE_HUE 1
-  #define ENABLE_LEDCHAIN 1
-  #define ENABLE_RPIWS281X 1
-  #define ENABLE_ELDAT 1
-  #define ENABLE_ZF 1
-  #define ENABLE_STATIC 1
-  #define ENABLE_FCU_SUPPORT 1
-  #define ENABLE_EXTERNAL 1
-  #define ENABLE_EXTERNAL_SINGLEDEVICE 1
-  #define ENABLE_EVALUATORS 1
-  #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
-  #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_OW
   // P44-DSB-xx2 and P44-DSB-Rpi,Rpi-2,Rpi-3
   #define ENABLE_DALI 1
@@ -110,6 +97,9 @@
   #endif
   #ifndef ENABLE_EVALUATORS
     #define ENABLE_EVALUATORS 1
+  #endif
+  #ifndef ENABLE_JSONCFGAPI
+    #define ENABLE_JSONCFGAPI 1
   #endif
 #endif
 

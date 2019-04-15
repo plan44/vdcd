@@ -1,11 +1,7 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
 
-if P44_BUILD_RPI
-bin_PROGRAMS = vdcd olavdcd
-else
 bin_PROGRAMS = vdcd
-endif
 
 EXTRA_PROGRAMS = tests
 
@@ -38,14 +34,10 @@ else
 vdcd_DEBUG =
 endif
 
-if P44_BUILD_RPI
-vdcd_PLATFORM = -D P44_BUILD_RPI=1
-else
 if P44_BUILD_OW
 vdcd_PLATFORM = -D P44_BUILD_OW=1
 else
 vdcd_PLATFORM =
-endif
 endif
 
 
@@ -100,6 +92,22 @@ OLA_FLAGS = -D ENABLE_OLA=0
 
 endif
 
+# ubus support via libubus
+if ENABLE_UBUS
+
+UBUS_SOURCES = \
+  src/p44utils/ubus.cpp \
+  src/p44utils/ubus.hpp
+UBUS_FLAGS = -D ENABLE_UBUS=1
+
+else
+
+UBUS_FLAGS = -D ENABLE_UBUS=0
+
+endif
+
+
+
 
 # rrdb support for logging sensor data
 if ENABLE_RRDB
@@ -115,30 +123,10 @@ endif
 
 
 
-
-
-if P44_BUILD_RPI
-
-# hacks required for current cross-build environment for RPi, which is not a proper buildroot yet
-
-# This is an ugly hack, but I could not find a way to refer to the sysroot prefix for the -L path.
-# Note: the entire library situation is ugly, as toolchain is not complete and autoconf lib macros dont work.
-TOOLCHAIN_SYSROOT = /Volumes/xtools/arm-none-linux-gnueabi/arm-none-linux-gnueabi/sysroot
-vdcd_LDADD = -lpthread -lavahi-core -lprotobuf-c -lsqlite3 -ljson-c -ldl -L${TOOLCHAIN_SYSROOT}/${libdir}/arm-linux-gnueabihf -lcrypto -lssl -lz
-# JSONC_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
-# AVAHI_CFLAGS is not automatically set in RPi build because config check is disabled, set include path here
-vdcd_EXTRACFLAGS = \
-  -I${TOOLCHAIN_SYSROOT}/usr/local/include/json-c \
-  -I ${srcdir}/../libavahi-core
-
-else
-
-# proper buildroot and autotools, no programmatic SSL lib loading in civetweb (NO_SSL_DL)
-
-vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
+# Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
+vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
-endif
 
 vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44utils \
@@ -161,6 +149,7 @@ vdcd_CPPFLAGS = \
   ${RRDB_FLAGS} \
   ${RPIWS281X_FLAGS} \
   ${OLA_FLAGS} \
+  ${UBUS_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
@@ -175,6 +164,7 @@ vdcd_CPPFLAGS = \
 vdcd_SOURCES = \
   ${RPIWS281X_SOURCES} \
   ${OLA_SOURCES} \
+  ${UBUS_SOURCES} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \
@@ -392,56 +382,6 @@ vdcd_SOURCES = \
   src/p44vdc_config.hpp \
   src/p44_vdcd_main.cpp
 
-
-if P44_BUILD_RPI
-
-# olavdcd - inherits everything from regular vdcd except compiling with OLA enabled and additionally linking libola+libolacommon+libprotobuf
-
-olavdcd_DEBUG = ${vdcd_DEBUG}
-
-nodist_olavdcd_SOURCES = ${nodist_vdcd_SOURCES}
-
-olavdcd_LDADD = ${vdcd_LDADD} -lola -lolacommon -lprotobuf
-
-olavdcd_CPPFLAGS = \
-  -I ${srcdir}/src/p44utils \
-  -I ${srcdir}/src/p44utils/thirdparty/civetweb \
-  -I ${srcdir}/src/p44utils/thirdparty/slre \
-  -I ${srcdir}/src/p44utils/thirdparty \
-  -I ${srcdir}/src \
-  -I ${srcdir}/src/p44vdc/pbuf/gen \
-  -I ${srcdir}/src/p44vdc/vdc_common \
-  -I ${srcdir}/src/p44vdc/behaviours \
-  -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
-  -I ${srcdir}/src/p44vdc/deviceclasses/external \
-  -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
-  -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
-  -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
-  -I ${srcdir}/src/p44vdc/deviceclasses/zf \
-  -I ${srcdir}/src/p44vdc/deviceclasses/dali \
-  -I ${srcdir}/src/p44vdc/deviceclasses/hue \
-  -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
-  -I ${srcdir}/src/p44vdc/deviceclasses/ola \
-  ${RPIWS281X_FLAGS} \
-  -D ENABLE_OLA=1 \
-  ${BOOST_CPPFLAGS} \
-  ${JSONC_CFLAGS} \
-  ${PTHREAD_CFLAGS} \
-  ${SQLITE3_CFLAGS} \
-  ${PROTOBUFC_CFLAGS} \
-  ${AVAHI_CFLAGS} \
-  ${vdcd_EXTRACFLAGS} \
-  ${vdcd_DEBUG} \
-  ${vdcd_PLATFORM}
-
-olavdcd_SOURCES = \
-  ${vdcd_SOURCES} \
-  src/p44vdc/deviceclasses/ola/oladevice.cpp \
-  src/p44vdc/deviceclasses/ola/oladevice.hpp \
-  src/p44vdc/deviceclasses/ola/olavdc.cpp \
-  src/p44vdc/deviceclasses/ola/olavdc.hpp
-
-endif
 
 # tests
 
