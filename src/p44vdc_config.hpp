@@ -81,6 +81,7 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
+  #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
   #define SELFTESTING_ENABLED 1

@@ -115,21 +115,19 @@ AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h netdb.h netinet/in.h s
 
 ASSUMED_BOOST_VER=146
 
-BOOST_REQUIRE([1.46],
-    [
-        unset boost_cv_version
-        unset boost_cv_inc_path
-        BOOST_REQUIRE([1.35],
-            [
-                AC_MSG_ERROR([could not find boost on your system])
-            ])
-        ASSUMED_BOOST_VER=135
-    ])
+BOOST_REQUIRE([1.46], [
+  unset boost_cv_version
+  unset boost_cv_inc_path
+  BOOST_REQUIRE([1.35], [
+    AC_MSG_ERROR([could not find boost on your system])
+  ])
+  ASSUMED_BOOST_VER=135
+])
 
 if test $ASSUMED_BOOST_VER -eq 135; then
-    AC_DEFINE([BOOST_VERSION_135], [1], [boost 1.35 or higher])
+  AC_DEFINE([BOOST_VERSION_135], [1], [boost 1.35 or higher])
 else
-    AC_DEFINE([BOOST_VERSION_146], [1], [boost 1.46 or higher])
+  AC_DEFINE([BOOST_VERSION_146], [1], [boost 1.46 or higher])
 fi
 
 BOOST_BIND
