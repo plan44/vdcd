@@ -220,6 +220,8 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/timeutils.cpp \
+  src/p44utils/timeutils.hpp \
   src/p44utils/regexp.cpp \
   src/p44utils/regexp.hpp \
   src/p44utils/expressions.cpp \
