@@ -135,6 +135,9 @@
 		EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F11E3903180011D79E /* zfcomm.cpp */; };
 		EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F31E3903180011D79E /* zfdevice.cpp */; };
 		EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F41E3903180011D79E /* zfvdc.cpp */; };
+		EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
+		EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */; };
+		EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -434,6 +437,9 @@
 		EDF032F31E3903180011D79E /* zfdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zfdevice.cpp; sourceTree = "<group>"; };
 		EDF032F41E3903180011D79E /* zfvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = zfvdc.cpp; sourceTree = "<group>"; };
 		EDF032F51E3903180011D79E /* zfvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = zfvdc.hpp; sourceTree = "<group>"; };
+		EDF57B6A228C7C2D0005428B /* timeutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = timeutils.cpp; sourceTree = "<group>"; };
+		EDF57B6B228C7C2D0005428B /* timeutils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = timeutils.hpp; sourceTree = "<group>"; };
+		EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_timeutils.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -686,6 +692,8 @@
 				ED77A4791E78B9D2004D8303 /* regexp.hpp */,
 				ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */,
 				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
+				EDF57B6A228C7C2D0005428B /* timeutils.cpp */,
+				EDF57B6B228C7C2D0005428B /* timeutils.hpp */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED59D4731C89F7060089E69A /* igmp.cpp */,
@@ -794,6 +802,7 @@
 				ED6CCD3A1D198ACD00C78A0D /* catch.hpp */,
 				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
+				EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
 				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
@@ -1044,12 +1053,14 @@
 				ED3701FA2007B47700A1BD67 /* mainloop.cpp in Sources */,
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
+				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 				ED3701F82007B46D00A1BD67 /* error.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
+				EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */,
 				ED3701FB2007B4B500A1BD67 /* fdcomm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1125,6 +1136,7 @@
 				EDB2844A1733B59500EAE5DE /* serialcomm.cpp in Sources */,
 				ED0441211D755FFC00AAB662 /* eldatvdc.cpp in Sources */,
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
+				EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */,
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
 				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
@@ -1350,12 +1362,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2q/include,
+					/usr/local/Cellar/openssl/1.0.2r/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2q/lib,
+					/usr/local/Cellar/openssl/1.0.2r/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
@@ -1388,12 +1400,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2q/include,
+					/usr/local/Cellar/openssl/1.0.2r/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2q/lib,
+					/usr/local/Cellar/openssl/1.0.2r/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
