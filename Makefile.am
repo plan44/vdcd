@@ -167,6 +167,7 @@ vdcd_SOURCES = \
   ${UBUS_SOURCES} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
+  src/p44utils/p44containers.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
   src/p44utils/consolekey.cpp \

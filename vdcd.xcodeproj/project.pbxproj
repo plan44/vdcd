@@ -286,6 +286,7 @@
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externalvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externalvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED6844DF228EBC6B00F354C3 /* p44containers.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44containers.hpp; sourceTree = "<group>"; };
 		ED6865DB22609EC40030AAE3 /* ubus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ubus.cpp; sourceTree = "<group>"; };
 		ED6865DC22609EC40030AAE3 /* ubus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ubus.hpp; sourceTree = "<group>"; };
 		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaincomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -674,6 +675,7 @@
 				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
 				ED81337717C6C765003982CC /* p44obj.cpp */,
 				ED81337817C6C765003982CC /* p44obj.hpp */,
+				ED6844DF228EBC6B00F354C3 /* p44containers.hpp */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				ED026D03171E94D700AD5FD6 /* error.cpp */,
