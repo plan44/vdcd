@@ -146,6 +146,8 @@
 			compilerSpec = com.apple.compilers.proxy.script;
 			filePatterns = "*.proto";
 			fileType = pattern.proxy;
+			inputFiles = (
+			);
 			isEditable = 1;
 			outputFiles = (
 				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.h",
@@ -1212,11 +1214,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/include",
+					"/usr/local/opt/openssl@1.1/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/lib",
+					"/usr/local/opt/openssl@1.1/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1253,11 +1255,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/include",
+					"/usr/local/opt/openssl@1.1/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.0g_1/lib",
+					"/usr/local/opt/openssl@1.1/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -1362,12 +1364,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2r/include,
+					/usr/local/opt/openssl/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2r/lib,
+					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
@@ -1400,12 +1402,12 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/Cellar/openssl/1.0.2r/include,
+					/usr/local/opt/openssl/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/usr/local/Cellar/openssl/1.0.2r/lib,
+					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 				);
 				OTHER_LDFLAGS = (
