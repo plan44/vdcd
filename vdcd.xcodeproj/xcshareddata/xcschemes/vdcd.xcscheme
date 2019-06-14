@@ -26,11 +26,9 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES"
       enableThreadSanitizer = "YES"
-      enableUBSanitizer = "YES"
-      shouldUseLaunchSchemeArgsEnv = "YES">
-      <Testables>
-      </Testables>
+      enableUBSanitizer = "YES">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -40,8 +38,8 @@
             ReferencedContainer = "container:vdcd.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <Testables>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -81,11 +79,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ifnameformac en0 --ifnameforconn en0"
+            argument = "--localcontroller"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--selftest"
+            argument = "--novdcapi"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -93,19 +91,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--deviceid 424242"
-            isEnabled = "YES">
+            argument = "--selftest"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--localcontroller"
-            isEnabled = "YES">
+            argument = "--ifnameformac en0 --ifnameforconn en0"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--saveoutputs"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--novdcapi"
+            argument = "--deviceid 424242"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -226,7 +224,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
@@ -258,7 +256,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
