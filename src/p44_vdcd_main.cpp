@@ -104,6 +104,7 @@ class P44Vdcd : public CmdLineApp
   typedef enum {
     tempstatus_none,  // no temp activity status
     tempstatus_activityflash,  // activity LED flashing (yellow flash)
+    tempstatus_identification,  // identification LED flashing (red light for a moment)
     tempstatus_buttonpressed, // button is pressed (steady yellow)
     tempstatus_buttonpressedlong, // button is pressed longer (steady red)
     tempstatus_factoryresetwait, // detecting possible factory reset (blinking red)
@@ -178,6 +179,12 @@ public:
           else {
             currentTempStatus = tempstatus_none;
           }
+          break;
+        case tempstatus_identification:
+          // 4 red/yellow blinks
+          timer = 6*Second;
+          redLED->steadyOn();
+          greenLED->blinkFor(timer, 1.5*Second, 50);
           break;
         case tempstatus_buttonpressed:
           // just yellow
@@ -258,6 +265,9 @@ public:
     switch (aEvent) {
       case vdchost_activitysignal:
         indicateTempStatus(tempstatus_activityflash);
+        break;
+      case vdchost_identify:
+        indicateTempStatus(tempstatus_identification);
         break;
       case vdchost_descriptionchanged:
         #if !DISABLE_DISCOVERY
