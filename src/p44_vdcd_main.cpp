@@ -279,6 +279,14 @@ public:
     }
   }
 
+  virtual void signalOccurred(int aSignal, siginfo_t *aSiginfo)
+  {
+    if (aSignal==SIGUSR1) {
+      if (p44VdcHost) p44VdcHost->postEvent(vdchost_logstats);
+    }
+    inherited::signalOccurred(aSignal, aSiginfo);
+  }
+
 
 
   #if ENABLE_STATIC
