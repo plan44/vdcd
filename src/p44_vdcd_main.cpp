@@ -413,11 +413,6 @@ public:
       { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
       { 0  , "allowcloud",    false, "allow use of non-explicitly configured/expected cloud services such as N-UPnP" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 'l', "loglevel",      true,  "level;set max level of log message detail to show on stdout" },
-      { 0  , "errlevel",      true,  "level;set max level for log messages to go to stderr as well" },
-      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
-      { 0  , "deltatstamps",  false, "show timestamp delta between log lines" },
-      { 0  , "dontlogerrors", false, "don't duplicate error messages (see --errlevel) on stdout" },
       { 'd', "datapath",      true,  "path;path to r/w data such as RRD files" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
@@ -435,8 +430,9 @@ public:
       #if SELFTESTING_ENABLED
       { 0,   "selftest",      false, "run in self test mode" },
       #endif
-      { 'V', "version",       false, "show version" },
-      { 'h', "help",          false, "show this text" },
+      DAEMON_APPLICATION_LOGOPTIONS,
+      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
+      CMDLINE_APPLICATION_STDOPTIONS,
       { 0, NULL } // list terminator
     };
 
@@ -464,13 +460,8 @@ public:
       int errlevel = LOG_ERR;
       #endif
 
-      // log level?
-      int loglevel = DEFAULT_LOGLEVEL;
-      getIntOption("loglevel", loglevel);
-      SETLOGLEVEL(loglevel);
-      getIntOption("errlevel", errlevel);
-      SETERRLEVEL(errlevel, !getOption("dontlogerrors"));
-      SETDELTATIME(getOption("deltatstamps"));
+      // daemon log options
+      processStandardLogOptions(true);
 
       // use of non-explicitly configured cloud services (e.g. N-UPnP)
       p44VdcHost->setAllowCloud(getOption("allowcloud"));
@@ -767,7 +758,7 @@ public:
       }
     }
     else {
-      LOG(LOG_ERR, "Learning error: %s", aError->description().c_str());
+      LOG(LOG_ERR, "Learning error: %s", aError->text());
     }
   }
 
@@ -961,7 +952,7 @@ public:
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
-      LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->description().c_str());
+      LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->text());
       shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
       return;
     }
@@ -1039,7 +1030,7 @@ public:
         );
       }
       else {
-        LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->description().c_str());
+        LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->text());
       }
     }
   }
