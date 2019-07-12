@@ -948,7 +948,7 @@ public:
     }
     else
     #endif // SELFTESTING_ENABLED
-    if (!Error::isOK(aError)) {
+    if (Error::notOK(aError)) {
       // cannot initialize, this is a fatal error
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
