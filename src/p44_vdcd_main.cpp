@@ -461,7 +461,7 @@ public:
       #endif
 
       // daemon log options
-      processStandardLogOptions(true);
+      processStandardLogOptions(true, errlevel);
 
       // use of non-explicitly configured cloud services (e.g. N-UPnP)
       p44VdcHost->setAllowCloud(getOption("allowcloud"));
