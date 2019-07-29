@@ -213,6 +213,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = ED9C226C1BBEAD6F006F5F21;
@@ -346,7 +347,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					"SIMULATE_DATA=1",
+					"SIMULATE_DATA=0",
 					"DEBUG=1",
 					"$(inherited)",
 					"DISABLE_I2C=1",
