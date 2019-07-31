@@ -17,10 +17,6 @@
 #include "serialcomm.hpp"
 #include "jsoncomm.hpp"
 
-#if SIMULATE_DATA
-#include "consolekey.hpp"
-#endif
-
 using namespace p44;
 
 // set this to a unique string for your particular app or use --uniqueid command line parameter
@@ -63,12 +59,6 @@ class ExternalDeviceApp : public CmdLineApp
   // input indices
   int twilightInputIndex;
   int rainInputIndex;
-
-  #if SIMULATE_DATA
-  double wind;
-  MLTicket windSimTicket;
-  MLTicket gustTicket;
-  #endif
 
   // log to API
   static void logToApi(void *aContextPtr, int aLevel, const char *aLinePrefix, const char *aLogMessage)
@@ -307,44 +297,13 @@ public:
     initMsg->add("sensors", sensors);
     // Send init message
     deviceConnection->sendMessage(initMsg);
-    #if SIMULATE_DATA
-    wind = 0;
-    ConsoleKeyManager::sharedKeyManager()->setKeyPressHandler(boost::bind(&ExternalDeviceApp::simKeyHandler, this, _1));
-    windSimTicket.executeOnce(boost::bind(&ExternalDeviceApp::simDataGenerator, this, _1), 3*Second);
-    #else
     // now initialize hardware
     serial = SerialCommPtr(new SerialComm(MainLoop::currentMainLoop()));
     serial->setConnectionSpecification(weatherStationSerialPort.c_str(), 2103, "19200,8,N,1");
     serial->setReceiveHandler(boost::bind(&ExternalDeviceApp::serialReceiveHandler, this, _1));
     serial->establishConnection();
     telegramIndex = -1;
-    #endif
   }
-
-  #if SIMULATE_DATA
-  bool simKeyHandler(char aKeyPress)
-  {
-    switch (aKeyPress) {
-      case 'm': wind += 0.1; break;
-      case 'l': wind -= 0.1; break;
-      case 'g': wind += 3; gustTicket.executeOnce(boost::bind(&ExternalDeviceApp::endGust, this), 1*Second); break;
-    }
-    return true; // fully handled
-  }
-
-  void endGust()
-  {
-    wind -=3;
-  }
-
-  void simDataGenerator(MLTimer &aTimer)
-  {
-    reportSensor(windSensorIndex, wind);
-    reportSensor(gustSensorIndex, wind);
-    MainLoop::currentMainLoop().retriggerTimer(aTimer, 1*Second);
-  }
-
-  #endif
 
 
   void jsonMessageHandler(ErrorPtr aError, JsonObjectPtr aJsonObject)
