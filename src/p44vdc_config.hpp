@@ -105,7 +105,13 @@
 #endif
 
 
-
+// dependencies
+#if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
+  #if defined(ENABLE_EXPRESSIONS) && !ENABLE_EXPRESSIONS
+    #error "ENABLE_EVALUATORS needs ENABLE_EXPRESSIONS"
+  #endif
+  #define ENABLE_EXPRESSIONS 1
+#endif
 
 
 

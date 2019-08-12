@@ -129,11 +129,11 @@ vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 
 vdcd_CPPFLAGS = \
+  -I ${srcdir}/src \
   -I ${srcdir}/src/p44utils \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
   -I ${srcdir}/src/p44utils/thirdparty/slre \
   -I ${srcdir}/src/p44utils/thirdparty \
-  -I ${srcdir}/src \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
@@ -381,6 +381,7 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
+  src/p44utils_config.hpp \
   src/p44vdc_config.hpp \
   src/p44_vdcd_main.cpp
 
