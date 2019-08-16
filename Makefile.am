@@ -131,6 +131,7 @@ vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 vdcd_CPPFLAGS = \
   -I ${srcdir}/src \
   -I ${srcdir}/src/p44utils \
+  -I ${srcdir}/src/p44lrgraphics \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
   -I ${srcdir}/src/p44utils/thirdparty/slre \
   -I ${srcdir}/src/p44utils/thirdparty \
@@ -252,6 +253,12 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/civetweb/sha1.inl \
   src/p44utils/thirdparty/civetweb/hostcheck.inl \
   src/p44utils/thirdparty/civetweb/openssl_hostname_validation.inl \
+  src/p44lrgraphics/p44view.cpp \
+  src/p44lrgraphics/p44view.hpp \
+  src/p44lrgraphics/lightspotview.cpp \
+  src/p44lrgraphics/lightspotview.hpp \
+  src/p44lrgraphics/viewstack.cpp \
+  src/p44lrgraphics/viewstack.hpp \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \

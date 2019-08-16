@@ -55,8 +55,6 @@
 		ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
 		ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
-		ED57A14E22FF6BCE008E554D /* lightspotview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14C22FF6BCE008E554D /* lightspotview.cpp */; };
-		ED57A14F22FF6C01008E554D /* p44view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14722FF6A20008E554D /* p44view.cpp */; };
 		ED5827261B02378F00B92C74 /* enoceanremotecontrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5827241B02378F00B92C74 /* enoceanremotecontrol.cpp */; };
 		ED59D4751C89F7060089E69A /* igmp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED59D4731C89F7060089E69A /* igmp.cpp */; };
 		ED5A4D8D1C8048ED00C607D5 /* evaluatordevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5A4D8B1C8048ED00C607D5 /* evaluatordevice.cpp */; };
@@ -104,6 +102,13 @@
 		ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchainvdc.cpp */; };
 		ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D291B11D97700B18624 /* ledchaindevice.cpp */; };
 		ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D3D1B14BFB900B18624 /* shadowbehaviour.cpp */; };
+		ED95C5912306B97E0029614A /* p44view.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14722FF6A20008E554D /* p44view.cpp */; };
+		ED95C5932306B97E0029614A /* lifeview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14A22FF6A20008E554D /* lifeview.cpp */; };
+		ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14C22FF6BCE008E554D /* lightspotview.cpp */; };
+		ED95C5952306B97E0029614A /* textview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14822FF6A20008E554D /* textview.cpp */; };
+		ED95C5962306B97E0029614A /* viewanimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14B22FF6A20008E554D /* viewanimator.cpp */; };
+		ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14422FF6A20008E554D /* viewfactory.cpp */; };
+		ED95C5992306B97E0029614A /* viewstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14322FF6A20008E554D /* viewstack.cpp */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
@@ -383,6 +388,7 @@
 		ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_config.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44utils_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED95C59A2306BD540029614A /* p44lrg_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44lrg_config.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
@@ -797,6 +803,8 @@
 		ED57A13822FF6A20008E554D /* p44lrgraphics */ = {
 			isa = PBXGroup;
 			children = (
+				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
+				ED95C59A2306BD540029614A /* p44lrg_config.hpp */,
 				ED57A14722FF6A20008E554D /* p44view.cpp */,
 				ED57A13F22FF6A20008E554D /* p44view.hpp */,
 				ED57A14122FF6A20008E554D /* imageview.cpp */,
@@ -815,7 +823,6 @@
 				ED57A14622FF6A20008E554D /* viewscroller.hpp */,
 				ED57A14322FF6A20008E554D /* viewstack.cpp */,
 				ED57A13C22FF6A20008E554D /* viewstack.hpp */,
-				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
 				ED57A14222FF6A20008E554D /* README.md */,
 			);
 			path = p44lrgraphics;
@@ -1138,17 +1145,21 @@
 				ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
 				ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */,
+				ED95C5962306B97E0029614A /* viewanimator.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
 				EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */,
 				ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
+				ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
+				ED95C5912306B97E0029614A /* p44view.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */,
 				ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */,
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
 				ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */,
 				ED911D3E1B14BFB900B18624 /* shadowbehaviour.cpp in Sources */,
+				ED95C5992306B97E0029614A /* viewstack.cpp in Sources */,
 				ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
@@ -1164,6 +1175,7 @@
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */,
+				ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
 				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,
@@ -1176,7 +1188,6 @@
 				ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
 				ED59D4751C89F7060089E69A /* igmp.cpp in Sources */,
-				ED57A14E22FF6BCE008E554D /* lightspotview.cpp in Sources */,
 				EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */,
 				EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */,
 				EDD304341D09C10E0005E6D9 /* spi.cpp in Sources */,
@@ -1207,10 +1218,10 @@
 				ED5B29291740E72200334C71 /* sqlite3pp.cpp in Sources */,
 				EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */,
 				ED5A4D991C82133300C607D5 /* evaluatorvdc.cpp in Sources */,
-				ED57A14F22FF6C01008E554D /* p44view.cpp in Sources */,
 				ED3701F32006073300A1BD67 /* civetweb.c in Sources */,
 				ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
+				ED95C5952306B97E0029614A /* textview.cpp in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED0441201D755FFC00AAB662 /* eldatdevice.cpp in Sources */,
 				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
@@ -1233,6 +1244,7 @@
 				ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
+				ED95C5932306B97E0029614A /* lifeview.cpp in Sources */,
 				ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */,
 				ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */,
 				ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */,

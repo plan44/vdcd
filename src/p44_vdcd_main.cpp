@@ -86,7 +86,6 @@
 
 using namespace p44;
 
-
 /// Main program for plan44.ch P44-DSB-DEH in form of the "vdcd" daemon)
 class P44Vdcd : public CmdLineApp
 {
@@ -115,6 +114,9 @@ class P44Vdcd : public CmdLineApp
   #if ENABLE_STATIC
   // command line defined devices
   DeviceConfigMap staticDeviceConfigs;
+  #endif
+  #if ENABLE_LEDCHAIN
+  StringVector ledChainConfigs;
   #endif
 
   // App status
@@ -289,9 +291,9 @@ public:
 
 
 
-  #if ENABLE_STATIC
   virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
   {
+    #if ENABLE_STATIC
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
       staticDeviceConfigs.insert(make_pair("digitalio", aOptionValue));
     }
@@ -304,12 +306,19 @@ public:
     else if (strcmp(aOptionDescriptor.longOptionName,"sparkcore")==0) {
       staticDeviceConfigs.insert(make_pair("spark", aOptionValue));
     }
-    else {
+    else
+    #endif
+    #if ENABLE_LEDCHAIN
+    if (strcmp(aOptionDescriptor.longOptionName,"ledchain")==0) {
+      ledChainConfigs.push_back(aOptionValue);
+    }
+    else
+    #endif
+    {
       return inherited::processOption(aOptionDescriptor, aOptionValue);
     }
     return true;
   }
-  #endif
 
 
   virtual int main(int argc, char **argv)
@@ -691,14 +700,14 @@ public:
 
         #if ENABLE_LEDCHAIN
         // - Add Led chain support
-        string chainspec;
-        if (getStringOption("ledchain", chainspec)) {
-          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, chainspec, p44VdcHost.get(), 6)); // Tag 6 = led chain
-          ledChainVdc->addVdcToVdcHost();
+        if (ledChainConfigs.size()>0) {
+          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainConfigs, p44VdcHost.get(), 6)); // Tag 6 = led chain
+          ledChainConfigs.clear(); // no longer needed, free memory
           int maxOutValue;
           if (getIntOption("ledchainmax", maxOutValue)) {
             ledChainVdc->setMaxOutValue(maxOutValue);
           }
+          ledChainVdc->addVdcToVdcHost();
         }
         #endif
 
