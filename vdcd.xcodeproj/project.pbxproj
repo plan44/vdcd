@@ -97,6 +97,7 @@
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
 		ED8A9987201E6E2D0069EBF6 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */; };
 		ED8A9988201E6E2D0069EBF6 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */; };
+		ED8AA69F230F0277001F49CC /* videobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8AA69E230F0276001F49CC /* videobehaviour.cpp */; };
 		ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */; };
 		ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */; };
 		ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED911D281B11D97700B18624 /* ledchainvdc.cpp */; };
@@ -375,6 +376,8 @@
 		ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = openssl_hostname_validation.inl; sourceTree = "<group>"; };
 		ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
 		ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
+		ED8AA69D230F0276001F49CC /* videobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = videobehaviour.hpp; sourceTree = "<group>"; };
+		ED8AA69E230F0276001F49CC /* videobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = videobehaviour.cpp; sourceTree = "<group>"; };
 		ED8F6DB61C56855200176CA9 /* enoceansensorhandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceansensorhandler.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DB71C56855200176CA9 /* enoceansensorhandler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enoceansensorhandler.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanvld.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -604,6 +607,8 @@
 				ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */,
 				ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */,
 				ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */,
+				ED8AA69E230F0276001F49CC /* videobehaviour.cpp */,
+				ED8AA69D230F0276001F49CC /* videobehaviour.hpp */,
 				EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */,
 				EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */,
 				EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */,
@@ -1182,6 +1187,7 @@
 				ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */,
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
 				EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */,
+				ED8AA69F230F0277001F49CC /* videobehaviour.cpp in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,

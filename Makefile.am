@@ -309,6 +309,8 @@ vdcd_SOURCES = \
   src/p44vdc/behaviours/ventilationbehaviour.hpp \
   src/p44vdc/behaviours/audiobehaviour.cpp \
   src/p44vdc/behaviours/audiobehaviour.hpp \
+  src/p44vdc/behaviours/videobehaviour.cpp \
+  src/p44vdc/behaviours/videobehaviour.hpp \
   src/p44vdc/behaviours/shadowbehaviour.cpp \
   src/p44vdc/behaviours/shadowbehaviour.hpp \
   src/p44vdc/behaviours/buttonbehaviour.hpp \
