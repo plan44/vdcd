@@ -39,6 +39,7 @@
   #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1
+  #define ENABLE_SETTINGS_FROM_FILES 1 // enabled to keep it compiling (but no real use any more)
   #define ENABLE_ENOCEAN_SECURE 1
   #define SELFTESTING_ENABLED 1
   #define ENABLE_JSONCFGAPI 1
@@ -66,6 +67,7 @@
   #define ENABLE_EVALUATORS 1
   #define EXPRESSION_SCRIPT_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
+  #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
 #elif P44_BUILD_OW
@@ -85,6 +87,7 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
+  #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
