@@ -72,6 +72,7 @@ RPIWS281X_FLAGS = -D ENABLE_RPIWS281X=0
 
 endif
 
+
 # OLA support via libola
 if ENABLE_OLA
 
@@ -92,6 +93,7 @@ OLA_FLAGS = -D ENABLE_OLA=0
 
 endif
 
+
 # ubus support via libubus
 if ENABLE_UBUS
 
@@ -107,6 +109,19 @@ UBUS_FLAGS = -D ENABLE_UBUS=0
 endif
 
 
+# PNG support via libpng
+if ENABLE_PNG
+
+PNG_FLAGS = \
+  -D ENABLE_PNG=1
+PNG_LIBS = \
+  -lpng
+
+else
+
+PNG_FLAGS = -D ENABLE_PNG=0
+
+endif
 
 
 # rrdb support for logging sensor data
@@ -124,7 +139,7 @@ endif
 
 
 # Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
-vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
+vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${PNG_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 
@@ -150,6 +165,7 @@ vdcd_CPPFLAGS = \
   ${RRDB_FLAGS} \
   ${RPIWS281X_FLAGS} \
   ${OLA_FLAGS} \
+  ${PNG_FLAGS} \
   ${UBUS_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
@@ -253,12 +269,22 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/civetweb/sha1.inl \
   src/p44utils/thirdparty/civetweb/hostcheck.inl \
   src/p44utils/thirdparty/civetweb/openssl_hostname_validation.inl \
-  src/p44lrgraphics/p44view.cpp \
-  src/p44lrgraphics/p44view.hpp \
+  src/p44lrgraphics/imageview.cpp \
+  src/p44lrgraphics/imageview.hpp \
   src/p44lrgraphics/lightspotview.cpp \
   src/p44lrgraphics/lightspotview.hpp \
+  src/p44lrgraphics/p44view.cpp \
+  src/p44lrgraphics/p44view.hpp \
+  src/p44lrgraphics/textview.cpp \
+  src/p44lrgraphics/textview.hpp \
   src/p44lrgraphics/viewstack.cpp \
   src/p44lrgraphics/viewstack.hpp \
+  src/p44lrgraphics/viewscroller.cpp \
+  src/p44lrgraphics/viewscroller.hpp \
+  src/p44lrgraphics/viewfactory.cpp \
+  src/p44lrgraphics/viewfactory.hpp \
+  src/p44lrgraphics/viewanimator.cpp \
+  src/p44lrgraphics/viewanimator.hpp \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \

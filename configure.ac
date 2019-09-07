@@ -39,9 +39,15 @@ AM_CONDITIONAL([ENABLE_UBUS], [test "x$enable_ubus" = xyes])
 
 AC_ARG_ENABLE(
   [rpiws281x],
-  [AS_HELP_STRING([--enable-rpiws281x], [Enable WS281x Ledchain support on RaspberryPi ])]
+  [AS_HELP_STRING([--enable-rpiws281x], [Enable WS281x Ledchain support on RaspberryPi])]
 )
 AM_CONDITIONAL([ENABLE_RPIWS281X], [test "x$enable_rpiws281x" = xyes])
+
+AC_ARG_ENABLE(
+  [png],
+  [AS_HELP_STRING([--enable-png], [Enable PNG image support for ledchains])]
+)
+AM_CONDITIONAL([ENABLE_PNG], [test "x$enable_png" = xyes])
 
 AC_ARG_ENABLE(
   [rrdb],
@@ -57,6 +63,10 @@ AC_CHECK_LIB(dl, dlopen, [], [AC_MSG_ERROR([Could not find libdl with dlopen])])
 
 AM_COND_IF([ENABLE_OLA], [
   AC_CHECK_LIB(ola, ola_new_dmxbuffer, [], [AC_MSG_ERROR([Could not find libola with ola_new_dmxbuffer])])
+], [])
+
+AM_COND_IF([ENABLE_PNG], [
+  AC_CHECK_LIB(png, png_image_begin_read_from_file, [], [AC_MSG_ERROR([Could not find libpng with png_image_begin_read_from_file supported (>=1.6)])])
 ], [])
 
 AM_COND_IF([ENABLE_UBUS], [
