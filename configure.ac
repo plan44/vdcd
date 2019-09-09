@@ -65,10 +65,6 @@ AM_COND_IF([ENABLE_OLA], [
   AC_CHECK_LIB(ola, ola_new_dmxbuffer, [], [AC_MSG_ERROR([Could not find libola with ola_new_dmxbuffer])])
 ], [])
 
-AM_COND_IF([ENABLE_PNG], [
-  AC_CHECK_LIB(png, png_image_begin_read_from_file, [], [AC_MSG_ERROR([Could not find libpng with png_image_begin_read_from_file supported (>=1.6)])])
-], [])
-
 AM_COND_IF([ENABLE_UBUS], [
   AC_CHECK_LIB(ubus, ubus_connect_ctx, [], [AC_MSG_ERROR([Could not find libubus with ubus_connect_ctx])])
   AC_CHECK_LIB(ubox, uloop_init, [], [AC_MSG_ERROR([Could not find libubox with uloop_init])])
@@ -110,6 +106,13 @@ PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
     AC_MSG_ERROR([coult not find protobuf-c library])
   ])
 ])
+
+AM_COND_IF([ENABLE_PNG], [
+  PKG_CHECK_MODULES([PNG], [libpng >= 1.6], [], [
+    AC_MSG_ERROR([$PNG_PKG_ERRORS])
+  ])
+], [])
+
 
 
 AC_PATH_PROG(PROTOC, protoc-c, "")

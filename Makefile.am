@@ -114,8 +114,6 @@ if ENABLE_PNG
 
 PNG_FLAGS = \
   -D ENABLE_PNG=1
-PNG_LIBS = \
-  -lpng
 
 else
 
@@ -170,6 +168,7 @@ vdcd_CPPFLAGS = \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
+  ${PNG_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${AVAHI_CFLAGS} \

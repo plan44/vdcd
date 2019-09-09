@@ -442,6 +442,7 @@ public:
       DAEMON_APPLICATION_LOGOPTIONS,
       { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
       CMDLINE_APPLICATION_STDOPTIONS,
+      CMDLINE_APPLICATION_PATHOPTIONS,
       { 0, NULL } // list terminator
     };
 

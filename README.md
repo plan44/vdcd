@@ -39,17 +39,17 @@ If that's a problem for your particular application, I am open to provide a comm
 
 Features
 --------
-
 - Implements the complete digitalSTROM vDC API including behaviours for buttons, binary inputs, lights, color lights, sensors, heating valves and shadow blinds.
 - Provides the *vDC API* (which is based on protobuf) also in a JSON version, with additional features which allow building local web interfaces.
 - Provides the *plan44 vdcd external device API* for easily building custom devices as external scripts or programs.
 - Supports EnOcean TCM310 based gateway modules, connected via serial port or network
 - Supports Philips hue lights via the hue bridge and its JSON API
-- Supports WS281x LED chip based RGB LED chains on Raspberry Pi (just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18), thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git), and on Omega2/MT7688 based devices using the [p44-ledchain kernel driver for OpenWrt](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain).
+- Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients etc.
+  On Raspberry Pi, just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18 (thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git)).
+  On MT7688 systems under OpenWrt, use the [p44-ledchain kernel driver](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain). 
 - Allows to use Linux GPIO pins (e.g. on RaspberryPi) as button inputs or on/off outputs
 - Allows to use i2c and spi peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685, MCP23017, MCP23S17) for digital I/O as well as PWM outputs
 - Implements interface to [Open Lighting Architecture - OLA](http://www.openlighting.org/) to control DMX512 based lights (single channel, RGB, RGBW, RGBWA, moving head)
-
 
 Getting Started
 ---------------
@@ -68,7 +68,7 @@ Getting Started
   - **master**: consistent state of current tested development version (builds, runs)
   - **luz**: sometimes contains interesting work in progress not yet in master...
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
-  - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E, P44-DSB-DEH)
+  - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E/E2/DEH/DEH2, P44-LC-DE)
 
 - consult the */docs* folder: For building the vdcd, see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
 
