@@ -136,6 +136,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Users/luz/Desktop"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--resourcepath /Volumes/CaseSens/openwrt/feeds/p44i/p44lc-config/files/resources"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

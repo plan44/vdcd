@@ -270,8 +270,12 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/civetweb/openssl_hostname_validation.inl \
   src/p44lrgraphics/imageview.cpp \
   src/p44lrgraphics/imageview.hpp \
+  src/p44lrgraphics/coloreffectview.cpp \
+  src/p44lrgraphics/coloreffectview.hpp \
   src/p44lrgraphics/lightspotview.cpp \
   src/p44lrgraphics/lightspotview.hpp \
+  src/p44lrgraphics/lifeview.cpp \
+  src/p44lrgraphics/lifeview.hpp \
   src/p44lrgraphics/p44view.cpp \
   src/p44lrgraphics/p44view.hpp \
   src/p44lrgraphics/textview.cpp \

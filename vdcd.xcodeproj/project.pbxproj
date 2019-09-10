@@ -77,6 +77,8 @@
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
 		ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */; };
+		ED6CCEAE2326A265006CF9FE /* torchview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCEAC2326A264006CF9FE /* torchview.cpp */; };
+		ED6CCEB12326BE4C006CF9FE /* coloreffectview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCEB02326BE4C006CF9FE /* coloreffectview.cpp */; };
 		ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */; };
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -331,6 +333,10 @@
 		ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = p44utils_tester.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vdcd_tester.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6CCD431D198FA000C78A0D /* vdcd_tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd_tests; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED6CCEAC2326A264006CF9FE /* torchview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = torchview.cpp; sourceTree = "<group>"; };
+		ED6CCEAD2326A264006CF9FE /* torchview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = torchview.hpp; sourceTree = "<group>"; };
+		ED6CCEAF2326BE4C006CF9FE /* coloreffectview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = coloreffectview.hpp; sourceTree = "<group>"; };
+		ED6CCEB02326BE4C006CF9FE /* coloreffectview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = coloreffectview.cpp; sourceTree = "<group>"; };
 		ED6D7BDB1716B63A005DED18 /* vdcd */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6D7BE81716B6B1005DED18 /* dalicomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dalicomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6D7BE91716B6B1005DED18 /* dalicomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dalicomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -815,6 +821,8 @@
 				ED57A14222FF6A20008E554D /* README.md */,
 				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
 				ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */,
+				ED6CCEB02326BE4C006CF9FE /* coloreffectview.cpp */,
+				ED6CCEAF2326BE4C006CF9FE /* coloreffectview.hpp */,
 				ED57A14122FF6A20008E554D /* imageview.cpp */,
 				ED57A14922FF6A20008E554D /* imageview.hpp */,
 				ED57A14A22FF6A20008E554D /* lifeview.cpp */,
@@ -825,6 +833,8 @@
 				ED57A13F22FF6A20008E554D /* p44view.hpp */,
 				ED57A14822FF6A20008E554D /* textview.cpp */,
 				ED57A14022FF6A20008E554D /* textview.hpp */,
+				ED6CCEAC2326A264006CF9FE /* torchview.cpp */,
+				ED6CCEAD2326A264006CF9FE /* torchview.hpp */,
 				ED57A14B22FF6A20008E554D /* viewanimator.cpp */,
 				ED57A13A22FF6A20008E554D /* viewanimator.hpp */,
 				ED57A14422FF6A20008E554D /* viewfactory.cpp */,
@@ -1163,6 +1173,7 @@
 				ED8F6DB81C56855200176CA9 /* enoceansensorhandler.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */,
+				ED6CCEAE2326A265006CF9FE /* torchview.cpp in Sources */,
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
 				ED95C5912306B97E0029614A /* p44view.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */,
@@ -1174,6 +1185,7 @@
 				ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
+				ED6CCEB12326BE4C006CF9FE /* coloreffectview.cpp in Sources */,
 				ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */,
 				ED5827261B02378F00B92C74 /* enoceanremotecontrol.cpp in Sources */,
 				ED0441221D755FFC00AAB662 /* eldatcomm.cpp in Sources */,
