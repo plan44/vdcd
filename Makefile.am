@@ -276,6 +276,8 @@ vdcd_SOURCES = \
   src/p44lrgraphics/lightspotview.hpp \
   src/p44lrgraphics/lifeview.cpp \
   src/p44lrgraphics/lifeview.hpp \
+  src/p44lrgraphics/torchview.cpp \
+  src/p44lrgraphics/torchview.hpp \
   src/p44lrgraphics/p44view.cpp \
   src/p44lrgraphics/p44view.hpp \
   src/p44lrgraphics/textview.cpp \
