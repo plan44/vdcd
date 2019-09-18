@@ -167,6 +167,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--digitalio i2c0.PCA9685@33.2:relay"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -212,10 +216,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:20:0:10:A --ledchainmax 255"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim2:200:0:20:10:10:A --ledchainmax 255"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -268,7 +268,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"

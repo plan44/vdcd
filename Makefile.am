@@ -380,8 +380,8 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/enocean/enoceandevice.hpp \
   src/p44vdc/deviceclasses/enocean/enoceanremotecontrol.cpp \
   src/p44vdc/deviceclasses/enocean/enoceanremotecontrol.hpp \
-  src/p44vdc/deviceclasses/enocean/enoceansensorhandler.cpp \
-  src/p44vdc/deviceclasses/enocean/enoceansensorhandler.hpp \
+  src/p44vdc/deviceclasses/enocean/enoceaninputhandler.cpp \
+  src/p44vdc/deviceclasses/enocean/enoceaninputhandler.hpp \
   src/p44vdc/deviceclasses/enocean/enoceanrps.cpp \
   src/p44vdc/deviceclasses/enocean/enoceanrps.hpp \
   src/p44vdc/deviceclasses/enocean/enocean4bs.cpp \
