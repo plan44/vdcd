@@ -450,6 +450,8 @@
 		EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ventilationbehaviour.cpp; sourceTree = "<group>"; };
 		EDD6D1791E49BAAE0082C162 /* ventilationbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ventilationbehaviour.hpp; sourceTree = "<group>"; };
 		EDD772D720629BD300C28195 /* librrd.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librrd.8.dylib; path = ../../../../../../../../../usr/local/Cellar/rrdtool/1.7.0/lib/librrd.8.dylib; sourceTree = "<group>"; };
+		EDD96151233293F500AFE94D /* test.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = test.m; sourceTree = "<group>"; };
+		EDD96153233293F500AFE94D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EDDA9E6E1F8CC8D200883DC5 /* localcontroller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = localcontroller.cpp; sourceTree = "<group>"; };
 		EDDA9E6F1F8CC8D200883DC5 /* localcontroller.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = localcontroller.hpp; sourceTree = "<group>"; };
 		EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = oladevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -925,6 +927,7 @@
 				ED6D7BE71716B6B1005DED18 /* src */,
 				EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */,
 				EDCFE86617212BA9001D35F3 /* doxygen.config */,
+				EDD96150233293F500AFE94D /* test */,
 				ED6D7BDC1716B63A005DED18 /* Products */,
 				ED3701EA20015F0B00A1BD67 /* Frameworks */,
 			);
@@ -992,6 +995,15 @@
 				ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */,
 			);
 			path = civetweb;
+			sourceTree = "<group>";
+		};
+		EDD96150233293F500AFE94D /* test */ = {
+			isa = PBXGroup;
+			children = (
+				EDD96151233293F500AFE94D /* test.m */,
+				EDD96153233293F500AFE94D /* Info.plist */,
+			);
+			path = test;
 			sourceTree = "<group>";
 		};
 		EDDDD54D1A125F8E007D2ABE /* ola */ = {
@@ -1300,6 +1312,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"${inherited}",
