@@ -224,7 +224,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
@@ -256,7 +256,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2101 --daliportidle 10 --dalitxadj 16"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali localhost:2102 --daliportidle 10 --dalitxadj 16"
@@ -284,7 +284,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
