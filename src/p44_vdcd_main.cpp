@@ -422,7 +422,6 @@ public:
       { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
       { 0  , "allowcloud",    false, "allow use of non-explicitly configured/expected cloud services such as N-UPnP" },
       { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 'd', "datapath",      true,  "path;path to r/w data such as RRD files" },
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
       { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
