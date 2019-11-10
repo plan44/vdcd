@@ -401,6 +401,7 @@
 		ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44utils_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44lrg_config_TEMPLATE.hpp; sourceTree = "<group>"; };
+		ED9DB11923789B0E00F91490 /* p44utils_config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
@@ -949,6 +950,7 @@
 				ED57A13822FF6A20008E554D /* p44lrgraphics */,
 				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */,
+				ED9DB11923789B0E00F91490 /* p44utils_config.hpp */,
 				EDB5B3FD2323D6B100A0C84D /* p44lrg_config.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 				ED6CCD3D1D198EB200C78A0D /* tests */,
@@ -989,10 +991,10 @@
 				ED3701F22006073300A1BD67 /* civetweb.c */,
 				ED3701F12006073200A1BD67 /* civetweb.h */,
 				ED8A997B2019F5080069EBF6 /* handle_form.inl */,
-				ED8A997C2019F5080069EBF6 /* md5.inl */,
-				ED8A997D2019F5080069EBF6 /* sha1.inl */,
 				ED8A997E2019F5330069EBF6 /* hostcheck.inl */,
+				ED8A997C2019F5080069EBF6 /* md5.inl */,
 				ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */,
+				ED8A997D2019F5080069EBF6 /* sha1.inl */,
 			);
 			path = civetweb;
 			sourceTree = "<group>";
