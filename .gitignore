@@ -7,9 +7,10 @@ Debug/
 Release/
 
 # XCode specifics
-*.xcodeproj/project.xcworkspace/xcuserdata/*.xcuserdatad/UserInterfaceState.xcuserstate
-*.xcodeproj/project.xcworkspace/xcshareddata/*.xcscmblueprint
-*.xcodeproj/xcuserdata
+**/*.xcodeproj/project.xcworkspace/xcuserdata/*.xcuserdatad/UserInterfaceState.xcuserstate
+**/*.xcodeproj/project.xcworkspace/xcshareddata/*.xcscmblueprint
+**/*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+**/*.xcodeproj/xcuserdata/
 
 # Autotools specifics
 *.o
@@ -33,5 +34,15 @@ olavdcd
 jsonrpctool
 demovdc
 tests
-external_devices_samples/plain C/externalButton.xcodeproj/project.xcworkspace/contents.xcworkspacedata
-external_devices_samples/plain C/externalButton.xcodeproj/project.xcworkspace/xcshareddata/externalButton.xcscmblueprint
+
+# USE_SOURCE_DIR debris
+.built*
+.configured*
+.prepared
+.quilt_checked
+.source_dir
+.pkgdir/
+ABOUT-NLS
+ChangeLog
+config.rpath
+
