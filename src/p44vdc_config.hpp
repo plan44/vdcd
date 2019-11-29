@@ -45,6 +45,7 @@
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
+  #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
 #endif
 
 // general defaults
@@ -70,6 +71,7 @@
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
+  #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern
 #elif P44_BUILD_OW
   // P44-DSB-xx2 and P44-DSB-Rpi,Rpi-2,Rpi-3
   #define ENABLE_DALI 1

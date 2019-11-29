@@ -308,6 +308,8 @@ vdcd_SOURCES = \
   src/p44vdc/vdc_common/devicesettings.hpp \
   src/p44vdc/vdc_common/valuesource.cpp \
   src/p44vdc/vdc_common/valuesource.hpp \
+  src/p44vdc/vdc_common/valuedescriptor.cpp \
+  src/p44vdc/vdc_common/valuedescriptor.hpp \
   src/p44vdc/vdc_common/propertycontainer.cpp \
   src/p44vdc/vdc_common/propertycontainer.hpp \
   src/p44vdc/vdc_common/pbufvdcapi.cpp \

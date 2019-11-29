@@ -46,6 +46,7 @@
 		ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
+		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
 		ED4B313420D3FF220056F725 /* libcrypto.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A99772018FEAF0069EBF6 /* libcrypto.1.0.0.dylib */; };
 		ED4B313520D3FF250056F725 /* libssl.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A99782018FEAF0069EBF6 /* libssl.1.0.0.dylib */; };
 		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
@@ -256,6 +257,8 @@
 		ED3A40742301E75A0042C477 /* p44utils_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
+		ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = valuedescriptor.cpp; sourceTree = "<group>"; };
+		ED49ECD8238FD09500706C43 /* valuedescriptor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = valuedescriptor.hpp; sourceTree = "<group>"; };
 		ED4C143F174EB8D20037ED0C /* staticvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = staticvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1441174EB8E80037ED0C /* staticvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = staticvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitaliodevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -564,6 +567,8 @@
 				ED1F8309185099F300339A22 /* pbufvdcapi.hpp */,
 				ED5A4D921C80509C00C607D5 /* valuesource.cpp */,
 				ED5A4D931C80509C00C607D5 /* valuesource.hpp */,
+				ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */,
+				ED49ECD8238FD09500706C43 /* valuedescriptor.hpp */,
 				ED5BDAAF17BCE52100DBC19A /* propertycontainer.cpp */,
 				ED5BDAB017BCE52100DBC19A /* propertycontainer.hpp */,
 				ED5BDAA617BBA54400DBC19A /* dsaddressable.cpp */,
@@ -1204,6 +1209,7 @@
 				ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */,
 				ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
+				ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
 				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,
 				ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */,
