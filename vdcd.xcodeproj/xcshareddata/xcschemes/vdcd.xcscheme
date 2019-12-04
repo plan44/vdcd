@@ -216,7 +216,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:17:0:7:A --ledchainmax 255"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0  --ledchainmax 255"
@@ -236,7 +236,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
@@ -264,7 +264,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.59.195"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean 192.168.11.221"
@@ -284,7 +284,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
