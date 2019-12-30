@@ -219,6 +219,14 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--ledchain P9823:BASTLI:1680:0:112:0:15:X"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain WS2812:/tmp/ledchainsim:1680:0:112:0:15:X"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0  --ledchainmax 255"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -272,7 +280,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"

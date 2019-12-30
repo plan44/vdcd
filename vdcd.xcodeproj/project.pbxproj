@@ -45,10 +45,10 @@
 		ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
+		ED3C051023B8F0170085CC71 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
+		ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
-		ED4B313420D3FF220056F725 /* libcrypto.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A99772018FEAF0069EBF6 /* libcrypto.1.0.0.dylib */; };
-		ED4B313520D3FF250056F725 /* libssl.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A99782018FEAF0069EBF6 /* libssl.1.0.0.dylib */; };
 		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
 		ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */; };
 		ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5133BB19F6A6B70027999E /* simplescene.cpp */; };
@@ -255,6 +255,8 @@
 		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
 		ED3A40742301E75A0042C477 /* p44utils_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
+		ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
+		ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
 		ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = valuedescriptor.cpp; sourceTree = "<group>"; };
@@ -508,10 +510,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED4B313520D3FF250056F725 /* libssl.1.0.0.dylib in Frameworks */,
+				ED3C051023B8F0170085CC71 /* libssl.1.1.dylib in Frameworks */,
+				ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */,
 				EDD772D820629BD400C28195 /* librrd.8.dylib in Frameworks */,
 				ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */,
-				ED4B313420D3FF220056F725 /* libcrypto.1.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -811,6 +813,8 @@
 		ED3701EA20015F0B00A1BD67 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */,
+				ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */,
 				EDD772D720629BD300C28195 /* librrd.8.dylib */,
 				ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */,
 				ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */,
@@ -1480,6 +1484,7 @@
 					"$(inherited)",
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -1521,6 +1526,7 @@
 					"$(inherited)",
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				OTHER_LDFLAGS = (
 					"${inherited}",
