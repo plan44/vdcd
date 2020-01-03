@@ -6,5 +6,5 @@
 	url = ../p44vdc.git
 [submodule "vdcd/src/p44lrgraphics"]
 	path = src/p44lrgraphics
-	url = ssh://plan44@plan44.ch/home/plan44/sharedgit/p44lrgraphics.git
+	url = ../p44lrgraphics.git
 	branch = luz
