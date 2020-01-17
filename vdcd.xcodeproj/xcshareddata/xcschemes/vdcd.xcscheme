@@ -220,7 +220,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain P9823:BASTLI:1680:0:112:0:15:X"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:1680:0:112:0:15:X"
@@ -232,7 +232,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
