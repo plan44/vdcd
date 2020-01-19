@@ -78,4 +78,5 @@ p44utilsdevice_SOURCES = \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
   src/p44utils/p44utils_common.hpp \
+  src/p44utils_config.hpp \
   src/main.cpp
