@@ -40,25 +40,23 @@ p44utilsdevice_CXXFLAGS = \
   ${p44utilsdevice_PLATFORM}
 
 p44utilsdevice_SOURCES = \
-  src/p44utils/p44obj.cpp \
-  src/p44utils/p44obj.hpp \
+  src/p44utils/analogio.cpp \
+  src/p44utils/analogio.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
   src/p44utils/consolekey.cpp \
   src/p44utils/consolekey.hpp \
   src/p44utils/digitalio.cpp \
   src/p44utils/digitalio.hpp \
-  src/p44utils/analogio.cpp \
-  src/p44utils/analogio.hpp \
   src/p44utils/error.cpp \
   src/p44utils/error.hpp \
+  src/p44utils/fdcomm.cpp \
+  src/p44utils/fdcomm.hpp \
   src/p44utils/gpio.cpp \
   src/p44utils/gpio.h \
   src/p44utils/gpio.hpp \
   src/p44utils/i2c.cpp \
   src/p44utils/i2c.hpp \
-  src/p44utils/spi.cpp \
-  src/p44utils/spi.hpp \
   src/p44utils/iopin.cpp \
   src/p44utils/iopin.hpp \
   src/p44utils/jsoncomm.cpp \
@@ -69,12 +67,16 @@ p44utilsdevice_SOURCES = \
   src/p44utils/logger.hpp \
   src/p44utils/mainloop.cpp \
   src/p44utils/mainloop.hpp \
-  src/p44utils/fdcomm.cpp \
-  src/p44utils/fdcomm.hpp \
-  src/p44utils/socketcomm.cpp \
-  src/p44utils/socketcomm.hpp \
+  src/p44utils/p44obj.cpp \
+  src/p44utils/p44obj.hpp \
+  src/p44utils/pwm.cpp \
+  src/p44utils/pwm.hpp \
   src/p44utils/serialcomm.cpp \
   src/p44utils/serialcomm.hpp \
+  src/p44utils/socketcomm.cpp \
+  src/p44utils/socketcomm.hpp \
+  src/p44utils/spi.cpp \
+  src/p44utils/spi.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
   src/p44utils/p44utils_common.hpp \
