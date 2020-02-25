@@ -116,7 +116,7 @@ class P44Vdcd : public CmdLineApp
   DeviceConfigMap staticDeviceConfigs;
   #endif
   #if ENABLE_LEDCHAIN
-  StringVector ledChainConfigs;
+  LEDChainArrangementPtr ledChainArrangement;
   #endif
 
   // App status
@@ -310,7 +310,7 @@ public:
     #endif
     #if ENABLE_LEDCHAIN
     if (strcmp(aOptionDescriptor.longOptionName,"ledchain")==0) {
-      ledChainConfigs.push_back(aOptionValue);
+      LEDChainArrangement::addLEDChain(ledChainArrangement, aOptionValue);
     }
     else
     #endif
@@ -356,11 +356,7 @@ public:
       { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
       #if ENABLE_LEDCHAIN
-      { 0,   "ledchain",      true,  "[chaintype:[leddev:]]numleds;enable support for LED chains forming one or multiple RGB lights"
-                                     "\n- chaintype can be WS2812 (GRB, default), SK6812 (RGBW), P9823 (RGB)"
-                                     "\n- leddev can be a device name when chain is driven by a kernel module"
-                                     },
-      { 0,   "ledchainmax",   true,  "max;max output value (0..255) sent to LED. Defaults to 128" },
+      CMDLINE_LEDCHAIN_OPTIONS,
       #endif
       #if ENABLE_EVALUATORS
       { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
@@ -700,12 +696,11 @@ public:
 
         #if ENABLE_LEDCHAIN
         // - Add Led chain support
-        if (ledChainConfigs.size()>0) {
-          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainConfigs, p44VdcHost.get(), 6)); // Tag 6 = led chain
-          ledChainConfigs.clear(); // no longer needed, free memory
+        if (ledChainArrangement) {
+          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainArrangement, p44VdcHost.get(), 6)); // Tag 6 = led chain
           int maxOutValue;
           if (getIntOption("ledchainmax", maxOutValue)) {
-            ledChainVdc->setMaxOutValue(maxOutValue);
+            ledChainArrangement->setMaxOutValue(maxOutValue);
           }
           ledChainVdc->addVdcToVdcHost();
         }
