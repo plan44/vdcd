@@ -236,6 +236,8 @@ vdcd_SOURCES = \
   src/p44utils/sqlite3persistence.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
+  src/p44utils/extutils.cpp \
+  src/p44utils/extutils.hpp \
   src/p44utils/timeutils.cpp \
   src/p44utils/timeutils.hpp \
   src/p44utils/regexp.cpp \
@@ -244,6 +246,8 @@ vdcd_SOURCES = \
   src/p44utils/expressions.hpp \
   src/p44utils/valueunits.cpp \
   src/p44utils/valueunits.hpp \
+  src/p44utils/valueanimator.cpp \
+  src/p44utils/valueanimator.hpp \
   src/p44utils/colorutils.cpp \
   src/p44utils/colorutils.hpp \
   src/p44utils/macaddress.cpp \
@@ -288,8 +292,8 @@ vdcd_SOURCES = \
   src/p44lrgraphics/viewscroller.hpp \
   src/p44lrgraphics/viewfactory.cpp \
   src/p44lrgraphics/viewfactory.hpp \
-  src/p44lrgraphics/viewanimator.cpp \
-  src/p44lrgraphics/viewanimator.hpp \
+  src/p44lrgraphics/viewsequencer.cpp \
+  src/p44lrgraphics/viewsequencer.hpp \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \

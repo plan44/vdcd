@@ -24,6 +24,8 @@
 #define __p44lrgraphics__config__
 
 #define ENABLE_VIEWCONFIG 1
+#define ENABLE_ANIMATION 1
+
 #if ENABLE_PNG
   #define ENABLE_IMAGE_SUPPORT 1
 #else

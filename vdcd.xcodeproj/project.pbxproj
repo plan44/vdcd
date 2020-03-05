@@ -52,6 +52,10 @@
 		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
 		ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C1442174EB9550037ED0C /* digitaliodevice.cpp */; };
 		ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5133BB19F6A6B70027999E /* simplescene.cpp */; };
+		ED54FDC424119E38006A443D /* viewsequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC224119E38006A443D /* viewsequencer.cpp */; };
+		ED54FDC92411A0F9006A443D /* valueanimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC52411A0F8006A443D /* valueanimator.cpp */; };
+		ED54FDCA2411A0F9006A443D /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
+		ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
 		ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */; };
 		ED55760D174CC03B00CCC4DD /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED557610174CFB3000CCC4DD /* jsoncomm.cpp */; };
@@ -110,7 +114,6 @@
 		ED95C5932306B97E0029614A /* lifeview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14A22FF6A20008E554D /* lifeview.cpp */; };
 		ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14C22FF6BCE008E554D /* lightspotview.cpp */; };
 		ED95C5952306B97E0029614A /* textview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14822FF6A20008E554D /* textview.cpp */; };
-		ED95C5962306B97E0029614A /* viewanimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14B22FF6A20008E554D /* viewanimator.cpp */; };
 		ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14422FF6A20008E554D /* viewfactory.cpp */; };
 		ED95C5992306B97E0029614A /* viewstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14322FF6A20008E554D /* viewstack.cpp */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
@@ -267,6 +270,12 @@
 		ED4C1444174EB9650037ED0C /* digitaliodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = digitaliodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5133BB19F6A6B70027999E /* simplescene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = simplescene.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5133BC19F6A6B70027999E /* simplescene.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = simplescene.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED54FDC224119E38006A443D /* viewsequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = viewsequencer.cpp; sourceTree = "<group>"; };
+		ED54FDC324119E38006A443D /* viewsequencer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = viewsequencer.hpp; sourceTree = "<group>"; };
+		ED54FDC52411A0F8006A443D /* valueanimator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueanimator.cpp; sourceTree = "<group>"; };
+		ED54FDC62411A0F8006A443D /* valueanimator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueanimator.hpp; sourceTree = "<group>"; };
+		ED54FDC72411A0F8006A443D /* extutils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = extutils.cpp; sourceTree = "<group>"; };
+		ED54FDC82411A0F8006A443D /* extutils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = extutils.hpp; sourceTree = "<group>"; };
 		ED557608174CAF8000CCC4DD /* buttonbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = buttonbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED557609174CAF8000CCC4DD /* buttonbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = buttonbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED55760B174CC03A00CCC4DD /* socketcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = socketcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -276,7 +285,6 @@
 		ED5576131750B15E00CCC4DD /* jsonobject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonobject.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5576141750B15F00CCC4DD /* jsonobject.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonobject.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED57A13922FF6A20008E554D /* lifeview.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lifeview.hpp; sourceTree = "<group>"; };
-		ED57A13A22FF6A20008E554D /* viewanimator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = viewanimator.hpp; sourceTree = "<group>"; };
 		ED57A13C22FF6A20008E554D /* viewstack.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = viewstack.hpp; sourceTree = "<group>"; };
 		ED57A13D22FF6A20008E554D /* viewfactory.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = viewfactory.hpp; sourceTree = "<group>"; };
 		ED57A13E22FF6A20008E554D /* viewscroller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = viewscroller.cpp; sourceTree = "<group>"; };
@@ -292,7 +300,6 @@
 		ED57A14822FF6A20008E554D /* textview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = textview.cpp; sourceTree = "<group>"; };
 		ED57A14922FF6A20008E554D /* imageview.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = imageview.hpp; sourceTree = "<group>"; };
 		ED57A14A22FF6A20008E554D /* lifeview.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lifeview.cpp; sourceTree = "<group>"; };
-		ED57A14B22FF6A20008E554D /* viewanimator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = viewanimator.cpp; sourceTree = "<group>"; };
 		ED57A14C22FF6BCE008E554D /* lightspotview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lightspotview.cpp; sourceTree = "<group>"; };
 		ED57A14D22FF6BCE008E554D /* lightspotview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lightspotview.hpp; sourceTree = "<group>"; };
 		ED5827241B02378F00B92C74 /* enoceanremotecontrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceanremotecontrol.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -804,6 +811,10 @@
 				ED6865DC22609EC40030AAE3 /* ubus.hpp */,
 				ED026CF7171D9CAB00AD5FD6 /* utils.cpp */,
 				ED026CF8171D9CAB00AD5FD6 /* utils.hpp */,
+				ED54FDC72411A0F8006A443D /* extutils.cpp */,
+				ED54FDC82411A0F8006A443D /* extutils.hpp */,
+				ED54FDC52411A0F8006A443D /* valueanimator.cpp */,
+				ED54FDC62411A0F8006A443D /* valueanimator.hpp */,
 				ED493DB81E9823C8008860E8 /* valueunits.cpp */,
 				ED493DB91E9823C8008860E8 /* valueunits.hpp */,
 			);
@@ -847,10 +858,10 @@
 				ED57A14022FF6A20008E554D /* textview.hpp */,
 				ED6CCEAC2326A264006CF9FE /* torchview.cpp */,
 				ED6CCEAD2326A264006CF9FE /* torchview.hpp */,
-				ED57A14B22FF6A20008E554D /* viewanimator.cpp */,
-				ED57A13A22FF6A20008E554D /* viewanimator.hpp */,
 				ED57A14422FF6A20008E554D /* viewfactory.cpp */,
 				ED57A13D22FF6A20008E554D /* viewfactory.hpp */,
+				ED54FDC224119E38006A443D /* viewsequencer.cpp */,
+				ED54FDC324119E38006A443D /* viewsequencer.hpp */,
 				ED57A13E22FF6A20008E554D /* viewscroller.cpp */,
 				ED57A14622FF6A20008E554D /* viewscroller.hpp */,
 				ED57A14322FF6A20008E554D /* viewstack.cpp */,
@@ -1152,6 +1163,7 @@
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
+				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
@@ -1178,7 +1190,6 @@
 				ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */,
 				ED81337317C644AE003982CC /* dsscene.cpp in Sources */,
 				ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */,
-				ED95C5962306B97E0029614A /* viewanimator.cpp in Sources */,
 				ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */,
 				ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */,
 				EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */,
@@ -1283,14 +1294,17 @@
 				ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
+				ED54FDC92411A0F9006A443D /* valueanimator.cpp in Sources */,
 				ED95C5932306B97E0029614A /* lifeview.cpp in Sources */,
 				ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */,
 				ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */,
 				ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */,
+				ED54FDC424119E38006A443D /* viewsequencer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */,
 				EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 				EDADCADB1846373300297214 /* apivalue.cpp in Sources */,
+				ED54FDCA2411A0F9006A443D /* extutils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
