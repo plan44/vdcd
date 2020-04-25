@@ -2,8 +2,6 @@
 vdcd
 ====
 
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=luz&url=https://github.com/plan44/vdcd&title=vdcd&language=&tags=github&category=software) 
-
 "vdcd" is a free (opensource, GPLv3) virtual device connector (vdc) implementation for digitalSTROM systems.
 A vdc integrates third-party automation hardware as virtual devices into a digitalSTROM system.
 
@@ -12,7 +10,7 @@ This vdcd has ready-to-use implementation for various **EnOcean** devices, **DAL
 
 In addition to the built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
 
-vdcd however is not limited to the set of features listed above - is based on a generic C++ framework called [**p44vdc**](https://github.com/plan44/p44vdc) which is included as a submodule into this project.
+vdcd however is not limited to the set of features listed above - it is based on a generic C++ framework called [**p44vdc**](https://github.com/plan44/p44vdc) which is included as a submodule into this project.
 
 **p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the digitalSTROM vDC API and the standard behaviour expected from digitalSTROM buttons, inputs, (possibly dimming) outputs and various sensors.
 
@@ -77,9 +75,10 @@ Supporting vdcd
 ---------------
 
 1. use it!
-2. contribute patches, report issues and suggest new functionality
-3. build cool new device integrations and contribute those
-4. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
+2. support development via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
+3. contribute patches, report issues and suggest new functionality
+4. build cool new device integrations and contribute those
+5. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
 
 *(c) 2013-2019 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
