@@ -258,6 +258,10 @@
 		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
 		ED3A40742301E75A0042C477 /* p44utils_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
+		ED3BDFE42454793700115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
+		ED3BDFE524547DEA00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
+		ED3BDFE624547E0300115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
+		ED3BDFE724547E2F00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
 		ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
@@ -734,6 +738,7 @@
 		ED3699B5178DA83800376405 /* p44utils */ = {
 			isa = PBXGroup;
 			children = (
+				ED3BDFE624547E0300115B6C /* FUNDING.yml */,
 				ED812B76232D00F90022CD16 /* README.md */,
 				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
 				ED3A40742301E75A0042C477 /* p44utils_config.hpp */,
@@ -841,6 +846,7 @@
 		ED57A13822FF6A20008E554D /* p44lrgraphics */ = {
 			isa = PBXGroup;
 			children = (
+				ED3BDFE524547DEA00115B6C /* FUNDING.yml */,
 				ED57A14222FF6A20008E554D /* README.md */,
 				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
 				ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */,
@@ -927,6 +933,7 @@
 		ED6CCD5E1D1D32FE00C78A0D /* p44vdc */ = {
 			isa = PBXGroup;
 			children = (
+				ED3BDFE724547E2F00115B6C /* FUNDING.yml */,
 				EDB5B4002323E01E00A0C84D /* README.md */,
 				ED86777B1EB8C2410006E146 /* tests */,
 				ED0DE305184E3821001ADB5E /* pbuf */,
@@ -940,6 +947,7 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				ED3BDFE42454793700115B6C /* FUNDING.yml */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
 				ED7C5B5A1F97F35700239034 /* configure.ac */,
 				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
