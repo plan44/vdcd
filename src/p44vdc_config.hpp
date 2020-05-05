@@ -40,7 +40,7 @@
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 1 // enabled to keep it compiling (but no real use any more)
-  #define ENABLE_ENOCEAN_SECURE 0 // %%% does not build on Catalina for now
+  #define ENABLE_ENOCEAN_SECURE 1
   #define SELFTESTING_ENABLED 1
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
