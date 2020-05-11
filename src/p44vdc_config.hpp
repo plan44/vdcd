@@ -67,6 +67,7 @@
   #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
   #define EXPRESSION_SCRIPT_SUPPORT 0 // disabled because of footprint
+  #define EXPRESSION_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
