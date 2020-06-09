@@ -303,9 +303,6 @@ public:
     else if (strcmp(aOptionDescriptor.longOptionName,"consoleio")==0) {
       staticDeviceConfigs.insert(make_pair("console", aOptionValue));
     }
-    else if (strcmp(aOptionDescriptor.longOptionName,"sparkcore")==0) {
-      staticDeviceConfigs.insert(make_pair("spark", aOptionValue));
-    }
     else
     #endif
     #if ENABLE_LEDCHAIN
@@ -373,7 +370,6 @@ public:
       #endif
       #if ENABLE_STATIC
       { 0,   "staticdevices", false, "enable support for statically defined devices" },
-      { 0  , "sparkcore",     true,  "sparkCoreID:authToken;add spark core based cloud device" },
       { 'g', "digitalio",     true,  "iospec:(button|light|relay);add static digital input or output device\n"
                                      "iospec is of form [+][/][bus.[device[-opts].]]pin\n"
                                      "prefix with / for inverted polarity (default is noninverted)\n"

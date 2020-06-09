@@ -364,8 +364,6 @@ vdcd_SOURCES = \
   src/p44vdc/behaviours/movinglightbehaviour.hpp \
   src/p44vdc/deviceclasses/simpleio/consoledevice.cpp \
   src/p44vdc/deviceclasses/simpleio/consoledevice.hpp \
-  src/p44vdc/deviceclasses/simpleio/sparkiodevice.cpp \
-  src/p44vdc/deviceclasses/simpleio/sparkiodevice.hpp \
   src/p44vdc/deviceclasses/simpleio/mystromdevice.cpp \
   src/p44vdc/deviceclasses/simpleio/mystromdevice.hpp \
   src/p44vdc/deviceclasses/simpleio/digitaliodevice.cpp \
