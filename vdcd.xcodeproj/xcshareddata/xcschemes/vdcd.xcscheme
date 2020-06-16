@@ -87,6 +87,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--initscript initscript.txt"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--maxapiversion 2"
             isEnabled = "NO">
          </CommandLineArgument>
