@@ -99,7 +99,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[expressions]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[utils]"
@@ -107,6 +107,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[https]"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[http]"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

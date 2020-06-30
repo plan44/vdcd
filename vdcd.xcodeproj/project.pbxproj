@@ -254,7 +254,7 @@
 		ED3701EC20015F0C00A1BD67 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libssl.a; sourceTree = "<group>"; };
 		ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
-		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 2; usesTabs = 0; };
+		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
 		ED3A40742301E75A0042C477 /* p44utils_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
 		ED3BDFE42454793700115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
@@ -396,8 +396,6 @@
 		ED8A997B2019F5080069EBF6 /* handle_form.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = handle_form.inl; sourceTree = "<group>"; };
 		ED8A997C2019F5080069EBF6 /* md5.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = md5.inl; sourceTree = "<group>"; };
 		ED8A997D2019F5080069EBF6 /* sha1.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sha1.inl; sourceTree = "<group>"; };
-		ED8A997E2019F5330069EBF6 /* hostcheck.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = hostcheck.inl; sourceTree = "<group>"; };
-		ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = openssl_hostname_validation.inl; sourceTree = "<group>"; };
 		ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
 		ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
 		ED8AA69D230F0276001F49CC /* videobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = videobehaviour.hpp; sourceTree = "<group>"; };
@@ -1011,9 +1009,7 @@
 				ED3701F22006073300A1BD67 /* civetweb.c */,
 				ED3701F12006073200A1BD67 /* civetweb.h */,
 				ED8A997B2019F5080069EBF6 /* handle_form.inl */,
-				ED8A997E2019F5330069EBF6 /* hostcheck.inl */,
 				ED8A997C2019F5080069EBF6 /* md5.inl */,
-				ED8A99812019F5340069EBF6 /* openssl_hostname_validation.inl */,
 				ED8A997D2019F5080069EBF6 /* sha1.inl */,
 			);
 			path = civetweb;

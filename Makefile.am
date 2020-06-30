@@ -270,8 +270,6 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/civetweb/handle_form.inl \
   src/p44utils/thirdparty/civetweb/md5.inl \
   src/p44utils/thirdparty/civetweb/sha1.inl \
-  src/p44utils/thirdparty/civetweb/hostcheck.inl \
-  src/p44utils/thirdparty/civetweb/openssl_hostname_validation.inl \
   src/p44lrgraphics/imageview.cpp \
   src/p44lrgraphics/imageview.hpp \
   src/p44lrgraphics/coloreffectview.cpp \
