@@ -256,7 +256,6 @@
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
 		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
-		ED3A40742301E75A0042C477 /* p44utils_config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
 		ED3BDFE42454793700115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE524547DEA00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE624547E0300115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
@@ -415,6 +414,7 @@
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44lrg_config_TEMPLATE.hpp; sourceTree = "<group>"; };
 		ED9DB11923789B0E00F91490 /* p44utils_config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
+		ED9FF50624AE15D0005E3025 /* p44utils_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config_TEMPLATE.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
@@ -733,8 +733,8 @@
 			children = (
 				ED3BDFE624547E0300115B6C /* FUNDING.yml */,
 				ED812B76232D00F90022CD16 /* README.md */,
+				ED9FF50624AE15D0005E3025 /* p44utils_config_TEMPLATE.hpp */,
 				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
-				ED3A40742301E75A0042C477 /* p44utils_config.hpp */,
 				ED6CCD361D198A9500C78A0D /* tests */,
 				ED312687183121FF00FAF28B /* thirdparty */,
 				ED5D486619ED502F000DF5A5 /* analogio.cpp */,

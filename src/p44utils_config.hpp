@@ -1,5 +1,5 @@
 //
-//  Copyright (c) 2019 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2019-2020 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 
 #ifndef __p44utils__config__
@@ -13,6 +13,9 @@
 #endif
 #ifndef ENABLE_P44LRGRAPHICS
   #define ENABLE_P44LRGRAPHICS 1 // p44lrgraphics support in some of the p44utils components
+#endif
+#ifndef ENABLE_APPLICATION_SUPPORT
+  #define ENABLE_APPLICATION_SUPPORT 1 // support for Application (e.g. domain specific commandline options) in other parts of P44 utils
 #endif
 
 

@@ -698,13 +698,7 @@ public:
         if (ledChainArrangement) {
           LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainArrangement, p44VdcHost.get(), 6)); // Tag 6 = led chain
           // led chain arrangement options
-          int v;
-          if (getIntOption("ledchainmax", v)) {
-            ledChainArrangement->setMaxOutValue(v);
-          }
-          if (getIntOption("ledpowerlimit", v)) {
-            ledChainArrangement->setPowerLimit(v);
-          }
+          ledChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
           ledChainVdc->addVdcToVdcHost();
         }
         #endif
