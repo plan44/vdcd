@@ -447,6 +447,7 @@
 		ED9FF50824B304F3005E3025 /* scripting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scripting.cpp; sourceTree = "<group>"; };
 		ED9FF50A24B46F76005E3025 /* test_scripting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_scripting.cpp; sourceTree = "<group>"; };
 		ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44ScriptREPL; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED9FF52D24B9D10B005E3025 /* p44utils_minimal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_minimal.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
@@ -776,6 +777,7 @@
 				ED812B76232D00F90022CD16 /* README.md */,
 				ED9FF50624AE15D0005E3025 /* p44utils_config_TEMPLATE.hpp */,
 				ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */,
+				ED9FF52D24B9D10B005E3025 /* p44utils_minimal.hpp */,
 				ED6CCD361D198A9500C78A0D /* tests */,
 				ED312687183121FF00FAF28B /* thirdparty */,
 				ED5D486619ED502F000DF5A5 /* analogio.cpp */,

@@ -259,6 +259,7 @@ vdcd_SOURCES = \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
   src/p44utils/p44utils_common.hpp \
+  src/p44utils/p44utils_minimal.hpp \
   src/p44utils/thirdparty/slre/slre.c \
   src/p44utils/thirdparty/slre/slre.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.cpp \
