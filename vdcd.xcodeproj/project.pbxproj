@@ -116,6 +116,25 @@
 		ED95C5952306B97E0029614A /* textview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14822FF6A20008E554D /* textview.cpp */; };
 		ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14422FF6A20008E554D /* viewfactory.cpp */; };
 		ED95C5992306B97E0029614A /* viewstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14322FF6A20008E554D /* viewstack.cpp */; };
+		ED9FF50924B304F4005E3025 /* scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50824B304F3005E3025 /* scripting.cpp */; };
+		ED9FF50B24B46F77005E3025 /* test_scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50A24B46F76005E3025 /* test_scripting.cpp */; };
+		ED9FF50C24B470A4005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
+		ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
+		ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
+		ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
+		ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
+		ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
+		ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
+		ED9FF51D24B93B9F005E3025 /* scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50824B304F3005E3025 /* scripting.cpp */; };
+		ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
+		ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED9FF52024B93B9F005E3025 /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
+		ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
+		ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
+		ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
+		ED9FF52624B93B9F005E3025 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */; };
+		ED9FF52724B93B9F005E3025 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
@@ -185,6 +204,15 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		ED6D7BD91716B63A005DED18 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+		ED9FF52824B93B9F005E3025 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -415,6 +443,10 @@
 		ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44lrg_config_TEMPLATE.hpp; sourceTree = "<group>"; };
 		ED9DB11923789B0E00F91490 /* p44utils_config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config.hpp; sourceTree = "<group>"; };
 		ED9FF50624AE15D0005E3025 /* p44utils_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config_TEMPLATE.hpp; sourceTree = "<group>"; };
+		ED9FF50724B304F2005E3025 /* scripting.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = scripting.hpp; sourceTree = "<group>"; };
+		ED9FF50824B304F3005E3025 /* scripting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = scripting.cpp; sourceTree = "<group>"; };
+		ED9FF50A24B46F76005E3025 /* test_scripting.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_scripting.cpp; sourceTree = "<group>"; };
+		ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44ScriptREPL; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
@@ -520,6 +552,15 @@
 				ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */,
 				EDD772D820629BD400C28195 /* librrd.8.dylib in Frameworks */,
 				ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ED9FF52524B93B9F005E3025 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ED9FF52624B93B9F005E3025 /* libcrypto.1.1.dylib in Frameworks */,
+				ED9FF52724B93B9F005E3025 /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -751,6 +792,8 @@
 				ED026D04171E94D700AD5FD6 /* error.hpp */,
 				ED77A4761E78B9D2004D8303 /* expressions.cpp */,
 				ED77A4771E78B9D2004D8303 /* expressions.hpp */,
+				ED9FF50824B304F3005E3025 /* scripting.cpp */,
+				ED9FF50724B304F2005E3025 /* scripting.hpp */,
 				EDB5BC1917B50E79004DB38D /* fdcomm.cpp */,
 				EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */,
 				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
@@ -907,6 +950,7 @@
 				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
 				EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */,
+				ED9FF50A24B46F76005E3025 /* test_scripting.cpp */,
 				EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
@@ -957,6 +1001,7 @@
 			children = (
 				ED6D7BDB1716B63A005DED18 /* vdcd */,
 				ED6CCD431D198FA000C78A0D /* vdcd_tests */,
+				ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1115,6 +1160,23 @@
 			productReference = ED6D7BDB1716B63A005DED18 /* vdcd */;
 			productType = "com.apple.product-type.tool";
 		};
+		ED9FF50D24B93B9F005E3025 /* p44ScriptREPL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ED9FF52924B93B9F005E3025 /* Build configuration list for PBXNativeTarget "p44ScriptREPL" */;
+			buildPhases = (
+				ED9FF50E24B93B9F005E3025 /* Sources */,
+				ED9FF52524B93B9F005E3025 /* Frameworks */,
+				ED9FF52824B93B9F005E3025 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = p44ScriptREPL;
+			productName = vdcd_tests;
+			productReference = ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1145,6 +1207,7 @@
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
 				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
 				ED6CCD421D198FA000C78A0D /* vdcd_tests */,
+				ED9FF50D24B93B9F005E3025 /* p44ScriptREPL */,
 			);
 		};
 /* End PBXProject section */
@@ -1161,13 +1224,16 @@
 				ED3701FA2007B47700A1BD67 /* mainloop.cpp in Sources */,
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
+				ED9FF50B24B46F77005E3025 /* test_scripting.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 				EDDFE39D22FD6130001F6A5E /* test_expressions.cpp in Sources */,
+				ED9FF50924B304F4005E3025 /* scripting.cpp in Sources */,
 				ED3701F82007B46D00A1BD67 /* error.cpp in Sources */,
+				ED9FF50C24B470A4005E3025 /* application.cpp in Sources */,
 				EDDFE39E22FD6232001F6A5E /* expressions.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
@@ -1303,6 +1369,27 @@
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 				EDADCADB1846373300297214 /* apivalue.cpp in Sources */,
 				ED54FDCA2411A0F9006A443D /* extutils.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ED9FF50E24B93B9F005E3025 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */,
+				ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */,
+				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
+				ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */,
+				ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */,
+				ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */,
+				ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */,
+				ED9FF51D24B93B9F005E3025 /* scripting.cpp in Sources */,
+				ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */,
+				ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */,
+				ED9FF52024B93B9F005E3025 /* expressions.cpp in Sources */,
+				ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */,
+				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
+				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1553,6 +1640,91 @@
 			};
 			name = Release;
 		};
+		ED9FF52A24B93B9F005E3025 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"${inherited}",
+					"OPENSSL_API_1_1=1",
+					"USE_SSL_HEADERS=1",
+					"NO_SSL_DL=1",
+					"SIMPLE_REPL_APP=1",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/opt/openssl@1.1/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/opt/openssl@1.1/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		ED9FF52B24B93B9F005E3025 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"${inherited}",
+					"OPENSSL_API_1_1=1",
+					"USE_SSL_HEADERS=1",
+					"NO_SSL_DL=1",
+					"SIMPLE_REPL_APP=1",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/opt/openssl@1.1/include",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"/usr/local/opt/openssl@1.1/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		EDCFE863172125F7001D35F3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1600,6 +1772,15 @@
 			buildConfigurations = (
 				ED6D7BE51716B63A005DED18 /* Debug */,
 				ED6D7BE61716B63A005DED18 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ED9FF52924B93B9F005E3025 /* Build configuration list for PBXNativeTarget "p44ScriptREPL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ED9FF52A24B93B9F005E3025 /* Debug */,
+				ED9FF52B24B93B9F005E3025 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
