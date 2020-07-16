@@ -56,6 +56,7 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableAddressSanitizer = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -74,15 +75,19 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
+            argument = "[DEBUG]"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[FOCUS]"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "[http],[https]"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[macaddress]"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "[FOCUS]"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -102,6 +107,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "[scripting]"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "[utils]"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -114,6 +123,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-?"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--success"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -123,10 +136,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--list-tags"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-?"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
