@@ -117,7 +117,6 @@
 		ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14422FF6A20008E554D /* viewfactory.cpp */; };
 		ED95C5992306B97E0029614A /* viewstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14322FF6A20008E554D /* viewstack.cpp */; };
 		ED9FF50924B304F4005E3025 /* scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50824B304F3005E3025 /* scripting.cpp */; };
-		ED9FF50B24B46F77005E3025 /* test_scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50A24B46F76005E3025 /* test_scripting.cpp */; };
 		ED9FF50C24B470A4005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -149,6 +148,8 @@
 		EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14122FF6A20008E554D /* imageview.cpp */; };
 		EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A13E22FF6A20008E554D /* viewscroller.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
+		EDB8C86F24CB8D6A005860CB /* test_scripting.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9FF50A24B46F76005E3025 /* test_scripting.cpp */; };
+		EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */; };
@@ -1225,8 +1226,9 @@
 				ED3701FA2007B47700A1BD67 /* mainloop.cpp in Sources */,
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
-				ED9FF50B24B46F77005E3025 /* test_scripting.cpp in Sources */,
+				EDB8C86F24CB8D6A005860CB /* test_scripting.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
+				EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
