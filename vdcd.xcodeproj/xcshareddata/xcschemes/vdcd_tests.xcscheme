@@ -31,15 +31,6 @@
       userAttachmentLifetime = "keepAlways"
       codeCoverageEnabled = "YES"
       onlyGenerateCoverageForSpecifiedTargets = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "ED6CCD421D198FA000C78A0D"
-            BuildableName = "vdcd_tests"
-            BlueprintName = "vdcd_tests"
-            ReferencedContainer = "container:vdcd.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <CodeCoverageTargets>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -109,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[expressions]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[scripting]"
