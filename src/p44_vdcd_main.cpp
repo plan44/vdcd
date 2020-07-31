@@ -417,7 +417,7 @@ public:
       { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
       { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
       { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
-      #if EXPRESSION_SCRIPT_SUPPORT
+      #if P44SCRIPT_FULL_SUPPORT || EXPRESSION_SCRIPT_SUPPORT
       { 0  , "initscript",    true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
       #endif
       #if ENABLE_JSONCFGAPI

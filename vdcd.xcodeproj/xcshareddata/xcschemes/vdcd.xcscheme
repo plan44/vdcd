@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       enableThreadSanitizer = "YES"
       enableUBSanitizer = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "ED6D7BDA1716B63A005DED18"
-            BuildableName = "vdcd"
-            BlueprintName = "vdcd"
-            ReferencedContainer = "container:vdcd.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <Testables>
       </Testables>
    </TestAction>

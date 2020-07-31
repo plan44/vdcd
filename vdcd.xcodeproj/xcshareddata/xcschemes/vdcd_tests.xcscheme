@@ -95,16 +95,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "[expressions],[scripting]"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "[expressions]"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[scripting]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[utils]"

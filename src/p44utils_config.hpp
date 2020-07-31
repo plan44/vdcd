@@ -8,8 +8,8 @@
 #ifndef ENABLE_NAMED_ERRORS
   #define ENABLE_NAMED_ERRORS P44_CPP11_FEATURE // Enable if compiler can do C++11
 #endif
-#ifndef ENABLE_EXPRESSIONS
-  #define ENABLE_EXPRESSIONS 1 // Expression/Script engine support in some of the p44utils components
+#ifndef ENABLE_P44SCRIPT
+  #define ENABLE_P44SCRIPT 1 // p44script engine support in some of the p44utils components
 #endif
 #ifndef ENABLE_JSON_APPLICATION
   #define ENABLE_JSON_APPLICATION 1 // JSON resource file handling support in Application

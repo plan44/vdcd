@@ -96,7 +96,6 @@
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED77A4751E78B9C5004D8303 /* slre.c in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4731E78B9C5004D8303 /* slre.c */; };
-		ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
 		ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4781E78B9D2004D8303 /* regexp.cpp */; };
 		ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED780C721A17CA6600DC3F60 /* movinglightbehaviour.cpp */; };
 		ED81337317C644AE003982CC /* dsscene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337117C644AE003982CC /* dsscene.cpp */; };
@@ -174,6 +173,7 @@
 		EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 		EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */; };
 		EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
+		EDF7F41024D4478000593814 /* p44script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED08F8F924CEC31A0080DA36 /* p44script.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -1290,7 +1290,6 @@
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
-				ED77A47A1E78B9D2004D8303 /* expressions.cpp in Sources */,
 				ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */,
@@ -1361,6 +1360,7 @@
 				ED5A4D8D1C8048ED00C607D5 /* evaluatordevice.cpp in Sources */,
 				ED911D2E1B11D97700B18624 /* ledchainvdc.cpp in Sources */,
 				ED557612174CFB3100CCC4DD /* jsoncomm.cpp in Sources */,
+				EDF7F41024D4478000593814 /* p44script.cpp in Sources */,
 				ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */,
 				ED54FDC92411A0F9006A443D /* valueanimator.cpp in Sources */,
 				ED95C5932306B97E0029614A /* lifeview.cpp in Sources */,
@@ -1423,6 +1423,7 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
+					"ENABLE_EXPRESSIONS=1",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -1465,6 +1466,7 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
+					"ENABLE_EXPRESSIONS=1",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

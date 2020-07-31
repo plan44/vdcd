@@ -66,6 +66,7 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
+  #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define EXPRESSION_SCRIPT_SUPPORT 0 // disabled because of footprint
   #define EXPRESSION_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
@@ -117,10 +118,14 @@
 
 // dependencies
 #if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
-  #if defined(ENABLE_EXPRESSIONS) && !ENABLE_EXPRESSIONS
-    #error "ENABLE_EVALUATORS needs ENABLE_EXPRESSIONS"
+  #if defined(ENABLE_EXPRESSIONS) && !ENABLE_EXPRESSIONS && defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
+    #error "ENABLE_EVALUATORS needs ENABLE_P44SCRIPT or ENABLE_EXPRESSIONS"
   #endif
-  #define ENABLE_EXPRESSIONS 1
+  #if !defined(ENABLE_P44SCRIPT)
+    #define ENABLE_P44SCRIPT 1
+  #elif !ENABLE_P44SCRIPT && !defined(ENABLE_EXPRESSIONS)
+    #define ENABLE_EXPRESSIONS 1
+  #endif
 #endif
 
 
