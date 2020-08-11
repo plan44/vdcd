@@ -18,7 +18,7 @@ vdcd however is not limited to the set of features listed above - it is based on
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
-vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils), which provides basic mechanisms for mainloop-based, nonblocking I/O driven automation daemons. p44utils is also included as a submodule into this project.
+vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils), which provides basic mechanisms for mainloop-based, nonblocking I/O driven automation daemons, as well as a script language, **p44script**. p44utils is also included as a submodule into this project.
 
 
 If you like this project you might want to...

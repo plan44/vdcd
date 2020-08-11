@@ -244,6 +244,8 @@ vdcd_SOURCES = \
   src/p44utils/regexp.hpp \
   src/p44utils/expressions.cpp \
   src/p44utils/expressions.hpp \
+  src/p44utils/p44script.cpp \
+  src/p44utils/p44script.hpp \
   src/p44utils/valueunits.cpp \
   src/p44utils/valueunits.hpp \
   src/p44utils/valueanimator.cpp \
