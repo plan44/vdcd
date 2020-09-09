@@ -26,7 +26,7 @@ If you like this project you might want to...
 - Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
 - See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
 - See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
-- not forget to flattr it :-)
+- not forget to support it via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
 
 
 License
@@ -44,9 +44,10 @@ Features
 - Provides the *plan44 vdcd external device API* for easily building custom devices as external scripts or programs.
 - Supports EnOcean TCM310 based gateway modules, connected via serial port or network
 - Supports Philips hue lights via the hue bridge and its JSON API
-- Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients etc.
+- Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients and even [*expressive pixels*](https://www.microsoft.com/en-us/research/project/microsoft-expressive-pixels) animations.
+Based on [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics), a graphics library specifically written for lo-res LED matrix displays.
   On Raspberry Pi, just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18 (thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git)).
-  On MT7688 systems under OpenWrt, use the [p44-ledchain kernel driver](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain). 
+  On MT7688 systems under OpenWrt, use the [p44-ledchain kernel driver](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain).
 - Allows to use Linux GPIO pins (e.g. on RaspberryPi) as button inputs or on/off outputs
 - Allows to use i2c and spi peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685, MCP23017, MCP23S17) for digital I/O as well as PWM outputs
 - Implements interface to [Open Lighting Architecture - OLA](http://www.openlighting.org/) to control DMX512 based lights (single channel, RGB, RGBW, RGBWA, moving head)
@@ -56,7 +57,7 @@ Getting Started
 
 ### To try it out
 
-- plan44.ch provides a RaspberryPi image named P44-DSB-X which contains a complete Raspian/Minibian ready to run first experiments with virtual devices (for example driving GPIO pins of the Raspberry). You can download it from [plan44.ch/downloads/p44-dsb-x-diy.zip](https://plan44.ch/downloads/p44-dsb-x-diy.zip), copy it to a >=1GB SD Card and use it with a RPi B, B+ or 2.
+- plan44.ch provides a RaspberryPi image named P44-DSB-X which contains a complete OpenWrt ready to run first experiments with virtual devices (for example driving GPIO pins of the Raspberry). You can download it from [https://plan44.ch/automation/p44-dsb-x.php](https://plan44.ch/automation/p44-dsb-x.php), copy it to a SD Card and use it with a RPi B, B+ or 2.
 
 ### To build it or use the external devices API
 
@@ -82,7 +83,7 @@ Supporting vdcd
 4. build cool new device integrations and contribute those
 5. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
 
-*(c) 2013-2019 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
+*(c) 2013-2020 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 

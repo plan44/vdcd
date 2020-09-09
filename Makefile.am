@@ -137,7 +137,7 @@ endif
 
 
 # Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
-vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${PNG_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
+vdcd_LDADD = ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${PNG_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 
@@ -285,6 +285,10 @@ vdcd_SOURCES = \
   src/p44lrgraphics/torchview.hpp \
   src/p44lrgraphics/p44view.cpp \
   src/p44lrgraphics/p44view.hpp \
+  src/p44lrgraphics/canvasview.cpp \
+  src/p44lrgraphics/canvasview.hpp \
+  src/p44lrgraphics/epxview.cpp \
+  src/p44lrgraphics/epxview.hpp \
   src/p44lrgraphics/textview.cpp \
   src/p44lrgraphics/textview.hpp \
   src/p44lrgraphics/viewstack.cpp \

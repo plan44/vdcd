@@ -104,8 +104,6 @@
 		ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337A17C72F45003982CC /* outputbehaviour.cpp */; };
 		ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338017C72F87003982CC /* sensorbehaviour.cpp */; };
 		ED81338517C72FD9003982CC /* binaryinputbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */; };
-		ED8A9987201E6E2D0069EBF6 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */; };
-		ED8A9988201E6E2D0069EBF6 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */; };
 		ED8AA69F230F0277001F49CC /* videobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8AA69E230F0276001F49CC /* videobehaviour.cpp */; };
 		ED8F6DB81C56855200176CA9 /* enoceaninputhandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DB61C56855200176CA9 /* enoceaninputhandler.cpp */; };
 		ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED8F6DBC1C5685A300176CA9 /* enoceanvld.cpp */; };
@@ -132,8 +130,6 @@
 		ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 		ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
-		ED9FF52624B93B9F005E3025 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */; };
-		ED9FF52724B93B9F005E3025 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
@@ -149,6 +145,10 @@
 		EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A13E22FF6A20008E554D /* viewscroller.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */; };
+		EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC142508E6F3007A9B0B /* canvasview.cpp */; };
+		EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC152508E6F3007A9B0B /* epxview.cpp */; };
+		EDBCAC1A25090F09007A9B0B /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
+		EDBCAC1B25090F0D007A9B0B /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */; };
@@ -281,8 +281,6 @@
 		ED369999178D6A2C00376405 /* iopin.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = iopin.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED36999C178DA01D00376405 /* i2c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = i2c.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED36999D178DA01E00376405 /* i2c.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = i2c.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED3701EB20015F0C00A1BD67 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libcrypto.a; sourceTree = "<group>"; };
-		ED3701EC20015F0C00A1BD67 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libssl.a; sourceTree = "<group>"; };
 		ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
 		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
@@ -421,13 +419,9 @@
 		ED81338117C72F87003982CC /* sensorbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = sensorbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338317C72FD9003982CC /* binaryinputbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = binaryinputbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED81338417C72FD9003982CC /* binaryinputbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = binaryinputbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED8A99772018FEAF0069EBF6 /* libcrypto.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.0.0.dylib; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libcrypto.1.0.0.dylib; sourceTree = "<group>"; };
-		ED8A99782018FEAF0069EBF6 /* libssl.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.0.0.dylib; path = ../../../../../../../../../usr/local/Cellar/openssl/1.0.2k/lib/libssl.1.0.0.dylib; sourceTree = "<group>"; };
 		ED8A997B2019F5080069EBF6 /* handle_form.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = handle_form.inl; sourceTree = "<group>"; };
 		ED8A997C2019F5080069EBF6 /* md5.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = md5.inl; sourceTree = "<group>"; };
 		ED8A997D2019F5080069EBF6 /* sha1.inl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sha1.inl; sourceTree = "<group>"; };
-		ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
-		ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../../../../usr/local/Cellar/openssl@1.1/1.1.0g_1/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
 		ED8AA69D230F0276001F49CC /* videobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = videobehaviour.hpp; sourceTree = "<group>"; };
 		ED8AA69E230F0276001F49CC /* videobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = videobehaviour.cpp; sourceTree = "<group>"; };
 		ED8F6DB61C56855200176CA9 /* enoceaninputhandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceaninputhandler.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -471,6 +465,10 @@
 		EDB5B4002323E01E00A0C84D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		EDB5BC1917B50E79004DB38D /* fdcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = fdcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = fdcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDBCAC142508E6F3007A9B0B /* canvasview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = canvasview.cpp; sourceTree = "<group>"; };
+		EDBCAC152508E6F3007A9B0B /* epxview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = epxview.cpp; sourceTree = "<group>"; };
+		EDBCAC162508E6F3007A9B0B /* canvasview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = canvasview.hpp; sourceTree = "<group>"; };
+		EDBCAC172508E6F3007A9B0B /* epxview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = epxview.hpp; sourceTree = "<group>"; };
 		EDBCDBF31F3E383700DA85CF /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -541,8 +539,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED8A9987201E6E2D0069EBF6 /* libcrypto.1.1.dylib in Frameworks */,
-				ED8A9988201E6E2D0069EBF6 /* libssl.1.1.dylib in Frameworks */,
+				EDBCAC1A25090F09007A9B0B /* libcrypto.1.1.dylib in Frameworks */,
+				EDBCAC1B25090F0D007A9B0B /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -561,8 +559,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED9FF52624B93B9F005E3025 /* libcrypto.1.1.dylib in Frameworks */,
-				ED9FF52724B93B9F005E3025 /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -871,13 +867,7 @@
 				ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */,
 				ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */,
 				EDD772D720629BD300C28195 /* librrd.8.dylib */,
-				ED8A9985201E6E2C0069EBF6 /* libcrypto.1.1.dylib */,
-				ED8A9986201E6E2C0069EBF6 /* libssl.1.1.dylib */,
-				ED8A99772018FEAF0069EBF6 /* libcrypto.1.0.0.dylib */,
-				ED8A99782018FEAF0069EBF6 /* libssl.1.0.0.dylib */,
 				ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */,
-				ED3701EB20015F0C00A1BD67 /* libcrypto.a */,
-				ED3701EC20015F0C00A1BD67 /* libssl.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -893,6 +883,10 @@
 				ED6CCEAF2326BE4C006CF9FE /* coloreffectview.hpp */,
 				ED57A14122FF6A20008E554D /* imageview.cpp */,
 				ED57A14922FF6A20008E554D /* imageview.hpp */,
+				EDBCAC142508E6F3007A9B0B /* canvasview.cpp */,
+				EDBCAC162508E6F3007A9B0B /* canvasview.hpp */,
+				EDBCAC152508E6F3007A9B0B /* epxview.cpp */,
+				EDBCAC172508E6F3007A9B0B /* epxview.hpp */,
 				ED57A14A22FF6A20008E554D /* lifeview.cpp */,
 				ED57A13922FF6A20008E554D /* lifeview.hpp */,
 				ED57A14C22FF6BCE008E554D /* lightspotview.cpp */,
@@ -1312,6 +1306,7 @@
 				ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */,
 				ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
+				EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
 				ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */,
@@ -1346,6 +1341,7 @@
 				EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */,
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
+				EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */,
 				ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
 				EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */,
 				ED5BDAA817BBA54400DBC19A /* dsaddressable.cpp in Sources */,
@@ -1436,6 +1432,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1478,6 +1475,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
