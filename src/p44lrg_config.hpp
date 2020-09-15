@@ -24,6 +24,7 @@
 #define __p44lrgraphics__config__
 
 #define ENABLE_VIEWCONFIG 1
+#define ENABLE_VIEWSTATUS 1
 #define ENABLE_ANIMATION 1
 #define ENABLE_EPX_SUPPORT 1
 

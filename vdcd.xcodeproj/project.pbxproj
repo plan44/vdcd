@@ -1610,6 +1610,7 @@
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
@@ -1653,6 +1654,7 @@
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
