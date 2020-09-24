@@ -249,7 +249,7 @@ public:
           redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
-          LOG(LOG_ERR, "****** Error - operation may not continue - check logs!");
+          LOG(LOG_ERR, "****** Error - operation may be limited or entirely prevented - check logs!");
           greenLED->steadyOff();
           redLED->steadyOn();
           break;
