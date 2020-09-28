@@ -249,7 +249,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.2.6 --daliportidle 10"

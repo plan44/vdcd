@@ -50,6 +50,10 @@
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
 		ED3C051023B8F0170085CC71 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
 		ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
+		ED3EE7292520AB080098E6CE /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
+		ED3EE72A2520AB080098E6CE /* libcrypto.1.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		ED3EE72E2520AB0D0098E6CE /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
+		ED3EE72F2520AB0D0098E6CE /* libssl.1.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
 		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
@@ -194,6 +198,18 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		ED3EE72B2520AB080098E6CE /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				ED3EE72A2520AB080098E6CE /* libcrypto.1.1.dylib in Embed Libraries */,
+				ED3EE72F2520AB0D0098E6CE /* libssl.1.1.dylib in Embed Libraries */,
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ED6CCD411D198FA000C78A0D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -559,6 +575,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED3EE7292520AB080098E6CE /* libcrypto.1.1.dylib in Frameworks */,
+				ED3EE72E2520AB0D0098E6CE /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1165,6 +1183,7 @@
 				ED9FF50E24B93B9F005E3025 /* Sources */,
 				ED9FF52524B93B9F005E3025 /* Frameworks */,
 				ED9FF52824B93B9F005E3025 /* CopyFiles */,
+				ED3EE72B2520AB080098E6CE /* Embed Libraries */,
 			);
 			buildRules = (
 			);
@@ -1704,6 +1723,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1748,6 +1768,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
