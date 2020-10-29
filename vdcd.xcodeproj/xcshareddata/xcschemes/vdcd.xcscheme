@@ -117,11 +117,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data/Freitag"
@@ -173,11 +173,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -245,7 +245,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
@@ -276,7 +276,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--enocean 192.168.11.221"
+            argument = "--enocean 192.168.11.175"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
