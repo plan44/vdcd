@@ -145,6 +145,7 @@
 		EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
 		EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4061E17D4D99D003783CE /* huevdc.cpp */; };
 		EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4062117D4D9B5003783CE /* huedevice.cpp */; };
+		EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14122FF6A20008E554D /* imageview.cpp */; };
 		EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A13E22FF6A20008E554D /* viewscroller.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
@@ -1395,6 +1396,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */,
 				ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */,
 				ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */,
 				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
