@@ -48,12 +48,6 @@
 		ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
-		ED3C051023B8F0170085CC71 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
-		ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
-		ED3EE7292520AB080098E6CE /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
-		ED3EE72A2520AB080098E6CE /* libcrypto.1.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		ED3EE72E2520AB0D0098E6CE /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
-		ED3EE72F2520AB0D0098E6CE /* libssl.1.1.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
 		ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4C143F174EB8D20037ED0C /* staticvdc.cpp */; };
@@ -152,8 +146,6 @@
 		EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */; };
 		EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC142508E6F3007A9B0B /* canvasview.cpp */; };
 		EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC152508E6F3007A9B0B /* epxview.cpp */; };
-		EDBCAC1A25090F09007A9B0B /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */; };
-		EDBCAC1B25090F0D007A9B0B /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
 		EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */; };
@@ -166,12 +158,20 @@
 		EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */; };
 		EDD772D820629BD400C28195 /* librrd.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDD772D720629BD300C28195 /* librrd.8.dylib */; };
 		EDDA9E701F8CC8D200883DC5 /* localcontroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDA9E6E1F8CC8D200883DC5 /* localcontroller.cpp */; };
+		EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */; };
 		EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* olavdc.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDDFE39E22FD6232001F6A5E /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
+		EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
+		EDE91E20257C1DE800AFEAE8 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */; };
+		EDE91E21257C1DE900AFEAE8 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */; };
+		EDE91E2A257C24AB00AFEAE8 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */; };
+		EDE91E2B257C24AB00AFEAE8 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */; };
+		EDE91E2C257C24AC00AFEAE8 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */; };
+		EDE91E2D257C24AC00AFEAE8 /* libssl.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */; };
 		EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F11E3903180011D79E /* zfcomm.cpp */; };
 		EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F31E3903180011D79E /* zfdevice.cpp */; };
 		EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F41E3903180011D79E /* zfvdc.cpp */; };
@@ -194,7 +194,7 @@
 				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.h",
 				"$(INPUT_FILE_DIR)/gen/${INPUT_FILE_BASE}.pb-c.c",
 			);
-			script = "/usr/local/bin/protoc-c -I=${INPUT_FILE_DIR} --c_out=${INPUT_FILE_DIR}/gen ${INPUT_FILE_PATH}";
+			script = "/usr/local/bin/protoc-c -I=${INPUT_FILE_DIR} --c_out=${INPUT_FILE_DIR}/gen ${INPUT_FILE_PATH}\n";
 		};
 /* End PBXBuildRule section */
 
@@ -205,8 +205,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				ED3EE72A2520AB080098E6CE /* libcrypto.1.1.dylib in Embed Libraries */,
-				ED3EE72F2520AB0D0098E6CE /* libssl.1.1.dylib in Embed Libraries */,
 			);
 			name = "Embed Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -306,8 +304,6 @@
 		ED3BDFE524547DEA00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE624547E0300115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE724547E2F00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
-		ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
-		ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1d/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
 		ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = valuedescriptor.cpp; sourceTree = "<group>"; };
@@ -525,6 +521,8 @@
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1h/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
+		EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1h/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
 		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; };
 		EDEC0CDB204FDEE100CD3C27 /* ws2811.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ws2811.h; sourceTree = "<group>"; };
 		EDEC0CDC204FDEE100CD3C27 /* gpio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
@@ -556,8 +554,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EDBCAC1A25090F09007A9B0B /* libcrypto.1.1.dylib in Frameworks */,
-				EDBCAC1B25090F0D007A9B0B /* libssl.1.1.dylib in Frameworks */,
+				EDE91E2C257C24AC00AFEAE8 /* libcrypto.1.1.dylib in Frameworks */,
+				EDE91E2D257C24AC00AFEAE8 /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -565,10 +563,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED3C051023B8F0170085CC71 /* libssl.1.1.dylib in Frameworks */,
-				ED3C051123B8F0170085CC71 /* libcrypto.1.1.dylib in Frameworks */,
 				EDD772D820629BD400C28195 /* librrd.8.dylib in Frameworks */,
+				EDE91E2B257C24AB00AFEAE8 /* libssl.1.1.dylib in Frameworks */,
 				ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */,
+				EDE91E2A257C24AB00AFEAE8 /* libcrypto.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -576,8 +574,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED3EE7292520AB080098E6CE /* libcrypto.1.1.dylib in Frameworks */,
-				ED3EE72E2520AB0D0098E6CE /* libssl.1.1.dylib in Frameworks */,
+				EDE91E20257C1DE800AFEAE8 /* libcrypto.1.1.dylib in Frameworks */,
+				EDE91E21257C1DE900AFEAE8 /* libssl.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -883,8 +881,8 @@
 		ED3701EA20015F0B00A1BD67 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				ED3C050F23B8F0170085CC71 /* libcrypto.1.1.dylib */,
-				ED3C050E23B8F0170085CC71 /* libssl.1.1.dylib */,
+				EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */,
+				EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */,
 				EDD772D720629BD300C28195 /* librrd.8.dylib */,
 				ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */,
 			);
@@ -1245,6 +1243,7 @@
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
 				ED08F8FB24CEC31A0080DA36 /* p44script.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
+				EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */,
 				EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
@@ -1411,6 +1410,7 @@
 				ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */,
 				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
 				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
+				EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1454,6 +1454,7 @@
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1497,6 +1498,7 @@
 					"$(inherited)",
 					"/usr/local/opt/openssl@1.1/lib",
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1630,6 +1632,7 @@
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -1674,6 +1677,7 @@
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
 					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -1720,12 +1724,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/opt/openssl@1.1/include",
+					/usr/local/opt/openssl/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/opt/openssl@1.1/lib",
-					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1765,12 +1768,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/opt/openssl@1.1/include",
+					/usr/local/opt/openssl/include,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/usr/local/opt/openssl@1.1/lib",
-					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
+					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
