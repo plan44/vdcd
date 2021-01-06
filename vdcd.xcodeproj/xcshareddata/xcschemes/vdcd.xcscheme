@@ -212,12 +212,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:17:0:7:A --ledchainmax 255"
-            isEnabled = "NO">
+            argument = "--ledchain WS2812:/tmp/ledchainsim:791:0:113:0:7:A --ledchainmax 255"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:1200:0:300:0:4"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2812:/tmp/ledchainsim:1680:0:112:0:15:X"
@@ -241,7 +241,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
