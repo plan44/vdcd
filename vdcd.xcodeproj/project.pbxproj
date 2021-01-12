@@ -1631,7 +1631,6 @@
 					"$(inherited)",
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
-					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
@@ -1676,7 +1675,6 @@
 					"$(inherited)",
 					/usr/local/opt/openssl/lib,
 					/usr/local/Cellar/rrdtool/1.7.0/lib,
-					"/usr/local/Cellar/openssl@1.1/1.1.1d/lib",
 					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
