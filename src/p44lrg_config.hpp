@@ -23,6 +23,8 @@
 #ifndef __p44lrgraphics__config__
 #define __p44lrgraphics__config__
 
+#include "p44vdc_config.hpp" // include vdcd specific settings that might also influence p44lrg
+
 #define ENABLE_VIEWCONFIG 1
 #define ENABLE_VIEWSTATUS 1
 #define ENABLE_ANIMATION 1

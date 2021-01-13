@@ -52,7 +52,8 @@
 #define ENABLE_LOCAL_BEHAVIOUR 1 // enabled local (minimalistic) light/button operations when no vdsm is connected
 
 // Default build settings for different targets
-#if P44_BUILD_DIGI
+#define REDUCED_FOOTPRINT_TEST 0
+#if P44_BUILD_DIGI || (defined(__APPLE__) && REDUCED_FOOTPRINT_TEST)
   // DigiConnect based P44-DSB-DEH
   #define ENABLE_DALI 1
   #define ENABLE_DALI_INPUTS 0 // disabled because of DALI bridge restrictions
@@ -66,11 +67,18 @@
   #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_LEDCHAIN 0
+  #define ENABLE_LOCALCONTROLLER 0 // not supported at all
+  #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
+  #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
   #define EXPRESSION_SCRIPT_SUPPORT 0 // disabled because of footprint
   #define EXPRESSION_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
+  #define ENABLE_HTTP_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_SOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_ANIMATOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
   #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern
