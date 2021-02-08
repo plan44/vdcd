@@ -323,118 +323,119 @@ public:
     const char *usageText =
       "Usage: %1$s [options]\n";
     const CmdLineOptionDescriptor options[] = {
-      { 0  , "dsuid",         true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
-      { 0  , "instance",      true,  "instancenumber;set instance number (default 0, use 1,2,... for multiple vdchosts on same host/mac)" },
-      { 0  , "ifnameformac",  true,  "network if;set network interface to get MAC address from" },
-      { 0  , "ifnameforconn", true,  "network if;set network interface to get IP from and check for connectivity" },
-      { 0  , "sgtin",         true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
-      { 0  , "productname",   true,  "name;set product name for this vdc host and its vdcs" },
-      { 0  , "productversion",true,  "version;set version string for this vdc host and its vdcs" },
-      { 0  , "deviceid",      true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
-      { 0  , "description",   true,  "description(template);used in service announcement, can contain %V,%M,%N,%S to insert vendor/model/name/serial. "
-                                     "When not set or empty, defaults to built-in standard description." },
-      { 0  , "vdcdescription",true,  "vdcmodelname(template);can contain %V,%M,%m,%S to insert vendor/productname/modelsuffix/serial. "
-                                     "When not set or empty, defaults to built-in standard description." },
+      { 0  , "dsuid",            true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
+      { 0  , "instance",         true,  "instancenumber;set instance number (default 0, use 1,2,... for multiple vdchosts on same host/mac)" },
+      { 0  , "ifnameformac",     true,  "network if;set network interface to get MAC address from" },
+      { 0  , "ifnameforconn",    true,  "network if;set network interface to get IP from and check for connectivity" },
+      { 0  , "sgtin",            true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
+      { 0  , "productname",      true,  "name;set product name for this vdc host and its vdcs" },
+      { 0  , "productversion",   true,  "version;set version string for this vdc host and its vdcs" },
+      { 0  , "nextversionfile",  true,  "path;file containing next installable product version (if any)" },
+      { 0  , "deviceid",         true,  "device id;a string that may identify the device to the end user, e.g. a serial number" },
+      { 0  , "description",      true,  "description(template);used in service announcement, can contain %V,%M,%N,%S to insert vendor/model/name/serial. "
+                                        "When not set or empty, defaults to built-in standard description." },
+      { 0  , "vdcdescription",   true,  "vdcmodelname(template);can contain %V,%M,%m,%S to insert vendor/productname/modelsuffix/serial. "
+                                        "When not set or empty, defaults to built-in standard description." },
       #if ENABLE_DALI
-      { 'a', "dali",          true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
-      { 0  , "daliportidle",  true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
-      { 0  , "dalitxadj",     true,  "adjustment;DALI signal adjustment for sending" },
-      { 0  , "dalirxadj",     true,  "adjustment;DALI signal adjustment for receiving" },
+      { 'a', "dali",             true,  "bridge;DALI bridge serial port device or proxy host[:port]" },
+      { 0  , "daliportidle",     true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
+      { 0  , "dalitxadj",        true,  "adjustment;DALI signal adjustment for sending" },
+      { 0  , "dalirxadj",        true,  "adjustment;DALI signal adjustment for receiving" },
       #endif
       #if ENABLE_ENOCEAN
-      { 'b', "enocean",       true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
-      { 0,   "enoceanreset",  true,  "pinspec;set I/O pin connected to EnOcean module reset" },
+      { 'b', "enocean",          true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
+      { 0,   "enoceanreset",     true,  "pinspec;set I/O pin connected to EnOcean module reset" },
       #endif
       #if ENABLE_HUE
-      { 0,   "huelights",     false, "enable support for hue LED lamps (via hue bridge)" },
-      { 0,   "hueapiurl",     true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
+      { 0,   "huelights",        false, "enable support for hue LED lamps (via hue bridge)" },
+      { 0,   "hueapiurl",        true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
       #endif
       #if ENABLE_OLA
-      { 0,   "ola",           false, "enable support for OLA (Open Lighting Architecture) server" },
+      { 0,   "ola",              false, "enable support for OLA (Open Lighting Architecture) server" },
       #endif
       #if ENABLE_LEDCHAIN
       CMDLINE_LEDCHAIN_OPTIONS,
       #endif
       #if ENABLE_EVALUATORS
-      { 0,   "evaluators",    false, "enable sensor value evaluator devices" },
+      { 0,   "evaluators",       false, "enable sensor value evaluator devices" },
       #endif
       #if ENABLE_ELDAT
-      { 0,   "eldat",         true,  "interface;ELDAT interface serial port device or proxy host[:port]" },
+      { 0,   "eldat",            true,  "interface;ELDAT interface serial port device or proxy host[:port]" },
       #endif
       #if ENABLE_ZF
-      { 0,   "zf",            true,  "interface;ZF interface serial port device or proxy host[:port]" },
+      { 0,   "zf",               true,  "interface;ZF interface serial port device or proxy host[:port]" },
       #endif
       #if ENABLE_EXTERNAL
-      { 0,   "externaldevices",true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
+      { 0,   "externaldevices",  true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
       #endif
       #if ENABLE_STATIC
-      { 0,   "staticdevices", false, "enable support for statically defined devices" },
-      { 'g', "digitalio",     true,  "iospec:(button|light|relay);add static digital input or output device\n"
-                                     "iospec is of form [+][/][bus.[device[-opts].]]pin\n"
-                                     "prefix with / for inverted polarity (default is noninverted)\n"
-                                     "prefix with + to enable pullup (for inputs, if pin supports it)"
-                                     "\n- gpio.gpionumber : generic Linux GPIO"
+      { 0,   "staticdevices",    false, "enable support for statically defined devices" },
+      { 'g', "digitalio",        true,  "iospec:(button|light|relay);add static digital input or output device\n"
+                                        "iospec is of form [+][/][bus.[device[-opts].]]pin\n"
+                                        "prefix with / for inverted polarity (default is noninverted)\n"
+                                        "prefix with + to enable pullup (for inputs, if pin supports it)"
+                                        "\n- gpio.gpionumber : generic Linux GPIO"
       #if !DISABLE_I2C
-                                     "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
-                                     "(supported for DEVICE : TCA9555, PCF8574, MCP23017)"
+                                        "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                        "(supported for DEVICE : TCA9555, PCF8574, MCP23017)"
       #endif
       #if !DISABLE_SPI
-                                     "\n- spiXY.DEVICE[-OPT]@spiaddr.pinNumber : numbered pin of device at spiaddr on spidevX.Y"
-                                     "(supported for DEVICE : MCP23S17)"
+                                        "\n- spiXY.DEVICE[-OPT]@spiaddr.pinNumber : numbered pin of device at spiaddr on spidevX.Y"
+                                        "(supported for DEVICE : MCP23S17)"
       #endif
-                                     },
-      { 0  , "analogio",      true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
-                                     "iospec is of form [bus.[device.]]pin:"
+                                        },
+      { 0  , "analogio",         true,  "iospec:(dimmer|rgbdimmer|valve);add static analog input or output device\n"
+                                        "iospec is of form [bus.[device.]]pin:"
       #if !DISABLE_I2C
-                                     "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
-                                     "(supported for DEVICE : PCA9685)"
+                                        "\n- i2cN.DEVICE[-OPT]@i2caddr.pinNumber : numbered pin of device at i2caddr on i2c bus N "
+                                        "(supported for DEVICE : PCA9685)"
       #endif
-                                     },
-      { 'k', "consoleio",     true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
-                                     "(for inputs: first char of name=action key)" },
+                                        },
+      { 'k', "consoleio",        true,  "name[:(dimmer|colordimmer|button|valve)];add static debug device which reads and writes console "
+                                        "(for inputs: first char of name=action key)" },
       #endif // ENABLE_STATIC
-      { 0  , "protobufapi",   true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
-      { 0  , "saveoutputs",   false, "save/restore output (channel) states by default" },
+      { 0  , "protobufapi",      true,  NULL /* enabled;1=use Protobuf API, 0=use JSON RPC 2.0 API */ },
+      { 0  , "saveoutputs",      false, "save/restore output (channel) states by default" },
       #if ENABLE_LOCALCONTROLLER
-      { 0  , "localcontroller",false,"enable local controller (offline) features" },
+      { 0  , "localcontroller",  false,"enable local controller (offline) features" },
       #endif
       #if !DISABLE_DISCOVERY
-      { 0  , "noauto",        false, "prevent auto-connection to this vdc host" },
-      { 0  , "noigmphelp",    false, NULL /* FIXME: kept as dummy to avoid breaking manually configured installations */ },
-      { 0  , "nodiscovery",   false, "completely disable discovery (no publishing of services)" },
-      { 0  , "hostname",      true,  "hostname;host name to use to publish this vdc host" },
-      { 0  , "sshport",       true,  "portno;publish ssh access at given port" },
+      { 0  , "noauto",           false, "prevent auto-connection to this vdc host" },
+      { 0  , "noigmphelp",       false, NULL /* FIXME: kept as dummy to avoid breaking manually configured installations */ },
+      { 0  , "nodiscovery",      false, "completely disable discovery (no publishing of services)" },
+      { 0  , "hostname",         true,  "hostname;host name to use to publish this vdc host" },
+      { 0  , "sshport",          true,  "portno;publish ssh access at given port" },
       #endif
-      { 0  , "webuiport",     true,  "portno;publish a Web-UI service at given port" },
-      { 0  , "webuipath",     true,  "path;file path for webui (must start with /, defaults to none)" },
-      { 0  , "novdcapi",      false, "disable vDC API (and advertisement of it)" },
-      { 'C', "vdsmport",      true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
-      { 'i', "vdsmnonlocal",  false, "allow vdSM connections from non-local clients" },
-      { 0  , "maxapiversion", true,  "apiversion;set max API version to support, 0=support all implemented ones" },
-      { 0  , "allowcloud",    false, "allow use of non-explicitly configured/expected cloud services such as N-UPnP" },
-      { 'w', "startupdelay",  true,  "seconds;delay startup" },
-      { 's', "sqlitedir",     true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
-      { 0  , "icondir",       true,  "icon directory;specifiy path to directory containing device icons" },
-      { 0  , "configdir",     true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
+      { 0  , "webuiport",        true,  "portno;publish a Web-UI service at given port" },
+      { 0  , "webuipath",        true,  "path;file path for webui (must start with /, defaults to none)" },
+      { 0  , "novdcapi",         false, "disable vDC API (and advertisement of it)" },
+      { 'C', "vdsmport",         true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
+      { 'i', "vdsmnonlocal",     false, "allow vdSM connections from non-local clients" },
+      { 0  , "maxapiversion",    true,  "apiversion;set max API version to support, 0=support all implemented ones" },
+      { 0  , "allowcloud",       false, "allow use of non-explicitly configured/expected cloud services such as N-UPnP" },
+      { 'w', "startupdelay",     true,  "seconds;delay startup" },
+      { 's', "sqlitedir",        true,  "dirpath;set SQLite DB directory (default = " DEFAULT_DBDIR ")" },
+      { 0  , "icondir",          true,  "icon directory;specifiy path to directory containing device icons" },
+      { 0  , "configdir",        true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
       #if P44SCRIPT_FULL_SUPPORT || EXPRESSION_SCRIPT_SUPPORT
-      { 0  , "initscript",    true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
+      { 0  , "initscript",       true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
       #endif
       #if ENABLE_JSONCFGAPI
-      { 'W', "cfgapiport",    true,  "port;server port number for web configuration JSON API (default=none)" },
-      { 0  , "cfgapinonlocal",false, "allow web configuration JSON API from non-local clients" },
+      { 'W', "cfgapiport",       true,  "port;server port number for web configuration JSON API (default=none)" },
+      { 0  , "cfgapinonlocal",   false, "allow web configuration JSON API from non-local clients" },
       #endif
       #if ENABLE_UBUS
-      { 0  , "ubusapi"       ,false, "enable ubus API" },
+      { 0  , "ubusapi",          false, "enable ubus API" },
       #endif
-      { 0  , "greenled",      true,  "pinspec;set I/O pin connected to green part of status LED" },
-      { 0  , "redled",        true,  "pinspec;set I/O pin connected to red part of status LED" },
-      { 0  , "button",        true,  "pinspec;set I/O pin connected to learn button" },
+      { 0  , "greenled",         true,  "pinspec;set I/O pin connected to green part of status LED" },
+      { 0  , "redled",           true,  "pinspec;set I/O pin connected to red part of status LED" },
+      { 0  , "button",           true,  "pinspec;set I/O pin connected to learn button" },
       #if SELFTESTING_ENABLED
-      { 0,   "selftest",      false, "run in self test mode" },
+      { 0,   "selftest",         false, "run in self test mode" },
       #endif
       DAEMON_APPLICATION_LOGOPTIONS,
-      { 0  , "mainloopstats", true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
+      { 0  , "mainloopstats",    true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
       CMDLINE_APPLICATION_STDOPTIONS,
       CMDLINE_APPLICATION_PATHOPTIONS,
       { 0, NULL } // list terminator
