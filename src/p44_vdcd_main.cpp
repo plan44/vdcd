@@ -1044,15 +1044,20 @@ public:
 
 
 
-
+#ifndef IS_MULTICALL_BINARY_MODULE
 
 int main(int argc, char **argv)
 {
-  // prevent debug output before application.main scans command line
+  // prevent all logging until command line determines level
   SETLOGLEVEL(LOG_EMERG);
   SETERRLEVEL(LOG_EMERG, false); // messages, if any, go to stderr
   // create app with current mainloop
-  static P44Vdcd application;
+  P44Vdcd* application = new(P44Vdcd);
   // pass control
-  return application.main(argc, argv);
+  int status = application->main(argc, argv);
+  // done
+  delete application;
+  return status;
 }
+
+#endif // !IS_MULTICALL_BINARY_MODULE
