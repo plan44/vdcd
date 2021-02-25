@@ -58,7 +58,11 @@ To put all projects into, we create a *ds* subdirectory and set the *$DSROOT* sh
 
 ### install libraries needed for vdcd only
 
-	$SUPER apt-get install libjson-c-dev libsqlite3-dev protobuf-c-compiler libprotobuf-c-dev openssl-dev libboost-dev libi2c-dev libssl-dev libavahi-core-dev libavahi-client-dev
+	$SUPER apt-get install libjson-c-dev libsqlite3-dev protobuf-c-compiler libprotobuf-c-dev libboost-dev libi2c-dev libssl-dev libavahi-core-dev libavahi-client-dev
+
+On older systems you might also need to install openssl-dev (but on recent systems that package is no longer available nor needed, you'll get an error if you try):
+	
+    $SUPER apt-get install openssl-dev
 	
 ### Checkout vdcd sources
 
@@ -133,7 +137,7 @@ For more information about the external devices API, please consult the *plan44 
 
 #### vdc API
 
-See [www.digitalstrom.org/allianz/entwickler/architekturdokumente](https://www.digitalstrom.org/allianz/entwickler/architekturdokumente/) for the detailed vDC API specs.
+See [www.digitalstrom.org/allianz/entwickler/developer-resources/system-apis/](https://www.digitalstrom.org/allianz/entwickler/developer-resources/system-apis/) for the detailed vDC API specs.
 
 Note that while the real vDC API is a protobuf API, the vdcd also exposes the same API as JSON (to be able to create web interfaces like P44-DSB's). For using the same functionality as described in the specs you need to use POST (or direct TCP socket connection) to send a JSON object containing either *method=\<methodname\>* or *notification=\<notificationname\>*, plus any parameter as described in the specs.
 

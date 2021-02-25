@@ -7,7 +7,7 @@ vdcd
 "vdcd" is a free (opensource, GPLv3) virtual device connector (vdc) implementation for digitalSTROM systems.
 A vdc integrates third-party automation hardware as virtual devices into a digitalSTROM system.
 
-This vdcd has ready-to-use implementation for various **EnOcean** devices, **DALI** lamps (single dimmers or **RGB and RGBW** multi-channel **color lights**), Philips **hue LED color lights**,
+This vdcd has ready-to-use implementation for various **EnOcean** devices, **DALI** lamps (single dimmers or **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**,
 **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, experimental **DMX512** support via OLA and console based debugging devices.
 
 In addition to the built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
@@ -42,6 +42,7 @@ Features
 - Implements the complete digitalSTROM vDC API including behaviours for buttons, binary inputs, lights, color lights, sensors, heating valves and shadow blinds.
 - Provides the *vDC API* (which is based on protobuf) also in a JSON version, with additional features which allow building local web interfaces.
 - Provides the *plan44 vdcd external device API* for easily building custom devices as external scripts or programs.
+- Provides extended customisation features by using the *p44script* scripting language
 - Supports EnOcean TCM310 based gateway modules, connected via serial port or network
 - Supports Philips hue lights via the hue bridge and its JSON API
 - Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients and even [*expressive pixels*](https://www.microsoft.com/en-us/research/project/microsoft-expressive-pixels) animations.
@@ -49,7 +50,8 @@ Based on [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics), a graphic
   On Raspberry Pi, just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18 (thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git)).
   On MT7688 systems under OpenWrt, use the [p44-ledchain kernel driver](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain).
 - Allows to use Linux GPIO pins (e.g. on RaspberryPi) as button inputs or on/off outputs
-- Allows to use i2c and spi peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685, MCP23017, MCP23S17) for digital I/O as well as PWM outputs
+- Allows to use Linux PWM output pins as dimmable outputs
+- Allows to use i2c and spi peripherals (supported chips e.g. TCA9555, PCF8574, PCA9685, MCP23017, MCP23S17, LM75, MCP3021, MAX1161x, MCP3008, MCP3002) for digital and analog I/O
 - Implements interface to [Open Lighting Architecture - OLA](http://www.openlighting.org/) to control DMX512 based lights (single channel, RGB, RGBW, RGBWA, moving head)
 
 Getting Started
