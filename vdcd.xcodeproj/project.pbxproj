@@ -124,7 +124,6 @@
 		ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
-		ED9FF52024B93B9F005E3025 /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
 		ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
 		ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 		ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
@@ -163,7 +162,6 @@
 		EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* olavdc.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
-		EDDFE39E22FD6232001F6A5E /* expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4761E78B9D2004D8303 /* expressions.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
 		EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		EDE91E20257C1DE800AFEAE8 /* libcrypto.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */; };
@@ -412,8 +410,6 @@
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = colorlightbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED77A4731E78B9C5004D8303 /* slre.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = slre.c; sourceTree = "<group>"; };
 		ED77A4741E78B9C5004D8303 /* slre.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = slre.h; sourceTree = "<group>"; };
-		ED77A4761E78B9D2004D8303 /* expressions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = expressions.cpp; sourceTree = "<group>"; };
-		ED77A4771E78B9D2004D8303 /* expressions.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = expressions.hpp; sourceTree = "<group>"; };
 		ED77A4781E78B9D2004D8303 /* regexp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = regexp.cpp; sourceTree = "<group>"; };
 		ED77A4791E78B9D2004D8303 /* regexp.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = regexp.hpp; sourceTree = "<group>"; };
 		ED780C711A17CA6600DC3F60 /* movinglightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = movinglightbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -806,8 +802,6 @@
 				ED369997178D5BE300376405 /* digitalio.hpp */,
 				ED026D03171E94D700AD5FD6 /* error.cpp */,
 				ED026D04171E94D700AD5FD6 /* error.hpp */,
-				ED77A4761E78B9D2004D8303 /* expressions.cpp */,
-				ED77A4771E78B9D2004D8303 /* expressions.hpp */,
 				ED08F8F924CEC31A0080DA36 /* p44script.cpp */,
 				ED08F8FA24CEC31A0080DA36 /* p44script.hpp */,
 				EDB5BC1917B50E79004DB38D /* fdcomm.cpp */,
@@ -1251,7 +1245,6 @@
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 				ED3701F82007B46D00A1BD67 /* error.cpp in Sources */,
 				ED9FF50C24B470A4005E3025 /* application.cpp in Sources */,
-				EDDFE39E22FD6232001F6A5E /* expressions.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
 				EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */,
@@ -1406,7 +1399,6 @@
 				ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */,
 				ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */,
 				ED08F8FC24CEC31A0080DA36 /* p44script.cpp in Sources */,
-				ED9FF52024B93B9F005E3025 /* expressions.cpp in Sources */,
 				ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */,
 				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
 				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
@@ -1440,7 +1432,6 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
-					"ENABLE_EXPRESSIONS=1",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -1484,7 +1475,6 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
-					"ENABLE_EXPRESSIONS=1",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

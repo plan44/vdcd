@@ -72,8 +72,6 @@
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
-  #define EXPRESSION_SCRIPT_SUPPORT 0 // disabled because of footprint
-  #define EXPRESSION_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define ENABLE_HTTP_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
@@ -126,13 +124,11 @@
 
 // dependencies
 #if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
-  #if defined(ENABLE_EXPRESSIONS) && !ENABLE_EXPRESSIONS && defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
-    #error "ENABLE_EVALUATORS needs ENABLE_P44SCRIPT or ENABLE_EXPRESSIONS"
+  #if defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
+    #error "ENABLE_EVALUATORS needs ENABLE_P44SCRIPT"
   #endif
   #if !defined(ENABLE_P44SCRIPT)
     #define ENABLE_P44SCRIPT 1
-  #elif !ENABLE_P44SCRIPT && !defined(ENABLE_EXPRESSIONS)
-    #define ENABLE_EXPRESSIONS 1
   #endif
 #endif
 
