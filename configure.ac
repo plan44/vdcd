@@ -26,6 +26,13 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([P44_BUILD_OW], [test "x$enable_p44buildow" = xyes])
 
 AC_ARG_ENABLE(
+  [p44buildrb],
+  [AC_HELP_STRING([--enable-p44buildrb], [plan44 build for Raspbian targets])]
+)
+AM_CONDITIONAL([P44_BUILD_RB], [test "x$enable_p44buildrb" = xyes])
+
+
+AC_ARG_ENABLE(
   [ola],
   [AS_HELP_STRING([--enable-ola], [Enable OLA support (requires libola)])]
 )

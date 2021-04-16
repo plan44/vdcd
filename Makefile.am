@@ -37,8 +37,14 @@ endif
 if P44_BUILD_OW
 vdcd_PLATFORM = -D P44_BUILD_OW=1
 else
-vdcd_PLATFORM =
-endif
+if P44_BUILD_RB
+vdcd_PLATFORM = -D P44_BUILD_RB=1
+else !P44_BUILD_RB
+vdcd_PLATFORM = -D DISABLE_I2C=1
+endif !P44_BUILD_RB
+endif !P44_BUILD_OW
+
+
 
 
 nodist_vdcd_SOURCES = ${PROTOBUF_GENERATED}
