@@ -68,6 +68,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--userlevel 2"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--localcontroller"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -285,7 +289,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
@@ -297,7 +301,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"

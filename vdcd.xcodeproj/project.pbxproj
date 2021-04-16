@@ -131,6 +131,8 @@
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
+		EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
+		EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
@@ -142,7 +144,6 @@
 		EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14122FF6A20008E554D /* imageview.cpp */; };
 		EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A13E22FF6A20008E554D /* viewscroller.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
-		EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */; };
 		EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC142508E6F3007A9B0B /* canvasview.cpp */; };
 		EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC152508E6F3007A9B0B /* epxview.cpp */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
@@ -512,7 +513,6 @@
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = macaddress.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C417F5B85B005B97A0 /* climatecontrolbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = climatecontrolbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_expressions.cpp; sourceTree = "<group>"; };
 		EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = mystromdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -957,7 +957,6 @@
 				EDF7F40F24D4179A00593814 /* httptest.php */,
 				ED6CCD3A1D198ACD00C78A0D /* catch.hpp */,
 				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
-				EDDFE39C22FD6130001F6A5E /* test_expressions.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
@@ -1238,7 +1237,6 @@
 				ED08F8FB24CEC31A0080DA36 /* p44script.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
 				EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */,
-				EDB8C87124CB9155005860CB /* test_expressions.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
@@ -1248,6 +1246,7 @@
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
 				EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */,
+				EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */,
 				ED3701FB2007B4B500A1BD67 /* fdcomm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1403,6 +1402,7 @@
 				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
 				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
 				EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */,
+				EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
