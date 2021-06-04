@@ -195,6 +195,8 @@ vdcd_SOURCES = \
   src/p44utils/consolekey.hpp \
   src/p44utils/digitalio.cpp \
   src/p44utils/digitalio.hpp \
+  src/p44utils/dcmotor.cpp \
+  src/p44utils/dcmotor.hpp \
   src/p44utils/analogio.cpp \
   src/p44utils/analogio.hpp \
   src/p44utils/error.cpp \
@@ -266,6 +268,7 @@ vdcd_SOURCES = \
   src/p44utils/httpcomm.hpp\
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
+  src/p44utils/p44utils_defs.hpp \
   src/p44utils/p44utils_common.hpp \
   src/p44utils/p44utils_minimal.hpp \
   src/p44utils/thirdparty/slre/slre.c \
