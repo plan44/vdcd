@@ -131,6 +131,7 @@
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
+		EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4612681DF9A009CAA1E /* customdevice.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
 		EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
@@ -456,6 +457,8 @@
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
+		EDABE4612681DF9A009CAA1E /* customdevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = customdevice.cpp; sourceTree = "<group>"; };
+		EDABE4622681DF9A009CAA1E /* customdevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = customdevice.hpp; sourceTree = "<group>"; };
 		EDAD084D2665109C00D96174 /* dcmotor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dcmotor.hpp; sourceTree = "<group>"; };
 		EDAD084E2665109C00D96174 /* dcmotor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dcmotor.cpp; sourceTree = "<group>"; };
 		EDAD084F26668D6000D96174 /* p44utils_defs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_defs.hpp; sourceTree = "<group>"; };
@@ -701,7 +704,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
-				ED5DA3E61BB294D7003C86C7 /* external */,
+				ED5DA3E61BB294D7003C86C7 /* custom */,
 				ED5A4D961C8212E600C607D5 /* evaluator */,
 				ED911D251B11D73A00B18624 /* ledchain */,
 				EDDDD54D1A125F8E007D2ABE /* ola */,
@@ -949,13 +952,15 @@
 			path = sqlite3pp;
 			sourceTree = "<group>";
 		};
-		ED5DA3E61BB294D7003C86C7 /* external */ = {
+		ED5DA3E61BB294D7003C86C7 /* custom */ = {
 			isa = PBXGroup;
 			children = (
+				EDABE4612681DF9A009CAA1E /* customdevice.cpp */,
+				EDABE4622681DF9A009CAA1E /* customdevice.hpp */,
 				ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */,
 				ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */,
 			);
-			path = external;
+			path = custom;
 			sourceTree = "<group>";
 		};
 		ED6CCD361D198A9500C78A0D /* tests */ = {
@@ -1367,6 +1372,7 @@
 				ED55760A174CAF8000CCC4DD /* buttonbehaviour.cpp in Sources */,
 				EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */,
 				ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */,
+				EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */,
 				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
