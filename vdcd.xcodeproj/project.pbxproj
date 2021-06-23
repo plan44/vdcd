@@ -132,6 +132,7 @@
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
 		EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4612681DF9A009CAA1E /* customdevice.cpp */; };
+		EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
 		EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
@@ -459,6 +460,8 @@
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
 		EDABE4612681DF9A009CAA1E /* customdevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = customdevice.cpp; sourceTree = "<group>"; };
 		EDABE4622681DF9A009CAA1E /* customdevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = customdevice.hpp; sourceTree = "<group>"; };
+		EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = scriptedvdc.cpp; sourceTree = "<group>"; };
+		EDABE4652681E39E009CAA1E /* scriptedvdc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = scriptedvdc.hpp; sourceTree = "<group>"; };
 		EDAD084D2665109C00D96174 /* dcmotor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dcmotor.hpp; sourceTree = "<group>"; };
 		EDAD084E2665109C00D96174 /* dcmotor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dcmotor.cpp; sourceTree = "<group>"; };
 		EDAD084F26668D6000D96174 /* p44utils_defs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_defs.hpp; sourceTree = "<group>"; };
@@ -959,6 +962,8 @@
 				EDABE4622681DF9A009CAA1E /* customdevice.hpp */,
 				ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */,
 				ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */,
+				EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */,
+				EDABE4652681E39E009CAA1E /* scriptedvdc.hpp */,
 			);
 			path = custom;
 			sourceTree = "<group>";
@@ -1294,6 +1299,7 @@
 				ED95C5992306B97E0029614A /* viewstack.cpp in Sources */,
 				ED026CFF171E8EC200AD5FD6 /* vdc.cpp in Sources */,
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
+				EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED6CCEB12326BE4C006CF9FE /* coloreffectview.cpp in Sources */,
 				ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */,

@@ -158,7 +158,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
   -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
-  -I ${srcdir}/src/p44vdc/deviceclasses/external \
+  -I ${srcdir}/src/p44vdc/deviceclasses/custom \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
@@ -386,8 +386,12 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/simpleio/analogiodevice.hpp \
   src/p44vdc/deviceclasses/simpleio/staticvdc.cpp \
   src/p44vdc/deviceclasses/simpleio/staticvdc.hpp \
-  src/p44vdc/deviceclasses/external/externalvdc.cpp \
-  src/p44vdc/deviceclasses/external/externalvdc.hpp \
+  src/p44vdc/deviceclasses/custom/customdevice.cpp \
+  src/p44vdc/deviceclasses/custom/customdevice.hpp \
+  src/p44vdc/deviceclasses/custom/externalvdc.cpp \
+  src/p44vdc/deviceclasses/custom/externalvdc.hpp \
+  src/p44vdc/deviceclasses/custom/scriptedvdc.cpp \
+  src/p44vdc/deviceclasses/custom/scriptedvdc.hpp \
   src/p44vdc/deviceclasses/evaluator/evaluatorvdc.cpp \
   src/p44vdc/deviceclasses/evaluator/evaluatorvdc.hpp \
   src/p44vdc/deviceclasses/evaluator/evaluatordevice.cpp \

@@ -49,6 +49,9 @@
 #if ENABLE_EXTERNAL
 #include "externalvdc.hpp"
 #endif
+#if ENABLE_SCRIPTED
+#include "scriptedvdc.hpp"
+#endif
 #if ENABLE_EVALUATORS
 #include "evaluatorvdc.hpp"
 #endif
@@ -368,6 +371,9 @@ public:
       #if ENABLE_EXTERNAL
       { 0,   "externaldevices",  true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
+      #endif
+      #if ENABLE_SCRIPTED
+      { 0,   "scripteddevices",  false, "enable support for devices implemented in p44script" },
       #endif
       #if ENABLE_STATIC
       { 0,   "staticdevices",    false, "enable support for statically defined devices" },
@@ -725,6 +731,14 @@ public:
           if (extdevname) {
             ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
             externalVdc->addVdcToVdcHost();
+          }
+          #endif
+
+          #if ENABLE_SCRIPTED
+          // - Add support for scripted devices (p44script implementations of "external" devices)
+          if (getOption("scripteddevices")) {
+            ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, p44VdcHost.get(), 11)); // Tag 11 = scripted
+            scriptedVdc->addVdcToVdcHost();
           }
           #endif
 

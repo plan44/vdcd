@@ -64,8 +64,9 @@
   #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_FCU_SUPPORT 0 // disabled because of footprint
   #define ENABLE_EXTERNAL 0 // disabled because of footprint
-  #define ENABLE_EXTERNAL_SINGLEDEVICE 0 // disabled because of footprint
-  #define ENABLE_EXTERNAL_EXOTIC 0 // disabled because of footprint
+  #define ENABLE_SCRIPTED 0 // disabled because of footprint and lack of scripting in general
+  #define ENABLE_CUSTOM_EXOTIC 0 // disabled because of footprint
+  #define ENABLE_CUSTOM_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LEDCHAIN 0
   #define ENABLE_LOCALCONTROLLER 0 // not supported at all
@@ -97,7 +98,8 @@
   #define ENABLE_STATIC 1
   #define ENABLE_FCU_SUPPORT 1
   #define ENABLE_EXTERNAL 1
-  #define ENABLE_EXTERNAL_SINGLEDEVICE 1
+  #define ENABLE_SCRIPTED 1
+  #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
@@ -117,7 +119,8 @@
   #define ENABLE_STATIC 1
   #define ENABLE_FCU_SUPPORT 0
   #define ENABLE_EXTERNAL 1
-  #define ENABLE_EXTERNAL_SINGLEDEVICE 0
+  #define ENABLE_SCRIPTED 1
+  #define ENABLE_CUSTOM_SINGLEDEVICE 0
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
@@ -133,6 +136,9 @@
   #endif
   #ifndef ENABLE_EXTERNAL
     #define ENABLE_EXTERNAL 1
+  #endif
+  #ifndef ENABLE_SCRIPTED
+    #define ENABLE_SCRIPTED 1
   #endif
   #ifndef ENABLE_EVALUATORS
     #define ENABLE_EVALUATORS 1
