@@ -75,6 +75,19 @@ Getting Started
 
 - consult the */docs* folder: For building the vdcd, see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*. For documentation of the external device API, see the PDF document named *"plan44 vdcd external device API.pdf"*
 
+### Build and run it in a Container
+
+- Clone the github repository
+
+    `git clone https://github.com/plan44/vdcd`
+
+- Build container image
+
+    `docker build -t myimagename .`
+
+- Run vdcd as container
+
+    `docker run --network="host" myimagename vdcd [options]`
 
 Supporting vdcd
 ---------------
