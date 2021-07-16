@@ -1209,7 +1209,7 @@
 		ED6D7BD31716B63A005DED18 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1250;
 				ORGANIZATIONNAME = plan44.ch;
 				TargetAttributes = {
 					ED6CCD421D198FA000C78A0D = {
@@ -1617,6 +1617,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_DALI_INPUTS=1",
@@ -1661,6 +1662,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_DALI_INPUTS=1",
