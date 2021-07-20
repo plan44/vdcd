@@ -85,9 +85,9 @@ Getting Started
 
     `docker build -t myimagename .`
 
-- Run vdcd as container
+- Run vdcd as container, for the autodiscovery to work you have to mount your dbus and avahi-daemon socket into the container
 
-    `docker run --network="host" myimagename vdcd [options]`
+    `docker run --network="host" -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket myimagename vdcd [options]`
 
 Supporting vdcd
 ---------------
