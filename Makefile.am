@@ -153,7 +153,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44lrgraphics \
   -I ${srcdir}/src/p44utils/thirdparty/civetweb \
   -I ${srcdir}/src/p44utils/thirdparty/slre \
-  -I ${srcdir}/src/p44utils/thirdparty \
+  -idirafter ${srcdir}/src/p44utils/thirdparty \
   -I ${srcdir}/src/p44vdc/pbuf/gen \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
