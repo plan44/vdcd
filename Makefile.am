@@ -115,6 +115,29 @@ UBUS_FLAGS = -D ENABLE_UBUS=0
 endif
 
 
+# websocket support via libuwsc
+if ENABLE_UWSC
+
+UWSC_SOURCES = \
+  src/p44utils/websocket.cpp \
+  src/p44utils/websocket.hpp
+UWSC_FLAGS = -D ENABLE_UWSC=1
+
+else
+
+UWSC_FLAGS = -D ENABLE_UWSC=0
+
+endif
+
+
+# libev based mainloop
+if ENABLE_EV
+
+EV_FLAGS = -D MAINLOOP_LIBEV_BASED=1
+
+endif
+
+
 # PNG support via libpng
 if ENABLE_PNG
 
@@ -143,7 +166,20 @@ endif
 
 
 # Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
-vdcd_LDADD = ${PTHREAD_CFLAGS} ${PTHREAD_LIBS} ${JSONC_LIBS} ${SQLITE3_LIBS} ${PROTOBUFC_LIBS} ${AVAHI_LIBS} ${OLA_LIBS} ${PNG_LIBS} ${UBUS_LIBS} ${RPIWS281X_LIBS} ${RRDB_LIBS}
+vdcd_LDADD = \
+  ${PTHREAD_CFLAGS} \
+  ${PTHREAD_LIBS} \
+  ${JSONC_LIBS} \
+  ${SQLITE3_LIBS} \
+  ${PROTOBUFC_LIBS} \
+  ${AVAHI_LIBS} \
+  ${OLA_LIBS} \
+  ${PNG_LIBS} \
+  ${UBUS_LIBS} \
+  ${EV_LIBS} \
+  ${UWSC_LIBS} \
+  ${RPIWS281X_LIBS} \
+  ${RRDB_LIBS}
 vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
 
 
@@ -171,6 +207,8 @@ vdcd_CPPFLAGS = \
   ${OLA_FLAGS} \
   ${PNG_FLAGS} \
   ${UBUS_FLAGS} \
+  ${EV_FLAGS} \
+  ${UWSC_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
@@ -187,6 +225,7 @@ vdcd_SOURCES = \
   ${RPIWS281X_SOURCES} \
   ${OLA_SOURCES} \
   ${UBUS_SOURCES} \
+  ${UWSC_SOURCES} \
   src/p44utils/p44obj.cpp \
   src/p44utils/p44obj.hpp \
   src/p44utils/application.cpp \

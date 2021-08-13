@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.6.0.4], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.6.0.5], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -62,6 +62,18 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL([ENABLE_RRDB], [test "x$enable_rrdb" = xyes])
 
+AC_ARG_ENABLE(
+  [uwsc],
+  [AS_HELP_STRING([--enable-uwsc], [Enable libuwsc usage for websockets])]
+)
+AM_CONDITIONAL([ENABLE_UWSC], [test "x$enable_uwsc" = xyes])
+
+AC_ARG_ENABLE(
+  [ev],
+  [AS_HELP_STRING([--enable-ev], [Enable libev usage for mainloop])]
+)
+AM_CONDITIONAL([ENABLE_EV], [test "x$enable_ev" = xyes])
+
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
@@ -82,6 +94,13 @@ AM_COND_IF([ENABLE_RRDB], [
   AC_CHECK_LIB(rrd, rrd_create, [], [AC_MSG_ERROR([Could not find librrd with rrd_create])])
 ], [])
 
+AM_COND_IF([ENABLE_UWSC], [
+  AC_CHECK_LIB(uwsc, uwsc_init, [], [AC_MSG_ERROR([Could not find libuwsc with uwsc_init])])
+], [])
+
+AM_COND_IF([ENABLE_EV], [
+  AC_CHECK_LIB(ev, ev_time, [], [AC_MSG_ERROR([Could not find libuwsc with ev_time])])
+], [])
 
 
 AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
@@ -89,6 +108,7 @@ AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl 
 AC_CHECK_LIB(crypto, SHA1_Init, [], [AC_MSG_ERROR([Could not find libcrypto with SHA1_Init])])
 AC_CHECK_LIB(sqlite3, sqlite3_open, [], [AC_MSG_ERROR([Could not find sqlite3 with sqlite3_open])])
 AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_MSG_ERROR([Could not find libprotobuf-c with protobuf_c_enum_descriptor_get_value_by_name])])
+
 
 PKG_PROG_PKG_CONFIG
 

@@ -228,19 +228,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:791:0:113:0:7:A --ledchainmax 255"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:791:0:113:0:7:A --ledchainmax 255"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:1200:0:300:0:4"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:1200:0:300:0:4"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:1680:0:112:0:15:X"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:1680:0:112:0:15:X"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain WS2812:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0  --ledchainmax 255"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0  --ledchainmax 255"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

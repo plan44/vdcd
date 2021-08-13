@@ -45,6 +45,7 @@
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
+  #define ENABLE_UWSC 1
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
 #endif
 
@@ -77,6 +78,7 @@
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define ENABLE_HTTP_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_WEBSOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANIMATOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_DIGITALIO_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANALOGIO_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
