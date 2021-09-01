@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.6.0.6], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.6.0.7], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -73,6 +73,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-ev], [Enable libev usage for mainloop])]
 )
 AM_CONDITIONAL([ENABLE_EV], [test "x$enable_ev" = xyes])
+
+AC_ARG_ENABLE(
+  [p44features],
+  [AS_HELP_STRING([--enable-p44features], [Enable p44features special purpose hardware support])]
+)
+AM_CONDITIONAL([ENABLE_P44FEATURES], [test "x$enable_p44features" = xyes])
 
 
 

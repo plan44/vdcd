@@ -6,6 +6,9 @@
 #define __p44utils__config__
 
 #include "p44vdc_config.hpp" // include vdcd specific settings that might also influence p44utils
+#if ENABLE_P44FEATURES
+  #include "p44features_config.hpp" // include p44features specific settings that might also influence p44utils
+#endif
 
 #ifndef ENABLE_NAMED_ERRORS
   #define ENABLE_NAMED_ERRORS P44_CPP17_FEATURE // Enable if compiler can do C++17

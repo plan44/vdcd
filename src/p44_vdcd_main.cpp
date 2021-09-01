@@ -55,6 +55,9 @@
 #if ENABLE_EVALUATORS
 #include "evaluatorvdc.hpp"
 #endif
+#if ENABLE_P44FEATURES
+#include "featureapi.hpp"
+#endif
 
 #if ENABLE_OLA
 #include "olavdc.hpp"
@@ -62,7 +65,9 @@
 #if ENABLE_LEDCHAIN
 #include "ledchainvdc.hpp"
 #endif
-
+#if ENABLE_P44FEATURES
+#include "featureapi.hpp"
+#endif
 
 #if !DISABLE_DISCOVERY
 #include "discovery.hpp"
@@ -358,6 +363,7 @@ public:
       #endif
       #if ENABLE_LEDCHAIN
       CMDLINE_LEDCHAIN_OPTIONS,
+      { 0,   "noledchaindevices",false, "no chain light devices, --ledchain is reserved for programmatic use only" },
       #endif
       #if ENABLE_EVALUATORS
       { 0,   "evaluators",       false, "enable sensor value evaluator devices" },
@@ -433,6 +439,9 @@ public:
       #endif
       #if ENABLE_UBUS
       { 0  , "ubusapi",          false, "enable ubus API" },
+      #endif
+      #if ENABLE_P44FEATURES
+      P44FEATURE_CMDLINE_OPTIONS,
       #endif
       { 0  , "greenled",         true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",           true,  "pinspec;set I/O pin connected to red part of status LED" },
@@ -628,6 +637,11 @@ public:
           }
           #endif
 
+          #if ENABLE_P44FEATURES
+          // - instantiate (hardware) features we might need already for scripted devices
+          FeatureApi::addFeaturesFromCommandLine(ledChainArrangement);
+          #endif
+
           // Create class containers
 
           // - first, prepare (make sure dSUID is available)
@@ -699,8 +713,8 @@ public:
           #endif
 
           #if ENABLE_LEDCHAIN
-          // - Add Led chain support
-          if (ledChainArrangement) {
+          // - Add Led chain light device support
+          if (ledChainArrangement && !getOption("noledchaindevices")) {
             LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainArrangement, p44VdcHost.get(), 6)); // Tag 6 = led chain
             // led chain arrangement options
             ledChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS

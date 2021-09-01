@@ -8,3 +8,7 @@
 	path = src/p44lrgraphics
 	url = ../p44lrgraphics.git
 	branch = luz
+[submodule "src/p44features"]
+	path = src/p44features
+	url = ../p44features.git
+	branch = master

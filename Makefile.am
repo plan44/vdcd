@@ -163,6 +163,47 @@ RRDB_FLAGS = -D ENABLE_RRDB=0
 
 endif
 
+# p44features special purpose hardware support
+if ENABLE_P44FEATURES
+
+P44FEATURES_SOURCES = \
+  src/p44features/dispmatrix.cpp \
+  src/p44features/dispmatrix.hpp \
+  src/p44features/feature.cpp \
+  src/p44features/feature.hpp \
+  src/p44features/featureapi.cpp \
+  src/p44features/featureapi.hpp \
+  src/p44features/hermel.cpp \
+  src/p44features/hermel.hpp \
+  src/p44features/indicators.cpp \
+  src/p44features/indicators.hpp \
+  src/p44features/inputs.cpp \
+  src/p44features/inputs.hpp \
+  src/p44features/light.cpp \
+  src/p44features/light.hpp \
+  src/p44features/mixloop.cpp \
+  src/p44features/mixloop.hpp \
+  src/p44features/neuron.cpp \
+  src/p44features/neuron.hpp \
+  src/p44features/p44features_common.hpp \
+  src/p44features/rfids.cpp \
+  src/p44features/rfids.hpp \
+  src/p44features/splitflaps.cpp \
+  src/p44features/splitflaps.hpp \
+  src/p44features/wifitrack.cpp \
+  src/p44features/wifitrack.hpp \
+  src/p44utils/rfid.cpp \
+  src/p44utils/rfid.hpp
+P44FEATURES_FLAGS = \
+  -D ENABLE_P44FEATURES=1 \
+  -I ${srcdir}/src/p44features
+
+else
+
+P44FEATURES_FLAGS = -D ENABLE_P44FEATURES=0
+
+endif
+
 
 
 # Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
@@ -203,6 +244,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
   ${RRDB_FLAGS} \
+  ${P44FEATURES_FLAGS} \
   ${RPIWS281X_FLAGS} \
   ${OLA_FLAGS} \
   ${PNG_FLAGS} \
@@ -222,6 +264,7 @@ vdcd_CPPFLAGS = \
 
 
 vdcd_SOURCES = \
+  ${P44FEATURES_SOURCES} \
   ${RPIWS281X_SOURCES} \
   ${OLA_SOURCES} \
   ${UBUS_SOURCES} \

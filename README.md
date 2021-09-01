@@ -6,9 +6,12 @@ vdcd
 
 "vdcd" is a free (opensource, GPLv3) virtual device connector (vdc) implementation for digitalSTROM systems.
 A vdc integrates third-party automation hardware as virtual devices into a digitalSTROM system.
+Optionally, it can also run as a standalone home automation controller (see _--localcontroller_ option).
 
 This vdcd has ready-to-use implementation for various **EnOcean** devices, **DALI** lamps (single dimmers or **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**,
 **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, experimental **DMX512** support via OLA and console based debugging devices.
+
+When vdcd is built with *p44script* enabled, **custom devices** can be implemented as **simple scripts**. The p44script language has support for http and websocket APIs, and can make use of the [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics) subsystem to create complex LED matrix effects.
 
 In addition to the built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
 
@@ -18,7 +21,7 @@ vdcd however is not limited to the set of features listed above - it is based on
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
-vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils), which provides basic mechanisms for mainloop-based, nonblocking I/O driven automation daemons, as well as a script language, **p44script**. p44utils is also included as a submodule into this project.
+vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils**](https://github.com/plan44/p44utils), which provides basic mechanisms for mainloop-based, nonblocking I/O driven automation daemons, as well as a script language, [**p44script**](https://plan44.ch/p44-techdocs/en/#topics). p44utils is also included as a submodule into this project.
 
 
 If you like this project you might want to...
@@ -43,6 +46,7 @@ Features
 - Provides the *vDC API* (which is based on protobuf) also in a JSON version, with additional features which allow building local web interfaces.
 - Provides the *plan44 vdcd external device API* for easily building custom devices as external scripts or programs.
 - Provides extended customisation features by using the *p44script* scripting language
+- Allows implementing fully dS compliant devices of all kinds completely in *p44script* without any external code needed.
 - Supports EnOcean TCM310 based gateway modules, connected via serial port or network
 - Supports Philips hue lights via the hue bridge and its JSON API
 - Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients and even [*expressive pixels*](https://www.microsoft.com/en-us/research/project/microsoft-expressive-pixels) animations.
@@ -59,7 +63,7 @@ Getting Started
 
 ### To try it out
 
-- plan44.ch provides a RaspberryPi image named P44-DSB-X which contains a complete OpenWrt ready to run first experiments with virtual devices (for example driving GPIO pins of the Raspberry). You can download it from [https://plan44.ch/automation/p44-dsb-x.php](https://plan44.ch/automation/p44-dsb-x.php), copy it to a SD Card and use it with a RPi B, B+ or 2.
+- plan44.ch provides a RaspberryPi image named P44-DSB-X which contains a complete OpenWrt ready to run first experiments with virtual devices (for example driving GPIO pins of the Raspberry). You can download it from [https://plan44.ch/automation/p44-dsb-x.php](https://plan44.ch/automation/p44-dsb-x.php), copy it to a SD Card and use it with a RPi B, B+, 2,3 and 4.
 
 ### To build it or use the external devices API
 
@@ -96,9 +100,9 @@ Supporting vdcd
 2. support development via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
 3. contribute patches, report issues and suggest new functionality
 4. build cool new device integrations and contribute those
-5. Buy plan44.ch products - sales revenue is paying the time for contributing to opensource projects :-)
+5. Buy plan44.ch [products](https://plan44.ch/automation/products.php) - sales revenue is paying the time for contributing to opensource projects :-)
 
-*(c) 2013-2020 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
+*(c) 2013-2021 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 
