@@ -169,6 +169,8 @@
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
 		EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85B171FFAF5001D35F3 /* dsuid.cpp */; };
 		EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
+		EDD10D7826EFAA2900BEADB5 /* test_valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD10D7726EFAA2900BEADB5 /* test_valueunits.cpp */; };
+		EDD10D7926EFB09D00BEADB5 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		EDD304341D09C10E0005E6D9 /* spi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD304321D09C10E0005E6D9 /* spi.cpp */; };
 		EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166A177EDC0800F27115 /* consoledevice.cpp */; };
 		EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */; };
@@ -578,6 +580,7 @@
 		EDCFE85F17203E47001D35F3 /* fnv.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = fnv.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE865172126B4001D35F3 /* xcode_docset_doxygen.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; lineEnding = 0; path = xcode_docset_doxygen.sh; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.sh; };
 		EDCFE86617212BA9001D35F3 /* doxygen.config */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = doxygen.config; sourceTree = "<group>"; };
+		EDD10D7726EFAA2900BEADB5 /* test_valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_valueunits.cpp; sourceTree = "<group>"; };
 		EDD304321D09C10E0005E6D9 /* spi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = spi.cpp; sourceTree = "<group>"; };
 		EDD304331D09C10E0005E6D9 /* spi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = spi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ventilationbehaviour.cpp; sourceTree = "<group>"; };
@@ -1091,6 +1094,7 @@
 				ED08F8FD24CEC32F0080DA36 /* test_p44script.cpp */,
 				EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
+				EDD10D7726EFAA2900BEADB5 /* test_valueunits.cpp */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -1494,12 +1498,14 @@
 				ED08F8FE24CEC32F0080DA36 /* test_p44script.cpp in Sources */,
 				ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */,
 				ED3701FA2007B47700A1BD67 /* mainloop.cpp in Sources */,
+				EDD10D7826EFAA2900BEADB5 /* test_valueunits.cpp in Sources */,
 				ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */,
 				ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */,
 				EDD9902226C51F7D009F3103 /* ssl.c in Sources */,
 				EDD98FF426C51CF3009F3103 /* websocket.cpp in Sources */,
 				ED08F8FB24CEC31A0080DA36 /* p44script.cpp in Sources */,
 				EDD9903126C51F7D009F3103 /* uwsc.c in Sources */,
+				EDD10D7926EFB09D00BEADB5 /* valueunits.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
 				EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
