@@ -100,7 +100,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[scripting]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[utils]"
@@ -116,7 +116,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[valueunits]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-?"
