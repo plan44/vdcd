@@ -140,16 +140,32 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
+            argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data/Freitag"
+            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-freitag"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Desktop"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
@@ -158,10 +174,6 @@
          <CommandLineArgument
             argument = "--resourcepath /Users/luz/Desktop"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--datapath /Users/luz/Desktop"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt/feeds/p44i/p44lc-config/files/resources"
@@ -240,7 +252,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:791:0:113:0:7:A --ledchainmax 255"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:791:0:17:0:7:A --ledchainmax 255"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
