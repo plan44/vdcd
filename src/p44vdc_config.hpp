@@ -45,6 +45,7 @@
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
+  #define ENABLE_MODBUS 0 // FIXME: add when ready
   #define ENABLE_UWSC 1
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
 #endif
@@ -72,6 +73,7 @@
   #define ENABLE_LEDCHAIN 0
   #define ENABLE_LOCALCONTROLLER 0 // not supported at all
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
+  #define ENABLE_MODBUS 0 // not needed
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
@@ -126,6 +128,7 @@
   #define ENABLE_CUSTOM_SINGLEDEVICE 0
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
+  #define ENABLE_MODBUS 0 // FIXME: add when ready
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well

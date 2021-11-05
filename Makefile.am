@@ -99,6 +99,46 @@ OLA_FLAGS = -D ENABLE_OLA=0
 
 endif
 
+# ubus support via libubus
+if ENABLE_MODBUS
+
+MODBUSSUPP_SOURCES = \
+  src/p44utils/modbus.cpp \
+  src/p44utils/modbus.hpp
+MODBUSSUPP_FLAGS = -D ENABLE_MODBUS=1
+
+else
+
+MODBUSSUPP_FLAGS = -D ENABLE_MODBUS=0
+
+endif
+
+
+# embedded libmodbus
+if EMBEDDED_LIBMODBUS
+
+LIBMODBUS_SOURCES = \
+  src/p44utils/thirdparty/libmodbus/src/modbus-data.c \
+  src/p44utils/thirdparty/libmodbus/src/modbus-private.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus-rtu-private.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus-rtu.c \
+  src/p44utils/thirdparty/libmodbus/src/modbus-rtu.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus-tcp-private.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus-tcp.c \
+  src/p44utils/thirdparty/libmodbus/src/modbus-tcp.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus-version.h \
+  src/p44utils/thirdparty/libmodbus/src/modbus.c \
+  src/p44utils/thirdparty/libmodbus/src/modbus.h
+
+LIBMODBUS_CFLAGS = -I ${srcdir}/src/p44utils/thirdparty/libmodbus/src -D EMBEDDED_LIBMODBUS=1
+
+else
+
+LIBMODBUS_CFLAGS = ${MODBUS_CFLAGS}
+LIBMODBUS_LIBS = ${MODBUS_LIBS}
+
+endif
+
 
 # ubus support via libubus
 if ENABLE_UBUS
@@ -217,6 +257,7 @@ vdcd_LDADD = \
   ${OLA_LIBS} \
   ${PNG_LIBS} \
   ${UBUS_LIBS} \
+  ${LIBMODBUS_LIBS} \
   ${EV_LIBS} \
   ${UWSC_LIBS} \
   ${RPIWS281X_LIBS} \
@@ -249,12 +290,14 @@ vdcd_CPPFLAGS = \
   ${OLA_FLAGS} \
   ${PNG_FLAGS} \
   ${UBUS_FLAGS} \
+  ${MODBUSSUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
   ${PNG_CFLAGS} \
+  ${LIBMODBUS_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \
   ${AVAHI_CFLAGS} \
@@ -268,7 +311,9 @@ vdcd_SOURCES = \
   ${RPIWS281X_SOURCES} \
   ${OLA_SOURCES} \
   ${UBUS_SOURCES} \
+  ${LIBMODBUS_SOURCES} \
   ${UWSC_SOURCES} \
+  ${MODBUSSUPP_SOURCES} \
   src/p44utils/analogio.cpp \
   src/p44utils/analogio.hpp \
   src/p44utils/application.cpp \
@@ -277,6 +322,8 @@ vdcd_SOURCES = \
   src/p44utils/colorutils.hpp \
   src/p44utils/consolekey.cpp \
   src/p44utils/consolekey.hpp \
+  src/p44utils/crc32.cpp \
+  src/p44utils/crc32.hpp \
   src/p44utils/dcmotor.cpp \
   src/p44utils/dcmotor.hpp \
   src/p44utils/digitalio.cpp \

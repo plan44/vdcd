@@ -48,6 +48,22 @@
 		ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
+		ED3EF3CC2735AB0B004DFF99 /* modbus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF3CB2735AB0B004DFF99 /* modbus.cpp */; };
+		ED3EF45A2735ADE9004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
+		ED3EF45B2735ADE9004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
+		ED3EF45C2735ADE9004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
+		ED3EF45D2735ADE9004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
+		ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
+		ED3EF45F2735AE2D004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
+		ED3EF4602735AE31004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
+		ED3EF4612735AE31004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
+		ED3EF4622735AE35004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
+		ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
+		ED3EF4642735AE3A004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
+		ED3EF4652735AE3B004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
+		ED3EF4682736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
+		ED3EF4692736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
+		ED3EF46A2736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
 		ED4AEF832667CC76002DFBF2 /* dcmotor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAD084E2665109C00D96174 /* dcmotor.cpp */; };
@@ -348,6 +364,22 @@
 		ED3BDFE524547DEA00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE624547E0300115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE724547E2F00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
+		ED3EF3CA2735AB0B004DFF99 /* modbus.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = modbus.hpp; sourceTree = "<group>"; };
+		ED3EF3CB2735AB0B004DFF99 /* modbus.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = modbus.cpp; sourceTree = "<group>"; };
+		ED3EF44D2735ADE8004DFF99 /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = config.h; path = src/config.h; sourceTree = "<group>"; };
+		ED3EF44E2735ADE8004DFF99 /* modbus-version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-version.h"; path = "src/modbus-version.h"; sourceTree = "<group>"; };
+		ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "modbus-tcp.c"; path = "src/modbus-tcp.c"; sourceTree = "<group>"; };
+		ED3EF4502735ADE8004DFF99 /* modbus-tcp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-tcp.h"; path = "src/modbus-tcp.h"; sourceTree = "<group>"; };
+		ED3EF4512735ADE8004DFF99 /* modbus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = modbus.h; path = src/modbus.h; sourceTree = "<group>"; };
+		ED3EF4522735ADE8004DFF99 /* modbus-tcp-private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-tcp-private.h"; path = "src/modbus-tcp-private.h"; sourceTree = "<group>"; };
+		ED3EF4532735ADE8004DFF99 /* modbus-data.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "modbus-data.c"; path = "src/modbus-data.c"; sourceTree = "<group>"; };
+		ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = "modbus-rtu.c"; path = "src/modbus-rtu.c"; sourceTree = "<group>"; };
+		ED3EF4552735ADE8004DFF99 /* modbus-rtu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-rtu.h"; path = "src/modbus-rtu.h"; sourceTree = "<group>"; };
+		ED3EF4572735ADE8004DFF99 /* modbus-rtu-private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-rtu-private.h"; path = "src/modbus-rtu-private.h"; sourceTree = "<group>"; };
+		ED3EF4582735ADE8004DFF99 /* modbus.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = modbus.c; path = src/modbus.c; sourceTree = "<group>"; };
+		ED3EF4592735ADE9004DFF99 /* modbus-private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-private.h"; path = "src/modbus-private.h"; sourceTree = "<group>"; };
+		ED3EF4662736BF0B004DFF99 /* crc32.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = crc32.hpp; sourceTree = "<group>"; };
+		ED3EF4672736BF0B004DFF99 /* crc32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crc32.cpp; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
 		ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = valuedescriptor.cpp; sourceTree = "<group>"; };
@@ -561,7 +593,7 @@
 		EDBCAC152508E6F3007A9B0B /* epxview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = epxview.cpp; sourceTree = "<group>"; };
 		EDBCAC162508E6F3007A9B0B /* canvasview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = canvasview.hpp; sourceTree = "<group>"; };
 		EDBCAC172508E6F3007A9B0B /* epxview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = epxview.hpp; sourceTree = "<group>"; };
-		EDBCDBF31F3E383700DA85CF /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		EDBCDBF31F3E383700DA85CF /* Makefile.am */ = {isa = PBXFileReference; explicitFileType = sourcecode.make; path = Makefile.am; sourceTree = "<group>"; };
 		EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dsbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDBFB91B17C392C600A38659 /* dsbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dsbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166A177EDC0800F27115 /* consoledevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = consoledevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -773,6 +805,7 @@
 		ED312687183121FF00FAF28B /* thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				ED3EF3CD2735AD64004DFF99 /* libmodbus */,
 				EDD9904826C530C2009F3103 /* compat_glue */,
 				EDD98FF626C51F7D009F3103 /* uwsc */,
 				ED77A4701E78B9A6004D8303 /* slre */,
@@ -917,6 +950,8 @@
 				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
 				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
 				EDC1166D177EDDDF00F27115 /* consolekey.hpp */,
+				ED3EF4672736BF0B004DFF99 /* crc32.cpp */,
+				ED3EF4662736BF0B004DFF99 /* crc32.hpp */,
 				EDAD084E2665109C00D96174 /* dcmotor.cpp */,
 				EDAD084D2665109C00D96174 /* dcmotor.hpp */,
 				ED369996178D5BD600376405 /* digitalio.cpp */,
@@ -955,6 +990,8 @@
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED74563E1731B813001C9565 /* mainloop.cpp */,
 				ED74563F1731B813001C9565 /* mainloop.hpp */,
+				ED3EF3CB2735AB0B004DFF99 /* modbus.cpp */,
+				ED3EF3CA2735AB0B004DFF99 /* modbus.hpp */,
 				EDB284421732965700EAE5DE /* operationqueue.cpp */,
 				EDB284431732965700EAE5DE /* operationqueue.hpp */,
 				ED81337717C6C765003982CC /* p44obj.cpp */,
@@ -1008,6 +1045,25 @@
 				ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		ED3EF3CD2735AD64004DFF99 /* libmodbus */ = {
+			isa = PBXGroup;
+			children = (
+				ED3EF44D2735ADE8004DFF99 /* config.h */,
+				ED3EF4532735ADE8004DFF99 /* modbus-data.c */,
+				ED3EF4592735ADE9004DFF99 /* modbus-private.h */,
+				ED3EF4572735ADE8004DFF99 /* modbus-rtu-private.h */,
+				ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */,
+				ED3EF4552735ADE8004DFF99 /* modbus-rtu.h */,
+				ED3EF4522735ADE8004DFF99 /* modbus-tcp-private.h */,
+				ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */,
+				ED3EF4502735ADE8004DFF99 /* modbus-tcp.h */,
+				ED3EF44E2735ADE8004DFF99 /* modbus-version.h */,
+				ED3EF4582735ADE8004DFF99 /* modbus.c */,
+				ED3EF4512735ADE8004DFF99 /* modbus.h */,
+			);
+			path = libmodbus;
 			sourceTree = "<group>";
 		};
 		ED57A13822FF6A20008E554D /* p44lrgraphics */ = {
@@ -1504,9 +1560,11 @@
 				EDD9902226C51F7D009F3103 /* ssl.c in Sources */,
 				EDD98FF426C51CF3009F3103 /* websocket.cpp in Sources */,
 				ED08F8FB24CEC31A0080DA36 /* p44script.cpp in Sources */,
+				ED3EF4692736BF0B004DFF99 /* crc32.cpp in Sources */,
 				EDD9903126C51F7D009F3103 /* uwsc.c in Sources */,
 				EDD10D7926EFB09D00BEADB5 /* valueunits.cpp in Sources */,
 				EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */,
+				ED3EF4602735AE31004DFF99 /* modbus-rtu.c in Sources */,
 				EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
@@ -1517,7 +1575,10 @@
 				ED9FF50C24B470A4005E3025 /* application.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				EDD9904026C51F7D009F3103 /* buffer.c in Sources */,
+				ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */,
+				ED3EF4622735AE35004DFF99 /* modbus-tcp.c in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
+				ED3EF4642735AE3A004DFF99 /* modbus.c in Sources */,
 				EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */,
 				EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */,
 				ED3701FB2007B4B500A1BD67 /* fdcomm.cpp in Sources */,
@@ -1532,6 +1593,7 @@
 				ED81337917C6C765003982CC /* p44obj.cpp in Sources */,
 				ED9EF78126DFCB5C00C2F3D7 /* rfid.cpp in Sources */,
 				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
+				ED3EF45D2735ADE9004DFF99 /* modbus.c in Sources */,
 				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
 				ED77A4751E78B9C5004D8303 /* slre.c in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
@@ -1560,6 +1622,7 @@
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				ED9EF77626DFA2F400C2F3D7 /* rfids.cpp in Sources */,
 				EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */,
+				ED3EF45B2735ADE9004DFF99 /* modbus-data.c in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED9EF77726DFA2F400C2F3D7 /* indicators.cpp in Sources */,
 				ED6CCEB12326BE4C006CF9FE /* coloreffectview.cpp in Sources */,
@@ -1600,6 +1663,7 @@
 				EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */,
 				ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */,
 				ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */,
+				ED3EF4682736BF0B004DFF99 /* crc32.cpp in Sources */,
 				EDD9903026C51F7D009F3103 /* uwsc.c in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */,
@@ -1609,6 +1673,7 @@
 				ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */,
 				ED9EF77826DFA2F400C2F3D7 /* inputs.cpp in Sources */,
 				ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */,
+				ED3EF45A2735ADE9004DFF99 /* modbus-tcp.c in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
@@ -1646,6 +1711,7 @@
 				EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */,
 				ED5B293B1749446400334C71 /* lightbehaviour.cpp in Sources */,
 				EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */,
+				ED3EF45C2735ADE9004DFF99 /* modbus-rtu.c in Sources */,
 				ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */,
 				EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */,
 				ED9EF77926DFA2F400C2F3D7 /* mixloop.cpp in Sources */,
@@ -1656,6 +1722,7 @@
 				ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */,
 				EDD98FF326C51CF3009F3103 /* websocket.cpp in Sources */,
 				EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */,
+				ED3EF3CC2735AB0B004DFF99 /* modbus.cpp in Sources */,
 				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
@@ -1688,13 +1755,16 @@
 				EDD9902026C51F7D009F3103 /* log.c in Sources */,
 				EDD9902326C51F7D009F3103 /* ssl.c in Sources */,
 				EDD9903B26C51F7D009F3103 /* utils.c in Sources */,
+				ED3EF4652735AE3B004DFF99 /* modbus.c in Sources */,
 				EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */,
 				EDD9903526C51F7D009F3103 /* sha1.c in Sources */,
 				EDD9904126C51F7D009F3103 /* buffer.c in Sources */,
+				ED3EF45F2735AE2D004DFF99 /* modbus-data.c in Sources */,
 				ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */,
 				ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */,
 				EDD9903226C51F7D009F3103 /* uwsc.c in Sources */,
 				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
+				ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */,
 				ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */,
 				ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */,
 				ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */,
@@ -1703,7 +1773,9 @@
 				ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */,
 				ED08F8FC24CEC31A0080DA36 /* p44script.cpp in Sources */,
 				ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */,
+				ED3EF4612735AE31004DFF99 /* modbus-rtu.c in Sources */,
 				EDD9905326C530C2009F3103 /* socket.c in Sources */,
+				ED3EF46A2736BF0B004DFF99 /* crc32.cpp in Sources */,
 				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
 				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
 				EDD98FF526C51CF3009F3103 /* websocket.cpp in Sources */,

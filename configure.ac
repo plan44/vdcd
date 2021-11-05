@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.6.1.2], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.6.2.0], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -80,6 +80,17 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL([ENABLE_P44FEATURES], [test "x$enable_p44features" = xyes])
 
+AC_ARG_ENABLE(
+  [modbus],
+  [AS_HELP_STRING([--enable-modbus], [Enable modbus support])]
+)
+AM_CONDITIONAL([ENABLE_MODBUS], [test "x$enable_modbus" = xyes])
+
+AC_ARG_ENABLE(
+  [embeddedlibmodbus],
+  [AS_HELP_STRING([--enable-embeddedlibmodbus], [Enable embedded libmodbus (instead of using standard package)])]
+)
+AM_CONDITIONAL([EMBEDDED_LIBMODBUS], [test "x$enable_embeddedlibmodbus" = xyes])
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
@@ -108,6 +119,11 @@ AM_COND_IF([ENABLE_EV], [
   AC_CHECK_LIB(ev, ev_time, [], [AC_MSG_ERROR([Could not find libuwsc with ev_time])])
 ], [])
 
+AM_COND_IF([ENABLE_MODBUS], [
+  AM_COND_IF([EMBEDDED_LIBMODBUS], [], [
+    AC_CHECK_LIB(modbus, modbus_rtu_set_custom_rts_ex, [], [AC_MSG_ERROR([Could not find libmodbus with modbus_rtu_set_custom_rts_ex - plan44 enhanced version!])])
+  ])
+], [])
 
 AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
 AC_CHECK_LIB(ssl, TLSv1_client_method, [], [AC_MSG_ERROR([Could not find libssl with TLSv1_client_method])])
