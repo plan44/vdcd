@@ -849,15 +849,15 @@
 			isa = PBXGroup;
 			children = (
 				ED5DA3E61BB294D7003C86C7 /* custom */,
+				ED31268B183122C800FAF28B /* dali */,
+				ED0441171D755FE000AAB662 /* eldat */,
+				ED31268C183122D600FAF28B /* enocean */,
 				ED5A4D961C8212E600C607D5 /* evaluator */,
+				ED31268D183122E900FAF28B /* hue */,
 				ED911D251B11D73A00B18624 /* ledchain */,
 				EDDDD54D1A125F8E007D2ABE /* ola */,
 				ED31268E183122F600FAF28B /* simpleio */,
-				ED31268D183122E900FAF28B /* hue */,
-				ED31268C183122D600FAF28B /* enocean */,
-				ED0441171D755FE000AAB662 /* eldat */,
 				EDF032EF1E3903180011D79E /* zf */,
-				ED31268B183122C800FAF28B /* dali */,
 			);
 			path = deviceclasses;
 			sourceTree = "<group>";
