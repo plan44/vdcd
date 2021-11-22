@@ -48,6 +48,7 @@
   #define ENABLE_MODBUS 0 // FIXME: add when ready
   #define ENABLE_UWSC 1
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
+  #define HAVE_JSONC_VERSION_013 1 // unlike in many linux distros, brew had json-c >=0.13 for a while (2021: 0.15)
 #endif
 
 // general defaults

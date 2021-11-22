@@ -134,9 +134,13 @@ AC_CHECK_LIB(protobuf-c, protobuf_c_enum_descriptor_get_value_by_name, [], [AC_M
 
 PKG_PROG_PKG_CONFIG
 
-PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [], [
-  AC_MSG_ERROR([$JSON_PKG_ERRORS])
-])
+
+PKG_CHECK_MODULES([JSONC], [json-c >= 0.13 ],
+  [AC_DEFINE([HAVE_JSONC_VERSION_013], [1], [We have JSONC version 0.13 or later])],
+  [PKG_CHECK_MODULES([JSONC], [json-c >= 0.10 ], [], [
+    AC_MSG_ERROR([$JSON_PKG_ERRORS])
+  ])]
+)
 
 PKG_CHECK_MODULES([AVAHI], [avahi-client], [], [
   AC_MSG_ERROR([$AVAHI_PKG_ERRORS])
