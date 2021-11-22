@@ -2,7 +2,7 @@ FROM ubuntu:bionic as builder
 
 
 ENV GIT_SRC https://github.com/plan44/vdcd.git
-ENV BRANCH production
+ENV BRANCH master
 ENV DSROOT /app
 
 

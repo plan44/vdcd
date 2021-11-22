@@ -85,8 +85,12 @@ Getting Started
 
     `git clone https://github.com/plan44/vdcd`
 
+- Set the vdcd branch you want to use (see above)
+  (by changing the ENV BRANCH line in the `Dockerfile`; as-is, this is set to `master`)
+
 - Build container image
 
+    `cd vdcd`
     `docker build -t myimagename .`
 
 - Run vdcd as container, for the autodiscovery to work you have to mount your dbus and avahi-daemon socket into the container
