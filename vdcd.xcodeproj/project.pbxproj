@@ -144,6 +144,16 @@
 		ED9EF77C26DFA2F400C2F3D7 /* feature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF76E26DFA2F400C2F3D7 /* feature.cpp */; };
 		ED9EF77D26DFA2F400C2F3D7 /* featureapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF77126DFA2F400C2F3D7 /* featureapi.cpp */; };
 		ED9EF78126DFCB5C00C2F3D7 /* rfid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF77F26DFCB5C00C2F3D7 /* rfid.cpp */; };
+		ED9F55B427513EE400F51250 /* dcmotor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAD084E2665109C00D96174 /* dcmotor.cpp */; };
+		ED9F55B527513EE700F51250 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
+		ED9F55B627513EED00F51250 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
+		ED9F55B727513F1800F51250 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
+		ED9F55B827513F1D00F51250 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
+		ED9F55B927513F2200F51250 /* spi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD304321D09C10E0005E6D9 /* spi.cpp */; };
+		ED9F55BA27513F2700F51250 /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
+		ED9F55BB27513F2D00F51250 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
+		ED9F55BC27513F3F00F51250 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
+		ED9F55BD27513F4E00F51250 /* valueanimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC52411A0F8006A443D /* valueanimator.cpp */; };
 		ED9FF50C24B470A4005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
 		ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
@@ -1754,20 +1764,29 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED9F55B427513EE400F51250 /* dcmotor.cpp in Sources */,
 				EDD9902026C51F7D009F3103 /* log.c in Sources */,
+				ED9F55B527513EE700F51250 /* digitalio.cpp in Sources */,
 				EDD9902326C51F7D009F3103 /* ssl.c in Sources */,
 				EDD9903B26C51F7D009F3103 /* utils.c in Sources */,
+				ED9F55B727513F1800F51250 /* iopin.cpp in Sources */,
 				ED3EF4652735AE3B004DFF99 /* modbus.c in Sources */,
 				EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */,
+				ED9F55B627513EED00F51250 /* analogio.cpp in Sources */,
+				ED9F55BC27513F3F00F51250 /* consolekey.cpp in Sources */,
 				EDD9903526C51F7D009F3103 /* sha1.c in Sources */,
+				ED9F55BD27513F4E00F51250 /* valueanimator.cpp in Sources */,
 				EDD9904126C51F7D009F3103 /* buffer.c in Sources */,
 				ED3EF45F2735AE2D004DFF99 /* modbus-data.c in Sources */,
 				ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */,
 				ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */,
 				EDD9903226C51F7D009F3103 /* uwsc.c in Sources */,
 				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
+				ED9F55B927513F2200F51250 /* spi.cpp in Sources */,
 				ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */,
 				ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */,
+				ED9F55B827513F1D00F51250 /* i2c.cpp in Sources */,
+				ED9F55BA27513F2700F51250 /* gpio.cpp in Sources */,
 				ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */,
 				ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */,
 				ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */,
@@ -1783,6 +1802,7 @@
 				EDD98FF526C51CF3009F3103 /* websocket.cpp in Sources */,
 				EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */,
 				EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */,
+				ED9F55BB27513F2D00F51250 /* pwm.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1904,7 +1924,13 @@
 					/usr/local/include,
 					"$(PROJECT_DIR)/src",
 				);
-				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib,
+					/usr/local/opt/openssl/lib,
+					/usr/local/opt/rrdtool/lib,
+					"/usr/local/opt/openssl@1.1/lib",
+					/usr/local/opt/libev/lib,
+				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ljson-c";
 				SDKROOT = macosx;
@@ -1952,7 +1978,13 @@
 					/usr/local/include,
 					"$(PROJECT_DIR)/src",
 				);
-				LIBRARY_SEARCH_PATHS = "\"/usr/local/lib\"";
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib,
+					/usr/local/opt/openssl/lib,
+					/usr/local/opt/rrdtool/lib,
+					"/usr/local/opt/openssl@1.1/lib",
+					/usr/local/opt/libev/lib,
+				);
 				OTHER_LDFLAGS = "-ljson-c";
 				SDKROOT = macosx;
 			};
@@ -1983,13 +2015,6 @@
 					"$(PROJECT_DIR)/../libavahi-core",
 					/usr/local/opt/openssl/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					/usr/local/opt/rrdtool/lib,
-					"/usr/local/opt/openssl@1.1/lib",
-					/usr/local/opt/libev/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -2031,13 +2056,6 @@
 					/usr/local/opt/openssl/include,
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/opt/openssl/lib,
-					/usr/local/opt/rrdtool/lib,
-					"/usr/local/opt/openssl@1.1/lib",
-					/usr/local/opt/libev/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -2057,7 +2075,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
@@ -2083,14 +2100,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					/usr/local/opt/openssl/include,
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
-					/usr/local/Cellar/libev/4.33/lib,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -2101,7 +2116,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
@@ -2128,14 +2142,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					/usr/local/opt/openssl/include,
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/usr/local/Cellar/openssl@1.1/1.1.1h/lib",
-					/usr/local/Cellar/libev/4.33/lib,
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

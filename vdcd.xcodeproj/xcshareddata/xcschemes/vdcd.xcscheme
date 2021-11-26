@@ -253,7 +253,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:791:0:17:0:7:A --ledchainmax 255"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:1200:0:300:0:4"
