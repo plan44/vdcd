@@ -81,7 +81,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--featureapiport 11200"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--inputs"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dispmatrix 0 --noledchaindevices"
