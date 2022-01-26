@@ -35,7 +35,7 @@ vdcd_DEBUG =
 endif
 
 if P44_BUILD_OW
-vdcd_PLATFORM = -D P44_BUILD_OW=1
+vdcd_PLATFORM = -D P44_BUILD_OW=1 -std=gnu++17
 else
 if P44_BUILD_RB
 vdcd_PLATFORM = -D P44_BUILD_RB=1
