@@ -68,6 +68,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "-V"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-l 7"
             isEnabled = "NO">
          </CommandLineArgument>
