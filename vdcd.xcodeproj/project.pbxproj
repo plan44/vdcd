@@ -1486,6 +1486,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */;
 			buildPhases = (
+				ED79BD6B27A7008000229FCF /* ShellScript */,
 				ED6D7BD71716B63A005DED18 /* Sources */,
 				ED6D7BD81716B63A005DED18 /* Frameworks */,
 				ED6D7BD91716B63A005DED18 /* CopyFiles */,
@@ -1552,6 +1553,28 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		ED79BD6B27A7008000229FCF /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/configure.ac",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_SOURCES_DIR)/prefix_for_xcode.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "sed -En -e \"s/AC_INIT\\(\\[${EXECUTABLE_NAME}\\], \\[([0-9.]+)\\].*/#define PACKAGE_VERSION \\\"\\1\\\"/p\" ${SRCROOT}/configure.ac >${DERIVED_SOURCES_DIR}/prefix_for_xcode.h\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		ED6CCD3F1D198FA000C78A0D /* Sources */ = {
@@ -1991,6 +2014,7 @@
 		ED6D7BE51716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREFIX_HEADER = "$(DERIVED_FILE_DIR)/prefix_for_xcode.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_P44FEATURES=1",
@@ -2031,6 +2055,7 @@
 		ED6D7BE61716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREFIX_HEADER = "$(DERIVED_FILE_DIR)/prefix_for_xcode.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
 					"ENABLE_P44FEATURES=1",
