@@ -26,7 +26,7 @@ vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils
 
 If you like this project you might want to...
 
-- Join the [plan44_vdcd google groups mailing list](https://groups.google.com/forum/#!forum/plan44_vdcd) to ask questions and discuss vdcd related topics
+- Join the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd) to ask questions and discuss vdcd related topics.
 - See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
 - See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
 - not forget to support it via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
@@ -102,11 +102,12 @@ Supporting vdcd
 
 1. use it!
 2. support development via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
-3. contribute patches, report issues and suggest new functionality
+3. Discuss it in the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd).
+3. contribute patches, report issues and suggest new functionality [on github](https://github.com/plan44/vdcd) or in the [forum](https://forum.plan44.ch/t/opensource-c-vdcd).
 4. build cool new device integrations and contribute those
 5. Buy plan44.ch [products](https://plan44.ch/automation/products.php) - sales revenue is paying the time for contributing to opensource projects :-)
 
-*(c) 2013-2021 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
+*(c) 2013-2022 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 
