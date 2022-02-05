@@ -38,7 +38,7 @@
          contextName = "GLOBAL">
          <PersistentStrings>
             <PersistentString
-               value = "src.pos">
+               value = "mSrc.pos">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -47,6 +47,9 @@
       </ContextState>
       <ContextState
          contextName = "p44::TimedEvaluationContext::evaluateFunction(std::__1::basic_string&lt;char, std::__1::char_traits&lt;char&gt;, std::__1::allocator&lt;char&gt; &gt; const&amp;, p44::FunctionArguments const&amp;, p44::ExpressionValue&amp;):expressions.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "p44::P44Script::SourceProcessor::processExpression():p44script.cpp">
       </ContextState>
       <ContextState
          contextName = "p44::P44Script::SourceProcessor::popWithValidResult(bool):p44script.cpp">
@@ -117,6 +120,9 @@
       </ContextState>
       <ContextState
          contextName = "p44::EvaluationContext::resumeTerm():expressions.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "p44::P44Script::ScriptCodeThread::complete(boost::intrusive_ptr&lt;p44::P44Script::ScriptObj&gt;):p44script.cpp">
       </ContextState>
       <ContextState
          contextName = "p44::ScriptExecutionContext::resumeEvaluation():expressions.cpp">

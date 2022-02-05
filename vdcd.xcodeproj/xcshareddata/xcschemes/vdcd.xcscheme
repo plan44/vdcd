@@ -268,7 +268,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:1200:0:300:0:4"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:300:0:300:0:1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
