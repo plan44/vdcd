@@ -87,11 +87,6 @@
 
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
-#define P44_EXIT_LOCALMODE 2 // request daemon restart in "local mode"
-#define P44_EXIT_FIRMWAREUPDATE 3 // request check for new firmware, installation if available, platform restart
-#define P44_EXIT_FACTORYRESET 42 // request a factory reset and platform restart
-
-
 using namespace p44;
 
 /// Main program for plan44.ch P44-DSB-DEH in form of the "vdcd" daemon)
