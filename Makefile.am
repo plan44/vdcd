@@ -328,6 +328,8 @@ vdcd_SOURCES = \
   src/p44utils/dcmotor.hpp \
   src/p44utils/digitalio.cpp \
   src/p44utils/digitalio.hpp \
+  src/p44utils/dnssd.cpp \
+  src/p44utils/dnssd.hpp \
   src/p44utils/error.cpp \
   src/p44utils/error.hpp \
   src/p44utils/expressions.cpp \

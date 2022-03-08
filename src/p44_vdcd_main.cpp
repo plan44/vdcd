@@ -276,7 +276,7 @@ public:
         break;
       case vdchost_descriptionchanged:
         #if !DISABLE_DISCOVERY
-        DiscoveryManager::sharedDiscoveryManager().refreshAdvertisingDS();
+        ServiceAnnouncer::sharedServiceAnnouncer().refreshAdvertisingDevice();
         #endif
         break;
       default:
@@ -1036,26 +1036,17 @@ public:
     }
     // start DS advertising if not disabled
     if (!getOption("nodiscovery")) {
-      // start the basic service
-      ErrorPtr err = DiscoveryManager::sharedDiscoveryManager().start(
-        hostname.c_str()
+      // started ok, set discovery params
+      int sshPort = 0;
+      getIntOption("sshport", sshPort);
+      ServiceAnnouncer::sharedServiceAnnouncer().advertiseVdcHostDevice(
+        hostname.c_str(),
+        p44VdcHost,
+        getOption("noauto"),
+        p44VdcHost->webUiPort,
+        p44VdcHost->webUiPath,
+        sshPort
       );
-      if (Error::isOK(err)) {
-        // started ok, set discovery params
-        int sshPort = 0;
-        getIntOption("sshport", sshPort);
-        // start discovery manager
-        DiscoveryManager::sharedDiscoveryManager().advertiseDS(
-          p44VdcHost,
-          getOption("noauto"),
-          p44VdcHost->webUiPort,
-          p44VdcHost->webUiPath,
-          sshPort
-        );
-      }
-      else {
-        LOG(LOG_ERR, "**** Cannot start discovery manager: %s", err->text());
-      }
     }
   }
 

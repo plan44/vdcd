@@ -31,6 +31,7 @@
 		ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
 		ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
 		ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
+		ED231E4B27D658B20056C49F /* dnssd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED231E4927D658AA0056C49F /* dnssd.cpp */; };
 		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
 		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
@@ -355,6 +356,8 @@
 		ED1F830518508E7A00339A22 /* jsonvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8308185099F300339A22 /* pbufvdcapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = pbufvdcapi.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED1F8309185099F300339A22 /* pbufvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = pbufvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED231E4927D658AA0056C49F /* dnssd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dnssd.cpp; sourceTree = "<group>"; };
+		ED231E4A27D658AA0056C49F /* dnssd.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dnssd.hpp; sourceTree = "<group>"; };
 		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED32BD58274C0EFA0097E990 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
@@ -967,6 +970,8 @@
 				EDAD084D2665109C00D96174 /* dcmotor.hpp */,
 				ED369996178D5BD600376405 /* digitalio.cpp */,
 				ED369997178D5BE300376405 /* digitalio.hpp */,
+				ED231E4927D658AA0056C49F /* dnssd.cpp */,
+				ED231E4A27D658AA0056C49F /* dnssd.hpp */,
 				ED026D03171E94D700AD5FD6 /* error.cpp */,
 				ED026D04171E94D700AD5FD6 /* error.hpp */,
 				ED54FDC72411A0F8006A443D /* extutils.cpp */,
@@ -1719,6 +1724,7 @@
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */,
+				ED231E4B27D658B20056C49F /* dnssd.cpp in Sources */,
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
 				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
 				ED9EF77226DFA2F400C2F3D7 /* neuron.cpp in Sources */,
