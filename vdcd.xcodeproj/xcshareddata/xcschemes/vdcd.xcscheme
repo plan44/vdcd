@@ -73,11 +73,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
@@ -281,11 +281,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
@@ -293,11 +293,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
@@ -345,7 +345,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices 8999"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
@@ -357,7 +357,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>

@@ -31,7 +31,6 @@
 		ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
 		ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
 		ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
-		ED231E4B27D658B20056C49F /* dnssd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED231E4927D658AA0056C49F /* dnssd.cpp */; };
 		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
 		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
@@ -1724,7 +1723,6 @@
 				EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */,
 				EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */,
 				ED5B2907173935B000334C71 /* enoceanvdc.cpp in Sources */,
-				ED231E4B27D658B20056C49F /* dnssd.cpp in Sources */,
 				ED1F82F6184E40FD00339A22 /* messages.proto in Sources */,
 				ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */,
 				ED9EF77226DFA2F400C2F3D7 /* neuron.cpp in Sources */,
