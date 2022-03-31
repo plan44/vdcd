@@ -89,7 +89,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dispmatrix 0 --noledchaindevices"
@@ -268,8 +268,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:300:0:300:0:1"
-            isEnabled = "NO">
+            argument = "--ledchain none.grb:/tmp/ledchainsim:288:0:288:0:1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:1680:0:112:0:15:X"
@@ -281,7 +281,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"

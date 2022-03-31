@@ -45,6 +45,7 @@
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
+  #define ENABLE_OLA 1
   #define ENABLE_MODBUS 1
   #define ENABLE_UWSC 1
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
