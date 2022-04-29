@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.6.5.1], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.6.5.2], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
