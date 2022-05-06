@@ -260,11 +260,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:791:0:17:0:7:A --ledchainmax 255"
+            argument = "--ledchain none"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -276,7 +276,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0  --ledchainmax 255"
+            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -293,11 +293,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.195"
@@ -357,7 +357,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
