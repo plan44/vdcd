@@ -630,7 +630,7 @@
 		EDD304331D09C10E0005E6D9 /* spi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = spi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ventilationbehaviour.cpp; sourceTree = "<group>"; };
 		EDD6D1791E49BAAE0082C162 /* ventilationbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ventilationbehaviour.hpp; sourceTree = "<group>"; };
-		EDD772D720629BD300C28195 /* librrd.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librrd.8.dylib; path = ../../../../../../../../../usr/local/Cellar/rrdtool/1.7.0/lib/librrd.8.dylib; sourceTree = "<group>"; };
+		EDD772D720629BD300C28195 /* librrd.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librrd.8.dylib; path = /usr/local/Cellar/rrdtool/1.7.2_1/lib/librrd.8.dylib; sourceTree = "<absolute>"; };
 		EDD98FF126C51CF3009F3103 /* websocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = websocket.hpp; sourceTree = "<group>"; };
 		EDD98FF226C51CF3009F3103 /* websocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = websocket.cpp; sourceTree = "<group>"; };
 		EDD98FF726C51F7D009F3103 /* log.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = log.c; sourceTree = "<group>"; };
@@ -675,8 +675,8 @@
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1h/lib/libcrypto.1.1.dylib"; sourceTree = "<group>"; };
-		EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "../../../../../../usr/local/Cellar/openssl@1.1/1.1.1h/lib/libssl.1.1.dylib"; sourceTree = "<group>"; };
+		EDE91E1E257C1DE800AFEAE8 /* libcrypto.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.1.dylib; path = "/usr/local/Cellar/openssl@1.1/1.1.1o/lib/libcrypto.1.1.dylib"; sourceTree = "<absolute>"; };
+		EDE91E1F257C1DE800AFEAE8 /* libssl.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.1.dylib; path = "/usr/local/Cellar/openssl@1.1/1.1.1o/lib/libssl.1.1.dylib"; sourceTree = "<absolute>"; };
 		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; };
 		EDEC0CDB204FDEE100CD3C27 /* ws2811.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ws2811.h; sourceTree = "<group>"; };
 		EDEC0CDC204FDEE100CD3C27 /* gpio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
@@ -1951,7 +1951,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib,
-					/usr/local/opt/openssl/lib,
 					/usr/local/opt/rrdtool/lib,
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
@@ -2005,7 +2004,6 @@
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/usr/local/lib,
-					/usr/local/opt/openssl/lib,
 					/usr/local/opt/rrdtool/lib,
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
@@ -2039,7 +2037,7 @@
 					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/opt/openssl/include,
+					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
@@ -2080,7 +2078,7 @@
 					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/opt/openssl/include,
+					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
