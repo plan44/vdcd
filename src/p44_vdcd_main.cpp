@@ -840,8 +840,8 @@ public:
         //   needs long press present from startup for factory reset
         setAppStatus(status_error);
         LOG(LOG_WARNING, "Button held for >%.1f seconds -> clean exit(%d) in 2 seconds", (double)FACTORY_RESET_MODE_TIME/Second, P44_EXIT_LOCALMODE);
-        button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
+        button->setButtonHandler(NoOP, true); // disconnect button
+        p44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
         redLED->steadyOff();
         greenLED->steadyOff();
@@ -862,8 +862,8 @@ public:
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
         LOG(LOG_WARNING, "Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS", P44_EXIT_FIRMWAREUPDATE);
-        button->setButtonHandler(NULL, true); // disconnect button
-        p44VdcHost->setEventMonitor(NULL); // no activity monitoring any more
+        button->setButtonHandler(NoOP, true); // disconnect button
+        p44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
         // give mainloop some time to close down API connections
         shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
       }

@@ -246,7 +246,6 @@ endif
 
 
 
-# Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
 vdcd_LDADD = \
   ${PTHREAD_CFLAGS} \
   ${PTHREAD_LIBS} \
@@ -262,7 +261,10 @@ vdcd_LDADD = \
   ${UWSC_LIBS} \
   ${RPIWS281X_LIBS} \
   ${RRDB_LIBS}
-vdcd_EXTRACFLAGS = -D NO_SSL_DL=1
+
+# Note: no programmatic SSL lib loading in civetweb (NO_SSL_DL)
+# Note: we still use old-style global placeholders (BOOST_BIND_GLOBAL_PLACEHOLDERS)
+vdcd_EXTRACFLAGS = -D NO_SSL_DL=1 -D BOOST_BIND_GLOBAL_PLACEHOLDERS=1
 
 
 vdcd_CPPFLAGS = \
