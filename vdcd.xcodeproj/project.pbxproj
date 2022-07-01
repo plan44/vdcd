@@ -1855,7 +1855,7 @@
 					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/opt/openssl/include,
+					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -1866,6 +1866,7 @@
 					/usr/local/opt/libev/lib,
 					/usr/local/Cellar/libev/4.33/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1889,7 +1890,7 @@
 					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
 					"$(PROJECT_DIR)/src/p44utils/thirdparty",
 					"$(PROJECT_DIR)/../libavahi-core",
-					/usr/local/opt/openssl/include,
+					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
@@ -1900,6 +1901,7 @@
 					/usr/local/opt/libev/lib,
 					/usr/local/Cellar/libev/4.33/lib,
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
