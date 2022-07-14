@@ -219,6 +219,8 @@ P44FEATURES_SOURCES = \
   src/p44features/indicators.hpp \
   src/p44features/inputs.cpp \
   src/p44features/inputs.hpp \
+  src/p44features/keyevents.cpp \
+  src/p44features/keyevents.hpp \
   src/p44features/light.cpp \
   src/p44features/light.hpp \
   src/p44features/mixloop.cpp \

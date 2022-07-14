@@ -31,6 +31,9 @@
 		ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F82FF184F2D2100339A22 /* vdcapi.cpp */; };
 		ED1F830618508E7A00339A22 /* jsonvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F830418508E7A00339A22 /* jsonvdcapi.cpp */; };
 		ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
+		ED23300628805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
+		ED23300728805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
+		ED23300828805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
 		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
 		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
@@ -357,6 +360,8 @@
 		ED1F8309185099F300339A22 /* pbufvdcapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = pbufvdcapi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED231E4927D658AA0056C49F /* dnssd.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dnssd.cpp; sourceTree = "<group>"; };
 		ED231E4A27D658AA0056C49F /* dnssd.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dnssd.hpp; sourceTree = "<group>"; };
+		ED23300428805A4A00D934D7 /* keyevents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keyevents.cpp; sourceTree = "<group>"; };
+		ED23300528805A4A00D934D7 /* keyevents.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = keyevents.hpp; sourceTree = "<group>"; };
 		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED32BD58274C0EFA0097E990 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
@@ -1290,6 +1295,8 @@
 				ED9EF76826DFA2F400C2F3D7 /* indicators.hpp */,
 				ED9EF76126DFA2F400C2F3D7 /* inputs.cpp */,
 				ED9EF75B26DFA2F400C2F3D7 /* inputs.hpp */,
+				ED23300428805A4A00D934D7 /* keyevents.cpp */,
+				ED23300528805A4A00D934D7 /* keyevents.hpp */,
 				ED9EF75D26DFA2F400C2F3D7 /* light.cpp */,
 				ED9EF76326DFA2F400C2F3D7 /* light.hpp */,
 				ED9EF76226DFA2F400C2F3D7 /* mixloop.cpp */,
@@ -1607,6 +1614,7 @@
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
+				ED23300728805A4A00D934D7 /* keyevents.cpp in Sources */,
 				EDD9903A26C51F7D009F3103 /* utils.c in Sources */,
 				ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */,
 				ED3701F82007B46D00A1BD67 /* error.cpp in Sources */,
@@ -1661,6 +1669,7 @@
 				ED026D02171E91EB00AD5FD6 /* dalivdc.cpp in Sources */,
 				ED9EF77626DFA2F400C2F3D7 /* rfids.cpp in Sources */,
 				EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */,
+				ED23300628805A4A00D934D7 /* keyevents.cpp in Sources */,
 				ED3EF45B2735ADE9004DFF99 /* modbus-data.c in Sources */,
 				EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */,
 				ED9EF77726DFA2F400C2F3D7 /* indicators.cpp in Sources */,
@@ -1811,6 +1820,7 @@
 				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
 				ED9F55B927513F2200F51250 /* spi.cpp in Sources */,
 				ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */,
+				ED23300828805A4A00D934D7 /* keyevents.cpp in Sources */,
 				ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */,
 				ED9F55B827513F1D00F51250 /* i2c.cpp in Sources */,
 				ED9F55BA27513F2700F51250 /* gpio.cpp in Sources */,

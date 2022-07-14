@@ -92,6 +92,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--keyevents /tmp/keyevents"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--dispmatrix 0 --noledchaindevices"
             isEnabled = "NO">
          </CommandLineArgument>
