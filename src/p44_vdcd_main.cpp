@@ -432,6 +432,10 @@ public:
       { 'W', "cfgapiport",       true,  "port;server port number for web configuration JSON API (default=none)" },
       { 0  , "cfgapinonlocal",   false, "allow web configuration JSON API from non-local clients" },
       #endif
+      #if ENABLE_JSONBRIDGEAPI
+      { 0  , "bridgeapiport",    true,  "port;server port number for bridge API (default=none)" },
+      { 0  , "bridgeapinonlocal",false, "allow bridge JSON API from non-local clients" },
+      #endif
       #if ENABLE_UBUS
       { 0  , "ubusapi",          false, "enable ubus API" },
       #endif
@@ -622,6 +626,13 @@ public:
           const char *configApiPort = getOption("cfgapiport");
           if (configApiPort) {
             p44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
+          }
+          #endif
+
+          #if ENABLE_JSONBRIDGEAPI
+          const char *bridgeApiPort = getOption("bridgeapiport");
+          if (bridgeApiPort) {
+            p44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL);
           }
           #endif
 

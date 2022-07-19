@@ -43,6 +43,7 @@
   #define ENABLE_ENOCEAN_SECURE 1
   #define SELFTESTING_ENABLED 1
   #define ENABLE_JSONCFGAPI 1
+  #define ENABLE_JSONBRIDGEAPI 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
   #define ENABLE_OLA 1
@@ -76,6 +77,7 @@
   #define ENABLE_LOCALCONTROLLER 0 // not supported at all
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
   #define ENABLE_MODBUS 0 // not needed
+  #define ENABLE_JSONBRIDGEAPI 0 // disabled because of footprint
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
@@ -111,6 +113,7 @@
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
+  #define ENABLE_JSONBRIDGEAPI 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
   #define SELFTESTING_ENABLED 1
