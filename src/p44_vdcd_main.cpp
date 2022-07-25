@@ -608,17 +608,17 @@ public:
             getIntOption("protobufapi", protobufapi);
             const char *vdcapiservice;
             if (protobufapi) {
-              p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+              p44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
               vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
             }
             else {
-              p44VdcHost->vdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+              p44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
               vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
             }
             // set up server for vdSM to connect to
             getStringOption("vdsmport", vdcapiservice);
-            p44VdcHost->vdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
-            p44VdcHost->vdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+            p44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
+            p44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
           }
 
           // Prepare Web configuration JSON API server
