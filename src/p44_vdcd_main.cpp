@@ -324,7 +324,7 @@ public:
   virtual int main(int argc, char **argv)
   {
     const char *usageText =
-      "Usage: %1$s [options]\n";
+      "Usage: ${toolname} [options]\n";
     const CmdLineOptionDescriptor options[] = {
       { 0  , "dsuid",            true,  "dSUID;set dSUID for this vDC host (usually UUIDv1 generated on the host)" },
       { 0  , "instance",         true,  "instancenumber;set instance number (default 0, use 1,2,... for multiple vdchosts on same host/mac)" },
