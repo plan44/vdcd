@@ -83,6 +83,7 @@
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
   #define ENABLE_HTTP_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_DNSSD_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_WEBSOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANIMATOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
