@@ -660,10 +660,10 @@ public:
             int sec = 0;
             getIntOption("daliportidle", sec);
             DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
-            daliVdc->daliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+            daliVdc->mDaliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
             int adj;
-            if (getIntOption("dalitxadj", adj)) daliVdc->daliComm.setDaliSendAdj(adj);
-            if (getIntOption("dalirxadj", adj)) daliVdc->daliComm.setDaliSampleAdj(adj);
+            if (getIntOption("dalitxadj", adj)) daliVdc->mDaliComm.setDaliSendAdj(adj);
+            if (getIntOption("dalirxadj", adj)) daliVdc->mDaliComm.setDaliSampleAdj(adj);
             daliVdc->addVdcToVdcHost();
           }
           #endif
