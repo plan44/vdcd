@@ -55,6 +55,9 @@
 #if ENABLE_EVALUATORS
 #include "evaluatorvdc.hpp"
 #endif
+#if ENABLE_JSONBRIDGEAPI
+#include "bridgevdc.hpp"
+#endif
 #if ENABLE_P44FEATURES
 #include "featureapi.hpp"
 #endif
@@ -467,7 +470,8 @@ public:
       else {
 
         // create the root object
-        p44VdcHost = P44VdcHostPtr(new P44VdcHost(getOption("localcontroller"), getOption("saveoutputs")));
+        bool withLocalController = getOption("localcontroller");
+        p44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
 
         #if SELFTESTING_ENABLED
         // test or operation
@@ -759,6 +763,19 @@ public:
           if (getOption("scripteddevices")) {
             ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, p44VdcHost.get(), 11)); // Tag 11 = scripted
             scriptedVdc->addVdcToVdcHost();
+          }
+          #endif
+
+          #if ENABLE_JSONBRIDGEAPI
+          if (
+            p44VdcHost->getBridgeApi()
+            #if ENABLE_LOCALCONTROLLER
+            && !withLocalController
+            #endif
+          ) {
+            // the bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
+            BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, p44VdcHost.get(), 12)); // Tag 12 = bridge devices
+            bridgeVdc->addVdcToVdcHost();
           }
           #endif
 

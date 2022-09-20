@@ -280,6 +280,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/vdc_common \
   -I ${srcdir}/src/p44vdc/behaviours \
   -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
+  -I ${srcdir}/src/p44vdc/deviceclasses/bridge \
   -I ${srcdir}/src/p44vdc/deviceclasses/custom \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
@@ -532,6 +533,10 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/evaluator/evaluatorvdc.hpp \
   src/p44vdc/deviceclasses/evaluator/evaluatordevice.cpp \
   src/p44vdc/deviceclasses/evaluator/evaluatordevice.hpp \
+  src/p44vdc/deviceclasses/bridge/bridgevdc.cpp \
+  src/p44vdc/deviceclasses/bridge/bridgevdc.hpp \
+  src/p44vdc/deviceclasses/bridge/bridgedevice.cpp \
+  src/p44vdc/deviceclasses/bridge/bridgedevice.hpp \
   src/p44vdc/deviceclasses/enocean/enoceancomm.cpp \
   src/p44vdc/deviceclasses/enocean/enoceancomm.hpp \
   src/p44vdc/deviceclasses/enocean/enoceandevice.cpp \

@@ -252,6 +252,8 @@
 		EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 		EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */; };
 		EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
+		EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */; };
+		EDF8B57928DA183300A68D49 /* bridgevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B57728DA183300A68D49 /* bridgevdc.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -707,6 +709,10 @@
 		EDF57B6B228C7C2D0005428B /* timeutils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = timeutils.hpp; sourceTree = "<group>"; };
 		EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_timeutils.cpp; sourceTree = "<group>"; };
 		EDF7F40F24D4179A00593814 /* httptest.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = httptest.php; path = test_httpcomm_server/httptest.php; sourceTree = "<group>"; };
+		EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgedevice.cpp; sourceTree = "<group>"; };
+		EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgevdc.hpp; sourceTree = "<group>"; };
+		EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgedevice.hpp; sourceTree = "<group>"; };
+		EDF8B57728DA183300A68D49 /* bridgevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgevdc.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -867,6 +873,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				EDF8B56C28DA183300A68D49 /* bridge */,
 				ED5DA3E61BB294D7003C86C7 /* custom */,
 				ED31268B183122C800FAF28B /* dali */,
 				ED0441171D755FE000AAB662 /* eldat */,
@@ -1458,6 +1465,17 @@
 			path = zf;
 			sourceTree = "<group>";
 		};
+		EDF8B56C28DA183300A68D49 /* bridge */ = {
+			isa = PBXGroup;
+			children = (
+				EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */,
+				EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */,
+				EDF8B57728DA183300A68D49 /* bridgevdc.cpp */,
+				EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */,
+			);
+			path = bridge;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
@@ -1684,6 +1702,7 @@
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
 				EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */,
 				EDDA9E701F8CC8D200883DC5 /* localcontroller.cpp in Sources */,
+				EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
@@ -1692,6 +1711,7 @@
 				ED98733027A3418200CBD58D /* p44script.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */,
+				EDF8B57928DA183300A68D49 /* bridgevdc.cpp in Sources */,
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
