@@ -77,11 +77,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--featureapiport 11200"
@@ -117,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--localcontroller"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--novdcapi"
@@ -269,7 +269,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
