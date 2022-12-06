@@ -649,7 +649,11 @@ public:
 
           #if ENABLE_P44FEATURES
           // - instantiate (hardware) features we might need already for scripted devices
+          #if ENABLE_LEDCHAIN
           FeatureApi::addFeaturesFromCommandLine(ledChainArrangement);
+          #else
+          FeatureApi::addFeaturesFromCommandLine();
+          #endif
           #endif
 
           // Create class containers
