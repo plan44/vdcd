@@ -72,7 +72,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[FOCUS]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[http],[https]"
@@ -92,10 +92,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[timeutils]"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "[expressions]"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
