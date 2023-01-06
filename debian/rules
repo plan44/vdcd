@@ -1,0 +1,6 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- --enable-p44buildrb --enable-png --enable-rpiws281x --enable-rrdb --enable-p44features --enable-ev --enable-modbus --enable-embeddedlibmodbus

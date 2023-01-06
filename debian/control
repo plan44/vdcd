@@ -1,0 +1,13 @@
+Source: vdcd
+Maintainer: Lukas Zeller <luz@plan44.ch>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 9)
+
+Package: vdcd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: plan44 automation daemon
+ (home) automation daemon for DALI, EnOcean, SmartLEDs and lots of GPIO/I2C/SPI connected hardware
+ for standalone operation or integration into digitalSTROM and (via p44mbrd) matter.

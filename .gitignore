@@ -43,6 +43,6 @@ tests
 .source_dir
 .pkgdir/
 ABOUT-NLS
-ChangeLog
+/ChangeLog
 config.rpath
 
