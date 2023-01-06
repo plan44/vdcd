@@ -119,24 +119,24 @@
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // button has uboot function at system startup, so use alternative factory reset
   #define SELFTESTING_ENABLED 1
 #elif P44_BUILD_RB
-  // Raspian build (RPi Hardware)
-  #define DISABLE_I2C 1 // FIXME: No i2c for now, i2c-dev header is always problematic
+  // Raspian build (debian package, usually)
   #define ENABLE_ENOCEAN 1
   #define ENABLE_ENOCEAN_SECURE 1
   #define ENABLE_ENOCEAN_SHADOW 1
   #define ENABLE_HUE 1
   #define ENABLE_LEDCHAIN 1
-  #define ENABLE_ELDAT 0
+  #define ENABLE_ELDAT 1
   #define ENABLE_STATIC 1
-  #define ENABLE_FCU_SUPPORT 0
+  #define ENABLE_FCU_SUPPORT 1
   #define ENABLE_EXTERNAL 1
   #define ENABLE_SCRIPTED 1
-  #define ENABLE_CUSTOM_SINGLEDEVICE 0
+  #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
   #define ENABLE_LOCALCONTROLLER 1
-  #define ENABLE_MODBUS 0 // FIXME: add when ready
+  #define ENABLE_MODBUS 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1
+  #define ENABLE_JSONBRIDGEAPI 1
   #define USE_AVAHI_CORE 0 // use dbus version of avahi via libavahi-client so other daemons can use it as well
 #else
   // Default build options unless defined otherwise already
