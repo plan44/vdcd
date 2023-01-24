@@ -119,111 +119,111 @@ class P44Vdcd : public CmdLineApp
 
   #if ENABLE_STATIC
   // command line defined devices
-  DeviceConfigMap staticDeviceConfigs;
+  DeviceConfigMap mStaticDeviceConfigs;
   #endif
   #if ENABLE_LEDCHAIN
-  LEDChainArrangementPtr ledChainArrangement;
+  LEDChainArrangementPtr mLedChainArrangement;
   #endif
 
   // App status
-  bool factoryResetWait;
-  AppStatus appStatus;
-  TempStatus currentTempStatus;
-  MLTicket tempStatusTicket;
+  bool mFactoryResetWait;
+  AppStatus mAppStatus;
+  TempStatus mCurrentTempStatus;
+  MLTicket mTempStatusTicket;
 
   #if SELFTESTING_ENABLED
-  bool selfTesting;
+  bool mSelfTesting;
   #endif
 
   // the device container
   // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
-  P44VdcHostPtr p44VdcHost;
+  P44VdcHostPtr mP44VdcHost;
 
   // indicators and button
-  IndicatorOutputPtr redLED;
-  IndicatorOutputPtr greenLED;
-  ButtonInputPtr button;
+  IndicatorOutputPtr mRedLED;
+  IndicatorOutputPtr mGreenLED;
+  ButtonInputPtr mButton;
 
   // learning
-  MLTicket learningTimerTicket;
-  MLTicket shutDownTicket;
+  MLTicket mLearningTimerTicket;
+  MLTicket mShutDownTicket;
 
 public:
 
   P44Vdcd() :
     #if SELFTESTING_ENABLED
-    selfTesting(false),
+    mSelfTesting(false),
     #endif
-    appStatus(status_busy),
-    currentTempStatus(tempstatus_none),
-    factoryResetWait(false)
+    mAppStatus(status_busy),
+    mCurrentTempStatus(tempstatus_none),
+    mFactoryResetWait(false)
   {
   }
 
   void setAppStatus(AppStatus aStatus)
   {
-    appStatus = aStatus;
+    mAppStatus = aStatus;
     // update LEDs
     showAppStatus();
   }
 
   void indicateTempStatus(TempStatus aStatus)
   {
-    if (aStatus>=currentTempStatus) {
+    if (aStatus>=mCurrentTempStatus) {
       // higher priority than current temp status, apply
-      currentTempStatus = aStatus; // overrides app status updates for now
-      tempStatusTicket.cancel();
+      mCurrentTempStatus = aStatus; // overrides app status updates for now
+      mTempStatusTicket.cancel();
       // initiate
       MLMicroSeconds timer = Never;
       switch (aStatus) {
         case tempstatus_activityflash:
           // short yellow LED flash
-          if (appStatus==status_ok) {
+          if (mAppStatus==status_ok) {
             // activity flashes only during normal operation
             timer = 50*MilliSecond;
-            redLED->steadyOn();
-            greenLED->steadyOn();
+            mRedLED->steadyOn();
+            mGreenLED->steadyOn();
           }
           else {
-            currentTempStatus = tempstatus_none;
+            mCurrentTempStatus = tempstatus_none;
           }
           break;
         case tempstatus_identification:
           // 4 red/yellow blinks
           timer = 6*Second;
-          redLED->steadyOn();
-          greenLED->blinkFor(timer, 1.5*Second, 50);
+          mRedLED->steadyOn();
+          mGreenLED->blinkFor(timer, 1.5*Second, 50);
           break;
         case tempstatus_buttonpressed:
           // just yellow
-          redLED->steadyOn();
-          greenLED->steadyOn();
+          mRedLED->steadyOn();
+          mGreenLED->steadyOn();
           break;
         case tempstatus_buttonpressedlong:
           // just red
-          redLED->steadyOn();
-          greenLED->steadyOff();
+          mRedLED->steadyOn();
+          mGreenLED->steadyOff();
           break;
         case tempstatus_factoryresetwait:
           // fast red blinking
-          greenLED->steadyOff();
-          redLED->blinkFor(p44::Infinite, 200*MilliSecond, 20);
+          mGreenLED->steadyOff();
+          mRedLED->blinkFor(p44::Infinite, 200*MilliSecond, 20);
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
-          redLED->steadyOff();
-          greenLED->blinkFor(timer, 400*MilliSecond, 30);
+          mRedLED->steadyOff();
+          mGreenLED->blinkFor(timer, 400*MilliSecond, 30);
           break;
         case tempstatus_failure:
           timer = 1600*MilliSecond;
-          greenLED->steadyOff();
-          redLED->blinkFor(timer, 400*MilliSecond, 30);
+          mGreenLED->steadyOff();
+          mRedLED->blinkFor(timer, 400*MilliSecond, 30);
           break;
         default:
           break;
       }
       if (timer!=Never) {
-        tempStatusTicket.executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
+        mTempStatusTicket.executeOnce(boost::bind(&P44Vdcd::endTempStatus, this), timer);
       }
     }
   }
@@ -231,8 +231,8 @@ public:
 
   void endTempStatus()
   {
-    tempStatusTicket.cancel();
-    currentTempStatus = tempstatus_none;
+    mTempStatusTicket.cancel();
+    mCurrentTempStatus = tempstatus_none;
     showAppStatus();
   }
 
@@ -240,29 +240,29 @@ public:
   // show global status on LEDs
   void showAppStatus()
   {
-    if (currentTempStatus==tempstatus_none) {
-      switch (appStatus) {
+    if (mCurrentTempStatus==tempstatus_none) {
+      switch (mAppStatus) {
         case status_ok:
-          redLED->steadyOff();
-          greenLED->steadyOn();
+          mRedLED->steadyOff();
+          mGreenLED->steadyOn();
           break;
         case status_busy:
-          greenLED->steadyOn();
-          redLED->steadyOn();
+          mGreenLED->steadyOn();
+          mRedLED->steadyOn();
           break;
         case status_interaction:
-          greenLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
-          redLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          mGreenLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          mRedLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
           LOG(LOG_ERR, "****** Error - operation may be limited or entirely prevented - check logs!");
-          greenLED->steadyOff();
-          redLED->steadyOn();
+          mGreenLED->steadyOff();
+          mRedLED->steadyOn();
           break;
         case status_fatalerror:
           LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!");
-          greenLED->steadyOff();
-          redLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
+          mGreenLED->steadyOff();
+          mRedLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
       }
     }
@@ -290,7 +290,7 @@ public:
   virtual void signalOccurred(int aSignal, siginfo_t *aSiginfo)
   {
     if (aSignal==SIGUSR1) {
-      if (p44VdcHost) p44VdcHost->postEvent(vdchost_logstats);
+      if (mP44VdcHost) mP44VdcHost->postEvent(vdchost_logstats);
     }
     inherited::signalOccurred(aSignal, aSiginfo);
   }
@@ -301,19 +301,19 @@ public:
   {
     #if ENABLE_STATIC
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
-      staticDeviceConfigs.insert(make_pair("digitalio", aOptionValue));
+      mStaticDeviceConfigs.insert(make_pair("digitalio", aOptionValue));
     }
     if (strcmp(aOptionDescriptor.longOptionName,"analogio")==0) {
-      staticDeviceConfigs.insert(make_pair("analogio", aOptionValue));
+      mStaticDeviceConfigs.insert(make_pair("analogio", aOptionValue));
     }
     else if (strcmp(aOptionDescriptor.longOptionName,"consoleio")==0) {
-      staticDeviceConfigs.insert(make_pair("console", aOptionValue));
+      mStaticDeviceConfigs.insert(make_pair("console", aOptionValue));
     }
     else
     #endif
     #if ENABLE_LEDCHAIN
     if (strcmp(aOptionDescriptor.longOptionName,"ledchain")==0) {
-      LEDChainArrangement::addLEDChain(ledChainArrangement, aOptionValue);
+      LEDChainArrangement::addLEDChain(mLedChainArrangement, aOptionValue);
     }
     else
     #endif
@@ -471,12 +471,12 @@ public:
 
         // create the root object
         bool withLocalController = getOption("localcontroller");
-        p44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
+        mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
 
         #if SELFTESTING_ENABLED
         // test or operation
-        selfTesting = getOption("selftest");
-        int errlevel = selfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
+        mSelfTesting = getOption("selftest");
+        int errlevel = mSelfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
         #else
         int errlevel = LOG_ERR;
         #endif
@@ -485,7 +485,7 @@ public:
         processStandardLogOptions(true, errlevel);
 
         // use of non-explicitly configured cloud services (e.g. N-UPnP)
-        p44VdcHost->setAllowCloud(getOption("allowcloud"));
+        mP44VdcHost->setAllowCloud(getOption("allowcloud"));
 
         // startup delay?
         int startupDelay = 0; // no delay
@@ -494,13 +494,13 @@ public:
         // web ui
         int webUiPort = 0;
         getIntOption("webuiport", webUiPort);
-        p44VdcHost->webUiPort = webUiPort;
-        getStringOption("webuipath", p44VdcHost->webUiPath);
+        mP44VdcHost->webUiPort = webUiPort;
+        getStringOption("webuipath", mP44VdcHost->webUiPath);
 
         // max API version
         int maxApiVersion = 0; // no limit
         if (getIntOption("maxapiversion", maxApiVersion)) {
-          p44VdcHost->setMaxApiVersion(maxApiVersion);
+          mP44VdcHost->setMaxApiVersion(maxApiVersion);
         }
 
 
@@ -514,13 +514,13 @@ public:
         const char *pinName;
         pinName = "missing";
         getStringOption("greenled", pinName);
-        greenLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
+        mGreenLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
         pinName = "missing";
         getStringOption("redled", pinName);
-        redLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
+        mRedLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
         pinName = "missing";
         getStringOption("button", pinName);
-        button = ButtonInputPtr(new ButtonInput(pinName));
+        mButton = ButtonInputPtr(new ButtonInput(pinName));
 
         // now show status for the first time
         showAppStatus();
@@ -529,10 +529,10 @@ public:
         // before we can do the factory reset
         // Note: we do this even for BUTTON_NOT_AVAILABLE_AT_START mode, because it gives the opportunity
         //   to prevent crashing the daemon with a little bit of timing (wait until uboot done, then press)
-        if (button->isSet()) {
+        if (mButton->isSet()) {
           LOG(LOG_WARNING, "Button held at startup -> enter factory reset wait mode");
           // started with button pressed - go into factory reset wait mode
-          factoryResetWait = true;
+          mFactoryResetWait = true;
           indicateTempStatus(tempstatus_factoryresetwait);
         }
         else {
@@ -540,17 +540,17 @@ public:
           // - set DB dir
           const char *dbdir = DEFAULT_DBDIR;
           getStringOption("sqlitedir", dbdir);
-          p44VdcHost->setPersistentDataDir(dbdir);
+          mP44VdcHost->setPersistentDataDir(dbdir);
 
           // - set conf dir
           const char *confdir = dbdir;
           getStringOption("configdir", confdir);
-          p44VdcHost->setConfigDir(confdir);
+          mP44VdcHost->setConfigDir(confdir);
 
           // - set icon directory
           const char *icondir = NULL;
           getStringOption("icondir", icondir);
-          p44VdcHost->setIconDir(icondir);
+          mP44VdcHost->setIconDir(icondir);
           string s;
 
           // - set dSUID mode
@@ -572,38 +572,38 @@ public:
           string macif;
           getStringOption("ifnameformac", macif);
           getIntOption("instance", instance);
-          p44VdcHost->setIdMode(externalDsUid, macif, instance);
+          mP44VdcHost->setIdMode(externalDsUid, macif, instance);
 
           // - network interface
           if (getStringOption("ifnameforconn", s)) {
-            p44VdcHost->setNetworkIf(s);
+            mP44VdcHost->setNetworkIf(s);
           }
 
           // - set product name and version
           if (getStringOption("productname", s)) {
-            p44VdcHost->setProductName(s);
+            mP44VdcHost->setProductName(s);
           }
           // - set product version
           if (getStringOption("productversion", s)) {
-            p44VdcHost->setProductVersion(s);
+            mP44VdcHost->setProductVersion(s);
           }
           // - set product device id (e.g. serial)
           if (getStringOption("deviceid", s)) {
-            p44VdcHost->setDeviceHardwareId(s);
+            mP44VdcHost->setDeviceHardwareId(s);
           }
           // - set description (template)
           if (getStringOption("description", s)) {
-            p44VdcHost->setDescriptionTemplate(s);
+            mP44VdcHost->setDescriptionTemplate(s);
           }
           // - set vdc modelName (template)
           if (getStringOption("vdcdescription", s)) {
-            p44VdcHost->setVdcModelNameTemplate(s);
+            mP44VdcHost->setVdcModelNameTemplate(s);
           }
 
           // - set custom mainloop statistics output interval
           int mainloopStatsInterval;
           if (getIntOption("mainloopstats", mainloopStatsInterval)){
-            p44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
+            mP44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
           }
 
           // - set API (if not disabled)
@@ -612,31 +612,31 @@ public:
             getIntOption("protobufapi", protobufapi);
             const char *vdcapiservice;
             if (protobufapi) {
-              p44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+              mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
               vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
             }
             else {
-              p44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+              mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
               vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
             }
             // set up server for vdSM to connect to
             getStringOption("vdsmport", vdcapiservice);
-            p44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
-            p44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+            mP44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
+            mP44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
           }
 
           // Prepare Web configuration JSON API server
           #if ENABLE_JSONCFGAPI
           const char *configApiPort = getOption("cfgapiport");
           if (configApiPort) {
-            p44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
+            mP44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
           }
           #endif
 
           #if ENABLE_JSONBRIDGEAPI
           const char *bridgeApiPort = getOption("bridgeapiport");
           if (bridgeApiPort) {
-            p44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL);
+            mP44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL);
           }
           #endif
 
@@ -650,7 +650,7 @@ public:
           #if ENABLE_P44FEATURES
           // - instantiate (hardware) features we might need already for scripted devices
           #if ENABLE_LEDCHAIN
-          FeatureApi::addFeaturesFromCommandLine(ledChainArrangement);
+          FeatureApi::addFeaturesFromCommandLine(mLedChainArrangement);
           #else
           FeatureApi::addFeaturesFromCommandLine();
           #endif
@@ -659,7 +659,7 @@ public:
           // Create class containers
 
           // - first, prepare (make sure dSUID is available)
-          p44VdcHost->prepareForVdcs(false);
+          mP44VdcHost->prepareForVdcs(false);
 
           #if ENABLE_DALI
           // - Add DALI devices class if DALI bridge serialport/host is specified
@@ -667,7 +667,7 @@ public:
           if (daliname) {
             int sec = 0;
             getIntOption("daliportidle", sec);
-            DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, p44VdcHost.get(), 1)); // Tag 1 = DALI
+            DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, mP44VdcHost.get(), 1)); // Tag 1 = DALI
             daliVdc->mDaliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
             int adj;
             if (getIntOption("dalitxadj", adj)) daliVdc->mDaliComm.setDaliSendAdj(adj);
@@ -681,7 +681,7 @@ public:
           const char *enoceanname = getOption("enocean");
           const char *enoceanresetpin = getOption("enoceanreset");
           if (enoceanname) {
-            EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, p44VdcHost.get(), 2)); // Tag 2 = EnOcean
+            EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, mP44VdcHost.get(), 2)); // Tag 2 = EnOcean
             enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
             // add
             enoceanVdc->addVdcToVdcHost();
@@ -692,7 +692,7 @@ public:
           // - Add Eldat devices class if modem serialport/host is specified
           const char *eldatname = getOption("eldat");
           if (eldatname) {
-            EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, p44VdcHost.get(), 9)); // Tag 9 = ELDAT
+            EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, mP44VdcHost.get(), 9)); // Tag 9 = ELDAT
             eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
             // add
             eldatVdc->addVdcToVdcHost();
@@ -703,7 +703,7 @@ public:
           // - Add ZF devices class if modem serialport/host is specified
           const char *zfname = getOption("zf");
           if (zfname) {
-            ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, p44VdcHost.get(), 10)); // Tag 10 = ZF
+            ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, mP44VdcHost.get(), 10)); // Tag 10 = ZF
             zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
             // add
             zfVdc->addVdcToVdcHost();
@@ -713,7 +713,7 @@ public:
           #if ENABLE_HUE
           // - Add hue support
           if (getOption("huelights")) {
-            HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, p44VdcHost.get(), 3)); // Tag 3 = hue
+            HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, mP44VdcHost.get(), 3)); // Tag 3 = hue
             hueVdc->addVdcToVdcHost();
           }
           #endif
@@ -721,34 +721,34 @@ public:
           #if ENABLE_OLA
           // - Add OLA support
           if (getOption("ola")) {
-            OlaVdcPtr olaVdc = OlaVdcPtr(new OlaVdc(1, p44VdcHost.get(), 5)); // Tag 5 = ola
+            OlaVdcPtr olaVdc = OlaVdcPtr(new OlaVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = ola
             olaVdc->addVdcToVdcHost();
           }
           #endif
 
           #if ENABLE_LEDCHAIN
           // - Add Led chain light device support
-          if (ledChainArrangement && !getOption("noledchaindevices")) {
-            LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, ledChainArrangement, p44VdcHost.get(), 6)); // Tag 6 = led chain
+          if (mLedChainArrangement && !getOption("noledchaindevices")) {
+            LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, mLedChainArrangement, mP44VdcHost.get(), 6)); // Tag 6 = led chain
             // led chain arrangement options
-            ledChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
+            mLedChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
             ledChainVdc->addVdcToVdcHost();
           }
           #endif
 
           #if ENABLE_STATIC
           // - Add static devices if we explictly want it or have collected any config from the command line
-          if (getOption("staticdevices") || staticDeviceConfigs.size()>0) {
-            StaticVdcPtr staticVdc = StaticVdcPtr(new StaticVdc(1, staticDeviceConfigs, p44VdcHost.get(), 4)); // Tag 4 = static
+          if (getOption("staticdevices") || mStaticDeviceConfigs.size()>0) {
+            StaticVdcPtr staticVdc = StaticVdcPtr(new StaticVdc(1, mStaticDeviceConfigs, mP44VdcHost.get(), 4)); // Tag 4 = static
             staticVdc->addVdcToVdcHost();
-            staticDeviceConfigs.clear(); // no longer needed, free memory
+            mStaticDeviceConfigs.clear(); // no longer needed, free memory
           }
           #endif
 
           #if ENABLE_EVALUATORS
           // - Add evaluator devices
           if (getOption("evaluators")) {
-            EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, p44VdcHost.get(), 8)); // Tag 8 = evaluators
+            EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, mP44VdcHost.get(), 8)); // Tag 8 = evaluators
             evaluatorVdc->addVdcToVdcHost();
           }
           #endif
@@ -757,7 +757,7 @@ public:
           // - Add support for external devices connecting via socket
           const char *extdevname = getOption("externaldevices");
           if (extdevname) {
-            ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), p44VdcHost.get(), 7)); // Tag 7 = external
+            ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
             externalVdc->addVdcToVdcHost();
           }
           #endif
@@ -765,26 +765,26 @@ public:
           #if ENABLE_SCRIPTED
           // - Add support for scripted devices (p44script implementations of "external" devices)
           if (getOption("scripteddevices")) {
-            ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, p44VdcHost.get(), 11)); // Tag 11 = scripted
+            ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, mP44VdcHost.get(), 11)); // Tag 11 = scripted
             scriptedVdc->addVdcToVdcHost();
           }
           #endif
 
           #if ENABLE_JSONBRIDGEAPI
           if (
-            p44VdcHost->getBridgeApi()
+            mP44VdcHost->getBridgeApi()
             #if ENABLE_LOCALCONTROLLER
             && !withLocalController
             #endif
           ) {
             // the bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
-            BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, p44VdcHost.get(), 12)); // Tag 12 = bridge devices
+            BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
             bridgeVdc->addVdcToVdcHost();
           }
           #endif
 
           // install event monitor
-          p44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
+          mP44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
         }
       } // command line ok
     } // option processing did not terminate app
@@ -801,7 +801,7 @@ public:
     // back to normal...
     stopLearning(false);
     // ...but as we acknowledge the learning with the LEDs, schedule a update for afterwards
-    shutDownTicket.executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
+    mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::showAppStatus, this), 2*Second);
     // acknowledge the learning (if any, can also be timeout or manual abort)
     if (Error::isOK(aError)) {
       if (aLearnIn) {
@@ -821,8 +821,8 @@ public:
 
   void stopLearning(bool aFromTimeout)
   {
-    p44VdcHost->stopLearning();
-    learningTimerTicket.cancel();
+    mP44VdcHost->stopLearning();
+    mLearningTimerTicket.cancel();
     setAppStatus(status_ok);
     if (aFromTimeout) {
       // letting learn run into timeout will re-collect all devices incrementally
@@ -847,7 +847,7 @@ public:
   {
     LOG(LOG_NOTICE, "Device button event: state=%d, hasChanged=%d, timeSincePreviousChange=%.1f", aState, aHasChanged, (double)aTimeSincePreviousChange/Second);
     // different handling if we are waiting for factory reset
-    if (factoryResetWait) {
+    if (mFactoryResetWait) {
       return factoryResetButtonHandler(aState, aHasChanged, aTimeSincePreviousChange);
     }
     // LED yellow as long as button pressed
@@ -864,7 +864,7 @@ public:
         // - E2, DEH2: button is not available at system startup (has uboot functionality) -> use very long press for factory reset.
         //   Button is not exposed (ball pen hole) so is highly unlikely to get stuck accidentally.
         LOG(LOG_WARNING, "Button held for >%.1f seconds -> enter factory reset wait mode", (double)FACTORY_RESET_MODE_TIME/Second);
-        factoryResetWait = true;
+        mFactoryResetWait = true;
         indicateTempStatus(tempstatus_factoryresetwait);
         return true;
         #else
@@ -894,18 +894,18 @@ public:
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
         LOG(LOG_WARNING, "Long button press detected -> upgrade to latest firmware requested -> clean exit(%d) in 500 mS", P44_EXIT_FIRMWAREUPDATE);
-        button->setButtonHandler(NoOP, true); // disconnect button
-        p44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
+        mButton->setButtonHandler(NoOP, true); // disconnect button
+        mP44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
         // give mainloop some time to close down API connections
-        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
+        mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FIRMWAREUPDATE), 500*MilliSecond);
       }
       else {
         // short press: start/stop learning
-        if (!learningTimerTicket) {
+        if (!mLearningTimerTicket) {
           // start
           setAppStatus(status_interaction);
-          learningTimerTicket.executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
-          p44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
+          mLearningTimerTicket.executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
+          mP44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
         }
         else {
           // stop
@@ -925,38 +925,38 @@ public:
         // released after being in waiting-for-reset state lomng enough -> FACTORY RESET
         LOG(LOG_WARNING, "Button pressed long enough for factory reset -> FACTORY RESET = clean exit(%d) in 2 seconds", P44_EXIT_FACTORYRESET);
         // indicate red "error/danger" state
-        redLED->steadyOn();
-        greenLED->steadyOff();
+        mRedLED->steadyOn();
+        mGreenLED->steadyOff();
         // give mainloop some time to close down API connections
-        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FACTORYRESET), 2*Second);
+        mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_FACTORYRESET), 2*Second);
         return true;
       }
       else {
         // held in waiting-for-reset state non long enough or too long -> just restart
         LOG(LOG_WARNING, "Button not held long enough or too long for factory reset -> normal restart = clean exit(0) in 0.5 seconds");
         // indicate yellow "busy" state
-        redLED->steadyOn();
-        greenLED->steadyOn();
+        mRedLED->steadyOn();
+        mGreenLED->steadyOn();
         // give mainloop some time to close down API connections
-        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, EXIT_SUCCESS), 500*MilliSecond);
+        mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, EXIT_SUCCESS), 500*MilliSecond);
         return true;
       }
     }
     // if button is stuck, turn nervously yellow to indicate: something needs to be done
-    if (factoryResetWait && !aHasChanged && aState) {
+    if (mFactoryResetWait && !aHasChanged && aState) {
       if (aTimeSincePreviousChange>FACTORY_RESET_MAX_HOLD_TIME) {
         LOG(LOG_WARNING, "Button pressed too long -> releasing now will do normal restart");
         // held too long -> fast yellow blinking
-        greenLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
-        redLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        mGreenLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
+        mRedLED->blinkFor(p44::Infinite, 200*MilliSecond, 60);
         // when button is released, a normal restart will occur, otherwise we'll remain in this state
       }
       else if (aTimeSincePreviousChange>FACTORY_RESET_HOLD_TIME) {
         LOG(LOG_WARNING, "Button pressed long enough for factory reset -> releasing now will do factory reset");
         // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode)
         // - just indicate it
-        redLED->steadyOn();
-        greenLED->steadyOff();
+        mRedLED->steadyOn();
+        mGreenLED->steadyOff();
       }
     }
     return true;
@@ -968,20 +968,20 @@ public:
   virtual void initialize()
   {
     #if SELFTESTING_ENABLED
-    if (selfTesting) {
+    if (mSelfTesting) {
       // self testing
       // - initialize the device container
-      p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
+      mP44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
     }
     else
     #endif
     {
       // - connect button
-      button->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
+      mButton->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
       // - if not already in factory reset wait, initialize normally
-      if (!factoryResetWait) {
+      if (!mFactoryResetWait) {
         // - initialize the device container
-        p44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
+        mP44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
       }
     }
   }
@@ -991,11 +991,11 @@ public:
   virtual void initialized(ErrorPtr aError)
   {
     #if SELFTESTING_ENABLED
-    if (selfTesting) {
+    if (mSelfTesting) {
       // self test mode
       if (Error::isOK(aError)) {
         // start self testing (which might do some collecting if needed for testing)
-        p44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), button, redLED, greenLED); // do the self test
+        mP44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), mButton, mRedLED, mGreenLED); // do the self test
       }
       else {
         // - init already unsuccessful, consider test failed, call test end routine directly
@@ -1009,7 +1009,7 @@ public:
       setAppStatus(status_fatalerror);
       // exit in 15 seconds
       LOG(LOG_ALERT, "****** Fatal error - vdc host initialisation failed: %s", aError->text());
-      shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
+      mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateAppWith, this, aError), 15*Second);
       return;
     }
     else {
@@ -1019,7 +1019,7 @@ public:
       initDiscovery();
       #endif
       // - start running normally
-      p44VdcHost->startRunning();
+      mP44VdcHost->startRunning();
       // - collect devices
       collectDevices(rescanmode_normal);
     }
@@ -1038,7 +1038,7 @@ public:
   {
     // initiate device collection
     setAppStatus(status_busy);
-    p44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aRescanMode);
+    mP44VdcHost->collectDevices(boost::bind(&P44Vdcd::devicesCollected, this, _1), aRescanMode);
   }
 
 
