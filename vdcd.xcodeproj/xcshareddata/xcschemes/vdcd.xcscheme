@@ -73,7 +73,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 7"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
@@ -92,8 +92,28 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--inputs"
+            argument = "--ledchain none"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain none.grb:/tmp/ledchainsim:288:0:288:0:1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain none.grb:/tmp/ledchainsim:1680:0:112:0:15:X"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--inputs"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--keyevents /tmp/keyevents"
@@ -101,7 +121,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dispmatrix 0 --noledchaindevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wifitrack 0 --indicators"
@@ -122,22 +142,6 @@
          <CommandLineArgument
             argument = "--novdcapi"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--initscript initscript.txt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--maxapiversion 2"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--selftest"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ifnameformac en0 --ifnameforconn en0"
-            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--saveoutputs"
@@ -248,6 +252,26 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--initscript initscript.txt"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--maxapiversion 2"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--selftest"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ifnameformac en0 --ifnameforconn en0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--vdsmnotaux"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--deltatstamps"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -268,30 +292,6 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--vdsmnotaux"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:288:0:288:0:1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:1680:0:112:0:15:X"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--huelights"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -305,7 +305,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
@@ -369,7 +369,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
