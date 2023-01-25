@@ -1,5 +1,9 @@
-vdcd (2.7.0.16-1) UNRELEASED; urgency=medium
+vdcd (2.7.0.17-1) UNRELEASED; urgency=medium
 
+  [ luz@plan44.ch ]
   * Initial release.
 
- --  <luz@plan44.ch>  Fri, 06 Jan 2023 15:19:24 +0100
+  [ luz@plan44.ch ]
+  * better support for scripted features
+
+ --  <luz@plan44.ch>  Wed, 25 Jan 2023 11:41:16 +0100

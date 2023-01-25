@@ -581,6 +581,10 @@
 		ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44ScriptREPL; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED9FF52D24B9D10B005E3025 /* p44utils_minimal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_minimal.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDA884D429813E6500D10481 /* changelog */ = {isa = PBXFileReference; lastKnownFileType = text; path = changelog; sourceTree = "<group>"; };
+		EDA884D729813E6500D10481 /* rules */ = {isa = PBXFileReference; lastKnownFileType = text; path = rules; sourceTree = "<group>"; };
+		EDA884D829813E6500D10481 /* copyright */ = {isa = PBXFileReference; lastKnownFileType = text; path = copyright; sourceTree = "<group>"; };
+		EDA884D929813E6500D10481 /* control */ = {isa = PBXFileReference; lastKnownFileType = text; path = control; sourceTree = "<group>"; };
 		EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pwm.cpp; sourceTree = "<group>"; };
 		EDA92E9D1F3E1BB800C2CE75 /* pwm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pwm.hpp; sourceTree = "<group>"; };
 		EDABE4612681DF9A009CAA1E /* customdevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = customdevice.cpp; sourceTree = "<group>"; };
@@ -1209,6 +1213,7 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				EDA884D229813E6400D10481 /* debian */,
 				ED32BD58274C0EFA0097E990 /* Dockerfile */,
 				ED3BDFE42454793700115B6C /* FUNDING.yml */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
@@ -1322,6 +1327,17 @@
 				ED9EF76C26DFA2F400C2F3D7 /* wifitrack.hpp */,
 			);
 			path = p44features;
+			sourceTree = "<group>";
+		};
+		EDA884D229813E6400D10481 /* debian */ = {
+			isa = PBXGroup;
+			children = (
+				EDA884D429813E6500D10481 /* changelog */,
+				EDA884D729813E6500D10481 /* rules */,
+				EDA884D829813E6500D10481 /* copyright */,
+				EDA884D929813E6500D10481 /* control */,
+			);
+			path = debian;
 			sourceTree = "<group>";
 		};
 		EDD98FF626C51F7D009F3103 /* uwsc */ = {
