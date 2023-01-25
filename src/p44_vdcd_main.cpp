@@ -643,7 +643,7 @@ public:
           #if ENABLE_UBUS
           // Prepare ubus API
           if (getOption("ubusapi")) {
-            p44VdcHost->enableUbusApi();
+            mP44VdcHost->enableUbusApi();
           }
           #endif
 
@@ -872,13 +872,13 @@ public:
         //   needs long press present from startup for factory reset
         setAppStatus(status_error);
         LOG(LOG_WARNING, "Button held for >%.1f seconds -> clean exit(%d) in 2 seconds", (double)FACTORY_RESET_MODE_TIME/Second, P44_EXIT_LOCALMODE);
-        button->setButtonHandler(NoOP, true); // disconnect button
-        p44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
+        mButton->setButtonHandler(NoOP, true); // disconnect button
+        mP44VdcHost->setEventMonitor(NoOP); // no activity monitoring any more
         // for now exit(2) is switching off daemon, so we switch off the LEDs as well
-        redLED->steadyOff();
-        greenLED->steadyOff();
+        mRedLED->steadyOff();
+        mGreenLED->steadyOff();
         // give mainloop some time to close down API connections
-        shutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
+        mShutDownTicket.executeOnce(boost::bind(&P44Vdcd::terminateApp, this, P44_EXIT_LOCALMODE), 2*Second);
         return true;
         #endif
       }
@@ -1064,7 +1064,7 @@ public:
     string hostname;
     if (!getStringOption("hostname", hostname)) {
       // none specified, create default
-      hostname = string_format("plan44-vdcd-%s", p44VdcHost->getDsUid().getString().c_str());
+      hostname = string_format("plan44-vdcd-%s", mP44VdcHost->getDsUid().getString().c_str());
     }
     // start DS advertising if not disabled
     if (!getOption("nodiscovery")) {
@@ -1073,10 +1073,10 @@ public:
       getIntOption("sshport", sshPort);
       ServiceAnnouncer::sharedServiceAnnouncer().advertiseVdcHostDevice(
         hostname.c_str(),
-        p44VdcHost,
+        mP44VdcHost,
         getOption("noauto"),
-        p44VdcHost->webUiPort,
-        p44VdcHost->webUiPath,
+        mP44VdcHost->webUiPort,
+        mP44VdcHost->webUiPath,
         sshPort
       );
     }
