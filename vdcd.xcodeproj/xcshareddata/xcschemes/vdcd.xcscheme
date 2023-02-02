@@ -120,8 +120,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dispmatrix 0 --noledchaindevices"
-            isEnabled = "YES">
+            argument = "--dispmatrix none --noledchaindevices"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wifitrack 0 --indicators"
