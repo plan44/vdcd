@@ -1,5 +1,6 @@
+//  SPDX-License-Identifier: GPL-3.0-or-later
 //
-//  Copyright (c) 2016-2020 plan44.ch / Lukas Zeller, Zurich, Switzerland
+//  Copyright (c) 2016-2023 plan44.ch / Lukas Zeller, Zurich, Switzerland
 //
 //  Author: Lukas Zeller <luz@plan44.ch>
 //
