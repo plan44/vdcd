@@ -365,6 +365,7 @@
 		ED23300428805A4A00D934D7 /* keyevents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keyevents.cpp; sourceTree = "<group>"; };
 		ED23300528805A4A00D934D7 /* keyevents.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = keyevents.hpp; sourceTree = "<group>"; };
 		ED2330262886A7C100D934D7 /* p44utils_main.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_main.hpp; sourceTree = "<group>"; };
+		ED23BFA0298E7BEE000A8AF0 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED32BD58274C0EFA0097E990 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
@@ -1102,6 +1103,7 @@
 		ED57A13822FF6A20008E554D /* p44lrgraphics */ = {
 			isa = PBXGroup;
 			children = (
+				ED23BFA0298E7BEE000A8AF0 /* fonts */,
 				ED3BDFE524547DEA00115B6C /* FUNDING.yml */,
 				ED57A14222FF6A20008E554D /* README.md */,
 				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
