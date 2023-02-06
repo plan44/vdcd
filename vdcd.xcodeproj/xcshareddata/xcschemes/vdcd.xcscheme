@@ -117,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--keyevents /tmp/keyevents"
@@ -125,6 +125,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dispmatrix none --noledchaindevices"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--dispmatrix none"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -200,12 +204,20 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--sqlitedir &quot;/Users/luz/Documents/plan44/P44-xx/config backups P44-DSB - p44 and others/H.P. Zaugg - wieder ge-gzipt - stc_ds_35829549_2022-11-12_10.55&quot;"
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--sqlitedir /Users/luz/Desktop/plan44"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
-            isEnabled = "YES">
+            argument = "--datapath /Users/luz/Desktop/plan44"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--sqlitedir &quot;/Users/luz/Documents/plan44/P44-xx/config backups P44-DSB - p44 and others/H.P. Zaugg - wieder ge-gzipt - stc_ds_35829549_2022-11-12_10.55&quot;"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
