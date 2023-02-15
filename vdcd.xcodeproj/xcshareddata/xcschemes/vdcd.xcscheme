@@ -68,6 +68,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--rfidspibus 0 --rfidselectpins dummy --rfidreset dummy --rfidirq dummy"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-V"
             isEnabled = "NO">
          </CommandLineArgument>
