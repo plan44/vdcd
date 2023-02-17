@@ -9,5 +9,11 @@ vdcd (2.7.0.19-1) UNRELEASED; urgency=medium
   [ luz@plan44.ch ]
   * add french accent chars
   * add 8x5 font with descenders
+  * rfid: better debug logging
+  * rfid: fix stalling reader problem
+  * rfids: option to put reader polling into background thread
+  * rfids: add option to set chip timer value, improve logging
+  * rfids: allow specifying SPI options (speed, in particular)
 
- --  <luz@plan44.ch>  Mon, 06 Feb 2023 09:32:21 +0100
+  [ luz@plan44.ch ]
+  * rfid scanning strategy overhaul, grouped scanning
