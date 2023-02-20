@@ -1,4 +1,4 @@
-vdcd (2.7.0.19-1) UNRELEASED; urgency=medium
+vdcd (2.7.0.19-2) UNRELEASED; urgency=medium
 
   [ luz@plan44.ch ]
   * Initial release.
@@ -17,3 +17,7 @@ vdcd (2.7.0.19-1) UNRELEASED; urgency=medium
 
   [ luz@plan44.ch ]
   * rfid scanning strategy overhaul, grouped scanning
+  * more rfid fine control, fix polling thread restart
+  * add more accented chars to textview fonts
+
+ --  <luz@plan44.ch>  Mon, 20 Feb 2023 19:23:06 +0100
