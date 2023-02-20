@@ -105,7 +105,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:512:0:64:0:8:A"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:288:0:288:0:1"
@@ -133,7 +133,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dispmatrix none"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wifitrack 0 --indicators"
