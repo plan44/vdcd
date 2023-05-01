@@ -431,6 +431,7 @@ public:
       { 0  , "configdir",        true,  "dirpath;set directory for config files (defaults to sqlitedir)" },
       #if P44SCRIPT_FULL_SUPPORT
       { 0  , "initscript",       true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
+      { 0  , "setupscript",      true,  "filepath;setup script run once and deleted when it returns true (path relative to resource path)" },
       #endif
       #if ENABLE_JSONCFGAPI
       { 'W', "cfgapiport",       true,  "port;server port number for web configuration JSON API (default=none)" },
