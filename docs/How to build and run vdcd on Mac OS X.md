@@ -17,6 +17,7 @@ Go to [http://brew.sh](http://brew.sh) and follow instructions
 	brew install protobuf-c
 	brew install boost
 	brew install ola
+	brew install libev
 
 ### go to your projects folder
 

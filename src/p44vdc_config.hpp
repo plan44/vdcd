@@ -37,7 +37,7 @@
 #endif
 #if defined(__APPLE__)
   #define DISABLE_DISCOVERY 1 // Avahi usually makes no sense on Mac (but compiles with Avahi core available)
-  #define USE_AVAHI_CORE 1 // in case we want avahi, use avahi core
+  #define USE_AVAHI_CORE 0 // in case we want avahi, use avahi core
   #define BUTTON_NOT_AVAILABLE_AT_START 1 // as in newer xx2 devices
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 1 // enabled to keep it compiling (but no real use any more)
