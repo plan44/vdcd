@@ -452,6 +452,7 @@ public:
       { 0  , "button",           true,  "pinspec;set I/O pin connected to learn button" },
       #if SELFTESTING_ENABLED
       { 0,   "selftest",         false, "run in self test mode" },
+      { 0,   "notestablehw",     false, "pass test even if no actual HW test can run" },
       #endif
       DAEMON_APPLICATION_LOGOPTIONS,
       { 0  , "mainloopstats",    true,  "interval;0=no stats, 1..N interval (5Sec steps)" },
@@ -997,7 +998,7 @@ public:
       // self test mode
       if (Error::isOK(aError)) {
         // start self testing (which might do some collecting if needed for testing)
-        mP44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), mButton, mRedLED, mGreenLED); // do the self test
+        mP44VdcHost->selfTest(boost::bind(&P44Vdcd::selfTestDone, this, _1), mButton, mRedLED, mGreenLED, getOption("notestablehw")); // do the self test
       }
       else {
         // - init already unsuccessful, consider test failed, call test end routine directly
