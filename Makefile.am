@@ -113,6 +113,18 @@ MODBUSSUPP_FLAGS = -D ENABLE_MODBUS=0
 
 endif
 
+# i2c support via libi2c
+if ENABLE_I2C
+
+I2C_LIBS = -li2c
+I2C_FLAGS = -D DISABLE_I2C=0
+
+else
+
+I2C_FLAGS = -D DISABLE_I2C=1
+
+endif
+
 
 # embedded libmodbus
 if EMBEDDED_LIBMODBUS
@@ -258,6 +270,7 @@ vdcd_LDADD = \
   ${OLA_LIBS} \
   ${PNG_LIBS} \
   ${UBUS_LIBS} \
+  ${I2C_LIBS} \
   ${LIBMODBUS_LIBS} \
   ${EV_LIBS} \
   ${UWSC_LIBS} \
@@ -295,6 +308,7 @@ vdcd_CPPFLAGS = \
   ${OLA_FLAGS} \
   ${PNG_FLAGS} \
   ${UBUS_FLAGS} \
+  ${I2C_FLAGS} \
   ${MODBUSSUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \

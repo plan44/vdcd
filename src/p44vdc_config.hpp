@@ -31,7 +31,7 @@
 #endif
 
 // auto-disable some features depending on platform
-// - No i2c on Mac or DigiESP, but always on RaspberryPi
+// - No i2c on Mac or DigiESP, but possible on RaspberryPi and OpenWrt
 #if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI && !P44_BUILD_OW
   #define DISABLE_I2C 1 // No i2c
 #endif

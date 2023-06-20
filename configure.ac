@@ -45,6 +45,12 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([ENABLE_UBUS], [test "x$enable_ubus" = xyes])
 
 AC_ARG_ENABLE(
+  [i2c],
+  [AS_HELP_STRING([--enable-i2c], [Enable i2c direct access (requires libi2c)])]
+)
+AM_CONDITIONAL([ENABLE_I2C], [test "x$enable_i2c" = xyes])
+
+AC_ARG_ENABLE(
   [rpiws281x],
   [AS_HELP_STRING([--enable-rpiws281x], [Enable WS281x Ledchain support on RaspberryPi])]
 )
@@ -105,6 +111,10 @@ AM_COND_IF([ENABLE_UBUS], [
   AC_CHECK_LIB(ubus, ubus_connect_ctx, [], [AC_MSG_ERROR([Could not find libubus with ubus_connect_ctx])])
   AC_CHECK_LIB(ubox, uloop_init, [], [AC_MSG_ERROR([Could not find libubox with uloop_init])])
   AC_CHECK_LIB(blobmsg_json, blobmsg_add_object, [], [AC_MSG_ERROR([Could not find libblobmsg_json with blobmsg_add_object])])
+], [])
+
+AM_COND_IF([ENABLE_I2C], [
+  AC_CHECK_LIB(i2c, i2c_smbus_write_byte, [], [AC_MSG_ERROR([Could not find libi2c with i2c_smbus_write_byte])])
 ], [])
 
 AM_COND_IF([ENABLE_RRDB], [
