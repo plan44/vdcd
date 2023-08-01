@@ -336,6 +336,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--scripteddevices"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--dali 192.168.59.195"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -389,10 +393,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externaldevices /tmp/devicesock"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--scripteddevices"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
