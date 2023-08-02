@@ -80,6 +80,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--logsymbols"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "-l 7"
             isEnabled = "YES">
          </CommandLineArgument>
