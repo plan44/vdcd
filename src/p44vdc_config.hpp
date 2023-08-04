@@ -95,6 +95,7 @@
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
   #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern
+  #define ENABLE_LOG_COLORS 0 // to save a bit space and performance
 #elif P44_BUILD_OW
   // P44-DSB-xx2 and P44-DSB-Rpi,Rpi-2,Rpi-3
   #define ENABLE_DALI 1
