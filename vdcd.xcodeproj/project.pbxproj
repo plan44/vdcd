@@ -25,6 +25,8 @@
 		ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED12605B1D9E51650049E8D8 /* singledevice.cpp */; };
 		ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED17F4C61769F51D0076B47C /* persistentparams.cpp */; };
 		ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1C3DDF1B7E19FB00779DA8 /* discovery.cpp */; };
+		ED1D253D2AD43AF300C2F3E8 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
+		ED1D253E2AD43B2300C2F3E8 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
 		ED1F0B9C1954C0CC00876D13 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED1F82F6184E40FD00339A22 /* messages.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE308184E385A001ADB5E /* messages.proto */; };
 		ED1F82F8184E411700339A22 /* vdcapi.proto in Sources */ = {isa = PBXBuildFile; fileRef = ED0DE309184E385A001ADB5E /* vdcapi.proto */; };
@@ -40,7 +42,6 @@
 		ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
 		ED36999E178DA01E00376405 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
 		ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */; };
-		ED3701F32006073300A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
 		ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */; };
 		ED3701F82007B46D00A1BD67 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
 		ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
@@ -220,7 +221,6 @@
 		EDD9903026C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
 		EDD9903126C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
 		EDD9903226C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
-		EDD9903326C51F7D009F3103 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
 		EDD9903426C51F7D009F3103 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
 		EDD9903526C51F7D009F3103 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
 		EDD9903926C51F7D009F3103 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901126C51F7D009F3103 /* utils.c */; };
@@ -1667,6 +1667,7 @@
 				ED3EF45D2735ADE9004DFF99 /* modbus.c in Sources */,
 				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
 				ED77A4751E78B9C5004D8303 /* slre.c in Sources */,
+				ED1D253E2AD43B2300C2F3E8 /* civetweb.c in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
 				EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */,
 				ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */,
@@ -1711,7 +1712,6 @@
 				EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */,
 				ED026D05171E94D700AD5FD6 /* error.cpp in Sources */,
 				ED5133BD19F6A6B70027999E /* simplescene.cpp in Sources */,
-				EDD9903326C51F7D009F3103 /* sha1.c in Sources */,
 				ED98733027A3418200CBD58D /* p44script.cpp in Sources */,
 				EDCFE857171FE841001D35F3 /* device.cpp in Sources */,
 				ED95C5942306B97E0029614A /* lightspotview.cpp in Sources */,
@@ -1764,6 +1764,7 @@
 				EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
 				EDD9901E26C51F7D009F3103 /* log.c in Sources */,
+				ED1D253D2AD43AF300C2F3E8 /* sha1.c in Sources */,
 				ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */,
 				EDD9902126C51F7D009F3103 /* ssl.c in Sources */,
@@ -1773,7 +1774,6 @@
 				EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */,
 				ED5A4D991C82133300C607D5 /* evaluatorvdc.cpp in Sources */,
 				ED9EF77A26DFA2F400C2F3D7 /* hermel.cpp in Sources */,
-				ED3701F32006073300A1BD67 /* civetweb.c in Sources */,
 				ED5A4D941C80509C00C607D5 /* valuesource.cpp in Sources */,
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED95C5952306B97E0029614A /* textview.cpp in Sources */,
