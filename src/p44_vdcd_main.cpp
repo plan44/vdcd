@@ -465,6 +465,15 @@ public:
       { 0, NULL } // list terminator
     };
 
+    // first of all, make sure we have the correct standard scripting domain
+    // Note: this must happen before parseCommandLine, because that might already
+    //   instantiate system parts which access the standard scripting domain
+    //   (to register component-specific functions)
+    #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
+    FileStorageStandardScriptingDomain* standarddomain = new FileStorageStandardScriptingDomain;
+    StandardScriptingDomain::setStandardScriptingDomain(standarddomain);
+    #endif
+
     // parse the command line, exits when syntax errors occur
     setCommandDescriptors(usageText, options);
     if (parseCommandLine(argc, argv)) {
@@ -479,7 +488,7 @@ public:
         string persistentStorageDir = dataPath();
         getStringOption("sqlitedir", persistentStorageDir);
 
-        // set up standard scripting domain
+        // set up script storage path
         #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
         string persistentScriptsPath = persistentStorageDir;
         pathstring_make_dir(persistentScriptsPath);
@@ -487,11 +496,10 @@ public:
         ErrorPtr err = ensureDirExists(persistentScriptsPath);
         if (Error::notOK(err)) {
           // abort
-          LOG(LOG_ERR, "Cannot access or create '%s'", persistentScriptsPath.c_str());
+          LOG(LOG_ERR, "Invalid script storage path '%s': %s", persistentScriptsPath.c_str(), Error::text(err));
           terminateApp(EXIT_FAILURE);
         }
-        FileStorageStandardScriptingDomain* standarddomain = new FileStorageStandardScriptingDomain(persistentScriptsPath);
-        StandardScriptingDomain::setStandardScriptingDomain(standarddomain);
+        standarddomain->setFileStoragePath(persistentScriptsPath);
         #endif
 
         // create the root object
