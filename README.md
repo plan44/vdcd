@@ -4,8 +4,8 @@ vdcd
 
 *[[if you want to support vdcd development, please consider to sponsor plan44]](https://github.com/sponsors/plan44)* 
 
-"vdcd" is a free (opensource, GPLv3) virtual device connector (vdc) implementation for digitalSTROM systems.
-A vdc integrates third-party automation hardware as virtual devices into a digitalSTROM system.
+"vdcd" is a free (opensource, GPLv3) virtual device connector (vdc) implementation for Digital Strom systems.
+A vdc integrates third-party automation hardware as virtual devices into a Digital Strom system.
 Optionally, it can also run as a standalone home automation controller (see _--localcontroller_ option).
 
 This vdcd has ready-to-use implementation for various **EnOcean** devices, **DALI** lamps (single dimmers or **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**,
@@ -17,7 +17,7 @@ In addition to the built-in implementations, vdcd provides the **plan44 vdcd ext
 
 vdcd however is not limited to the set of features listed above - it is based on a generic C++ framework called [**p44vdc**](https://github.com/plan44/p44vdc) which is included as a submodule into this project.
 
-**p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the digitalSTROM vDC API and the standard behaviour expected from digitalSTROM buttons, inputs, (possibly dimming) outputs and various sensors.
+**p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the Digital Strom vDC API and the standard behaviour expected from Digital Strom buttons, inputs, (possibly dimming) outputs and various sensors.
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
@@ -28,7 +28,7 @@ If you like this project you might want to...
 
 - Join the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd) to ask questions and discuss vdcd related topics.
 - See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
-- See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about digitalSTROM
+- See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about Digital Strom
 - not forget to support it via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
 
 
@@ -42,7 +42,7 @@ If that's a problem for your particular application, I am open to provide a comm
 
 Features
 --------
-- Implements the complete digitalSTROM vDC API including behaviours for buttons, binary inputs, lights, color lights, sensors, heating valves and shadow blinds.
+- Implements the complete Digital Strom vDC API including behaviours for buttons, binary inputs, lights, color lights, sensors, heating valves and shadow blinds.
 - Provides the *vDC API* (which is based on protobuf) also in a JSON version, with additional features which allow building local web interfaces.
 - Provides the *plan44 vdcd external device API* for easily building custom devices as external scripts or programs.
 - Provides extended customisation features by using the *p44script* scripting language

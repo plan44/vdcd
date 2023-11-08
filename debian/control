@@ -10,4 +10,4 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: plan44 automation daemon
  (home) automation daemon for DALI, EnOcean, SmartLEDs and lots of GPIO/I2C/SPI connected hardware
- for standalone operation or integration into digitalSTROM and (via p44mbrd) matter.
+ for standalone operation or integration into Digital Strom and (via p44mbrd) matter.
