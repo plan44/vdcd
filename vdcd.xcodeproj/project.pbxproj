@@ -711,6 +711,8 @@
 		EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgevdc.hpp; sourceTree = "<group>"; };
 		EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgedevice.hpp; sourceTree = "<group>"; };
 		EDF8B57728DA183300A68D49 /* bridgevdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgevdc.cpp; sourceTree = "<group>"; };
+		EDFE6DAD2B0627160077C4E1 /* esp32_ws281x.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = esp32_ws281x.c; sourceTree = "<group>"; };
+		EDFE6DAE2B0627160077C4E1 /* esp32_ws281x.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = esp32_ws281x.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -827,6 +829,7 @@
 				EDD98FF626C51F7D009F3103 /* uwsc */,
 				ED77A4701E78B9A6004D8303 /* slre */,
 				ED93DFEA1D25636F00D6AF0A /* civetweb */,
+				EDFE6DAC2B0627160077C4E1 /* esp32_ws281x */,
 				ED5B291C1740E72100334C71 /* sqlite3pp */,
 				EDEC0CE8204FDEE800CD3C27 /* rpi_ws281x */,
 			);
@@ -1479,6 +1482,16 @@
 			);
 			path = bridge;
 			sourceTree = "<group>";
+		};
+		EDFE6DAC2B0627160077C4E1 /* esp32_ws281x */ = {
+			isa = PBXGroup;
+			children = (
+				EDFE6DAD2B0627160077C4E1 /* esp32_ws281x.c */,
+				EDFE6DAE2B0627160077C4E1 /* esp32_ws281x.h */,
+			);
+			name = esp32_ws281x;
+			path = src/p44utils/thirdparty/esp32_ws281x;
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 

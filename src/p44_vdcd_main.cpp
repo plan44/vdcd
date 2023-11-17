@@ -505,6 +505,7 @@ public:
         // create the root object
         bool withLocalController = getOption("localcontroller");
         mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
+        mP44VdcHost->mLedChainArrangement = mLedChainArrangement; // pass it on for simulation data API
 
         #if SELFTESTING_ENABLED
         // test or operation
