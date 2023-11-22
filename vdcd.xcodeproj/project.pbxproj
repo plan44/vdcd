@@ -35,7 +35,6 @@
 		ED1F830A185099F300339A22 /* pbufvdcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F8308185099F300339A22 /* pbufvdcapi.cpp */; };
 		ED23300628805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
 		ED23300728805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
-		ED23300828805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
 		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
 		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
@@ -56,16 +55,11 @@
 		ED3EF45C2735ADE9004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
 		ED3EF45D2735ADE9004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
 		ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
-		ED3EF45F2735AE2D004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
 		ED3EF4602735AE31004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
-		ED3EF4612735AE31004DFF99 /* modbus-rtu.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4542735ADE8004DFF99 /* modbus-rtu.c */; };
 		ED3EF4622735AE35004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
-		ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
 		ED3EF4642735AE3A004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
-		ED3EF4652735AE3B004DFF99 /* modbus.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4582735ADE8004DFF99 /* modbus.c */; };
 		ED3EF4682736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
 		ED3EF4692736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
-		ED3EF46A2736BF0B004DFF99 /* crc32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4672736BF0B004DFF99 /* crc32.cpp */; };
 		ED493DBA1E9823C8008860E8 /* valueunits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED493DB81E9823C8008860E8 /* valueunits.cpp */; };
 		ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */; };
 		ED4AEF832667CC76002DFBF2 /* dcmotor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAD084E2665109C00D96174 /* dcmotor.cpp */; };
@@ -98,7 +92,6 @@
 		ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */; };
 		ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6865DB22609EC40030AAE3 /* ubus.cpp */; };
 		ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6894681DF3260200E5245F /* ledchaincomm.cpp */; };
-		ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
 		ED6CCD521D19A14C00C78A0D /* test_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */; };
 		ED6CCD551D1A9F5000C78A0D /* mystromdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE0CD411D197CB500B443C2 /* mystromdevice.cpp */; };
@@ -139,7 +132,6 @@
 		ED9845A52A6EDC030057C0D8 /* libev.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED9845A42A6EDC030057C0D8 /* libev.4.dylib */; };
 		ED98733027A3418200CBD58D /* p44script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED98732F27A3418200CBD58D /* p44script.cpp */; };
 		ED98733127A3418200CBD58D /* p44script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED98732F27A3418200CBD58D /* p44script.cpp */; };
-		ED98733227A3418200CBD58D /* p44script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED98732F27A3418200CBD58D /* p44script.cpp */; };
 		ED9EF77226DFA2F400C2F3D7 /* neuron.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF75326DFA2F400C2F3D7 /* neuron.cpp */; };
 		ED9EF77326DFA2F400C2F3D7 /* wifitrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF75526DFA2F400C2F3D7 /* wifitrack.cpp */; };
 		ED9EF77426DFA2F400C2F3D7 /* splitflaps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF75826DFA2F400C2F3D7 /* splitflaps.cpp */; };
@@ -153,29 +145,7 @@
 		ED9EF77C26DFA2F400C2F3D7 /* feature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF76E26DFA2F400C2F3D7 /* feature.cpp */; };
 		ED9EF77D26DFA2F400C2F3D7 /* featureapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF77126DFA2F400C2F3D7 /* featureapi.cpp */; };
 		ED9EF78126DFCB5C00C2F3D7 /* rfid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED9EF77F26DFCB5C00C2F3D7 /* rfid.cpp */; };
-		ED9F55B427513EE400F51250 /* dcmotor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAD084E2665109C00D96174 /* dcmotor.cpp */; };
-		ED9F55B527513EE700F51250 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
-		ED9F55B627513EED00F51250 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
-		ED9F55B727513F1800F51250 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
-		ED9F55B827513F1D00F51250 /* i2c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED36999C178DA01D00376405 /* i2c.cpp */; };
-		ED9F55B927513F2200F51250 /* spi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD304321D09C10E0005E6D9 /* spi.cpp */; };
-		ED9F55BA27513F2700F51250 /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
-		ED9F55BB27513F2D00F51250 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
-		ED9F55BC27513F3F00F51250 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
-		ED9F55BD27513F4E00F51250 /* valueanimator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC52411A0F8006A443D /* valueanimator.cpp */; };
 		ED9FF50C24B470A4005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
-		ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
-		ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
-		ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
-		ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
-		ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5576131750B15E00CCC4DD /* jsonobject.cpp */; };
-		ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
-		ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
-		ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026D03171E94D700AD5FD6 /* error.cpp */; };
-		ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
-		ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED81337717C6C765003982CC /* p44obj.cpp */; };
-		ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
-		ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
 		EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */; };
 		EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDA92E9E1F3E1BB800C2CE75 /* pwm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDA92E9C1F3E1BB800C2CE75 /* pwm.cpp */; };
@@ -183,7 +153,6 @@
 		EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
 		EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
-		EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
 		EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */; };
@@ -191,7 +160,6 @@
 		EDB2844D1733DE2A00EAE5DE /* gpio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB2844B1733DE2900EAE5DE /* gpio.cpp */; };
 		EDB4062017D4D99D003783CE /* huevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4061E17D4D99D003783CE /* huevdc.cpp */; };
 		EDB4062317D4D9B5003783CE /* huedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB4062117D4D9B5003783CE /* huedevice.cpp */; };
-		EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A14122FF6A20008E554D /* imageview.cpp */; };
 		EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED57A13E22FF6A20008E554D /* viewscroller.cpp */; };
 		EDB5BC1B17B50E79004DB38D /* fdcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB5BC1917B50E79004DB38D /* fdcomm.cpp */; };
@@ -211,35 +179,32 @@
 		EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */; };
 		EDD98FF326C51CF3009F3103 /* websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF226C51CF3009F3103 /* websocket.cpp */; };
 		EDD98FF426C51CF3009F3103 /* websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF226C51CF3009F3103 /* websocket.cpp */; };
-		EDD98FF526C51CF3009F3103 /* websocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF226C51CF3009F3103 /* websocket.cpp */; };
 		EDD9901E26C51F7D009F3103 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF726C51F7D009F3103 /* log.c */; };
 		EDD9901F26C51F7D009F3103 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF726C51F7D009F3103 /* log.c */; };
-		EDD9902026C51F7D009F3103 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF726C51F7D009F3103 /* log.c */; };
 		EDD9902126C51F7D009F3103 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF926C51F7D009F3103 /* ssl.c */; };
 		EDD9902226C51F7D009F3103 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF926C51F7D009F3103 /* ssl.c */; };
-		EDD9902326C51F7D009F3103 /* ssl.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD98FF926C51F7D009F3103 /* ssl.c */; };
 		EDD9903026C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
 		EDD9903126C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
-		EDD9903226C51F7D009F3103 /* uwsc.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900926C51F7D009F3103 /* uwsc.c */; };
 		EDD9903426C51F7D009F3103 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
-		EDD9903526C51F7D009F3103 /* sha1.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9900A26C51F7D009F3103 /* sha1.c */; };
 		EDD9903926C51F7D009F3103 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901126C51F7D009F3103 /* utils.c */; };
 		EDD9903A26C51F7D009F3103 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901126C51F7D009F3103 /* utils.c */; };
-		EDD9903B26C51F7D009F3103 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901126C51F7D009F3103 /* utils.c */; };
 		EDD9903F26C51F7D009F3103 /* buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901926C51F7D009F3103 /* buffer.c */; };
 		EDD9904026C51F7D009F3103 /* buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901926C51F7D009F3103 /* buffer.c */; };
-		EDD9904126C51F7D009F3103 /* buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9901926C51F7D009F3103 /* buffer.c */; };
 		EDD9905126C530C2009F3103 /* socket.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9905026C530C2009F3103 /* socket.c */; };
 		EDD9905226C530C2009F3103 /* socket.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9905026C530C2009F3103 /* socket.c */; };
-		EDD9905326C530C2009F3103 /* socket.c in Sources */ = {isa = PBXBuildFile; fileRef = EDD9905026C530C2009F3103 /* socket.c */; };
 		EDDA9E701F8CC8D200883DC5 /* localcontroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDA9E6E1F8CC8D200883DC5 /* localcontroller.cpp */; };
+		EDDADFAF2B0E542D003FAB83 /* catch_amalgamated.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */; };
+		EDDADFB02B0E556C003FAB83 /* librrd.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED9845A22A6EDBB80057C0D8 /* librrd.8.dylib */; };
+		EDDADFB12B0E556C003FAB83 /* libev.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED9845A42A6EDC030057C0D8 /* libev.4.dylib */; };
+		EDDADFB22B0E556C003FAB83 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = ED3701EF20015F4A00A1BD67 /* libsqlite3.tbd */; };
+		EDDADFB32B0E57AD003FAB83 /* libcrypto.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED98459E2A6EDB810057C0D8 /* libcrypto.3.dylib */; };
+		EDDADFB42B0E57AD003FAB83 /* libssl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED98459F2A6EDB810057C0D8 /* libssl.3.dylib */; };
 		EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
 		EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */; };
 		EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* olavdc.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
-		EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F11E3903180011D79E /* zfcomm.cpp */; };
 		EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F31E3903180011D79E /* zfdevice.cpp */; };
 		EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F41E3903180011D79E /* zfvdc.cpp */; };
@@ -268,16 +233,6 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		ED3EE72B2520AB080098E6CE /* Embed Libraries */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Libraries";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		ED6CCD411D198FA000C78A0D /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -288,15 +243,6 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		ED6D7BD91716B63A005DED18 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		ED9FF52824B93B9F005E3025 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -475,10 +421,7 @@
 		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaincomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6894691DF3260200E5245F /* ledchaincomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ledchaincomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED69C169176787FB00D9E596 /* dsdefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dsdefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		ED6CCD3A1D198ACD00C78A0D /* catch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = catch.hpp; sourceTree = "<group>"; };
 		ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_utils.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = p44utils_tester.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = vdcd_tester.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED6CCD431D198FA000C78A0D /* vdcd_tests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = vdcd_tests; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED6CCEAC2326A264006CF9FE /* torchview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = torchview.cpp; sourceTree = "<group>"; };
 		ED6CCEAD2326A264006CF9FE /* torchview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = torchview.hpp; sourceTree = "<group>"; };
@@ -577,7 +520,6 @@
 		ED9EF77F26DFCB5C00C2F3D7 /* rfid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = rfid.cpp; sourceTree = "<group>"; };
 		ED9EF78026DFCB5C00C2F3D7 /* rfid.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = rfid.hpp; sourceTree = "<group>"; };
 		ED9FF50624AE15D0005E3025 /* p44utils_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_config_TEMPLATE.hpp; sourceTree = "<group>"; };
-		ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = p44ScriptREPL; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED9FF52D24B9D10B005E3025 /* p44utils_minimal.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_minimal.hpp; sourceTree = "<group>"; };
 		EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = test_macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDA884D429813E6500D10481 /* changelog */ = {isa = PBXFileReference; lastKnownFileType = text; path = changelog; sourceTree = "<group>"; };
@@ -671,6 +613,8 @@
 		EDD9905026C530C2009F3103 /* socket.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = socket.c; sourceTree = "<group>"; };
 		EDDA9E6E1F8CC8D200883DC5 /* localcontroller.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = localcontroller.cpp; sourceTree = "<group>"; };
 		EDDA9E6F1F8CC8D200883DC5 /* localcontroller.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = localcontroller.hpp; sourceTree = "<group>"; };
+		EDDADFAD2B0E526D003FAB83 /* catch_amalgamated.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = catch_amalgamated.hpp; sourceTree = "<group>"; };
+		EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = catch_amalgamated.cpp; sourceTree = "<group>"; };
 		EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = oladevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = oladevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDDD5501A125FBC007D2ABE /* olavdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = olavdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -720,6 +664,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EDDADFB42B0E57AD003FAB83 /* libssl.3.dylib in Frameworks */,
+				EDDADFB32B0E57AD003FAB83 /* libcrypto.3.dylib in Frameworks */,
+				EDDADFB22B0E556C003FAB83 /* libsqlite3.tbd in Frameworks */,
+				EDDADFB02B0E556C003FAB83 /* librrd.8.dylib in Frameworks */,
+				EDDADFB12B0E556C003FAB83 /* libev.4.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -732,13 +681,6 @@
 				ED9845A02A6EDB810057C0D8 /* libcrypto.3.dylib in Frameworks */,
 				ED9845A12A6EDB810057C0D8 /* libssl.3.dylib in Frameworks */,
 				ED3701F020015F4B00A1BD67 /* libsqlite3.tbd in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		ED9FF52524B93B9F005E3025 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1165,9 +1107,9 @@
 		ED6CCD361D198A9500C78A0D /* tests */ = {
 			isa = PBXGroup;
 			children = (
+				EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */,
+				EDDADFAD2B0E526D003FAB83 /* catch_amalgamated.hpp */,
 				EDF7F40F24D4179A00593814 /* httptest.php */,
-				ED6CCD3A1D198ACD00C78A0D /* catch.hpp */,
-				ED6CCD3C1D198C9B00C78A0D /* p44utils_tester.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
@@ -1175,14 +1117,6 @@
 				EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
 				EDD10D7726EFAA2900BEADB5 /* test_valueunits.cpp */,
-			);
-			path = tests;
-			sourceTree = "<group>";
-		};
-		ED6CCD3D1D198EB200C78A0D /* tests */ = {
-			isa = PBXGroup;
-			children = (
-				ED6CCD3E1D198EF800C78A0D /* vdcd_tester.cpp */,
 			);
 			path = tests;
 			sourceTree = "<group>";
@@ -1223,7 +1157,6 @@
 			children = (
 				ED6D7BDB1716B63A005DED18 /* vdcd */,
 				ED6CCD431D198FA000C78A0D /* vdcd_tests */,
-				ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1240,7 +1173,6 @@
 				ED9EF77E26DFA34500C2F3D7 /* p44features_config.hpp */,
 				EDB5B3FD2323D6B100A0C84D /* p44lrg_config.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
-				ED6CCD3D1D198EB200C78A0D /* tests */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -1549,24 +1481,6 @@
 			productReference = ED6D7BDB1716B63A005DED18 /* vdcd */;
 			productType = "com.apple.product-type.tool";
 		};
-		ED9FF50D24B93B9F005E3025 /* p44ScriptREPL */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = ED9FF52924B93B9F005E3025 /* Build configuration list for PBXNativeTarget "p44ScriptREPL" */;
-			buildPhases = (
-				ED9FF50E24B93B9F005E3025 /* Sources */,
-				ED9FF52524B93B9F005E3025 /* Frameworks */,
-				ED9FF52824B93B9F005E3025 /* CopyFiles */,
-				ED3EE72B2520AB080098E6CE /* Embed Libraries */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = p44ScriptREPL;
-			productName = vdcd_tests;
-			productReference = ED9FF52C24B93B9F005E3025 /* p44ScriptREPL */;
-			productType = "com.apple.product-type.tool";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -1597,7 +1511,6 @@
 				ED6D7BDA1716B63A005DED18 /* vdcd */,
 				EDCFE861172125F7001D35F3 /* vdcd doxygen */,
 				ED6CCD421D198FA000C78A0D /* vdcd_tests */,
-				ED9FF50D24B93B9F005E3025 /* p44ScriptREPL */,
 			);
 		};
 /* End PBXProject section */
@@ -1630,7 +1543,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				EDD9901F26C51F7D009F3103 /* log.c in Sources */,
-				ED6CCD4A1D19905400C78A0D /* vdcd_tester.cpp in Sources */,
 				EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */,
 				ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */,
 				EDD9905226C530C2009F3103 /* socket.c in Sources */,
@@ -1658,6 +1570,7 @@
 				ED9FF50C24B470A4005E3025 /* application.cpp in Sources */,
 				ED98733127A3418200CBD58D /* p44script.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
+				EDDADFAF2B0E542D003FAB83 /* catch_amalgamated.cpp in Sources */,
 				EDD9904026C51F7D009F3103 /* buffer.c in Sources */,
 				ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */,
 				ED3EF4622735AE35004DFF99 /* modbus-tcp.c in Sources */,
@@ -1835,53 +1748,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ED9FF50E24B93B9F005E3025 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				ED9F55B427513EE400F51250 /* dcmotor.cpp in Sources */,
-				EDD9902026C51F7D009F3103 /* log.c in Sources */,
-				ED9F55B527513EE700F51250 /* digitalio.cpp in Sources */,
-				EDD9902326C51F7D009F3103 /* ssl.c in Sources */,
-				EDD9903B26C51F7D009F3103 /* utils.c in Sources */,
-				ED9F55B727513F1800F51250 /* iopin.cpp in Sources */,
-				ED3EF4652735AE3B004DFF99 /* modbus.c in Sources */,
-				EDB5809B254EFA38009D6709 /* socketcomm.cpp in Sources */,
-				ED9F55B627513EED00F51250 /* analogio.cpp in Sources */,
-				ED9F55BC27513F3F00F51250 /* consolekey.cpp in Sources */,
-				EDD9903526C51F7D009F3103 /* sha1.c in Sources */,
-				ED9F55BD27513F4E00F51250 /* valueanimator.cpp in Sources */,
-				EDD9904126C51F7D009F3103 /* buffer.c in Sources */,
-				ED3EF45F2735AE2D004DFF99 /* modbus-data.c in Sources */,
-				ED9FF51024B93B9F005E3025 /* macaddress.cpp in Sources */,
-				ED9FF51124B93B9F005E3025 /* logger.cpp in Sources */,
-				EDD9903226C51F7D009F3103 /* uwsc.c in Sources */,
-				ED9FF51324B93B9F005E3025 /* mainloop.cpp in Sources */,
-				ED9F55B927513F2200F51250 /* spi.cpp in Sources */,
-				ED3EF4632735AE35004DFF99 /* modbus-tcp.c in Sources */,
-				ED23300828805A4A00D934D7 /* keyevents.cpp in Sources */,
-				ED9FF51424B93B9F005E3025 /* civetweb.c in Sources */,
-				ED9F55B827513F1D00F51250 /* i2c.cpp in Sources */,
-				ED9F55BA27513F2700F51250 /* gpio.cpp in Sources */,
-				ED98733227A3418200CBD58D /* p44script.cpp in Sources */,
-				ED9FF51824B93B9F005E3025 /* jsonobject.cpp in Sources */,
-				ED9FF51924B93B9F005E3025 /* httpcomm.cpp in Sources */,
-				ED9FF51B24B93B9F005E3025 /* utils.cpp in Sources */,
-				ED9FF51E24B93B9F005E3025 /* error.cpp in Sources */,
-				ED9FF51F24B93B9F005E3025 /* application.cpp in Sources */,
-				ED9FF52124B93B9F005E3025 /* p44obj.cpp in Sources */,
-				ED3EF4612735AE31004DFF99 /* modbus-rtu.c in Sources */,
-				EDD9905326C530C2009F3103 /* socket.c in Sources */,
-				ED3EF46A2736BF0B004DFF99 /* crc32.cpp in Sources */,
-				ED9FF52324B93B9F005E3025 /* timeutils.cpp in Sources */,
-				ED9FF52424B93B9F005E3025 /* fdcomm.cpp in Sources */,
-				EDD98FF526C51CF3009F3103 /* websocket.cpp in Sources */,
-				EDE91E0D257C1C6100AFEAE8 /* colorutils.cpp in Sources */,
-				EDAF1B4A2625F1930026CE11 /* extutils.cpp in Sources */,
-				ED9F55BB27513F2D00F51250 /* pwm.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
@@ -1890,7 +1756,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"${inherited}",
@@ -1914,6 +1780,8 @@
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
 					/usr/local/Cellar/libev/4.33/lib,
+					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
+					/opt/homebrew/Cellar/libev/4.33/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -1926,6 +1794,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"${inherited}",
@@ -1949,6 +1818,8 @@
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
 					/usr/local/Cellar/libev/4.33/lib,
+					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
+					/opt/homebrew/Cellar/libev/4.33/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -2000,6 +1871,12 @@
 					/opt/homebrew/include,
 					/usr/local/include,
 					"$(PROJECT_DIR)/src",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
+					"$(PROJECT_DIR)/../libavahi-core",
+					"/opt/homebrew/opt/openssl@1.1/include",
+					"/usr/local/opt/openssl@1.1/include",
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
@@ -2010,6 +1887,10 @@
 					/usr/local/opt/rrdtool/lib,
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
+					"/opt/homebrew/Cellar/openssl@1.1/1.1.1u/lib",
+					/opt/homebrew/Cellar/libev/4.33/lib,
+					"/opt/homebrew/Cellar/openssl@3/3.1.1_1/lib",
+					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ljson-c";
@@ -2058,6 +1939,12 @@
 					/opt/homebrew/include,
 					/usr/local/include,
 					"$(PROJECT_DIR)/src",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
+					"$(PROJECT_DIR)/src/p44utils/thirdparty",
+					"$(PROJECT_DIR)/../libavahi-core",
+					"/opt/homebrew/opt/openssl@1.1/include",
+					"/usr/local/opt/openssl@1.1/include",
+					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
@@ -2068,6 +1955,10 @@
 					/usr/local/opt/rrdtool/lib,
 					"/usr/local/opt/openssl@1.1/lib",
 					/usr/local/opt/libev/lib,
+					"/opt/homebrew/Cellar/openssl@1.1/1.1.1u/lib",
+					/opt/homebrew/Cellar/libev/4.33/lib,
+					"/opt/homebrew/Cellar/openssl@3/3.1.1_1/lib",
+					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
 				);
 				OTHER_LDFLAGS = "-ljson-c";
 				SDKROOT = macosx;
@@ -2092,22 +1983,6 @@
 					"ENABLE_RRDB=1",
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
-				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty",
-					"$(PROJECT_DIR)/../libavahi-core",
-					"/opt/homebrew/opt/openssl@1.1/include",
-					"/usr/local/opt/openssl@1.1/include",
-					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/opt/homebrew/Cellar/openssl@1.1/1.1.1u/lib",
-					/opt/homebrew/Cellar/libev/4.33/lib,
-					"/opt/homebrew/Cellar/openssl@3/3.1.1_1/lib",
-					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -2141,22 +2016,6 @@
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
 				);
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty",
-					"$(PROJECT_DIR)/../libavahi-core",
-					"/opt/homebrew/opt/openssl@1.1/include",
-					"/usr/local/opt/openssl@1.1/include",
-					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"/opt/homebrew/Cellar/openssl@1.1/1.1.1u/lib",
-					/opt/homebrew/Cellar/libev/4.33/lib,
-					"/opt/homebrew/Cellar/openssl@3/3.1.1_1/lib",
-					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
-				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -2167,87 +2026,6 @@
 				);
 				PRODUCT_NAME = vdcd;
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\"";
-			};
-			name = Release;
-		};
-		ED9FF52A24B93B9F005E3025 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"${inherited}",
-					"OPENSSL_API_1_1=1",
-					"USE_SSL_HEADERS=1",
-					"NO_SSL_DL=1",
-					"SIMPLE_REPL_APP=1",
-					"ENABLE_P44SCRIPT=1",
-				);
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty",
-					/usr/local/opt/openssl/include,
-					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_ENABLE_DEBUG_INFO = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		ED9FF52B24B93B9F005E3025 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				COPY_PHASE_STRIP = NO;
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_GENERATE_TEST_COVERAGE_FILES = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"${inherited}",
-					"OPENSSL_API_1_1=1",
-					"USE_SSL_HEADERS=1",
-					"NO_SSL_DL=1",
-					"SIMPLE_REPL_APP=1",
-					"ENABLE_P44SCRIPT=1",
-				);
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				HEADER_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty/compat_glue/config",
-					"$(PROJECT_DIR)/src/p44utils/thirdparty",
-					/usr/local/opt/openssl/include,
-					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -2300,15 +2078,6 @@
 			buildConfigurations = (
 				ED6D7BE51716B63A005DED18 /* Debug */,
 				ED6D7BE61716B63A005DED18 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		ED9FF52924B93B9F005E3025 /* Build configuration list for PBXNativeTarget "p44ScriptREPL" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				ED9FF52A24B93B9F005E3025 /* Debug */,
-				ED9FF52B24B93B9F005E3025 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

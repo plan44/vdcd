@@ -72,11 +72,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[FOCUS]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[http],[https]"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "~[http]"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[macaddress]"
@@ -120,7 +124,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--success"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--list-tests"
