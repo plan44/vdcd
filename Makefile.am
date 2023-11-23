@@ -351,8 +351,6 @@ vdcd_SOURCES = \
   src/p44utils/dnssd.hpp \
   src/p44utils/error.cpp \
   src/p44utils/error.hpp \
-  src/p44utils/expressions.cpp \
-  src/p44utils/expressions.hpp \
   src/p44utils/extutils.cpp \
   src/p44utils/extutils.hpp \
   src/p44utils/fdcomm.cpp \
@@ -620,12 +618,11 @@ tests_CPPFLAGS = \
   ${AVAHI_CFLAGS}
 
 tests_SOURCES = \
-  src/p44utils/tests/catch.hpp \
+  src/p44utils/tests/catch_amalgamated.cpp \
+  src/p44utils/tests/catch_amalgamated.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
   src/p44utils/tests/test_utils.cpp \
   src/p44utils/macaddress.cpp \
   src/p44utils/macaddress.hpp \
-  src/p44utils/tests/test_macaddress.cpp \
-  src/tests/vdcd_tester.cpp
-
+  src/p44utils/tests/test_macaddress.cpp
