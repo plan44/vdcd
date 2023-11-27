@@ -124,7 +124,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--success"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--list-tests"
