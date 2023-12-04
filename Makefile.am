@@ -355,6 +355,7 @@ vdcd_SOURCES = \
   src/p44utils/extutils.hpp \
   src/p44utils/fdcomm.cpp \
   src/p44utils/fdcomm.hpp \
+  src/p44utils/fixpoint_macros.h \
   src/p44utils/fnv.cpp \
   src/p44utils/fnv.hpp \
   src/p44utils/gpio.cpp \

@@ -282,6 +282,7 @@
 		ED0DE309184E385A001ADB5E /* vdcapi.proto */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = vdcapi.proto; sourceTree = "<group>"; };
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED0F065E2B1D2EDF00357A12 /* fixpoint_macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fixpoint_macros.h; sourceTree = "<group>"; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED124EC0208A42DC001DED3A /* test_mainloop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_mainloop.cpp; sourceTree = "<group>"; };
@@ -928,6 +929,7 @@
 				ED54FDC82411A0F8006A443D /* extutils.hpp */,
 				EDB5BC1917B50E79004DB38D /* fdcomm.cpp */,
 				EDB5BC1A17B50E79004DB38D /* fdcomm.hpp */,
+				ED0F065E2B1D2EDF00357A12 /* fixpoint_macros.h */,
 				EDCFE85E17203E47001D35F3 /* fnv.cpp */,
 				EDCFE85F17203E47001D35F3 /* fnv.hpp */,
 				EDB2844B1733DE2900EAE5DE /* gpio.cpp */,
