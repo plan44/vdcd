@@ -344,7 +344,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.195"
+            argument = "--dali 192.168.59.67"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
