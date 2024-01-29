@@ -78,6 +78,7 @@
   #define ENABLE_LOCALCONTROLLER 0 // not supported at all
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
   #define ENABLE_MODBUS 0 // not needed
+  #define ENABLE_MIDI 0 // not needed
   #define ENABLE_JSONBRIDGEAPI 0 // disabled because of footprint
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
@@ -92,6 +93,7 @@
   #define ENABLE_ANALOGIO_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANALOGIO_COLOR_SUPPORT 0 // disabled because not needed and adding to footprint
   #define ENABLE_DCMOTOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_MIDI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
   #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern

@@ -149,11 +149,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userlevel 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userlevel 2"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--localcontroller"

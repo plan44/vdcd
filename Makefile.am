@@ -385,6 +385,8 @@ vdcd_SOURCES = \
   src/p44utils/macaddress.hpp \
   src/p44utils/mainloop.cpp \
   src/p44utils/mainloop.hpp \
+  src/p44utils/midi.cpp \
+  src/p44utils/midi.hpp \
   src/p44utils/operationqueue.cpp \
   src/p44utils/operationqueue.hpp \
   src/p44utils/p44obj.cpp \
