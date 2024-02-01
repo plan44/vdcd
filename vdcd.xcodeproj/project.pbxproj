@@ -102,6 +102,7 @@
 		ED6D7BED1716B6B1005DED18 /* p44_vdcd_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */; };
 		ED6D7BF01716EAA7005DED18 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BF617180766005DED18 /* serialqueue.cpp */; };
+		ED6E58412B6D4E300061373A /* colorutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */; };
 		ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */; };
 		ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
@@ -1577,6 +1578,7 @@
 				ED9FF50C24B470A4005E3025 /* application.cpp in Sources */,
 				ED98733127A3418200CBD58D /* p44script.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
+				ED6E58412B6D4E300061373A /* colorutils.cpp in Sources */,
 				EDDADFAF2B0E542D003FAB83 /* catch_amalgamated.cpp in Sources */,
 				EDD9904026C51F7D009F3103 /* buffer.c in Sources */,
 				ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */,
