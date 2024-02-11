@@ -433,6 +433,8 @@ vdcd_SOURCES = \
   src/p44utils/thirdparty/sqlite3pp/sqlite3pp.h \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.cpp \
   src/p44utils/thirdparty/sqlite3pp/sqlite3ppext.h \
+  src/p44lrgraphics/blocksview.cpp \
+  src/p44lrgraphics/blocksview.hpp \
   src/p44lrgraphics/canvasview.cpp \
   src/p44lrgraphics/canvasview.hpp \
   src/p44lrgraphics/coloreffectview.cpp \

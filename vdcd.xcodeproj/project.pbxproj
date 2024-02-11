@@ -169,6 +169,7 @@
 		EDBCAC192508E6F3007A9B0B /* epxview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBCAC152508E6F3007A9B0B /* epxview.cpp */; };
 		EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDBFB91A17C392C600A38659 /* dsbehaviour.cpp */; };
 		EDC1166E177EDDDF00F27115 /* consolekey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC1166C177EDDDF00F27115 /* consolekey.cpp */; };
+		EDC336C12B77BDAB00214F68 /* blocksview.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDC336BF2B77BDAB00214F68 /* blocksview.cpp */; };
 		EDCF05CD1890197200B47526 /* p44_vdcd_host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */; };
 		EDCFE857171FE841001D35F3 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE855171FE841001D35F3 /* device.cpp */; };
 		EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE858171FE8A1001D35F3 /* dalidevice.cpp */; };
@@ -571,6 +572,8 @@
 		EDC1166B177EDC1800F27115 /* consoledevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consoledevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166C177EDDDF00F27115 /* consolekey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = consolekey.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDC1166D177EDDDF00F27115 /* consolekey.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = consolekey.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDC336BF2B77BDAB00214F68 /* blocksview.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = blocksview.cpp; sourceTree = "<group>"; };
+		EDC336C02B77BDAB00214F68 /* blocksview.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = blocksview.hpp; sourceTree = "<group>"; };
 		EDCF05CA1890132400B47526 /* p44_vdcd_host.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = p44_vdcd_host.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCF05CB1890132400B47526 /* p44_vdcd_host.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44_vdcd_host.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDCFE855171FE841001D35F3 /* device.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = device.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -1047,6 +1050,8 @@
 				ED57A14222FF6A20008E554D /* README.md */,
 				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
 				ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */,
+				EDC336BF2B77BDAB00214F68 /* blocksview.cpp */,
+				EDC336C02B77BDAB00214F68 /* blocksview.hpp */,
 				ED6CCEB02326BE4C006CF9FE /* coloreffectview.cpp */,
 				ED6CCEAF2326BE4C006CF9FE /* coloreffectview.hpp */,
 				ED57A14122FF6A20008E554D /* imageview.cpp */,
@@ -1685,6 +1690,7 @@
 				ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */,
 				ED3EF45A2735ADE9004DFF99 /* modbus-tcp.c in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
+				EDC336C12B77BDAB00214F68 /* blocksview.cpp in Sources */,
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
