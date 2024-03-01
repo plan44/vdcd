@@ -132,6 +132,7 @@ class P44Vdcd : public CmdLineApp
 
   // App status
   bool mFactoryResetWait;
+  bool mLowLevelButtonOnly;
   AppStatus mAppStatus;
   TempStatus mCurrentTempStatus;
   MLTicket mTempStatusTicket;
@@ -161,7 +162,8 @@ public:
     #endif
     mAppStatus(status_busy),
     mCurrentTempStatus(tempstatus_none),
-    mFactoryResetWait(false)
+    mFactoryResetWait(false),
+    mLowLevelButtonOnly(false)
   {
   }
 
@@ -454,6 +456,7 @@ public:
       { 0  , "greenled",         true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",           true,  "pinspec;set I/O pin connected to red part of status LED" },
       { 0  , "button",           true,  "pinspec;set I/O pin connected to learn button" },
+      { 0  , "llbutton",         false, "enable only low-level (factory reset) button functions" },
       #if SELFTESTING_ENABLED
       { 0,   "selftest",         false, "run in self test mode" },
       { 0,   "notestablehw",     false, "pass test even if no actual HW test can run" },
@@ -484,6 +487,9 @@ public:
         terminateApp(EXIT_SUCCESS);
       }
       else {
+        // set button mode
+        mLowLevelButtonOnly = getOption("llbutton");
+
         // get persistent storage path
         string persistentStorageDir = dataPath();
         getStringOption("sqlitedir", persistentStorageDir);
@@ -889,8 +895,8 @@ public:
     if (mFactoryResetWait) {
       return factoryResetButtonHandler(aState, aHasChanged, aTimeSincePreviousChange);
     }
-    // LED yellow as long as button pressed
-    if (aHasChanged) {
+    // LED yellow as long as button pressed (unless we use the low level factory reset function only)
+    if (aHasChanged && !mLowLevelButtonOnly) {
       if (aState) indicateTempStatus(tempstatus_buttonpressed);
       else endTempStatus();
     }
@@ -927,8 +933,8 @@ public:
         LOG(LOG_WARNING, "Button held for >%.1f seconds -> upgrade check if released now", (double)UPGRADE_CHECK_HOLD_TIME/Second);
       }
     }
-    if (aState==false) {
-      // keypress release
+    if (aState==false && !mLowLevelButtonOnly) {
+      // keypress release in non-low-level mode
       if (aTimeSincePreviousChange>=5*Second) {
         // long press (labelled "Software Update" on the case)
         setAppStatus(status_busy);
