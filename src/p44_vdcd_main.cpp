@@ -56,6 +56,9 @@
 #if ENABLE_EVALUATORS
 #include "evaluatorvdc.hpp"
 #endif
+#if ENABLE_PROXYDEVICES
+#include "proxyvdc.hpp"
+#endif
 #if ENABLE_JSONBRIDGEAPI
 #include "bridgevdc.hpp"
 #endif
@@ -385,6 +388,9 @@ public:
       #endif
       #if ENABLE_SCRIPTED
       { 0,   "scripteddevices",  false, "enable support for devices implemented in p44script" },
+      #endif
+      #if ENABLE_PROXYDEVICES
+      { 0,   "proxydevices",     true,  "host[:port]|dnssd[,...];enable support for proxied devices hosted in other vdcd instances" },
       #endif
       #if ENABLE_STATIC
       { 0,   "staticdevices",    false, "enable support for statically defined devices" },
@@ -814,6 +820,14 @@ public:
             }
             #endif
 
+            #if ENABLE_PROXYDEVICES
+            // - Add a separate vdc for each proxy host (secondary vdcd's bridge API) specified or found via DNS-SD
+            const char *proxies = getOption("proxydevices");
+            if (proxies) {
+              ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
+            }
+            #endif
+
             #if ENABLE_JSONBRIDGEAPI
             if (
               mP44VdcHost->getBridgeApi()
@@ -821,7 +835,7 @@ public:
               && !withLocalController
               #endif
             ) {
-              // the bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
+              // the digitalstrom bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
               BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
               bridgeVdc->addVdcToVdcHost();
             }

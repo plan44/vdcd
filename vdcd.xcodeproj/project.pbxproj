@@ -154,6 +154,9 @@
 		EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4612681DF9A009CAA1E /* customdevice.cpp */; };
 		EDABE4662681E39E009CAA1E /* scriptedvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */; };
 		EDADCADB1846373300297214 /* apivalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDADCAD91846373300297214 /* apivalue.cpp */; };
+		EDAEF9742BDA6497000B3FE0 /* proxydevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAEF96F2BDA6497000B3FE0 /* proxydevice.cpp */; };
+		EDAEF9752BDA6497000B3FE0 /* proxyvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAEF9712BDA6497000B3FE0 /* proxyvdc.cpp */; };
+		EDAEF9782BDA8159000B3FE0 /* p44bridgeapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDAEF9772BDA8159000B3FE0 /* p44bridgeapi.cpp */; };
 		EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED54FDC72411A0F8006A443D /* extutils.cpp */; };
 		EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */; };
 		EDB284441732965700EAE5DE /* operationqueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDB284421732965700EAE5DE /* operationqueue.cpp */; };
@@ -543,6 +546,12 @@
 		EDAD084F26668D6000D96174 /* p44utils_defs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44utils_defs.hpp; sourceTree = "<group>"; };
 		EDADCAD91846373300297214 /* apivalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = apivalue.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDADCADA1846373300297214 /* apivalue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = apivalue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDAEF96F2BDA6497000B3FE0 /* proxydevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = proxydevice.cpp; sourceTree = "<group>"; };
+		EDAEF9702BDA6497000B3FE0 /* proxydevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = proxydevice.hpp; sourceTree = "<group>"; };
+		EDAEF9712BDA6497000B3FE0 /* proxyvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = proxyvdc.cpp; sourceTree = "<group>"; };
+		EDAEF9722BDA6497000B3FE0 /* proxyvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = proxyvdc.hpp; sourceTree = "<group>"; };
+		EDAEF9762BDA8159000B3FE0 /* p44bridgeapi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44bridgeapi.hpp; sourceTree = "<group>"; };
+		EDAEF9772BDA8159000B3FE0 /* p44bridgeapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p44bridgeapi.cpp; sourceTree = "<group>"; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ssdpsearch.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB1893017D4B7330088B6A5 /* ssdpsearch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ssdpsearch.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB284421732965700EAE5DE /* operationqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = operationqueue.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -818,6 +827,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				EDAEF9732BDA6497000B3FE0 /* proxy */,
 				EDF8B56C28DA183300A68D49 /* bridge */,
 				ED5DA3E61BB294D7003C86C7 /* custom */,
 				ED31268B183122C800FAF28B /* dali */,
@@ -1276,6 +1286,19 @@
 			path = debian;
 			sourceTree = "<group>";
 		};
+		EDAEF9732BDA6497000B3FE0 /* proxy */ = {
+			isa = PBXGroup;
+			children = (
+				EDAEF9772BDA8159000B3FE0 /* p44bridgeapi.cpp */,
+				EDAEF9762BDA8159000B3FE0 /* p44bridgeapi.hpp */,
+				EDAEF96F2BDA6497000B3FE0 /* proxydevice.cpp */,
+				EDAEF9702BDA6497000B3FE0 /* proxydevice.hpp */,
+				EDAEF9712BDA6497000B3FE0 /* proxyvdc.cpp */,
+				EDAEF9722BDA6497000B3FE0 /* proxyvdc.hpp */,
+			);
+			path = proxy;
+			sourceTree = "<group>";
+		};
 		EDD98FF626C51F7D009F3103 /* uwsc */ = {
 			isa = PBXGroup;
 			children = (
@@ -1659,6 +1682,7 @@
 				EDCFE85A171FE8A1001D35F3 /* dalidevice.cpp in Sources */,
 				ED49ECD9238FD09500706C43 /* valuedescriptor.cpp in Sources */,
 				EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */,
+				EDAEF9752BDA6497000B3FE0 /* proxyvdc.cpp in Sources */,
 				ED81337617C65F7E003982CC /* devicesettings.cpp in Sources */,
 				ED911D2F1B11D97700B18624 /* ledchaindevice.cpp in Sources */,
 				ED36999E178DA01E00376405 /* i2c.cpp in Sources */,
@@ -1705,7 +1729,9 @@
 				EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */,
 				ED5C379D2B5F06AB0081B309 /* midi.cpp in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
+				EDAEF9742BDA6497000B3FE0 /* proxydevice.cpp in Sources */,
 				EDD9901E26C51F7D009F3103 /* log.c in Sources */,
+				EDAEF9782BDA8159000B3FE0 /* p44bridgeapi.cpp in Sources */,
 				ED1D253D2AD43AF300C2F3E8 /* sha1.c in Sources */,
 				ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */,
 				EDB5B3FE2323DE4800A0C84D /* imageview.cpp in Sources */,

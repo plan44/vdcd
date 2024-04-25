@@ -74,6 +74,7 @@
   #define ENABLE_CUSTOM_EXOTIC 0 // disabled because of footprint
   #define ENABLE_CUSTOM_SINGLEDEVICE 0 // disabled because of footprint
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_PROXYDEVICES 0 // disabled because of footprint
   #define ENABLE_LEDCHAIN 0
   #define ENABLE_LOCALCONTROLLER 0 // not supported at all
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
@@ -115,6 +116,7 @@
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_PROXYDEVICES 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
@@ -136,6 +138,7 @@
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_PROXYDEVICES 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_MODBUS 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
@@ -158,6 +161,9 @@
   #endif
   #ifndef ENABLE_EVALUATORS
     #define ENABLE_EVALUATORS 1
+  #endif
+  #ifndef ENABLE_PROXYDEVICES
+    #define ENABLE_PROXYDEVICES 1
   #endif
   #ifndef ENABLE_JSONCFGAPI
     #define ENABLE_JSONCFGAPI 1

@@ -554,6 +554,12 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/bridge/bridgevdc.hpp \
   src/p44vdc/deviceclasses/bridge/bridgedevice.cpp \
   src/p44vdc/deviceclasses/bridge/bridgedevice.hpp \
+  src/p44vdc/deviceclasses/proxy/proxyvdc.cpp \
+  src/p44vdc/deviceclasses/proxy/proxyvdc.hpp \
+  src/p44vdc/deviceclasses/proxy/proxydevice.cpp \
+  src/p44vdc/deviceclasses/proxy/proxydevice.hpp \
+  src/p44vdc/deviceclasses/proxy/p44bridgeapi.cpp \
+  src/p44vdc/deviceclasses/proxy/p44bridgeapi.hpp \
   src/p44vdc/deviceclasses/enocean/enoceancomm.cpp \
   src/p44vdc/deviceclasses/enocean/enoceancomm.hpp \
   src/p44vdc/deviceclasses/enocean/enoceandevice.cpp \
