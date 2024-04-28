@@ -48,6 +48,7 @@
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
   #define ENABLE_OLA 1
+  #define ENABLE_DMX 1
   #define ENABLE_MODBUS 1
   #define ENABLE_UWSC 1
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
@@ -80,6 +81,7 @@
   #define ENABLE_P44LRGRAPHICS 0 // not needed, no ledchains anyway
   #define ENABLE_MODBUS 0 // not needed
   #define ENABLE_MIDI 0 // not needed
+  #define ENABLE_DMX 0 // not needed
   #define ENABLE_JSONBRIDGEAPI 0 // disabled because of footprint
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
@@ -116,6 +118,7 @@
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_DMX 1
   #define ENABLE_PROXYDEVICES 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
@@ -138,6 +141,7 @@
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
+  #define ENABLE_DMX 1
   #define ENABLE_PROXYDEVICES 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_MODBUS 1

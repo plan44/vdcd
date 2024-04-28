@@ -82,14 +82,8 @@ endif
 # OLA support via libola
 if ENABLE_OLA
 
-OLA_SOURCES = \
-  src/p44vdc/deviceclasses/ola/oladevice.cpp \
-  src/p44vdc/deviceclasses/ola/oladevice.hpp \
-  src/p44vdc/deviceclasses/ola/olavdc.cpp \
-  src/p44vdc/deviceclasses/ola/olavdc.hpp
 OLA_FLAGS = \
-  -D ENABLE_OLA=1 \
-  -I ${srcdir}/src/p44vdc/deviceclasses/ola
+  -D ENABLE_OLA=1
 OLA_LIBS = \
   -lola -lolacommon -lprotobuf
 
@@ -294,9 +288,11 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/behaviours \
   -I ${srcdir}/src/p44vdc/deviceclasses/simpleio \
   -I ${srcdir}/src/p44vdc/deviceclasses/bridge \
+  -I ${srcdir}/src/p44vdc/deviceclasses/proxy \
   -I ${srcdir}/src/p44vdc/deviceclasses/custom \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
+  -I ${srcdir}/src/p44vdc/deviceclasses/dmx \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
   -I ${srcdir}/src/p44vdc/deviceclasses/zf \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
@@ -328,7 +324,6 @@ vdcd_CPPFLAGS = \
 vdcd_SOURCES = \
   ${P44FEATURES_SOURCES} \
   ${RPIWS281X_SOURCES} \
-  ${OLA_SOURCES} \
   ${UBUS_SOURCES} \
   ${LIBMODBUS_SOURCES} \
   ${UWSC_SOURCES} \
@@ -554,6 +549,10 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/bridge/bridgevdc.hpp \
   src/p44vdc/deviceclasses/bridge/bridgedevice.cpp \
   src/p44vdc/deviceclasses/bridge/bridgedevice.hpp \
+  src/p44vdc/deviceclasses/dmx/dmxdevice.cpp \
+  src/p44vdc/deviceclasses/dmx/dmxdevice.hpp \
+  src/p44vdc/deviceclasses/dmx/dmxvdc.cpp \
+  src/p44vdc/deviceclasses/dmx/dmxvdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.cpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxydevice.cpp \

@@ -206,8 +206,8 @@
 		EDDADFB32B0E57AD003FAB83 /* libcrypto.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED98459E2A6EDB810057C0D8 /* libcrypto.3.dylib */; };
 		EDDADFB42B0E57AD003FAB83 /* libssl.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED98459F2A6EDB810057C0D8 /* libssl.3.dylib */; };
 		EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED55760B174CC03A00CCC4DD /* socketcomm.cpp */; };
-		EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */; };
-		EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* olavdc.cpp */; };
+		EDDDD5521A125FBC007D2ABE /* dmxdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD54E1A125FBC007D2ABE /* dmxdevice.cpp */; };
+		EDDDD5531A125FBC007D2ABE /* dmxvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDDD5501A125FBC007D2ABE /* dmxvdc.cpp */; };
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
@@ -632,10 +632,10 @@
 		EDDA9E6F1F8CC8D200883DC5 /* localcontroller.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = localcontroller.hpp; sourceTree = "<group>"; };
 		EDDADFAD2B0E526D003FAB83 /* catch_amalgamated.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = catch_amalgamated.hpp; sourceTree = "<group>"; };
 		EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = catch_amalgamated.cpp; sourceTree = "<group>"; };
-		EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = oladevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = oladevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDDD5501A125FBC007D2ABE /* olavdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = olavdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDDDD5511A125FBC007D2ABE /* olavdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = olavdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD54E1A125FBC007D2ABE /* dmxdevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dmxdevice.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD54F1A125FBC007D2ABE /* dmxdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dmxdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD5501A125FBC007D2ABE /* dmxvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = dmxvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDDDD5511A125FBC007D2ABE /* dmxvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = dmxvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42BC17F35419005B97A0 /* macaddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = macaddress.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42BD17F35419005B97A0 /* macaddress.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = macaddress.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = climatecontrolbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -836,7 +836,7 @@
 				ED5A4D961C8212E600C607D5 /* evaluator */,
 				ED31268D183122E900FAF28B /* hue */,
 				ED911D251B11D73A00B18624 /* ledchain */,
-				EDDDD54D1A125F8E007D2ABE /* ola */,
+				EDDDD54D1A125F8E007D2ABE /* dmx */,
 				ED31268E183122F600FAF28B /* simpleio */,
 				EDF032EF1E3903180011D79E /* zf */,
 			);
@@ -1395,15 +1395,15 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		EDDDD54D1A125F8E007D2ABE /* ola */ = {
+		EDDDD54D1A125F8E007D2ABE /* dmx */ = {
 			isa = PBXGroup;
 			children = (
-				EDDDD54E1A125FBC007D2ABE /* oladevice.cpp */,
-				EDDDD54F1A125FBC007D2ABE /* oladevice.hpp */,
-				EDDDD5501A125FBC007D2ABE /* olavdc.cpp */,
-				EDDDD5511A125FBC007D2ABE /* olavdc.hpp */,
+				EDDDD54E1A125FBC007D2ABE /* dmxdevice.cpp */,
+				EDDDD54F1A125FBC007D2ABE /* dmxdevice.hpp */,
+				EDDDD5501A125FBC007D2ABE /* dmxvdc.cpp */,
+				EDDDD5511A125FBC007D2ABE /* dmxvdc.hpp */,
 			);
-			path = ola;
+			path = dmx;
 			sourceTree = "<group>";
 		};
 		EDEC0CE8204FDEE800CD3C27 /* rpi_ws281x */ = {
@@ -1668,7 +1668,7 @@
 				ED0441221D755FFC00AAB662 /* eldatcomm.cpp in Sources */,
 				ED9EF77426DFA2F400C2F3D7 /* splitflaps.cpp in Sources */,
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
-				EDDDD5531A125FBC007D2ABE /* olavdc.cpp in Sources */,
+				EDDDD5531A125FBC007D2ABE /* dmxvdc.cpp in Sources */,
 				EDDA9E701F8CC8D200883DC5 /* localcontroller.cpp in Sources */,
 				EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
@@ -1766,7 +1766,7 @@
 				EDD98FF326C51CF3009F3103 /* websocket.cpp in Sources */,
 				EDABE4632681DF9A009CAA1E /* customdevice.cpp in Sources */,
 				ED3EF3CC2735AB0B004DFF99 /* modbus.cpp in Sources */,
-				EDDDD5521A125FBC007D2ABE /* oladevice.cpp in Sources */,
+				EDDDD5521A125FBC007D2ABE /* dmxdevice.cpp in Sources */,
 				EDB1893117D4B7330088B6A5 /* ssdpsearch.cpp in Sources */,
 				ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */,
 				ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */,

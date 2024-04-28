@@ -66,8 +66,8 @@
 #include "featureapi.hpp"
 #endif
 
-#if ENABLE_OLA
-#include "olavdc.hpp"
+#if ENABLE_OLA || ENABLE_DMX
+#include "dmxvdc.hpp"
 #endif
 #if ENABLE_LEDCHAIN
 #include "ledchainvdc.hpp"
@@ -88,6 +88,7 @@
 #define DEFAULT_ENOCEANPORT 2102
 #define DEFAULT_ELDATPORT 2103
 #define DEFAULT_ZFPORT 2104
+#define DEFAULT_DMXPORT 2105
 #define DEFAULT_JSON_VDSMSERVICE "8440"
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
 
@@ -367,7 +368,10 @@ public:
       { 0,   "hueapiurl",        true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
       #endif
       #if ENABLE_OLA
-      { 0,   "ola",              false, "enable support for OLA (Open Lighting Architecture) server" },
+      { 0,   "ola",              false, "compatibility shortcut for --dmx ola:42" },
+      #endif
+      #if ENABLE_DMX
+      { 0,   "dmx",              true, "output;enable a DMX universe to the specified output device" },
       #endif
       #if ENABLE_LEDCHAIN
       CMDLINE_LEDCHAIN_OPTIONS,
@@ -768,11 +772,18 @@ public:
             }
             #endif
 
+            #if ENABLE_DMX || ENABLE_OLA
+            const char* dmxout = getOption("dmx");
             #if ENABLE_OLA
-            // - Add OLA support
-            if (getOption("ola")) {
-              OlaVdcPtr olaVdc = OlaVdcPtr(new OlaVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = ola
-              olaVdc->addVdcToVdcHost();
+            if (!dmxout && getOption("ola")) {
+              // shortcut for backwards compatibility
+              dmxout = "ola:42";
+            }
+            #endif
+            if (dmxout) {
+              DmxVdcPtr dmxVdc = DmxVdcPtr(new DmxVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = DMX
+              dmxVdc->setDmxOutput(dmxout, DEFAULT_DMXPORT);
+              dmxVdc->addVdcToVdcHost();
             }
             #endif
 
