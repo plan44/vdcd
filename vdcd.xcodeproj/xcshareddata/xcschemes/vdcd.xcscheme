@@ -68,8 +68,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--localcontroller"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--dmx /dev/null:none"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--webuiport 80 --webuipath /gugus.html"
@@ -109,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
@@ -158,10 +166,6 @@
          <CommandLineArgument
             argument = "--userlevel 2"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--localcontroller"
-            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--novdcapi"

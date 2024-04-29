@@ -83,6 +83,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "~[slow]"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "[macaddress]"
             isEnabled = "NO">
          </CommandLineArgument>
