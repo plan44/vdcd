@@ -73,7 +73,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--proxydevices 127.0.0.1:2144"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dmx /dev/null:none"
@@ -85,7 +89,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--rfidspibus 22-S --rfidselectpins dummy --rfidreset dummy --rfidirq dummy"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-V"
