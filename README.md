@@ -8,7 +8,7 @@ vdcd
 
 The *vdcd* project has started as, and is still used as, a virtual device connector (*vdc*) implementation for the *Digital Strom* home automation system. A *vdc* integrates third-party automation hardware as virtual devices into the *Digital Strom* system. Hence, the device model and API design originates from a cooperation with *Digital Strom*.
 
-However, *vdcd* can also be **operated as a fully standalone home automation controller** (see _--localcontroller_ commandline option) or **as a *matter* bridge** when used together with [p44mbrd](https://github.com/plan44/vdcd).
+However, *vdcd* can also be **operated as a fully standalone home automation controller** (see _--localcontroller_ commandline option) or **as a *matter* bridge** when used together with [p44mbrd](https://github.com/plan44/p44mbrd).
 
 *vdcd* has ready-to-use implementation for various **EnOcean** devices, **DALI** lights (single dimmers, **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**, **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, **DMX512** support via OLA or UART, console based debugging devices and a lot more.
 
