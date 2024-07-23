@@ -158,6 +158,9 @@ class P44Vdcd : public CmdLineApp
   MLTicket mLearningTimerTicket;
   MLTicket mShutDownTicket;
 
+  // protocol support
+  int mProtocols;
+
 public:
 
   P44Vdcd() :
@@ -167,7 +170,8 @@ public:
     mAppStatus(status_busy),
     mCurrentTempStatus(tempstatus_none),
     mFactoryResetWait(false),
-    mLowLevelButtonOnly(false)
+    mLowLevelButtonOnly(false),
+    mProtocols(PF_INET)
   {
   }
 
@@ -344,6 +348,9 @@ public:
       { 0  , "instance",         true,  "instancenumber;set instance number (default 0, use 1,2,... for multiple vdchosts on same host/mac)" },
       { 0  , "ifnameformac",     true,  "network if;set network interface to get MAC address from" },
       { 0  , "ifnameforconn",    true,  "network if;set network interface to get IP from and check for connectivity" },
+      #if !REDUCED_FOOTPRINT
+      { 0  , "protocols",        true,  "IPv4|IPv6|IPv6v4|local;specify what protocols to accept for API servers" },
+      #endif
       { 0  , "sgtin",            true,  "part,gcp,itemref,serial;set dSUID for this vDC as SGTIN" },
       { 0  , "productname",      true,  "name;set product name for this vdc host and its vdcs" },
       { 0  , "productversion",   true,  "version;set version string for this vdc host and its vdcs" },
@@ -434,9 +441,9 @@ public:
       { 0  , "hostname",         true,  "hostname;host name to use to publish this vdc host" },
       { 0  , "sshport",          true,  "portno;publish ssh access at given port" },
       #endif
-      { 0  , "webuiport",        true,  "portno;publish a Web-UI service at given port" },
+      { 0  , "webuiport",        true,  "portno;publish a Web-UI service at given port via DNS-SD" },
       { 0  , "webuipath",        true,  "path;file path for webui (must start with /, defaults to none)" },
-      { 0  , "novdcapi",         false, "disable vDC API (and advertisement of it)" },
+      { 0  , "novdcapi",         false, "disable vDC API (and DNS-SD advertisement of it)" },
       { 'C', "vdsmport",         true,  "port;port number/service name for vdSM to connect to (default pbuf:" DEFAULT_PBUF_VDSMSERVICE ", JSON:" DEFAULT_JSON_VDSMSERVICE ")" },
       { 'i', "vdsmnonlocal",     false, "allow vdSM connections from non-local clients" },
       { 0  , "maxapiversion",    true,  "apiversion;set max API version to support, 0=support all implemented ones" },
@@ -456,6 +463,9 @@ public:
       #if ENABLE_JSONBRIDGEAPI
       { 0  , "bridgeapiport",    true,  "port;server port number for bridge API (default=none)" },
       { 0  , "bridgeapinonlocal",false, "allow bridge JSON API from non-local clients" },
+      #if !DISABLE_DISCOVERY
+      { 0  , "advertisebridge",  false, "advertise bridge over DNS-SD" },
+      #endif
       #endif
       #if ENABLE_UBUS
       { 0  , "ubusapi",          false, "enable ubus API" },
@@ -489,377 +499,394 @@ public:
 
     // parse the command line, exits when syntax errors occur
     setCommandDescriptors(usageText, options);
-    if (parseCommandLine(argc, argv)) {
+    if (!parseCommandLine(argc, argv)) {
+      runToTerminationWith(EXIT_FAILURE);
+    }
 
-      if ((numOptions()<1) || (numArguments()>0)) {
-        // show usage
-        showUsage();
-        terminateApp(EXIT_SUCCESS);
-      }
+    if ((numOptions()<1) || (numArguments()>0)) {
+      // show usage
+      exitWithcommandLineError("at least one option and no arguments must be present");
+    }
+    // set button mode
+    mLowLevelButtonOnly = getOption("llbutton");
+
+    // get persistent storage path
+    string persistentStorageDir = dataPath();
+    getStringOption("sqlitedir", persistentStorageDir);
+
+    // set up script storage path
+    #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
+    string persistentScriptsPath = persistentStorageDir;
+    pathstring_make_dir(persistentScriptsPath);
+    persistentScriptsPath += "scripts/vdcd";
+    ErrorPtr err = ensureDirExists(persistentScriptsPath);
+    if (Error::notOK(err)) {
+      exitWithcommandLineError("Invalid script storage path '%s': %s", persistentScriptsPath.c_str(), Error::text(err));
+    }
+    standarddomain->setFileStoragePath(persistentScriptsPath);
+    #endif
+
+    // protocols to use
+    mProtocols = PF_INET;
+    #if ENABLE_P44FEATURES
+    int featureapipotocols = PF_INET6; // backwards compatible: with no specification, feature API is v6 only
+    #endif
+    #if !REDUCED_FOOTPRINT
+    const char* protostr;
+    if (getStringOption("protocols", protostr)) {
+      if (uequals(protostr, "IPv6")) mProtocols = PF_INET6;
+      else if (uequals(protostr, "IPv4")) mProtocols = PF_INET;
+      else if (uequals(protostr, "IPv6v4")) mProtocols = PF_INET4_AND_6;
+      else if (uequals(protostr, "local")) mProtocols = PF_LOCAL;
       else {
-        // set button mode
-        mLowLevelButtonOnly = getOption("llbutton");
-
-        // get persistent storage path
-        string persistentStorageDir = dataPath();
-        getStringOption("sqlitedir", persistentStorageDir);
-
-        // set up script storage path
-        #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
-        string persistentScriptsPath = persistentStorageDir;
-        pathstring_make_dir(persistentScriptsPath);
-        persistentScriptsPath += "scripts/vdcd";
-        ErrorPtr err = ensureDirExists(persistentScriptsPath);
-        if (Error::notOK(err)) {
-          // abort
-          LOG(LOG_ERR, "Invalid script storage path '%s': %s", persistentScriptsPath.c_str(), Error::text(err));
-          terminateApp(EXIT_FAILURE);
-        }
-        standarddomain->setFileStoragePath(persistentScriptsPath);
-        #endif
-
-        // create the root object
-        bool withLocalController = getOption("localcontroller");
-        mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
-        #if ENABLE_LEDCHAIN
-        mP44VdcHost->mLedChainArrangement = mLedChainArrangement; // pass it on for simulation data API
-        #endif
-
-        #if SELFTESTING_ENABLED
-        // test or operation
-        mSelfTesting = getOption("selftest");
-        int errlevel = mSelfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
-        #else
-        int errlevel = LOG_ERR;
-        #endif
-
-        // daemon log options
-        processStandardLogOptions(true, errlevel);
-
-        // use of non-explicitly configured cloud services (e.g. N-UPnP)
-        mP44VdcHost->setAllowCloud(getOption("allowcloud"));
-
-        // startup delay?
-        int startupDelay = 0; // no delay
-        getIntOption("startupdelay", startupDelay);
-
-        // web ui
-        int webUiPort = 0;
-        getIntOption("webuiport", webUiPort);
-        mP44VdcHost->webUiPort = webUiPort;
-        getStringOption("webuipath", mP44VdcHost->webUiPath);
-
-        // max API version
-        int maxApiVersion = 0; // no limit
-        if (getIntOption("maxapiversion", maxApiVersion)) {
-          mP44VdcHost->setMaxApiVersion(maxApiVersion);
-        }
+        exitWithcommandLineError("Invalid protocols specification: %s", protostr);
+      }
+      #if ENABLE_P44FEATURES
+      featureapipotocols = mProtocols;
+      #endif
+    }
+    #endif // REDUCED_FOOTPRINT
 
 
-        // before starting anything, delay
-        if (startupDelay>0) {
-          LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)", startupDelay);
-          sleep(startupDelay);
-        }
+    // create the root object
+    bool withLocalController = getOption("localcontroller");
+    mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
+    #if ENABLE_LEDCHAIN
+    mP44VdcHost->mLedChainArrangement = mLedChainArrangement; // pass it on for simulation data API
+    #endif
 
-        // Connect LEDs and button
-        const char *pinName;
-        pinName = "missing";
-        getStringOption("greenled", pinName);
-        mGreenLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
-        pinName = "missing";
-        getStringOption("redled", pinName);
-        mRedLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
-        pinName = "missing";
-        getStringOption("button", pinName);
-        mButton = ButtonInputPtr(new ButtonInput(pinName));
+    #if SELFTESTING_ENABLED
+    // test or operation
+    mSelfTesting = getOption("selftest");
+    int errlevel = mSelfTesting ? LOG_EMERG: LOG_ERR; // testing by default only reports to stdout
+    #else
+    int errlevel = LOG_ERR;
+    #endif
 
-        // now show status for the first time
-        showAppStatus();
+    // daemon log options
+    processStandardLogOptions(true, errlevel);
 
-        // Check for factory reset as very first action, to avoid that corrupt data might already crash the daemon
-        // before we can do the factory reset
-        // Note: we do this even for BUTTON_NOT_AVAILABLE_AT_START mode, because it gives the opportunity
-        //   to prevent crashing the daemon with a little bit of timing (wait until uboot done, then press)
-        if (mButton->isSet()) {
-          LOG(LOG_WARNING, "Button held at startup -> enter factory reset wait mode");
-          // started with button pressed - go into factory reset wait mode
-          mFactoryResetWait = true;
-          indicateTempStatus(tempstatus_factoryresetwait);
+    // use of non-explicitly configured cloud services (e.g. N-UPnP)
+    mP44VdcHost->setAllowCloud(getOption("allowcloud"));
+
+    // startup delay?
+    int startupDelay = 0; // no delay
+    getIntOption("startupdelay", startupDelay);
+
+    // web ui
+    int webUiPort = 0;
+    getIntOption("webuiport", webUiPort);
+    mP44VdcHost->webUiPort = webUiPort;
+    getStringOption("webuipath", mP44VdcHost->webUiPath);
+
+    // max API version
+    int maxApiVersion = 0; // no limit
+    if (getIntOption("maxapiversion", maxApiVersion)) {
+      mP44VdcHost->setMaxApiVersion(maxApiVersion);
+    }
+
+    // before starting anything, delay
+    if (startupDelay>0) {
+      LOG(LOG_NOTICE, "Delaying startup by %d seconds (-w command line option)", startupDelay);
+      sleep(startupDelay);
+    }
+
+    // Connect LEDs and button
+    const char* pinName;
+    pinName = "missing";
+    getStringOption("greenled", pinName);
+    mGreenLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
+    pinName = "missing";
+    getStringOption("redled", pinName);
+    mRedLED = IndicatorOutputPtr(new IndicatorOutput(pinName, false));
+    pinName = "missing";
+    getStringOption("button", pinName);
+    mButton = ButtonInputPtr(new ButtonInput(pinName));
+
+    // now show status for the first time
+    showAppStatus();
+
+    // Check for factory reset as very first action, to avoid that corrupt data might already crash the daemon
+    // before we can do the factory reset
+    // Note: we do this even for BUTTON_NOT_AVAILABLE_AT_START mode, because it gives the opportunity
+    //   to prevent crashing the daemon with a little bit of timing (wait until uboot done, then press)
+    if (mButton->isSet()) {
+      LOG(LOG_WARNING, "Button held at startup -> enter factory reset wait mode");
+      // started with button pressed - go into factory reset wait mode
+      mFactoryResetWait = true;
+      indicateTempStatus(tempstatus_factoryresetwait);
+    }
+    else {
+      // Configure the device container root object
+
+      // - set DB dir
+      mP44VdcHost->setPersistentDataDir(persistentStorageDir.c_str());
+
+      // - set conf dir
+      const char *confdir = persistentStorageDir.c_str();
+      getStringOption("configdir", confdir);
+      mP44VdcHost->setConfigDir(confdir);
+
+      // - set icon directory
+      const char *icondir = NULL;
+      getStringOption("icondir", icondir);
+      mP44VdcHost->setIconDir(icondir);
+      string s;
+
+      // - set dSUID mode
+      DsUidPtr externalDsUid;
+      if (getStringOption("dsuid", s)) {
+        externalDsUid = DsUidPtr(new DsUid(s));
+      }
+      else if (getStringOption("sgtin", s)) {
+        int part;
+        uint64_t gcp;
+        uint32_t itemref;
+        uint64_t serial;
+        sscanf(s.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
+        externalDsUid = DsUidPtr(new DsUid(s));
+        externalDsUid->setGTIN(gcp, itemref, part);
+        externalDsUid->setSerial(serial);
+      }
+      int instance = 0;
+      string macif;
+      getStringOption("ifnameformac", macif);
+      getIntOption("instance", instance);
+      mP44VdcHost->setIdMode(externalDsUid, macif, instance);
+
+      // - network interface
+      if (getStringOption("ifnameforconn", s)) {
+        mP44VdcHost->setNetworkIf(s);
+      }
+
+      // - set product name and version
+      if (getStringOption("productname", s)) {
+        mP44VdcHost->setProductName(s);
+      }
+      // - set product version
+      if (getStringOption("productversion", s)) {
+        mP44VdcHost->setProductVersion(s);
+      }
+      // - set product device id (e.g. serial)
+      if (getStringOption("deviceid", s)) {
+        mP44VdcHost->setDeviceHardwareId(s);
+      }
+      // - set description (template)
+      if (getStringOption("description", s)) {
+        mP44VdcHost->setDescriptionTemplate(s);
+      }
+      // - set vdc modelName (template)
+      if (getStringOption("vdcdescription", s)) {
+        mP44VdcHost->setVdcModelNameTemplate(s);
+      }
+
+      // - set custom mainloop statistics output interval
+      int mainloopStatsInterval;
+      if (getIntOption("mainloopstats", mainloopStatsInterval)){
+        mP44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
+      }
+
+      // - set API (if not disabled)
+      if (!getOption("novdcapi")) {
+        int protobufapi = DEFAULT_USE_PROTOBUF_API;
+        getIntOption("protobufapi", protobufapi);
+        const char *vdcapiservice;
+        if (protobufapi) {
+          mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
+          vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
         }
         else {
-          // Configure the device container root object
+          mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
+          vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
+        }
+        // set up server for vdSM to connect to
+        getStringOption("vdsmport", vdcapiservice);
+        mP44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
+        mP44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
+      }
 
-          // - set DB dir
-          mP44VdcHost->setPersistentDataDir(persistentStorageDir.c_str());
+      // Prepare Web configuration JSON API server
+      #if ENABLE_JSONCFGAPI
+      const char *configApiPort = getOption("cfgapiport");
+      if (configApiPort) {
+        mP44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL, mProtocols);
+      }
+      #endif
 
-          // - set conf dir
-          const char *confdir = persistentStorageDir.c_str();
-          getStringOption("configdir", confdir);
-          mP44VdcHost->setConfigDir(confdir);
+      #if ENABLE_JSONBRIDGEAPI
+      const char *bridgeApiPort = getOption("bridgeapiport");
+      if (bridgeApiPort) {
+        mP44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL, mProtocols);
+      }
+      #endif
 
-          // - set icon directory
-          const char *icondir = NULL;
-          getStringOption("icondir", icondir);
-          mP44VdcHost->setIconDir(icondir);
-          string s;
+      #if ENABLE_UBUS
+      // Prepare ubus API
+      if (getOption("ubusapi")) {
+        mP44VdcHost->enableUbusApi();
+      }
+      #endif
 
-          // - set dSUID mode
-          DsUidPtr externalDsUid;
-          if (getStringOption("dsuid", s)) {
-            externalDsUid = DsUidPtr(new DsUid(s));
-          }
-          else if (getStringOption("sgtin", s)) {
-            int part;
-            uint64_t gcp;
-            uint32_t itemref;
-            uint64_t serial;
-            sscanf(s.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
-            externalDsUid = DsUidPtr(new DsUid(s));
-            externalDsUid->setGTIN(gcp, itemref, part);
-            externalDsUid->setSerial(serial);
-          }
-          int instance = 0;
-          string macif;
-          getStringOption("ifnameformac", macif);
-          getIntOption("instance", instance);
-          mP44VdcHost->setIdMode(externalDsUid, macif, instance);
+      #if ENABLE_P44FEATURES
+      // - instantiate (hardware) features we might need already for scripted devices
+      #if ENABLE_LEDCHAIN
+      FeatureApi::addFeaturesFromCommandLine(mLedChainArrangement, featureapipotocols);
+      #else
+      FeatureApi::addFeaturesFromCommandLine();
+      #endif
+      #endif
 
-          // - network interface
-          if (getStringOption("ifnameforconn", s)) {
-            mP44VdcHost->setNetworkIf(s);
-          }
+      // Create class containers
 
-          // - set product name and version
-          if (getStringOption("productname", s)) {
-            mP44VdcHost->setProductName(s);
-          }
-          // - set product version
-          if (getStringOption("productversion", s)) {
-            mP44VdcHost->setProductVersion(s);
-          }
-          // - set product device id (e.g. serial)
-          if (getStringOption("deviceid", s)) {
-            mP44VdcHost->setDeviceHardwareId(s);
-          }
-          // - set description (template)
-          if (getStringOption("description", s)) {
-            mP44VdcHost->setDescriptionTemplate(s);
-          }
-          // - set vdc modelName (template)
-          if (getStringOption("vdcdescription", s)) {
-            mP44VdcHost->setVdcModelNameTemplate(s);
-          }
+      // - first, prepare (make sure dSUID is available)
+      ErrorPtr err = mP44VdcHost->prepareForVdcs(false);
+      if (Error::notOK(err)) {
+        terminateApp(EXIT_FAILURE);
+        LOG(LOG_ERR, "startup preparation failed: %s", err->text());
+      }
+      else {
 
-          // - set custom mainloop statistics output interval
-          int mainloopStatsInterval;
-          if (getIntOption("mainloopstats", mainloopStatsInterval)){
-            mP44VdcHost->setMainloopStatsInterval(mainloopStatsInterval);
-          }
+        #if ENABLE_DALI
+        // - Add DALI devices class if DALI bridge serialport/host is specified
+        const char *daliname = getOption("dali");
+        if (daliname) {
+          int sec = 0;
+          getIntOption("daliportidle", sec);
+          DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, mP44VdcHost.get(), 1)); // Tag 1 = DALI
+          daliVdc->mDaliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
+          int adj;
+          if (getIntOption("dalitxadj", adj)) daliVdc->mDaliComm.setDaliSendAdj(adj);
+          if (getIntOption("dalirxadj", adj)) daliVdc->mDaliComm.setDaliSampleAdj(adj);
+          daliVdc->addVdcToVdcHost();
+        }
+        #endif
 
-          // - set API (if not disabled)
-          if (!getOption("novdcapi")) {
-            int protobufapi = DEFAULT_USE_PROTOBUF_API;
-            getIntOption("protobufapi", protobufapi);
-            const char *vdcapiservice;
-            if (protobufapi) {
-              mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcPbufApiServer());
-              vdcapiservice = (char *) DEFAULT_PBUF_VDSMSERVICE;
-            }
-            else {
-              mP44VdcHost->mVdcApiServer = VdcApiServerPtr(new VdcJsonApiServer());
-              vdcapiservice = (char *) DEFAULT_JSON_VDSMSERVICE;
-            }
-            // set up server for vdSM to connect to
-            getStringOption("vdsmport", vdcapiservice);
-            mP44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
-            mP44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
-          }
+        #if ENABLE_ENOCEAN
+        // - Add EnOcean devices class if modem serialport/host is specified
+        const char *enoceanname = getOption("enocean");
+        const char *enoceanresetpin = getOption("enoceanreset");
+        if (enoceanname) {
+          EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, mP44VdcHost.get(), 2)); // Tag 2 = EnOcean
+          enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
+          // add
+          enoceanVdc->addVdcToVdcHost();
+        }
+        #endif
 
-          // Prepare Web configuration JSON API server
-          #if ENABLE_JSONCFGAPI
-          const char *configApiPort = getOption("cfgapiport");
-          if (configApiPort) {
-            mP44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL);
-          }
+        #if ENABLE_ELDAT
+        // - Add Eldat devices class if modem serialport/host is specified
+        const char *eldatname = getOption("eldat");
+        if (eldatname) {
+          EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, mP44VdcHost.get(), 9)); // Tag 9 = ELDAT
+          eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
+          // add
+          eldatVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_ZF
+        // - Add ZF devices class if modem serialport/host is specified
+        const char *zfname = getOption("zf");
+        if (zfname) {
+          ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, mP44VdcHost.get(), 10)); // Tag 10 = ZF
+          zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
+          // add
+          zfVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_HUE
+        // - Add hue support
+        if (getOption("huelights")) {
+          HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, mP44VdcHost.get(), 3)); // Tag 3 = hue
+          hueVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_DMX || ENABLE_OLA
+        const char* dmxout = getOption("dmx");
+        #if ENABLE_OLA
+        if (!dmxout && getOption("ola")) {
+          // shortcut for backwards compatibility
+          dmxout = "ola:42";
+        }
+        #endif
+        if (dmxout) {
+          DmxVdcPtr dmxVdc = DmxVdcPtr(new DmxVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = DMX
+          dmxVdc->setDmxOutput(dmxout, DEFAULT_DMXPORT);
+          dmxVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_LEDCHAIN
+        // - Add Led chain light device support
+        if (mLedChainArrangement && !getOption("noledchaindevices")) {
+          LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, mLedChainArrangement, mP44VdcHost.get(), 6)); // Tag 6 = led chain
+          // led chain arrangement options
+          mLedChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
+          ledChainVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_STATIC
+        // - Add static devices if we explictly want it or have collected any config from the command line
+        if (getOption("staticdevices") || mStaticDeviceConfigs.size()>0) {
+          StaticVdcPtr staticVdc = StaticVdcPtr(new StaticVdc(1, mStaticDeviceConfigs, mP44VdcHost.get(), 4)); // Tag 4 = static
+          staticVdc->addVdcToVdcHost();
+          mStaticDeviceConfigs.clear(); // no longer needed, free memory
+        }
+        #endif
+
+        #if ENABLE_EVALUATORS
+        // - Add evaluator devices
+        if (getOption("evaluators")) {
+          EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, mP44VdcHost.get(), 8)); // Tag 8 = evaluators
+          evaluatorVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_EXTERNAL
+        // - Add support for external devices connecting via socket
+        const char *extdevname = getOption("externaldevices");
+        if (extdevname) {
+          ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
+          externalVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_SCRIPTED
+        // - Add support for scripted devices (p44script implementations of "external" devices)
+        if (getOption("scripteddevices")) {
+          ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, mP44VdcHost.get(), 11)); // Tag 11 = scripted
+          scriptedVdc->addVdcToVdcHost();
+        }
+        #endif
+
+        #if ENABLE_PROXYDEVICES
+        // - Add a separate vdc for each proxy host (secondary vdcd's bridge API) specified or found via DNS-SD
+        const char *proxies = getOption("proxydevices");
+        if (proxies) {
+          ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
+        }
+        #endif
+
+        #if ENABLE_JSONBRIDGEAPI
+        if (
+          mP44VdcHost->getBridgeApi()
+          #if ENABLE_LOCALCONTROLLER
+          && !withLocalController
           #endif
+        ) {
+          // the digitalstrom bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
+          BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
+          bridgeVdc->addVdcToVdcHost();
+        }
+        #endif
 
-          #if ENABLE_JSONBRIDGEAPI
-          const char *bridgeApiPort = getOption("bridgeapiport");
-          if (bridgeApiPort) {
-            mP44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL);
-          }
-          #endif
-
-          #if ENABLE_UBUS
-          // Prepare ubus API
-          if (getOption("ubusapi")) {
-            mP44VdcHost->enableUbusApi();
-          }
-          #endif
-
-          #if ENABLE_P44FEATURES
-          // - instantiate (hardware) features we might need already for scripted devices
-          #if ENABLE_LEDCHAIN
-          FeatureApi::addFeaturesFromCommandLine(mLedChainArrangement);
-          #else
-          FeatureApi::addFeaturesFromCommandLine();
-          #endif
-          #endif
-
-          // Create class containers
-
-          // - first, prepare (make sure dSUID is available)
-          ErrorPtr err = mP44VdcHost->prepareForVdcs(false);
-          if (Error::notOK(err)) {
-            terminateApp(EXIT_FAILURE);
-            LOG(LOG_ERR, "startup preparation failed: %s", err->text());
-          }
-          else {
-
-            #if ENABLE_DALI
-            // - Add DALI devices class if DALI bridge serialport/host is specified
-            const char *daliname = getOption("dali");
-            if (daliname) {
-              int sec = 0;
-              getIntOption("daliportidle", sec);
-              DaliVdcPtr daliVdc = DaliVdcPtr(new DaliVdc(1, mP44VdcHost.get(), 1)); // Tag 1 = DALI
-              daliVdc->mDaliComm.setConnectionSpecification(daliname, DEFAULT_DALIPORT, sec*Second);
-              int adj;
-              if (getIntOption("dalitxadj", adj)) daliVdc->mDaliComm.setDaliSendAdj(adj);
-              if (getIntOption("dalirxadj", adj)) daliVdc->mDaliComm.setDaliSampleAdj(adj);
-              daliVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_ENOCEAN
-            // - Add EnOcean devices class if modem serialport/host is specified
-            const char *enoceanname = getOption("enocean");
-            const char *enoceanresetpin = getOption("enoceanreset");
-            if (enoceanname) {
-              EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, mP44VdcHost.get(), 2)); // Tag 2 = EnOcean
-              enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
-              // add
-              enoceanVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_ELDAT
-            // - Add Eldat devices class if modem serialport/host is specified
-            const char *eldatname = getOption("eldat");
-            if (eldatname) {
-              EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, mP44VdcHost.get(), 9)); // Tag 9 = ELDAT
-              eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
-              // add
-              eldatVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_ZF
-            // - Add ZF devices class if modem serialport/host is specified
-            const char *zfname = getOption("zf");
-            if (zfname) {
-              ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, mP44VdcHost.get(), 10)); // Tag 10 = ZF
-              zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
-              // add
-              zfVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_HUE
-            // - Add hue support
-            if (getOption("huelights")) {
-              HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, mP44VdcHost.get(), 3)); // Tag 3 = hue
-              hueVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_DMX || ENABLE_OLA
-            const char* dmxout = getOption("dmx");
-            #if ENABLE_OLA
-            if (!dmxout && getOption("ola")) {
-              // shortcut for backwards compatibility
-              dmxout = "ola:42";
-            }
-            #endif
-            if (dmxout) {
-              DmxVdcPtr dmxVdc = DmxVdcPtr(new DmxVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = DMX
-              dmxVdc->setDmxOutput(dmxout, DEFAULT_DMXPORT);
-              dmxVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_LEDCHAIN
-            // - Add Led chain light device support
-            if (mLedChainArrangement && !getOption("noledchaindevices")) {
-              LedChainVdcPtr ledChainVdc = LedChainVdcPtr(new LedChainVdc(1, mLedChainArrangement, mP44VdcHost.get(), 6)); // Tag 6 = led chain
-              // led chain arrangement options
-              mLedChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
-              ledChainVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_STATIC
-            // - Add static devices if we explictly want it or have collected any config from the command line
-            if (getOption("staticdevices") || mStaticDeviceConfigs.size()>0) {
-              StaticVdcPtr staticVdc = StaticVdcPtr(new StaticVdc(1, mStaticDeviceConfigs, mP44VdcHost.get(), 4)); // Tag 4 = static
-              staticVdc->addVdcToVdcHost();
-              mStaticDeviceConfigs.clear(); // no longer needed, free memory
-            }
-            #endif
-
-            #if ENABLE_EVALUATORS
-            // - Add evaluator devices
-            if (getOption("evaluators")) {
-              EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, mP44VdcHost.get(), 8)); // Tag 8 = evaluators
-              evaluatorVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_EXTERNAL
-            // - Add support for external devices connecting via socket
-            const char *extdevname = getOption("externaldevices");
-            if (extdevname) {
-              ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
-              externalVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_SCRIPTED
-            // - Add support for scripted devices (p44script implementations of "external" devices)
-            if (getOption("scripteddevices")) {
-              ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, mP44VdcHost.get(), 11)); // Tag 11 = scripted
-              scriptedVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            #if ENABLE_PROXYDEVICES
-            // - Add a separate vdc for each proxy host (secondary vdcd's bridge API) specified or found via DNS-SD
-            const char *proxies = getOption("proxydevices");
-            if (proxies) {
-              ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
-            }
-            #endif
-
-            #if ENABLE_JSONBRIDGEAPI
-            if (
-              mP44VdcHost->getBridgeApi()
-              #if ENABLE_LOCALCONTROLLER
-              && !withLocalController
-              #endif
-            ) {
-              // the digitalstrom bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
-              BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
-              bridgeVdc->addVdcToVdcHost();
-            }
-            #endif
-
-            // install event monitor
-            mP44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
-          } // preparation ok
-        } // not factory reset wait state
-      } // command line ok
-    } // option processing did not terminate app
+        // install event monitor
+        mP44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
+      } // preparation ok
+    } // not factory reset wait state
     // app now ready to run (or cleanup when already terminated)
     return run();
   }
@@ -1141,15 +1168,26 @@ public:
     // start DS advertising if not disabled
     if (!getOption("nodiscovery")) {
       // started ok, set discovery params
+      // - ssh port
       int sshPort = 0;
       getIntOption("sshport", sshPort);
+      // - bridge API
+      int bridgeApiPort = 0;
+      #if ENABLE_JSONBRIDGEAPI
+      BridgeApiConnectionPtr bridgeApi = boost::dynamic_pointer_cast<BridgeApiConnection>(mP44VdcHost->getBridgeApi());
+      if (bridgeApi && getOption("advertisebridge")!=NULL) {
+        bridgeApiPort = atoi(bridgeApi->mJsonApiServer->getPort());
+      }
+      #endif
       ServiceAnnouncer::sharedServiceAnnouncer().advertiseVdcHostDevice(
         hostname.c_str(),
+        mProtocols,
         mP44VdcHost,
         getOption("noauto"),
         mP44VdcHost->webUiPort,
         mP44VdcHost->webUiPath,
-        sshPort
+        sshPort,
+        bridgeApiPort
       );
     }
   }
