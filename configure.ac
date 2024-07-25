@@ -13,6 +13,9 @@ AC_CONFIG_FILES([Makefile])
 
 ##### OPTIONS
 
+AC_ARG_VAR(APPLICATION_VERSION, [specify to inject application version from build environment])
+AM_CONDITIONAL([WITH_APPLICATION_VERSION], [test -n "$APPLICATION_VERSION"])
+
 AC_ARG_ENABLE(
   [debug],
   [AC_HELP_STRING([--enable-debug], [Debug build with extra debugging code])]

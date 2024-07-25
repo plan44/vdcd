@@ -44,7 +44,9 @@ vdcd_PLATFORM = -D DISABLE_I2C=1
 endif !P44_BUILD_RB
 endif !P44_BUILD_OW
 
-
+if WITH_APPLICATION_VERSION
+vdcd_VERSION = -DP44_APPLICATION_VERSION=\"$(APPLICATION_VERSION)\"
+endif
 
 
 nodist_vdcd_SOURCES = ${PROTOBUF_GENERATED}
@@ -318,6 +320,7 @@ vdcd_CPPFLAGS = \
   ${AVAHI_CFLAGS} \
   ${vdcd_EXTRACFLAGS} \
   ${vdcd_DEBUG} \
+  ${vdcd_VERSION} \
   ${vdcd_PLATFORM}
 
 
