@@ -68,6 +68,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--userfile /tmp/gugus.txt:config:GUGUS --userfile /tmp/gugus.ini:inifile --userfile /tmp/tweak.html:webpage"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--protocols IPv6v4"
             isEnabled = "YES">
          </CommandLineArgument>

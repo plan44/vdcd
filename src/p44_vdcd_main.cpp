@@ -332,6 +332,20 @@ public:
     }
     else
     #endif
+    #if P44SCRIPT_OTHER_SOURCES
+    if (strcmp(aOptionDescriptor.longOptionName,"userfile")==0) {
+      string path;
+      if (nextPart(aOptionValue, path, ':')) {
+        string contexttype;
+        string title;
+        if (nextPart(aOptionValue, contexttype, ':')) {
+          nextPart(aOptionValue, title, ':');
+        }
+        p44::P44Script::StandardScriptingDomain::sharedDomain().addTextFileHost(path, title, contexttype);
+      }
+    }
+    else
+    #endif
     {
       return inherited::processOption(aOptionDescriptor, aOptionValue);
     }
@@ -455,6 +469,9 @@ public:
       #if P44SCRIPT_FULL_SUPPORT
       { 0  , "initscript",       true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
       { 0  , "setupscript",      true,  "filepath;setup script run once and deleted when it returns true (path relative to resource path)" },
+      #endif
+      #if P44SCRIPT_OTHER_SOURCES
+      { 0  , "userfile",         true,  "filepath[:contexttype[:title]];absolute file path for text file to make accessible to API users for editing. Can be specified multiple times." },
       #endif
       #if ENABLE_JSONCFGAPI
       { 'W', "cfgapiport",       true,  "port;server port number for web configuration JSON API (default=none)" },
