@@ -69,6 +69,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userfile /tmp/gugus.txt:config:GUGUS --userfile /tmp/gugus.ini:inifile --userfile /tmp/tweak.html:webpage"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--userfile /tmp/dev_userpage.html:webpage"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -81,10 +85,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 127.0.0.1:2144"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--proxydevices [fe80::42a3:6bff:fec1:8c22]%en5:4444,192.168.59.170"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -365,7 +373,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
