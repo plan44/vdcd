@@ -68,11 +68,47 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--userfile /tmp/gugus.txt:config:GUGUS --userfile /tmp/gugus.ini:inifile --userfile /tmp/tweak.html:webpage"
+            argument = "-l 7"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-l 6"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-l 5"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userfile /tmp/dev_userpage.html:webpage"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-freitag"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/configs/xcodesim&quot;"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--resourcepath /Users/luz/Desktop"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -116,18 +152,6 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-l 7"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-l 6"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-l 5"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--featureapiport 11200"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -145,26 +169,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:119:0:17:0:7:A"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:512:0:64:0:8:A"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:288:0:288:0:1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:1680:0:112:0:15:X"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ledchain none.grb:/tmp/ledchainsim:200:0:20:0:8:20:XA --ledchain WS2812:/tmp/ledchainsim:200:20:20:0:1:0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -228,111 +232,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-freitag"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--datapath /Users/luz/Desktop"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir /Users/luz/Desktop/plan44"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--datapath /Users/luz/Desktop/plan44"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--sqlitedir &quot;/Users/luz/Documents/plan44/P44-xx/config backups P44-DSB - p44 and others/H.P. Zaugg - wieder ge-gzipt - stc_ds_35829549_2022-11-12_10.55&quot;"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--icondir /Users/luz/Documents/plan44/P44-xx/software/closed-source/p44dsb-webui/build/tmp/www/icons"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--resourcepath /Users/luz/Desktop"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--button simpin.button:a"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled simpin.R --greenled simpin.G"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k testin:button"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k input:input"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k rocker:rocker"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k testout:colordimmer"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--digitalio i2c0.PCA9685@33.2:relay"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-k ab:sensor -k cd:sensor -k ef:sensor -k gh:sensor"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--mainloopstats 3"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--initscript initscript.txt"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--maxapiversion 2"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--selftest"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ifnameformac en0 --ifnameforconn en0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--vdsmnotaux"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -380,27 +284,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dali 192.168.59.166"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali 192.168.11.83"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali localhost:2101 --daliportidle 10 --dalitxadj 16"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali localhost:2101"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--dali localhost:2102 --daliportidle 10 --dalitxadj 16"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -429,10 +313,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--externalnonlocal"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--externaldevices /tmp/devicesock"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
