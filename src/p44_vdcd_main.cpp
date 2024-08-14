@@ -341,7 +341,7 @@ public:
         if (nextPart(aOptionValue, contexttype, ':')) {
           nextPart(aOptionValue, title, ':');
         }
-        p44::P44Script::StandardScriptingDomain::sharedDomain().addTextFileHost(path, title, contexttype);
+        p44::P44Script::StandardScriptingDomain::sharedDomain().addExternalFileHost(path, title, contexttype);
       }
     }
     else
@@ -890,11 +890,9 @@ public:
         #if ENABLE_JSONBRIDGEAPI
         if (
           mP44VdcHost->getBridgeApi()
-          #if ENABLE_LOCALCONTROLLER
-          && !withLocalController
-          #endif
         ) {
-          // the digitalstrom bridge vdc gets added when the bridge API is enabled and we don't have the localcontroller
+          // the bridging device vdc gets added when the bridge API is enabled. Primarily this is for DS,
+          // but can also be useful for bridging scenes in p44 localcontroller only setups
           BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
           bridgeVdc->addVdcToVdcHost();
         }
