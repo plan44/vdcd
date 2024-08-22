@@ -128,8 +128,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--proxydevices [fe80::42a3:6bff:fec1:8c22]%en5:4444,192.168.59.170"
-            isEnabled = "NO">
+            argument = "--proxydevices [fe80::42a3:6bff:fec7:e5e7]%en5:4444,[fe80::42a3:6bff:fec7:e926]%en5:4444"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dmx /dev/null:none"
