@@ -644,7 +644,7 @@
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; };
+		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; tabWidth = 4; };
 		EDEC0CDB204FDEE100CD3C27 /* ws2811.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ws2811.h; sourceTree = "<group>"; };
 		EDEC0CDC204FDEE100CD3C27 /* gpio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
 		EDEC0CDD204FDEE100CD3C27 /* pcm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcm.c; sourceTree = "<group>"; };
