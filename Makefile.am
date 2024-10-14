@@ -414,6 +414,8 @@ vdcd_SOURCES = \
   src/p44utils/ssdpsearch.hpp \
   src/p44utils/timeutils.cpp \
   src/p44utils/timeutils.hpp \
+  src/p44utils/tlv.cpp \
+  src/p44utils/tlv.hpp \
   src/p44utils/utils.cpp \
   src/p44utils/utils.hpp \
   src/p44utils/valueanimator.cpp \
@@ -439,6 +441,8 @@ vdcd_SOURCES = \
   src/p44lrgraphics/coloreffectview.hpp \
   src/p44lrgraphics/epxview.cpp \
   src/p44lrgraphics/epxview.hpp \
+  src/p44lrgraphics/fonts.cpp \
+  src/p44lrgraphics/fonts.hpp \
   src/p44lrgraphics/imageview.cpp \
   src/p44lrgraphics/imageview.hpp \
   src/p44lrgraphics/lifeview.cpp \
@@ -460,6 +464,17 @@ vdcd_SOURCES = \
   src/p44lrgraphics/viewsequencer.hpp \
   src/p44lrgraphics/viewstack.cpp \
   src/p44lrgraphics/viewstack.hpp \
+  src/p44lrgraphics/fonts/font_3x3.cpp \
+  src/p44lrgraphics/fonts/font_3x4.cpp \
+  src/p44lrgraphics/fonts/font_5x5.cpp \
+  src/p44lrgraphics/fonts/font_5x7.cpp \
+  src/p44lrgraphics/fonts/font_5x8.cpp \
+  src/p44lrgraphics/fonts/font_bios.cpp \
+  src/p44lrgraphics/fonts/font_m3x6.cpp \
+  src/p44lrgraphics/fonts/font_m5x7.cpp \
+  src/p44lrgraphics/fonts/font_m6x11.cpp \
+  src/p44lrgraphics/fonts/font_sixtyfour.cpp \
+  src/p44lrgraphics/fonts/font_vcr_osd_mono.cpp \
   src/p44vdc/vdc_common/dsbehaviour.cpp \
   src/p44vdc/vdc_common/dsbehaviour.hpp \
   src/p44vdc/vdc_common/outputbehaviour.cpp \

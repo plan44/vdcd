@@ -91,6 +91,19 @@
 		ED5D486819ED502F000DF5A5 /* analogio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D486619ED502F000DF5A5 /* analogio.cpp */; };
 		ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5D487C19ED701E000DF5A5 /* analogiodevice.cpp */; };
 		ED5DA3ED1BB294D7003C86C7 /* externalvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */; };
+		ED5DAB852CBBD29000F0B716 /* tlv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB842CBBD29000F0B716 /* tlv.cpp */; };
+		ED5DAB8B2CBD573A00F0B716 /* fonts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB8A2CBD573A00F0B716 /* fonts.cpp */; };
+		ED5DABAC2CBDB0AD00F0B716 /* font_m5x7.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB932CBD8FDB00F0B716 /* font_m5x7.cpp */; };
+		ED5DABAD2CBDB0AD00F0B716 /* font_3x4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB8D2CBD8FDB00F0B716 /* font_3x4.cpp */; };
+		ED5DABAE2CBDB0AD00F0B716 /* font_bios.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB912CBD8FDB00F0B716 /* font_bios.cpp */; };
+		ED5DABAF2CBDB0AD00F0B716 /* font_5x7.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB8F2CBD8FDB00F0B716 /* font_5x7.cpp */; };
+		ED5DABB02CBDB0AD00F0B716 /* font_3x3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB8C2CBD8FDB00F0B716 /* font_3x3.cpp */; };
+		ED5DABB12CBDB0AD00F0B716 /* font_m6x11.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB942CBD8FDB00F0B716 /* font_m6x11.cpp */; };
+		ED5DABB22CBDB0AD00F0B716 /* font_5x5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB8E2CBD8FDB00F0B716 /* font_5x5.cpp */; };
+		ED5DABB32CBDB0AD00F0B716 /* font_m3x6.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB922CBD8FDB00F0B716 /* font_m3x6.cpp */; };
+		ED5DABB42CBDB0AD00F0B716 /* font_vcr_osd_mono.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB962CBD8FDB00F0B716 /* font_vcr_osd_mono.cpp */; };
+		ED5DABB52CBDB0AD00F0B716 /* font_5x8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB902CBD8FDB00F0B716 /* font_5x8.cpp */; };
+		ED5DABB62CBDB0AD00F0B716 /* font_sixtyfour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB952CBD8FDB00F0B716 /* font_sixtyfour.cpp */; };
 		ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6865DB22609EC40030AAE3 /* ubus.cpp */; };
 		ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6894681DF3260200E5245F /* ledchaincomm.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
@@ -312,7 +325,6 @@
 		ED23300428805A4A00D934D7 /* keyevents.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = keyevents.cpp; sourceTree = "<group>"; };
 		ED23300528805A4A00D934D7 /* keyevents.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = keyevents.hpp; sourceTree = "<group>"; };
 		ED2330262886A7C100D934D7 /* p44utils_main.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = p44utils_main.hpp; sourceTree = "<group>"; };
-		ED23BFA0298E7BEE000A8AF0 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = "<group>"; };
 		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED32BD58274C0EFA0097E990 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
@@ -425,6 +437,21 @@
 		ED5D487D19ED701E000DF5A5 /* analogiodevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = analogiodevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3E91BB294D7003C86C7 /* externalvdc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = externalvdc.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = externalvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED5DAB832CBBD29000F0B716 /* tlv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = tlv.hpp; sourceTree = "<group>"; };
+		ED5DAB842CBBD29000F0B716 /* tlv.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tlv.cpp; sourceTree = "<group>"; };
+		ED5DAB892CBD573A00F0B716 /* fonts.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = fonts.hpp; sourceTree = "<group>"; };
+		ED5DAB8A2CBD573A00F0B716 /* fonts.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = fonts.cpp; sourceTree = "<group>"; };
+		ED5DAB8C2CBD8FDB00F0B716 /* font_3x3.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_3x3.cpp; sourceTree = "<group>"; };
+		ED5DAB8D2CBD8FDB00F0B716 /* font_3x4.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_3x4.cpp; sourceTree = "<group>"; };
+		ED5DAB8E2CBD8FDB00F0B716 /* font_5x5.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_5x5.cpp; sourceTree = "<group>"; };
+		ED5DAB8F2CBD8FDB00F0B716 /* font_5x7.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_5x7.cpp; sourceTree = "<group>"; };
+		ED5DAB902CBD8FDB00F0B716 /* font_5x8.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_5x8.cpp; sourceTree = "<group>"; };
+		ED5DAB912CBD8FDB00F0B716 /* font_bios.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_bios.cpp; sourceTree = "<group>"; };
+		ED5DAB922CBD8FDB00F0B716 /* font_m3x6.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_m3x6.cpp; sourceTree = "<group>"; };
+		ED5DAB932CBD8FDB00F0B716 /* font_m5x7.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_m5x7.cpp; sourceTree = "<group>"; };
+		ED5DAB942CBD8FDB00F0B716 /* font_m6x11.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_m6x11.cpp; sourceTree = "<group>"; };
+		ED5DAB952CBD8FDB00F0B716 /* font_sixtyfour.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_sixtyfour.cpp; sourceTree = "<group>"; };
+		ED5DAB962CBD8FDB00F0B716 /* font_vcr_osd_mono.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_vcr_osd_mono.cpp; sourceTree = "<group>"; };
 		ED6865DB22609EC40030AAE3 /* ubus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ubus.cpp; sourceTree = "<group>"; };
 		ED6865DC22609EC40030AAE3 /* ubus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ubus.hpp; sourceTree = "<group>"; };
 		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaincomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -1017,6 +1044,8 @@
 				ED54FDC62411A0F8006A443D /* valueanimator.hpp */,
 				ED493DB81E9823C8008860E8 /* valueunits.cpp */,
 				ED493DB91E9823C8008860E8 /* valueunits.hpp */,
+				ED5DAB842CBBD29000F0B716 /* tlv.cpp */,
+				ED5DAB832CBBD29000F0B716 /* tlv.hpp */,
 			);
 			path = p44utils;
 			sourceTree = "<group>";
@@ -1055,7 +1084,9 @@
 		ED57A13822FF6A20008E554D /* p44lrgraphics */ = {
 			isa = PBXGroup;
 			children = (
-				ED23BFA0298E7BEE000A8AF0 /* fonts */,
+				ED5DAB8A2CBD573A00F0B716 /* fonts.cpp */,
+				ED5DAB892CBD573A00F0B716 /* fonts.hpp */,
+				ED5DAB972CBD8FDB00F0B716 /* fonts */,
 				ED3BDFE524547DEA00115B6C /* FUNDING.yml */,
 				ED57A14222FF6A20008E554D /* README.md */,
 				ED57A14522FF6A20008E554D /* p44lrg_common.hpp */,
@@ -1125,6 +1156,24 @@
 				EDABE4652681E39E009CAA1E /* scriptedvdc.hpp */,
 			);
 			path = custom;
+			sourceTree = "<group>";
+		};
+		ED5DAB972CBD8FDB00F0B716 /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				ED5DAB8C2CBD8FDB00F0B716 /* font_3x3.cpp */,
+				ED5DAB8D2CBD8FDB00F0B716 /* font_3x4.cpp */,
+				ED5DAB8E2CBD8FDB00F0B716 /* font_5x5.cpp */,
+				ED5DAB8F2CBD8FDB00F0B716 /* font_5x7.cpp */,
+				ED5DAB902CBD8FDB00F0B716 /* font_5x8.cpp */,
+				ED5DAB912CBD8FDB00F0B716 /* font_bios.cpp */,
+				ED5DAB922CBD8FDB00F0B716 /* font_m3x6.cpp */,
+				ED5DAB932CBD8FDB00F0B716 /* font_m5x7.cpp */,
+				ED5DAB942CBD8FDB00F0B716 /* font_m6x11.cpp */,
+				ED5DAB952CBD8FDB00F0B716 /* font_sixtyfour.cpp */,
+				ED5DAB962CBD8FDB00F0B716 /* font_vcr_osd_mono.cpp */,
+			);
+			path = fonts;
 			sourceTree = "<group>";
 		};
 		ED6CCD361D198A9500C78A0D /* tests */ = {
@@ -1629,6 +1678,17 @@
 				ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */,
 				ED3EF45D2735ADE9004DFF99 /* modbus.c in Sources */,
 				ED1C3DE11B7E19FB00779DA8 /* discovery.cpp in Sources */,
+				ED5DABAC2CBDB0AD00F0B716 /* font_m5x7.cpp in Sources */,
+				ED5DABAD2CBDB0AD00F0B716 /* font_3x4.cpp in Sources */,
+				ED5DABAE2CBDB0AD00F0B716 /* font_bios.cpp in Sources */,
+				ED5DABAF2CBDB0AD00F0B716 /* font_5x7.cpp in Sources */,
+				ED5DABB02CBDB0AD00F0B716 /* font_3x3.cpp in Sources */,
+				ED5DABB12CBDB0AD00F0B716 /* font_m6x11.cpp in Sources */,
+				ED5DABB22CBDB0AD00F0B716 /* font_5x5.cpp in Sources */,
+				ED5DABB32CBDB0AD00F0B716 /* font_m3x6.cpp in Sources */,
+				ED5DABB42CBDB0AD00F0B716 /* font_vcr_osd_mono.cpp in Sources */,
+				ED5DABB52CBDB0AD00F0B716 /* font_5x8.cpp in Sources */,
+				ED5DABB62CBDB0AD00F0B716 /* font_sixtyfour.cpp in Sources */,
 				ED77A4751E78B9C5004D8303 /* slre.c in Sources */,
 				ED1D253E2AD43B2300C2F3E8 /* civetweb.c in Sources */,
 				ED6D7BEC1716B6B1005DED18 /* dalicomm.cpp in Sources */,
@@ -1706,6 +1766,7 @@
 				EDD9903026C51F7D009F3103 /* uwsc.c in Sources */,
 				ED36999A178D6A2C00376405 /* iopin.cpp in Sources */,
 				EDBCAC182508E6F3007A9B0B /* canvasview.cpp in Sources */,
+				ED5DAB852CBBD29000F0B716 /* tlv.cpp in Sources */,
 				ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */,
 				ED17F4C81769F51D0076B47C /* persistentparams.cpp in Sources */,
 				ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */,
@@ -1782,6 +1843,7 @@
 				ED4C1440174EB8D20037ED0C /* staticvdc.cpp in Sources */,
 				ED54FDC424119E38006A443D /* viewsequencer.cpp in Sources */,
 				ED4C1443174EB9550037ED0C /* digitaliodevice.cpp in Sources */,
+				ED5DAB8B2CBD573A00F0B716 /* fonts.cpp in Sources */,
 				EDBFB91C17C392C600A38659 /* dsbehaviour.cpp in Sources */,
 				ED9EF77C26DFA2F400C2F3D7 /* feature.cpp in Sources */,
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
