@@ -341,7 +341,7 @@ public:
         if (nextPart(aOptionValue, contexttype, ':')) {
           nextPart(aOptionValue, title, ':');
         }
-        p44::P44Script::StandardScriptingDomain::sharedDomain().addExternalFileHost(path, title, contexttype);
+        p44::P44Script::StandardScriptingDomain::sharedDomain().addExternalFileHost(path, title, contexttype, false);
       }
     }
     else

@@ -104,6 +104,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[scripting]"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[tlv]"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

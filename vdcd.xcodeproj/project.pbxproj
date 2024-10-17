@@ -104,6 +104,9 @@
 		ED5DABB42CBDB0AD00F0B716 /* font_vcr_osd_mono.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB962CBD8FDB00F0B716 /* font_vcr_osd_mono.cpp */; };
 		ED5DABB52CBDB0AD00F0B716 /* font_5x8.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB902CBD8FDB00F0B716 /* font_5x8.cpp */; };
 		ED5DABB62CBDB0AD00F0B716 /* font_sixtyfour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB952CBD8FDB00F0B716 /* font_sixtyfour.cpp */; };
+		ED5DABB82CBE75AD00F0B716 /* test_tlv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DABB72CBE75AD00F0B716 /* test_tlv.cpp */; };
+		ED5DABB92CBE75CB00F0B716 /* tlv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED5DAB842CBBD29000F0B716 /* tlv.cpp */; };
+		ED5DABBA2CBE7AFE00F0B716 /* fnv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDCFE85E17203E47001D35F3 /* fnv.cpp */; };
 		ED6865DD22609EC40030AAE3 /* ubus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6865DB22609EC40030AAE3 /* ubus.cpp */; };
 		ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6894681DF3260200E5245F /* ledchaincomm.cpp */; };
 		ED6CCD4D1D19907500C78A0D /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED026CF7171D9CAB00AD5FD6 /* utils.cpp */; };
@@ -452,6 +455,7 @@
 		ED5DAB942CBD8FDB00F0B716 /* font_m6x11.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_m6x11.cpp; sourceTree = "<group>"; };
 		ED5DAB952CBD8FDB00F0B716 /* font_sixtyfour.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_sixtyfour.cpp; sourceTree = "<group>"; };
 		ED5DAB962CBD8FDB00F0B716 /* font_vcr_osd_mono.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = font_vcr_osd_mono.cpp; sourceTree = "<group>"; };
+		ED5DABB72CBE75AD00F0B716 /* test_tlv.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_tlv.cpp; sourceTree = "<group>"; };
 		ED6865DB22609EC40030AAE3 /* ubus.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ubus.cpp; sourceTree = "<group>"; };
 		ED6865DC22609EC40030AAE3 /* ubus.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ubus.hpp; sourceTree = "<group>"; };
 		ED6894681DF3260200E5245F /* ledchaincomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ledchaincomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -1187,6 +1191,7 @@
 				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
 				ED08F8FD24CEC32F0080DA36 /* test_p44script.cpp */,
 				EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */,
+				ED5DABB72CBE75AD00F0B716 /* test_tlv.cpp */,
 				ED6CCD3B1D198ACD00C78A0D /* test_utils.cpp */,
 				EDD10D7726EFAA2900BEADB5 /* test_valueunits.cpp */,
 			);
@@ -1627,6 +1632,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED5DABB92CBE75CB00F0B716 /* tlv.cpp in Sources */,
 				EDD9901F26C51F7D009F3103 /* log.c in Sources */,
 				EDA7D1B61D5B337A000063AA /* macaddress.cpp in Sources */,
 				ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */,
@@ -1656,11 +1662,13 @@
 				ED98733127A3418200CBD58D /* p44script.cpp in Sources */,
 				ED3701F92007B47100A1BD67 /* p44obj.cpp in Sources */,
 				ED6E58412B6D4E300061373A /* colorutils.cpp in Sources */,
+				ED5DABBA2CBE7AFE00F0B716 /* fnv.cpp in Sources */,
 				EDDADFAF2B0E542D003FAB83 /* catch_amalgamated.cpp in Sources */,
 				EDD9904026C51F7D009F3103 /* buffer.c in Sources */,
 				ED3EF45E2735AE2D004DFF99 /* modbus-data.c in Sources */,
 				ED3EF4622735AE35004DFF99 /* modbus-tcp.c in Sources */,
 				ED3701F72007A55300A1BD67 /* test_httpcomm.cpp in Sources */,
+				ED5DABB82CBE75AD00F0B716 /* test_tlv.cpp in Sources */,
 				ED3EF4642735AE3A004DFF99 /* modbus.c in Sources */,
 				EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */,
 				EDAF1B472625F1920026CE11 /* extutils.cpp in Sources */,
