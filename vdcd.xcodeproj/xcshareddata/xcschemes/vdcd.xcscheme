@@ -85,7 +85,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userfile &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/www_sim/index.html:webpage&quot;"
-            isEnabled = "YES">
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/configs/xcodesim&quot;"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
@@ -98,10 +102,6 @@
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/configs/xcodesim&quot;"
-            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
@@ -281,7 +281,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
