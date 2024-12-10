@@ -176,6 +176,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--inputs"
             isEnabled = "NO">
          </CommandLineArgument>
