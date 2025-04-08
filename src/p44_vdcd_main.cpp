@@ -59,6 +59,9 @@
 #if ENABLE_PROXYDEVICES
 #include "proxyvdc.hpp"
 #endif
+#if ENABLE_DS485DEVICES
+#include "ds485vdc.hpp"
+#endif
 #if ENABLE_JSONBRIDGEAPI
 #include "bridgevdc.hpp"
 #endif
@@ -91,6 +94,7 @@
 #define DEFAULT_DMXPORT 2105
 #define DEFAULT_JSON_VDSMSERVICE "8440"
 #define DEFAULT_PBUF_VDSMSERVICE "8340"
+#define DEFAULT_DS485PORT 8442 // this is the port where ds485d usually runs on a dSS
 
 #ifndef P44SCRIPT_STORE_AS_FILES
   #define P44SCRIPT_STORE_AS_FILES 1
@@ -416,6 +420,9 @@ public:
       #endif
       #if ENABLE_PROXYDEVICES
       { 0,   "proxydevices",     true,  "host[:port]|dnssd[,...];enable support for proxied devices hosted in other vdcd instances" },
+      #endif
+      #if ENABLE_DS485DEVICES
+      { 0,   "ds485api",         true,  "host[:port]; enable support for native ds485 devices" },
       #endif
       #if ENABLE_STATIC
       { 0,   "staticdevices",    false, "enable support for statically defined devices" },
@@ -884,6 +891,16 @@ public:
         const char *proxies = getOption("proxydevices");
         if (proxies) {
           ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
+        }
+        #endif
+
+        #if ENABLE_DS485DEVICES
+        // - Add support for DS485 based devices
+        const char *ds485server = getOption("ds485api");
+        if (ds485server) {
+          Ds485VdcPtr ds485Vdc = Ds485VdcPtr(new Ds485Vdc(1, mP44VdcHost.get(), 21)); // Tag 21 = ds485
+          ds485Vdc->mDs485Comm.setConnectionSpecification(ds485server, DEFAULT_DS485PORT);
+          ds485Vdc->addVdcToVdcHost();
         }
         #endif
 

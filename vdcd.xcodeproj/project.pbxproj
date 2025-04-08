@@ -244,6 +244,7 @@
 		EDF836B42DA59E2800ED9BD6 /* dsuid.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF8369B2DA59A5100ED9BD6 /* dsuid.c */; };
 		EDF836BB2DA59FEF00ED9BD6 /* ds485vdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */; };
 		EDF836BC2DA59FEF00ED9BD6 /* ds485device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */; };
+		EDF836C92DA9037300ED9BD6 /* ds485comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF836C82DA9037300ED9BD6 /* ds485comm.cpp */; };
 		EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */; };
 		EDF8B57928DA183300A68D49 /* bridgevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B57728DA183300A68D49 /* bridgevdc.cpp */; };
 /* End PBXBuildFile section */
@@ -765,6 +766,11 @@
 		EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485device.cpp; sourceTree = "<group>"; };
 		EDF836B82DA59FEF00ED9BD6 /* ds485vdc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ds485vdc.hpp; sourceTree = "<group>"; };
 		EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485vdc.cpp; sourceTree = "<group>"; };
+		EDF836BD2DA6B6DC00ED9BD6 /* logger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = logger.h; sourceTree = "<group>"; };
+		EDF836C42DA6CEF200ED9BD6 /* dsm-api.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "dsm-api.h"; sourceTree = "<group>"; };
+		EDF836C52DA6CEF200ED9BD6 /* dsm-api-const.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "dsm-api-const.h"; sourceTree = "<group>"; };
+		EDF836C72DA9037300ED9BD6 /* ds485comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ds485comm.hpp; sourceTree = "<group>"; };
+		EDF836C82DA9037300ED9BD6 /* ds485comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485comm.cpp; sourceTree = "<group>"; };
 		EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgedevice.cpp; sourceTree = "<group>"; };
 		EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgevdc.hpp; sourceTree = "<group>"; };
 		EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgedevice.hpp; sourceTree = "<group>"; };
@@ -1069,6 +1075,7 @@
 				ED6894691DF3260200E5245F /* ledchaincomm.hpp */,
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
+				EDF836BD2DA6B6DC00ED9BD6 /* logger.h */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED74563E1731B813001C9565 /* mainloop.cpp */,
@@ -1567,6 +1574,7 @@
 			children = (
 				EDF836B02DA59A5100ED9BD6 /* libdsuid */,
 				EDF836892DA5937000ED9BD6 /* ds485-client */,
+				EDF836C62DA6CEF200ED9BD6 /* dsm-api-v2 */,
 			);
 			name = "ds485-stack";
 			path = "thirdparty/ds485-stack";
@@ -1696,12 +1704,24 @@
 		EDF836BA2DA59FEF00ED9BD6 /* ds485 */ = {
 			isa = PBXGroup;
 			children = (
-				EDF836B62DA59FEF00ED9BD6 /* ds485device.hpp */,
+				EDF836C82DA9037300ED9BD6 /* ds485comm.cpp */,
+				EDF836C72DA9037300ED9BD6 /* ds485comm.hpp */,
 				EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */,
-				EDF836B82DA59FEF00ED9BD6 /* ds485vdc.hpp */,
+				EDF836B62DA59FEF00ED9BD6 /* ds485device.hpp */,
 				EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */,
+				EDF836B82DA59FEF00ED9BD6 /* ds485vdc.hpp */,
 			);
 			path = ds485;
+			sourceTree = "<group>";
+		};
+		EDF836C62DA6CEF200ED9BD6 /* dsm-api-v2 */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836C42DA6CEF200ED9BD6 /* dsm-api.h */,
+				EDF836C52DA6CEF200ED9BD6 /* dsm-api-const.h */,
+			);
+			name = "dsm-api-v2";
+			path = "prebuilt/dsm-api-v2";
 			sourceTree = "<group>";
 		};
 		EDF8B56C28DA183300A68D49 /* bridge */ = {
@@ -1992,6 +2012,7 @@
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
+				EDF836C92DA9037300ED9BD6 /* ds485comm.cpp in Sources */,
 				ED8F6DBE1C5685A300176CA9 /* enoceanvld.cpp in Sources */,
 				ED9EF77326DFA2F400C2F3D7 /* wifitrack.cpp in Sources */,
 				ED7456401731B813001C9565 /* mainloop.cpp in Sources */,
@@ -2347,7 +2368,7 @@
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/prebuilt/dsm-api-v2\"";
 			};
 			name = Debug;
 		};
@@ -2379,7 +2400,7 @@
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/prebuilt/dsm-api-v2\"";
 			};
 			name = Release;
 		};

@@ -45,6 +45,7 @@
   #define SELFTESTING_ENABLED 1
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_JSONBRIDGEAPI 1
+  #define ENABLE_DS485DEVICES 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
   #define ENABLE_OLA 1
@@ -82,6 +83,7 @@
   #define ENABLE_MODBUS 0 // not needed
   #define ENABLE_MIDI 0 // not needed
   #define ENABLE_DMX 0 // not needed
+  #define ENABLE_DS485DEVICES 0 // disabled because of footprint
   #define ENABLE_JSONBRIDGEAPI 0 // disabled because of footprint
   #define P44SCRIPT_FULL_SUPPORT 0 // disabled because of footprint
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
@@ -120,6 +122,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_DMX 1
   #define ENABLE_PROXYDEVICES 1
+  #define ENABLE_DS485DEVICES 1
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
