@@ -101,6 +101,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-matter-DUT"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -134,6 +138,10 @@
          <CommandLineArgument
             argument = "--proxydevices [fe80::42a3:6bff:fec7:e5e7]%en5:4444,[fe80::42a3:6bff:fec7:e926]%en5:4444"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ds485api 192.168.59.211:8442"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dmx /dev/null:none"

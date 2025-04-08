@@ -233,6 +233,17 @@
 		EDF57B6C228C7C2D0005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
 		EDF57B6E228C9DAB0005428B /* test_timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */; };
 		EDF57B6F228C9FC80005428B /* timeutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF57B6A228C7C2D0005428B /* timeutils.cpp */; };
+		EDF8368A2DA5937000ED9BD6 /* shim.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF836762DA5937000ED9BD6 /* shim.c */; };
+		EDF8368B2DA5937000ED9BD6 /* log.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF836682DA5937000ED9BD6 /* log.c */; };
+		EDF8368C2DA5937000ED9BD6 /* socket_send.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF8366C2DA5937000ED9BD6 /* socket_send.c */; };
+		EDF8368D2DA5937000ED9BD6 /* socket_client.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF8366A2DA5937000ED9BD6 /* socket_client.c */; };
+		EDF8368E2DA5937000ED9BD6 /* waitqueue.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF8367A2DA5937000ED9BD6 /* waitqueue.c */; };
+		EDF836912DA5937000ED9BD6 /* util.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF836792DA5937000ED9BD6 /* util.c */; };
+		EDF836922DA5937000ED9BD6 /* client-socket.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF836732DA5937000ED9BD6 /* client-socket.c */; };
+		EDF836932DA5938800ED9BD6 /* ds485-client.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF836752DA5937000ED9BD6 /* ds485-client.c */; };
+		EDF836B42DA59E2800ED9BD6 /* dsuid.c in Sources */ = {isa = PBXBuildFile; fileRef = EDF8369B2DA59A5100ED9BD6 /* dsuid.c */; };
+		EDF836BB2DA59FEF00ED9BD6 /* ds485vdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */; };
+		EDF836BC2DA59FEF00ED9BD6 /* ds485device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */; };
 		EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */; };
 		EDF8B57928DA183300A68D49 /* bridgevdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF8B57728DA183300A68D49 /* bridgevdc.cpp */; };
 /* End PBXBuildFile section */
@@ -699,6 +710,61 @@
 		EDF57B6B228C7C2D0005428B /* timeutils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = timeutils.hpp; sourceTree = "<group>"; };
 		EDF57B6D228C9DAB0005428B /* test_timeutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_timeutils.cpp; sourceTree = "<group>"; };
 		EDF7F40F24D4179A00593814 /* httptest.php */ = {isa = PBXFileReference; lastKnownFileType = text.script.php; name = httptest.php; path = test_httpcomm_server/httptest.php; sourceTree = "<group>"; };
+		EDF836672DA5937000ED9BD6 /* log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = log.h; sourceTree = "<group>"; };
+		EDF836682DA5937000ED9BD6 /* log.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = log.c; sourceTree = "<group>"; };
+		EDF836692DA5937000ED9BD6 /* socket_client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = socket_client.h; sourceTree = "<group>"; };
+		EDF8366A2DA5937000ED9BD6 /* socket_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = socket_client.c; sourceTree = "<group>"; };
+		EDF8366B2DA5937000ED9BD6 /* socket_send.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = socket_send.h; sourceTree = "<group>"; };
+		EDF8366C2DA5937000ED9BD6 /* socket_send.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = socket_send.c; sourceTree = "<group>"; };
+		EDF8366E2DA5937000ED9BD6 /* ds485-client-interface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ds485-client-interface.h"; sourceTree = "<group>"; };
+		EDF836702DA5937000ED9BD6 /* ax_pthread.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = ax_pthread.m4; sourceTree = "<group>"; };
+		EDF836712DA5937000ED9BD6 /* pkg.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = pkg.m4; sourceTree = "<group>"; };
+		EDF836732DA5937000ED9BD6 /* client-socket.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "client-socket.c"; sourceTree = "<group>"; };
+		EDF836742DA5937000ED9BD6 /* ds485-client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ds485-client.h"; sourceTree = "<group>"; };
+		EDF836752DA5937000ED9BD6 /* ds485-client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "ds485-client.c"; sourceTree = "<group>"; };
+		EDF836762DA5937000ED9BD6 /* shim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shim.c; sourceTree = "<group>"; };
+		EDF836772DA5937000ED9BD6 /* test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
+		EDF836782DA5937000ED9BD6 /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
+		EDF836792DA5937000ED9BD6 /* util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
+		EDF8367A2DA5937000ED9BD6 /* waitqueue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = waitqueue.c; sourceTree = "<group>"; };
+		EDF8367C2DA5937000ED9BD6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		EDF8367D2DA5937000ED9BD6 /* .gitlab-ci.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = ".gitlab-ci.yml"; sourceTree = "<group>"; };
+		EDF8367E2DA5937000ED9BD6 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
+		EDF8367F2DA5937000ED9BD6 /* build_cygwin.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_cygwin.sh; sourceTree = "<group>"; };
+		EDF836802DA5937000ED9BD6 /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
+		EDF836812DA5937000ED9BD6 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		EDF836822DA5937000ED9BD6 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
+		EDF836832DA5937000ED9BD6 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
+		EDF836842DA5937000ED9BD6 /* COPYING.LESSER */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING.LESSER; sourceTree = "<group>"; };
+		EDF836852DA5937000ED9BD6 /* libds485-client.pc.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = "libds485-client.pc.in"; sourceTree = "<group>"; };
+		EDF836862DA5937000ED9BD6 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		EDF836872DA5937000ED9BD6 /* NEWS */ = {isa = PBXFileReference; lastKnownFileType = text; path = NEWS; sourceTree = "<group>"; };
+		EDF836882DA5937000ED9BD6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		EDF836982DA59A5100ED9BD6 /* pkg.m4 */ = {isa = PBXFileReference; lastKnownFileType = text; path = pkg.m4; sourceTree = "<group>"; };
+		EDF8369A2DA59A5100ED9BD6 /* dsuid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dsuid.h; sourceTree = "<group>"; };
+		EDF8369B2DA59A5100ED9BD6 /* dsuid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dsuid.c; sourceTree = "<group>"; };
+		EDF8369C2DA59A5100ED9BD6 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		EDF8369E2DA59A5100ED9BD6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		EDF8369F2DA59A5100ED9BD6 /* dsuid_libtest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dsuid_libtest.c; sourceTree = "<group>"; };
+		EDF836A02DA59A5100ED9BD6 /* dsuid_manipulate.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dsuid_manipulate.c; sourceTree = "<group>"; };
+		EDF836A12DA59A5100ED9BD6 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		EDF836A32DA59A5100ED9BD6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		EDF836A42DA59A5100ED9BD6 /* .gitlab-ci.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = ".gitlab-ci.yml"; sourceTree = "<group>"; };
+		EDF836A52DA59A5100ED9BD6 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
+		EDF836A62DA59A5100ED9BD6 /* build_cygwin.bat */ = {isa = PBXFileReference; lastKnownFileType = text; path = build_cygwin.bat; sourceTree = "<group>"; };
+		EDF836A72DA59A5100ED9BD6 /* build_cygwin.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = build_cygwin.sh; sourceTree = "<group>"; };
+		EDF836A82DA59A5100ED9BD6 /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; path = ChangeLog; sourceTree = "<group>"; };
+		EDF836A92DA59A5100ED9BD6 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		EDF836AA2DA59A5100ED9BD6 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
+		EDF836AB2DA59A5100ED9BD6 /* COPYING */ = {isa = PBXFileReference; lastKnownFileType = text; path = COPYING; sourceTree = "<group>"; };
+		EDF836AC2DA59A5100ED9BD6 /* libdsuid.pc.in */ = {isa = PBXFileReference; lastKnownFileType = text; path = libdsuid.pc.in; sourceTree = "<group>"; };
+		EDF836AD2DA59A5100ED9BD6 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		EDF836AE2DA59A5100ED9BD6 /* NEWS */ = {isa = PBXFileReference; lastKnownFileType = text; path = NEWS; sourceTree = "<group>"; };
+		EDF836AF2DA59A5100ED9BD6 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		EDF836B62DA59FEF00ED9BD6 /* ds485device.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ds485device.hpp; sourceTree = "<group>"; };
+		EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485device.cpp; sourceTree = "<group>"; };
+		EDF836B82DA59FEF00ED9BD6 /* ds485vdc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ds485vdc.hpp; sourceTree = "<group>"; };
+		EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485vdc.cpp; sourceTree = "<group>"; };
 		EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgedevice.cpp; sourceTree = "<group>"; };
 		EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgevdc.hpp; sourceTree = "<group>"; };
 		EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgedevice.hpp; sourceTree = "<group>"; };
@@ -858,6 +924,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				EDF836BA2DA59FEF00ED9BD6 /* ds485 */,
 				EDAEF9732BDA6497000B3FE0 /* proxy */,
 				EDF8B56C28DA183300A68D49 /* bridge */,
 				ED5DA3E61BB294D7003C86C7 /* custom */,
@@ -1201,6 +1268,7 @@
 		ED6CCD5E1D1D32FE00C78A0D /* p44vdc */ = {
 			isa = PBXGroup;
 			children = (
+				EDF836662DA592B600ED9BD6 /* ds485-stack */,
 				ED3BDFE724547E2F00115B6C /* FUNDING.yml */,
 				EDB5B4002323E01E00A0C84D /* README.md */,
 				ED86777B1EB8C2410006E146 /* tests */,
@@ -1494,6 +1562,148 @@
 			path = zf;
 			sourceTree = "<group>";
 		};
+		EDF836662DA592B600ED9BD6 /* ds485-stack */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836B02DA59A5100ED9BD6 /* libdsuid */,
+				EDF836892DA5937000ED9BD6 /* ds485-client */,
+			);
+			name = "ds485-stack";
+			path = "thirdparty/ds485-stack";
+			sourceTree = "<group>";
+		};
+		EDF8366D2DA5937000ED9BD6 /* base */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836672DA5937000ED9BD6 /* log.h */,
+				EDF836682DA5937000ED9BD6 /* log.c */,
+				EDF836692DA5937000ED9BD6 /* socket_client.h */,
+				EDF8366A2DA5937000ED9BD6 /* socket_client.c */,
+				EDF8366B2DA5937000ED9BD6 /* socket_send.h */,
+				EDF8366C2DA5937000ED9BD6 /* socket_send.c */,
+			);
+			path = base;
+			sourceTree = "<group>";
+		};
+		EDF8366F2DA5937000ED9BD6 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				EDF8366E2DA5937000ED9BD6 /* ds485-client-interface.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		EDF836722DA5937000ED9BD6 /* m4 */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836702DA5937000ED9BD6 /* ax_pthread.m4 */,
+				EDF836712DA5937000ED9BD6 /* pkg.m4 */,
+			);
+			path = m4;
+			sourceTree = "<group>";
+		};
+		EDF8367B2DA5937000ED9BD6 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836732DA5937000ED9BD6 /* client-socket.c */,
+				EDF836742DA5937000ED9BD6 /* ds485-client.h */,
+				EDF836752DA5937000ED9BD6 /* ds485-client.c */,
+				EDF836762DA5937000ED9BD6 /* shim.c */,
+				EDF836772DA5937000ED9BD6 /* test.c */,
+				EDF836782DA5937000ED9BD6 /* util.h */,
+				EDF836792DA5937000ED9BD6 /* util.c */,
+				EDF8367A2DA5937000ED9BD6 /* waitqueue.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		EDF836892DA5937000ED9BD6 /* ds485-client */ = {
+			isa = PBXGroup;
+			children = (
+				EDF8366D2DA5937000ED9BD6 /* base */,
+				EDF8366F2DA5937000ED9BD6 /* include */,
+				EDF836722DA5937000ED9BD6 /* m4 */,
+				EDF8367B2DA5937000ED9BD6 /* src */,
+				EDF8367C2DA5937000ED9BD6 /* .gitignore */,
+				EDF8367D2DA5937000ED9BD6 /* .gitlab-ci.yml */,
+				EDF8367E2DA5937000ED9BD6 /* AUTHORS */,
+				EDF8367F2DA5937000ED9BD6 /* build_cygwin.sh */,
+				EDF836802DA5937000ED9BD6 /* ChangeLog */,
+				EDF836812DA5937000ED9BD6 /* CMakeLists.txt */,
+				EDF836822DA5937000ED9BD6 /* configure.ac */,
+				EDF836832DA5937000ED9BD6 /* COPYING */,
+				EDF836842DA5937000ED9BD6 /* COPYING.LESSER */,
+				EDF836852DA5937000ED9BD6 /* libds485-client.pc.in */,
+				EDF836862DA5937000ED9BD6 /* Makefile.am */,
+				EDF836872DA5937000ED9BD6 /* NEWS */,
+				EDF836882DA5937000ED9BD6 /* README */,
+			);
+			path = "ds485-client";
+			sourceTree = "<group>";
+		};
+		EDF836992DA59A5100ED9BD6 /* m4 */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836982DA59A5100ED9BD6 /* pkg.m4 */,
+			);
+			path = m4;
+			sourceTree = "<group>";
+		};
+		EDF8369D2DA59A5100ED9BD6 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				EDF8369A2DA59A5100ED9BD6 /* dsuid.h */,
+				EDF8369B2DA59A5100ED9BD6 /* dsuid.c */,
+				EDF8369C2DA59A5100ED9BD6 /* Makefile.am */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		EDF836A22DA59A5100ED9BD6 /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				EDF8369E2DA59A5100ED9BD6 /* .gitignore */,
+				EDF8369F2DA59A5100ED9BD6 /* dsuid_libtest.c */,
+				EDF836A02DA59A5100ED9BD6 /* dsuid_manipulate.c */,
+				EDF836A12DA59A5100ED9BD6 /* Makefile.am */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
+		EDF836B02DA59A5100ED9BD6 /* libdsuid */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836992DA59A5100ED9BD6 /* m4 */,
+				EDF8369D2DA59A5100ED9BD6 /* src */,
+				EDF836A22DA59A5100ED9BD6 /* tests */,
+				EDF836A32DA59A5100ED9BD6 /* .gitignore */,
+				EDF836A42DA59A5100ED9BD6 /* .gitlab-ci.yml */,
+				EDF836A52DA59A5100ED9BD6 /* AUTHORS */,
+				EDF836A62DA59A5100ED9BD6 /* build_cygwin.bat */,
+				EDF836A72DA59A5100ED9BD6 /* build_cygwin.sh */,
+				EDF836A82DA59A5100ED9BD6 /* ChangeLog */,
+				EDF836A92DA59A5100ED9BD6 /* CMakeLists.txt */,
+				EDF836AA2DA59A5100ED9BD6 /* configure.ac */,
+				EDF836AB2DA59A5100ED9BD6 /* COPYING */,
+				EDF836AC2DA59A5100ED9BD6 /* libdsuid.pc.in */,
+				EDF836AD2DA59A5100ED9BD6 /* Makefile.am */,
+				EDF836AE2DA59A5100ED9BD6 /* NEWS */,
+				EDF836AF2DA59A5100ED9BD6 /* README */,
+			);
+			path = libdsuid;
+			sourceTree = "<group>";
+		};
+		EDF836BA2DA59FEF00ED9BD6 /* ds485 */ = {
+			isa = PBXGroup;
+			children = (
+				EDF836B62DA59FEF00ED9BD6 /* ds485device.hpp */,
+				EDF836B72DA59FEF00ED9BD6 /* ds485device.cpp */,
+				EDF836B82DA59FEF00ED9BD6 /* ds485vdc.hpp */,
+				EDF836B92DA59FEF00ED9BD6 /* ds485vdc.cpp */,
+			);
+			path = ds485;
+			sourceTree = "<group>";
+		};
 		EDF8B56C28DA183300A68D49 /* bridge */ = {
 			isa = PBXGroup;
 			children = (
@@ -1556,6 +1766,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = ED6D7BE41716B63A005DED18 /* Build configuration list for PBXNativeTarget "vdcd" */;
 			buildPhases = (
+				EDF836972DA5960500ED9BD6 /* ShellScript */,
 				ED79BD6B27A7008000229FCF /* ShellScript */,
 				ED6D7BD71716B63A005DED18 /* Sources */,
 				ED6D7BD81716B63A005DED18 /* Frameworks */,
@@ -1624,6 +1835,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "sed -En -e \"s/AC_INIT\\(\\[${EXECUTABLE_NAME}\\], \\[([0-9.]+)\\].*/#define PACKAGE_VERSION \\\"\\1\\\"/p\" ${SRCROOT}/configure.ac >${DERIVED_SOURCES_DIR}/prefix_for_xcode.h\n";
+		};
+		EDF836972DA5960500ED9BD6 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/digitalSTROM/*.h",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\ncp ${SRCROOT}/src/p44vdc/thirdparty/ds485-stack/ds485-core/include/*.h ${DERIVED_SOURCES_DIR}/digitalSTROM\ncp ${SRCROOT}/src/p44vdc/thirdparty/ds485-stack/ds485-netlib/include/*.h ${DERIVED_SOURCES_DIR}/digitalSTROM\ncp ${SRCROOT}/src/p44vdc/thirdparty/ds485-stack/ds485-client/include/*.h ${DERIVED_SOURCES_DIR}/digitalSTROM\ncp ${SRCROOT}/src/p44vdc/thirdparty/ds485-stack/libdsuid/src/*.h ${DERIVED_SOURCES_DIR}/digitalSTROM\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1715,6 +1944,8 @@
 				ED026CF9171D9CAB00AD5FD6 /* utils.cpp in Sources */,
 				ED9EF77526DFA2F400C2F3D7 /* light.cpp in Sources */,
 				ED95C5912306B97E0029614A /* p44view.cpp in Sources */,
+				EDF836BB2DA59FEF00ED9BD6 /* ds485vdc.cpp in Sources */,
+				EDF836BC2DA59FEF00ED9BD6 /* ds485device.cpp in Sources */,
 				ED026CFC171E8D6200AD5FD6 /* vdchost.cpp in Sources */,
 				ED68946A1DF3260200E5245F /* ledchaincomm.cpp in Sources */,
 				EDD45C5917808D2F00554A02 /* consoledevice.cpp in Sources */,
@@ -1757,6 +1988,7 @@
 				EDCFE85D171FFAF6001D35F3 /* dsuid.cpp in Sources */,
 				EDD9903926C51F7D009F3103 /* utils.c in Sources */,
 				ED8AA69F230F0277001F49CC /* videobehaviour.cpp in Sources */,
+				EDF836932DA5938800ED9BD6 /* ds485-client.c in Sources */,
 				ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */,
 				EDCFE86017203E48001D35F3 /* fnv.cpp in Sources */,
 				ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */,
@@ -1815,6 +2047,7 @@
 				ED81338217C72F87003982CC /* sensorbehaviour.cpp in Sources */,
 				ED95C5952306B97E0029614A /* textview.cpp in Sources */,
 				ED4AEF832667CC76002DFBF2 /* dcmotor.cpp in Sources */,
+				EDF836B42DA59E2800ED9BD6 /* dsuid.c in Sources */,
 				ED5B292A1740E72200334C71 /* sqlite3ppext.cpp in Sources */,
 				ED0441201D755FFC00AAB662 /* eldatdevice.cpp in Sources */,
 				ED1F8301184F2D2100339A22 /* vdcapi.cpp in Sources */,
@@ -1857,6 +2090,13 @@
 				ED5576151750B15F00CCC4DD /* jsonobject.cpp in Sources */,
 				EDADCADB1846373300297214 /* apivalue.cpp in Sources */,
 				ED54FDCA2411A0F9006A443D /* extutils.cpp in Sources */,
+				EDF8368A2DA5937000ED9BD6 /* shim.c in Sources */,
+				EDF8368B2DA5937000ED9BD6 /* log.c in Sources */,
+				EDF8368C2DA5937000ED9BD6 /* socket_send.c in Sources */,
+				EDF8368D2DA5937000ED9BD6 /* socket_client.c in Sources */,
+				EDF8368E2DA5937000ED9BD6 /* waitqueue.c in Sources */,
+				EDF836912DA5937000ED9BD6 /* util.c in Sources */,
+				EDF836922DA5937000ED9BD6 /* client-socket.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1989,6 +2229,7 @@
 					"/opt/homebrew/opt/openssl@1.1/include",
 					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
+					"$(DERIVED_FILE_DIR)",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
@@ -2057,6 +2298,7 @@
 					"/opt/homebrew/opt/openssl@1.1/include",
 					"/usr/local/opt/openssl@1.1/include",
 					"/Volumes/CaseSens/openwrt/staging_dir/target-mipsel_24kc_musl/usr/include",
+					"$(DERIVED_FILE_DIR)",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
@@ -2105,7 +2347,7 @@
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client";
 			};
 			name = Debug;
 		};
@@ -2137,7 +2379,7 @@
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src\" \"$(SRCROOT)/src/pbuf/gen\" \"$(SRCROOT)/src/p44vdc/thirdparty/ds485-stack/ds485-client";
 			};
 			name = Release;
 		};
