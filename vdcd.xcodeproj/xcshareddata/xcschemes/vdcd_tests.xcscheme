@@ -80,11 +80,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "~[http]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "~[slow]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[macaddress]"
@@ -93,6 +93,10 @@
          <CommandLineArgument
             argument = "[time]"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[mainloop]"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[ssl]"
@@ -108,7 +112,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[tlv]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[utils]"

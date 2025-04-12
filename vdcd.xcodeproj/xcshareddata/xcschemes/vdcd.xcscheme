@@ -141,6 +141,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ds485api 192.168.59.211:8442"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ds485api 127.0.0.1:8442"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

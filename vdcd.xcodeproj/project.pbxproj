@@ -771,6 +771,7 @@
 		EDF836C52DA6CEF200ED9BD6 /* dsm-api-const.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "dsm-api-const.h"; sourceTree = "<group>"; };
 		EDF836C72DA9037300ED9BD6 /* ds485comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ds485comm.hpp; sourceTree = "<group>"; };
 		EDF836C82DA9037300ED9BD6 /* ds485comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ds485comm.cpp; sourceTree = "<group>"; };
+		EDF836CB2DA9422500ED9BD6 /* dsm-api.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = "dsm-api.xml"; path = "src/p44vdc/thirdparty/ds485-stack/dsm-api/src/lib-v2/dsm-api.xml"; sourceTree = SOURCE_ROOT; };
 		EDF8B56D28DA183300A68D49 /* bridgedevice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = bridgedevice.cpp; sourceTree = "<group>"; };
 		EDF8B56E28DA183300A68D49 /* bridgevdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgevdc.hpp; sourceTree = "<group>"; };
 		EDF8B56F28DA183300A68D49 /* bridgedevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = bridgedevice.hpp; sourceTree = "<group>"; };
@@ -1717,8 +1718,9 @@
 		EDF836C62DA6CEF200ED9BD6 /* dsm-api-v2 */ = {
 			isa = PBXGroup;
 			children = (
-				EDF836C42DA6CEF200ED9BD6 /* dsm-api.h */,
 				EDF836C52DA6CEF200ED9BD6 /* dsm-api-const.h */,
+				EDF836CB2DA9422500ED9BD6 /* dsm-api.xml */,
+				EDF836C42DA6CEF200ED9BD6 /* dsm-api.h */,
 			);
 			name = "dsm-api-v2";
 			path = "prebuilt/dsm-api-v2";
@@ -1814,6 +1816,9 @@
 					ED6CCD421D198FA000C78A0D = {
 						CreatedOnToolsVersion = 8.0;
 						ProvisioningStyle = Automatic;
+					};
+					ED6D7BDA1716B63A005DED18 = {
+						DevelopmentTeam = RQ57RZ75M9;
 					};
 				};
 			};
@@ -2343,6 +2348,7 @@
 		ED6D7BE51716B63A005DED18 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = RQ57RZ75M9;
 				GCC_PREFIX_HEADER = "$(DERIVED_FILE_DIR)/prefix_for_xcode.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
@@ -2375,6 +2381,7 @@
 		ED6D7BE61716B63A005DED18 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = RQ57RZ75M9;
 				GCC_PREFIX_HEADER = "$(DERIVED_FILE_DIR)/prefix_for_xcode.h";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					$inherited,
