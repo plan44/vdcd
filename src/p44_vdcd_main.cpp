@@ -423,6 +423,7 @@ public:
       #endif
       #if ENABLE_DS485DEVICES
       { 0,   "ds485api",         true,  "host[:port]; enable support for native ds485 devices" },
+      { 0,   "ds485tunnel",      true,  "shellcommand; run this command to establish tunnel for access to ds485 server" },
       #endif
       #if ENABLE_STATIC
       { 0,   "staticdevices",    false, "enable support for statically defined devices" },
@@ -898,8 +899,9 @@ public:
         // - Add support for DS485 based devices
         const char *ds485server = getOption("ds485api");
         if (ds485server) {
+          const char *ds485tunnel = getOption("ds485tunnel");
           Ds485VdcPtr ds485Vdc = Ds485VdcPtr(new Ds485Vdc(1, mP44VdcHost.get(), 21)); // Tag 21 = ds485
-          ds485Vdc->mDs485Comm.setConnectionSpecification(ds485server, DEFAULT_DS485PORT);
+          ds485Vdc->mDs485Comm.setConnectionSpecification(ds485server, DEFAULT_DS485PORT, ds485tunnel);
           ds485Vdc->addVdcToVdcHost();
         }
         #endif

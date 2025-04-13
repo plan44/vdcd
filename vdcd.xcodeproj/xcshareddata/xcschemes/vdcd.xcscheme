@@ -73,11 +73,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 6"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-l 5"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userfile /tmp/dev_userpage.html:webpage"
@@ -140,15 +140,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ds485api 192.168.59.211:8442"
+            argument = "--dmx /dev/null:none"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ds485api 127.0.0.1:8442"
+            argument = "--ds485api 192.168.11.211:8442"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--dmx /dev/null:none"
+            argument = "--ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--ds485tunnel &apos;pwd; ls -la&apos;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
