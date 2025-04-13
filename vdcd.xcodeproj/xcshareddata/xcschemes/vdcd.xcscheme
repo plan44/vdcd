@@ -144,15 +144,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ds485api 192.168.11.211:8442"
+            argument = "--ds485api 127.0.0.1:8442"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--ds485tunnel &apos;pwd; ls -la&apos;"
+            argument = "--ds485api 192.168.11.211:8442 --ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -189,7 +185,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
@@ -297,15 +293,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"
