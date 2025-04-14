@@ -896,7 +896,7 @@ public:
         #endif
 
         #if ENABLE_DS485DEVICES
-        // - Add support for DS485 based devices
+        // - Add support for dS485 based devices
         const char *ds485server = getOption("ds485api");
         if (ds485server) {
           const char *ds485tunnel = getOption("ds485tunnel");
