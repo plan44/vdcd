@@ -99,12 +99,21 @@ endif
 # ubus support via libubus
 if ENABLE_DS485
 
+DS485SUPP_GENERATED = \
+	${builddir}/include/digitalSTROM/dsuid.h \
+	${builddir}/include/digitalSTROM/ds485-client-interface.h \
+	${builddir}/include/digitalSTROM/ds485n-packet.h \
+	${builddir}/include/digitalSTROM/ds485-socket-server.h \
+	${builddir}/include/digitalSTROM/ds485-socket-interface.h
+
+BUILT_SOURCES += ${DS485SUPP_GENERATED}
+
 DS485SUPP_SOURCES = \
-  src/p44vdc/thirdparty/ds485-stack/libdsuid/dsuid.c \
+  src/p44vdc/thirdparty/ds485-stack/libdsuid/src/dsuid.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/base/log.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/base/socket_client.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/base/socket_send.c \
-  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/client_socket.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/client-socket.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/src/ds485-client.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/src/shim.c \
   src/p44vdc/thirdparty/ds485-stack/ds485-client/src/util.c \
@@ -112,12 +121,12 @@ DS485SUPP_SOURCES = \
 
 DS485SUPP_FLAGS = \
   -D ENABLE_DS485DEVICES=1 \
-  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/libdsuid \
+  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/libdsuid/src \
   -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-client \
+  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-client/src \
   -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/prebuilt/dsm-api-v2 \
+  -I ${builddir}/include/digitalSTROM \
   -isystem ${builddir}/include
-
-BUILT_SOURCES += copy-ds485-headers
 
 copy-ds485-headers:
 	mkdir -p ${builddir}/include/digitalSTROM
@@ -125,6 +134,11 @@ copy-ds485-headers:
 	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-netlib/include/*.h ${builddir}/include/digitalSTROM
 	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-client/include/*.h ${builddir}/include/digitalSTROM
 	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/libdsuid/src/*.h ${builddir}/include/digitalSTROM
+
+${builddir}/include/digitalSTROM/%.h: copy-ds485-headers
+	@true
+
+.PHONY: copy-ds485-headers
 
 else
 

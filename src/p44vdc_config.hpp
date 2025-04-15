@@ -122,7 +122,7 @@
   #define ENABLE_EVALUATORS 1
   #define ENABLE_DMX 1
   #define ENABLE_PROXYDEVICES 1
-  #define ENABLE_DS485DEVICES 1
+  // #define ENABLE_DS485DEVICES 1 // Note: this usually is a configure option (--enable-ds485)
   #define ENABLE_LOCALCONTROLLER 1
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed
   #define ENABLE_JSONCFGAPI 1 // FIXME: %%% for now, we still want to have the JSON CFG API in any case, even if built with ENABLE_UBUS
