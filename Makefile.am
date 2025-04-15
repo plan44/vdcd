@@ -95,6 +95,44 @@ OLA_FLAGS = -D ENABLE_OLA=0
 
 endif
 
+
+# ubus support via libubus
+if ENABLE_DS485
+
+DS485SUPP_SOURCES = \
+  src/p44vdc/thirdparty/ds485-stack/libdsuid/dsuid.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/base/log.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/base/socket_client.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/base/socket_send.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/client_socket.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/ds485-client.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/shim.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/util.c \
+  src/p44vdc/thirdparty/ds485-stack/ds485-client/src/waitqueue.c
+
+DS485SUPP_FLAGS = \
+  -D ENABLE_DS485DEVICES=1 \
+  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/libdsuid \
+  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-client \
+  -I ${srcdir}/src/p44vdc/thirdparty/ds485-stack/prebuilt/dsm-api-v2 \
+  -isystem ${builddir}/include
+
+BUILT_SOURCES += copy-ds485-headers
+
+copy-ds485-headers:
+	mkdir -p ${builddir}/include/digitalSTROM
+	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-core/include/digitalSTROM/*.h ${builddir}/include/digitalSTROM
+	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-netlib/include/*.h ${builddir}/include/digitalSTROM
+	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/ds485-client/include/*.h ${builddir}/include/digitalSTROM
+	cp ${srcdir}/src/p44vdc/thirdparty/ds485-stack/libdsuid/src/*.h ${builddir}/include/digitalSTROM
+
+else
+
+DS485SUPP_FLAGS = -D ENABLE_DS485DEVICES=0
+
+endif
+
+
 # ubus support via libubus
 if ENABLE_MODBUS
 
@@ -108,6 +146,7 @@ else
 MODBUSSUPP_FLAGS = -D ENABLE_MODBUS=0
 
 endif
+
 
 # i2c support via libi2c
 if ENABLE_I2C
@@ -211,6 +250,7 @@ RRDB_FLAGS = -D ENABLE_RRDB=0
 
 endif
 
+
 # p44features special purpose hardware support
 if ENABLE_P44FEATURES
 
@@ -295,6 +335,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/evaluator \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
   -I ${srcdir}/src/p44vdc/deviceclasses/dmx \
+  -I ${srcdir}/src/p44vdc/deviceclasses/ds485 \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
   -I ${srcdir}/src/p44vdc/deviceclasses/zf \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
@@ -308,6 +349,7 @@ vdcd_CPPFLAGS = \
   ${UBUS_FLAGS} \
   ${I2C_FLAGS} \
   ${MODBUSSUPP_FLAGS} \
+  ${DS485SUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
   ${BOOST_CPPFLAGS} \
@@ -331,6 +373,7 @@ vdcd_SOURCES = \
   ${LIBMODBUS_SOURCES} \
   ${UWSC_SOURCES} \
   ${MODBUSSUPP_SOURCES} \
+  ${DS485SUPP_SOURCES} \
   src/p44utils/analogio.cpp \
   src/p44utils/analogio.hpp \
   src/p44utils/application.cpp \
@@ -571,6 +614,12 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/dmx/dmxdevice.hpp \
   src/p44vdc/deviceclasses/dmx/dmxvdc.cpp \
   src/p44vdc/deviceclasses/dmx/dmxvdc.hpp \
+  src/p44vdc/deviceclasses/ds485/ds485comm.cpp \
+  src/p44vdc/deviceclasses/ds485/ds485comm.hpp \
+  src/p44vdc/deviceclasses/ds485/ds485device.cpp \
+  src/p44vdc/deviceclasses/ds485/ds485device.hpp \
+  src/p44vdc/deviceclasses/ds485/ds485vdc.cpp \
+  src/p44vdc/deviceclasses/ds485/ds485vdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.cpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxydevice.cpp \

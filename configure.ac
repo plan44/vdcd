@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.8.2.6], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.8.2.8], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -100,6 +100,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-embeddedlibmodbus], [Enable embedded libmodbus (instead of using standard package)])]
 )
 AM_CONDITIONAL([EMBEDDED_LIBMODBUS], [test "x$enable_embeddedlibmodbus" = xyes])
+
+AC_ARG_ENABLE(
+  [ds485],
+  [AS_HELP_STRING([--enable-ds485], [Enable ds485 support])]
+)
+AM_CONDITIONAL([ENABLE_DS485], [test "x$enable_ds485" = xyes])
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
