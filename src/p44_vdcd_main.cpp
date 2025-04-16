@@ -659,9 +659,9 @@ public:
       string s;
 
       // - set dSUID mode
-      DsUidPtr externalDsUid;
+      DsUid externalDsUid;
       if (getStringOption("dsuid", s)) {
-        externalDsUid = DsUidPtr(new DsUid(s));
+        externalDsUid.setAsString(s);
       }
       else if (getStringOption("sgtin", s)) {
         int part;
@@ -669,9 +669,8 @@ public:
         uint32_t itemref;
         uint64_t serial;
         sscanf(s.c_str(), "%d,%llu,%u,%llu", &part, &gcp, &itemref, &serial);
-        externalDsUid = DsUidPtr(new DsUid(s));
-        externalDsUid->setGTIN(gcp, itemref, part);
-        externalDsUid->setSerial(serial);
+        externalDsUid.setGTIN(gcp, itemref, part);
+        externalDsUid.setSerial(serial);
       }
       int instance = 0;
       string macif;
