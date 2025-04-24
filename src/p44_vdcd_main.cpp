@@ -791,7 +791,7 @@ public:
         const char *enoceanresetpin = getOption("enoceanreset");
         if (enoceanname) {
           EnoceanVdcPtr enoceanVdc = EnoceanVdcPtr(new EnoceanVdc(1, mP44VdcHost.get(), 2)); // Tag 2 = EnOcean
-          enoceanVdc->enoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
+          enoceanVdc->mEnoceanComm.setConnectionSpecification(enoceanname, DEFAULT_ENOCEANPORT, enoceanresetpin);
           // add
           enoceanVdc->addVdcToVdcHost();
         }
@@ -802,7 +802,7 @@ public:
         const char *eldatname = getOption("eldat");
         if (eldatname) {
           EldatVdcPtr eldatVdc = EldatVdcPtr(new EldatVdc(1, mP44VdcHost.get(), 9)); // Tag 9 = ELDAT
-          eldatVdc->eldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
+          eldatVdc->mEldatComm.setConnectionSpecification(eldatname, DEFAULT_ELDATPORT);
           // add
           eldatVdc->addVdcToVdcHost();
         }
@@ -813,7 +813,7 @@ public:
         const char *zfname = getOption("zf");
         if (zfname) {
           ZfVdcPtr zfVdc = ZfVdcPtr(new ZfVdc(1, mP44VdcHost.get(), 10)); // Tag 10 = ZF
-          zfVdc->zfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
+          zfVdc->mZfComm.setConnectionSpecification(zfname, DEFAULT_ZFPORT);
           // add
           zfVdc->addVdcToVdcHost();
         }
