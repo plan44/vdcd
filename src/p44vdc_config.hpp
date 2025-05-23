@@ -52,6 +52,7 @@
   #define ENABLE_DMX 1
   #define ENABLE_MODBUS 1
   #define ENABLE_UWSC 1
+  #define ENABLE_LVGL 1 // graphics support with SDL2 simulated display on macOS
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
   #define HAVE_JSONC_VERSION_013 1 // unlike in many linux distros, brew had json-c >=0.13 for a while (2021: 0.15)
 #endif

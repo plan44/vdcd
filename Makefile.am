@@ -309,6 +309,134 @@ P44FEATURES_FLAGS = -D ENABLE_P44FEATURES=0
 endif
 
 
+# lvgl support
+if ENABLE_LVGL
+
+LVGL_SOURCES = \
+  src/lv_conf.h \
+  src/lv_drv_conf.h \
+  src/lvgl/src/lv_core/lv_debug.c \
+  src/lvgl/src/lv_core/lv_disp.c \
+  src/lvgl/src/lv_core/lv_group.c \
+  src/lvgl/src/lv_core/lv_indev.c \
+  src/lvgl/src/lv_core/lv_obj.c \
+  src/lvgl/src/lv_core/lv_refr.c \
+  src/lvgl/src/lv_core/lv_style.c \
+  src/lvgl/src/lv_draw/lv_draw_arc.c \
+  src/lvgl/src/lv_draw/lv_draw_basic.c \
+  src/lvgl/src/lv_draw/lv_draw_img.c \
+  src/lvgl/src/lv_draw/lv_draw_label.c \
+  src/lvgl/src/lv_draw/lv_draw_line.c \
+  src/lvgl/src/lv_draw/lv_draw_rect.c \
+  src/lvgl/src/lv_draw/lv_draw_triangle.c \
+  src/lvgl/src/lv_draw/lv_draw.c \
+  src/lvgl/src/lv_draw/lv_img_cache.c \
+  src/lvgl/src/lv_draw/lv_img_decoder.c \
+  src/lvgl/src/lv_font/lv_font_fmt_txt.c \
+  src/lvgl/src/lv_font/lv_font_roboto_12.c \
+  src/lvgl/src/lv_font/lv_font_roboto_16.c \
+  src/lvgl/src/lv_font/lv_font_roboto_22.c \
+  src/lvgl/src/lv_font/lv_font_roboto_28.c \
+  src/lvgl/src/lv_font/lv_font_unscii_8.c \
+  src/lvgl/src/lv_font/lv_font.c \
+  src/lvgl/src/lv_hal/lv_hal_disp.c \
+  src/lvgl/src/lv_hal/lv_hal_indev.c \
+  src/lvgl/src/lv_hal/lv_hal_tick.c \
+  src/lvgl/src/lv_misc/lv_anim.c \
+  src/lvgl/src/lv_misc/lv_area.c \
+  src/lvgl/src/lv_misc/lv_async.c \
+  src/lvgl/src/lv_misc/lv_circ.c \
+  src/lvgl/src/lv_misc/lv_color.c \
+  src/lvgl/src/lv_misc/lv_fs.c \
+  src/lvgl/src/lv_misc/lv_gc.c \
+  src/lvgl/src/lv_misc/lv_ll.c \
+  src/lvgl/src/lv_misc/lv_log.c \
+  src/lvgl/src/lv_misc/lv_math.c \
+  src/lvgl/src/lv_misc/lv_mem.c \
+  src/lvgl/src/lv_misc/lv_printf.c \
+  src/lvgl/src/lv_misc/lv_task.c \
+  src/lvgl/src/lv_misc/lv_txt.c \
+  src/lvgl/src/lv_misc/lv_utils.c \
+  src/lvgl/src/lv_objx/lv_arc.c \
+  src/lvgl/src/lv_objx/lv_bar.c \
+  src/lvgl/src/lv_objx/lv_btn.c \
+  src/lvgl/src/lv_objx/lv_btnm.c \
+  src/lvgl/src/lv_objx/lv_calendar.c \
+  src/lvgl/src/lv_objx/lv_canvas.c \
+  src/lvgl/src/lv_objx/lv_cb.c \
+  src/lvgl/src/lv_objx/lv_chart.c \
+  src/lvgl/src/lv_objx/lv_cont.c \
+  src/lvgl/src/lv_objx/lv_ddlist.c \
+  src/lvgl/src/lv_objx/lv_gauge.c \
+  src/lvgl/src/lv_objx/lv_img.c \
+  src/lvgl/src/lv_objx/lv_imgbtn.c \
+  src/lvgl/src/lv_objx/lv_kb.c \
+  src/lvgl/src/lv_objx/lv_label.c \
+  src/lvgl/src/lv_objx/lv_led.c \
+  src/lvgl/src/lv_objx/lv_line.c \
+  src/lvgl/src/lv_objx/lv_list.c \
+  src/lvgl/src/lv_objx/lv_lmeter.c \
+  src/lvgl/src/lv_objx/lv_mbox.c \
+  src/lvgl/src/lv_objx/lv_objx_templ.c \
+  src/lvgl/src/lv_objx/lv_page.c \
+  src/lvgl/src/lv_objx/lv_preload.c \
+  src/lvgl/src/lv_objx/lv_roller.c \
+  src/lvgl/src/lv_objx/lv_slider.c \
+  src/lvgl/src/lv_objx/lv_spinbox.c \
+  src/lvgl/src/lv_objx/lv_sw.c \
+  src/lvgl/src/lv_objx/lv_ta.c \
+  src/lvgl/src/lv_objx/lv_table.c \
+  src/lvgl/src/lv_objx/lv_tabview.c \
+  src/lvgl/src/lv_objx/lv_tileview.c \
+  src/lvgl/src/lv_objx/lv_win.c \
+  src/lvgl/src/lv_themes/lv_theme_alien.c \
+  src/lvgl/src/lv_themes/lv_theme_default.c \
+  src/lvgl/src/lv_themes/lv_theme_material.c \
+  src/lvgl/src/lv_themes/lv_theme_mono.c \
+  src/lvgl/src/lv_themes/lv_theme_nemo.c \
+  src/lvgl/src/lv_themes/lv_theme_night.c \
+  src/lvgl/src/lv_themes/lv_theme_templ.c \
+  src/lvgl/src/lv_themes/lv_theme_zen.c \
+  src/lvgl/src/lv_themes/lv_theme.c \
+  src/lv_drivers/indev/FT5406EE8.c \
+  src/lv_drivers/indev/keyboard.c \
+  src/lv_drivers/indev/mouse.c \
+  src/lv_drivers/indev/mousewheel.c \
+  src/lv_drivers/indev/evdev.c \
+  src/lv_drivers/indev/XPT2046.c \
+  src/lv_drivers/display/fbdev.c \
+  src/lv_drivers/display/monitor.c \
+  src/lv_drivers/display/R61581.c \
+  src/lv_drivers/display/SSD1963.c \
+  src/lv_drivers/display/ST7565.c \
+  src/p44utils/lvgl.cpp \
+  src/p44utils/lvgl.hpp \
+  src/p44utils/lvglui.cpp \
+  src/p44utils/lvglui.hpp
+
+
+LVGL_FLAGS = \
+  -D ENABLE_LVGL=1 \
+  -I ${srcdir}/src/lvgl/src/lv_core \
+  -I ${srcdir}/src/lvgl/src/lv_misc \
+  -I ${srcdir}/src/lvgl/src/lv_themes \
+  -I ${srcdir}/src/lvgl/src/lv_font \
+  -I ${srcdir}/src/lvgl/src/lv_hal \
+  -I ${srcdir}/src/lvgl/src/lv_draw \
+  -I ${srcdir}/src/lvgl/src/lv_objx \
+  -I ${srcdir}/src/lv_drivers \
+  -I ${srcdir}/src/lv_drivers/indev \
+  -I ${srcdir}/src/lv_drivers/display \
+  -I ${srcdir}/src/lv_examples/lv_apps/demo
+
+else
+
+LVGL_FLAGS = -D ENABLE_LVGL=0
+
+endif
+
+
+# main program
 
 vdcd_LDADD = \
   ${PTHREAD_CFLAGS} \
@@ -366,6 +494,7 @@ vdcd_CPPFLAGS = \
   ${DS485SUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
+  ${LVGL_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
@@ -386,6 +515,7 @@ vdcd_SOURCES = \
   ${UBUS_SOURCES} \
   ${LIBMODBUS_SOURCES} \
   ${UWSC_SOURCES} \
+  ${LVGL_SOURCES} \
   ${MODBUSSUPP_SOURCES} \
   ${DS485SUPP_SOURCES} \
   src/p44utils/analogio.cpp \

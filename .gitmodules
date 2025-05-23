@@ -12,3 +12,11 @@
 	path = src/p44features
 	url = ../p44features.git
 	branch = master
+[submodule "vdcd/src/lvgl"]
+	path = src/lvgl
+	url = ssh://plan44@plan44.ch/home/plan44/sharedgit/lvgl.git
+	branch = luz
+[submodule "vdcd/src/lv_drivers"]
+	path = src/lv_drivers
+	url = ssh://plan44@plan44.ch/home/plan44/sharedgit/lv_drivers.git
+	branch = luz

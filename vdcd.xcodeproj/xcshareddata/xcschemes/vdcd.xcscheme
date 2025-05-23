@@ -128,6 +128,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--lvgl 86"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -145,7 +149,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ds485api 127.0.0.1:8442"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ds485api 192.168.11.211:8442 --ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
@@ -185,7 +189,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
@@ -281,7 +285,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
@@ -289,19 +293,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"

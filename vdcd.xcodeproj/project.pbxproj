@@ -122,6 +122,116 @@
 		ED6FCC7D17CB493400267E43 /* enoceanrps.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7B17CB493400267E43 /* enoceanrps.cpp */; };
 		ED6FCC8017CB495400267E43 /* enocean4bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6FCC7E17CB495400267E43 /* enocean4bs.cpp */; };
 		ED7456401731B813001C9565 /* mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED74563E1731B813001C9565 /* mainloop.cpp */; };
+		ED75CAB02DE0DF880053582B /* SHARP_MIP.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9A72DE0DF880053582B /* SHARP_MIP.c */; };
+		ED75CAB12DE0DF880053582B /* lv_lmeter.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA712DE0DF880053582B /* lv_lmeter.c */; };
+		ED75CAB22DE0DF880053582B /* libinput.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9BB2DE0DF880053582B /* libinput.c */; };
+		ED75CAB32DE0DF880053582B /* lv_draw_line.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA042DE0DF880053582B /* lv_draw_line.c */; };
+		ED75CAB42DE0DF880053582B /* lv_hal_tick.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA232DE0DF880053582B /* lv_hal_tick.c */; };
+		ED75CAB52DE0DF880053582B /* lv_slider.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA7E2DE0DF880053582B /* lv_slider.c */; };
+		ED75CAB62DE0DF880053582B /* keyboard.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9BA2DE0DF880053582B /* keyboard.c */; };
+		ED75CAB72DE0DF880053582B /* lv_arc.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA4B2DE0DF880053582B /* lv_arc.c */; };
+		ED75CAB82DE0DF880053582B /* evdev.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9B52DE0DF880053582B /* evdev.c */; };
+		ED75CAB92DE0DF880053582B /* FT5406EE8.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9B72DE0DF880053582B /* FT5406EE8.c */; };
+		ED75CABA2DE0DF880053582B /* lv_draw_rect.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA062DE0DF880053582B /* lv_draw_rect.c */; };
+		ED75CABB2DE0DF880053582B /* lv_led.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA6B2DE0DF880053582B /* lv_led.c */; };
+		ED75CABC2DE0DF880053582B /* XPT2046.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9C22DE0DF880053582B /* XPT2046.c */; };
+		ED75CABD2DE0DF880053582B /* lv_spinbox.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA802DE0DF880053582B /* lv_spinbox.c */; };
+		ED75CABE2DE0DF880053582B /* lv_cb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA572DE0DF880053582B /* lv_cb.c */; };
+		ED75CABF2DE0DF880053582B /* lv_page.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA782DE0DF880053582B /* lv_page.c */; };
+		ED75CAC02DE0DF880053582B /* lv_port_indev_template.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9DC2DE0DF880053582B /* lv_port_indev_template.c */; };
+		ED75CAC12DE0DF880053582B /* lv_font_roboto_16.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA152DE0DF880053582B /* lv_font_roboto_16.c */; };
+		ED75CAC22DE0DF880053582B /* lv_port_disp_template.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9D82DE0DF880053582B /* lv_port_disp_template.c */; };
+		ED75CAC32DE0DF880053582B /* UC1610.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9AD2DE0DF880053582B /* UC1610.c */; };
+		ED75CAC42DE0DF880053582B /* SSD1963.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9A92DE0DF880053582B /* SSD1963.c */; };
+		ED75CAC52DE0DF880053582B /* lv_kb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA672DE0DF880053582B /* lv_kb.c */; };
+		ED75CAC62DE0DF880053582B /* lv_preload.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA7A2DE0DF880053582B /* lv_preload.c */; };
+		ED75CAC72DE0DF880053582B /* lv_font_roboto_22.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA162DE0DF880053582B /* lv_font_roboto_22.c */; };
+		ED75CAC82DE0DF880053582B /* lv_circ.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA2E2DE0DF880053582B /* lv_circ.c */; };
+		ED75CAC92DE0DF880053582B /* lv_list.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA6F2DE0DF880053582B /* lv_list.c */; };
+		ED75CACA2DE0DF880053582B /* lv_indev.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9F02DE0DF880053582B /* lv_indev.c */; };
+		ED75CACB2DE0DF880053582B /* lv_cont.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA5B2DE0DF880053582B /* lv_cont.c */; };
+		ED75CACC2DE0DF880053582B /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9A32DE0DF880053582B /* monitor.c */; };
+		ED75CACD2DE0DF880053582B /* lv_btnm.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA512DE0DF880053582B /* lv_btnm.c */; };
+		ED75CACE2DE0DF880053582B /* lv_hal_indev.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA212DE0DF880053582B /* lv_hal_indev.c */; };
+		ED75CACF2DE0DF880053582B /* mousewheel.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9C02DE0DF880053582B /* mousewheel.c */; };
+		ED75CAD02DE0DF880053582B /* lv_bar.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA4D2DE0DF880053582B /* lv_bar.c */; };
+		ED75CAD12DE0DF880053582B /* lv_win.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA8C2DE0DF880053582B /* lv_win.c */; };
+		ED75CAD22DE0DF880053582B /* lv_draw_arc.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9FC2DE0DF880053582B /* lv_draw_arc.c */; };
+		ED75CAD32DE0DF880053582B /* lv_tabview.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA882DE0DF880053582B /* lv_tabview.c */; };
+		ED75CAD42DE0DF880053582B /* lv_btn.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA4F2DE0DF880053582B /* lv_btn.c */; };
+		ED75CAD52DE0DF880053582B /* lv_mbox.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA732DE0DF880053582B /* lv_mbox.c */; };
+		ED75CAD62DE0DF880053582B /* lv_gc.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA342DE0DF880053582B /* lv_gc.c */; };
+		ED75CAD72DE0DF880053582B /* lv_theme_nemo.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA992DE0DF880053582B /* lv_theme_nemo.c */; };
+		ED75CAD82DE0DF880053582B /* lv_img_decoder.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA0C2DE0DF880053582B /* lv_img_decoder.c */; };
+		ED75CAD92DE0DF880053582B /* lv_label.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA692DE0DF880053582B /* lv_label.c */; };
+		ED75CADA2DE0DF880053582B /* lv_async.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA2A2DE0DF880053582B /* lv_async.c */; };
+		ED75CADB2DE0DF880053582B /* lv_calendar.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA532DE0DF880053582B /* lv_calendar.c */; };
+		ED75CADC2DE0DF880053582B /* mouse.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9BE2DE0DF880053582B /* mouse.c */; };
+		ED75CADD2DE0DF880053582B /* lv_font_roboto_12_subpx.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA142DE0DF880053582B /* lv_font_roboto_12_subpx.c */; };
+		ED75CADE2DE0DF880053582B /* lv_ta.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA842DE0DF880053582B /* lv_ta.c */; };
+		ED75CADF2DE0DF880053582B /* lv_style.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9F62DE0DF880053582B /* lv_style.c */; };
+		ED75CAE02DE0DF880053582B /* lv_chart.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA592DE0DF880053582B /* lv_chart.c */; };
+		ED75CAE12DE0DF880053582B /* lv_draw_img.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA002DE0DF880053582B /* lv_draw_img.c */; };
+		ED75CAE22DE0DF880053582B /* lv_bidi.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA2C2DE0DF880053582B /* lv_bidi.c */; };
+		ED75CAE32DE0DF880053582B /* lv_table.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA862DE0DF880053582B /* lv_table.c */; };
+		ED75CAE42DE0DF880053582B /* lv_theme_alien.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA912DE0DF880053582B /* lv_theme_alien.c */; };
+		ED75CAE52DE0DF880053582B /* lv_font_fmt_txt.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA122DE0DF880053582B /* lv_font_fmt_txt.c */; };
+		ED75CAE62DE0DF880053582B /* lv_font_unscii_8.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA192DE0DF880053582B /* lv_font_unscii_8.c */; };
+		ED75CAE72DE0DF880053582B /* lv_log.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA382DE0DF880053582B /* lv_log.c */; };
+		ED75CAE82DE0DF880053582B /* lv_draw_basic.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9FE2DE0DF880053582B /* lv_draw_basic.c */; };
+		ED75CAE92DE0DF880053582B /* lv_theme_night.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA9B2DE0DF880053582B /* lv_theme_night.c */; };
+		ED75CAEA2DE0DF880053582B /* lv_disp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9EC2DE0DF880053582B /* lv_disp.c */; };
+		ED75CAEB2DE0DF880053582B /* lv_refr.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9F42DE0DF880053582B /* lv_refr.c */; };
+		ED75CAEC2DE0DF880053582B /* lv_font_roboto_28_compressed.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA182DE0DF880053582B /* lv_font_roboto_28_compressed.c */; };
+		ED75CAED2DE0DF880053582B /* ST7565.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9AB2DE0DF880053582B /* ST7565.c */; };
+		ED75CAEE2DE0DF880053582B /* lv_img.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA632DE0DF880053582B /* lv_img.c */; };
+		ED75CAEF2DE0DF880053582B /* lv_anim.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA262DE0DF880053582B /* lv_anim.c */; };
+		ED75CAF02DE0DF880053582B /* lv_draw_label.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA022DE0DF880053582B /* lv_draw_label.c */; };
+		ED75CAF12DE0DF880053582B /* lv_debug.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9EA2DE0DF880053582B /* lv_debug.c */; };
+		ED75CAF22DE0DF880053582B /* lv_hal_disp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA1F2DE0DF880053582B /* lv_hal_disp.c */; };
+		ED75CAF32DE0DF880053582B /* lv_draw_triangle.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA082DE0DF880053582B /* lv_draw_triangle.c */; };
+		ED75CAF42DE0DF880053582B /* lv_objx_templ.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA762DE0DF880053582B /* lv_objx_templ.c */; };
+		ED75CAF52DE0DF880053582B /* lv_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA3C2DE0DF880053582B /* lv_mem.c */; };
+		ED75CAF62DE0DF880053582B /* lv_obj.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9F22DE0DF880053582B /* lv_obj.c */; };
+		ED75CAF72DE0DF880053582B /* lv_roller.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA7C2DE0DF880053582B /* lv_roller.c */; };
+		ED75CAF82DE0DF880053582B /* lv_area.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA282DE0DF880053582B /* lv_area.c */; };
+		ED75CAF92DE0DF880053582B /* lv_templ.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA432DE0DF880053582B /* lv_templ.c */; };
+		ED75CAFA2DE0DF880053582B /* lv_theme_material.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA952DE0DF880053582B /* lv_theme_material.c */; };
+		ED75CAFB2DE0DF880053582B /* lv_ll.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA362DE0DF880053582B /* lv_ll.c */; };
+		ED75CAFC2DE0DF880053582B /* lv_theme_zen.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA9F2DE0DF880053582B /* lv_theme_zen.c */; };
+		ED75CAFD2DE0DF880053582B /* lv_canvas.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA552DE0DF880053582B /* lv_canvas.c */; };
+		ED75CAFE2DE0DF880053582B /* lv_fs.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA322DE0DF880053582B /* lv_fs.c */; };
+		ED75CAFF2DE0DF880053582B /* lv_theme_templ.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA9D2DE0DF880053582B /* lv_theme_templ.c */; };
+		ED75CB002DE0DF880053582B /* win_drv.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9CB2DE0DF880053582B /* win_drv.c */; };
+		ED75CB012DE0DF880053582B /* lv_font_roboto_12.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA132DE0DF880053582B /* lv_font_roboto_12.c */; };
+		ED75CB022DE0DF880053582B /* AD_touch.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9B32DE0DF880053582B /* AD_touch.c */; };
+		ED75CB032DE0DF880053582B /* lv_font_roboto_28.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA172DE0DF880053582B /* lv_font_roboto_28.c */; };
+		ED75CB042DE0DF880053582B /* lv_ddlist.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA5F2DE0DF880053582B /* lv_ddlist.c */; };
+		ED75CB052DE0DF880053582B /* lv_color.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA302DE0DF880053582B /* lv_color.c */; };
+		ED75CB062DE0DF880053582B /* lv_task.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA412DE0DF880053582B /* lv_task.c */; };
+		ED75CB072DE0DF880053582B /* lv_gauge.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA612DE0DF880053582B /* lv_gauge.c */; };
+		ED75CB082DE0DF880053582B /* lv_printf.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA3F2DE0DF880053582B /* lv_printf.c */; };
+		ED75CB092DE0DF880053582B /* lv_tileview.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA8A2DE0DF880053582B /* lv_tileview.c */; };
+		ED75CB0A2DE0DF880053582B /* lv_font.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA0F2DE0DF880053582B /* lv_font.c */; };
+		ED75CB0B2DE0DF880053582B /* lv_theme_mono.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA972DE0DF880053582B /* lv_theme_mono.c */; };
+		ED75CB0C2DE0DF880053582B /* lv_theme.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA8F2DE0DF880053582B /* lv_theme.c */; };
+		ED75CB0D2DE0DF880053582B /* lv_img_cache.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA0A2DE0DF880053582B /* lv_img_cache.c */; };
+		ED75CB0E2DE0DF880053582B /* lv_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA482DE0DF880053582B /* lv_utils.c */; };
+		ED75CB0F2DE0DF880053582B /* lv_line.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA6D2DE0DF880053582B /* lv_line.c */; };
+		ED75CB102DE0DF880053582B /* lv_port_fs_template.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9DA2DE0DF880053582B /* lv_port_fs_template.c */; };
+		ED75CB112DE0DF880053582B /* lv_imgbtn.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA652DE0DF880053582B /* lv_imgbtn.c */; };
+		ED75CB122DE0DF880053582B /* lv_txt.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA452DE0DF880053582B /* lv_txt.c */; };
+		ED75CB132DE0DF880053582B /* lv_math.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA3A2DE0DF880053582B /* lv_math.c */; };
+		ED75CB142DE0DF880053582B /* lv_sw.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA822DE0DF880053582B /* lv_sw.c */; };
+		ED75CB152DE0DF880053582B /* lv_theme_default.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA932DE0DF880053582B /* lv_theme_default.c */; };
+		ED75CB162DE0DF880053582B /* lv_cpicker.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75CA5D2DE0DF880053582B /* lv_cpicker.c */; };
+		ED75CB172DE0DF880053582B /* lv_group.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9EE2DE0DF880053582B /* lv_group.c */; };
+		ED75CB182DE0DF880053582B /* lv_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9F92DE0DF880053582B /* lv_draw.c */; };
+		ED75CB192DE0DF880053582B /* R61581.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9A52DE0DF880053582B /* R61581.c */; };
+		ED75CB1A2DE0DF880053582B /* fbdev.c in Sources */ = {isa = PBXBuildFile; fileRef = ED75C9A12DE0DF880053582B /* fbdev.c */; };
+		ED75CB1B2DE0DF9C0053582B /* lvgl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4697742DC8E6C20029ED9C /* lvgl.cpp */; };
+		ED75CB1C2DE0DF9C0053582B /* lvglui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED4697762DC8E6C20029ED9C /* lvglui.cpp */; };
+		ED75CB1E2DE0E0010053582B /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = ED75CB1D2DE0E0010053582B /* libSDL2-2.0.0.dylib */; };
 		ED76273019210FBB0068D9A3 /* colorlightbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */; };
 		ED77A4751E78B9C5004D8303 /* slre.c in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4731E78B9C5004D8303 /* slre.c */; };
 		ED77A47B1E78B9D2004D8303 /* regexp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED77A4781E78B9D2004D8303 /* regexp.cpp */; };
@@ -375,6 +485,10 @@
 		ED3EF4592735ADE9004DFF99 /* modbus-private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "modbus-private.h"; path = "src/modbus-private.h"; sourceTree = "<group>"; };
 		ED3EF4662736BF0B004DFF99 /* crc32.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = crc32.hpp; sourceTree = "<group>"; };
 		ED3EF4672736BF0B004DFF99 /* crc32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = crc32.cpp; sourceTree = "<group>"; };
+		ED4697732DC8E6C20029ED9C /* lvgl.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lvgl.hpp; sourceTree = "<group>"; };
+		ED4697742DC8E6C20029ED9C /* lvgl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lvgl.cpp; sourceTree = "<group>"; };
+		ED4697752DC8E6C20029ED9C /* lvglui.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lvglui.hpp; sourceTree = "<group>"; };
+		ED4697762DC8E6C20029ED9C /* lvglui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lvglui.cpp; sourceTree = "<group>"; };
 		ED493DB81E9823C8008860E8 /* valueunits.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = valueunits.cpp; sourceTree = "<group>"; };
 		ED493DB91E9823C8008860E8 /* valueunits.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = valueunits.hpp; sourceTree = "<group>"; };
 		ED49ECD7238FD09500706C43 /* valuedescriptor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = valuedescriptor.cpp; sourceTree = "<group>"; };
@@ -494,6 +608,264 @@
 		ED70716E171D428A00752E4D /* dalidefs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = dalidefs.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		ED74563E1731B813001C9565 /* mainloop.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = mainloop.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED74563F1731B813001C9565 /* mainloop.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mainloop.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED75C99D2DE0DF880053582B /* stale.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = stale.yml; sourceTree = "<group>"; };
+		ED75C99F2DE0DF880053582B /* display.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = display.mk; sourceTree = "<group>"; };
+		ED75C9A02DE0DF880053582B /* fbdev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fbdev.h; sourceTree = "<group>"; };
+		ED75C9A12DE0DF880053582B /* fbdev.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fbdev.c; sourceTree = "<group>"; };
+		ED75C9A22DE0DF880053582B /* monitor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = monitor.h; sourceTree = "<group>"; };
+		ED75C9A32DE0DF880053582B /* monitor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = monitor.c; sourceTree = "<group>"; };
+		ED75C9A42DE0DF880053582B /* R61581.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = R61581.h; sourceTree = "<group>"; };
+		ED75C9A52DE0DF880053582B /* R61581.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = R61581.c; sourceTree = "<group>"; };
+		ED75C9A62DE0DF880053582B /* SHARP_MIP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SHARP_MIP.h; sourceTree = "<group>"; };
+		ED75C9A72DE0DF880053582B /* SHARP_MIP.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SHARP_MIP.c; sourceTree = "<group>"; };
+		ED75C9A82DE0DF880053582B /* SSD1963.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SSD1963.h; sourceTree = "<group>"; };
+		ED75C9A92DE0DF880053582B /* SSD1963.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SSD1963.c; sourceTree = "<group>"; };
+		ED75C9AA2DE0DF880053582B /* ST7565.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ST7565.h; sourceTree = "<group>"; };
+		ED75C9AB2DE0DF880053582B /* ST7565.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ST7565.c; sourceTree = "<group>"; };
+		ED75C9AC2DE0DF880053582B /* UC1610.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UC1610.h; sourceTree = "<group>"; };
+		ED75C9AD2DE0DF880053582B /* UC1610.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UC1610.c; sourceTree = "<group>"; };
+		ED75C9AF2DE0DF880053582B /* astyle_c */ = {isa = PBXFileReference; lastKnownFileType = text; path = astyle_c; sourceTree = "<group>"; };
+		ED75C9B02DE0DF880053582B /* astyle_h */ = {isa = PBXFileReference; lastKnownFileType = text; path = astyle_h; sourceTree = "<group>"; };
+		ED75C9B22DE0DF880053582B /* AD_touch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AD_touch.h; sourceTree = "<group>"; };
+		ED75C9B32DE0DF880053582B /* AD_touch.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = AD_touch.c; sourceTree = "<group>"; };
+		ED75C9B42DE0DF880053582B /* evdev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = evdev.h; sourceTree = "<group>"; };
+		ED75C9B52DE0DF880053582B /* evdev.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = evdev.c; sourceTree = "<group>"; };
+		ED75C9B62DE0DF880053582B /* FT5406EE8.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FT5406EE8.h; sourceTree = "<group>"; };
+		ED75C9B72DE0DF880053582B /* FT5406EE8.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FT5406EE8.c; sourceTree = "<group>"; };
+		ED75C9B82DE0DF880053582B /* indev.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = indev.mk; sourceTree = "<group>"; };
+		ED75C9B92DE0DF880053582B /* keyboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keyboard.h; sourceTree = "<group>"; };
+		ED75C9BA2DE0DF880053582B /* keyboard.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = keyboard.c; sourceTree = "<group>"; };
+		ED75C9BB2DE0DF880053582B /* libinput.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = libinput.c; sourceTree = "<group>"; };
+		ED75C9BC2DE0DF880053582B /* libinput_drv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libinput_drv.h; sourceTree = "<group>"; };
+		ED75C9BD2DE0DF880053582B /* mouse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mouse.h; sourceTree = "<group>"; };
+		ED75C9BE2DE0DF880053582B /* mouse.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mouse.c; sourceTree = "<group>"; };
+		ED75C9BF2DE0DF880053582B /* mousewheel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mousewheel.h; sourceTree = "<group>"; };
+		ED75C9C02DE0DF880053582B /* mousewheel.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mousewheel.c; sourceTree = "<group>"; };
+		ED75C9C12DE0DF880053582B /* XPT2046.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XPT2046.h; sourceTree = "<group>"; };
+		ED75C9C22DE0DF880053582B /* XPT2046.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = XPT2046.c; sourceTree = "<group>"; };
+		ED75C9C42DE0DF880053582B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		ED75C9C52DE0DF880053582B /* library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = library.json; sourceTree = "<group>"; };
+		ED75C9C62DE0DF880053582B /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		ED75C9C72DE0DF880053582B /* lv_drivers.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_drivers.mk; sourceTree = "<group>"; };
+		ED75C9C82DE0DF880053582B /* lv_drv_conf_templ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_drv_conf_templ.h; sourceTree = "<group>"; };
+		ED75C9C92DE0DF880053582B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		ED75C9CA2DE0DF880053582B /* win_drv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = win_drv.h; sourceTree = "<group>"; };
+		ED75C9CB2DE0DF880053582B /* win_drv.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = win_drv.c; sourceTree = "<group>"; };
+		ED75C9CD2DE0DF880053582B /* all-other-issues.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "all-other-issues.md"; sourceTree = "<group>"; };
+		ED75C9CE2DE0DF880053582B /* bug-report.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "bug-report.md"; sourceTree = "<group>"; };
+		ED75C9D02DE0DF880053582B /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = FUNDING.yml; sourceTree = "<group>"; };
+		ED75C9D12DE0DF880053582B /* stale.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = stale.yml; sourceTree = "<group>"; };
+		ED75C9D32DE0DF880053582B /* CODE_OF_CONDUCT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CODE_OF_CONDUCT.md; sourceTree = "<group>"; };
+		ED75C9D42DE0DF880053582B /* CODING_STYLE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CODING_STYLE.md; sourceTree = "<group>"; };
+		ED75C9D52DE0DF880053582B /* CONTRIBUTING.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CONTRIBUTING.md; sourceTree = "<group>"; };
+		ED75C9D72DE0DF880053582B /* lv_port_disp_template.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_port_disp_template.h; sourceTree = "<group>"; };
+		ED75C9D82DE0DF880053582B /* lv_port_disp_template.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_port_disp_template.c; sourceTree = "<group>"; };
+		ED75C9D92DE0DF880053582B /* lv_port_fs_template.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_port_fs_template.h; sourceTree = "<group>"; };
+		ED75C9DA2DE0DF880053582B /* lv_port_fs_template.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_port_fs_template.c; sourceTree = "<group>"; };
+		ED75C9DB2DE0DF880053582B /* lv_port_indev_template.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_port_indev_template.h; sourceTree = "<group>"; };
+		ED75C9DC2DE0DF880053582B /* lv_port_indev_template.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_port_indev_template.c; sourceTree = "<group>"; };
+		ED75C9DE2DE0DF880053582B /* built_in_font_gen.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = built_in_font_gen.py; sourceTree = "<group>"; };
+		ED75C9DF2DE0DF880053582B /* FontAwesome5-Solid+Brands+Regular.woff */ = {isa = PBXFileReference; lastKnownFileType = file; path = "FontAwesome5-Solid+Brands+Regular.woff"; sourceTree = "<group>"; };
+		ED75C9E02DE0DF880053582B /* Roboto-Regular.woff */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Roboto-Regular.woff"; sourceTree = "<group>"; };
+		ED75C9E22DE0DF880053582B /* clang-formatter.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "clang-formatter.sh"; sourceTree = "<group>"; };
+		ED75C9E32DE0DF880053582B /* cppcheck_run.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = cppcheck_run.sh; sourceTree = "<group>"; };
+		ED75C9E42DE0DF880053582B /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		ED75C9E52DE0DF880053582B /* lv_conf_checker.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = lv_conf_checker.py; sourceTree = "<group>"; };
+		ED75C9E62DE0DF880053582B /* release_patch.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = release_patch.py; sourceTree = "<group>"; };
+		ED75C9E82DE0DF880053582B /* lv_core.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_core.mk; sourceTree = "<group>"; };
+		ED75C9E92DE0DF880053582B /* lv_debug.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_debug.h; sourceTree = "<group>"; };
+		ED75C9EA2DE0DF880053582B /* lv_debug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_debug.c; sourceTree = "<group>"; };
+		ED75C9EB2DE0DF880053582B /* lv_disp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_disp.h; sourceTree = "<group>"; };
+		ED75C9EC2DE0DF880053582B /* lv_disp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_disp.c; sourceTree = "<group>"; };
+		ED75C9ED2DE0DF880053582B /* lv_group.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_group.h; sourceTree = "<group>"; };
+		ED75C9EE2DE0DF880053582B /* lv_group.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_group.c; sourceTree = "<group>"; };
+		ED75C9EF2DE0DF880053582B /* lv_indev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_indev.h; sourceTree = "<group>"; };
+		ED75C9F02DE0DF880053582B /* lv_indev.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_indev.c; sourceTree = "<group>"; };
+		ED75C9F12DE0DF880053582B /* lv_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_obj.h; sourceTree = "<group>"; };
+		ED75C9F22DE0DF880053582B /* lv_obj.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_obj.c; sourceTree = "<group>"; };
+		ED75C9F32DE0DF880053582B /* lv_refr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_refr.h; sourceTree = "<group>"; };
+		ED75C9F42DE0DF880053582B /* lv_refr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_refr.c; sourceTree = "<group>"; };
+		ED75C9F52DE0DF880053582B /* lv_style.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_style.h; sourceTree = "<group>"; };
+		ED75C9F62DE0DF880053582B /* lv_style.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_style.c; sourceTree = "<group>"; };
+		ED75C9F82DE0DF880053582B /* lv_draw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw.h; sourceTree = "<group>"; };
+		ED75C9F92DE0DF880053582B /* lv_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw.c; sourceTree = "<group>"; };
+		ED75C9FA2DE0DF880053582B /* lv_draw.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_draw.mk; sourceTree = "<group>"; };
+		ED75C9FB2DE0DF880053582B /* lv_draw_arc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_arc.h; sourceTree = "<group>"; };
+		ED75C9FC2DE0DF880053582B /* lv_draw_arc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_arc.c; sourceTree = "<group>"; };
+		ED75C9FD2DE0DF880053582B /* lv_draw_basic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_basic.h; sourceTree = "<group>"; };
+		ED75C9FE2DE0DF880053582B /* lv_draw_basic.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_basic.c; sourceTree = "<group>"; };
+		ED75C9FF2DE0DF880053582B /* lv_draw_img.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_img.h; sourceTree = "<group>"; };
+		ED75CA002DE0DF880053582B /* lv_draw_img.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_img.c; sourceTree = "<group>"; };
+		ED75CA012DE0DF880053582B /* lv_draw_label.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_label.h; sourceTree = "<group>"; };
+		ED75CA022DE0DF880053582B /* lv_draw_label.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_label.c; sourceTree = "<group>"; };
+		ED75CA032DE0DF880053582B /* lv_draw_line.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_line.h; sourceTree = "<group>"; };
+		ED75CA042DE0DF880053582B /* lv_draw_line.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_line.c; sourceTree = "<group>"; };
+		ED75CA052DE0DF880053582B /* lv_draw_rect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_rect.h; sourceTree = "<group>"; };
+		ED75CA062DE0DF880053582B /* lv_draw_rect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_rect.c; sourceTree = "<group>"; };
+		ED75CA072DE0DF880053582B /* lv_draw_triangle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_draw_triangle.h; sourceTree = "<group>"; };
+		ED75CA082DE0DF880053582B /* lv_draw_triangle.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_draw_triangle.c; sourceTree = "<group>"; };
+		ED75CA092DE0DF880053582B /* lv_img_cache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_img_cache.h; sourceTree = "<group>"; };
+		ED75CA0A2DE0DF880053582B /* lv_img_cache.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_img_cache.c; sourceTree = "<group>"; };
+		ED75CA0B2DE0DF880053582B /* lv_img_decoder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_img_decoder.h; sourceTree = "<group>"; };
+		ED75CA0C2DE0DF880053582B /* lv_img_decoder.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_img_decoder.c; sourceTree = "<group>"; };
+		ED75CA0E2DE0DF880053582B /* lv_font.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_font.h; sourceTree = "<group>"; };
+		ED75CA0F2DE0DF880053582B /* lv_font.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font.c; sourceTree = "<group>"; };
+		ED75CA102DE0DF880053582B /* lv_font.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_font.mk; sourceTree = "<group>"; };
+		ED75CA112DE0DF880053582B /* lv_font_fmt_txt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_font_fmt_txt.h; sourceTree = "<group>"; };
+		ED75CA122DE0DF880053582B /* lv_font_fmt_txt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_fmt_txt.c; sourceTree = "<group>"; };
+		ED75CA132DE0DF880053582B /* lv_font_roboto_12.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_12.c; sourceTree = "<group>"; };
+		ED75CA142DE0DF880053582B /* lv_font_roboto_12_subpx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_12_subpx.c; sourceTree = "<group>"; };
+		ED75CA152DE0DF880053582B /* lv_font_roboto_16.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_16.c; sourceTree = "<group>"; };
+		ED75CA162DE0DF880053582B /* lv_font_roboto_22.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_22.c; sourceTree = "<group>"; };
+		ED75CA172DE0DF880053582B /* lv_font_roboto_28.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_28.c; sourceTree = "<group>"; };
+		ED75CA182DE0DF880053582B /* lv_font_roboto_28_compressed.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_roboto_28_compressed.c; sourceTree = "<group>"; };
+		ED75CA192DE0DF880053582B /* lv_font_unscii_8.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_font_unscii_8.c; sourceTree = "<group>"; };
+		ED75CA1A2DE0DF880053582B /* lv_symbol_def.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_symbol_def.h; sourceTree = "<group>"; };
+		ED75CA1C2DE0DF880053582B /* lv_hal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_hal.h; sourceTree = "<group>"; };
+		ED75CA1D2DE0DF880053582B /* lv_hal.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_hal.mk; sourceTree = "<group>"; };
+		ED75CA1E2DE0DF880053582B /* lv_hal_disp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_hal_disp.h; sourceTree = "<group>"; };
+		ED75CA1F2DE0DF880053582B /* lv_hal_disp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_hal_disp.c; sourceTree = "<group>"; };
+		ED75CA202DE0DF880053582B /* lv_hal_indev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_hal_indev.h; sourceTree = "<group>"; };
+		ED75CA212DE0DF880053582B /* lv_hal_indev.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_hal_indev.c; sourceTree = "<group>"; };
+		ED75CA222DE0DF880053582B /* lv_hal_tick.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_hal_tick.h; sourceTree = "<group>"; };
+		ED75CA232DE0DF880053582B /* lv_hal_tick.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_hal_tick.c; sourceTree = "<group>"; };
+		ED75CA252DE0DF880053582B /* lv_anim.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_anim.h; sourceTree = "<group>"; };
+		ED75CA262DE0DF880053582B /* lv_anim.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_anim.c; sourceTree = "<group>"; };
+		ED75CA272DE0DF880053582B /* lv_area.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_area.h; sourceTree = "<group>"; };
+		ED75CA282DE0DF880053582B /* lv_area.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_area.c; sourceTree = "<group>"; };
+		ED75CA292DE0DF880053582B /* lv_async.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_async.h; sourceTree = "<group>"; };
+		ED75CA2A2DE0DF880053582B /* lv_async.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_async.c; sourceTree = "<group>"; };
+		ED75CA2B2DE0DF880053582B /* lv_bidi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_bidi.h; sourceTree = "<group>"; };
+		ED75CA2C2DE0DF880053582B /* lv_bidi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_bidi.c; sourceTree = "<group>"; };
+		ED75CA2D2DE0DF880053582B /* lv_circ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_circ.h; sourceTree = "<group>"; };
+		ED75CA2E2DE0DF880053582B /* lv_circ.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_circ.c; sourceTree = "<group>"; };
+		ED75CA2F2DE0DF880053582B /* lv_color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_color.h; sourceTree = "<group>"; };
+		ED75CA302DE0DF880053582B /* lv_color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_color.c; sourceTree = "<group>"; };
+		ED75CA312DE0DF880053582B /* lv_fs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_fs.h; sourceTree = "<group>"; };
+		ED75CA322DE0DF880053582B /* lv_fs.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_fs.c; sourceTree = "<group>"; };
+		ED75CA332DE0DF880053582B /* lv_gc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_gc.h; sourceTree = "<group>"; };
+		ED75CA342DE0DF880053582B /* lv_gc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_gc.c; sourceTree = "<group>"; };
+		ED75CA352DE0DF880053582B /* lv_ll.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_ll.h; sourceTree = "<group>"; };
+		ED75CA362DE0DF880053582B /* lv_ll.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_ll.c; sourceTree = "<group>"; };
+		ED75CA372DE0DF880053582B /* lv_log.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_log.h; sourceTree = "<group>"; };
+		ED75CA382DE0DF880053582B /* lv_log.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_log.c; sourceTree = "<group>"; };
+		ED75CA392DE0DF880053582B /* lv_math.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_math.h; sourceTree = "<group>"; };
+		ED75CA3A2DE0DF880053582B /* lv_math.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_math.c; sourceTree = "<group>"; };
+		ED75CA3B2DE0DF880053582B /* lv_mem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_mem.h; sourceTree = "<group>"; };
+		ED75CA3C2DE0DF880053582B /* lv_mem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_mem.c; sourceTree = "<group>"; };
+		ED75CA3D2DE0DF880053582B /* lv_misc.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_misc.mk; sourceTree = "<group>"; };
+		ED75CA3E2DE0DF880053582B /* lv_printf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_printf.h; sourceTree = "<group>"; };
+		ED75CA3F2DE0DF880053582B /* lv_printf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_printf.c; sourceTree = "<group>"; };
+		ED75CA402DE0DF880053582B /* lv_task.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_task.h; sourceTree = "<group>"; };
+		ED75CA412DE0DF880053582B /* lv_task.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_task.c; sourceTree = "<group>"; };
+		ED75CA422DE0DF880053582B /* lv_templ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_templ.h; sourceTree = "<group>"; };
+		ED75CA432DE0DF880053582B /* lv_templ.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_templ.c; sourceTree = "<group>"; };
+		ED75CA442DE0DF880053582B /* lv_txt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_txt.h; sourceTree = "<group>"; };
+		ED75CA452DE0DF880053582B /* lv_txt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_txt.c; sourceTree = "<group>"; };
+		ED75CA462DE0DF880053582B /* lv_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_types.h; sourceTree = "<group>"; };
+		ED75CA472DE0DF880053582B /* lv_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_utils.h; sourceTree = "<group>"; };
+		ED75CA482DE0DF880053582B /* lv_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_utils.c; sourceTree = "<group>"; };
+		ED75CA4A2DE0DF880053582B /* lv_arc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_arc.h; sourceTree = "<group>"; };
+		ED75CA4B2DE0DF880053582B /* lv_arc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_arc.c; sourceTree = "<group>"; };
+		ED75CA4C2DE0DF880053582B /* lv_bar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_bar.h; sourceTree = "<group>"; };
+		ED75CA4D2DE0DF880053582B /* lv_bar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_bar.c; sourceTree = "<group>"; };
+		ED75CA4E2DE0DF880053582B /* lv_btn.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_btn.h; sourceTree = "<group>"; };
+		ED75CA4F2DE0DF880053582B /* lv_btn.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_btn.c; sourceTree = "<group>"; };
+		ED75CA502DE0DF880053582B /* lv_btnm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_btnm.h; sourceTree = "<group>"; };
+		ED75CA512DE0DF880053582B /* lv_btnm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_btnm.c; sourceTree = "<group>"; };
+		ED75CA522DE0DF880053582B /* lv_calendar.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_calendar.h; sourceTree = "<group>"; };
+		ED75CA532DE0DF880053582B /* lv_calendar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_calendar.c; sourceTree = "<group>"; };
+		ED75CA542DE0DF880053582B /* lv_canvas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_canvas.h; sourceTree = "<group>"; };
+		ED75CA552DE0DF880053582B /* lv_canvas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_canvas.c; sourceTree = "<group>"; };
+		ED75CA562DE0DF880053582B /* lv_cb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_cb.h; sourceTree = "<group>"; };
+		ED75CA572DE0DF880053582B /* lv_cb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_cb.c; sourceTree = "<group>"; };
+		ED75CA582DE0DF880053582B /* lv_chart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_chart.h; sourceTree = "<group>"; };
+		ED75CA592DE0DF880053582B /* lv_chart.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_chart.c; sourceTree = "<group>"; };
+		ED75CA5A2DE0DF880053582B /* lv_cont.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_cont.h; sourceTree = "<group>"; };
+		ED75CA5B2DE0DF880053582B /* lv_cont.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_cont.c; sourceTree = "<group>"; };
+		ED75CA5C2DE0DF880053582B /* lv_cpicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_cpicker.h; sourceTree = "<group>"; };
+		ED75CA5D2DE0DF880053582B /* lv_cpicker.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_cpicker.c; sourceTree = "<group>"; };
+		ED75CA5E2DE0DF880053582B /* lv_ddlist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_ddlist.h; sourceTree = "<group>"; };
+		ED75CA5F2DE0DF880053582B /* lv_ddlist.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_ddlist.c; sourceTree = "<group>"; };
+		ED75CA602DE0DF880053582B /* lv_gauge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_gauge.h; sourceTree = "<group>"; };
+		ED75CA612DE0DF880053582B /* lv_gauge.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_gauge.c; sourceTree = "<group>"; };
+		ED75CA622DE0DF880053582B /* lv_img.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_img.h; sourceTree = "<group>"; };
+		ED75CA632DE0DF880053582B /* lv_img.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_img.c; sourceTree = "<group>"; };
+		ED75CA642DE0DF880053582B /* lv_imgbtn.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_imgbtn.h; sourceTree = "<group>"; };
+		ED75CA652DE0DF880053582B /* lv_imgbtn.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_imgbtn.c; sourceTree = "<group>"; };
+		ED75CA662DE0DF880053582B /* lv_kb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_kb.h; sourceTree = "<group>"; };
+		ED75CA672DE0DF880053582B /* lv_kb.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_kb.c; sourceTree = "<group>"; };
+		ED75CA682DE0DF880053582B /* lv_label.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_label.h; sourceTree = "<group>"; };
+		ED75CA692DE0DF880053582B /* lv_label.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_label.c; sourceTree = "<group>"; };
+		ED75CA6A2DE0DF880053582B /* lv_led.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_led.h; sourceTree = "<group>"; };
+		ED75CA6B2DE0DF880053582B /* lv_led.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_led.c; sourceTree = "<group>"; };
+		ED75CA6C2DE0DF880053582B /* lv_line.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_line.h; sourceTree = "<group>"; };
+		ED75CA6D2DE0DF880053582B /* lv_line.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_line.c; sourceTree = "<group>"; };
+		ED75CA6E2DE0DF880053582B /* lv_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_list.h; sourceTree = "<group>"; };
+		ED75CA6F2DE0DF880053582B /* lv_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_list.c; sourceTree = "<group>"; };
+		ED75CA702DE0DF880053582B /* lv_lmeter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_lmeter.h; sourceTree = "<group>"; };
+		ED75CA712DE0DF880053582B /* lv_lmeter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_lmeter.c; sourceTree = "<group>"; };
+		ED75CA722DE0DF880053582B /* lv_mbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_mbox.h; sourceTree = "<group>"; };
+		ED75CA732DE0DF880053582B /* lv_mbox.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_mbox.c; sourceTree = "<group>"; };
+		ED75CA742DE0DF880053582B /* lv_objx.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_objx.mk; sourceTree = "<group>"; };
+		ED75CA752DE0DF880053582B /* lv_objx_templ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_objx_templ.h; sourceTree = "<group>"; };
+		ED75CA762DE0DF880053582B /* lv_objx_templ.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_objx_templ.c; sourceTree = "<group>"; };
+		ED75CA772DE0DF880053582B /* lv_page.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_page.h; sourceTree = "<group>"; };
+		ED75CA782DE0DF880053582B /* lv_page.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_page.c; sourceTree = "<group>"; };
+		ED75CA792DE0DF880053582B /* lv_preload.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_preload.h; sourceTree = "<group>"; };
+		ED75CA7A2DE0DF880053582B /* lv_preload.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_preload.c; sourceTree = "<group>"; };
+		ED75CA7B2DE0DF880053582B /* lv_roller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_roller.h; sourceTree = "<group>"; };
+		ED75CA7C2DE0DF880053582B /* lv_roller.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_roller.c; sourceTree = "<group>"; };
+		ED75CA7D2DE0DF880053582B /* lv_slider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_slider.h; sourceTree = "<group>"; };
+		ED75CA7E2DE0DF880053582B /* lv_slider.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_slider.c; sourceTree = "<group>"; };
+		ED75CA7F2DE0DF880053582B /* lv_spinbox.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_spinbox.h; sourceTree = "<group>"; };
+		ED75CA802DE0DF880053582B /* lv_spinbox.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_spinbox.c; sourceTree = "<group>"; };
+		ED75CA812DE0DF880053582B /* lv_sw.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_sw.h; sourceTree = "<group>"; };
+		ED75CA822DE0DF880053582B /* lv_sw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_sw.c; sourceTree = "<group>"; };
+		ED75CA832DE0DF880053582B /* lv_ta.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_ta.h; sourceTree = "<group>"; };
+		ED75CA842DE0DF880053582B /* lv_ta.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_ta.c; sourceTree = "<group>"; };
+		ED75CA852DE0DF880053582B /* lv_table.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_table.h; sourceTree = "<group>"; };
+		ED75CA862DE0DF880053582B /* lv_table.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_table.c; sourceTree = "<group>"; };
+		ED75CA872DE0DF880053582B /* lv_tabview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_tabview.h; sourceTree = "<group>"; };
+		ED75CA882DE0DF880053582B /* lv_tabview.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_tabview.c; sourceTree = "<group>"; };
+		ED75CA892DE0DF880053582B /* lv_tileview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_tileview.h; sourceTree = "<group>"; };
+		ED75CA8A2DE0DF880053582B /* lv_tileview.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_tileview.c; sourceTree = "<group>"; };
+		ED75CA8B2DE0DF880053582B /* lv_win.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_win.h; sourceTree = "<group>"; };
+		ED75CA8C2DE0DF880053582B /* lv_win.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_win.c; sourceTree = "<group>"; };
+		ED75CA8E2DE0DF880053582B /* lv_theme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme.h; sourceTree = "<group>"; };
+		ED75CA8F2DE0DF880053582B /* lv_theme.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme.c; sourceTree = "<group>"; };
+		ED75CA902DE0DF880053582B /* lv_theme_alien.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_alien.h; sourceTree = "<group>"; };
+		ED75CA912DE0DF880053582B /* lv_theme_alien.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_alien.c; sourceTree = "<group>"; };
+		ED75CA922DE0DF880053582B /* lv_theme_default.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_default.h; sourceTree = "<group>"; };
+		ED75CA932DE0DF880053582B /* lv_theme_default.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_default.c; sourceTree = "<group>"; };
+		ED75CA942DE0DF880053582B /* lv_theme_material.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_material.h; sourceTree = "<group>"; };
+		ED75CA952DE0DF880053582B /* lv_theme_material.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_material.c; sourceTree = "<group>"; };
+		ED75CA962DE0DF880053582B /* lv_theme_mono.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_mono.h; sourceTree = "<group>"; };
+		ED75CA972DE0DF880053582B /* lv_theme_mono.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_mono.c; sourceTree = "<group>"; };
+		ED75CA982DE0DF880053582B /* lv_theme_nemo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_nemo.h; sourceTree = "<group>"; };
+		ED75CA992DE0DF880053582B /* lv_theme_nemo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_nemo.c; sourceTree = "<group>"; };
+		ED75CA9A2DE0DF880053582B /* lv_theme_night.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_night.h; sourceTree = "<group>"; };
+		ED75CA9B2DE0DF880053582B /* lv_theme_night.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_night.c; sourceTree = "<group>"; };
+		ED75CA9C2DE0DF880053582B /* lv_theme_templ.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_templ.h; sourceTree = "<group>"; };
+		ED75CA9D2DE0DF880053582B /* lv_theme_templ.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_templ.c; sourceTree = "<group>"; };
+		ED75CA9E2DE0DF880053582B /* lv_theme_zen.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_theme_zen.h; sourceTree = "<group>"; };
+		ED75CA9F2DE0DF880053582B /* lv_theme_zen.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_theme_zen.c; sourceTree = "<group>"; };
+		ED75CAA02DE0DF880053582B /* lv_themes.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lv_themes.mk; sourceTree = "<group>"; };
+		ED75CAA22DE0DF880053582B /* lv_conf_checker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_conf_checker.h; sourceTree = "<group>"; };
+		ED75CAA32DE0DF880053582B /* lv_version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_version.h; sourceTree = "<group>"; };
+		ED75CAA52DE0DF880053582B /* .clang-format */ = {isa = PBXFileReference; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
+		ED75CAA62DE0DF880053582B /* .editorconfig */ = {isa = PBXFileReference; lastKnownFileType = text; path = .editorconfig; sourceTree = "<group>"; };
+		ED75CAA72DE0DF880053582B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		ED75CAA82DE0DF880053582B /* .gitmodules */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitmodules; sourceTree = "<group>"; };
+		ED75CAA92DE0DF880053582B /* library.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = library.json; sourceTree = "<group>"; };
+		ED75CAAA2DE0DF880053582B /* LICENCE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENCE.txt; sourceTree = "<group>"; };
+		ED75CAAB2DE0DF880053582B /* lv_conf_template.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_conf_template.h; sourceTree = "<group>"; };
+		ED75CAAC2DE0DF880053582B /* lvgl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lvgl.h; sourceTree = "<group>"; };
+		ED75CAAD2DE0DF880053582B /* lvgl.mk */ = {isa = PBXFileReference; lastKnownFileType = text; path = lvgl.mk; sourceTree = "<group>"; };
+		ED75CAAE2DE0DF880053582B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		ED75CB1D2DE0E0010053582B /* libSDL2-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2-2.0.0.dylib"; path = "../../../../../../opt/homebrew/Cellar/sdl2/2.32.6/lib/libSDL2-2.0.0.dylib"; sourceTree = "<group>"; };
+		ED75CB1F2DE0E0440053582B /* lv_conf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_conf.h; sourceTree = "<group>"; };
+		ED75CB202DE0E0640053582B /* lv_drv_conf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_drv_conf.h; sourceTree = "<group>"; };
 		ED7627231920E8F70068D9A3 /* colorlightbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = colorlightbehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED7627241920E8F70068D9A3 /* colorlightbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = colorlightbehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED77A4731E78B9C5004D8303 /* slre.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = slre.c; sourceTree = "<group>"; };
@@ -597,6 +969,7 @@
 		EDAEF9772BDA8159000B3FE0 /* p44bridgeapi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = p44bridgeapi.cpp; sourceTree = "<group>"; };
 		EDB1892F17D4B7330088B6A5 /* ssdpsearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = ssdpsearch.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB1893017D4B7330088B6A5 /* ssdpsearch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = ssdpsearch.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDB1C3552DAEA2A20010228F /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		EDB284421732965700EAE5DE /* operationqueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = operationqueue.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB284431732965700EAE5DE /* operationqueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = operationqueue.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDB284451733B4ED00EAE5DE /* enoceancomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enoceancomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -797,6 +1170,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ED75CB1E2DE0E0010053582B /* libSDL2-2.0.0.dylib in Frameworks */,
 				ED9845A52A6EDC030057C0D8 /* libev.4.dylib in Frameworks */,
 				ED9845A32A6EDBB80057C0D8 /* librrd.8.dylib in Frameworks */,
 				ED9845A02A6EDB810057C0D8 /* libcrypto.3.dylib in Frameworks */,
@@ -1077,6 +1451,10 @@
 				ED6D7BEE1716EAA6005DED18 /* logger.cpp */,
 				ED6D7BEF1716EAA6005DED18 /* logger.hpp */,
 				EDF836BD2DA6B6DC00ED9BD6 /* logger.h */,
+				ED4697732DC8E6C20029ED9C /* lvgl.hpp */,
+				ED4697742DC8E6C20029ED9C /* lvgl.cpp */,
+				ED4697752DC8E6C20029ED9C /* lvglui.hpp */,
+				ED4697762DC8E6C20029ED9C /* lvglui.cpp */,
 				EDDE42BC17F35419005B97A0 /* macaddress.cpp */,
 				EDDE42BD17F35419005B97A0 /* macaddress.hpp */,
 				ED74563E1731B813001C9565 /* mainloop.cpp */,
@@ -1132,6 +1510,7 @@
 		ED3701EA20015F0B00A1BD67 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				ED75CB1D2DE0E0010053582B /* libSDL2-2.0.0.dylib */,
 				ED9845A42A6EDC030057C0D8 /* libev.4.dylib */,
 				ED9845A22A6EDBB80057C0D8 /* librrd.8.dylib */,
 				ED98459E2A6EDB810057C0D8 /* libcrypto.3.dylib */,
@@ -1291,6 +1670,7 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				EDB1C3552DAEA2A20010228F /* CMakeLists.txt */,
 				EDA884D229813E6400D10481 /* debian */,
 				ED32BD58274C0EFA0097E990 /* Dockerfile */,
 				ED3BDFE42454793700115B6C /* FUNDING.yml */,
@@ -1317,17 +1697,434 @@
 		ED6D7BE71716B6B1005DED18 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				ED75C9CC2DE0DF880053582B /* lv_drivers */,
+				ED75CAAF2DE0DF880053582B /* lvgl */,
 				ED3699B5178DA83800376405 /* p44utils */,
 				ED57A13822FF6A20008E554D /* p44lrgraphics */,
 				ED9EF75226DFA2F400C2F3D7 /* p44features */,
 				ED6CCD5E1D1D32FE00C78A0D /* p44vdc */,
 				ED93DFE21D2543B900D6AF0A /* p44vdc_config.hpp */,
 				ED9DB11923789B0E00F91490 /* p44utils_config.hpp */,
+				ED75CB1F2DE0E0440053582B /* lv_conf.h */,
+				ED75CB202DE0E0640053582B /* lv_drv_conf.h */,
 				ED9EF77E26DFA34500C2F3D7 /* p44features_config.hpp */,
 				EDB5B3FD2323D6B100A0C84D /* p44lrg_config.hpp */,
 				ED6D7BEA1716B6B1005DED18 /* p44_vdcd_main.cpp */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		ED75C99E2DE0DF880053582B /* .github */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C99D2DE0DF880053582B /* stale.yml */,
+			);
+			path = .github;
+			sourceTree = "<group>";
+		};
+		ED75C9AE2DE0DF880053582B /* display */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C99F2DE0DF880053582B /* display.mk */,
+				ED75C9A02DE0DF880053582B /* fbdev.h */,
+				ED75C9A12DE0DF880053582B /* fbdev.c */,
+				ED75C9A22DE0DF880053582B /* monitor.h */,
+				ED75C9A32DE0DF880053582B /* monitor.c */,
+				ED75C9A42DE0DF880053582B /* R61581.h */,
+				ED75C9A52DE0DF880053582B /* R61581.c */,
+				ED75C9A62DE0DF880053582B /* SHARP_MIP.h */,
+				ED75C9A72DE0DF880053582B /* SHARP_MIP.c */,
+				ED75C9A82DE0DF880053582B /* SSD1963.h */,
+				ED75C9A92DE0DF880053582B /* SSD1963.c */,
+				ED75C9AA2DE0DF880053582B /* ST7565.h */,
+				ED75C9AB2DE0DF880053582B /* ST7565.c */,
+				ED75C9AC2DE0DF880053582B /* UC1610.h */,
+				ED75C9AD2DE0DF880053582B /* UC1610.c */,
+			);
+			path = display;
+			sourceTree = "<group>";
+		};
+		ED75C9B12DE0DF880053582B /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9AF2DE0DF880053582B /* astyle_c */,
+				ED75C9B02DE0DF880053582B /* astyle_h */,
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+		ED75C9C32DE0DF880053582B /* indev */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9B22DE0DF880053582B /* AD_touch.h */,
+				ED75C9B32DE0DF880053582B /* AD_touch.c */,
+				ED75C9B42DE0DF880053582B /* evdev.h */,
+				ED75C9B52DE0DF880053582B /* evdev.c */,
+				ED75C9B62DE0DF880053582B /* FT5406EE8.h */,
+				ED75C9B72DE0DF880053582B /* FT5406EE8.c */,
+				ED75C9B82DE0DF880053582B /* indev.mk */,
+				ED75C9B92DE0DF880053582B /* keyboard.h */,
+				ED75C9BA2DE0DF880053582B /* keyboard.c */,
+				ED75C9BB2DE0DF880053582B /* libinput.c */,
+				ED75C9BC2DE0DF880053582B /* libinput_drv.h */,
+				ED75C9BD2DE0DF880053582B /* mouse.h */,
+				ED75C9BE2DE0DF880053582B /* mouse.c */,
+				ED75C9BF2DE0DF880053582B /* mousewheel.h */,
+				ED75C9C02DE0DF880053582B /* mousewheel.c */,
+				ED75C9C12DE0DF880053582B /* XPT2046.h */,
+				ED75C9C22DE0DF880053582B /* XPT2046.c */,
+			);
+			path = indev;
+			sourceTree = "<group>";
+		};
+		ED75C9CC2DE0DF880053582B /* lv_drivers */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C99E2DE0DF880053582B /* .github */,
+				ED75C9AE2DE0DF880053582B /* display */,
+				ED75C9B12DE0DF880053582B /* docs */,
+				ED75C9C32DE0DF880053582B /* indev */,
+				ED75C9C42DE0DF880053582B /* .gitignore */,
+				ED75C9C52DE0DF880053582B /* library.json */,
+				ED75C9C62DE0DF880053582B /* LICENSE */,
+				ED75C9C72DE0DF880053582B /* lv_drivers.mk */,
+				ED75C9C82DE0DF880053582B /* lv_drv_conf_templ.h */,
+				ED75C9C92DE0DF880053582B /* README.md */,
+				ED75C9CA2DE0DF880053582B /* win_drv.h */,
+				ED75C9CB2DE0DF880053582B /* win_drv.c */,
+			);
+			path = lv_drivers;
+			sourceTree = "<group>";
+		};
+		ED75C9CF2DE0DF880053582B /* ISSUE_TEMPLATE */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9CD2DE0DF880053582B /* all-other-issues.md */,
+				ED75C9CE2DE0DF880053582B /* bug-report.md */,
+			);
+			path = ISSUE_TEMPLATE;
+			sourceTree = "<group>";
+		};
+		ED75C9D22DE0DF880053582B /* .github */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9CF2DE0DF880053582B /* ISSUE_TEMPLATE */,
+				ED75C9D02DE0DF880053582B /* FUNDING.yml */,
+				ED75C9D12DE0DF880053582B /* stale.yml */,
+			);
+			path = .github;
+			sourceTree = "<group>";
+		};
+		ED75C9D62DE0DF880053582B /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9D32DE0DF880053582B /* CODE_OF_CONDUCT.md */,
+				ED75C9D42DE0DF880053582B /* CODING_STYLE.md */,
+				ED75C9D52DE0DF880053582B /* CONTRIBUTING.md */,
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+		ED75C9DD2DE0DF880053582B /* porting */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9D72DE0DF880053582B /* lv_port_disp_template.h */,
+				ED75C9D82DE0DF880053582B /* lv_port_disp_template.c */,
+				ED75C9D92DE0DF880053582B /* lv_port_fs_template.h */,
+				ED75C9DA2DE0DF880053582B /* lv_port_fs_template.c */,
+				ED75C9DB2DE0DF880053582B /* lv_port_indev_template.h */,
+				ED75C9DC2DE0DF880053582B /* lv_port_indev_template.c */,
+			);
+			path = porting;
+			sourceTree = "<group>";
+		};
+		ED75C9E12DE0DF880053582B /* built_in_font */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9DE2DE0DF880053582B /* built_in_font_gen.py */,
+				ED75C9DF2DE0DF880053582B /* FontAwesome5-Solid+Brands+Regular.woff */,
+				ED75C9E02DE0DF880053582B /* Roboto-Regular.woff */,
+			);
+			path = built_in_font;
+			sourceTree = "<group>";
+		};
+		ED75C9E72DE0DF880053582B /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9E12DE0DF880053582B /* built_in_font */,
+				ED75C9E22DE0DF880053582B /* clang-formatter.sh */,
+				ED75C9E32DE0DF880053582B /* cppcheck_run.sh */,
+				ED75C9E42DE0DF880053582B /* Doxyfile */,
+				ED75C9E52DE0DF880053582B /* lv_conf_checker.py */,
+				ED75C9E62DE0DF880053582B /* release_patch.py */,
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		ED75C9F72DE0DF880053582B /* lv_core */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9E82DE0DF880053582B /* lv_core.mk */,
+				ED75C9E92DE0DF880053582B /* lv_debug.h */,
+				ED75C9EA2DE0DF880053582B /* lv_debug.c */,
+				ED75C9EB2DE0DF880053582B /* lv_disp.h */,
+				ED75C9EC2DE0DF880053582B /* lv_disp.c */,
+				ED75C9ED2DE0DF880053582B /* lv_group.h */,
+				ED75C9EE2DE0DF880053582B /* lv_group.c */,
+				ED75C9EF2DE0DF880053582B /* lv_indev.h */,
+				ED75C9F02DE0DF880053582B /* lv_indev.c */,
+				ED75C9F12DE0DF880053582B /* lv_obj.h */,
+				ED75C9F22DE0DF880053582B /* lv_obj.c */,
+				ED75C9F32DE0DF880053582B /* lv_refr.h */,
+				ED75C9F42DE0DF880053582B /* lv_refr.c */,
+				ED75C9F52DE0DF880053582B /* lv_style.h */,
+				ED75C9F62DE0DF880053582B /* lv_style.c */,
+			);
+			path = lv_core;
+			sourceTree = "<group>";
+		};
+		ED75CA0D2DE0DF880053582B /* lv_draw */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9F82DE0DF880053582B /* lv_draw.h */,
+				ED75C9F92DE0DF880053582B /* lv_draw.c */,
+				ED75C9FA2DE0DF880053582B /* lv_draw.mk */,
+				ED75C9FB2DE0DF880053582B /* lv_draw_arc.h */,
+				ED75C9FC2DE0DF880053582B /* lv_draw_arc.c */,
+				ED75C9FD2DE0DF880053582B /* lv_draw_basic.h */,
+				ED75C9FE2DE0DF880053582B /* lv_draw_basic.c */,
+				ED75C9FF2DE0DF880053582B /* lv_draw_img.h */,
+				ED75CA002DE0DF880053582B /* lv_draw_img.c */,
+				ED75CA012DE0DF880053582B /* lv_draw_label.h */,
+				ED75CA022DE0DF880053582B /* lv_draw_label.c */,
+				ED75CA032DE0DF880053582B /* lv_draw_line.h */,
+				ED75CA042DE0DF880053582B /* lv_draw_line.c */,
+				ED75CA052DE0DF880053582B /* lv_draw_rect.h */,
+				ED75CA062DE0DF880053582B /* lv_draw_rect.c */,
+				ED75CA072DE0DF880053582B /* lv_draw_triangle.h */,
+				ED75CA082DE0DF880053582B /* lv_draw_triangle.c */,
+				ED75CA092DE0DF880053582B /* lv_img_cache.h */,
+				ED75CA0A2DE0DF880053582B /* lv_img_cache.c */,
+				ED75CA0B2DE0DF880053582B /* lv_img_decoder.h */,
+				ED75CA0C2DE0DF880053582B /* lv_img_decoder.c */,
+			);
+			path = lv_draw;
+			sourceTree = "<group>";
+		};
+		ED75CA1B2DE0DF880053582B /* lv_font */ = {
+			isa = PBXGroup;
+			children = (
+				ED75CA0E2DE0DF880053582B /* lv_font.h */,
+				ED75CA0F2DE0DF880053582B /* lv_font.c */,
+				ED75CA102DE0DF880053582B /* lv_font.mk */,
+				ED75CA112DE0DF880053582B /* lv_font_fmt_txt.h */,
+				ED75CA122DE0DF880053582B /* lv_font_fmt_txt.c */,
+				ED75CA132DE0DF880053582B /* lv_font_roboto_12.c */,
+				ED75CA142DE0DF880053582B /* lv_font_roboto_12_subpx.c */,
+				ED75CA152DE0DF880053582B /* lv_font_roboto_16.c */,
+				ED75CA162DE0DF880053582B /* lv_font_roboto_22.c */,
+				ED75CA172DE0DF880053582B /* lv_font_roboto_28.c */,
+				ED75CA182DE0DF880053582B /* lv_font_roboto_28_compressed.c */,
+				ED75CA192DE0DF880053582B /* lv_font_unscii_8.c */,
+				ED75CA1A2DE0DF880053582B /* lv_symbol_def.h */,
+			);
+			path = lv_font;
+			sourceTree = "<group>";
+		};
+		ED75CA242DE0DF880053582B /* lv_hal */ = {
+			isa = PBXGroup;
+			children = (
+				ED75CA1C2DE0DF880053582B /* lv_hal.h */,
+				ED75CA1D2DE0DF880053582B /* lv_hal.mk */,
+				ED75CA1E2DE0DF880053582B /* lv_hal_disp.h */,
+				ED75CA1F2DE0DF880053582B /* lv_hal_disp.c */,
+				ED75CA202DE0DF880053582B /* lv_hal_indev.h */,
+				ED75CA212DE0DF880053582B /* lv_hal_indev.c */,
+				ED75CA222DE0DF880053582B /* lv_hal_tick.h */,
+				ED75CA232DE0DF880053582B /* lv_hal_tick.c */,
+			);
+			path = lv_hal;
+			sourceTree = "<group>";
+		};
+		ED75CA492DE0DF880053582B /* lv_misc */ = {
+			isa = PBXGroup;
+			children = (
+				ED75CA252DE0DF880053582B /* lv_anim.h */,
+				ED75CA262DE0DF880053582B /* lv_anim.c */,
+				ED75CA272DE0DF880053582B /* lv_area.h */,
+				ED75CA282DE0DF880053582B /* lv_area.c */,
+				ED75CA292DE0DF880053582B /* lv_async.h */,
+				ED75CA2A2DE0DF880053582B /* lv_async.c */,
+				ED75CA2B2DE0DF880053582B /* lv_bidi.h */,
+				ED75CA2C2DE0DF880053582B /* lv_bidi.c */,
+				ED75CA2D2DE0DF880053582B /* lv_circ.h */,
+				ED75CA2E2DE0DF880053582B /* lv_circ.c */,
+				ED75CA2F2DE0DF880053582B /* lv_color.h */,
+				ED75CA302DE0DF880053582B /* lv_color.c */,
+				ED75CA312DE0DF880053582B /* lv_fs.h */,
+				ED75CA322DE0DF880053582B /* lv_fs.c */,
+				ED75CA332DE0DF880053582B /* lv_gc.h */,
+				ED75CA342DE0DF880053582B /* lv_gc.c */,
+				ED75CA352DE0DF880053582B /* lv_ll.h */,
+				ED75CA362DE0DF880053582B /* lv_ll.c */,
+				ED75CA372DE0DF880053582B /* lv_log.h */,
+				ED75CA382DE0DF880053582B /* lv_log.c */,
+				ED75CA392DE0DF880053582B /* lv_math.h */,
+				ED75CA3A2DE0DF880053582B /* lv_math.c */,
+				ED75CA3B2DE0DF880053582B /* lv_mem.h */,
+				ED75CA3C2DE0DF880053582B /* lv_mem.c */,
+				ED75CA3D2DE0DF880053582B /* lv_misc.mk */,
+				ED75CA3E2DE0DF880053582B /* lv_printf.h */,
+				ED75CA3F2DE0DF880053582B /* lv_printf.c */,
+				ED75CA402DE0DF880053582B /* lv_task.h */,
+				ED75CA412DE0DF880053582B /* lv_task.c */,
+				ED75CA422DE0DF880053582B /* lv_templ.h */,
+				ED75CA432DE0DF880053582B /* lv_templ.c */,
+				ED75CA442DE0DF880053582B /* lv_txt.h */,
+				ED75CA452DE0DF880053582B /* lv_txt.c */,
+				ED75CA462DE0DF880053582B /* lv_types.h */,
+				ED75CA472DE0DF880053582B /* lv_utils.h */,
+				ED75CA482DE0DF880053582B /* lv_utils.c */,
+			);
+			path = lv_misc;
+			sourceTree = "<group>";
+		};
+		ED75CA8D2DE0DF880053582B /* lv_objx */ = {
+			isa = PBXGroup;
+			children = (
+				ED75CA4A2DE0DF880053582B /* lv_arc.h */,
+				ED75CA4B2DE0DF880053582B /* lv_arc.c */,
+				ED75CA4C2DE0DF880053582B /* lv_bar.h */,
+				ED75CA4D2DE0DF880053582B /* lv_bar.c */,
+				ED75CA4E2DE0DF880053582B /* lv_btn.h */,
+				ED75CA4F2DE0DF880053582B /* lv_btn.c */,
+				ED75CA502DE0DF880053582B /* lv_btnm.h */,
+				ED75CA512DE0DF880053582B /* lv_btnm.c */,
+				ED75CA522DE0DF880053582B /* lv_calendar.h */,
+				ED75CA532DE0DF880053582B /* lv_calendar.c */,
+				ED75CA542DE0DF880053582B /* lv_canvas.h */,
+				ED75CA552DE0DF880053582B /* lv_canvas.c */,
+				ED75CA562DE0DF880053582B /* lv_cb.h */,
+				ED75CA572DE0DF880053582B /* lv_cb.c */,
+				ED75CA582DE0DF880053582B /* lv_chart.h */,
+				ED75CA592DE0DF880053582B /* lv_chart.c */,
+				ED75CA5A2DE0DF880053582B /* lv_cont.h */,
+				ED75CA5B2DE0DF880053582B /* lv_cont.c */,
+				ED75CA5C2DE0DF880053582B /* lv_cpicker.h */,
+				ED75CA5D2DE0DF880053582B /* lv_cpicker.c */,
+				ED75CA5E2DE0DF880053582B /* lv_ddlist.h */,
+				ED75CA5F2DE0DF880053582B /* lv_ddlist.c */,
+				ED75CA602DE0DF880053582B /* lv_gauge.h */,
+				ED75CA612DE0DF880053582B /* lv_gauge.c */,
+				ED75CA622DE0DF880053582B /* lv_img.h */,
+				ED75CA632DE0DF880053582B /* lv_img.c */,
+				ED75CA642DE0DF880053582B /* lv_imgbtn.h */,
+				ED75CA652DE0DF880053582B /* lv_imgbtn.c */,
+				ED75CA662DE0DF880053582B /* lv_kb.h */,
+				ED75CA672DE0DF880053582B /* lv_kb.c */,
+				ED75CA682DE0DF880053582B /* lv_label.h */,
+				ED75CA692DE0DF880053582B /* lv_label.c */,
+				ED75CA6A2DE0DF880053582B /* lv_led.h */,
+				ED75CA6B2DE0DF880053582B /* lv_led.c */,
+				ED75CA6C2DE0DF880053582B /* lv_line.h */,
+				ED75CA6D2DE0DF880053582B /* lv_line.c */,
+				ED75CA6E2DE0DF880053582B /* lv_list.h */,
+				ED75CA6F2DE0DF880053582B /* lv_list.c */,
+				ED75CA702DE0DF880053582B /* lv_lmeter.h */,
+				ED75CA712DE0DF880053582B /* lv_lmeter.c */,
+				ED75CA722DE0DF880053582B /* lv_mbox.h */,
+				ED75CA732DE0DF880053582B /* lv_mbox.c */,
+				ED75CA742DE0DF880053582B /* lv_objx.mk */,
+				ED75CA752DE0DF880053582B /* lv_objx_templ.h */,
+				ED75CA762DE0DF880053582B /* lv_objx_templ.c */,
+				ED75CA772DE0DF880053582B /* lv_page.h */,
+				ED75CA782DE0DF880053582B /* lv_page.c */,
+				ED75CA792DE0DF880053582B /* lv_preload.h */,
+				ED75CA7A2DE0DF880053582B /* lv_preload.c */,
+				ED75CA7B2DE0DF880053582B /* lv_roller.h */,
+				ED75CA7C2DE0DF880053582B /* lv_roller.c */,
+				ED75CA7D2DE0DF880053582B /* lv_slider.h */,
+				ED75CA7E2DE0DF880053582B /* lv_slider.c */,
+				ED75CA7F2DE0DF880053582B /* lv_spinbox.h */,
+				ED75CA802DE0DF880053582B /* lv_spinbox.c */,
+				ED75CA812DE0DF880053582B /* lv_sw.h */,
+				ED75CA822DE0DF880053582B /* lv_sw.c */,
+				ED75CA832DE0DF880053582B /* lv_ta.h */,
+				ED75CA842DE0DF880053582B /* lv_ta.c */,
+				ED75CA852DE0DF880053582B /* lv_table.h */,
+				ED75CA862DE0DF880053582B /* lv_table.c */,
+				ED75CA872DE0DF880053582B /* lv_tabview.h */,
+				ED75CA882DE0DF880053582B /* lv_tabview.c */,
+				ED75CA892DE0DF880053582B /* lv_tileview.h */,
+				ED75CA8A2DE0DF880053582B /* lv_tileview.c */,
+				ED75CA8B2DE0DF880053582B /* lv_win.h */,
+				ED75CA8C2DE0DF880053582B /* lv_win.c */,
+			);
+			path = lv_objx;
+			sourceTree = "<group>";
+		};
+		ED75CAA12DE0DF880053582B /* lv_themes */ = {
+			isa = PBXGroup;
+			children = (
+				ED75CA8E2DE0DF880053582B /* lv_theme.h */,
+				ED75CA8F2DE0DF880053582B /* lv_theme.c */,
+				ED75CA902DE0DF880053582B /* lv_theme_alien.h */,
+				ED75CA912DE0DF880053582B /* lv_theme_alien.c */,
+				ED75CA922DE0DF880053582B /* lv_theme_default.h */,
+				ED75CA932DE0DF880053582B /* lv_theme_default.c */,
+				ED75CA942DE0DF880053582B /* lv_theme_material.h */,
+				ED75CA952DE0DF880053582B /* lv_theme_material.c */,
+				ED75CA962DE0DF880053582B /* lv_theme_mono.h */,
+				ED75CA972DE0DF880053582B /* lv_theme_mono.c */,
+				ED75CA982DE0DF880053582B /* lv_theme_nemo.h */,
+				ED75CA992DE0DF880053582B /* lv_theme_nemo.c */,
+				ED75CA9A2DE0DF880053582B /* lv_theme_night.h */,
+				ED75CA9B2DE0DF880053582B /* lv_theme_night.c */,
+				ED75CA9C2DE0DF880053582B /* lv_theme_templ.h */,
+				ED75CA9D2DE0DF880053582B /* lv_theme_templ.c */,
+				ED75CA9E2DE0DF880053582B /* lv_theme_zen.h */,
+				ED75CA9F2DE0DF880053582B /* lv_theme_zen.c */,
+				ED75CAA02DE0DF880053582B /* lv_themes.mk */,
+			);
+			path = lv_themes;
+			sourceTree = "<group>";
+		};
+		ED75CAA42DE0DF880053582B /* src */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9F72DE0DF880053582B /* lv_core */,
+				ED75CA0D2DE0DF880053582B /* lv_draw */,
+				ED75CA1B2DE0DF880053582B /* lv_font */,
+				ED75CA242DE0DF880053582B /* lv_hal */,
+				ED75CA492DE0DF880053582B /* lv_misc */,
+				ED75CA8D2DE0DF880053582B /* lv_objx */,
+				ED75CAA12DE0DF880053582B /* lv_themes */,
+				ED75CAA22DE0DF880053582B /* lv_conf_checker.h */,
+				ED75CAA32DE0DF880053582B /* lv_version.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		ED75CAAF2DE0DF880053582B /* lvgl */ = {
+			isa = PBXGroup;
+			children = (
+				ED75C9D22DE0DF880053582B /* .github */,
+				ED75C9D62DE0DF880053582B /* docs */,
+				ED75C9DD2DE0DF880053582B /* porting */,
+				ED75C9E72DE0DF880053582B /* scripts */,
+				ED75CAA42DE0DF880053582B /* src */,
+				ED75CAA52DE0DF880053582B /* .clang-format */,
+				ED75CAA62DE0DF880053582B /* .editorconfig */,
+				ED75CAA72DE0DF880053582B /* .gitignore */,
+				ED75CAA82DE0DF880053582B /* .gitmodules */,
+				ED75CAA92DE0DF880053582B /* library.json */,
+				ED75CAAA2DE0DF880053582B /* LICENCE.txt */,
+				ED75CAAB2DE0DF880053582B /* lv_conf_template.h */,
+				ED75CAAC2DE0DF880053582B /* lvgl.h */,
+				ED75CAAD2DE0DF880053582B /* lvgl.mk */,
+				ED75CAAE2DE0DF880053582B /* README.md */,
+			);
+			path = lvgl;
 			sourceTree = "<group>";
 		};
 		ED77A4701E78B9A6004D8303 /* slre */ = {
@@ -1963,6 +2760,8 @@
 				EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */,
 				EDB5B3FF2323DE7300A0C84D /* viewscroller.cpp in Sources */,
 				ED8F6DB81C56855200176CA9 /* enoceaninputhandler.cpp in Sources */,
+				ED75CB1B2DE0DF9C0053582B /* lvgl.cpp in Sources */,
+				ED75CB1C2DE0DF9C0053582B /* lvglui.cpp in Sources */,
 				ED6D7BF817180766005DED18 /* serialqueue.cpp in Sources */,
 				ED95C5972306B97E0029614A /* viewfactory.cpp in Sources */,
 				ED6CCEAE2326A265006CF9FE /* torchview.cpp in Sources */,
@@ -2042,6 +2841,113 @@
 				ED3EF45A2735ADE9004DFF99 /* modbus-tcp.c in Sources */,
 				ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */,
 				EDC336C12B77BDAB00214F68 /* blocksview.cpp in Sources */,
+				ED75CAB02DE0DF880053582B /* SHARP_MIP.c in Sources */,
+				ED75CAB12DE0DF880053582B /* lv_lmeter.c in Sources */,
+				ED75CAB22DE0DF880053582B /* libinput.c in Sources */,
+				ED75CAB32DE0DF880053582B /* lv_draw_line.c in Sources */,
+				ED75CAB42DE0DF880053582B /* lv_hal_tick.c in Sources */,
+				ED75CAB52DE0DF880053582B /* lv_slider.c in Sources */,
+				ED75CAB62DE0DF880053582B /* keyboard.c in Sources */,
+				ED75CAB72DE0DF880053582B /* lv_arc.c in Sources */,
+				ED75CAB82DE0DF880053582B /* evdev.c in Sources */,
+				ED75CAB92DE0DF880053582B /* FT5406EE8.c in Sources */,
+				ED75CABA2DE0DF880053582B /* lv_draw_rect.c in Sources */,
+				ED75CABB2DE0DF880053582B /* lv_led.c in Sources */,
+				ED75CABC2DE0DF880053582B /* XPT2046.c in Sources */,
+				ED75CABD2DE0DF880053582B /* lv_spinbox.c in Sources */,
+				ED75CABE2DE0DF880053582B /* lv_cb.c in Sources */,
+				ED75CABF2DE0DF880053582B /* lv_page.c in Sources */,
+				ED75CAC02DE0DF880053582B /* lv_port_indev_template.c in Sources */,
+				ED75CAC12DE0DF880053582B /* lv_font_roboto_16.c in Sources */,
+				ED75CAC22DE0DF880053582B /* lv_port_disp_template.c in Sources */,
+				ED75CAC32DE0DF880053582B /* UC1610.c in Sources */,
+				ED75CAC42DE0DF880053582B /* SSD1963.c in Sources */,
+				ED75CAC52DE0DF880053582B /* lv_kb.c in Sources */,
+				ED75CAC62DE0DF880053582B /* lv_preload.c in Sources */,
+				ED75CAC72DE0DF880053582B /* lv_font_roboto_22.c in Sources */,
+				ED75CAC82DE0DF880053582B /* lv_circ.c in Sources */,
+				ED75CAC92DE0DF880053582B /* lv_list.c in Sources */,
+				ED75CACA2DE0DF880053582B /* lv_indev.c in Sources */,
+				ED75CACB2DE0DF880053582B /* lv_cont.c in Sources */,
+				ED75CACC2DE0DF880053582B /* monitor.c in Sources */,
+				ED75CACD2DE0DF880053582B /* lv_btnm.c in Sources */,
+				ED75CACE2DE0DF880053582B /* lv_hal_indev.c in Sources */,
+				ED75CACF2DE0DF880053582B /* mousewheel.c in Sources */,
+				ED75CAD02DE0DF880053582B /* lv_bar.c in Sources */,
+				ED75CAD12DE0DF880053582B /* lv_win.c in Sources */,
+				ED75CAD22DE0DF880053582B /* lv_draw_arc.c in Sources */,
+				ED75CAD32DE0DF880053582B /* lv_tabview.c in Sources */,
+				ED75CAD42DE0DF880053582B /* lv_btn.c in Sources */,
+				ED75CAD52DE0DF880053582B /* lv_mbox.c in Sources */,
+				ED75CAD62DE0DF880053582B /* lv_gc.c in Sources */,
+				ED75CAD72DE0DF880053582B /* lv_theme_nemo.c in Sources */,
+				ED75CAD82DE0DF880053582B /* lv_img_decoder.c in Sources */,
+				ED75CAD92DE0DF880053582B /* lv_label.c in Sources */,
+				ED75CADA2DE0DF880053582B /* lv_async.c in Sources */,
+				ED75CADB2DE0DF880053582B /* lv_calendar.c in Sources */,
+				ED75CADC2DE0DF880053582B /* mouse.c in Sources */,
+				ED75CADD2DE0DF880053582B /* lv_font_roboto_12_subpx.c in Sources */,
+				ED75CADE2DE0DF880053582B /* lv_ta.c in Sources */,
+				ED75CADF2DE0DF880053582B /* lv_style.c in Sources */,
+				ED75CAE02DE0DF880053582B /* lv_chart.c in Sources */,
+				ED75CAE12DE0DF880053582B /* lv_draw_img.c in Sources */,
+				ED75CAE22DE0DF880053582B /* lv_bidi.c in Sources */,
+				ED75CAE32DE0DF880053582B /* lv_table.c in Sources */,
+				ED75CAE42DE0DF880053582B /* lv_theme_alien.c in Sources */,
+				ED75CAE52DE0DF880053582B /* lv_font_fmt_txt.c in Sources */,
+				ED75CAE62DE0DF880053582B /* lv_font_unscii_8.c in Sources */,
+				ED75CAE72DE0DF880053582B /* lv_log.c in Sources */,
+				ED75CAE82DE0DF880053582B /* lv_draw_basic.c in Sources */,
+				ED75CAE92DE0DF880053582B /* lv_theme_night.c in Sources */,
+				ED75CAEA2DE0DF880053582B /* lv_disp.c in Sources */,
+				ED75CAEB2DE0DF880053582B /* lv_refr.c in Sources */,
+				ED75CAEC2DE0DF880053582B /* lv_font_roboto_28_compressed.c in Sources */,
+				ED75CAED2DE0DF880053582B /* ST7565.c in Sources */,
+				ED75CAEE2DE0DF880053582B /* lv_img.c in Sources */,
+				ED75CAEF2DE0DF880053582B /* lv_anim.c in Sources */,
+				ED75CAF02DE0DF880053582B /* lv_draw_label.c in Sources */,
+				ED75CAF12DE0DF880053582B /* lv_debug.c in Sources */,
+				ED75CAF22DE0DF880053582B /* lv_hal_disp.c in Sources */,
+				ED75CAF32DE0DF880053582B /* lv_draw_triangle.c in Sources */,
+				ED75CAF42DE0DF880053582B /* lv_objx_templ.c in Sources */,
+				ED75CAF52DE0DF880053582B /* lv_mem.c in Sources */,
+				ED75CAF62DE0DF880053582B /* lv_obj.c in Sources */,
+				ED75CAF72DE0DF880053582B /* lv_roller.c in Sources */,
+				ED75CAF82DE0DF880053582B /* lv_area.c in Sources */,
+				ED75CAF92DE0DF880053582B /* lv_templ.c in Sources */,
+				ED75CAFA2DE0DF880053582B /* lv_theme_material.c in Sources */,
+				ED75CAFB2DE0DF880053582B /* lv_ll.c in Sources */,
+				ED75CAFC2DE0DF880053582B /* lv_theme_zen.c in Sources */,
+				ED75CAFD2DE0DF880053582B /* lv_canvas.c in Sources */,
+				ED75CAFE2DE0DF880053582B /* lv_fs.c in Sources */,
+				ED75CAFF2DE0DF880053582B /* lv_theme_templ.c in Sources */,
+				ED75CB002DE0DF880053582B /* win_drv.c in Sources */,
+				ED75CB012DE0DF880053582B /* lv_font_roboto_12.c in Sources */,
+				ED75CB022DE0DF880053582B /* AD_touch.c in Sources */,
+				ED75CB032DE0DF880053582B /* lv_font_roboto_28.c in Sources */,
+				ED75CB042DE0DF880053582B /* lv_ddlist.c in Sources */,
+				ED75CB052DE0DF880053582B /* lv_color.c in Sources */,
+				ED75CB062DE0DF880053582B /* lv_task.c in Sources */,
+				ED75CB072DE0DF880053582B /* lv_gauge.c in Sources */,
+				ED75CB082DE0DF880053582B /* lv_printf.c in Sources */,
+				ED75CB092DE0DF880053582B /* lv_tileview.c in Sources */,
+				ED75CB0A2DE0DF880053582B /* lv_font.c in Sources */,
+				ED75CB0B2DE0DF880053582B /* lv_theme_mono.c in Sources */,
+				ED75CB0C2DE0DF880053582B /* lv_theme.c in Sources */,
+				ED75CB0D2DE0DF880053582B /* lv_img_cache.c in Sources */,
+				ED75CB0E2DE0DF880053582B /* lv_utils.c in Sources */,
+				ED75CB0F2DE0DF880053582B /* lv_line.c in Sources */,
+				ED75CB102DE0DF880053582B /* lv_port_fs_template.c in Sources */,
+				ED75CB112DE0DF880053582B /* lv_imgbtn.c in Sources */,
+				ED75CB122DE0DF880053582B /* lv_txt.c in Sources */,
+				ED75CB132DE0DF880053582B /* lv_math.c in Sources */,
+				ED75CB142DE0DF880053582B /* lv_sw.c in Sources */,
+				ED75CB152DE0DF880053582B /* lv_theme_default.c in Sources */,
+				ED75CB162DE0DF880053582B /* lv_cpicker.c in Sources */,
+				ED75CB172DE0DF880053582B /* lv_group.c in Sources */,
+				ED75CB182DE0DF880053582B /* lv_draw.c in Sources */,
+				ED75CB192DE0DF880053582B /* R61581.c in Sources */,
+				ED75CB1A2DE0DF880053582B /* fbdev.c in Sources */,
 				ED5D487E19ED701E000DF5A5 /* analogiodevice.cpp in Sources */,
 				EDB284471733B4ED00EAE5DE /* enoceancomm.cpp in Sources */,
 				ED780C731A17CA6600DC3F60 /* movinglightbehaviour.cpp in Sources */,
@@ -2365,6 +3271,10 @@
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
 				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl2/2.32.6/lib,
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"${inherited}",
@@ -2397,6 +3307,10 @@
 					"ENABLE_RRDB=1",
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl2/2.32.6/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (

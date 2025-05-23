@@ -68,6 +68,9 @@
 #if ENABLE_P44FEATURES
 #include "featureapi.hpp"
 #endif
+#if ENABLE_LVGL
+#include "lvglui.hpp"
+#endif
 
 #if ENABLE_OLA || ENABLE_DMX
 #include "dmxvdc.hpp"
@@ -136,6 +139,9 @@ class P44Vdcd : public CmdLineApp
   #endif
   #if ENABLE_LEDCHAIN
   LEDChainArrangementPtr mLedChainArrangement;
+  #endif
+  #if ENABLE_LVGL
+  LvGLUiPtr mLvglUI;
   #endif
 
   // App status
@@ -495,6 +501,12 @@ public:
       #if ENABLE_UBUS
       { 0  , "ubusapi",          false, "enable ubus API" },
       #endif
+      #if ENABLE_LVGL
+      { 0  , "lvgl",             true,  "params;enable lvgl display support" },
+      #if MOUSE_CURSOR_SUPPORT
+      { 0  , "mousecursor",      false, "show mouse cursor in lvgl UI" },
+      #endif
+      #endif
       #if ENABLE_P44FEATURES
       P44FEATURE_CMDLINE_OPTIONS,
       #endif
@@ -750,6 +762,15 @@ public:
         mP44VdcHost->enableUbusApi();
       }
       #endif
+
+      #if ENABLE_LVGL
+      const char *lvglParams = getOption("lvgl");
+      if (lvglParams) {
+        // TODO: lvglParams are unused at this time
+        mLvglUI = new LvGLUi;
+      }
+      #endif
+
 
       #if ENABLE_P44FEATURES
       // - instantiate (hardware) features we might need already for scripted devices
@@ -1095,15 +1116,60 @@ public:
   }
 
 
+  #if ENABLE_LVGL
+
+  void taskCallBack()
+  {
+    // NOP for now
+//    MLMicroSeconds inactivetime = (MLMicroSeconds)lv_disp_get_inactive_time(NULL)*MilliSecond;
+//    // backlight standby
+//    if (backlight) {
+//      backlight->setActive(
+//        backlightTimeout>=0 && // not forced into standby...
+//        (backlightTimeout==Never || inactivetime<backlightTimeout) // ...and no timeout at all or timeout not yet reached
+//      );
+//    }
+//    // inactivity script
+//    if (activityTimeout && inactivetime>activityTimeout) {
+//      if (active) {
+//        active = false;
+//        ui.uiActivation(false);
+//      }
+//    }
+//    else {
+//      if (!active) {
+//        active = true;
+//        ui.uiActivation(true);
+//      }
+//    }
+  }
+
+
+  #endif // ENABLE_LVGL
 
 
   virtual void initialize()
   {
+    #if ENABLE_LVGL
+    // start UI in both test / non-test cases
+    if (mLvglUI) {
+      mLvglUI->setResourceLoadOptions(true, "lvgl");
+      // - LVGL
+      StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
+      LOG(LOG_NOTICE, "initializing littlevGL");
+      LvGL::lvgl().init(getOption("mousecursor"));
+      // create app UI
+      // - init display
+      mLvglUI->initForDisplay(lv_disp_get_default());
+      LvGL::lvgl().setTaskCallback(boost::bind(&P44Vdcd::taskCallBack, this));
+    }
+    #endif
     #if SELFTESTING_ENABLED
     if (mSelfTesting) {
       // self testing
       // - initialize the device container
       mP44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
+      // TODO: maybe use lvgl UI to show testing
     }
     else
     #endif

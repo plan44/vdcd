@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.8.2.13], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.8.2.14], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -106,6 +106,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-ds485], [Enable ds485 support])]
 )
 AM_CONDITIONAL([ENABLE_DS485], [test "x$enable_ds485" = xyes])
+
+AC_ARG_ENABLE(
+  [lvgl],
+  [AS_HELP_STRING([--enable-lvgl], [Enable lvgl graphics support])]
+)
+AM_CONDITIONAL([ENABLE_LVGL], [test "x$enable_lvgl" = xyes])
 
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
