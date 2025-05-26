@@ -113,6 +113,14 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL([ENABLE_LVGL], [test "x$enable_lvgl" = xyes])
 
+AC_ARG_ENABLE(
+  [platformshortbreak],
+  [AS_HELP_STRING([--enable-platformshortbreak], [Enable usage of platform's ability to produce short breaks on UART])]
+)
+AM_CONDITIONAL([PLATFORM_HAS_SHORTBREAK], [test "x$enable_platformshortbreak" = xyes])
+
+
+
 
 AC_CHECK_LIB(m, atan2, [], [AC_MSG_ERROR([Could not find math lib (m) with atan2])])
 AC_CHECK_LIB(rt, clock_gettime, [], [AC_MSG_ERROR([Could not find rt lib with clock_gettime])])
