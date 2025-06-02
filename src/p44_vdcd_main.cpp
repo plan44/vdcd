@@ -502,10 +502,7 @@ public:
       { 0  , "ubusapi",          false, "enable ubus API" },
       #endif
       #if ENABLE_LVGL
-      { 0  , "lvgl",             true,  "params;enable lvgl display support" },
-      #if MOUSE_CURSOR_SUPPORT
-      { 0  , "mousecursor",      false, "show mouse cursor in lvgl UI" },
-      #endif
+      { 0  , "lvgl",             true,  "[dispdev[:inputdev][:dx:dy[:colfmt]][opts];enable lvgl UI" },
       #endif
       #if ENABLE_P44FEATURES
       P44FEATURE_CMDLINE_OPTIONS,
@@ -762,15 +759,6 @@ public:
         mP44VdcHost->enableUbusApi();
       }
       #endif
-
-      #if ENABLE_LVGL
-      const char *lvglParams = getOption("lvgl");
-      if (lvglParams) {
-        // TODO: lvglParams are unused at this time
-        mLvglUI = new LvGLUi;
-      }
-      #endif
-
 
       #if ENABLE_P44FEATURES
       // - instantiate (hardware) features we might need already for scripted devices
@@ -1152,12 +1140,14 @@ public:
   {
     #if ENABLE_LVGL
     // start UI in both test / non-test cases
-    if (mLvglUI) {
+    const char *lvglParams = getOption("lvgl");
+    if (lvglParams) {
+      mLvglUI = new LvGLUi;
       mLvglUI->setResourceLoadOptions(true, "lvgl");
       // - LVGL
       StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
       LOG(LOG_NOTICE, "initializing littlevGL");
-      LvGL::lvgl().init(getOption("mousecursor"));
+      LvGL::lvgl().init(lvglParams);
       // create app UI
       // - init display
       mLvglUI->initForDisplay(lv_disp_get_default());

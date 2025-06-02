@@ -128,7 +128,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--lvgl 86"
+            argument = "--lvgl /dev/fb0:/dev/input/event0:720:720:K"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
