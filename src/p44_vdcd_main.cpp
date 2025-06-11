@@ -1109,27 +1109,7 @@ public:
   void taskCallBack()
   {
     // NOP for now
-//    MLMicroSeconds inactivetime = (MLMicroSeconds)lv_disp_get_inactive_time(NULL)*MilliSecond;
-//    // backlight standby
-//    if (backlight) {
-//      backlight->setActive(
-//        backlightTimeout>=0 && // not forced into standby...
-//        (backlightTimeout==Never || inactivetime<backlightTimeout) // ...and no timeout at all or timeout not yet reached
-//      );
-//    }
-//    // inactivity script
-//    if (activityTimeout && inactivetime>activityTimeout) {
-//      if (active) {
-//        active = false;
-//        ui.uiActivation(false);
-//      }
-//    }
-//    else {
-//      if (!active) {
-//        active = true;
-//        ui.uiActivation(true);
-//      }
-//    }
+    if (mLvglUI) mLvglUI->taskCallBack();
   }
 
 

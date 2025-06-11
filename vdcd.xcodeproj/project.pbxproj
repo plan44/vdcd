@@ -15,6 +15,7 @@
 		ED0441201D755FFC00AAB662 /* eldatdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411B1D755FFC00AAB662 /* eldatdevice.cpp */; };
 		ED0441211D755FFC00AAB662 /* eldatvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411C1D755FFC00AAB662 /* eldatvdc.cpp */; };
 		ED0441221D755FFC00AAB662 /* eldatcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED04411E1D755FFC00AAB662 /* eldatcomm.cpp */; };
+		ED06036C2DF9D0A5005FE9EC /* backlight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED06036B2DF9D0A5005FE9EC /* backlight.cpp */; };
 		ED07E25D17D7878D00889CC3 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED07E26217DA37BF00889CC3 /* jsonwebclient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */; };
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
@@ -670,6 +671,8 @@
 		ED04411D1D755FFC00AAB662 /* eldatvdc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = eldatvdc.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED04411E1D755FFC00AAB662 /* eldatcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = eldatcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED04411F1D755FFC00AAB662 /* eldatcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = eldatcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		ED06036A2DF9D0A5005FE9EC /* backlight.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = backlight.hpp; sourceTree = "<group>"; };
+		ED06036B2DF9D0A5005FE9EC /* backlight.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = backlight.cpp; sourceTree = "<group>"; };
 		ED07E25B17D7878D00889CC3 /* httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = httpcomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED07E25C17D7878D00889CC3 /* httpcomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = httpcomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED07E26017DA37BF00889CC3 /* jsonwebclient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonwebclient.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -2212,6 +2215,8 @@
 				ED5D486719ED502F000DF5A5 /* analogio.hpp */,
 				ED0E441C1732FE4F00C4C283 /* application.cpp */,
 				ED0E441D1732FE4F00C4C283 /* application.hpp */,
+				ED06036B2DF9D0A5005FE9EC /* backlight.cpp */,
+				ED06036A2DF9D0A5005FE9EC /* backlight.hpp */,
 				ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */,
 				ED1F0B9E1954C0FA00876D13 /* colorutils.hpp */,
 				EDC1166C177EDDDF00F27115 /* consolekey.cpp */,
@@ -5237,6 +5242,7 @@
 				EDD1DE692DECC3D2007C6774 /* lv_mem.c in Sources */,
 				EDD1DE6A2DECC3D2007C6774 /* tvgScene.cpp in Sources */,
 				EDD1DE6B2DECC3D2007C6774 /* lv_qnx.c in Sources */,
+				ED06036C2DF9D0A5005FE9EC /* backlight.cpp in Sources */,
 				EDD1DE6C2DECC3D2007C6774 /* lv_draw_dave2d.c in Sources */,
 				EDD1DE6D2DECC3D2007C6774 /* tvgInitializer.cpp in Sources */,
 				EDD1DE6E2DECC3D2007C6774 /* lv_draw_buf_pxp.c in Sources */,

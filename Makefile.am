@@ -845,6 +845,8 @@ vdcd_SOURCES = \
   src/p44utils/analogio.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
+  src/p44utils/backlight.cpp \
+  src/p44utils/backlight.hpp \
   src/p44utils/colorutils.cpp \
   src/p44utils/colorutils.hpp \
   src/p44utils/consolekey.cpp \
