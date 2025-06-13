@@ -1,4 +1,3 @@
-
 vdcd
 ====
 
@@ -12,13 +11,13 @@ However, *vdcd* can also be **operated as a fully standalone home automation con
 
 *vdcd* has ready-to-use implementation for various **EnOcean** devices, **DALI** lights (single dimmers, **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**, **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, **DMX512** support via OLA or UART, console based debugging devices and a lot more.
 
-When vdcd is built with *p44script* enabled, **custom devices** can be implemented as **simple scripts**. The p44script language has support for http and websocket APIs, MIDI, modbus, UART etc. and can make use of the [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics) subsystem to create complex LED matrix effects.
+When vdcd is built with *p44script* enabled, **custom devices** can be implemented as **simple scripts**. The p44script language has support for http and websocket APIs, MIDI, modbus, UART etc. and can make use of the [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics) subsystem to create complex LED matrix effects. It can also use [**lvgl**](https://lvgl.io/) to define UIs on local touch displays directly from p44script.
 
 In addition to these built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
 
 vdcd however is not limited to the set of features listed above - it is based on a generic C++ framework called [**p44vdc**](https://github.com/plan44/p44vdc) which is included as a submodule into this project.
 
-**p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of the *Digital Strom* vDC API and the standard behaviour expected from *Digital Strom* buttons, inputs, (possibly dimming) outputs and various sensors.
+**p44vdc** is designed for easily creating additional integrations for many other types of third-party hardware. The framework implements the entire complexity of a modern automation device model, provides the vDC API to access it on an unified high level with standard behaviour for device classes like buttons, inputs, lights, shades, fans, generic outputs and various sensors.
 
 For new hardware, only the actual access to the device's hardware needs to be implemented.
 
@@ -27,6 +26,7 @@ vdcd/p44vdc are based on a set of generic C++ utility classes called [**p44utils
 
 If you like this project you might want to...
 
+- See it in action by [trying the p44 automation platform](#try), see below.
 - Join the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd) to ask questions and discuss vdcd related topics.
 - See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
 - See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about *Digital Strom*.
@@ -63,9 +63,10 @@ Features
 Getting Started
 ---------------
 
-### To try it out
+### <a id="try">To try it out
 
 - plan44.ch provides free RaspberryPi images named `P44-LC-X` (standalone controller / *matter* bridge) and `P44-DSB-X` (for use with *Digital Strom*)  which contains a complete OpenWrt ready to run first experiments with virtual devices (for example driving GPIO pins of the Raspberry). You can download it from [plan44.ch/automation/p44-lc-x.php](https://plan44.ch/automation/p44-lc-x.php) and [plan44.ch/automation/p44-dsb-x.php](https://plan44.ch/automation/p44-dsb-x.php), resp., copy it to a SD Card, and use it with a RPi B, B+, 2,3 and 4.
+- you can also build the openwrt image yourselves, using [p44-xx-open](https://github.com/plan44/p44-xx-open).
 
 ### Build it
 
@@ -113,7 +114,7 @@ Supporting vdcd
 4. build cool new device integrations and contribute those
 5. Buy plan44.ch [products](https://plan44.ch/automation/products.php) - sales revenue is paying the time for contributing to opensource projects :-)
 
-*(c) 2013-2024 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
+*(c) 2013-2025 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
 
 
