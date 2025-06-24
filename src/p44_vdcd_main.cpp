@@ -1123,7 +1123,7 @@ public:
     const char *lvglParams = getOption("lvgl");
     if (lvglParams) {
       mLvglUI = new LvGLUi;
-      mLvglUI->setResourceLoadOptions(true, "lvgl");
+      mLvglUI->setResourceLoadOptions(true, "lvgl/");
       // - LVGL
       StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
       LOG(LOG_NOTICE, "initializing littlevGL");
