@@ -1,9 +1,14 @@
-FROM ubuntu:bionic as builder
+ARG DSROOT=/app
+ARG BRANCH=main
 
+FROM ubuntu:jammy AS builder
 
-ENV GIT_SRC https://github.com/plan44/vdcd.git
-ENV BRANCH master
-ENV DSROOT /app
+ARG DSROOT
+ARG BRANCH
+
+ENV GIT_SRC=https://github.com/plan44/vdcd.git
+ENV BRANCH=${BRANCH}
+ENV DSROOT=${DSROOT}
 
 
 RUN apt update && apt install -y \
@@ -24,20 +29,23 @@ RUN apt update && apt install -y \
     libavahi-client-dev
 
 
-RUN git clone ${GIT_SRC} ${DSROOR}/vdcd
+RUN git clone ${GIT_SRC} ${DSROOT}/vdcd
 
 
-RUN cd ${DSROOR}/vdcd && \
+RUN cd ${DSROOT}/vdcd && \
     git checkout ${BRANCH} && \
     git submodule init && \
-    git submodule update
+    git submodule update --recursive
 
-RUN cd ${DSROOR}/vdcd && \
+RUN cd ${DSROOT}/vdcd && \
     autoreconf -i && \
     ./configure && \
     make clean && make all
 
-FROM ubuntu:bionic
+
+FROM ubuntu:jammy
+
+ARG DSROOT
 
 RUN apt update && apt install -y \
     git \
@@ -51,6 +59,6 @@ RUN apt update && apt install -y \
     libavahi-core-dev \
     libavahi-client-dev
 
-COPY --from=builder ${DSROOR}/vdcd/vdcd /bin
+COPY --from=builder ${DSROOT}/vdcd/vdcd /bin
 
 CMD  ["/bin/vdcd"]

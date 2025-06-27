@@ -71,39 +71,47 @@ Getting Started
 
 ### Build it
 
-- Clone the github repository
-
-    `git clone https://github.com/plan44/vdcd`
-
 - Choose suitable branch:
-  - **master**: consistent state of current tested development version (builds, runs)
+  - **main**: consistent state of current tested development version (builds, runs)
   - **luz**: sometimes contains interesting work in progress not yet in master...
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
-  - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/digitalstrom.php) (P44-DSB-E/E2/DEH/DEH2, P44-LC-DE)
+  - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/) (P44-DSB, P44-LC and P44-AC devices)
 
-- consult the */docs* folder: For building the vdcd, see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*.
+- Clone the github repository for that branch
 
-### Build and run it in a Container
+    ```
+    # set the branch name you want to use
+    BRANCH=main
+    # clone including all needed submodules
+    git clone -b ${BRANCH} --recurse-submodules https://github.com/plan44/vdcd
+    ```
 
-- Clone the github repository
+### Build it directly on Linux or macOS
 
-    `git clone https://github.com/plan44/vdcd`
-
-- Set the vdcd branch you want to use (see above)
-  (by changing the ENV BRANCH line in the `Dockerfile`; as-is, this is set to `master`)
-
-- Build container image
-
-    `cd vdcd`
-    `docker build -t myimagename .`
-
-- Run vdcd as container, for the autodiscovery to work you have to mount your dbus and avahi-daemon socket into the container
-
-    `docker run --network="host" -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket myimagename vdcd [options]`
+- consult the */docs* folder: see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*.
 
 ### Build it as an openwrt package
 
 - Include the [plan44 OpenWrt feed](https://github.com/plan44/plan44-feed) and install/build the `vdcd` package.
+
+### Build and run it in a Container
+
+- Build container image. If you want another branch than main,
+
+    ```bash
+    # set the branch name you want to use
+    BRANCH=main
+    # build the docker image
+    cd vdcd
+    docker build --build-arg BRANCH=${BRANCH} -t my_vdcd .
+    ```
+
+- Run vdcd as container, for the autodiscovery to work you have to mount your dbus and avahi-daemon socket into the container
+
+    ```bash
+    docker run --network="host" -v /var/run/dbus:/var/run/dbus -v /var/run/avahi-daemon/socket:/var/run/avahi-daemon/socket my_vdcd vdcd [options]
+    ```
+
 
 Supporting vdcd
 ---------------
@@ -113,7 +121,7 @@ Supporting vdcd
 3. Discuss it in the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd).
 3. contribute patches, report issues and suggest new functionality [on github](https://github.com/plan44/vdcd) or in the [forum](https://forum.plan44.ch/t/opensource-c-vdcd).
 4. build cool new device integrations and contribute those
-5. Buy plan44.ch [products](https://plan44.ch/automation/products.php) - sales revenue is paying the time for contributing to opensource projects :-)
+5. Buy plan44.ch [products](https://plan44.ch/automation/) - sales revenue is paying the time for contributing to opensource projects :-)
 
 *(c) 2013-2025 by Lukas Zeller / [plan44.ch](http://www.plan44.ch/automation)*
 
