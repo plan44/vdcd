@@ -77,6 +77,8 @@ Getting Started
   - **testing**: corresponds with testing version deployed to beta testers of P44-DSB-E/P44-DSB-DEH product users.
   - **production**: corresponds with version productively used in current [plan44.ch products](https://plan44.ch/automation/) (P44-DSB, P44-LC and P44-AC devices)
 
+### Build it directly on Linux or macOS
+
 - Clone the github repository for that branch
 
     ```
@@ -85,8 +87,6 @@ Getting Started
     # clone including all needed submodules
     git clone -b ${BRANCH} --recurse-submodules https://github.com/plan44/vdcd
     ```
-
-### Build it directly on Linux or macOS
 
 - consult the */docs* folder: see *"How to build vdcd on Linux.md"* and *"How to build and run vdcd on Mac OS X.md"*.
 
@@ -101,6 +101,8 @@ Getting Started
     ```bash
     # set the branch name you want to use
     BRANCH=main
+    # clone, but no submodules needed, just to get the Dockerfile
+    git clone -b ${BRANCH} https://github.com/plan44/vdcd
     # build the docker image
     cd vdcd
     docker build --build-arg BRANCH=${BRANCH} -t my_vdcd .
