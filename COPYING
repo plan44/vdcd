@@ -1,8 +1,4 @@
 Unless noted otherwise, all files are licensed GPLv3 (see LICENSE.GPLv3)
 
-For a commercial license, please contact luz@plan44.ch
-
-Files in the following directories are under a different license:
-
-src/thirdparty/mongoose   : MIT license (see src/thirdparty/mongoose/LICENSE)
-src/thirdparty/sqlite3pp  : MIT license (see source file headers)
+Files in submodules might have their own, compatible licenses.
+See COPYING and README.md in the submodules

@@ -1,7 +1,7 @@
 vdcd
 ====
 
-*[[if you want to support vdcd development, please consider to sponsor plan44]](https://github.com/sponsors/plan44)* 
+*[[if you want to support vdcd development, please consider to sponsor plan44]](https://github.com/sponsors/plan44)*
 
 *vdcd* is a free (opensource, GPLv3) home automation daemon for operating various types of home automation devices of various technologies under a common device model and API.
 
@@ -38,7 +38,8 @@ License
 
 vdcd is licensed under the GPLv3 License (see COPYING).
 
-If that's a problem for your particular application, I am open to provide a commercial license, please contact me at [luz@plan44.ch](mailto:luz@plan44.ch).
+vdcd makes use of several submodules, which may be entirely or partially under different, compatible licenses.
+Please see the COPYING files, README.md and license header comments in the individual submodules.
 
 
 Features

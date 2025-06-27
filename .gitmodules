@@ -14,9 +14,5 @@
 	branch = master
 [submodule "vdcd/src/lvgl"]
 	path = src/lvgl
-	url = ssh://plan44@plan44.ch/home/plan44/sharedgit/lvgl.git
-	branch = luz
-[submodule "vdcd/src/lv_drivers"]
-	path = src/lv_drivers
-	url = ssh://plan44@plan44.ch/home/plan44/sharedgit/lv_drivers.git
+	url = ../lvgl.git
 	branch = luz
