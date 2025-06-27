@@ -176,6 +176,9 @@
   #ifndef ENABLE_JSONCFGAPI
     #define ENABLE_JSONCFGAPI 1
   #endif
+  #ifndef ENABLE_JSONBRIDGEAPI
+    #define ENABLE_JSONBRIDGEAPI 1
+  #endif
 #endif
 
 
