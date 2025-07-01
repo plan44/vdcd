@@ -113,6 +113,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--resourcepath /Volumes/CaseSens/openwrt-rv110x/feeds/p44i/p44lc-config/files/p44-xx-86panel/usr/share/p44lc"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
