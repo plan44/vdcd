@@ -137,7 +137,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--lvgl /dev/fb0:/dev/input/event0:720:720:K"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
@@ -157,7 +157,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ds485api 127.0.0.1:8442"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ds485api 192.168.11.211:8442 --ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
@@ -301,19 +301,19 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"
@@ -349,7 +349,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--splitflapconn simulation"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
