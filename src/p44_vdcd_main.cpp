@@ -44,6 +44,9 @@
 #if ENABLE_HUE
 #include "huevdc.hpp"
 #endif
+#if ENABLE_WBF
+#include "wbfvdc.hpp"
+#endif
 #if ENABLE_STATIC
 #include "staticvdc.hpp"
 #endif
@@ -335,13 +338,13 @@ public:
       mStaticDeviceConfigs.insert(make_pair("console", aOptionValue));
     }
     else
-    #endif
+    #endif // ENABLE_STATIC
     #if ENABLE_LEDCHAIN
     if (strcmp(aOptionDescriptor.longOptionName,"ledchain")==0) {
       LEDChainArrangement::addLEDChain(mLedChainArrangement, aOptionValue);
     }
     else
-    #endif
+    #endif // ENABLE_LEDCHAIN
     #if P44SCRIPT_OTHER_SOURCES
     if (strcmp(aOptionDescriptor.longOptionName,"userfile")==0) {
       string path;
@@ -355,7 +358,7 @@ public:
       }
     }
     else
-    #endif
+    #endif // P44SCRIPT_OTHER_SOURCES
     {
       return inherited::processOption(aOptionDescriptor, aOptionValue);
     }
@@ -397,6 +400,9 @@ public:
       #if ENABLE_HUE
       { 0,   "huelights",        false, "enable support for hue LED lamps (via hue bridge)" },
       { 0,   "hueapiurl",        true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
+      #endif
+      #if ENABLE_WBF
+      { 0,   "wbf",              false, "enable support for Wiser-by-Feller (via µGateway)" },
       #endif
       #if ENABLE_OLA
       { 0,   "ola",              false, "compatibility shortcut for --dmx ola:42" },
@@ -744,21 +750,21 @@ public:
       if (configApiPort) {
         mP44VdcHost->enableConfigApi(configApiPort, getOption("cfgapinonlocal")!=NULL, mProtocols);
       }
-      #endif
+      #endif // ENABLE_JSONCFGAPI
 
       #if ENABLE_JSONBRIDGEAPI
       const char *bridgeApiPort = getOption("bridgeapiport");
       if (bridgeApiPort) {
         mP44VdcHost->enableBridgeApi(bridgeApiPort, getOption("bridgeapinonlocal")!=NULL, mProtocols);
       }
-      #endif
+      #endif // ENABLE_JSONBRIDGEAPI
 
       #if ENABLE_UBUS
       // Prepare ubus API
       if (getOption("ubusapi")) {
         mP44VdcHost->enableUbusApi();
       }
-      #endif
+      #endif // ENABLE_UBUS
 
       #if ENABLE_P44FEATURES
       // - instantiate (hardware) features we might need already for scripted devices
@@ -767,7 +773,7 @@ public:
       #else
       FeatureApi::addFeaturesFromCommandLine();
       #endif
-      #endif
+      #endif // ENABLE_P44FEATURES
 
       // Create class containers
 
@@ -792,7 +798,7 @@ public:
           if (getIntOption("dalirxadj", adj)) daliVdc->mDaliComm.setDaliSampleAdj(adj);
           daliVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_DALI
 
         #if ENABLE_ENOCEAN
         // - Add EnOcean devices class if modem serialport/host is specified
@@ -804,7 +810,7 @@ public:
           // add
           enoceanVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_ENOCEAN
 
         #if ENABLE_ELDAT
         // - Add Eldat devices class if modem serialport/host is specified
@@ -815,7 +821,7 @@ public:
           // add
           eldatVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_ELDAT
 
         #if ENABLE_ZF
         // - Add ZF devices class if modem serialport/host is specified
@@ -826,7 +832,7 @@ public:
           // add
           zfVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_ZF
 
         #if ENABLE_HUE
         // - Add hue support
@@ -834,7 +840,15 @@ public:
           HueVdcPtr hueVdc = HueVdcPtr(new HueVdc(1, mP44VdcHost.get(), 3)); // Tag 3 = hue
           hueVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_HUE
+
+        #if ENABLE_WBF
+        // - Add wiser-by-feller support
+        if (getOption("wbf")) {
+          WbfVdcPtr wbfVdc = WbfVdcPtr(new WbfVdc(1, mP44VdcHost.get(), 22)); // Tag 22 = wbf
+          wbfVdc->addVdcToVdcHost();
+        }
+        #endif // ENABLE_WBF
 
         #if ENABLE_DMX || ENABLE_OLA
         const char* dmxout = getOption("dmx");
@@ -1133,7 +1147,7 @@ public:
       mLvglUI->initForDisplay(lv_disp_get_default());
       LvGL::lvgl().setTaskCallback(boost::bind(&P44Vdcd::taskCallBack, this));
     }
-    #endif
+    #endif // ENABLE_LVGL
     #if SELFTESTING_ENABLED
     if (mSelfTesting) {
       // self testing
@@ -1142,7 +1156,7 @@ public:
       // TODO: maybe use lvgl UI to show testing
     }
     else
-    #endif
+    #endif // SELFTESTING_ENABLED
     {
       // - connect button
       mButton->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
@@ -1199,7 +1213,7 @@ public:
     // test done, exit with success or failure
     terminateApp(Error::isOK(aError) ? EXIT_SUCCESS : EXIT_FAILURE);
   }
-  #endif
+  #endif // SELFTESTING_ENABLED
 
 
   virtual void collectDevices(RescanMode aRescanMode)

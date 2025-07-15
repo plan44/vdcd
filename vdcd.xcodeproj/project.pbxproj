@@ -21,6 +21,9 @@
 		ED07E26717DB366300889CC3 /* huecomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E26417DB204200889CC3 /* huecomm.cpp */; };
 		ED08F8FE24CEC32F0080DA36 /* test_p44script.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED08F8FD24CEC32F0080DA36 /* test_p44script.cpp */; };
 		ED0E441E1732FE4F00C4C283 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0E441C1732FE4F00C4C283 /* application.cpp */; };
+		ED0F805E2E25324B003CC8C1 /* wbfcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0F80592E25324B003CC8C1 /* wbfcomm.cpp */; };
+		ED0F805F2E25324B003CC8C1 /* wbfvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0F805D2E25324B003CC8C1 /* wbfvdc.cpp */; };
+		ED0F80602E25324B003CC8C1 /* wbfdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED0F805B2E25324B003CC8C1 /* wbfdevice.cpp */; };
 		ED10907B17B3FD0A009F9FE2 /* jsonrpccomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */; };
 		ED124EC1208A42DC001DED3A /* test_mainloop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED124EC0208A42DC001DED3A /* test_mainloop.cpp */; };
 		ED12605D1D9E51650049E8D8 /* singledevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED12605B1D9E51650049E8D8 /* singledevice.cpp */; };
@@ -686,6 +689,12 @@
 		ED0E441C1732FE4F00C4C283 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = application.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0E441D1732FE4F00C4C283 /* application.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = application.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED0F065E2B1D2EDF00357A12 /* fixpoint_macros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fixpoint_macros.h; sourceTree = "<group>"; };
+		ED0F80582E25324B003CC8C1 /* wbfcomm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = wbfcomm.hpp; sourceTree = "<group>"; };
+		ED0F80592E25324B003CC8C1 /* wbfcomm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wbfcomm.cpp; sourceTree = "<group>"; };
+		ED0F805A2E25324B003CC8C1 /* wbfdevice.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = wbfdevice.hpp; sourceTree = "<group>"; };
+		ED0F805B2E25324B003CC8C1 /* wbfdevice.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wbfdevice.cpp; sourceTree = "<group>"; };
+		ED0F805C2E25324B003CC8C1 /* wbfvdc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = wbfvdc.hpp; sourceTree = "<group>"; };
+		ED0F805D2E25324B003CC8C1 /* wbfvdc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = wbfvdc.cpp; sourceTree = "<group>"; };
 		ED10907917B3FD0A009F9FE2 /* jsonrpccomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = jsonrpccomm.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED10907A17B3FD0A009F9FE2 /* jsonrpccomm.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = jsonrpccomm.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED124EC0208A42DC001DED3A /* test_mainloop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_mainloop.cpp; sourceTree = "<group>"; };
@@ -2013,6 +2022,19 @@
 			path = pbuf;
 			sourceTree = "<group>";
 		};
+		ED0F80572E2531F4003CC8C1 /* wbf */ = {
+			isa = PBXGroup;
+			children = (
+				ED0F80592E25324B003CC8C1 /* wbfcomm.cpp */,
+				ED0F80582E25324B003CC8C1 /* wbfcomm.hpp */,
+				ED0F805B2E25324B003CC8C1 /* wbfdevice.cpp */,
+				ED0F805A2E25324B003CC8C1 /* wbfdevice.hpp */,
+				ED0F805D2E25324B003CC8C1 /* wbfvdc.cpp */,
+				ED0F805C2E25324B003CC8C1 /* wbfvdc.hpp */,
+			);
+			path = wbf;
+			sourceTree = "<group>";
+		};
 		ED31268518311BD300FAF28B /* vdc_common */ = {
 			isa = PBXGroup;
 			children = (
@@ -2113,6 +2135,7 @@
 		ED3126891831228D00FAF28B /* deviceclasses */ = {
 			isa = PBXGroup;
 			children = (
+				ED0F80572E2531F4003CC8C1 /* wbf */,
 				EDF836BA2DA59FEF00ED9BD6 /* ds485 */,
 				EDAEF9732BDA6497000B3FE0 /* proxy */,
 				EDF8B56C28DA183300A68D49 /* bridge */,
@@ -5506,6 +5529,9 @@
 				EDF8368B2DA5937000ED9BD6 /* log.c in Sources */,
 				EDF8368C2DA5937000ED9BD6 /* socket_send.c in Sources */,
 				EDF8368D2DA5937000ED9BD6 /* socket_client.c in Sources */,
+				ED0F805E2E25324B003CC8C1 /* wbfcomm.cpp in Sources */,
+				ED0F805F2E25324B003CC8C1 /* wbfvdc.cpp in Sources */,
+				ED0F80602E25324B003CC8C1 /* wbfdevice.cpp in Sources */,
 				EDF8368E2DA5937000ED9BD6 /* waitqueue.c in Sources */,
 				EDF836912DA5937000ED9BD6 /* util.c in Sources */,
 				EDF836922DA5937000ED9BD6 /* client-socket.c in Sources */,

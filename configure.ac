@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.8.2.21], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.8.2.22], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -106,6 +106,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-ds485], [Enable ds485 support])]
 )
 AM_CONDITIONAL([ENABLE_DS485], [test "x$enable_ds485" = xyes])
+
+AC_ARG_ENABLE(
+  [wbf],
+  [AS_HELP_STRING([--enable-wbf], [Enable wiser-by-feller support])]
+)
+AM_CONDITIONAL([ENABLE_WBF], [test "x$enable_wbf" = xyes])
 
 AC_ARG_ENABLE(
   [lvgl],

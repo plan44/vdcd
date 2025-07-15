@@ -103,7 +103,7 @@ OLA_FLAGS = -D ENABLE_OLA=0
 endif
 
 
-# ubus support via libubus
+# ds485 via ds485 client stack
 if ENABLE_DS485
 
 DS485SUPP_GENERATED = \
@@ -152,6 +152,19 @@ else
 DS485SUPP_FLAGS = -D ENABLE_DS485DEVICES=0
 
 endif
+
+
+# wiser-by-feller
+if ENABLE_WBF
+
+WBFSUPP_FLAGS = -D ENABLE_WBF=1
+
+else
+
+WBFSUPP_FLAGS = -D ENABLE_WBF=0
+
+endif
+
 
 
 # ubus support via libubus
@@ -800,6 +813,7 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/enocean \
   -I ${srcdir}/src/p44vdc/deviceclasses/dmx \
   -I ${srcdir}/src/p44vdc/deviceclasses/ds485 \
+  -I ${srcdir}/src/p44vdc/deviceclasses/wbf \
   -I ${srcdir}/src/p44vdc/deviceclasses/eldat \
   -I ${srcdir}/src/p44vdc/deviceclasses/zf \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
@@ -814,6 +828,7 @@ vdcd_CPPFLAGS = \
   ${I2C_FLAGS} \
   ${MODBUSSUPP_FLAGS} \
   ${DS485SUPP_FLAGS} \
+  ${WBFSUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
   ${LVGL_FLAGS} \
@@ -1089,6 +1104,12 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ds485/ds485device.hpp \
   src/p44vdc/deviceclasses/ds485/ds485vdc.cpp \
   src/p44vdc/deviceclasses/ds485/ds485vdc.hpp \
+  src/p44vdc/deviceclasses/wbf/wbfcomm.cpp \
+  src/p44vdc/deviceclasses/wbf/wbfcomm.hpp \
+  src/p44vdc/deviceclasses/wbf/wbfdevice.cpp \
+  src/p44vdc/deviceclasses/wbf/wbfdevice.hpp \
+  src/p44vdc/deviceclasses/wbf/wbfvdc.cpp \
+  src/p44vdc/deviceclasses/wbf/wbfvdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.cpp \
   src/p44vdc/deviceclasses/proxy/proxyvdc.hpp \
   src/p44vdc/deviceclasses/proxy/proxydevice.cpp \
