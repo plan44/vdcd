@@ -1136,7 +1136,7 @@ public:
     // start UI in both test / non-test cases
     const char *lvglParams = getOption("lvgl");
     if (lvglParams) {
-      mLvglUI = new LvGLUi;
+      mLvglUI = new LvGLUi(&LvGL::lvgl()); // use lvgl logging context as it is a logleveloffset "topic" 
       mLvglUI->setResourceLoadOptions(true, "lvgl/");
       // - LVGL
       StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
