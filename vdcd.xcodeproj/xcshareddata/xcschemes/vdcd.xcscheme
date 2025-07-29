@@ -137,7 +137,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--lvgl /dev/fb0:/dev/input/event0:720:720:K"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.170"
@@ -301,7 +301,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
