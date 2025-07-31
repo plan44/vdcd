@@ -188,6 +188,15 @@ public:
   {
   }
 
+
+  virtual P44LoggingObj* getTopicLogObject(const string aTopic) P44_OVERRIDE
+  {
+    if (uequals(aTopic,"app")) return this;
+    if (mP44VdcHost) return mP44VdcHost->getTopicLogObject(aTopic);
+    return nullptr;
+  }
+
+
   void setAppStatus(AppStatus aStatus)
   {
     mAppStatus = aStatus;
@@ -315,7 +324,7 @@ public:
     }
   }
 
-  virtual void signalOccurred(int aSignal, siginfo_t *aSiginfo)
+  virtual void signalOccurred(int aSignal, siginfo_t *aSiginfo) P44_OVERRIDE
   {
     if (aSignal==SIGUSR1) {
       if (mP44VdcHost) mP44VdcHost->postEvent(vdchost_logstats);
@@ -325,7 +334,7 @@ public:
 
 
 
-  virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue)
+  virtual bool processOption(const CmdLineOptionDescriptor &aOptionDescriptor, const char *aOptionValue) P44_OVERRIDE
   {
     #if ENABLE_STATIC
     if (strcmp(aOptionDescriptor.longOptionName,"digitalio")==0) {
@@ -366,7 +375,7 @@ public:
   }
 
 
-  virtual int main(int argc, char **argv)
+  virtual int main(int argc, char **argv) P44_OVERRIDE
   {
     const char *usageText =
       "Usage: ${toolname} [options]\n";
@@ -564,7 +573,7 @@ public:
       exitWithcommandLineError("Invalid script storage path '%s': %s", persistentScriptsPath.c_str(), Error::text(err));
     }
     standarddomain->setFileStoragePath(persistentScriptsPath);
-    #endif
+    #endif // P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
 
     // protocols to use
     mProtocols = PF_INET;
@@ -585,7 +594,7 @@ public:
       featureapipotocols = mProtocols;
       #endif
     }
-    #endif // REDUCED_FOOTPRINT
+    #endif // !REDUCED_FOOTPRINT
 
 
     // create the root object
@@ -857,13 +866,13 @@ public:
           // shortcut for backwards compatibility
           dmxout = "ola:42";
         }
-        #endif
+        #endif // ENABLE_OLA
         if (dmxout) {
           DmxVdcPtr dmxVdc = DmxVdcPtr(new DmxVdc(1, mP44VdcHost.get(), 5)); // Tag 5 = DMX
           dmxVdc->setDmxOutput(dmxout, DEFAULT_DMXPORT);
           dmxVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_DMX || ENABLE_OLA
 
         #if ENABLE_LEDCHAIN
         // - Add Led chain light device support
@@ -873,7 +882,7 @@ public:
           mLedChainArrangement->processCmdlineOptions(); // as advertised in CMDLINE_LEDCHAIN_OPTIONS
           ledChainVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_LEDCHAIN
 
         #if ENABLE_STATIC
         // - Add static devices if we explictly want it or have collected any config from the command line
@@ -882,7 +891,7 @@ public:
           staticVdc->addVdcToVdcHost();
           mStaticDeviceConfigs.clear(); // no longer needed, free memory
         }
-        #endif
+        #endif // ENABLE_STATIC
 
         #if ENABLE_EVALUATORS
         // - Add evaluator devices
@@ -890,7 +899,7 @@ public:
           EvaluatorVdcPtr evaluatorVdc = EvaluatorVdcPtr(new EvaluatorVdc(1, mP44VdcHost.get(), 8)); // Tag 8 = evaluators
           evaluatorVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_EVALUATORS
 
         #if ENABLE_EXTERNAL
         // - Add support for external devices connecting via socket
@@ -899,7 +908,7 @@ public:
           ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
           externalVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_EXTERNAL
 
         #if ENABLE_SCRIPTED
         // - Add support for scripted devices (p44script implementations of "external" devices)
@@ -907,7 +916,7 @@ public:
           ScriptedVdcPtr scriptedVdc = ScriptedVdcPtr(new ScriptedVdc(1, mP44VdcHost.get(), 11)); // Tag 11 = scripted
           scriptedVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_SCRIPTED
 
         #if ENABLE_PROXYDEVICES
         // - Add a separate vdc for each proxy host (secondary vdcd's bridge API) specified or found via DNS-SD
@@ -915,7 +924,7 @@ public:
         if (proxies) {
           ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
         }
-        #endif
+        #endif // ENABLE_PROXYDEVICES
 
         #if ENABLE_DS485DEVICES
         // - Add support for dS485 based devices
@@ -926,7 +935,7 @@ public:
           ds485Vdc->mDs485Comm.setConnectionSpecification(ds485server, DEFAULT_DS485PORT, ds485tunnel);
           ds485Vdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_DS485DEVICES
 
         #if ENABLE_JSONBRIDGEAPI
         if (
@@ -937,7 +946,7 @@ public:
           BridgeVdcPtr bridgeVdc = BridgeVdcPtr(new BridgeVdc(1, mP44VdcHost.get(), 12)); // Tag 12 = bridge devices
           bridgeVdc->addVdcToVdcHost();
         }
-        #endif
+        #endif // ENABLE_JSONBRIDGEAPI
 
         // install event monitor
         mP44VdcHost->setEventMonitor(boost::bind(&P44Vdcd::eventMonitor, this, _1));
@@ -1130,7 +1139,7 @@ public:
   #endif // ENABLE_LVGL
 
 
-  virtual void initialize()
+  virtual void initialize() P44_OVERRIDE
   {
     #if ENABLE_LVGL
     // start UI in both test / non-test cases
