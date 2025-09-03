@@ -84,11 +84,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--userfile &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/www_sim/index.html:webpage&quot;"
+            argument = "--userfile &quot;/Users/luz/Documents/plan44/2024/Abgeschlossen 2024/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/www_sim/index.html:webpage&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/configs/xcodesim&quot;"
+            argument = "--datapath &quot;/Users/luz/Documents/plan44/2024/Abgeschlossen 2024/HAVAS Umbau - Drehbare Storenka&#x308;sten - DU STUDIO Architekten/configs/xcodesim&quot;"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -301,7 +301,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
