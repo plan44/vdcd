@@ -7,7 +7,7 @@ Debug/
 Release/
 
 # XCode specifics
-**/*.xcodeproj/project.xcworkspace/xcuserdata/*.xcuserdatad/UserInterfaceState.xcuserstate
+**/*.xcodeproj/project.xcworkspace/xcuserdata/
 **/*.xcodeproj/project.xcworkspace/xcshareddata/*.xcscmblueprint
 **/*.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 **/*.xcodeproj/xcuserdata/
