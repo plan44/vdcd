@@ -96,7 +96,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[mainloop]"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[ssl]"
@@ -108,7 +108,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[scripting]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[tlv]"

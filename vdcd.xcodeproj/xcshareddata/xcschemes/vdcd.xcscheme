@@ -108,8 +108,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-lvgl"
+            argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/Anet Corti/xcode_cfg_dev&quot;"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-lvgl"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
@@ -201,7 +205,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
@@ -301,7 +305,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
@@ -309,11 +313,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
