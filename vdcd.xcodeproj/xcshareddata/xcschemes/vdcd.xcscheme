@@ -164,10 +164,6 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--ds485api 192.168.11.211:8442 --ds485tunnel &apos;ssh -i ~/.ssh/ds485-ecdsa256 -l dssadmin %HOST% -L %PORT%:localhost:%PORT%&apos;"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "--webuiport 80 --webuipath /index.html"
             isEnabled = "YES">
          </CommandLineArgument>
