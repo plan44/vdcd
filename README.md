@@ -9,9 +9,9 @@ The *vdcd* project has started as, and is still used as, a virtual device connec
 
 However, *vdcd* can also be **operated as a fully standalone home automation controller** (see _--localcontroller_ commandline option) or **as a *matter* bridge** when used together with [p44mbrd](https://github.com/plan44/p44mbrd).
 
-*vdcd* has ready-to-use implementation for various **EnOcean** devices, **DALI** lights (single dimmers, **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), Philips **hue LED color lights**, **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, **DMX512** support via OLA or UART, console based debugging devices and a lot more.
+*vdcd* has ready-to-use implementation for various **EnOcean** devices, **DALI** lights (single dimmers, **RGB and RGBW** multi-channel **color lights** including DT6 and DT8 support), **Wiser-by-Feller** device (via **uGateway**), Philips **hue LED color lights** (via hue bridge), **WS281x RGB LED chains** (directly on RPi, via p44-ledchain driver on MT7688), simple contacts and on-off switches connected to Linux **GPIO** and **I2C** pins, **PWM** outputs via i2c, **DMX512** support via OLA or UART, console based debugging devices and a lot more.
 
-When vdcd is built with *p44script* enabled, **custom devices** can be implemented as **simple scripts**. The p44script language has support for http and websocket APIs, MIDI, modbus, UART etc. and can make use of the [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics) subsystem to create complex LED matrix effects. It can also use [**lvgl**](https://lvgl.io/) to define UIs on local touch displays directly from p44script.
+When vdcd is built with *p44script* enabled, **custom devices** can be implemented as **simple scripts**. The p44script language has support for http and websocket APIs, MIDI, modbus, sockets, UART etc. and can make use of the [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics) subsystem to create complex LED matrix effects. It can also use [**lvgl**](https://lvgl.io/) to define UIs on local touch displays directly from p44script.
 
 In addition to these built-in implementations, vdcd provides the **plan44 vdcd external device API**, a simple socket-based API that allows implementing **custom devices as external scripts or programs** in any language which can open socket connections (almost any, sample code for bash, C and nodeJS is included)
 
@@ -29,7 +29,6 @@ If you like this project you might want to...
 - See it in action by [trying the p44 automation platform](#try), see below.
 - Join the [plan44 community forum](https://forum.plan44.ch/t/opensource-c-vdcd) to ask questions and discuss vdcd related topics.
 - See [github project](https://github.com/plan44/vdcd) to get the latest version of the software (the required p44vdc and p44utils submodules are also [on github](https://github.com/plan44))
-- See [digitalstrom.com](http://www.digitalstrom.com) and [digitalstrom.org](http://www.digitalstrom.org) for more about *Digital Strom*.
 - not forget to support it via [github sponsors](https://github.com/sponsors/plan44) or [flattr](https://flattr.com/@luz)
 
 
@@ -53,6 +52,7 @@ Features
 - Allows implementing fully dS compliant devices of all kinds completely in *p44script* without any external code needed.
 - Supports EnOcean TCM310 based gateway modules, connected via serial port or network
 - Supports Philips hue lights via the hue bridge and its JSON API
+- Supports Wiser-by-Feller installations via full integration with the uGateway API
 - Supports building really fancy effect color LED lights out WS281x LED chip based LED chains/matrices, with moving segments, lightspots, gradients etc, based on [**p44lrgraphics**](https://github.com/plan44/p44lrgraphics), a graphics library specifically written for lo-res LED matrix displays.
   On Raspberry Pi, just connect a WS2812's data-in to RPi P1 Pin 12, GPIO 18 (thanks to the [rpi_ws281x library](https://github.com/richardghirst/rpi_ws281x.git)).
   On MT7688 systems under OpenWrt, use the [p44-ledchain kernel driver](https://github.com/plan44/plan44-feed/tree/master/p44-ledchain).
