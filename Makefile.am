@@ -329,6 +329,20 @@ P44FEATURES_FLAGS = -D ENABLE_P44FEATURES=0
 
 endif
 
+# DRM support in LVGL
+
+if ENABLE_LVGL_DRM
+
+LVGL_EXTRA_FLAGS = \
+  -D ENABLE_LVGL_DRM=1 \
+  ${DRM_CFLAGS}
+
+else
+
+LVGL_EXTRA_FLAGS = -D ENABLE_LVGL_DRM=0
+
+endif
+
 
 # lvgl support
 if ENABLE_LVGL
@@ -448,6 +462,8 @@ LVGL_SOURCES = \
   src/lvgl/src/draw/sw/lv_draw_sw_vector.c \
   src/lvgl/src/draw/sw/lv_draw_sw.c \
   src/lvgl/src/draw/sw/lv_draw_sw.h \
+  src/lvgl/src/drivers/display/drm/lv_linux_drm.c \
+  src/lvgl/src/drivers/display/drm/lv_linux_drm.h \
   src/lvgl/src/drivers/display/fb/lv_linux_fbdev.c \
   src/lvgl/src/drivers/display/fb/lv_linux_fbdev.h \
   src/lvgl/src/drivers/evdev/lv_evdev.c \
@@ -749,6 +765,7 @@ LVGL_SOURCES = \
 
 LVGL_FLAGS = \
   -D ENABLE_LVGL=1 \
+  ${LVGL_EXTRA_FLAGS} \
 	-I ${srcdir}/src/lvgl \
   -I ${srcdir}/src/lvgl/src/core \
   -I ${srcdir}/src/lvgl/src/display \
@@ -786,6 +803,7 @@ vdcd_LDADD = \
   ${I2C_LIBS} \
   ${LIBMODBUS_LIBS} \
   ${EV_LIBS} \
+  ${DRM_LIBS} \
   ${UWSC_LIBS} \
   ${RPIWS281X_LIBS} \
   ${RRDB_LIBS}

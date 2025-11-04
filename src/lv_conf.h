@@ -989,12 +989,17 @@
     #define LV_WAYLAND_WL_SHELL             0    /*Use the legacy wl_shell protocol instead of the default XDG shell*/
 #endif
 
+/*preferred rendering on linux*/
+#ifndef ENABLE_LVGL_DRM
+#  define ENABLE_LVGL_DRM 0 /* by default, do not use DRM but fbdev on linux */
+#endif
+
 /*Driver for /dev/fb*/
 #ifndef LV_USE_LINUX_FBDEV
 #  if defined(__APPLE__)
 #    define LV_USE_LINUX_FBDEV  0
 #  else
-#    define LV_USE_LINUX_FBDEV  1
+#    define LV_USE_LINUX_FBDEV  (!ENABLE_LVGL_DRM)
 #  endif
 #endif
 #if LV_USE_LINUX_FBDEV
@@ -1026,7 +1031,13 @@
 #endif
 
 /*Driver for /dev/dri/card*/
-#define LV_USE_LINUX_DRM        0
+#ifndef LV_USE_LINUX_DRM
+#  if defined(__APPLE__)
+#    define LV_USE_LINUX_DRM  0
+#  else
+#    define LV_USE_LINUX_DRM ENABLE_LVGL_DRM
+#  endif
+#endif
 
 /*Interface for TFT_eSPI*/
 #define LV_USE_TFT_ESPI         0

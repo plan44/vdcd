@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.8.2.37], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.8.2.38], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -120,6 +120,12 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([ENABLE_LVGL], [test "x$enable_lvgl" = xyes])
 
 AC_ARG_ENABLE(
+  [lvgldrm],
+  [AS_HELP_STRING([--enable-lvgldrm], [use DRM instead of fbdev])]
+)
+AM_CONDITIONAL([ENABLE_LVGL_DRM], [test "x$enable_lvgldrm" = xyes])
+
+AC_ARG_ENABLE(
   [platformshortbreak],
   [AS_HELP_STRING([--enable-platformshortbreak], [Enable usage of platform's ability to produce short breaks on UART])]
 )
@@ -202,6 +208,12 @@ PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
 AM_COND_IF([ENABLE_PNG], [
   PKG_CHECK_MODULES([PNG], [libpng >= 1.6], [], [
     AC_MSG_ERROR([$PNG_PKG_ERRORS])
+  ])
+], [])
+
+AM_COND_IF([ENABLE_LVGL_DRM], [
+  PKG_CHECK_MODULES([DRM], [libdrm >= 2.4], [], [
+    AC_MSG_ERROR([$DRM_PKG_ERRORS])
   ])
 ], [])
 
