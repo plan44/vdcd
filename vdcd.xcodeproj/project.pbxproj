@@ -5785,8 +5785,6 @@
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
-					"-lola",
-					"-lolacommon",
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;
@@ -5822,8 +5820,6 @@
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
-					"-lola",
-					"-lolacommon",
 					"-lpng",
 				);
 				PRODUCT_NAME = vdcd;

@@ -49,7 +49,7 @@
   #define ENABLE_WBF 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
-  #define ENABLE_OLA 1
+  #define ENABLE_OLA 0 // we do no longer want to install OLA on macOS
   #define ENABLE_DMX 1
   #define ENABLE_MODBUS 1
   #define ENABLE_UWSC 1
