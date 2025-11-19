@@ -301,7 +301,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
