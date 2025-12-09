@@ -251,6 +251,18 @@ UWSC_FLAGS = -D ENABLE_UWSC=0
 endif
 
 
+# libgpiod gpio support
+if ENABLE_GPIOD
+
+GPIOD_FLAGS = -D ENABLE_GPIOD=1
+
+else
+
+GPIOD_FLAGS = -D ENABLE_GPIOD=0
+
+endif
+
+
 # libev based mainloop
 if ENABLE_EV
 
@@ -262,8 +274,7 @@ endif
 # PNG support via libpng
 if ENABLE_PNG
 
-PNG_FLAGS = \
-  -D ENABLE_PNG=1
+PNG_FLAGS = -D ENABLE_PNG=1
 
 else
 
@@ -803,6 +814,7 @@ vdcd_LDADD = \
   ${I2C_LIBS} \
   ${LIBMODBUS_LIBS} \
   ${EV_LIBS} \
+  ${GPIOD_LIBS} \
   ${DRM_LIBS} \
   ${UWSC_LIBS} \
   ${RPIWS281X_LIBS} \
@@ -849,11 +861,13 @@ vdcd_CPPFLAGS = \
   ${WBFSUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
+  ${GPIOD_FLAGS} \
   ${LVGL_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
   ${PNG_CFLAGS} \
+  ${GPIOD_CFLAGS} \
   ${LIBMODBUS_CFLAGS} \
   ${SQLITE3_CFLAGS} \
   ${PROTOBUFC_CFLAGS} \

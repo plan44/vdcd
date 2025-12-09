@@ -320,6 +320,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--dali 127.0.0.1:2101"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"
             isEnabled = "NO">
          </CommandLineArgument>

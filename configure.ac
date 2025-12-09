@@ -1,4 +1,4 @@
-AC_INIT([vdcd], [2.8.2.41], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+AC_INIT([vdcd], [2.8.2.42], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
@@ -76,6 +76,12 @@ AC_ARG_ENABLE(
   [AS_HELP_STRING([--enable-uwsc], [Enable libuwsc usage for websockets])]
 )
 AM_CONDITIONAL([ENABLE_UWSC], [test "x$enable_uwsc" = xyes])
+
+AC_ARG_ENABLE(
+  [gpiod],
+  [AS_HELP_STRING([--enable-gpiod], [Enable libgpiod usage for gpios])]
+)
+AM_CONDITIONAL([ENABLE_GPIOD], [test "x$enable_gpiod" = xyes])
 
 AC_ARG_ENABLE(
   [ev],
@@ -205,11 +211,18 @@ PKG_CHECK_MODULES([PROTOBUFC], [libprotobuf-c], [], [
   ])
 ])
 
+AM_COND_IF([ENABLE_GPIOD], [
+  PKG_CHECK_MODULES([GPIOD], [libgpiod >= 1.6.3], [], [
+    AC_MSG_ERROR([$GPIOD_PKG_ERRORS])
+  ])
+], [])
+
 AM_COND_IF([ENABLE_PNG], [
   PKG_CHECK_MODULES([PNG], [libpng >= 1.6], [], [
     AC_MSG_ERROR([$PNG_PKG_ERRORS])
   ])
 ], [])
+
 
 AM_COND_IF([ENABLE_LVGL_DRM], [
   PKG_CHECK_MODULES([DRM], [libdrm >= 2.4], [], [

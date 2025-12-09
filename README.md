@@ -96,7 +96,7 @@ Getting Started
 
 ### Build and run it in a Container
 
-- Build container image. If you want another branch than main,
+- Build container image. If you want another branch than main, just set BRANCH differently.
 
     ```bash
     # set the branch name you want to use
