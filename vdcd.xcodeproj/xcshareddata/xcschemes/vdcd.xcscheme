@@ -359,6 +359,10 @@
             argument = "--splitflapconn simulation"
             isEnabled = "NO">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = " --wifitrack 0 --wifimonif moni0"
+            isEnabled = "NO">
+         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
          <AdditionalOption
