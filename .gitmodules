@@ -15,4 +15,4 @@
 [submodule "vdcd/src/lvgl"]
 	path = src/lvgl
 	url = ../lvgl.git
-	branch = luz
+	branch = luz_v9.2

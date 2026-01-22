@@ -1227,7 +1227,7 @@
 		EDD1DACF2DECC3D2007C6774 /* lv_linux_drm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_linux_drm.h; sourceTree = "<group>"; };
 		EDD1DAD02DECC3D2007C6774 /* lv_linux_drm.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_linux_drm.c; sourceTree = "<group>"; };
 		EDD1DAD22DECC3D2007C6774 /* lv_linux_fbdev.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_linux_fbdev.h; sourceTree = "<group>"; };
-		EDD1DAD32DECC3D2007C6774 /* lv_linux_fbdev.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_linux_fbdev.c; sourceTree = "<group>"; };
+		EDD1DAD32DECC3D2007C6774 /* lv_linux_fbdev.c */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = lv_linux_fbdev.c; sourceTree = "<group>"; tabWidth = 4; };
 		EDD1DAD52DECC3D2007C6774 /* lv_ili9341.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_ili9341.h; sourceTree = "<group>"; };
 		EDD1DAD62DECC3D2007C6774 /* lv_ili9341.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = lv_ili9341.c; sourceTree = "<group>"; };
 		EDD1DAD82DECC3D2007C6774 /* lv_lcd_generic_mipi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_lcd_generic_mipi.h; sourceTree = "<group>"; };
