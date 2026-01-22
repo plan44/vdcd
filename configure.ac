@@ -131,6 +131,10 @@ AC_ARG_ENABLE(
 )
 AM_CONDITIONAL([ENABLE_LVGL_DRM], [test "x$enable_lvgldrm" = xyes])
 
+AC_ARG_VAR(LVGL_COLOR_DEPTH, [specify to set color depth for lvgl])
+AM_CONDITIONAL([WITH_LVGL_COLOR_DEPTH], [test -n "$LVGL_COLOR_DEPTH"])
+
+
 AC_ARG_ENABLE(
   [platformshortbreak],
   [AS_HELP_STRING([--enable-platformshortbreak], [Enable usage of platform's ability to produce short breaks on UART])]

@@ -798,6 +798,11 @@ LVGL_FLAGS = -D ENABLE_LVGL=0
 
 endif
 
+if WITH_LVGL_COLOR_DEPTH
+LVGL_OPTS = -DLVGL_COLOR_DEPTH=$(LVGL_COLOR_DEPTH)
+endif
+
+
 
 # main program
 
@@ -863,6 +868,7 @@ vdcd_CPPFLAGS = \
   ${UWSC_FLAGS} \
   ${GPIOD_FLAGS} \
   ${LVGL_FLAGS} \
+  ${LVGL_OPTS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
   ${JSONC_CFLAGS} \
