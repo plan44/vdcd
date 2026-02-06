@@ -106,10 +106,40 @@
   #define P44SCRIPT_STORE_AS_FILES 1
 #endif
 
+#ifndef P44SCRIPT_UISCRIPT
+  #define P44SCRIPT_UISCRIPT (P44SCRIPT_FULL_SUPPORT)
+#endif
 
 #define DEFAULT_LOGLEVEL LOG_NOTICE
 
 using namespace p44;
+
+
+#if P44SCRIPT_UISCRIPT
+
+class P44Vdcd;
+
+namespace p44 {
+
+namespace P44Script {
+
+  /// represents a p44vdc device
+  class P44VdcdObj : public StructuredLookupObject
+  {
+    typedef P44Script::StructuredLookupObject inherited;
+    P44Vdcd& mP44Vdcd;
+  public:
+    P44VdcdObj(P44Vdcd& aP44Vdcd);
+    virtual string getAnnotation() const P44_OVERRIDE { return "p44vdc"; };
+    virtual P44LoggingObj* loggingContext() const P44_OVERRIDE;
+    P44Vdcd& p44Vdcd() { return mP44Vdcd; };
+  };
+
+} // namespace p44
+} // namespace P44Script
+
+#endif // P44SCRIPT_UISCRIPT
+
 
 /// Main program for plan44.ch P44-DSB-DEH in form of the "vdcd" daemon)
 class P44Vdcd : public CmdLineApp
@@ -146,6 +176,9 @@ class P44Vdcd : public CmdLineApp
   #if ENABLE_LVGL
   LvGLUiPtr mLvglUI;
   #endif
+  #if P44SCRIPT_UISCRIPT
+  ScriptMainContextPtr mUiScriptContext; ///< context for device UI script
+  #endif
 
   // App status
   bool mFactoryResetWait;
@@ -162,11 +195,6 @@ class P44Vdcd : public CmdLineApp
   // Note: must be a intrusive ptr, as it is referenced by intrusive ptrs later. Statically defining it leads to crashes.
   P44VdcHostPtr mP44VdcHost;
 
-  // indicators and button
-  IndicatorOutputPtr mRedLED;
-  IndicatorOutputPtr mGreenLED;
-  ButtonInputPtr mButton;
-
   // learning
   MLTicket mLearningTimerTicket;
   MLTicket mShutDownTicket;
@@ -175,6 +203,14 @@ class P44Vdcd : public CmdLineApp
   int mProtocols;
 
 public:
+
+  // UI hardware
+  IndicatorOutputPtr mRedLED;
+  IndicatorOutputPtr mGreenLED;
+  ButtonInputPtr mButton;
+  #if P44SCRIPT_UISCRIPT
+  ButtonInputPtr mButton2;
+  #endif
 
   P44Vdcd() :
     #if SELFTESTING_ENABLED
@@ -483,7 +519,7 @@ public:
       { 0  , "nodiscovery",      false, "completely disable discovery (no publishing of services)" },
       { 0  , "hostname",         true,  "hostname;host name to use to publish this vdc host" },
       { 0  , "sshport",          true,  "portno;publish ssh access at given port" },
-      #endif
+      #endif // !DISABLE_DISCOVERY
       { 0  , "webuiport",        true,  "portno;publish a Web-UI service at given port via DNS-SD" },
       { 0  , "webuipath",        true,  "path;file path for webui (must start with /, defaults to none)" },
       { 0  , "novdcapi",         false, "disable vDC API (and DNS-SD advertisement of it)" },
@@ -498,7 +534,10 @@ public:
       #if P44SCRIPT_FULL_SUPPORT
       { 0  , "initscript",       true,  "filepath;script to run after all devices collected and initialized (path relative to resource path)" },
       { 0  , "setupscript",      true,  "filepath;setup script run once and deleted when it returns true (path relative to resource path)" },
-      #endif
+      #if P44SCRIPT_UISCRIPT
+      { 0  , "uiscript",         true,  "filepath;script that implements device UI (path relative to resource path)" },
+      #endif // P44SCRIPT_UISCRIPT
+      #endif // P44SCRIPT_FULL_SUPPORT
       #if P44SCRIPT_OTHER_SOURCES
       { 0  , "userfile",         true,  "filepath[:contexttype[:title]];absolute file path for text file to make accessible to API users for editing. Can be specified multiple times." },
       #endif
@@ -512,7 +551,7 @@ public:
       #if !DISABLE_DISCOVERY
       { 0  , "advertisebridge",  false, "advertise bridge over DNS-SD" },
       #endif
-      #endif
+      #endif // ENABLE_JSONBRIDGEAPI
       #if ENABLE_UBUS
       { 0  , "ubusapi",          false, "enable ubus API" },
       #endif
@@ -524,7 +563,10 @@ public:
       #endif
       { 0  , "greenled",         true,  "pinspec;set I/O pin connected to green part of status LED" },
       { 0  , "redled",           true,  "pinspec;set I/O pin connected to red part of status LED" },
-      { 0  , "button",           true,  "pinspec;set I/O pin connected to learn button" },
+      { 0  , "button",           true,  "pinspec;set I/O pin connected to learn button / UI button 1" },
+      #if P44SCRIPT_UISCRIPT
+      { 0  , "button2",          true,  "pinspec;set I/O pin connected to UI button 2" },
+      #endif // P44SCRIPT_UISCRIPT
       { 0  , "llbutton",         false, "enable only low-level (factory reset) button functions" },
       #if SELFTESTING_ENABLED
       { 0,   "selftest",         false, "run in self test mode" },
@@ -651,6 +693,11 @@ public:
     pinName = "missing";
     getStringOption("button", pinName);
     mButton = ButtonInputPtr(new ButtonInput(pinName));
+    #if P44SCRIPT_UISCRIPT
+    pinName = "missing";
+    getStringOption("button2", pinName);
+    mButton2 = ButtonInputPtr(new ButtonInput(pinName));
+    #endif // P44SCRIPT_UISCRIPT
 
     // now show status for the first time
     showAppStatus();
@@ -1135,8 +1182,25 @@ public:
     if (mLvglUI) mLvglUI->taskCallBack();
   }
 
-
   #endif // ENABLE_LVGL
+
+
+  #if P44SCRIPT_UISCRIPT
+  void uiScriptEnds(ScriptObjPtr aResult)
+  {
+    OLOG(LOG_INFO, "uiScript terminated, result: %s", ScriptObj::describe(aResult).c_str());
+    if (aResult && !aResult->isErr() && aResult->boolValue()) {
+      // successful execution of setupscript, return value is trueish
+      string ret = aResult->stringValue().c_str();
+      if (ret=="reboot" || ret=="restart") {
+        // also reboot/restart
+        OLOG(LOG_WARNING, "uiscript requests %s", ret.c_str());
+        mP44VdcHost->save();
+        Application::sharedApplication()->terminateApp(ret=="reboot" ? P44_EXIT_REBOOT : EXIT_SUCCESS);
+      }
+    }
+  }
+  #endif // P44SCRIPT_UISCRIPT
 
 
   virtual void initialize() P44_OVERRIDE
@@ -1167,8 +1231,33 @@ public:
     else
     #endif // SELFTESTING_ENABLED
     {
-      // - connect button
-      mButton->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
+      #if P44SCRIPT_UISCRIPT
+      string uiScriptFn;
+      if (getStringOption("uiscript", uiScriptFn)) {
+        // UI is run by uiScript
+        uiScriptFn = Application::sharedApplication()->resourcePath(uiScriptFn);
+        string uiScriptSrc;
+        ErrorPtr err = string_fromfile(uiScriptFn, uiScriptSrc);
+        if (!Error::isOK(err)) {
+          OLOG(LOG_ERR, "could not load uiscript: %s", err->text());
+        }
+        else {
+          // loaded UI script
+          ScriptHost uiScript(sourcecode|regular, "uiscript", "%O", this);
+          uiScript.setSource(uiScriptSrc, scriptbody|ephemeralSource);
+          mUiScriptContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this));
+          uiScript.setSharedMainContext(mUiScriptContext);
+          uiScript.registerUnstoredScript("initscript");
+          OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", uiScript.getOriginLabel(), uiScriptFn.c_str());
+          uiScript.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
+        }
+      }
+      else
+      #endif // P44SCRIPT_UISCRIPT
+      {
+        // no uiscript, hardwired button operation
+        mButton->setButtonHandler(boost::bind(&P44Vdcd::buttonHandler, this, _1, _2, _3), true, 1*Second);
+      }
       // - if not already in factory reset wait, initialize normally
       if (!mFactoryResetWait) {
         // - initialize the device container
@@ -1270,7 +1359,7 @@ public:
       if (bridgeApi && getOption("advertisebridge")!=NULL) {
         bridgeApiPort = atoi(bridgeApi->mJsonApiServer->getPort());
       }
-      #endif
+      #endif // ENABLE_JSONBRIDGEAPI
       ServiceAnnouncer::sharedServiceAnnouncer().advertiseVdcHostDevice(
         hostname.c_str(),
         mProtocols,
@@ -1288,6 +1377,61 @@ public:
 
 
 };
+
+
+#if P44SCRIPT_UISCRIPT
+
+static ScriptObjPtr button_accessor(BuiltInMemberLookup& aMemberLookup, ScriptObjPtr aParentObj, ScriptObjPtr aObjToWrite, BuiltinMemberDescriptor*)
+{
+  P44VdcdObj* v = dynamic_cast<P44VdcdObj*>(aParentObj.get());
+  assert(v);
+  return new DigitalIoObj(v->p44Vdcd().mButton);
+}
+
+static ScriptObjPtr button2_accessor(BuiltInMemberLookup& aMemberLookup, ScriptObjPtr aParentObj, ScriptObjPtr aObjToWrite, BuiltinMemberDescriptor*)
+{
+  P44VdcdObj* v = dynamic_cast<P44VdcdObj*>(aParentObj.get());
+  assert(v);
+  return new DigitalIoObj(v->p44Vdcd().mButton2);
+}
+
+static ScriptObjPtr greenled_accessor(BuiltInMemberLookup& aMemberLookup, ScriptObjPtr aParentObj, ScriptObjPtr aObjToWrite, BuiltinMemberDescriptor*)
+{
+  P44VdcdObj* v = dynamic_cast<P44VdcdObj*>(aParentObj.get());
+  assert(v);
+  return new IndicatorObj(v->p44Vdcd().mGreenLED);
+}
+
+static ScriptObjPtr redled_accessor(BuiltInMemberLookup& aMemberLookup, ScriptObjPtr aParentObj, ScriptObjPtr aObjToWrite, BuiltinMemberDescriptor*)
+{
+  P44VdcdObj* v = dynamic_cast<P44VdcdObj*>(aParentObj.get());
+  assert(v);
+  return new IndicatorObj(v->p44Vdcd().mRedLED);
+}
+
+
+static const BuiltinMemberDescriptor p44VdcdMembers[] = {
+  MEMBER_DEF(button, builtinvalue),
+  MEMBER_DEF(button2, builtinvalue),
+  MEMBER_DEF(redled, builtinvalue),
+  MEMBER_DEF(greenled, builtinvalue),
+  BUILTINS_TERMINATOR
+};
+
+static BuiltInMemberLookup* sharedP44VdcMemberLookupP = NULL;
+
+p44::P44VdcdObj::P44VdcdObj(P44Vdcd& aP44Vdcd) :
+  mP44Vdcd(aP44Vdcd)
+{
+  registerSharedLookup(sharedP44VdcMemberLookupP, p44VdcdMembers);
+}
+
+P44LoggingObj* p44::P44VdcdObj::loggingContext() const
+{
+  return &mP44Vdcd;
+};
+
+#endif // P44SCRIPT_UISCRIPT
 
 
 

@@ -117,14 +117,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--resourcepath /Volumes/CaseSens/openwrt-rv110x/feeds/p44i/p44lc-config/files/p44-xx-86panel/usr/share/p44lc"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--resourcepath /Volumes/CaseSens/openwrt-rv110x/feeds/p44i/p44lc-config/files/p44-xx-86panel/usr/share/p44lc"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--resourcepath /Users/luz/Desktop"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--uiscript p44-gw-mw-uiscript.p44s --lvgl /dev/fb0:/dev/input/event0:128:64:K --datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-uidev --resourcepath /Volumes/CaseSens/openwrt24/feeds/p44i/p44lc-config/files/p44-xx-omega4/usr/share/p44lc --button simpin.button:a --button2 simpin.button:b --greenled simpin.G"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -169,10 +173,6 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--rfidspibus 22-S --rfidselectpins dummy --rfidreset dummy --rfidirq dummy"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-V"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
