@@ -1,4 +1,4 @@
-vdcd (2.8.2.44-3) UNRELEASED; urgency=medium
+vdcd (2.8.2.47-4) UNRELEASED; urgency=medium
 
   [ luz@plan44.ch ]
   * Initial release.
@@ -23,4 +23,7 @@ vdcd (2.8.2.44-3) UNRELEASED; urgency=medium
   [ luz@plan44.ch ]
   * bump version to 2.8.2.44 for hmt26
 
- --  <luz@plan44.ch>  Tue, 27 Jan 2026 17:07:29 +0100
+  [ luz@plan44.ch ]
+  * bump version to 2.8.2.47 for htm26, fixes indicators
+
+ --  <luz@plan44.ch>  Fri, 13 Feb 2026 19:29:10 +0100
