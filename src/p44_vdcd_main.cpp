@@ -135,9 +135,21 @@ namespace P44Script {
     P44Vdcd& p44Vdcd() { return mP44Vdcd; };
   };
 
-} // namespace p44
 } // namespace P44Script
+} // namespace p44
 
+#endif // P44SCRIPT_UISCRIPT
+
+#if P44SCRIPT_UISCRIPT
+class UIScript : public P44LoggingObj
+{
+public:
+  ScriptHost mHost;
+  ScriptMainContextPtr mContext; ///< context for device UI script
+  UIScript() : mHost(sourcecode|regular, "uiscript", "%O", this) {}
+  virtual string contextType() const P44_OVERRIDE { return "UIScript"; }
+};
+typedef boost::intrusive_ptr<UIScript> UIScriptPtr;
 #endif // P44SCRIPT_UISCRIPT
 
 
@@ -177,7 +189,7 @@ class P44Vdcd : public CmdLineApp
   LvGLUiPtr mLvglUI;
   #endif
   #if P44SCRIPT_UISCRIPT
-  ScriptMainContextPtr mUiScriptContext; ///< context for device UI script
+  UIScriptPtr mUIScript; ///< optional device UI script
   #endif
 
   // App status
@@ -228,6 +240,9 @@ public:
   virtual P44LoggingObj* getTopicLogObject(const string aTopic) P44_OVERRIDE
   {
     if (uequals(aTopic,"app")) return this;
+    #if P44SCRIPT_UISCRIPT
+    if (uequals(aTopic,"uiscript") && mUIScript) return mUIScript.get();
+    #endif
     if (mP44VdcHost) return mP44VdcHost->getTopicLogObject(aTopic);
     return nullptr;
   }
@@ -1190,7 +1205,7 @@ public:
   {
     OLOG(LOG_INFO, "uiScript terminated, result: %s", ScriptObj::describe(aResult).c_str());
     if (aResult && !aResult->isErr() && aResult->boolValue()) {
-      // successful execution of setupscript, return value is trueish
+      // successful execution of uiscript, return value is trueish
       string ret = aResult->stringValue().c_str();
       if (ret=="reboot" || ret=="restart") {
         // also reboot/restart
@@ -1243,13 +1258,13 @@ public:
         }
         else {
           // loaded UI script
-          ScriptHost uiScript(sourcecode|regular, "uiscript", "%O", this);
-          uiScript.setSource(uiScriptSrc, scriptbody|ephemeralSource);
-          mUiScriptContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this));
-          uiScript.setSharedMainContext(mUiScriptContext);
-          uiScript.registerUnstoredScript("initscript");
-          OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", uiScript.getOriginLabel(), uiScriptFn.c_str());
-          uiScript.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
+          mUIScript = new UIScript;
+          mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
+          mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this));
+          mUIScript->mHost.setSharedMainContext(mUIScript->mContext);
+          mUIScript->mHost.registerUnstoredScript("uiscript");
+          OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", mUIScript->mHost.getOriginLabel(), uiScriptFn.c_str());
+          mUIScript->mHost.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
         }
       }
       else
