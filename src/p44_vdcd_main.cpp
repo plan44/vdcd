@@ -1220,14 +1220,28 @@ public:
 
   virtual void initialize() P44_OVERRIDE
   {
+    #if P44SCRIPT_UISCRIPT
+    string uiScriptFn;
+    string uiScriptSrc;
+    if (getStringOption("uiscript", uiScriptFn)) {
+      // UI is run by uiScript
+      uiScriptFn = Application::sharedApplication()->resourcePath(uiScriptFn);
+      ErrorPtr err = string_fromfile(uiScriptFn, uiScriptSrc);
+      if (!Error::isOK(err)) {
+        OLOG(LOG_ERR, "could not load uiscript: %s", err->text());
+      }
+    }
+    #endif // P44SCRIPT_UISCRIPT
     #if ENABLE_LVGL
     // start UI in both test / non-test cases
     const char *lvglParams = getOption("lvgl");
     if (lvglParams) {
       mLvglUI = new LvGLUi(&LvGL::lvgl()); // use lvgl logging context as it is a logleveloffset "topic" 
       mLvglUI->setResourceLoadOptions(true, "lvgl/");
-      // - LVGL
-      StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
+      if (uiScriptSrc.empty()) {
+        // no UISscript, lvgl is available for user scripts in entire domain
+        StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
+      }
       LOG(LOG_NOTICE, "initializing littlevGL");
       LvGL::lvgl().init(lvglParams);
       // create app UI
@@ -1260,7 +1274,16 @@ public:
           // loaded UI script
           mUIScript = new UIScript;
           mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
+          // the main context for the UIScript has the p44 vdcd app as instance object (to access app level buttons etc.)
           mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this));
+          // when we have a UI script, set main context of lvgl to that of the uiscript,
+          // so we don't need globals in uiscript (that would be visible from user's script contexts).
+          // Also, "lvgl" member is only visible in uiscript context
+          if (mLvglUI) {
+            mLvglUI->setScriptMainContext(mUIScript->mContext);
+            mUIScript->mContext->registerMember("lvgl", mLvglUI->representingScriptObj());
+          }
+          // setup and run
           mUIScript->mHost.setSharedMainContext(mUIScript->mContext);
           mUIScript->mHost.registerUnstoredScript("uiscript");
           OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", mUIScript->mHost.getOriginLabel(), uiScriptFn.c_str());
