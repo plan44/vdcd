@@ -128,7 +128,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--uiscript p44-gw-mw-uiscript.p44s --lvgl /dev/fb0:/dev/input/event0:128:64:K --datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-uidev --resourcepath /Volumes/CaseSens/openwrt24/feeds/p44i/p44lc-config/files/p44-xx-omega4/usr/share/p44lc --button simpin.button:a --button2 simpin.button:b --greenled simpin.G"
+            argument = "--uiscript p44-gw-mw-uiscript.p44s --lvgl /dev/fb0:/dev/input/event0:128:64:KW --datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-uidev --resourcepath /Volumes/CaseSens/openwrt24/feeds/p44i/p44lc-config/files/p44-xx-omega4/usr/share/p44lc --button simpin.button:a --button2 simpin.button:b --greenled simpin.G"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -301,7 +301,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
