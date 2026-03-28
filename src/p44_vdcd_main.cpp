@@ -1265,7 +1265,7 @@ public:
         mUIScript = new UIScript;
         mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
         // the main context for the UIScript has the p44 vdcd app as instance object (to access app level buttons etc.)
-        mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 2); // user level 2 
+        mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 3); // user level 3, includes factoryreset capability
         // when we have a UI script, set main context of lvgl to that of the uiscript,
         // so we don't need globals in uiscript (that would be visible from user's script contexts).
         // Also, "lvgl" member is only visible in uiscript context
