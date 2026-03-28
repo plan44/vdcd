@@ -138,9 +138,7 @@ namespace P44Script {
 } // namespace P44Script
 } // namespace p44
 
-#endif // P44SCRIPT_UISCRIPT
 
-#if P44SCRIPT_UISCRIPT
 class UIScript : public P44LoggingObj
 {
 public:
@@ -150,6 +148,7 @@ public:
   virtual string contextType() const P44_OVERRIDE { return "UIScript"; }
 };
 typedef boost::intrusive_ptr<UIScript> UIScriptPtr;
+
 #endif // P44SCRIPT_UISCRIPT
 
 
@@ -1261,34 +1260,24 @@ public:
     #endif // SELFTESTING_ENABLED
     {
       #if P44SCRIPT_UISCRIPT
-      string uiScriptFn;
-      if (getStringOption("uiscript", uiScriptFn)) {
-        // UI is run by uiScript
-        uiScriptFn = Application::sharedApplication()->resourcePath(uiScriptFn);
-        string uiScriptSrc;
-        ErrorPtr err = string_fromfile(uiScriptFn, uiScriptSrc);
-        if (!Error::isOK(err)) {
-          OLOG(LOG_ERR, "could not load uiscript: %s", err->text());
+      if (!uiScriptSrc.empty()) {
+        // loaded UI script
+        mUIScript = new UIScript;
+        mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
+        // the main context for the UIScript has the p44 vdcd app as instance object (to access app level buttons etc.)
+        mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 2); // user level 2 
+        // when we have a UI script, set main context of lvgl to that of the uiscript,
+        // so we don't need globals in uiscript (that would be visible from user's script contexts).
+        // Also, "lvgl" member is only visible in uiscript context
+        if (mLvglUI) {
+          mLvglUI->setScriptMainContext(mUIScript->mContext);
+          mUIScript->mContext->registerMember("lvgl", mLvglUI->representingScriptObj());
         }
-        else {
-          // loaded UI script
-          mUIScript = new UIScript;
-          mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
-          // the main context for the UIScript has the p44 vdcd app as instance object (to access app level buttons etc.)
-          mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this));
-          // when we have a UI script, set main context of lvgl to that of the uiscript,
-          // so we don't need globals in uiscript (that would be visible from user's script contexts).
-          // Also, "lvgl" member is only visible in uiscript context
-          if (mLvglUI) {
-            mLvglUI->setScriptMainContext(mUIScript->mContext);
-            mUIScript->mContext->registerMember("lvgl", mLvglUI->representingScriptObj());
-          }
-          // setup and run
-          mUIScript->mHost.setSharedMainContext(mUIScript->mContext);
-          mUIScript->mHost.registerUnstoredScript("uiscript");
-          OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", mUIScript->mHost.getOriginLabel(), uiScriptFn.c_str());
-          mUIScript->mHost.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
-        }
+        // setup and run
+        mUIScript->mHost.setSharedMainContext(mUIScript->mContext);
+        mUIScript->mHost.registerUnstoredScript("uiscript");
+        OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", mUIScript->mHost.getOriginLabel(), uiScriptFn.c_str());
+        mUIScript->mHost.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
       }
       else
       #endif // P44SCRIPT_UISCRIPT
