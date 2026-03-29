@@ -138,17 +138,6 @@ namespace P44Script {
 } // namespace P44Script
 } // namespace p44
 
-
-class UIScript : public P44LoggingObj
-{
-public:
-  ScriptHost mHost;
-  ScriptMainContextPtr mContext; ///< context for device UI script
-  UIScript() : mHost(sourcecode|regular, "uiscript", "%O", this) {}
-  virtual string contextType() const P44_OVERRIDE { return "UIScript"; }
-};
-typedef boost::intrusive_ptr<UIScript> UIScriptPtr;
-
 #endif // P44SCRIPT_UISCRIPT
 
 
@@ -188,7 +177,7 @@ class P44Vdcd : public CmdLineApp
   LvGLUiPtr mLvglUI;
   #endif
   #if P44SCRIPT_UISCRIPT
-  UIScriptPtr mUIScript; ///< optional device UI script
+  SystemScriptPtr mUIScript; ///< optional device UI script
   #endif
 
   // App status
@@ -1261,23 +1250,20 @@ public:
     {
       #if P44SCRIPT_UISCRIPT
       if (!uiScriptSrc.empty()) {
-        // loaded UI script
-        mUIScript = new UIScript;
-        mUIScript->mHost.setSource(uiScriptSrc, scriptbody|ephemeralSource);
-        // the main context for the UIScript has the p44 vdcd app as instance object (to access app level buttons etc.)
-        mUIScript->mContext = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 3); // user level 3, includes factoryreset capability
+        // loaded UI script text
+        // - prepare context
+        ScriptMainContextPtr ctx = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 3); // user level 3, includes factoryreset capability
         // when we have a UI script, set main context of lvgl to that of the uiscript,
         // so we don't need globals in uiscript (that would be visible from user's script contexts).
         // Also, "lvgl" member is only visible in uiscript context
         if (mLvglUI) {
-          mLvglUI->setScriptMainContext(mUIScript->mContext);
-          mUIScript->mContext->registerMember("lvgl", mLvglUI->representingScriptObj());
+          mLvglUI->setScriptMainContext(ctx);
+          ctx->registerMember("lvgl", mLvglUI->representingScriptObj());
         }
-        // setup and run
-        mUIScript->mHost.setSharedMainContext(mUIScript->mContext);
-        mUIScript->mHost.registerUnstoredScript("uiscript");
-        OLOG(LOG_NOTICE, "Starting %s specified on commandline '%s'", mUIScript->mHost.getOriginLabel(), uiScriptFn.c_str());
-        mUIScript->mHost.run(regular|concurrently|keepvars, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
+        // - create and run
+        mUIScript = new SystemScript("uiscript", uiScriptSrc, ctx);
+        OLOG(LOG_NOTICE, "Starting uiscript specified on commandline: '%s'", uiScriptFn.c_str());
+        mUIScript->run(sourcecode|regular|concurrently|keepvars|neverpause, boost::bind(&P44Vdcd::uiScriptEnds, this, _1), ScriptObjPtr(), Infinite);
       }
       else
       #endif // P44SCRIPT_UISCRIPT
