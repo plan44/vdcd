@@ -1211,8 +1211,22 @@ public:
     #if P44SCRIPT_UISCRIPT
     string uiScriptFn;
     string uiScriptSrc;
+    bool uiWithDisplay = false;
     if (getStringOption("uiscript", uiScriptFn)) {
-      // UI is run by uiScript
+      // UI (buttons, possibly display) is run by uiScript
+      uiWithDisplay = true; // default: with display
+      size_t opt = uiScriptFn.find(':');
+      if (opt!=string::npos) {
+        // we have options: N=nodisplay
+        size_t n=opt;
+        while(++n<uiScriptFn.size()) {
+          switch (uiScriptFn[n]) {
+            case 'N' : uiWithDisplay = false; break;
+            default: break;
+          }
+        }
+        uiScriptFn.erase(opt);
+      }
       uiScriptFn = Application::sharedApplication()->resourcePath(uiScriptFn);
       ErrorPtr err = string_fromfile(uiScriptFn, uiScriptSrc);
       if (!Error::isOK(err)) {
@@ -1226,8 +1240,8 @@ public:
     if (lvglParams) {
       mLvglUI = new LvGLUi(&LvGL::lvgl()); // use lvgl logging context as it is a logleveloffset "topic" 
       mLvglUI->setResourceLoadOptions(true, "lvgl/");
-      if (uiScriptSrc.empty()) {
-        // no UISscript, lvgl is available for user scripts in entire domain
+      if (!uiWithDisplay) {
+        // no UISscript with display, lvgl is available for scripts in entire domain (including uiscript, but not exclusively)
         StandardScriptingDomain::sharedDomain().registerMember("lvgl", mLvglUI->representingScriptObj());
       }
       LOG(LOG_NOTICE, "initializing littlevGL");
@@ -1253,10 +1267,10 @@ public:
         // loaded UI script text
         // - prepare context
         ScriptMainContextPtr ctx = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 3); // user level 3, includes factoryreset capability
-        // when we have a UI script, set main context of lvgl to that of the uiscript,
+        // when we have a UI script with display, set main context of lvgl to that of the uiscript,
         // so we don't need globals in uiscript (that would be visible from user's script contexts).
         // Also, "lvgl" member is only visible in uiscript context
-        if (mLvglUI) {
+        if (mLvglUI && uiWithDisplay) {
           mLvglUI->setScriptMainContext(ctx);
           ctx->registerMember("lvgl", mLvglUI->representingScriptObj());
         }
