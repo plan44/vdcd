@@ -1267,6 +1267,7 @@ public:
         // loaded UI script text
         // - prepare context
         ScriptMainContextPtr ctx = StandardScriptingDomain::sharedDomain().newContext(new P44VdcdObj(*this), 3); // user level 3, includes factoryreset capability
+        #if ENABLE_LVGL
         // when we have a UI script with display, set main context of lvgl to that of the uiscript,
         // so we don't need globals in uiscript (that would be visible from user's script contexts).
         // Also, "lvgl" member is only visible in uiscript context
@@ -1274,6 +1275,7 @@ public:
           mLvglUI->setScriptMainContext(ctx);
           ctx->registerMember("lvgl", mLvglUI->representingScriptObj());
         }
+        #endif // ENABLE_LVGL
         // - create and run
         mUIScript = new SystemScript("uiscript", uiScriptSrc, ctx);
         OLOG(LOG_NOTICE, "Starting uiscript specified on commandline: '%s'", uiScriptFn.c_str());
