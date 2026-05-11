@@ -132,6 +132,18 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([ENABLE_LVGL_DRM], [test "x$enable_lvgldrm" = xyes])
 
 AC_ARG_ENABLE(
+  [wled],
+  [AS_HELP_STRING([--enable-wled], [Enable WLED device support])]
+)
+AM_CONDITIONAL([ENABLE_WLED], [test "x$enable_wled" = xyes])
+
+AC_ARG_ENABLE(
+  [wled-websocket],
+  [AS_HELP_STRING([--enable-wled-websocket], [Enable WLED WebSocket support (requires Boost.Beast)])]
+)
+AM_CONDITIONAL([ENABLE_JSON_WEBSOCKET], [test "x$enable_wled_websocket" = xyes])
+
+AC_ARG_ENABLE(
   [platformshortbreak],
   [AS_HELP_STRING([--enable-platformshortbreak], [Enable usage of platform's ability to produce short breaks on UART])]
 )
@@ -174,6 +186,12 @@ AM_COND_IF([ENABLE_MODBUS], [
   AM_COND_IF([EMBEDDED_LIBMODBUS], [], [
     AC_CHECK_LIB(modbus, modbus_rtu_set_custom_rts_ex, [], [AC_MSG_ERROR([Could not find libmodbus with modbus_rtu_set_custom_rts_ex - plan44 enhanced version!])])
   ])
+], [])
+
+AM_COND_IF([ENABLE_JSON_WEBSOCKET], [
+  AC_CHECK_LIB(boost_system, main, [], [AC_MSG_ERROR([Could not find libboost_system (required for Boost.Beast WebSocket support)])])
+  AX_BOOST_ASIO
+  AX_BOOST_SYSTEM
 ], [])
 
 AC_CHECK_LIB(json-c, json_tokener_get_error, [], [AC_MSG_ERROR([Could not find JSON-C / libjson0 with json_tokener_get_error supported (>=0.10)])])
@@ -243,12 +261,12 @@ AC_SUBST(PROTOC)
 AC_CHECK_HEADERS([arpa/inet.h fcntl.h inttypes.h limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h unistd.h sys/resource.h], [], [AC_MSG_ERROR([required system header not found])])
 
 
-ASSUMED_BOOST_VER=146
+ASSUMED_BOOST_VER=183
 
-BOOST_REQUIRE([1.46], [
+BOOST_REQUIRE([1.83], [
   unset boost_cv_version
   unset boost_cv_inc_path
-  BOOST_REQUIRE([1.35], [
+  BOOST_REQUIRE([1.83], [
     AC_MSG_ERROR([could not find boost on your system])
   ])
   ASSUMED_BOOST_VER=135
@@ -257,7 +275,7 @@ BOOST_REQUIRE([1.46], [
 if test $ASSUMED_BOOST_VER -eq 135; then
   AC_DEFINE([BOOST_VERSION_135], [1], [boost 1.35 or higher])
 else
-  AC_DEFINE([BOOST_VERSION_146], [1], [boost 1.46 or higher])
+  AC_DEFINE([BOOST_VERSION_146], [1], [boost 1.83 or higher])
 fi
 
 BOOST_BIND

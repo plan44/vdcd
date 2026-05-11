@@ -296,6 +296,39 @@ RRDB_FLAGS = -D ENABLE_RRDB=0
 endif
 
 
+# WLED device class support
+if ENABLE_WLED
+
+WLED_SOURCES = \
+  src/p44vdc/deviceclasses/wled/wledcomm.cpp \
+  src/p44vdc/deviceclasses/wled/wledcomm.hpp \
+  src/p44vdc/deviceclasses/wled/wledvdc.cpp \
+  src/p44vdc/deviceclasses/wled/wledvdc.hpp \
+  src/p44vdc/deviceclasses/wled/wleddevice.cpp \
+  src/p44vdc/deviceclasses/wled/wleddevice.hpp
+
+WLED_FLAGS = -D ENABLE_WLED=1
+
+else
+
+WLED_SOURCES =
+WLED_FLAGS = -D ENABLE_WLED=0
+
+endif
+
+
+# JSON WebSocket support (Boost.Beast based)
+if ENABLE_JSON_WEBSOCKET
+
+JSON_WEBSOCKET_FLAGS = -D ENABLE_JSON_WEBSOCKET=1
+
+else
+
+JSON_WEBSOCKET_FLAGS = -D ENABLE_JSON_WEBSOCKET=0
+
+endif
+
+
 # p44features special purpose hardware support
 if ENABLE_P44FEATURES
 
@@ -849,7 +882,9 @@ vdcd_CPPFLAGS = \
   -I ${srcdir}/src/p44vdc/deviceclasses/dali \
   -I ${srcdir}/src/p44vdc/deviceclasses/hue \
   -I ${srcdir}/src/p44vdc/deviceclasses/ledchain \
+  -I ${srcdir}/src/p44vdc/deviceclasses/wled \
   ${RRDB_FLAGS} \
+  ${WLED_FLAGS} \
   ${P44FEATURES_FLAGS} \
   ${RPIWS281X_FLAGS} \
   ${OLA_FLAGS} \
@@ -862,6 +897,7 @@ vdcd_CPPFLAGS = \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
   ${GPIOD_FLAGS} \
+  ${JSON_WEBSOCKET_FLAGS} \
   ${LVGL_FLAGS} \
   ${BOOST_CPPFLAGS} \
   ${PTHREAD_CFLAGS} \
@@ -934,6 +970,8 @@ vdcd_SOURCES = \
   src/p44utils/jsonrpccomm.hpp \
   src/p44utils/jsonwebclient.cpp\
   src/p44utils/jsonwebclient.hpp\
+  src/p44utils/jsonwebsocketclient.cpp\
+  src/p44utils/jsonwebsocketclient.hpp\
   src/p44utils/ledchaincomm.cpp \
   src/p44utils/ledchaincomm.hpp \
   src/p44utils/logger.cpp \
@@ -1195,6 +1233,7 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/ledchain/ledchaindevice.cpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.hpp \
   src/p44vdc/deviceclasses/ledchain/ledchainvdc.cpp \
+  ${WLED_SOURCES} \
   src/p44utils_config.hpp \
   src/p44vdc_config.hpp \
   src/p44_vdcd_main.cpp
