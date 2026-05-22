@@ -52,6 +52,9 @@
 #endif
 #if ENABLE_EXTERNAL
 #include "externalvdc.hpp"
+#if ENABLE_MATTER
+#include "mattervdc.hpp"
+#endif
 #endif
 #if ENABLE_SCRIPTED
 #include "scriptedvdc.hpp"
@@ -440,7 +443,7 @@ public:
       { 0  , "daliportidle",     true,  "seconds;DALI serial port will be closed after this timeout and re-opened on demand only" },
       { 0  , "dalitxadj",        true,  "adjustment;DALI signal adjustment for sending" },
       { 0  , "dalirxadj",        true,  "adjustment;DALI signal adjustment for receiving" },
-      #endif
+      #endif // ENABLE_DALI
       #if ENABLE_ENOCEAN
       { 'b', "enocean",          true,  "bridge;EnOcean modem serial port device or proxy host[:port]" },
       { 0,   "enoceanreset",     true,  "pinspec;set I/O pin connected to EnOcean module reset" },
@@ -474,7 +477,11 @@ public:
       #if ENABLE_EXTERNAL
       { 0,   "externaldevices",  true, "port/socketpath;enable support for external devices connecting via specified port or local socket path" },
       { 0,   "externalnonlocal", false, "allow external device connections from non-local clients" },
-      #endif
+      #if ENABLE_MATTER
+      { 0,   "matterdevices",    true, "port/socketpath;enable support for external matter devices" },
+      { 0,   "matternonlocal",   false, "allow matter device connections from non-local clients" },
+      #endif // ENABLE_MATTER
+      #endif // ENABLE_EXTERNAL
       #if ENABLE_SCRIPTED
       { 0,   "scripteddevices",  false, "enable support for devices implemented in p44script" },
       #endif
@@ -959,6 +966,15 @@ public:
           externalVdc->addVdcToVdcHost();
         }
         #endif // ENABLE_EXTERNAL
+
+        #if ENABLE_MATTER
+        // - Add support for matter devices connecting via socket
+        const char *matterdevname = getOption("matterdevices");
+        if (matterdevname) {
+          MatterVdcPtr matterVdc = MatterVdcPtr(new MatterVdc(1, matterdevname, getOption("matternonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
+          matterVdc->addVdcToVdcHost();
+        }
+        #endif // ENABLE_MATTER
 
         #if ENABLE_SCRIPTED
         // - Add support for scripted devices (p44script implementations of "external" devices)

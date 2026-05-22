@@ -53,6 +53,7 @@
 		ED3701FC2007B4BB00A1BD67 /* logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED6D7BEE1716EAA6005DED18 /* logger.cpp */; };
 		ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED07E25B17D7878D00889CC3 /* httpcomm.cpp */; };
 		ED3701FE2007B4F400A1BD67 /* civetweb.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3701F22006073300A1BD67 /* civetweb.c */; };
+		ED381A6A2FBF2B39007C23FF /* mattervdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED381A692FBF2B39007C23FF /* mattervdc.cpp */; };
 		ED3EF3CC2735AB0B004DFF99 /* modbus.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF3CB2735AB0B004DFF99 /* modbus.cpp */; };
 		ED3EF45A2735ADE9004DFF99 /* modbus-tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF44F2735ADE8004DFF99 /* modbus-tcp.c */; };
 		ED3EF45B2735ADE9004DFF99 /* modbus-data.c in Sources */ = {isa = PBXBuildFile; fileRef = ED3EF4532735ADE8004DFF99 /* modbus-data.c */; };
@@ -733,6 +734,8 @@
 		ED3701F12006073200A1BD67 /* civetweb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = civetweb.h; sourceTree = "<group>"; };
 		ED3701F22006073300A1BD67 /* civetweb.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = civetweb.c; sourceTree = "<group>"; tabWidth = 4; usesTabs = 0; };
 		ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = test_httpcomm.cpp; sourceTree = "<group>"; };
+		ED381A682FBF2B39007C23FF /* mattervdc.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = mattervdc.hpp; sourceTree = "<group>"; };
+		ED381A692FBF2B39007C23FF /* mattervdc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mattervdc.cpp; sourceTree = "<group>"; };
 		ED3BDFE42454793700115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE524547DEA00115B6C /* FUNDING.yml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
 		ED3BDFE624547E0300115B6C /* FUNDING.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = FUNDING.yml; path = .github/FUNDING.yml; sourceTree = "<group>"; };
@@ -2445,6 +2448,8 @@
 				ED5DA3EA1BB294D7003C86C7 /* externalvdc.hpp */,
 				EDABE4642681E39E009CAA1E /* scriptedvdc.cpp */,
 				EDABE4652681E39E009CAA1E /* scriptedvdc.hpp */,
+				ED381A692FBF2B39007C23FF /* mattervdc.cpp */,
+				ED381A682FBF2B39007C23FF /* mattervdc.hpp */,
 			);
 			path = custom;
 			sourceTree = "<group>";
@@ -5038,6 +5043,7 @@
 				ED81337C17C72F45003982CC /* outputbehaviour.cpp in Sources */,
 				EDDDD5531A125FBC007D2ABE /* dmxvdc.cpp in Sources */,
 				EDDA9E701F8CC8D200883DC5 /* localcontroller.cpp in Sources */,
+				ED381A6A2FBF2B39007C23FF /* mattervdc.cpp in Sources */,
 				EDF8B57828DA183300A68D49 /* bridgedevice.cpp in Sources */,
 				ED5BDAB117BCE52100DBC19A /* propertycontainer.cpp in Sources */,
 				EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */,

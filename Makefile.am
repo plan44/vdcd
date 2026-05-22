@@ -1122,6 +1122,8 @@ vdcd_SOURCES = \
   src/p44vdc/deviceclasses/custom/customdevice.hpp \
   src/p44vdc/deviceclasses/custom/externalvdc.cpp \
   src/p44vdc/deviceclasses/custom/externalvdc.hpp \
+  src/p44vdc/deviceclasses/custom/mattervdc.cpp \
+  src/p44vdc/deviceclasses/custom/mattervdc.hpp \
   src/p44vdc/deviceclasses/custom/scriptedvdc.cpp \
   src/p44vdc/deviceclasses/custom/scriptedvdc.hpp \
   src/p44vdc/deviceclasses/evaluator/evaluatorvdc.cpp \

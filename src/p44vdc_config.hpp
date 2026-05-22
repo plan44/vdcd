@@ -74,6 +74,7 @@
   #define ENABLE_STATIC 0 // disabled because of footprint
   #define ENABLE_FCU_SUPPORT 0 // disabled because of footprint
   #define ENABLE_EXTERNAL 0 // disabled because of footprint
+  #define ENABLE_MATTER 0 // disabled because of footprint
   #define ENABLE_SCRIPTED 0 // disabled because of footprint and lack of scripting in general
   #define ENABLE_CUSTOM_EXOTIC 0 // disabled because of footprint
   #define ENABLE_CUSTOM_SINGLEDEVICE 0 // disabled because of footprint
@@ -120,6 +121,7 @@
   #define ENABLE_STATIC 1
   #define ENABLE_FCU_SUPPORT 1
   #define ENABLE_EXTERNAL 1
+  #define ENABLE_MATTER 1
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1
@@ -166,6 +168,9 @@
   #endif
   #ifndef ENABLE_EXTERNAL
     #define ENABLE_EXTERNAL 1
+  #endif
+  #ifndef ENABLE_MATTER
+    #define ENABLE_MATTER (ENABLE_EXTERNAL)
   #endif
   #ifndef ENABLE_SCRIPTED
     #define ENABLE_SCRIPTED 1
