@@ -120,6 +120,12 @@ AC_ARG_ENABLE(
 AM_CONDITIONAL([ENABLE_WBF], [test "x$enable_wbf" = xyes])
 
 AC_ARG_ENABLE(
+  [mctrl],
+  [AS_HELP_STRING([--enable-mctrl], [Enable matter controller support])]
+)
+AM_CONDITIONAL([ENABLE_MCTRL], [test "x$enable_mctrl" = xyes])
+
+AC_ARG_ENABLE(
   [lvgl],
   [AS_HELP_STRING([--enable-lvgl], [Enable lvgl graphics support])]
 )

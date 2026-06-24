@@ -166,6 +166,18 @@ WBFSUPP_FLAGS = -D ENABLE_WBF=0
 endif
 
 
+# matter controller
+if ENABLE_MCTRL
+
+MCTRLSUPP_FLAGS = -D ENABLE_MATTER=1
+
+else
+
+MCTRLSUPP_FLAGS = -D ENABLE_MATTER=0
+
+endif
+
+
 
 # ubus support via libubus
 if ENABLE_MODBUS
@@ -864,6 +876,7 @@ vdcd_CPPFLAGS = \
   ${MODBUSSUPP_FLAGS} \
   ${DS485SUPP_FLAGS} \
   ${WBFSUPP_FLAGS} \
+  ${MCTRLSUPP_FLAGS} \
   ${EV_FLAGS} \
   ${UWSC_FLAGS} \
   ${GPIOD_FLAGS} \
