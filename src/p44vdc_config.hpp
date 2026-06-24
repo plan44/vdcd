@@ -47,6 +47,7 @@
   #define ENABLE_JSONBRIDGEAPI 1
   #define ENABLE_DS485DEVICES 1
   #define ENABLE_WBF 1
+  #define ENABLE_MATTER 1
   #define ENABLE_LEGACY_P44CFGAPI 0
   #define ENABLE_UBUS 0
   #define ENABLE_OLA 0 // we do no longer want to install OLA on macOS
@@ -121,7 +122,6 @@
   #define ENABLE_STATIC 1
   #define ENABLE_FCU_SUPPORT 1
   #define ENABLE_EXTERNAL 1
-  #define ENABLE_MATTER 1
   #define ENABLE_SCRIPTED 1
   #define ENABLE_CUSTOM_SINGLEDEVICE 1
   #define ENABLE_EVALUATORS 1

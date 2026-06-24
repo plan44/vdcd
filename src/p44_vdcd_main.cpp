@@ -55,7 +55,7 @@
 #if ENABLE_MATTER
 #include "mattervdc.hpp"
 #endif
-#endif
+#endif // ENABLE_EXTERNAL
 #if ENABLE_SCRIPTED
 #include "scriptedvdc.hpp"
 #endif
