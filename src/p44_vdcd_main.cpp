@@ -239,6 +239,21 @@ public:
   }
 
 
+  bool hasRedLED()
+  {
+    return dynamic_pointer_cast<MissingPin>(mRedLED) != nullptr;
+  }
+
+
+  IndicatorOutputPtr redOrExistingLED()
+  {
+    if (!hasRedLED()) {
+      return mGreenLED; // must exist
+    }
+    return mRedLED;
+  }
+
+
   void setAppStatus(AppStatus aStatus)
   {
     mAppStatus = aStatus;
@@ -261,7 +276,7 @@ public:
             // activity flashes only during normal operation
             timer = 50*MilliSecond;
             mRedLED->steadyOn();
-            mGreenLED->steadyOn();
+            mGreenLED->steady(hasRedLED()); // flash dark if we only have the green LED
           }
           else {
             mCurrentTempStatus = tempstatus_none;
@@ -281,22 +296,22 @@ public:
         case tempstatus_buttonpressedlong:
           // just red
           mRedLED->steadyOn();
-          mGreenLED->steadyOff();
+          mGreenLED->steady(hasRedLED()); // indicate dark while pressed if we only have the green LED
           break;
         case tempstatus_factoryresetwait:
           // fast red blinking
           mGreenLED->steadyOff();
-          mRedLED->blinkFor(p44::Infinite, 200*MilliSecond, 20);
+          redOrExistingLED()->blinkFor(p44::Infinite, 200*MilliSecond, 20);
           break;
         case tempstatus_success:
           timer = 1600*MilliSecond;
           mRedLED->steadyOff();
-          mGreenLED->blinkFor(timer, 400*MilliSecond, 30);
+          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, hasRedLED() ? 30 : 70); // FAT blink if only one LED
           break;
         case tempstatus_failure:
           timer = 1600*MilliSecond;
           mGreenLED->steadyOff();
-          mRedLED->blinkFor(timer, 400*MilliSecond, 30);
+          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, hasRedLED() ? 30 : 15); // THIN blink if only one LED
           break;
         default:
           break;
@@ -327,16 +342,18 @@ public:
           break;
         case status_busy:
           mGreenLED->steadyOn();
-          mRedLED->steadyOn();
+          if (hasRedLED()) mRedLED->steadyOn(); // yellow
+          else mGreenLED->blinkFor(p44::Infinite, 400*MilliSecond, 50); // vanilla 50% on/off blink
           break;
         case status_interaction:
           mGreenLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
-          mRedLED->blinkFor(p44::Infinite, 400*MilliSecond, 80);
+          redOrExistingLED()->blinkFor(p44::Infinite, 400*MilliSecond, 80);
           break;
         case status_error:
           LOG(LOG_ERR, "****** Error - operation may be limited or entirely prevented - check logs!");
           mGreenLED->steadyOff();
-          mRedLED->steadyOn();
+          if (hasRedLED()) mRedLED->steadyOn();
+          else mGreenLED->blinkFor(p44::Infinite, 800*MilliSecond, 90); // on with regular short offs
           break;
         case status_fatalerror:
           LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!");
@@ -1113,7 +1130,7 @@ public:
         #endif
       }
       else if (aTimeSincePreviousChange>=UPGRADE_CHECK_HOLD_TIME) {
-        // visually acknowledge long keypress by turning LED red
+        // visually acknowledge long keypress by turning LED red (or off on single-led devices)
         indicateTempStatus(tempstatus_buttonpressedlong);
         LOG(LOG_WARNING, "Button held for >%.1f seconds -> upgrade check if released now", (double)UPGRADE_CHECK_HOLD_TIME/Second);
       }
@@ -1185,8 +1202,8 @@ public:
         LOG(LOG_WARNING, "Button pressed long enough for factory reset -> releasing now will do factory reset");
         // if released now, factory reset will occur (but if held still longer, will enter "button stuck" mode)
         // - just indicate it
-        mRedLED->steadyOn();
         mGreenLED->steadyOff();
+        redOrExistingLED()->steadyOn();
       }
     }
     return true;
