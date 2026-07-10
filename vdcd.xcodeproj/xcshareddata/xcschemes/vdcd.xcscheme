@@ -168,7 +168,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--proxydevices 192.168.59.170"
+            argument = "--proxydevices 192.168.59.84"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
