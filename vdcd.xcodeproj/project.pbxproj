@@ -5560,6 +5560,7 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
+					"ENABLE_APPLICATION_SUPPORT=0",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5598,6 +5599,7 @@
 					"USE_SSL_HEADERS=1",
 					"NO_SSL_DL=1",
 					"ENABLE_P44SCRIPT=1",
+					"ENABLE_APPLICATION_SUPPORT=0",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
