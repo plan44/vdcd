@@ -169,7 +169,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.84"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 127.0.0.1:2144"
