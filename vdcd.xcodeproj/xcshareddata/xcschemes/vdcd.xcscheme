@@ -117,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-rv110x/feeds/p44i/p44lc-config/files/p44-xx-86panel/usr/share/p44lc"
@@ -125,7 +125,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Users/luz/Desktop"
-            isEnabled = "NO">
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--setupscript +/setupscript.p44s"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled simpin.R --greenled simpin.G"
