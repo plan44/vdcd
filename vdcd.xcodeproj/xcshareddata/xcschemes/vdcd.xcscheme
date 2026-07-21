@@ -128,7 +128,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--setupscript +/setupscript.p44s"
+            argument = "--setupscript +/setups/setupscript.p44s"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -249,11 +249,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userlevel 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--userlevel 2"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--novdcapi"

@@ -607,9 +607,13 @@ public:
     };
 
     // first of all, make sure we have the correct standard scripting domain
-    // Note: this must happen before parseCommandLine, because that might already
+    // Notes:
+    // - this must happen before parseCommandLine, because that might already
     //   instantiate system parts which access the standard scripting domain
     //   (to register component-specific functions)
+    // - As we (must!) do this before parseCommandLine(), we don't have parsed the
+    //   userlevel yet, and the standard domain will get the default level. So we
+    //   need to re-set the level after parseCommandLine() below!
     #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
     FileStorageStandardScriptingDomain* standarddomain = new FileStorageStandardScriptingDomain;
     StandardScriptingDomain::setStandardScriptingDomain(standarddomain);
@@ -620,6 +624,11 @@ public:
     if (!parseCommandLine(argc, argv)) {
       runToTerminationWith(EXIT_FAILURE);
     }
+
+    #if P44SCRIPT_REGISTERED_SOURCE && P44SCRIPT_STORE_AS_FILES
+    // now we might have a valid user level from the command line, propagate this to the standard domain
+    standarddomain->setUserLevel(userLevel());
+    #endif
 
     if ((numOptions()<1) || (numArguments()>0)) {
       // show usage
