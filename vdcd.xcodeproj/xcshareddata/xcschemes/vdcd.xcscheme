@@ -93,6 +93,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-temp"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-airboxtest"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -129,6 +133,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--setupscript +/setups/setupscript.p44s"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--selftest --notestablehw"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -357,7 +365,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"

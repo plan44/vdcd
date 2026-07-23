@@ -239,15 +239,9 @@ public:
   }
 
 
-  bool hasRedLED()
-  {
-    return dynamic_pointer_cast<MissingPin>(mRedLED) != nullptr;
-  }
-
-
   IndicatorOutputPtr redOrExistingLED()
   {
-    if (!hasRedLED()) {
+    if (mRedLED->pinMissing()) {
       return mGreenLED; // must exist
     }
     return mRedLED;
@@ -276,7 +270,7 @@ public:
             // activity flashes only during normal operation
             timer = 50*MilliSecond;
             mRedLED->steadyOn();
-            mGreenLED->steady(hasRedLED()); // flash dark if we only have the green LED
+            mGreenLED->steady(!mRedLED->pinMissing()); // flash dark if we only have the green LED
           }
           else {
             mCurrentTempStatus = tempstatus_none;
@@ -296,7 +290,7 @@ public:
         case tempstatus_buttonpressedlong:
           // just red
           mRedLED->steadyOn();
-          mGreenLED->steady(hasRedLED()); // indicate dark while pressed if we only have the green LED
+          mGreenLED->steady(!mRedLED->pinMissing()); // indicate dark while pressed if we only have the green LED
           break;
         case tempstatus_factoryresetwait:
           // fast red blinking
@@ -306,12 +300,12 @@ public:
         case tempstatus_success:
           timer = 1600*MilliSecond;
           mRedLED->steadyOff();
-          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, hasRedLED() ? 30 : 70); // FAT blink if only one LED
+          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, mRedLED->pinMissing() ? 70 : 30); // FAT blink if only one LED
           break;
         case tempstatus_failure:
           timer = 1600*MilliSecond;
           mGreenLED->steadyOff();
-          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, hasRedLED() ? 30 : 15); // THIN blink if only one LED
+          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, mRedLED->pinMissing() ? 15 : 30); // THIN blink if only one LED
           break;
         default:
           break;
@@ -342,7 +336,7 @@ public:
           break;
         case status_busy:
           mGreenLED->steadyOn();
-          if (hasRedLED()) mRedLED->steadyOn(); // yellow
+          if (!mRedLED->pinMissing()) mRedLED->steadyOn(); // yellow
           else mGreenLED->blinkFor(p44::Infinite, 400*MilliSecond, 50); // vanilla 50% on/off blink
           break;
         case status_interaction:
@@ -352,7 +346,7 @@ public:
         case status_error:
           LOG(LOG_ERR, "****** Error - operation may be limited or entirely prevented - check logs!");
           mGreenLED->steadyOff();
-          if (hasRedLED()) mRedLED->steadyOn();
+          if (!mRedLED->pinMissing()) mRedLED->steadyOn();
           else mGreenLED->blinkFor(p44::Infinite, 800*MilliSecond, 90); // on with regular short offs
           break;
         case status_fatalerror:
@@ -1331,7 +1325,7 @@ public:
       }
       // - if not already in factory reset wait, initialize normally
       if (!mFactoryResetWait) {
-        // - initialize the device container
+        // - initialize the device container (but do not yet collect devices!)
         mP44VdcHost->initialize(boost::bind(&P44Vdcd::initialized, this, _1), false); // no factory reset
       }
     }
