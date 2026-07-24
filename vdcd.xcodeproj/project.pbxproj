@@ -5782,6 +5782,7 @@
 					"ENABLE_ZF=1",
 					"ENABLE_PNG=1",
 					"ENABLE_RRDB=1",
+					"USE_IPV6=1",
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
 				);
@@ -5817,6 +5818,7 @@
 					"ENABLE_ZF=1",
 					"ENABLE_PNG=1",
 					"ENABLE_RRDB=1",
+					"USE_IPV6=1",
 					"NO_SSL_DL=1",
 					"EMBEDDED_LIBMODBUS=1",
 				);
