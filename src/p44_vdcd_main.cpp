@@ -826,7 +826,7 @@ public:
         }
         // set up server for vdSM to connect to
         getStringOption("vdsmport", vdcapiservice);
-        mP44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, AF_INET);
+        mP44VdcHost->mVdcApiServer->setConnectionParams(NULL, vdcapiservice, SOCK_STREAM, mProtocols);
         mP44VdcHost->mVdcApiServer->setAllowNonlocalConnections(getOption("vdsmnonlocal"));
       }
 
@@ -982,7 +982,7 @@ public:
         // - Add support for external devices connecting via socket
         const char *extdevname = getOption("externaldevices");
         if (extdevname) {
-          ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
+          ExternalVdcPtr externalVdc = ExternalVdcPtr(new ExternalVdc(1, extdevname, getOption("externalnonlocal"), mProtocols, mP44VdcHost.get(), 7)); // Tag 7 = external
           externalVdc->addVdcToVdcHost();
         }
         #endif // ENABLE_EXTERNAL
@@ -991,7 +991,7 @@ public:
         // - Add support for matter devices connecting via socket
         const char *matterdevname = getOption("matterdevices");
         if (matterdevname) {
-          MatterVdcPtr matterVdc = MatterVdcPtr(new MatterVdc(1, matterdevname, getOption("matternonlocal"), mP44VdcHost.get(), 7)); // Tag 7 = external
+          MatterVdcPtr matterVdc = MatterVdcPtr(new MatterVdc(1, matterdevname, getOption("matternonlocal"), mProtocols, mP44VdcHost.get(), 7)); // Tag 7 = external
           matterVdc->addVdcToVdcHost();
         }
         #endif // ENABLE_MATTER
