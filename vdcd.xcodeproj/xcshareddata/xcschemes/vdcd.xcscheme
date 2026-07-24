@@ -137,7 +137,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest --notestablehw"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--redled simpin.R --greenled simpin.G"
@@ -181,7 +181,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.84"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 127.0.0.1:2144"
@@ -333,7 +333,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--evaluators"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--staticdevices"
@@ -341,7 +341,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 127.0.0.1:2101"
@@ -349,7 +349,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--matterdevices 8977 --matternonlocal"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 192.168.59.221 --daliportidle 10"

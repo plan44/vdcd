@@ -298,14 +298,16 @@ public:
           redOrExistingLED()->blinkFor(p44::Infinite, 200*MilliSecond, 20);
           break;
         case tempstatus_success:
-          timer = 1600*MilliSecond;
+          // 4 green (or FAT if only one LED) blinks
+          timer = 2800*MilliSecond;
           mRedLED->steadyOff();
-          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, mRedLED->pinMissing() ? 70 : 30); // FAT blink if only one LED
+          mGreenLED->blinkFor(timer, 700*MilliSecond, mRedLED->pinMissing() ? 70 : 30); // FAT blink if only one LED
           break;
         case tempstatus_failure:
-          timer = 1600*MilliSecond;
+          // 4 red (or THIN if only one LED) blinks
+          timer = 2800*MilliSecond;
           mGreenLED->steadyOff();
-          redOrExistingLED()->blinkFor(timer, 400*MilliSecond, mRedLED->pinMissing() ? 15 : 30); // THIN blink if only one LED
+          redOrExistingLED()->blinkFor(timer, 700*MilliSecond, mRedLED->pinMissing() ? 15 : 30); // THIN blink if only one LED
           break;
         default:
           break;
@@ -352,7 +354,7 @@ public:
         case status_fatalerror:
           LOG(LOG_ALERT, "****** Fatal error - operation cannot continue - try restarting!");
           mGreenLED->steadyOff();
-          mRedLED->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
+          redOrExistingLED()->blinkFor(p44::Infinite, 800*MilliSecond, 50);;
           break;
       }
     }
@@ -991,7 +993,7 @@ public:
         // - Add support for matter devices connecting via socket
         const char *matterdevname = getOption("matterdevices");
         if (matterdevname) {
-          MatterVdcPtr matterVdc = MatterVdcPtr(new MatterVdc(1, matterdevname, getOption("matternonlocal"), mProtocols, mP44VdcHost.get(), 7)); // Tag 7 = external
+          MatterVdcPtr matterVdc = MatterVdcPtr(new MatterVdc(1, matterdevname, getOption("matternonlocal"), mProtocols, mP44VdcHost.get(), 23)); // Tag 23 = matter
           matterVdc->addVdcToVdcHost();
         }
         #endif // ENABLE_MATTER
@@ -1007,7 +1009,7 @@ public:
         #if ENABLE_PROXYDEVICES
         // - Add a separate vdc for each proxy host (secondary vdcd's bridge API) specified or found via DNS-SD
         const char *proxies = getOption("proxydevices");
-        if (proxies) {
+        if (proxies && !mSelfTesting) { // do not instantiate when testing
           ProxyVdc::instantiateProxies(proxies, mP44VdcHost.get(), 20); // Tag 20 = proxies
         }
         #endif // ENABLE_PROXYDEVICES
@@ -1015,7 +1017,7 @@ public:
         #if ENABLE_DS485DEVICES
         // - Add support for dS485 based devices
         const char *ds485server = getOption("ds485api");
-        if (ds485server) {
+        if (ds485server && !mSelfTesting) { // do not instantiate when testing
           const char *ds485tunnel = getOption("ds485tunnel");
           Ds485VdcPtr ds485Vdc = Ds485VdcPtr(new Ds485Vdc(1, mP44VdcHost.get(), 21)); // Tag 21 = ds485
           ds485Vdc->mDs485Comm.setConnectionSpecification(ds485server, DEFAULT_DS485PORT, ds485tunnel);
