@@ -57,7 +57,7 @@
   #define ENABLE_LVGL 1 // graphics support with SDL2 simulated display on macOS
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
   #define HAVE_JSONC_VERSION_013 1 // unlike in many linux distros, brew had json-c >=0.13 for a while (2021: 0.15)
-#endif
+#endif // defined(__APPLE__)
 
 // general defaults
 #define ENABLE_LOCAL_BEHAVIOUR 1 // enabled local (minimalistic) light/button operations when no vdsm is connected
@@ -94,6 +94,8 @@
   #define SCRIPTING_JSON_SUPPORT 0 // disabled because of footprint
   #define ENABLE_SCENE_SCRIPT 0 // disabled because of footprint
   #define ENABLE_SETTINGS_FROM_FILES 0 // disabled because not needed and adding to footprint
+  #define ENABLE_PWM_SUPPORT 0 // to save a bit space
+  #define ENABLE_VALUE_ANIMATOR_SUPPORT 0 // disabled because of footprint
   #define ENABLE_HTTP_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_DNSSD_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SOCKET_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
@@ -102,6 +104,7 @@
   #define ENABLE_DIGITALIO_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANALOGIO_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_ANALOGIO_COLOR_SUPPORT 0 // disabled because not needed and adding to footprint
+  #define ENABLE_ANALOGIO_ANIMATION_SUPPORT 0 // disabled because not needed and adding to footprint
   #define ENABLE_DCMOTOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_MIDI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SERIAL_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
@@ -112,6 +115,8 @@
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
   #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern
   #define ENABLE_LOG_COLORS 0 // to save a bit space and performance
+  #define DISABLE_PWM 1 // to save a bit space
+  #define DISABLE_CONSOLEKEY 1 // console is debug-only, save the space
 #elif P44_BUILD_OW
   // P44-DSB-xx2 and P44-DSB-Rpi,Rpi-2,Rpi-3
   #define ENABLE_DALI 1
@@ -202,7 +207,7 @@
   #if !defined(ENABLE_P44SCRIPT)
     #define ENABLE_P44SCRIPT 1
   #endif
-#endif
+#endif // ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
 
 
 
