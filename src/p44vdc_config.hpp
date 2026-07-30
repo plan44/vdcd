@@ -104,6 +104,10 @@
   #define ENABLE_ANALOGIO_COLOR_SUPPORT 0 // disabled because not needed and adding to footprint
   #define ENABLE_DCMOTOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_MIDI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_SERIAL_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_I2C_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_SPI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_LVGL 0 // disabled because of everything
   #define USE_AVAHI_CORE 1 // use direct avahi-code functions (good for small embedded targets, not recommended for desktops)
   #define SELFTESTING_ENABLED 0 // no longer needed, no new units will be produced any more
   #define REDUCED_FOOTPRINT 1 // general flag to leave away stuff not urgently needed when footprint is a concern
