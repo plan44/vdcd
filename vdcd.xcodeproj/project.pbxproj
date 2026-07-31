@@ -2496,7 +2496,6 @@
 				EDF836662DA592B600ED9BD6 /* ds485-stack */,
 				ED3BDFE724547E2F00115B6C /* FUNDING.yml */,
 				EDB5B4002323E01E00A0C84D /* README.md */,
-				ED86777B1EB8C2410006E146 /* tests */,
 				ED0DE305184E3821001ADB5E /* pbuf */,
 				ED31268518311BD300FAF28B /* vdc_common */,
 				ED3126881831225600FAF28B /* behaviours */,
@@ -2615,13 +2614,6 @@
 				ED77A4741E78B9C5004D8303 /* slre.h */,
 			);
 			path = slre;
-			sourceTree = "<group>";
-		};
-		ED86777B1EB8C2410006E146 /* tests */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = tests;
 			sourceTree = "<group>";
 		};
 		ED911D251B11D73A00B18624 /* ledchain */ = {

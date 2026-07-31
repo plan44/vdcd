@@ -80,11 +80,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "~[http]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "~[slow]"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[macaddress]"
