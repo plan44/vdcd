@@ -44,6 +44,9 @@
 #if ENABLE_HUE
 #include "huevdc.hpp"
 #endif
+#if ENABLE_WLED
+#include "wledvdc.hpp"
+#endif
 #if ENABLE_WBF
 #include "wbfvdc.hpp"
 #endif
@@ -468,6 +471,10 @@ public:
       #if ENABLE_HUE
       { 0,   "huelights",        false, "enable support for hue LED lamps (via hue bridge)" },
       { 0,   "hueapiurl",        true,  NULL, /* dummy, but kept to prevent breaking startup in installations that use this option */ },
+      #endif
+      #if ENABLE_WLED
+      { 0,   "wledlights",       false, "enable support for WLED LED lamps (via WLED devices)" },
+      { 0,   "wledips",          true,  "ip[,...];list of WLED device IP addresses to connect to" },
       #endif
       #if ENABLE_WBF
       { 0,   "wbf",              false, "enable support for Wiser-by-Feller (via µGateway)" },
@@ -924,6 +931,15 @@ public:
           hueVdc->addVdcToVdcHost();
         }
         #endif // ENABLE_HUE
+
+        #if ENABLE_WLED
+        // - Add wled support
+        if (getOption("wledlights")) {
+          WledVdcPtr wledVdc = WledVdcPtr(new WledVdc(1, mP44VdcHost.get(), 4)); // Tag 4 = wled
+          wledVdc->addVdcToVdcHost();
+          LOG(LOG_NOTICE, "WLED VDC created successfully");
+        }
+        #endif // ENABLE_WLED
 
         #if ENABLE_WBF
         // - Add wiser-by-feller support

@@ -163,6 +163,10 @@
   #ifndef ENABLE_HUE
     #define ENABLE_HUE 1
   #endif
+  #ifndef ENABLE_WLED
+    #define ENABLE_WLED 1
+    #define ENABLE_JSON_WEBSOCKET 1
+  #endif
   #ifndef ENABLE_STATIC
     #define ENABLE_STATIC 1
   #endif
