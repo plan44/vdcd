@@ -699,8 +699,8 @@ public:
     // web ui
     int webUiPort = 0;
     getIntOption("webuiport", webUiPort);
-    mP44VdcHost->webUiPort = webUiPort;
-    getStringOption("webuipath", mP44VdcHost->webUiPath);
+    mP44VdcHost->mWebUiPort = webUiPort;
+    getStringOption("webuipath", mP44VdcHost->mWebUiPath);
 
     // max API version
     int maxApiVersion = 0; // no limit
@@ -1432,8 +1432,8 @@ public:
         mProtocols,
         mP44VdcHost,
         getOption("noauto"),
-        mP44VdcHost->webUiPort,
-        mP44VdcHost->webUiPath,
+        mP44VdcHost->mWebUiPort,
+        mP44VdcHost->mWebUiPath,
         sshPort,
         bridgeApiPort
       );
