@@ -911,6 +911,8 @@ vdcd_SOURCES = \
   src/p44utils/analogio.hpp \
   src/p44utils/application.cpp \
   src/p44utils/application.hpp \
+  src/p44utils/artnetcomm.cpp \
+  src/p44utils/artnetcomm.hpp \
   src/p44utils/backlight.cpp \
   src/p44utils/backlight.hpp \
   src/p44utils/colorutils.cpp \
@@ -923,6 +925,8 @@ vdcd_SOURCES = \
   src/p44utils/dcmotor.hpp \
   src/p44utils/digitalio.cpp \
   src/p44utils/digitalio.hpp \
+  src/p44utils/dmxhandler.cpp \
+  src/p44utils/dmxhandler.hpp \
   src/p44utils/dnssd.cpp \
   src/p44utils/dnssd.hpp \
   src/p44utils/error.cpp \

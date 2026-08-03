@@ -87,6 +87,7 @@
   #define ENABLE_MODBUS 0 // not needed
   #define ENABLE_MIDI 0 // not needed
   #define ENABLE_DMX 0 // not needed
+  #define ENABLE_ARTNET 0 // not needed
   #define ENABLE_DS485DEVICES 0 // disabled because of footprint
   #define ENABLE_WBF 0 // disabled because of footprint
   #define ENABLE_JSONBRIDGEAPI 0 // disabled because of footprint
@@ -107,6 +108,7 @@
   #define ENABLE_ANALOGIO_ANIMATION_SUPPORT 0 // disabled because not needed and adding to footprint
   #define ENABLE_DCMOTOR_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_MIDI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
+  #define ENABLE_DMX_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SERIAL_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_I2C_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint
   #define ENABLE_SPI_SCRIPT_FUNCS 0 // disabled because not needed and adding to footprint

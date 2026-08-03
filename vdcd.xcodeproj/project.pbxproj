@@ -598,6 +598,8 @@
 		EDDE42BE17F35419005B97A0 /* macaddress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42BC17F35419005B97A0 /* macaddress.cpp */; };
 		EDDE42C517F5B85B005B97A0 /* climatecontrolbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDDE42C317F5B85B005B97A0 /* climatecontrolbehaviour.cpp */; };
 		EDE4FA48180D45D500A35889 /* enocean1bs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDE4FA46180D45D500A35889 /* enocean1bs.cpp */; };
+		EDEBDE0C301F95750090395C /* artnetcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDEBDE0B301F95750090395C /* artnetcomm.cpp */; };
+		EDEBDE0F301F97FE0090395C /* dmxhandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDEBDE0E301F97FE0090395C /* dmxhandler.cpp */; };
 		EDF032F61E3903180011D79E /* zfcomm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F11E3903180011D79E /* zfcomm.cpp */; };
 		EDF032F71E3903180011D79E /* zfdevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F31E3903180011D79E /* zfdevice.cpp */; };
 		EDF032F81E3903180011D79E /* zfvdc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EDF032F41E3903180011D79E /* zfvdc.cpp */; };
@@ -1880,6 +1882,10 @@
 		EDE0CD421D197CB500B443C2 /* mystromdevice.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = mystromdevice.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA46180D45D500A35889 /* enocean1bs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = enocean1bs.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDE4FA47180D45D500A35889 /* enocean1bs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = enocean1bs.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		EDEBDE0A301F95750090395C /* artnetcomm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = artnetcomm.hpp; sourceTree = "<group>"; };
+		EDEBDE0B301F95750090395C /* artnetcomm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = artnetcomm.cpp; sourceTree = "<group>"; };
+		EDEBDE0D301F97FE0090395C /* dmxhandler.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dmxhandler.hpp; sourceTree = "<group>"; };
+		EDEBDE0E301F97FE0090395C /* dmxhandler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dmxhandler.cpp; sourceTree = "<group>"; };
 		EDEC0CD8204FDEE100CD3C27 /* ws2811.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ws2811.c; sourceTree = "<group>"; tabWidth = 4; };
 		EDEC0CDB204FDEE100CD3C27 /* ws2811.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ws2811.h; sourceTree = "<group>"; };
 		EDEC0CDC204FDEE100CD3C27 /* gpio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gpio.h; sourceTree = "<group>"; };
@@ -2241,6 +2247,8 @@
 				ED5D486719ED502F000DF5A5 /* analogio.hpp */,
 				ED0E441C1732FE4F00C4C283 /* application.cpp */,
 				ED0E441D1732FE4F00C4C283 /* application.hpp */,
+				EDEBDE0B301F95750090395C /* artnetcomm.cpp */,
+				EDEBDE0A301F95750090395C /* artnetcomm.hpp */,
 				ED06036B2DF9D0A5005FE9EC /* backlight.cpp */,
 				ED06036A2DF9D0A5005FE9EC /* backlight.hpp */,
 				ED1F0B9B1954C0CC00876D13 /* colorutils.cpp */,
@@ -2253,6 +2261,8 @@
 				EDAD084D2665109C00D96174 /* dcmotor.hpp */,
 				ED369996178D5BD600376405 /* digitalio.cpp */,
 				ED369997178D5BE300376405 /* digitalio.hpp */,
+				EDEBDE0E301F97FE0090395C /* dmxhandler.cpp */,
+				EDEBDE0D301F97FE0090395C /* dmxhandler.hpp */,
 				ED231E4927D658AA0056C49F /* dnssd.cpp */,
 				ED231E4A27D658AA0056C49F /* dnssd.hpp */,
 				ED026D03171E94D700AD5FD6 /* error.cpp */,
@@ -5285,6 +5295,7 @@
 				EDD1DE7E2DECC3D2007C6774 /* tvgAccessor.cpp in Sources */,
 				EDD1DE7F2DECC3D2007C6774 /* lv_draw_vg_lite_fill.c in Sources */,
 				EDD1DE802DECC3D2007C6774 /* lv_font_unscii_8.c in Sources */,
+				EDEBDE0F301F97FE0090395C /* dmxhandler.cpp in Sources */,
 				EDD1DE812DECC3D2007C6774 /* lv_rle.c in Sources */,
 				EDD1DE822DECC3D2007C6774 /* lv_font_montserrat_38.c in Sources */,
 				EDD1DE832DECC3D2007C6774 /* lv_fragment.c in Sources */,
@@ -5462,6 +5473,7 @@
 				ED9EF77226DFA2F400C2F3D7 /* neuron.cpp in Sources */,
 				EDD6D17A1E49BAAE0082C162 /* ventilationbehaviour.cpp in Sources */,
 				ED5C379D2B5F06AB0081B309 /* midi.cpp in Sources */,
+				EDEBDE0C301F95750090395C /* artnetcomm.cpp in Sources */,
 				ED5B290A17393A0800334C71 /* enoceandevice.cpp in Sources */,
 				EDAEF9742BDA6497000B3FE0 /* proxydevice.cpp in Sources */,
 				EDD9901E26C51F7D009F3103 /* log.c in Sources */,
