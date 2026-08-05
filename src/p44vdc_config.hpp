@@ -45,16 +45,35 @@
   #define SELFTESTING_ENABLED 1
   #define ENABLE_JSONCFGAPI 1
   #define ENABLE_JSONBRIDGEAPI 1
-  #define ENABLE_DS485DEVICES 1
-  #define ENABLE_WBF 1
-  #define ENABLE_MATTER 1
+  #ifndef ENABLE_DS485DEVICES
+    #define ENABLE_DS485DEVICES 1
+  #endif
+  #ifndef ENABLE_WBF
+    #define ENABLE_WBF 1
+  #endif
+  #ifndef ENABLE_MATTER
+    #define ENABLE_MATTER 1
+  #endif
   #define ENABLE_LEGACY_P44CFGAPI 0
-  #define ENABLE_UBUS 0
-  #define ENABLE_OLA 0 // we do no longer want to install OLA on macOS
+  #ifndef ENABLE_UBUS
+    #define ENABLE_UBUS 0
+  #endif
+  #ifndef ENABLE_OLA
+    #define ENABLE_OLA 0 // we do no longer want to install OLA on macOS
+  #endif
   #define ENABLE_DMX 1
-  #define ENABLE_MODBUS 1
-  #define ENABLE_UWSC 1
-  #define ENABLE_LVGL 1 // graphics support with SDL2 simulated display on macOS
+  #ifndef ENABLE_MODBUS
+    #define ENABLE_MODBUS 1
+  #endif
+  #ifndef ENABLE_UWSC
+    #define ENABLE_UWSC 1
+  #endif
+  #ifndef ENABLE_LVGL
+    #define ENABLE_LVGL 1 // graphics support with SDL2 simulated display on macOS
+  #endif
+  #ifndef ENABLE_LEDCHAIN
+    #define ENABLE_LEDCHAIN 1 // LED chain simulator/development support on macOS
+  #endif
   #define REDUCED_FOOTPRINT 0 // general flag to leave away stuff not urgently needed when footprint is a concern
   #define HAVE_JSONC_VERSION_013 1 // unlike in many linux distros, brew had json-c >=0.13 for a while (2021: 0.15)
 #endif // defined(__APPLE__)
@@ -202,6 +221,9 @@
 
 
 // dependencies
+#ifndef ENABLE_LEDARRANGEMENT
+  #define ENABLE_LEDARRANGEMENT (ENABLE_LEDCHAIN)
+#endif
 #if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
   #if defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
     #error "ENABLE_EVALUATORS needs ENABLE_P44SCRIPT"

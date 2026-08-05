@@ -15,6 +15,7 @@ Release/
 # Autotools specifics
 *.o
 Makefile
+!openwrt-package-vdcd/Makefile
 Makefile.in
 autom4te.cache/
 aclocal.m4

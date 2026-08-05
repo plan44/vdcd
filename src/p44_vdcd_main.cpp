@@ -859,7 +859,7 @@ public:
       #if ENABLE_LEDCHAIN
       FeatureApi::addFeaturesFromCommandLine(mLedChainArrangement, featureapipotocols);
       #else
-      FeatureApi::addFeaturesFromCommandLine();
+      FeatureApi::addFeaturesFromCommandLine(featureapipotocols);
       #endif
       #endif // ENABLE_P44FEATURES
 
@@ -1487,13 +1487,13 @@ static const BuiltinMemberDescriptor p44VdcdMembers[] = {
 
 static BuiltInMemberLookup* sharedP44VdcMemberLookupP = NULL;
 
-p44::P44VdcdObj::P44VdcdObj(P44Vdcd& aP44Vdcd) :
+p44::P44Script::P44VdcdObj::P44VdcdObj(P44Vdcd& aP44Vdcd) :
   mP44Vdcd(aP44Vdcd)
 {
   registerSharedLookup(sharedP44VdcMemberLookupP, p44VdcdMembers);
 }
 
-P44LoggingObj* p44::P44VdcdObj::loggingContext() const
+P44LoggingObj* p44::P44Script::P44VdcdObj::loggingContext() const
 {
   return &mP44Vdcd;
 };
