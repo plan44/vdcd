@@ -1,5 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS} -I m4
+EXTRA_DIST = p44-app-version.txt
 
 bin_PROGRAMS = vdcd
 

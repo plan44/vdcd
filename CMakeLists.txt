@@ -4,7 +4,13 @@ if(POLICY CMP0167)
   cmake_policy(SET CMP0167 NEW)
 endif()
 
-project(vdcd VERSION 2.8.4.2 LANGUAGES C CXX)
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/p44-app-version.txt" P44_APP_VERSION LIMIT_COUNT 1)
+string(STRIP "${P44_APP_VERSION}" P44_APP_VERSION)
+if(NOT P44_APP_VERSION MATCHES "^[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?(\\.[0-9]+)?$")
+  message(FATAL_ERROR "p44-app-version.txt must contain a numeric CMake project version, got '${P44_APP_VERSION}'")
+endif()
+
+project(vdcd VERSION ${P44_APP_VERSION} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,8 +38,17 @@ option(ENABLE_LVGL "Enable LVGL graphics support" OFF)
 option(ENABLE_LVGL_DRM "Use DRM instead of fbdev for LVGL" OFF)
 option(PLATFORM_HAS_SHORTBREAK "Platform can produce short UART breaks" OFF)
 
-set(APPLICATION_VERSION "" CACHE STRING "Application version injected from build environment")
+set(P44_EXPECTED_APP_VERSION "" CACHE STRING "Expected application version from the packaging/build environment")
+set(APPLICATION_VERSION "" CACHE STRING "Unsupported legacy version override")
 set(LVGL_COLOR_DEPTH "" CACHE STRING "LVGL color depth")
+
+if(APPLICATION_VERSION)
+  message(FATAL_ERROR "APPLICATION_VERSION is no longer supported as a version override; set P44_EXPECTED_APP_VERSION for package version checks instead")
+endif()
+
+if(P44_EXPECTED_APP_VERSION AND NOT P44_EXPECTED_APP_VERSION STREQUAL PROJECT_VERSION)
+  message(FATAL_ERROR "Expected application version ${P44_EXPECTED_APP_VERSION} does not match source version ${PROJECT_VERSION}")
+endif()
 
 include(CheckLibraryExists)
 include(CheckIncludeFile)
@@ -114,6 +129,8 @@ target_include_directories(vdcd_config INTERFACE
   "${CMAKE_CURRENT_BINARY_DIR}/generated"
 )
 target_compile_definitions(vdcd_config INTERFACE
+  PACKAGE_VERSION="${PROJECT_VERSION}"
+  P44_APPLICATION_VERSION="${PROJECT_VERSION}"
   NO_SSL_DL=1
   BOOST_BIND_GLOBAL_PLACEHOLDERS=1
   BOOST_VERSION_146=1
@@ -138,10 +155,6 @@ target_compile_definitions(vdcd_config INTERFACE
   DISABLE_I2C=$<IF:$<BOOL:${ENABLE_I2C}>,0,1>
   MAINLOOP_LIBEV_BASED=$<IF:$<BOOL:${ENABLE_EV}>,1,0>
 )
-
-if(APPLICATION_VERSION)
-  target_compile_definitions(vdcd_config INTERFACE P44_APPLICATION_VERSION="${APPLICATION_VERSION}")
-endif()
 
 if(LVGL_COLOR_DEPTH)
   target_compile_definitions(vdcd_config INTERFACE LVGL_COLOR_DEPTH=${LVGL_COLOR_DEPTH})

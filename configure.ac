@@ -1,4 +1,5 @@
-AC_INIT([vdcd], [2.8.4.2], [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
+m4_define([P44_APP_VERSION], m4_esyscmd([tr -d '\n' < p44-app-version.txt]))
+AC_INIT([vdcd], P44_APP_VERSION, [luz@plan44.ch], [vdcd], [http://www.plan44.ch/])
 AC_PREREQ([2.59])
 
 AC_CONFIG_AUX_DIR(configure_aux)
