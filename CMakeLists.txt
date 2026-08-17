@@ -129,7 +129,6 @@ target_include_directories(vdcd_config INTERFACE
   "${CMAKE_CURRENT_BINARY_DIR}/generated"
 )
 target_compile_definitions(vdcd_config INTERFACE
-  PACKAGE_VERSION="${PROJECT_VERSION}"
   P44_APPLICATION_VERSION="${PROJECT_VERSION}"
   NO_SSL_DL=1
   BOOST_BIND_GLOBAL_PLACEHOLDERS=1
