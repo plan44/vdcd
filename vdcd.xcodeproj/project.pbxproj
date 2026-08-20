@@ -940,6 +940,7 @@
 		ED93DFEE1D2565B100D6AF0A /* p44utils_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44utils_common.hpp; sourceTree = "<group>"; };
 		ED93DFEF1D2565D000D6AF0A /* p44vdc_common.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = p44vdc_common.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED95C59A2306BD540029614A /* p44lrg_config_TEMPLATE.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = p44lrg_config_TEMPLATE.hpp; sourceTree = "<group>"; };
+		ED96E254302A042700EE7873 /* p44-app-version.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "p44-app-version.txt"; sourceTree = "<group>"; };
 		ED98459E2A6EDB810057C0D8 /* libcrypto.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.3.dylib; path = "../../../../../../opt/homebrew/Cellar/openssl@3/3.1.1_1/lib/libcrypto.3.dylib"; sourceTree = "<group>"; };
 		ED98459F2A6EDB810057C0D8 /* libssl.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.3.dylib; path = "../../../../../../opt/homebrew/Cellar/openssl@3/3.1.1_1/lib/libssl.3.dylib"; sourceTree = "<group>"; };
 		ED9845A22A6EDBB80057C0D8 /* librrd.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = librrd.8.dylib; path = ../../../../../../opt/homebrew/Cellar/rrdtool/1.8.0/lib/librrd.8.dylib; sourceTree = "<group>"; };
@@ -2517,6 +2518,7 @@
 		ED6D7BD21716B63A005DED18 = {
 			isa = PBXGroup;
 			children = (
+				ED96E254302A042700EE7873 /* p44-app-version.txt */,
 				EDA884D229813E6400D10481 /* debian */,
 				ED32BD58274C0EFA0097E990 /* Dockerfile */,
 				ED3BDFE42454793700115B6C /* FUNDING.yml */,
