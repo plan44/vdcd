@@ -30,6 +30,12 @@
   #define ALWAYS_DEBUG 1 // if set, DBGLOG statements will always be included, even in non-debug builds (but can be silenced via loglevel)
 #endif
 
+#if ALWAYS_DEBUG && defined(__APPLE__)
+  #error "%%% remove later"
+  #define ENABLE_UBUS 1
+#endif
+
+
 // auto-disable some features depending on platform
 // - No i2c on Mac or DigiESP, but possible on RaspberryPi and OpenWrt
 #if (defined(__APPLE__) || P44_BUILD_DIGI) && !P44_BUILD_RPI && !P44_BUILD_OW
@@ -221,9 +227,11 @@
 
 
 // dependencies
+
 #ifndef ENABLE_LEDARRANGEMENT
   #define ENABLE_LEDARRANGEMENT (ENABLE_LEDCHAIN)
 #endif
+
 #if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
   #if defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
     #error "ENABLE_EVALUATORS needs ENABLE_P44SCRIPT"
@@ -233,6 +241,9 @@
   #endif
 #endif // ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
 
+#ifndef ENABLE_GENERIC_API_PUSH
+  #define ENABLE_GENERIC_API_PUSH (ENABLE_UBUS) // we want generic push when we have ubus
+#endif
 
 
 #endif /* defined(__p44vdc__config__) */
