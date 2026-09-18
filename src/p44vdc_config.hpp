@@ -31,8 +31,8 @@
 #endif
 
 #if ALWAYS_DEBUG && defined(__APPLE__)
-  #error "%%% remove later"
-  #define ENABLE_UBUS 1
+//  #error "%%% remove later"
+//  #define ENABLE_UBUS 1
 #endif
 
 
