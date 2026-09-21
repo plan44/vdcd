@@ -233,7 +233,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
@@ -325,7 +325,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--wbf"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ola"
@@ -341,7 +341,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--scripteddevices"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--dali 127.0.0.1:2101"
