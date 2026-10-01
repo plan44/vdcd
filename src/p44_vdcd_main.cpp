@@ -535,6 +535,7 @@ public:
       { 0  , "saveoutputs",      false, "save/restore output (channel) states by default" },
       #if ENABLE_LOCALCONTROLLER
       { 0  , "localcontroller",  false,"enable local controller (offline) features" },
+      { 0  , "remotecontrolled", false,"only with localcontroller: disable direct input to output control logic" },
       #endif
       #if !DISABLE_DISCOVERY
       { 0  , "noauto",           false, "prevent auto-connection to this vdc host" },
@@ -673,7 +674,7 @@ public:
 
     // create the root object
     bool withLocalController = getOption("localcontroller");
-    mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs")));
+    mP44VdcHost = P44VdcHostPtr(new P44VdcHost(withLocalController, getOption("saveoutputs"), getOption("remotecontrolled")));
     #if ENABLE_LEDCHAIN
     mP44VdcHost->mLedChainArrangement = mLedChainArrangement; // pass it on for simulation data API
     #endif
