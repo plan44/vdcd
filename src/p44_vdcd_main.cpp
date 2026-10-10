@@ -1158,7 +1158,7 @@ public:
           // start
           setAppStatus(status_interaction);
           mLearningTimerTicket.executeOnce(boost::bind(&P44Vdcd::stopLearning, this, true), LEARN_TIMEOUT);
-          mP44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2));
+          mP44VdcHost->startLearning(boost::bind(&P44Vdcd::deviceLearnHandler, this, _1, _2), false, undefined);
         }
         else {
           // stop
