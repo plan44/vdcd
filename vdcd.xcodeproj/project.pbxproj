@@ -1835,6 +1835,7 @@
 		EDD1DF3C2DEE2575007C6774 /* lvglui.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lvglui.hpp; sourceTree = "<group>"; };
 		EDD1DF3D2DEE2575007C6774 /* lvglui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lvglui.cpp; sourceTree = "<group>"; };
 		EDD1DF3F2DF0D5B2007C6774 /* lv_version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lv_version.h; sourceTree = "<group>"; };
+		EDD2685030824B7A00057065 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		EDD304321D09C10E0005E6D9 /* spi.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = spi.cpp; sourceTree = "<group>"; };
 		EDD304331D09C10E0005E6D9 /* spi.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = spi.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		EDD6D1781E49BAAE0082C162 /* ventilationbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ventilationbehaviour.cpp; sourceTree = "<group>"; };
@@ -2523,6 +2524,7 @@
 				ED32BD58274C0EFA0097E990 /* Dockerfile */,
 				ED3BDFE42454793700115B6C /* FUNDING.yml */,
 				ED5D1DA21EF56A1D00BB0FF8 /* README.md */,
+				EDD2685030824B7A00057065 /* CMakeLists.txt */,
 				ED7C5B5A1F97F35700239034 /* configure.ac */,
 				EDBCDBF31F3E383700DA85CF /* Makefile.am */,
 				ED6D7BE71716B6B1005DED18 /* src */,

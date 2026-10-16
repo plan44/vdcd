@@ -181,7 +181,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.84"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 127.0.0.1:2144"
@@ -317,7 +317,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--huelights"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--allowcloud"
@@ -365,7 +365,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--enocean /dev/cu.usbserial-FTVEQ3US"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--eldat 192.168.59.84"
