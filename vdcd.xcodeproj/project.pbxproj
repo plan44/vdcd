@@ -5798,7 +5798,7 @@
 					"$(inherited)",
 					/opt/homebrew/Cellar/sdl2/2.32.6/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
@@ -5834,7 +5834,7 @@
 					"$(inherited)",
 					/opt/homebrew/Cellar/sdl2/2.32.6/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				OTHER_LDFLAGS = (
 					"${inherited}",
 					"-lprotobuf-c",
