@@ -40,6 +40,7 @@
 		ED23300628805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
 		ED23300728805A4A00D934D7 /* keyevents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED23300428805A4A00D934D7 /* keyevents.cpp */; };
 		ED2C9DE519518CEA00BD40B0 /* channelbehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */; };
+		ED354A8D308A560A0093C123 /* test_extutils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED354A8C308A560A0093C123 /* test_extutils.cpp */; };
 		ED35B6C31B4C24ED0097DD5D /* audiobehaviour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */; };
 		ED36999A178D6A2C00376405 /* iopin.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369998178D6A2C00376405 /* iopin.cpp */; };
 		ED36999B178D9E8B00376405 /* digitalio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ED369996178D5BD600376405 /* digitalio.cpp */; };
@@ -724,6 +725,7 @@
 		ED2C9DE319518CEA00BD40B0 /* channelbehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; name = channelbehaviour.cpp; path = src/p44vdc/vdc_common/channelbehaviour.cpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED2C9DE419518CEA00BD40B0 /* channelbehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; name = channelbehaviour.hpp; path = src/p44vdc/vdc_common/channelbehaviour.hpp; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED32BD58274C0EFA0097E990 /* Dockerfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Dockerfile; sourceTree = "<group>"; };
+		ED354A8C308A560A0093C123 /* test_extutils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_extutils.cpp; sourceTree = "<group>"; };
 		ED35B6C11B4C24ED0097DD5D /* audiobehaviour.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; lineEnding = 0; path = audiobehaviour.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED35B6C21B4C24ED0097DD5D /* audiobehaviour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = audiobehaviour.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		ED369996178D5BD600376405 /* digitalio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = digitalio.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -2487,10 +2489,11 @@
 		ED6CCD361D198A9500C78A0D /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */,
 				EDDADFAD2B0E526D003FAB83 /* catch_amalgamated.hpp */,
-				EDF7F40F24D4179A00593814 /* httptest.php */,
+				EDDADFAE2B0E542D003FAB83 /* catch_amalgamated.cpp */,
+				ED354A8C308A560A0093C123 /* test_extutils.cpp */,
 				ED3701F52007A54A00A1BD67 /* test_httpcomm.cpp */,
+				EDF7F40F24D4179A00593814 /* httptest.php */,
 				EDA7D1B11D5B31A4000063AA /* test_macaddress.cpp */,
 				ED124EC0208A42DC001DED3A /* test_mainloop.cpp */,
 				ED08F8FD24CEC32F0080DA36 /* test_p44script.cpp */,
@@ -4960,6 +4963,7 @@
 				ED3EF4602735AE31004DFF99 /* modbus-rtu.c in Sources */,
 				EDDC9F70257A31F700C13C94 /* socketcomm.cpp in Sources */,
 				ED54FDCB2411A4CB006A443D /* jsonobject.cpp in Sources */,
+				ED354A8D308A560A0093C123 /* test_extutils.cpp in Sources */,
 				ED3701FD2007B4E200A1BD67 /* httpcomm.cpp in Sources */,
 				EDA7D1B31D5B31A4000063AA /* test_macaddress.cpp in Sources */,
 				ED23300728805A4A00D934D7 /* keyevents.cpp in Sources */,
@@ -5588,7 +5592,7 @@
 					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
 					/opt/homebrew/Cellar/libev/4.33/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5627,7 +5631,7 @@
 					/opt/homebrew/Cellar/rrdtool/1.8.0/lib,
 					/opt/homebrew/Cellar/libev/4.33/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

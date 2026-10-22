@@ -107,8 +107,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "[scripting]"
+            argument = "[extutils]"
             isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "[scripting]"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "[tlv]"

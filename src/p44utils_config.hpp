@@ -26,6 +26,8 @@
 #ifndef ENABLE_APPLICATION_SUPPORT
   #define ENABLE_APPLICATION_SUPPORT 1 // support for Application (e.g. domain specific commandline options) in other parts of P44 utils
 #endif
-
+#ifndef HAS_OPENSSL
+  #define HAS_OPENSSL 1 // vdcd requires openssl anyway for dSUIDs and https, so we can assume it present
+#endif
 
 #endif // __p44utils__config__
