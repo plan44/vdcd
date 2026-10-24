@@ -133,7 +133,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--setupscript +/setups/setupscript.p44s"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--selftest --notestablehw"
@@ -181,7 +181,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 192.168.59.84"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--proxydevices 127.0.0.1:2144"
@@ -233,7 +233,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
