@@ -105,11 +105,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-data-fateba"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath /Users/luz/Documents/plan44/P44-xx/hacking+devdocs/xcode-vdcd-matter-DUT"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--datapath &quot;/Users/luz/Documents/plan44/Projekte/Anet Corti/xcode_cfg_dev&quot;"
@@ -120,8 +120,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/resources"
-            isEnabled = "NO">
+            argument = "--resourcepath /Volumes/CaseSens/openwrt-2/feeds/p44i/p44lc-config/files/common/usr/share/p44lc"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Volumes/CaseSens/openwrt-rv110x/feeds/p44i/p44lc-config/files/p44-xx-86panel/usr/share/p44lc"
@@ -129,7 +129,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--resourcepath /Users/luz/Desktop"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--setupscript +/setups/setupscript.p44s"
@@ -229,11 +229,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain none"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--noledthread"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--ledchain WS2815.RGB:dummy:256:0:16:0:16:AYSC4,0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--inputs"
