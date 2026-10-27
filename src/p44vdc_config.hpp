@@ -232,7 +232,7 @@
   #define ENABLE_LEDARRANGEMENT (ENABLE_LEDCHAIN)
 #endif
 #if ENABLE_LEDARRANGEMENT
-  #define ENABLE_THREADED_STEPPING 1
+  #define ENABLE_THREADED_STEPPING 0 // it seems it is not needed, just complicates things
 #endif
 
 #if ENABLE_THREADED_STEPPING
