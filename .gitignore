@@ -70,3 +70,4 @@ cmake-build-*/
 
 ipkg-install
 lib
+logs

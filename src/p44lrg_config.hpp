@@ -37,7 +37,4 @@
   #define ENABLE_IMAGE_SUPPORT 0
 #endif
 
-#define ENABLE_THREADED_STEPPING 1
-
-
 #endif // __p44lrgraphics__config__

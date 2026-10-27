@@ -233,8 +233,24 @@
 #endif
 #if ENABLE_LEDARRANGEMENT
   #define ENABLE_THREADED_STEPPING 1
-  #define MAINLOOP_CROSSTHREAD_TIMERS 1
 #endif
+
+#if ENABLE_THREADED_STEPPING
+  #if defined(ENABLE_ATOMIC_REFCOUNTS)
+    #if !ENABLE_ATOMIC_REFCOUNTS
+      #error "threaded stepping needs atomic refcounts"
+    #endif
+  #else
+    #define ENABLE_ATOMIC_REFCOUNTS 1
+  #endif
+  #if defined(MAINLOOP_CROSSTHREAD_TIMERS)
+    #if !MAINLOOP_CROSSTHREAD_TIMERS
+      #error "threaded stepping needs crossthread timers"
+    #endif
+  #else
+    #define MAINLOOP_CROSSTHREAD_TIMERS 1
+  #endif
+#endif // ENABLE_THREADED_STEPPING
 
 #if ENABLE_EVALUATORS || ENABLE_LOCALCONTROLLER
   #if defined(ENABLE_P44SCRIPT) && !ENABLE_P44SCRIPT
